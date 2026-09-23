@@ -66,7 +66,7 @@ describe("computeFlex", () => {
     const stops = [
       stop("a", 56.14, 9.0),
       stop("b", 56.145, 9.005),
-      stop("c", 56.15, 9.01, { time_window_end: "10:15" }),
+      stop("c", 56.15, 9.01, { time_window_end: "11:30" }),
     ];
     const flex = computeFlex(stops, [56.13, 8.99], 9 * 60);
     expect(flex[2].slackMin).not.toBeNull();

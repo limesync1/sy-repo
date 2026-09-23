@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition, useReorderStops } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -39,6 +39,11 @@ import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completi
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
+import {
+  computeFlex, evaluateMove, findSpeedOpportunity, minutesNow,
+  type FlexLevel, type StopFlex,
+} from "@/components/employee-route/routeSlack";
+import { ArrowUp, ArrowDown, Zap } from "lucide-react";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -54,7 +59,21 @@ const startIcon = L.divIcon({
   iconAnchor: [19, 44],
 });
 
-const stopIcon = (n: number, state: "next" | "done" | "future", color: string, highlighted = false) => {
+/** Farve pr. fleksibilitets-niveau — bruges på kortets pins og i listen. */
+const FLEX_TONE: Record<FlexLevel, string> = {
+  late: "hsl(0 72% 51%)",
+  fixed: "hsl(38 92% 50%)",
+  tight: "hsl(199 89% 48%)",
+  flexible: "hsl(142 70% 45%)",
+};
+
+const stopIcon = (
+  n: number,
+  state: "next" | "done" | "future",
+  color: string,
+  highlighted = false,
+  flexLevel: FlexLevel | null = null,
+) => {
   // Admin-panel-stil: neutral foreground for "next", muted-grå for "future",
   // grøn for "done".  Vi bruger samme palette som AdminShell/StatCard så
   // medarbejder-appen visuelt er en del af samme design-system — ikke en
@@ -89,6 +108,11 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
           box-shadow:0 4px 12px rgba(0,0,0,.28)${hlRing};
           ${ring !== "none" ? `outline-offset:0;box-shadow:0 4px 12px rgba(0,0,0,.28), ${ring}${hlRing};` : ""}
         ">${inner}</div>
+        ${
+          flexLevel && state !== "done"
+            ? `<div style="position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:${FLEX_TONE[flexLevel]};border:2.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3);"></div>`
+            : ""
+        }
         <div style="position:absolute;left:50%;top:${size - 4}px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${bg};filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));"></div>
       </div>`,
     iconSize: [size, Math.round(size * 1.18)],
@@ -648,9 +672,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
    * dobbelt-fetch'er undervejs.
    */
   const previewWaypoints = useMemo(() => {
-    if (routeStarted) return null;
     const wps: { lat: number; lng: number }[] = [];
-    if (startCoord) wps.push({ lat: startCoord[0], lng: startCoord[1] });
+    // Før start: hele turen fra startadressen. Under kørsel: resten af
+    // dagen fra næste stop og frem, så en ny rækkefølge straks kan ses
+    // på kortet (det aktive ben tegnes ovenpå).
+    if (!routeStarted && startCoord) wps.push({ lat: startCoord[0], lng: startCoord[1] });
     for (const s of sortedStops) {
       if (s.status === "completed") continue;
       if (s.latitude == null || s.longitude == null) continue;
@@ -974,6 +1000,60 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     () => sortedStops.filter((s) => s.status !== "completed"),
     [sortedStops],
   );
+
+  /* ── Fleksibilitet pr. stop: hvor meget kan det flyttes uden at
+   * sprænge et tidsvindue? Og kan resten af dagen køres hurtigere i en
+   * anden rækkefølge? Begge dele regnes lokalt (ingen netværk) så det er
+   * øjeblikkeligt og virker også uden dækning. ── */
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!pageVisible) return;
+    const t = setInterval(() => setClockTick((v) => v + 1), 60_000);
+    return () => clearInterval(t);
+  }, [pageVisible]);
+
+  // Kvantisér positionen til ~100 m, så tallene ikke hopper ved GPS-støj.
+  const flexOrigin: [number, number] | null = useMemo(() => {
+    const p = userPos ?? startCoord;
+    if (!p) return null;
+    return [Math.round(p[0] * 1000) / 1000, Math.round(p[1] * 1000) / 1000];
+  }, [userPos?.[0], userPos?.[1], startCoord?.[0], startCoord?.[1]]);
+
+  const flexList: StopFlex[] = useMemo(
+    () => computeFlex(remainingStops, flexOrigin, minutesNow()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [remainingStops, flexOrigin?.[0], flexOrigin?.[1], clockTick],
+  );
+  const flexById = useMemo(
+    () => new Map(flexList.map((f) => [f.id, f])),
+    [flexList],
+  );
+  const speedOpp = useMemo(
+    () => findSpeedOpportunity(remainingStops, flexOrigin, minutesNow()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [remainingStops, flexOrigin?.[0], flexOrigin?.[1], clockTick],
+  );
+  const [optimizeHintDismissed, setOptimizeHintDismissed] = useState<string | null>(null);
+  const oppSignature = speedOpp.suggestedIds.join("|");
+  const showOptimizeHint =
+    speedOpp.worth && !optimizeLive.isPending && optimizeHintDismissed !== oppSignature;
+
+  const reorderStops = useReorderStops();
+  const reoptRef = useRef<((o?: { silent?: boolean; excludeId?: string }) => Promise<void>) | null>(null);
+  const lastAutoOptRef = useRef(0);
+
+  /* Automatisk omlægning under kørsel — kun når der er meget at hente,
+   * man ikke er lige ved at køre ind til næste stop, og højst hvert 5. min. */
+  useEffect(() => {
+    if (!routeStarted || runMode !== "guide" || !pageVisible) return;
+    if (!speedOpp.worth || (speedOpp.savedMin < 15 && speedOpp.fixesViolations === 0)) return;
+    if (optimizeLive.isPending || !reoptRef.current) return;
+    if (distanceToNextM != null && distanceToNextM < 500) return;
+    if (Date.now() - lastAutoOptRef.current < 5 * 60_000) return;
+    lastAutoOptRef.current = Date.now();
+    void reoptRef.current({ silent: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speedOpp.worth, speedOpp.savedMin, speedOpp.fixesViolations, routeStarted, runMode, pageVisible]);
   const remainingServiceMinutes = useMemo(
     () => remainingStops.reduce((sum, s) => sum + (s.duration_minutes || 0), 0),
     [remainingStops],
@@ -1220,6 +1300,40 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       autoOptimizeRef.current = false;
     }
   };
+  reoptRef.current = reoptimizeFromHere;
+
+  /** Flyt ét stop op/ned i rækkefølgen mens man kører. */
+  const handleMoveStop = async (stopId: string, dir: -1 | 1) => {
+    const list = remainingStops;
+    const from = list.findIndex((s) => s.id === stopId);
+    const to = from + dir;
+    if (from < 0 || to < 0 || to >= list.length) return;
+    const ev = evaluateMove(list, from, to, flexOrigin, minutesNow());
+    const completed = sortedStops.filter((s) => s.status === "completed");
+    const updates = [...completed, ...ev.order].map((s, i) => ({ id: s.id, sequence: i + 1 }));
+    try {
+      await reorderStops.mutateAsync(updates);
+      buzz(14);
+      const broken = ev.brokenStopId ? sortedStops.find((s) => s.id === ev.brokenStopId) : null;
+      if (!ev.feasible && broken) {
+        toast.warning(`${broken.customer_name || "Et stop"} når ikke sit tidsvindue`, {
+          description: "Rækkefølgen er ændret — overvej at flytte den tilbage.",
+        });
+      } else {
+        const d = Math.round(ev.deltaMin);
+        toast.success("Rækkefølgen er ændret", {
+          description:
+            d < -1 ? `Du sparer ca. ${Math.abs(d)} min.`
+              : d > 1 ? `Det koster ca. ${d} min ekstra.`
+                : undefined,
+        });
+      }
+    } catch {
+      toast.error("Kunne ikke ændre rækkefølgen", { description: "Prøv igen om lidt." });
+    }
+  };
+
+
 
   const handleComplete = async (s: RouteStop) => {
     if (routeDateLocked) {
@@ -1478,18 +1592,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Preview-route — vist FØR start, så hele turen er synlig.
                 Tegnet under (lavere z) det aktive leg når begge findes. */}
-            {!routeStarted && previewLine.length > 1 && (
+            {previewLine.length > 1 && (
               <>
                 <Polyline
                   positions={previewLine}
-                  pathOptions={{ color: "white", weight: 12, opacity: 0.9, lineCap: "round", lineJoin: "round" }}
+                  pathOptions={{
+                    color: "white",
+                    weight: routeStarted ? 8 : 12,
+                    opacity: routeStarted ? 0.6 : 0.9,
+                    lineCap: "round",
+                    lineJoin: "round",
+                  }}
                 />
                 <Polyline
                   positions={previewLine}
                   pathOptions={{
                     color: themeColor,
-                    weight: 6,
-                    opacity: 0.85,
+                    weight: routeStarted ? 4 : 6,
+                    opacity: routeStarted ? 0.55 : 0.85,
                     lineCap: "round",
                     lineJoin: "round",
                     dashArray: "2 10",
@@ -1556,7 +1676,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Marker
                   key={s.id}
                   position={[Number(s.latitude), Number(s.longitude)]}
-                  icon={stopIcon(i + 1, state, themeColor, s.id === highlightedId)}
+                  icon={stopIcon(
+                    i + 1,
+                    state,
+                    themeColor,
+                    s.id === highlightedId,
+                    flexById.get(s.id)?.level ?? null,
+                  )}
                   eventHandlers={{ click: () => { setHighlightedId(s.id); setSelectedId(s.id); } }}
                 />
               );
@@ -1593,6 +1719,48 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button type="button" variant="outline" size="sm" className="mt-2 h-9" onClick={() => retryDirections()}>Prøv igen</Button>
           </div>
         )}
+
+        {/* ─── "Ruten kan køres hurtigere" — vises kun når der reelt er
+             minutter at hente i en anden rækkefølge. ─── */}
+        {routeStarted && !allDone && showOptimizeHint && (
+          <div className="absolute left-3 right-[68px] bottom-[62px] z-[1001] rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
+            <div className="flex items-start gap-2.5">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                <Zap className="h-4 w-4 text-foreground" strokeWidth={2.4} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">Resten af ruten kan køres hurtigere</p>
+                <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                  {speedOpp.fixesViolations > 0
+                    ? "En anden rækkefølge redder en aftale med fast tid."
+                    : `Spar ca. ${Math.round(speedOpp.savedMin)} min og ${speedOpp.savedKm.toFixed(1)} km.`}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 flex-1"
+                    disabled={optimizeLive.isPending}
+                    onClick={() => void reoptimizeFromHere()}
+                  >
+                    {optimizeLive.isPending ? "Optimerer…" : "Optimér"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-9"
+                    onClick={() => setOptimizeHintDismissed(oppSignature)}
+                  >
+                    Ikke nu
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+
 
         {/* ─── Floating right-side controls — runde pills, native-følelse ───
            Alle kontroller deler én base-klasse (`floatCtrlBase`) så stik-,
@@ -2267,6 +2435,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           if (s.latitude != null && s.longitude != null) setFollowMode(false);
         }}
         onOpenDetails={(s) => setSelectedId(s.id)}
+        flexById={flexById}
+        canReorder={!allDone}
+        reordering={reorderStops.isPending}
+        onMoveStop={handleMoveStop}
       />
     </div>
   );
@@ -2302,6 +2474,7 @@ const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
 /* ─── Collapsible bottom stop-list with live status & map sync ─── */
 const StopListPanel = ({
   open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
+  flexById, canReorder, reordering, onMoveStop,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -2311,7 +2484,12 @@ const StopListPanel = ({
   themeColor: string;
   onSelectStop: (s: RouteStop) => void;
   onOpenDetails: (s: RouteStop) => void;
+  flexById: Map<string, StopFlex>;
+  canReorder: boolean;
+  reordering: boolean;
+  onMoveStop: (stopId: string, dir: -1 | 1) => void;
 }) => {
+  const remainingIds = stops.filter((s) => s.status !== "completed").map((s) => s.id);
   const total = stops.length;
   const done = stops.filter((s) => s.status === "completed").length;
 
