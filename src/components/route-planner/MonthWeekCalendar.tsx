@@ -1363,7 +1363,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "cursor-pointer min-h-[72px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
+        "cursor-pointer min-h-[80px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1481,14 +1481,14 @@ const RoutePillInner = ({
           // Lidt mere højre-padding når der er medarbejder-avatarer på
           // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
           // pillens højre kant i smalle måneds-celler.
-          "relative z-[1] min-h-[70px] pl-2.5 pr-2 py-1.5 flex flex-col items-stretch gap-1",
+          "relative z-[1] min-h-[78px] pl-2.5 pr-2 py-1.5 flex flex-col items-stretch gap-0.5",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[13px] font-semibold text-foreground leading-[1.2] tracking-normal line-clamp-2 break-words" title={route.name || undefined}>
+          <div className="text-[12px] font-semibold text-foreground leading-[1.15] tracking-normal line-clamp-3 break-words" title={route.name || undefined}>
             {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
           </div>
           <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
