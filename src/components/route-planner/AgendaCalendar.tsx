@@ -85,13 +85,6 @@ export const AgendaCalendar = ({
     }
     for (const [k, arr] of m) {
       arr.sort((a, b) => {
-        const at = (a as any).planned_start_time || "";
-        const bt = (b as any).planned_start_time || "";
-        if (at !== bt) {
-          if (!at) return 1;
-          if (!bt) return -1;
-          return at < bt ? -1 : 1;
-        }
         const av = a.isVirtual ? 0 : 1;
         const bv = b.isVirtual ? 0 : 1;
         if (av !== bv) return av - bv;
@@ -535,9 +528,6 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
             <span className="inline-flex items-center gap-0.5 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-feature-cool-foreground">
               ✓ Udført
             </span>
-          )}
-          {(route as any).planned_start_time && (
-            <span>kl. {String((route as any).planned_start_time).slice(0,5)}</span>
           )}
         </div>
       </div>

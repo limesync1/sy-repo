@@ -877,8 +877,8 @@ export const RouteEditSheet = ({
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
-            "flex flex-col p-0 shadow-xl",
-            isCompact ? "h-[82dvh] max-h-[82dvh] rounded-t-2xl" : "w-full sm:max-w-md",
+            "flex flex-col p-0 shadow-sm",
+            isCompact ? "h-[86dvh] max-h-[86dvh] rounded-t-md" : "w-full sm:max-w-md",
           )}
           hideOverlay={!isCompact}
           hideCloseButton={false}
@@ -901,7 +901,7 @@ export const RouteEditSheet = ({
           }}
         >
           <SheetHeader
-            className="relative px-4 py-3.5 pr-14 border-b shrink-0 space-y-0 text-left bg-gradient-to-b from-secondary/40 to-card"
+            className="relative px-4 py-3 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
             <span
               aria-hidden
@@ -1121,7 +1121,7 @@ export const RouteEditSheet = ({
           </div>
 
           {/* Footer actions */}
-          <SheetFooterBar className="space-y-2 bg-gradient-to-t from-secondary/30 to-card">
+          <SheetFooterBar className="space-y-2 bg-card">
             {!isProjection && stopCount >= 2 && (
               <Button
                 className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"

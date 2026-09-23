@@ -1,7 +1,7 @@
 # Ruteplanlægger-modernisering
 - [x] Kræv aktiv service før bestilling og skjul inaktive offentligt
-- [x] Indfør fælles kompakt design for kort, værktøjslinjer, dialoger og paneler
-- [x] Erstat synlig tidsbaseret belastning globalt med stopbaseret belastning
-- [x] Gør desktop-pool og rutekort mere brugbare uden manuel breddejustering
-- [x] Giv mobil samme planlægningskerne, visninger, filtre og centrale handlinger
-- [x] Test typer, stopkapacitet og responsive bredder på desktop, tablet og mobil
+- [x] Gennemfør en tydelig, professionel omlægning af hele planlæggerens arbejdsflade
+- [x] Fjern alle synlige udførelsestidspunkter fra aftaler, fletning og historik
+- [x] Fjern statusfilteret "I gang"
+- [x] Vis aftaler uden rute fast på mobil, så de kan trækkes direkte til ruter
+- [x] Test hele resultatet på computer, tablet og mobil

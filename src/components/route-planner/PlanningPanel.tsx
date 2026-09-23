@@ -339,7 +339,6 @@ export const PlanningPanel = ({
                 <LegendGroup title="Ordrestatus">
                   <LegendDot color="hsl(220 14% 70%)" label="Afventer" />
                   <LegendDot color="hsl(217 91% 60%)" label="Bekræftet" />
-                  <LegendDot color="hsl(43 96% 56%)" label="I gang" />
                   <LegendDot color="hsl(142 71% 45%)" label="Afsluttet" />
                   <LegendDot color="hsl(0 84% 60%)" label="Annulleret" />
                 </LegendGroup>

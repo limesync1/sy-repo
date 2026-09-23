@@ -186,7 +186,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       case "completed":
         return <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 text-[10px] h-5"><CheckCircle2 className="h-3 w-3" />Færdig</Badge>;
       case "in_progress":
-        return <Badge className="bg-sky-600 hover:bg-sky-600 text-white gap-1 text-[10px] h-5"><Loader2 className="h-3 w-3 animate-spin" />I gang</Badge>;
+        return <Badge variant="secondary" className="gap-1 text-[10px] h-5"><Clock className="h-3 w-3" />Afventer</Badge>;
       case "skipped":
         return <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-200 gap-1 text-[10px] h-5"><AlertCircle className="h-3 w-3" />Sprunget over</Badge>;
       default:
@@ -285,11 +285,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       <p className="font-semibold text-emerald-900 dark:text-emerald-100">
                         Aftalen er udført
                       </p>
-                      {stop.completed_at && (
-                        <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
-                          Færdiggjort {format(parseISO(stop.completed_at), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
-                        </p>
-                      )}
+                       {stop.completed_at && (
+                         <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
+                           Færdiggjort {format(parseISO(stop.completed_at), "d. MMM yyyy", { locale: da })}
+                         </p>
+                       )}
                       {(() => {
                         const ids = stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []);
                         if (!ids.length) return null;

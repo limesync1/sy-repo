@@ -39,9 +39,6 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  ResizablePanelGroup, ResizablePanel, ResizableHandle,
-} from "@/components/ui/resizable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
@@ -747,10 +744,12 @@ const Planner = () => {
   const STATUS_OPTIONS: { value: string; label: string }[] = [
     { value: "planned",   label: "Planlagt" },
     { value: "confirmed", label: "Bekræftet" },
-    { value: "in_progress", label: "I gang" },
     { value: "completed", label: "Færdig" },
     { value: "cancelled", label: "Aflyst" },
   ];
+  useEffect(() => {
+    setFilterStatuses((current) => current.filter((status) => status !== "in_progress"));
+  }, [setFilterStatuses]);
   const filtersActive = filterAssigneeIds.length > 0 || filterStatuses.length > 0;
 
   /** Stops efter filter — bruges både til rute-bygger og kalender-kort. */
@@ -3962,10 +3961,12 @@ const Planner = () => {
                           for (let i = 1; i <= 90; i++) {
                             const d = format(addDays(start, i), "yyyy-MM-dd");
                             const cap = capacityByDate.get(d);
-                            if (!cap || cap.load_pct < 80) {
+                            if (!cap || cap.stops_booked < cap.stops_capacity) {
                               setDate(d);
                               toast.success(`Hopper til ${d}`, {
-                                description: cap ? `Belastning ${Math.round(cap.load_pct)}%` : "Ingen booket arbejde",
+                                description: cap
+                                  ? `${cap.stops_booked} af ${cap.stops_capacity} stop planlagt`
+                                  : "Ingen stop planlagt",
                               });
                               return;
                             }
@@ -4435,19 +4436,14 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                  <ResizablePanelGroup
-                    direction="horizontal"
-                    className="h-full rounded-[5px]"
-                    autoSaveId="route-planner:unassigned-split"
-                  >
-                    <ResizablePanel id="unassigned" order={1} defaultSize={32} minSize={30} maxSize={38} className="overflow-hidden">
-                      {unassignedCard}
-                    </ResizablePanel>
-                    <ResizableHandle withHandle className="w-1.5 bg-border/50 hover:bg-accent/20 transition-colors" />
-                    <ResizablePanel id="calendar" order={2} defaultSize={70} className="overflow-hidden">
-                      {calendarBlock}
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
+                    <div className="grid h-full min-h-0 grid-cols-[22rem_minmax(0,1fr)] overflow-hidden rounded-[5px] border border-border/70 bg-background">
+                      <aside className="min-w-0 overflow-hidden border-r border-border/70 bg-card">
+                        {unassignedCard}
+                      </aside>
+                      <main className="min-w-0 overflow-hidden bg-background">
+                        {calendarBlock}
+                      </main>
+                    </div>
                 </div>
               </div>
 
@@ -4623,23 +4619,14 @@ const Planner = () => {
                     </Button>
                   </div>
 
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 w-full justify-between rounded-[4px]">
-                        <span className="inline-flex items-center gap-2">
-                          <Inbox className="h-4 w-4" />
-                          Aftaler uden rute
-                        </span>
-                        <Badge variant="secondary" className="tabular-nums">{filteredUnassigned.length}</Badge>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-[94vw] max-w-md p-0 flex flex-col">
-                      <div className="flex min-h-0 flex-1 flex-col">{unassignedCard}</div>
-                    </SheetContent>
-                  </Sheet>
                 </div>
-                <div className="flex-1 min-h-0">
-                  {mobileCalendarBlock}
+                <div className="grid min-h-0 flex-1 grid-rows-[minmax(12rem,34dvh)_minmax(15rem,1fr)] overflow-hidden rounded-[5px] border border-border/70 bg-background">
+                  <section className="min-h-0 overflow-hidden border-b-2 border-foreground/10" aria-label="Aftaler uden rute">
+                    {unassignedCard}
+                  </section>
+                  <section className="min-h-0 overflow-hidden" aria-label="Rutekalender">
+                    {mobileCalendarBlock}
+                  </section>
                 </div>
               </div>
             </div>
@@ -4732,7 +4719,6 @@ const Planner = () => {
                 id: s.id,
                 customerName: s.customer_name ?? null,
                 serviceSummary: s.service_summary ?? null,
-                plannedArrival: s.planned_arrival ?? null,
               }));
           })()}
           targetStopCount={(pendingRouteMerge?.target as any)?.stops?.length ?? 0}
@@ -5768,9 +5754,6 @@ const Planner = () => {
                 address: s.address ?? null,
                 city: null,
                 phone: s.customer_phone ?? null,
-                startTime: s.planned_arrival
-                  ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
-                  : null,
                 notes: s.notes ?? null,
               })),
           })))}
@@ -5792,9 +5775,6 @@ const Planner = () => {
                 routeColor: r.color,
                 customerName: s.customer_name ?? "—",
                 address: s.address ?? null,
-                startTime: s.planned_arrival
-                  ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
-                  : null,
                 serviceSummary: s.service_summary ?? null,
               }))
           ))}

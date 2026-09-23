@@ -36,7 +36,6 @@ export function LegendPopover() {
         <div className="max-h-[70vh] overflow-y-auto">
           <div className="p-3 space-y-3 text-xs">
             <Section title="Rute-status">
-              <Row swatch={<Dot className="bg-amber-500 animate-pulse" />} label="I gang" desc="Mindst ét stop er udført" />
               <Row swatch={<BadgeChip className="bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300"><CheckCircle2 className="h-2.5 w-2.5" /></BadgeChip>} label="Udført" desc="Alle stop er færdige" />
             </Section>
             <Divider />

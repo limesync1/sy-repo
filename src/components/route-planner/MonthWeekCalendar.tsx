@@ -462,7 +462,7 @@ export const MonthWeekCalendar = ({
   // Lokal state — overlever ikke reload (med vilje: en filtrering på "klar"
   // skal ikke forvirre næste gang man åbner planneren). Filteret anvendes
   // KUN i kalender-visningen og påvirker ikke det data RoutePlanner ser.
-  type StatusFilter = "all" | "planned" | "ready" | "in_progress" | "completed";
+  type StatusFilter = "all" | "planned" | "ready" | "completed";
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [employeeFilter, setEmployeeFilter] = useState<Set<string>>(new Set());
 
@@ -485,12 +485,8 @@ export const MonthWeekCalendar = ({
     const stopCount = r.stops.length;
     const doneCount = r.stops.filter((s) => s.status === "completed").length;
     const allDone = stopCount > 0 && doneCount === stopCount;
-    const anyDone = doneCount > 0 && !allDone;
     if (statusFilter === "completed") {
       return status === "completed" || allDone;
-    }
-    if (statusFilter === "in_progress") {
-      return status === "in_progress" || anyDone;
     }
     if (statusFilter === "ready") {
       return status === "ready" || status === "confirmed";
@@ -537,20 +533,9 @@ export const MonthWeekCalendar = ({
       arr.push(r);
       m.set(r.route_date, arr);
     }
-    // Sortér ruterne i hver dag deterministisk så projicerede (virtuelle)
-    // ruter ikke ender "bagved" den originale basisrute pga. tilfældig
-    // insertion-rækkefølge. Primært på planlagt starttid, sekundært på
-    // navn, og virtuelle ruter placeres FØR de rigtige ved tie — så
-    // brugeren altid kan se den projicerede forekomst først.
+    // Sortér deterministisk uden at bruge aftalernes udførelsestid.
     for (const [k, arr] of m) {
       arr.sort((a, b) => {
-        const at = (a as any).planned_start_time || "";
-        const bt = (b as any).planned_start_time || "";
-        if (at !== bt) {
-          if (!at) return 1;
-          if (!bt) return -1;
-          return at < bt ? -1 : 1;
-        }
         const av = a.isVirtual ? 0 : 1;
         const bv = b.isVirtual ? 0 : 1;
         if (av !== bv) return av - bv;
@@ -578,23 +563,22 @@ export const MonthWeekCalendar = ({
 
   return (
     <>
-    <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
+    <Card className="overflow-hidden flex flex-col h-full rounded-none border-0 bg-card shadow-none">
       {/* ─── Hurtig filtrering ───
           Status-chips + medarbejder-popover. Ensartet chip/dropdown-stil:
           alle triggere har samme højde (h-7), pill-form (rounded-full),
           ring-1 i hvile og ring-2/accent når aktiv. Aktive piller bruger
           accent (jf. design-memory: accent kun til emphasis som aktive
           filter-piller, links og focus-rings — ikke generel hover). */}
-      <div className="shrink-0 flex items-center flex-wrap gap-2 px-3 py-2 border-b border-border/70 bg-gradient-to-b from-secondary/25 to-card text-[11.5px]">
+      <div className="shrink-0 flex items-center flex-wrap gap-2 px-3 py-2 border-b border-border/70 bg-secondary/25 text-[11.5px]">
         <span className="inline-flex items-center gap-1.5 text-muted-foreground font-semibold uppercase tracking-[0.12em] text-[10px] pr-1 select-none">
           <Filter className="h-3 w-3" /> Filter
         </span>
-        <div className="inline-flex items-center gap-1 rounded-full bg-background/60 ring-1 ring-border/70 p-0.5 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.06)]">
+        <div className="inline-flex items-center gap-0.5 rounded-[4px] bg-background ring-1 ring-border/70 p-0.5">
         {([
           { key: "all", label: "Alle" },
           { key: "planned", label: "Planlagt" },
           { key: "ready", label: "Klar" },
-          { key: "in_progress", label: "I gang" },
           { key: "completed", label: "Udført" },
         ] as { key: StatusFilter; label: string }[]).map((opt) => {
           const active = statusFilter === opt.key;
@@ -604,9 +588,9 @@ export const MonthWeekCalendar = ({
               type="button"
               onClick={() => setStatusFilter(opt.key)}
               className={cn(
-                "h-6 px-2.5 rounded-full text-[11px] font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+                "h-6 px-2.5 rounded-[3px] text-[11px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                 active
-                  ? "bg-accent text-accent-foreground shadow-[0_1px_3px_-1px_hsl(var(--accent)/0.55)]"
+                  ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary",
               )}
               aria-pressed={active}
@@ -1316,10 +1300,6 @@ const RoutePillInner = ({
   // sat til 'completed') også fremstår tydeligt færdig.
   const allStopsDone = !isVirtual && stopCount > 0 && completedCount === stopCount;
   const showAsCompleted = isRouteCompleted || allStopsDone;
-  // "I gang" — mindst ét stop er udført, men ikke alle. Vises som lille
-  // amber-badge så brugeren kan se hvor arbejdet er aktivt netop nu.
-  const isInProgress =
-    !isVirtual && !showAsCompleted && stopCount > 0 && completedCount > 0;
   // Tre tilstande for projicerede (virtuelle) ruter:
   //  - future  → låst indtil dagen er aktuel (vises med hængelås)
   //  - today   → aktiv projektion, kan udføres eller flyttes nu
@@ -1589,19 +1569,6 @@ const RoutePillInner = ({
                 {!compact && "Udført"}
               </span>
             )}
-            {isInProgress && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title={`Ruten er i gang — ${completedCount}/${stopCount} stop udført`}
-                aria-label="I gang"
-              >
-                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                {!compact && "I gang"}
-              </span>
-            )}
             {!isVirtual && route.isReplacement && (
               <span
                 className={cn(
@@ -1847,15 +1814,13 @@ const RoutePillInner = ({
             // afstand. Helt udførte ruter får emerald-stribe.
             completedCount > 0 && "h-1.5",
           )}
-          title={
-            completedCount > 0
-              ? `${completedCount} af ${stopCount} stop udført (${Math.round((completedCount / stopCount) * 100)}%) · Belastning ${loadPct}%`
-               : `${stopCount} af ${routeCapacity.stops_capacity} stop (${empCount} medarbejder${empCount === 1 ? "" : "e"})`
-          }
+          title={completedCount > 0
+            ? `${completedCount} af ${stopCount} stop udført · ${stopCount} af ${routeCapacity.stops_capacity} stop planlagt`
+            : `${stopCount} af ${routeCapacity.stops_capacity} stop planlagt (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={
             completedCount > 0
               ? `${completedCount} af ${stopCount} stop udført`
-              : `Belastning ${loadPct} procent`
+              : `${stopCount} af ${routeCapacity.stops_capacity} stop planlagt`
           }
         >
           {/* Belastnings-baggrund (subtil) */}
