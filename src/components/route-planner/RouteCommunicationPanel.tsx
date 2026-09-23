@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BellRing, Loader2, Send } from "lucide-react";
+import { BellRing, Loader2, Send, UserRound, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -54,43 +54,71 @@ export function RouteCommunicationPanel({
     }
   };
 
+  const selectedEmployee = choices.find((employee) => employee.id === employeeId);
+
   return (
-    <section className="overflow-hidden rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
-      <div className="flex items-center gap-2.5 border-b border-border bg-secondary/35 px-3 py-2">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-accent/10 text-accent">
-          <BellRing className="h-3.5 w-3.5" />
+    <section className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
+      <div className="flex items-center gap-3 border-b border-border bg-secondary/45 px-3.5 py-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-foreground text-background">
+          <BellRing className="h-4 w-4" />
         </span>
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase text-foreground">Kontakt medarbejder</p>
-          <p className="truncate text-[10px] text-muted-foreground">Vises på den valgte rute eller aftale</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground">Kontakt medarbejder</p>
+          <p className="text-[11px] leading-snug text-muted-foreground">Beskeden markeres på {stop ? "aftalen" : "ruten"}, indtil den er set.</p>
         </div>
       </div>
-      <div className="space-y-2.5 p-3">
-      <div className="grid gap-2 sm:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
-        <div className="space-y-1">
-        <Label className="text-[11px]">Modtager</Label>
-        <Select value={employeeId} onValueChange={setEmployeeId}>
-          <SelectTrigger className="h-9"><SelectValue placeholder="Vælg medarbejder" /></SelectTrigger>
-          <SelectContent>
-            {choices.map((employee) => <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-[11px]">Besked</Label>
-          <Textarea
-            value={message}
-            onChange={(event) => setMessage(event.target.value.slice(0, 500))}
-            placeholder={stop ? `Besked om ${stop.customer_name || "aftalen"}` : "Skriv en kort besked om ruten"}
-            rows={2}
-            className="min-h-[58px] resize-none"
-          />
-        </div>
-      </div>
-      <Button size="sm" className="h-9 w-full gap-2" onClick={sendNotice} disabled={!employeeId || !message.trim() || sending}>
-        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        Send besked
-      </Button>
+      <div className="space-y-3 p-3.5">
+        {choices.length === 0 ? (
+          <div className="flex items-center gap-2.5 rounded-md border border-dashed border-border bg-secondary/30 px-3 py-3 text-xs text-muted-foreground">
+            <UsersRound className="h-4 w-4 shrink-0" />
+            Ingen aktive medarbejdere kan modtage beskeden.
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold text-foreground">Medarbejder</Label>
+              <Select value={employeeId} onValueChange={setEmployeeId}>
+                <SelectTrigger className="h-10 w-full bg-background">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/12 text-accent">
+                      <UserRound className="h-3.5 w-3.5" />
+                    </span>
+                    <SelectValue placeholder="Vælg medarbejder" />
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {choices.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      <span className="flex items-center gap-2">
+                        <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{employee.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-[11px] font-semibold text-foreground">Besked til {selectedEmployee?.name || "medarbejderen"}</Label>
+                <span className="text-[10px] tabular-nums text-muted-foreground">{message.length}/500</span>
+              </div>
+              <Textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value.slice(0, 500))}
+                placeholder={stop ? `Skriv om ${stop.customer_name || "aftalen"}` : "Skriv en kort besked om ruten"}
+                rows={3}
+                className="min-h-[76px] resize-none bg-background"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button size="sm" className="h-9 min-w-32 gap-2" onClick={sendNotice} disabled={!message.trim() || sending}>
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Send besked
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

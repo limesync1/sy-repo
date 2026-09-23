@@ -2,7 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -24,7 +24,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle, ListOrdered, Map as MapIcon,
+  Crown, UserPlus, Check, PlayCircle, ListOrdered,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -46,10 +46,6 @@ import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-const RouteMap = lazy(() => import("./RouteMap"));
 
 const readableTokenOn = (color?: string | null) => {
   const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
@@ -100,39 +96,12 @@ export const RouteStopsPanel = ({
   const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
-  const [mapOpen, setMapOpen] = useState(false);
-  const { data: livePositions = [] } = useQuery({
-    queryKey: ["route-live-positions", route?.id],
-    enabled: open && !!route?.id,
-    refetchInterval: open ? 20_000 : false,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("route_live_positions").select("*").eq("route_id", route!.id).gt("expires_at", new Date().toISOString());
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
 
   // Lokal sorteret liste — opdateres når DB-data ændrer sig
   const [items, setItems] = useState<RouteStop[]>([]);
   useEffect(() => {
     setItems([...stops].sort((a, b) => a.sequence - b.sequence));
   }, [stops]);
-  const mapStops = useMemo(() => items.filter((stop) => stop.latitude != null && stop.longitude != null).map((stop, index) => ({
-    id: stop.id,
-    lat: Number(stop.latitude),
-    lng: Number(stop.longitude),
-    label: stop.customer_name || "Stop",
-    sublabel: stop.full_address || stop.address || undefined,
-    index: index + 1,
-  })), [items]);
-  const mapLivePositions = livePositions.map((position) => ({
-    employeeId: position.employee_id,
-    lat: position.latitude,
-    lng: position.longitude,
-    label: employees.find((employee) => employee.id === position.employee_id)?.name || "Medarbejder",
-    currentStopLabel: items.find((item) => item.id === position.current_stop_id)?.customer_name || undefined,
-    recordedAt: position.recorded_at,
-  }));
 
   // Dedikerede sensorer pr. inputtype: mus reagerer hurtigt (3px distance),
   // touch kræver kort hold (120ms / 8px tolerance) så tap stadig fungerer
@@ -274,19 +243,6 @@ export const RouteStopsPanel = ({
           </SheetHeader>
 
           <div className="planner-overlay-body flex-1 overflow-y-auto p-4 bg-secondary/20">
-            <div className="mb-3 space-y-2">
-              <Button variant="outline" className="h-10 w-full gap-2 bg-card" onClick={() => setMapOpen((value) => !value)} disabled={!mapStops.length}>
-                <MapIcon className="h-4 w-4" />{mapOpen ? "Skjul kort" : livePositions.length ? `Vis kort · ${livePositions.length} aktiv` : "Vis kort"}
-              </Button>
-              {mapOpen && mapStops.length > 0 && (
-                <Suspense fallback={<div className="h-56 animate-pulse rounded-md bg-secondary" />}>
-                  <RouteMap routes={[{ color: route.color, stops: mapStops }]} height="14rem" livePositions={mapLivePositions} onStopClick={(id) => {
-                    const selected = items.find((item) => item.id === id);
-                    if (selected) onSelectStop(selected);
-                  }} />
-                </Suspense>
-              )}
-            </div>
             {items.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <EmptyState
@@ -538,7 +494,7 @@ const SortableStopRow = ({
         </button>
 
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
-        <div className="flex shrink-0 items-stretch self-stretch border-l border-border/50 bg-secondary/20">
+        <div className="flex shrink-0 items-stretch self-stretch border-l border-border/60 bg-secondary/25">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
@@ -550,9 +506,8 @@ const SortableStopRow = ({
               type="button"
               onClick={onRemove}
               className={cn(
-                "flex w-9 rounded-none",
+                "flex w-10 rounded-none border-l border-border/60",
                 ICON_BTN_DESTRUCTIVE,
-                "sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100",
               )}
               aria-label="Fjern stop"
               title="Fjern stop fra rute"

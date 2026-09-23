@@ -76,8 +76,8 @@ export const RouteChecklistView = ({
   return (
     <div className="employee-route-run flex min-h-dvh flex-col bg-surface">
       {/* Header */}
-      <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-foreground text-background shadow-sm">
-        <div className="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-3 sm:px-5">
+      <header className="sticky top-0 z-20 shrink-0 border-b border-background/15 bg-foreground text-background shadow-lg">
+        <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-2 px-2 sm:h-16 sm:px-5">
           <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
             <Link to="/medarbejder" aria-label="Tilbage til dagens ruter">
               <ArrowLeft className="h-5 w-5" />
@@ -92,7 +92,7 @@ export const RouteChecklistView = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-9 shrink-0 gap-1.5 border-background/20 bg-background/10 px-2.5 text-[12.5px] text-background hover:bg-background/15 hover:text-background"
+            className="h-10 shrink-0 gap-1.5 border border-background/15 bg-background/10 px-2.5 text-[12.5px] text-background hover:bg-background/15 hover:text-background"
             onClick={onSwitchToGuide}
           >
             <Navigation2 className="h-4 w-4" />
@@ -122,7 +122,7 @@ export const RouteChecklistView = ({
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-24 pt-3 sm:px-5 sm:pt-5">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
         {allDone ? (
           <section className="rounded-md border border-border bg-card p-6 text-center">
             <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
@@ -154,7 +154,7 @@ export const RouteChecklistView = ({
                     Næste stop
                   </span>
                 </div>
-                <div className="p-3.5">
+                <div className="p-3 sm:p-4">
                 <h2 className="text-[18px] font-semibold leading-tight text-foreground">
                   {next.customer_name || "Stop"}
                 </h2>
@@ -170,7 +170,7 @@ export const RouteChecklistView = ({
                   </p>
                 )}
 
-                <div className="mt-4 grid gap-2">
+                <div className="mt-3 grid gap-2">
                   <Button
                     className="h-13 min-h-[52px] w-full gap-2 text-[15px] font-semibold"
                     disabled={locked || pendingId === next.id}
@@ -222,15 +222,15 @@ export const RouteChecklistView = ({
             )}
 
             {/* Resten af dagen */}
-            {remaining.length > 1 && (
-              <section className="mt-5">
+             {remaining.length > 1 && (
+               <section className="mt-4">
                 <h3 className="px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   Derefter ({remaining.length - 1})
                 </h3>
                 <ul className="mt-2 space-y-2">
                   {remaining.slice(1).map((s, i) => (
                     <li key={s.id}>
-                       <div className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2.5">
+                        <div className="flex min-h-14 items-center gap-2.5 rounded-md border border-border bg-card px-2.5 py-2 shadow-sm">
                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-secondary text-[12px] font-semibold text-muted-foreground">
                           {completed.length + i + 2}
                         </span>
@@ -243,7 +243,7 @@ export const RouteChecklistView = ({
                           )}
                         </div>
                         {onMoveStop && (
-                          <div className="flex shrink-0 flex-col gap-1">
+                           <div className="flex shrink-0 gap-1">
                             <Button
                               variant="outline"
                               size="icon"
@@ -251,7 +251,7 @@ export const RouteChecklistView = ({
                               aria-label="Flyt stoppet tidligere på ruten"
                               disabled={reordering}
                               onClick={() => onMoveStop(s.id, -1)}
-                              className="h-8 w-8 rounded-[4px] text-muted-foreground hover:text-foreground"
+                               className="h-10 w-10 rounded-[4px] text-muted-foreground hover:text-foreground"
                             >
                               <ArrowUp className="h-3.5 w-3.5" />
                             </Button>
@@ -262,7 +262,7 @@ export const RouteChecklistView = ({
                               aria-label="Flyt stoppet senere på ruten"
                               disabled={reordering || i >= remaining.length - 2}
                               onClick={() => onMoveStop(s.id, 1)}
-                              className="h-8 w-8 rounded-[4px] text-muted-foreground hover:text-foreground"
+                               className="h-10 w-10 rounded-[4px] text-muted-foreground hover:text-foreground"
                             >
                               <ArrowDown className="h-3.5 w-3.5" />
                             </Button>

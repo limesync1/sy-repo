@@ -19,6 +19,7 @@ import type { Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { stripPrices } from "@/lib/employee-display";
 import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
@@ -257,9 +258,9 @@ const zoomForSpeed = (mps: number): number => {
   return MAX_NAV_ZOOM + (MIN_NAV_ZOOM - MAX_NAV_ZOOM) * ((mps - SLOW) / (FAST - SLOW));
 };
 
-const NavCamera = ({
+const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speedMps: number }>(({
   active, track, speedMps,
-}: { active: boolean; track: MotionTrack; speedMps: number }) => {
+}, _ref) => {
   const map = useMap();
   const speedRef = useRef(speedMps);
   speedRef.current = speedMps;
@@ -296,24 +297,26 @@ const NavCamera = ({
   }, [active, map, track]);
 
   return null;
-};
+});
+NavCamera.displayName = "NavCamera";
 
-const DriveMapControls = ({ following, onFollow }: { following: boolean; onFollow: () => void }) => {
+const DriveMapControls = forwardRef<never, { following: boolean; onFollow: () => void }>(({ following, onFollow }, _ref) => {
   const map = useMap();
   return (
-    <div className="absolute right-3 top-[132px] z-[1000] flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card/95 shadow-lg backdrop-blur-md">
-      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border" onClick={() => map.zoomIn(1)} aria-label="Zoom ind">
-        <Plus className="h-5 w-5" />
+    <div className="absolute right-3 top-1/2 z-[1000] flex -translate-y-1/2 flex-col overflow-hidden rounded-md border border-border/80 bg-card/95 shadow-lg backdrop-blur-md sm:right-5">
+      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => map.zoomIn(1)} aria-label="Zoom ind">
+        <Plus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
-      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border" onClick={() => map.zoomOut(1)} aria-label="Zoom ud">
-        <Minus className="h-5 w-5" />
+      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => map.zoomOut(1)} aria-label="Zoom ud">
+        <Minus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
-      <Button type="button" variant={following ? "default" : "ghost"} size="icon" className="h-11 w-11 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
+      <Button type="button" variant={following ? "default" : "ghost"} size="icon" className="h-12 w-12 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
         <Crosshair className="h-5 w-5" />
       </Button>
     </div>
   );
-};
+});
+DriveMapControls.displayName = "DriveMapControls";
 
 /** Pans (with light zoom) to a stop when the user taps it in the list. */
 const FlyToStop = forwardRef<never, { target: [number, number] | null }>(({ target }, _ref) => {
@@ -1826,95 +1829,58 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
 
 
-        {/* ─── Floating right-side controls — runde pills, native-følelse ───
-           Alle kontroller deler én base-klasse (`floatCtrlBase`) så stik-,
-           skygge-, ring- og active-feedback er 100% ensartet. Aktive states
-           bruger fremhævet baggrund + en lille indikator-prik. */}
-          <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-          {routeStarted && !allDone && (
-            <button
-              type="button"
-              onClick={() => setListOpen((v) => !v)}
-              className={`relative h-11 w-11 rounded-full bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-lg hover:bg-secondary transition-colors duration-150 active:scale-[0.96] flex items-center justify-center ${listOpen ? "ring-2 ring-accent" : ""}`}
-              aria-label="Vis liste"
-              aria-pressed={listOpen}
-            >
-              <List className="h-[19px] w-[19px]" strokeWidth={2.25} />
-            </button>
-          )}
-          {routeStarted && !allDone && (
-            <button
-              type="button"
-              onClick={() => setAudioEnabled((v) => !v)}
-              className={`relative h-11 w-11 rounded-full backdrop-blur-md border shadow-lg transition-colors duration-150 active:scale-[0.96] flex items-center justify-center ${
-                audioEnabled
-                  ? "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
-                  : "bg-muted/95 border-border text-muted-foreground hover:bg-muted"
-              }`}
-              aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
-              aria-pressed={!audioEnabled}
-              title={audioEnabled ? "Lyd til — tryk for at slå fra" : "Lyd fra — tryk for at slå til"}
-            >
-              {audioEnabled
-                ? <Volume2 className="h-[19px] w-[19px]" strokeWidth={2.25} />
-                : <VolumeX className="h-[19px] w-[19px]" strokeWidth={2.25} />}
-              {!audioEnabled && (
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-destructive border-2 border-background"
-                />
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
+        {/* ─── Aktiv kørselsbjælke: alle primære kontroller samlet ét sted ─── */}
         {routeStarted && !allDone && (
           <>
-            {/* Back + progress — runde pills, native-følelse.
-               Back-knappen matcher right-side controls i størrelse/skygge så
-               toppen visuelt fremstår som ét sammenhængende kontrolsæt. */}
-            <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
-              <Link
-                to="/medarbejder"
-                aria-label="Tilbage"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-card/95 text-foreground shadow-lg backdrop-blur-md transition-colors duration-150 hover:bg-secondary active:scale-[0.96]"
-              >
-                <ArrowLeft className="h-[19px] w-[19px]" strokeWidth={2.25} />
-              </Link>
-              <div className="flex h-11 items-center gap-2.5 rounded-md border border-border/80 bg-card/95 pl-3 pr-3.5 shadow-lg backdrop-blur-md">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="h-2.5 w-2.5 rounded-full shrink-0"
-                    style={{ background: routeBadgeColor }}
-                    aria-hidden
-                  />
-                  <span className="text-sm font-bold text-foreground tabular-nums leading-none">
-                    {completedCount}
-                    <span className="text-muted-foreground/60 font-semibold">/{sortedStops.length}</span>
-                  </span>
+            <div className="absolute left-2 right-2 top-2 z-[1002] sm:left-4 sm:right-4 sm:top-4">
+              <div className="mx-auto flex h-14 max-w-3xl items-center gap-2 rounded-md border border-border/80 bg-foreground px-2 text-background shadow-xl">
+                <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background">
+                  <Link to="/medarbejder" aria-label="Tilbage">
+                    <ArrowLeft className="h-5 w-5" />
+                  </Link>
+                </Button>
+                <div className="min-w-0 flex-1 border-l border-background/15 pl-3">
+                  <p className="truncate text-[13px] font-semibold leading-tight text-background">{route.name || "Dagens rute"}</p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[10px] font-medium text-background/65">
+                    <span>{completedCount}/{sortedStops.length} stop</span>
+                    {estimatedEndAt && <span className="flex items-center gap-1"><Flag className="h-3 w-3" />Færdig ca. {estimatedEndAt}</span>}
+                  </p>
                 </div>
-                {estimatedEndAt && (
-                  <>
-                    <span className="h-4 w-px bg-border" aria-hidden />
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
-                      <Flag className="h-3 w-3" />{estimatedEndAt}
-                    </span>
-                  </>
-                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={cn("h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background", listOpen && "bg-background/15")}
+                  onClick={() => setListOpen((value) => !value)}
+                  aria-label="Vis alle stop"
+                  aria-pressed={listOpen}
+                >
+                  <List className="h-5 w-5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background"
+                  onClick={() => setAudioEnabled((value) => !value)}
+                  aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+                  aria-pressed={!audioEnabled}
+                >
+                  {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                </Button>
               </div>
             </div>
 
-            {/* Maneuver banner — floating top center */}
+            {/* Næste manøvre — placeret under den faste kørselsbjælke */}
             {showManeuverBanner && maneuver && nextStop && (
-              <div className="absolute top-[72px] left-3 right-[72px] z-[1000] pointer-events-none">
-                <Card className="overflow-hidden rounded-md border-border bg-card shadow-xl pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="absolute left-2 right-2 top-[72px] z-[1000] pointer-events-none sm:left-1/2 sm:right-auto sm:w-[30rem] sm:-translate-x-1/2 sm:top-[84px]">
+                <Card className="overflow-hidden rounded-md border-border bg-card/97 shadow-xl pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
-                    <div className="flex flex-col items-center justify-center w-[88px] shrink-0 bg-foreground text-background py-3.5 px-1">
+                    <div className="flex w-[76px] shrink-0 flex-col items-center justify-center bg-accent px-1 py-3 text-accent-foreground">
                       <ManeuverIcon
                         type={maneuver.currentStep.maneuver.type}
                         modifier={maneuver.currentStep.maneuver.modifier}
-                        className="h-11 w-11"
+                       className="h-9 w-9"
                       />
                       <span className="text-[13px] font-bold tracking-tight mt-1.5 tabular-nums leading-none">
                         {formatKm(maneuver.distanceToManeuverM)}
@@ -2109,10 +2075,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pointer-events-none sm:p-4">
-            <Card className="route-drive-dock mx-auto max-w-2xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
+          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 pointer-events-none sm:bottom-[60px] sm:p-4">
+            <Card className="route-drive-dock mx-auto max-w-2xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/97 backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
               {/* Segmenteret progress — tynd, diskret */}
-              <div className="flex gap-1 px-3 pt-2 pb-1.5">
+              <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
@@ -2131,7 +2097,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full justify-start rounded-none px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
+                className="group h-auto w-full justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
@@ -2203,11 +2169,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
               {collapsed && (
-                <div className="px-3 pb-3 pt-1 grid grid-cols-[1fr_auto_auto] gap-2">
+                <div className="grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="sm"
-                    className={`gap-1.5 h-10 rounded-md text-[13px] font-semibold transition-colors ${
+                     className={`gap-1.5 h-11 rounded-md text-[13px] font-semibold transition-colors ${
                       isAtNextStop
                         ? "bg-success hover:bg-success/90 text-success-foreground shadow-sm"
                         : "bg-foreground text-background hover:bg-foreground/90"
@@ -2226,18 +2192,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     variant="outline"
                     size="sm"
                     aria-label="Åbn i Maps"
-                    className="h-10 w-10 p-0 rounded-md border-border hover:bg-secondary"
+                    className="h-11 w-11 p-0 rounded-md border-border hover:bg-secondary"
                   >
                     <Navigation className="h-4 w-4" />
                   </Button>
                   {nextStop.customer_phone ? (
-                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-10 w-10 p-0 rounded-md border-border hover:bg-secondary">
+                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
                         <Phone className="h-4 w-4" />
                       </a>
                     </Button>
                   ) : (
-                    <Button variant="outline" size="sm" aria-label="Ingen telefon" disabled className="h-10 w-10 p-0 rounded-xl border-border">
+                    <Button variant="outline" size="sm" aria-label="Ingen telefon" disabled className="h-11 w-11 p-0 rounded-md border-border">
                       <Phone className="h-4 w-4" />
                     </Button>
                   )}
@@ -2527,17 +2493,17 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-xl rounded-t-lg transition-transform duration-300 ease-out border-t border-x border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-xl rounded-t-md transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
-          transform: open ? "translateY(0)" : "translateY(calc(100% - 46px))",
-          maxHeight: "65vh",
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 52px))",
+          maxHeight: "min(68dvh, 42rem)",
         }}
       >
         {/* Kompakt rail — kun 46px høj når lukket */}
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2.5 px-4 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-lg relative"
+          className="relative flex h-[52px] w-full items-center gap-2.5 rounded-t-md px-4 transition-colors hover:bg-secondary/60 active:bg-secondary"
           aria-expanded={open}
           aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
@@ -2571,8 +2537,8 @@ const StopListPanel = ({
         </button>
 
         <div
-          className="overflow-y-auto p-2 space-y-1.5 border-t"
-          style={{ maxHeight: "calc(65vh - 46px)" }}
+          className="overflow-y-auto border-t bg-secondary/20 p-2.5 space-y-2"
+          style={{ maxHeight: "calc(min(68dvh, 42rem) - 52px)" }}
         >
           {stops.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
@@ -2598,7 +2564,7 @@ const StopListPanel = ({
                     onSelectStop(s);
                   }
                 }}
-                className={`w-full text-left p-2.5 rounded-md border flex items-stretch gap-2.5 transition-colors hover:bg-secondary/50 active:bg-secondary cursor-pointer ${
+                className={`w-full text-left p-2.5 rounded-md border flex items-center gap-2.5 transition-colors hover:bg-secondary/50 active:bg-secondary cursor-pointer ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
