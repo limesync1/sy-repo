@@ -2474,6 +2474,7 @@ const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
 /* ─── Collapsible bottom stop-list with live status & map sync ─── */
 const StopListPanel = ({
   open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
+  flexById, canReorder, reordering, onMoveStop,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -2483,7 +2484,12 @@ const StopListPanel = ({
   themeColor: string;
   onSelectStop: (s: RouteStop) => void;
   onOpenDetails: (s: RouteStop) => void;
+  flexById: Map<string, StopFlex>;
+  canReorder: boolean;
+  reordering: boolean;
+  onMoveStop: (stopId: string, dir: -1 | 1) => void;
 }) => {
+  const remainingIds = stops.filter((s) => s.status !== "completed").map((s) => s.id);
   const total = stops.length;
   const done = stops.filter((s) => s.status === "completed").length;
 
