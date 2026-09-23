@@ -365,17 +365,12 @@ const EmployeeApp = () => {
               cta: { label: "Start dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
             };
           } else if (dayStarted && nextStop && nextRoute) {
-            const arr = nextStop.planned_arrival
-              ? format(new Date(nextStop.planned_arrival), "HH:mm")
-              : null;
             suggestion = {
               tone: "primary",
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
-              description: [
+              description: nextStop.full_address || nextStop.address || "",
               cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
-          } else if (dayStarted && allRoutesDone && !dayEnded) {
-            suggestion = {
               tone: "calm",
               title: "Alle stop er færdige — godt arbejde!",
               description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",
@@ -793,9 +788,7 @@ const EmployeeApp = () => {
                     <div className="divide-y divide-border">
                       {myStops.slice(0, 4).map((s, i) => {
                         const isNext = s.id === firstPendingId;
-                        const arrivalLabel = s.planned_arrival
-                          ? format(new Date(s.planned_arrival), "HH:mm")
-                          : null;
+                        const arrivalLabel = null;
                         const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
                         return (
                           <button
