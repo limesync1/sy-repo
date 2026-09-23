@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
-import { StatCard, PageHeader } from "@/components/admin/shared/AdminUI";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -212,7 +212,7 @@ const EmployeeStats = () => {
     <EmployeeShell activeTab="stats" title="Statistik">
       {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
           guidede frem for at "blinke" pludseligt. */}
-      <PageTransition transitionKey={`${range}|${from}|${to}`} className="w-full space-y-3 sm:space-y-5">
+      <PageTransition transitionKey={`${range}|${from}|${to}`} className="mx-auto w-full max-w-6xl space-y-3 sm:space-y-5">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -225,8 +225,8 @@ const EmployeeStats = () => {
 
         {isLoading || !s ? (
           <>
-            <Card className="overflow-hidden rounded-xl border-border shadow-sm">
-              <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
+            <Card className="overflow-hidden rounded-lg border-border shadow-sm">
+              <div className="flex flex-col gap-3 border-l-4 border-l-primary p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-12 w-12 rounded-xl sm:h-14 sm:w-14" />
                   <div className="space-y-2">
@@ -267,14 +267,14 @@ const EmployeeStats = () => {
             <Card className="overflow-hidden rounded-xl border-border shadow-sm">
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-feature-cool text-feature-cool-foreground sm:h-14 sm:w-14">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-12 sm:w-12">
                     <Wallet className="h-5 w-5 sm:h-7 sm:w-7" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Min indtjening
                     </p>
-                    <p className="mt-0.5 text-2xl sm:text-4xl font-bold tracking-tight tabular-nums text-foreground">
+                    <p className="mt-0.5 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">
                       {formatKr(s.commission)}
                     </p>
                     <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-muted-foreground">
@@ -297,42 +297,36 @@ const EmployeeStats = () => {
               </div>
             </Card>
 
-            {/* Sekundære nøgletal — kompakt 2-kolonne på mobil, 5-kolonne på desktop */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
-              <StatCard
-                label="Ruter"
-                value={s.routesCount}
-                icon={<RouteIcon />}
-                tone="violet"
-              />
-              <StatCard
-                label="Opgaver"
-                value={`${s.stopsCompleted}/${s.stopsTotal}`}
-                icon={<CheckCircle2 />}
-                tone="amber"
-              />
-              <StatCard
-                label="Arbejdsdage"
-                value={s.workdaysCount}
-                icon={<CalendarIcon />}
-                tone="neutral"
-              />
-              <StatCard
-                label="Arbejdstid"
-                value={formatHours(s.workMinutes)}
-                icon={<Clock />}
-                tone="neutral"
-              />
-              <StatCard
-                label="Distance"
-                value={`${s.totalDistanceKm.toFixed(0)} km`}
-                icon={<MapPin />}
-                tone="neutral"
-              />
+            {/* Ét samlet, roligt nøgletalsoverblik i stedet for fem farvede kort. */}
+            <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:grid-cols-5">
+              {[
+                { label: "Ruter", value: s.routesCount, icon: RouteIcon },
+                { label: "Opgaver", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
+                { label: "Arbejdsdage", value: s.workdaysCount, icon: CalendarIcon },
+                { label: "Arbejdstid", value: formatHours(s.workMinutes), icon: Clock },
+                { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: MapPin },
+              ].map(({ label, value, icon: Icon }, index) => (
+                <div
+                  key={label}
+                  className={cn(
+                    "flex min-h-[76px] items-center gap-3 p-3.5",
+                    "border-b border-border odd:border-r lg:border-b-0 lg:border-r",
+                    index === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0",
+                  )}
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+                    <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-foreground">{value}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Daglig oversigt */}
-            <Card className="rounded-xl border-border shadow-sm">
+            <Card className="rounded-lg border-border shadow-sm">
               <CardContent className="p-0">
                 <div className="flex items-start gap-3 border-b border-border px-4 py-3 sm:px-5">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
@@ -340,9 +334,7 @@ const EmployeeStats = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Daglig aktivitet</h3>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Udfold en dag for at se hver aftale, betaling og din udbetaling.
-                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Aftaler og indtjening fordelt på dage.</p>
                   </div>
                 </div>
                 {s.perDay.length === 0 ? (
