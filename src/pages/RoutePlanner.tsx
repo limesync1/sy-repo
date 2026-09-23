@@ -2915,7 +2915,7 @@ const Planner = () => {
   };
 
   return (
-    <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
+    <div className={cn("route-planner-workspace", plannerTheme === "dark" && "dark")} data-density={density}>
     <RouteCalendarHintsProvider value={{ routeDates: routeDatesSet, busyDates: busyDatesSet, overloadedDates: overloadedDatesSet }}>
     <span id="unassigned-drag-instructions" className="sr-only">
       Tryk Mellemrum eller Enter for at tage aftalekortet op. Brug piletasterne til at flytte det. Tryk Mellemrum igen for at slippe, eller Escape for at annullere.
@@ -3503,14 +3503,14 @@ const Planner = () => {
                 <Card
                    data-tour="routes-unassigned"
                    className={cn(
-                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]",
-                     selectedJobIds.size > 0 && "ring-1 ring-accent/60 shadow-[0_10px_28px_-12px_hsl(var(--accent)/0.5)]",
+                     "flex flex-col h-full overflow-hidden transition-colors duration-150 rounded-[5px] border-border/70 bg-card shadow-none",
+                      selectedJobIds.size > 0 && "ring-1 ring-accent/40",
                    )}
                  >
-                   <div className="relative px-3.5 pt-3.5 pb-3 border-b border-border/70 bg-card space-y-3">
+                    <div className="relative px-3 pt-3 pb-2.5 border-b border-border/70 bg-secondary/20 space-y-2.5">
                     <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-foreground/80" />
                     <div className="flex items-start gap-2.5 pr-10 xl:pr-0">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground ring-1 ring-border/70 shrink-0">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-[4px] bg-foreground text-background shrink-0">
                         <Inbox className="h-4 w-4 text-foreground" />
                       </span>
                       <div className="flex-1 min-w-0">
@@ -3529,7 +3529,7 @@ const Planner = () => {
                         )}
                       </div>
                       {filteredUnassigned.length > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-md bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0 shadow-sm">
+                        <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-[4px] bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0">
                           {filteredUnassigned.length}
                         </span>
                       )}
@@ -4193,13 +4193,13 @@ const Planner = () => {
           );
 
           return (
-            <div className="flex-1 overflow-hidden p-2 sm:p-3" style={{ height: "calc(100vh - 56px)" }}>
+            <div className="flex-1 overflow-hidden bg-secondary/25 p-1.5 sm:p-2" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
-              <div className="hidden h-full xl:flex xl:flex-col xl:gap-2">
-                <div className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] 2xl:hidden">
+              <div className="hidden h-full xl:flex xl:flex-col xl:gap-1.5">
+                <div className="shrink-0 rounded-[5px] border border-border/70 bg-card p-1.5 shadow-none 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
                       variant="outline"
@@ -4422,14 +4422,14 @@ const Planner = () => {
                 <div className="flex-1 min-h-0">
                   <ResizablePanelGroup
                     direction="horizontal"
-                    className="h-full rounded-lg"
+                    className="h-full rounded-[5px]"
                     autoSaveId="route-planner:unassigned-split"
                   >
-                    <ResizablePanel id="unassigned" order={1} defaultSize={28} minSize={25} maxSize={40} className="overflow-hidden">
+                    <ResizablePanel id="unassigned" order={1} defaultSize={30} minSize={28} maxSize={38} className="overflow-hidden">
                       {unassignedCard}
                     </ResizablePanel>
-                    <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                    <ResizablePanel id="calendar" order={2} defaultSize={72} className="overflow-hidden">
+                    <ResizableHandle withHandle className="w-1.5 bg-border/50 hover:bg-accent/20 transition-colors" />
+                    <ResizablePanel id="calendar" order={2} defaultSize={70} className="overflow-hidden">
                       {calendarBlock}
                     </ResizablePanel>
                   </ResizablePanelGroup>
@@ -4439,13 +4439,13 @@ const Planner = () => {
               {/* Mobil/tablet/narrow desktop (<xl, <1280px): dedikeret toolbar + agenda-kalender fuld
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
-              <div className="flex h-full flex-col gap-2 xl:hidden">
-                <div className="shrink-0 space-y-2 rounded-lg border bg-card p-2 shadow-sm">
+              <div className="flex h-full flex-col gap-1.5 xl:hidden">
+                <div className="shrink-0 space-y-1.5 rounded-[5px] border border-border/70 bg-card p-1.5 shadow-none">
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-9 w-9 shrink-0"
+                      className="h-8 w-8 shrink-0 rounded-[4px]"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                       }
@@ -4466,7 +4466,7 @@ const Planner = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-9 w-9 shrink-0"
+                      className="h-8 w-8 shrink-0 rounded-[4px]"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                       }
@@ -4478,9 +4478,9 @@ const Planner = () => {
 
                   <div className="grid grid-cols-[1fr_auto_auto] items-center gap-1.5">
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                      <TabsList className="grid h-9 w-full grid-cols-2">
-                        <TabsTrigger value="month" className="h-7 text-xs">Måned</TabsTrigger>
-                        <TabsTrigger value="week" className="h-7 text-xs">Uge</TabsTrigger>
+                      <TabsList className="grid h-8 w-full grid-cols-2 rounded-[4px]">
+                        <TabsTrigger value="month" className="h-7 rounded-[3px] text-xs">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-7 rounded-[3px] text-xs">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     <Sheet>
@@ -4488,7 +4488,7 @@ const Planner = () => {
                         <Button
                           variant={filtersActive ? "default" : "outline"}
                           size="sm"
-                          className="h-9 shrink-0 gap-1.5 px-3 text-xs"
+                          className="h-8 shrink-0 gap-1.5 rounded-[4px] px-2.5 text-xs"
                           aria-label="Filtre"
                         >
                           <Filter className="h-4 w-4" />
@@ -4592,17 +4592,17 @@ const Planner = () => {
                         </div>
                       </SheetContent>
                     </Sheet>
-                    <Button variant="outline" size="sm" className="h-9 px-3 text-xs" onClick={() => setDate(todayStr())}>
+                    <Button variant="outline" size="sm" className="h-8 rounded-[4px] px-2.5 text-xs" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-1.5">
-                    <Button className="h-9 gap-1.5 text-xs" onClick={() => setCreateOpen(true)}>
+                    <Button className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={() => setCreateOpen(true)}>
                       <Plus className="h-4 w-4" />
                       Opret rute
                     </Button>
-                    <Button variant="outline" className="h-9 gap-1.5 text-xs" onClick={() => openCreateOrderDialog()}>
+                    <Button variant="outline" className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={() => openCreateOrderDialog()}>
                       <ShoppingBag className="h-4 w-4" />
                       Bestilling
                     </Button>
@@ -4610,7 +4610,7 @@ const Planner = () => {
 
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-9 w-full justify-between">
+                      <Button variant="outline" size="sm" className="h-8 w-full justify-between rounded-[4px]">
                         <span className="inline-flex items-center gap-2">
                           <Inbox className="h-4 w-4" />
                           Aftaler uden rute
@@ -4618,7 +4618,7 @@ const Planner = () => {
                         <Badge variant="secondary" className="tabular-nums">{filteredUnassigned.length}</Badge>
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[88vw] max-w-sm p-0 flex flex-col">
+                    <SheetContent side="left" className="w-[94vw] max-w-md p-0 flex flex-col">
                       <div className="flex min-h-0 flex-1 flex-col">{unassignedCard}</div>
                     </SheetContent>
                   </Sheet>
