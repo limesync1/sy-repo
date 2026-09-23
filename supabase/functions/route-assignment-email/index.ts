@@ -18,12 +18,11 @@ Deno.serve(async (req) => {
     const { data: stops } = ids.length ? await admin.from('route_stops').select('*').eq('route_id', routeId).in('id', ids).order('sequence') : { data: [] }
     if (!employee.email || !stops?.length) return json({ error: 'missing_recipient_or_stops' }, 400)
     await admin.from('routes').update({ status: 'dispatched' }).eq('id', routeId)
-    const result = await sendTemplateEmail('route-assigned', employee.email, { idempotencyKey: `route-dispatch-${routeId}-${employeeId}-${route.updated_at}`, templateData: {
-      employeeName: employee.name, businessName: route.businesses?.name,
+    const result = await sendTemplateEmail('route-overview', employee.email, { idempotencyKey: `route-dispatch-${routeId}-${employeeId}-${route.updated_at}`, templateData: {
+      employeeName: employee.name, businessName: route.businesses?.name, routeName: route.name || 'Din ruteplan',
       routeDate: new Date(route.route_date).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-      stopCount: stops.length, totalKm: route.total_distance_km, totalDurationMinutes: route.total_duration_minutes,
-      plannedStartTime: route.planned_start_time?.slice(0, 5) || '08:00', firstStopName: stops[0].customer_name,
-      firstStopAddress: stops[0].address, appUrl: 'https://serviceydere.dk/medarbejder',
+      stops: stops.map((stop: any, index: number) => ({ number: index + 1, customerName: stop.customer_name || 'Aftale', address: stop.address || 'Adresse ikke angivet', service: stop.service_summary || undefined })),
+      appUrl: `https://serviceydere.dk/medarbejder/rute/${routeId}`,
     } })
     return json({ ...result, recipient: employee.email })
   } catch (error) { console.error(error); return json({ error: error instanceof Error ? error.message : 'send_failed' }, 500) }

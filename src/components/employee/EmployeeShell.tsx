@@ -15,7 +15,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
-  Check, ChevronsUpDown,
+  Bell, Check, ChevronsUpDown,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getEmployeeWorkspace, setEmployeeWorkspace } from "@/lib/employee-workspace";
 import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
+import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
 
 
 
@@ -89,6 +90,9 @@ export const EmployeeShell = ({
   const { data: employee } = useMyEmployee();
   const { data: myEmployeeRecords } = useMyEmployees();
   const queryClient = useQueryClient();
+  const { data: routeNotifications = [] } = useEmployeeRouteNotifications();
+  const markNotificationRead = useMarkRouteNotificationRead();
+  const unreadNotifications = routeNotifications.filter((item) => !item.read_at);
   // Arbejder brugeren for flere virksomheder, skal der vælges arbejdsplads
   // før panelet vises. `pickerOpen` tvinger vælgeren frem ved manuelt skift.
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -229,13 +233,13 @@ export const EmployeeShell = ({
 
     <div className="service-panel-workspace employee-panel-workspace isolate flex min-h-dvh flex-col bg-secondary/50">
       {/* Topbar — altid synlig */}
-      <header className="employee-panel-header sticky top-0 z-40 border-b border-background/10 bg-foreground text-background shadow-sm">
-        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-3 sm:h-16 sm:px-5">
+      <header className="employee-panel-header sticky top-0 z-40 border-b border-border bg-card text-foreground shadow-sm">
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Forside">
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-7 w-auto brightness-0 invert sm:h-8"
+              className="h-6 w-auto sm:h-7"
               width={1920}
               height={539}
               decoding="async"
@@ -259,8 +263,8 @@ export const EmployeeShell = ({
                   className={cn(
                     "inline-flex h-8 items-center gap-2 rounded-[4px] px-3 text-sm font-medium transition-colors",
                     active
-                       ? "bg-accent text-accent-foreground"
-                       : "text-background/65 hover:bg-background/10 hover:text-background",
+                       ? "bg-accent/10 text-accent"
+                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   )}
                   aria-current={active ? "page" : undefined}
                 >
@@ -272,12 +276,44 @@ export const EmployeeShell = ({
           </nav>
 
           {/* Mobile/tablet sidetitel */}
-          <h1 className="truncate text-base font-semibold text-background sm:text-lg lg:hidden">
+          <h1 className="min-w-0 truncate text-sm font-semibold text-foreground sm:text-base lg:hidden">
             {title ?? currentNav?.label}
           </h1>
 
           <div className="ml-auto flex min-w-0 items-center gap-2">
             {topbarRight}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 shrink-0" aria-label={`${unreadNotifications.length} ulæste notifikationer`}>
+                  <Bell className="h-4 w-4" />
+                  {unreadNotifications.length > 0 && (
+                    <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                      {Math.min(unreadNotifications.length, 9)}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1rem)] p-1.5">
+                <DropdownMenuLabel>Notifikationer</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {routeNotifications.length === 0 ? (
+                  <p className="px-2 py-5 text-center text-xs text-muted-foreground">Ingen beskeder endnu</p>
+                ) : routeNotifications.slice(0, 8).map((item) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    className={cn("mb-1 min-h-12 items-start whitespace-normal p-2", !item.read_at && "bg-accent/10")}
+                    onSelect={() => {
+                      if (!item.read_at) markNotificationRead.mutate(item.id);
+                      if (item.route_id) navigate(`/medarbejder/rute/${item.route_id}`);
+                    }}
+                  >
+                    <span className={cn("mt-1 mr-2 h-2 w-2 shrink-0 rounded-full", item.read_at ? "bg-muted-foreground/30" : "bg-destructive")} />
+                    <span className="min-w-0 text-xs leading-relaxed">{item.message}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Aktiv virksomhed — synlig genvej til at skifte arbejdsplads
                 uden at åbne profilmenuen. Den grønne markør bekræfter hvilken
@@ -286,7 +322,7 @@ export const EmployeeShell = ({
               <button
                 type="button"
                 onClick={() => setPickerOpen(true)}
-                 className="flex h-8 min-w-0 shrink items-center gap-2 rounded-[4px] border border-background/20 bg-background/10 pl-1 pr-2.5 text-xs font-semibold text-background transition-colors hover:border-accent/60 hover:bg-background/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                 className="flex h-9 min-w-0 max-w-[8.5rem] shrink items-center gap-1.5 rounded-md border border-border bg-secondary/50 pl-1 pr-2 text-xs font-semibold text-foreground transition-colors hover:border-accent/60 hover:bg-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:max-w-[13rem]"
                 aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
                 title={`Aktiv virksomhed: ${activeBusinessName}`}
               >
@@ -299,19 +335,19 @@ export const EmployeeShell = ({
                         className="rounded-full object-cover"
                       />
                     ) : null}
-                    <AvatarFallback className="rounded-full bg-background/15 text-[10px] font-bold text-background">
+                    <AvatarFallback className="rounded-full bg-secondary text-[10px] font-bold text-foreground">
                       {businessInitials}
                     </AvatarFallback>
                   </Avatar>
                   <span
                     aria-hidden="true"
-                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-success ring-2 ring-card"
                   >
-                    <Check className="h-2 w-2 text-white" strokeWidth={4} />
+                     <Check className="h-2 w-2 text-success-foreground" strokeWidth={4} />
                   </span>
                 </span>
                 <span className="hidden max-w-[160px] truncate sm:inline">{activeBusinessName}</span>
-                 <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-background/55" />
+                 <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </button>
             )}
 
@@ -324,7 +360,7 @@ export const EmployeeShell = ({
               <button
                 type="button"
                 onClick={() => navigate("/virksomhed")}
-                className="hidden h-8 shrink-0 items-center gap-2 rounded-md pl-1 pr-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary sm:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                  className="hidden h-9 shrink-0 items-center gap-2 rounded-md px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary sm:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label="Skift til virksomhedspanel"
               >
                 <span
@@ -349,7 +385,7 @@ export const EmployeeShell = ({
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex shrink-0 items-center gap-2 rounded-full p-0.5 pl-0.5 pr-2 transition-colors hover:bg-secondary"
+                  className="flex shrink-0 items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-secondary sm:pr-2"
                   aria-label="Profilmenu"
                 >
                   <Avatar className="h-8 w-8 rounded-full ring-2 ring-border" style={{ background: accentColor }}>

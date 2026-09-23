@@ -43,6 +43,7 @@ type Props = {
   height?: string;
   selectedStopId?: string | null;
   onStopClick?: (stopId: string) => void;
+  livePositions?: Array<{ employeeId: string; lat: number; lng: number; label: string; currentStopLabel?: string; recordedAt: string }>;
 };
 
 const FitBounds = ({ points, trigger }: { points: [number, number][]; trigger: number }) => {
@@ -225,7 +226,14 @@ const InvalidateOnResize = ({ trigger }: { trigger: any }) => {
   return null;
 };
 
-const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, onStopClick }: Props) => {
+const livePositionIcon = L.divIcon({
+  className: "route-live-position",
+  html: '<div class="route-live-position__pulse"><div class="route-live-position__dot"></div></div>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
+const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, onStopClick, livePositions = [] }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -340,6 +348,15 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
             <Popup closeButton={false}>
               <strong>{s.label || "Ikke tildelt"}</strong>
               {s.sublabel && <div className="text-xs text-muted-foreground">{s.sublabel}</div>}
+            </Popup>
+          </Marker>
+        ))}
+        {livePositions.map((position) => (
+          <Marker key={`live-${position.employeeId}`} position={[position.lat, position.lng]} icon={livePositionIcon} zIndexOffset={1800}>
+            <Popup closeButton={false}>
+              <strong>{position.label}</strong>
+              <div className="text-xs text-muted-foreground">{position.currentStopLabel ? `Ved ${position.currentStopLabel}` : "På aktiv rute"}</div>
+              <div className="text-xs text-muted-foreground">Opdateret {new Date(position.recordedAt).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</div>
             </Popup>
           </Marker>
         ))}
