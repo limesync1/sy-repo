@@ -1720,6 +1720,48 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         )}
 
+        {/* ─── "Ruten kan køres hurtigere" — vises kun når der reelt er
+             minutter at hente i en anden rækkefølge. ─── */}
+        {routeStarted && !allDone && showOptimizeHint && (
+          <div className="absolute left-3 right-[68px] bottom-[62px] z-[1001] rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
+            <div className="flex items-start gap-2.5">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                <Zap className="h-4 w-4 text-foreground" strokeWidth={2.4} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">Resten af ruten kan køres hurtigere</p>
+                <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                  {speedOpp.fixesViolations > 0
+                    ? "En anden rækkefølge redder en aftale med fast tid."
+                    : `Spar ca. ${Math.round(speedOpp.savedMin)} min og ${speedOpp.savedKm.toFixed(1)} km.`}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 flex-1"
+                    disabled={optimizeLive.isPending}
+                    onClick={() => void reoptimizeFromHere()}
+                  >
+                    {optimizeLive.isPending ? "Optimerer…" : "Optimér"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-9"
+                    onClick={() => setOptimizeHintDismissed(oppSignature)}
+                  >
+                    Ikke nu
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+
         {/* ─── Floating right-side controls — runde pills, native-følelse ───
            Alle kontroller deler én base-klasse (`floatCtrlBase`) så stik-,
            skygge-, ring- og active-feedback er 100% ensartet. Aktive states
