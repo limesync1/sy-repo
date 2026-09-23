@@ -651,24 +651,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
    popover-knapper med ikon, label-mønster, kort hint-tekst.
    ──────────────────────────────────────────── */
 
-const TIME_SLOTS: { value: string; short: string; label: string }[] = [
-  { value: "06:00-08:00", short: "06–08", label: "Tidlig morgen" },
-  { value: "08:00-12:00", short: "08–12", label: "Formiddag" },
-  { value: "12:00-16:00", short: "12–16", label: "Eftermiddag" },
-  { value: "16:00-20:00", short: "16–20", label: "Aften" },
-  { value: "08:00-16:00", short: "08–16", label: "Hele dagen" },
-];
-
-type PlanningProps = {
-  timeSlot: string;
-  setTimeSlot: (v: string) => void;
-  notes: string;
-  setNotes: (v: string) => void;
-  plannedArrival: string | null | undefined;
-  distanceToNextKm: number | null | undefined;
+type AssigneePickerProps = {
+  employees: any[];
+  assigneeIds: string[];
+  leadId: string | null;
+  onChange: (ids: string[], leadId: string | null) => void;
 };
 
-const PlanningSection = ({ notes, setNotes }: any) => {
+const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePickerProps) => {
   const toggle = (id: string) => {
     if (assigneeIds.includes(id)) {
       const next = assigneeIds.filter((x) => x !== id);
@@ -809,3 +799,16 @@ const PlanningSection = ({ notes, setNotes }: any) => {
     </div>
   );
 };
+
+const PlanningSection = ({ notes, setNotes }: { notes: string; setNotes: (value: string) => void }) => (
+  <div className="space-y-1.5">
+    <Label htmlFor="stop-internal-note" className="text-xs text-muted-foreground">Note</Label>
+    <Textarea
+      id="stop-internal-note"
+      value={notes}
+      onChange={(event) => setNotes(event.target.value)}
+      placeholder="Tilføj praktiske oplysninger til medarbejderen"
+      className="min-h-20 resize-y"
+    />
+  </div>
+);

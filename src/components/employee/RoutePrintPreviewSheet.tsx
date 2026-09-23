@@ -91,7 +91,6 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
   const { route, stops, employee } = data as any;
   const sorted = [...stops].sort((a: any, b: any) => a.sequence - b.sequence);
   const businessName = (route as any).businesses?.name || "";
-  const startTime = route.planned_start_time?.slice(0, 5) || "08:00";
   const distance = route.total_distance_km != null ? `${Number(route.total_distance_km).toFixed(1)} km` : "—";
 
   return (
@@ -116,8 +115,7 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
           )}
 
           {/* Meta */}
-          <dl className="mt-3 grid grid-cols-3 gap-2 rounded-md border border-border bg-secondary/40 p-2.5">
-            <Meta icon={<Clock className="h-3 w-3" />} label="Start" value={startTime} />
+          <dl className="mt-3 grid grid-cols-2 gap-2 rounded-md border border-border bg-secondary/40 p-2.5">
             <Meta icon={<Flag className="h-3 w-3" />} label="Stop" value={String(sorted.length)} />
             <Meta icon={<RouteIcon className="h-3 w-3" />} label="Distance" value={distance} />
           </dl>
