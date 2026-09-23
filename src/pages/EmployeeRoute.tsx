@@ -2435,6 +2435,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           if (s.latitude != null && s.longitude != null) setFollowMode(false);
         }}
         onOpenDetails={(s) => setSelectedId(s.id)}
+        flexById={flexById}
+        canReorder={!allDone}
+        reordering={reorderStops.isPending}
+        onMoveStop={handleMoveStop}
       />
     </div>
   );
