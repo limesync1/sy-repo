@@ -241,8 +241,9 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
     const pts: [number, number][] = [];
     for (const r of routes) for (const s of r.stops) pts.push([s.lat, s.lng]);
     for (const s of unassigned) pts.push([s.lat, s.lng]);
+    for (const position of livePositions) pts.push([position.lat, position.lng]);
     return pts;
-  }, [routes, unassigned]);
+  }, [routes, unassigned, livePositions]);
 
   // Find selected stop across all routes
   const selectedStop = useMemo<MapStop | null>(() => {

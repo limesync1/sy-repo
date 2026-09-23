@@ -7,6 +7,7 @@
 // Layoutet bevidst MATCHER virksomhedspanelets sheet-stil
 // (StopDetailSheet) så medarbejder- og virksomhedspanelet føles ensartet.
 import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
@@ -16,11 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Printer, ExternalLink, Flag, Route as RouteIcon,
-  MapPin, ClipboardList, ListChecks, StickyNote, Phone,
+  MapPin, ClipboardList, ListChecks, StickyNote, Phone, Contact, FileText, AlignJustify,
 } from "lucide-react";
 import { useMyRouteData } from "@/hooks/useRoutes";
 import { stripPrices } from "@/lib/employee-display";
 import { SheetFooterBar } from "@/components/route-planner/SheetSection";
+import { Switch } from "@/components/ui/switch";
 
 type Props = {
   open: boolean;
@@ -30,6 +32,19 @@ type Props = {
 
 export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) => {
   const { data, isLoading } = useMyRouteData(routeId || undefined);
+  const [showNotes, setShowNotes] = useState(false);
+  const [showContact, setShowContact] = useState(true);
+  const [showTasks, setShowTasks] = useState(true);
+  const [compact, setCompact] = useState(true);
+  const printPath = useMemo(() => {
+    const params = new URLSearchParams({
+      notes: showNotes ? "1" : "0",
+      contact: showContact ? "1" : "0",
+      tasks: showTasks ? "1" : "0",
+      density: compact ? "compact" : "standard",
+    });
+    return routeId ? `/medarbejder/rute/${routeId}/print?${params.toString()}` : "#";
+  }, [routeId, showNotes, showContact, showTasks, compact]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -57,7 +72,15 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
               <Loader2 className="h-4 w-4 animate-spin" /> Henter rutedata…
             </div>
           ) : (
-            <PreviewArticle data={data} />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 rounded-md border border-border bg-card p-2 sm:grid-cols-4">
+                <PreviewOption icon={<StickyNote className="h-3.5 w-3.5" />} label="Noter" checked={showNotes} onChange={setShowNotes} />
+                <PreviewOption icon={<Contact className="h-3.5 w-3.5" />} label="Kontakt" checked={showContact} onChange={setShowContact} />
+                <PreviewOption icon={<FileText className="h-3.5 w-3.5" />} label="Opgaver" checked={showTasks} onChange={setShowTasks} />
+                <PreviewOption icon={<AlignJustify className="h-3.5 w-3.5" />} label="Kompakt" checked={compact} onChange={setCompact} />
+              </div>
+              <PreviewArticle data={data} showNotes={showNotes} showContact={showContact} showTasks={showTasks} compact={compact} />
+            </div>
           )}
         </div>
 
@@ -68,7 +91,7 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
             variant="outline"
             className="h-9 gap-1.5 rounded-[4px] border-border bg-card text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
-            <Link to={routeId ? `/medarbejder/rute/${routeId}/print` : "#"} target="_blank" rel="noreferrer">
+            <Link to={printPath} target="_blank" rel="noreferrer">
               <ExternalLink className="h-4 w-4" /> Åbn fuld visning
             </Link>
           </Button>
@@ -76,7 +99,7 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
             asChild
             className="h-9 gap-1.5 rounded-[4px] bg-accent text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:bg-accent/90"
           >
-            <Link to={routeId ? `/medarbejder/rute/${routeId}/print` : "#"}>
+            <Link to={printPath}>
               <Printer className="h-4 w-4" /> Gå til print
             </Link>
           </Button>
@@ -87,7 +110,13 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
 };
 
 /* ─── Preview-artikel (kompakt udgave af EmployeeRoutePrint-arket) ─── */
-const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRouteData>["data"]> }) => {
+const PreviewArticle = ({ data, showNotes, showContact, showTasks, compact }: {
+  data: NonNullable<ReturnType<typeof useMyRouteData>["data"]>;
+  showNotes: boolean;
+  showContact: boolean;
+  showTasks: boolean;
+  compact: boolean;
+}) => {
   const { route, stops, employee } = data as any;
   const sorted = [...stops].sort((a: any, b: any) => a.sequence - b.sequence);
   const businessName = (route as any).businesses?.name || "";
@@ -148,14 +177,12 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
             {sorted.map((s: any, i: number) => {
               const cleaned = s.service_summary ? stripPrices(s.service_summary) : "";
               return (
-                <li key={s.id} className="py-3">
+                <li key={s.id} className={compact ? "py-2" : "py-3.5"}>
                   <div className="flex gap-3">
                     <div className="flex shrink-0 flex-col items-center gap-1.5 pt-0.5">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold tabular-nums text-background">
                         {i + 1}
                       </div>
-                      <div className="h-4 w-px bg-border" />
-                      <div className="h-4 w-4 rounded border-[1.5px] border-foreground bg-background" aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -168,20 +195,20 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
                             <span>{s.address}</span>
                           </p>
                         )}
-                        {s.customer_phone && (
+                        {showContact && s.customer_phone && (
                           <p className="flex items-center gap-1 tabular-nums">
                             <Phone className="h-3 w-3 shrink-0" />
                             <span>{s.customer_phone}</span>
                           </p>
                         )}
                       </div>
-                      {cleaned && (
+                      {showTasks && cleaned && (
                         <p className="mt-1.5 rounded border-l-2 border-foreground bg-secondary/40 px-2 py-1 text-[11px] text-foreground">
                           <span className="block text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Opgave</span>
                           {cleaned}
                         </p>
                       )}
-                      {s.notes && (
+                      {showNotes && s.notes && (
                         <p className="mt-1.5 flex items-start gap-1 text-[11px] italic text-foreground">
                           <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
                           {s.notes}
@@ -196,13 +223,28 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
         )}
 
         <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2 text-[10px] text-muted-foreground">
-          <p>Forhåndsvisning · {new Date().toLocaleString("da-DK")}</p>
+          <p>Forhåndsvisning · {new Date().toLocaleDateString("da-DK")}</p>
           <p className="font-semibold tracking-tight text-foreground">Serviceydere</p>
         </footer>
       </div>
     </article>
   );
 };
+
+const PreviewOption = ({ icon, label, checked, onChange }: {
+  icon: React.ReactNode;
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) => (
+  <label className="flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md bg-secondary/35 px-2.5 py-2">
+    <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-foreground">
+      <span className="shrink-0 text-muted-foreground">{icon}</span>
+      <span className="truncate">{label}</span>
+    </span>
+    <Switch checked={checked} onCheckedChange={onChange} aria-label={`Vis ${label.toLowerCase()}`} />
+  </label>
+);
 
 const Meta = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) => (
   <div>

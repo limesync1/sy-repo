@@ -261,7 +261,7 @@ export const EmployeeShell = ({
                   onMouseEnter={() => prefetchTab(item.value)}
                   onFocus={() => prefetchTab(item.value)}
                   className={cn(
-                    "inline-flex h-8 items-center gap-2 rounded-[4px] px-3 text-sm font-medium transition-colors",
+                    "inline-flex h-8 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors",
                     active
                        ? "bg-accent/10 text-accent"
                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -339,7 +339,7 @@ export const EmployeeShell = ({
                 title={`Aktiv virksomhed: ${activeBusinessName}`}
               >
                 <span className="relative inline-flex shrink-0">
-                  <Avatar className="h-7 w-7 rounded-full ring-1 ring-border">
+                  <Avatar className="h-7 w-7 rounded-full ring-2 ring-border">
                     {activeBusiness?.logo_url ? (
                       <AvatarImage
                         src={activeBusiness.logo_url}

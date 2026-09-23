@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,12 @@ import { stripPrices } from "@/lib/employee-display";
 const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const { user, loading } = useAuth();
+  const [searchParams] = useSearchParams();
   const { data, isLoading } = useMyRouteData(routeId);
-  const [compact, setCompact] = useState(false);
+  const [compact, setCompact] = useState(() => searchParams.get("density") === "compact");
+  const showNotes = searchParams.get("notes") === "1";
+  const showContact = searchParams.get("contact") !== "0";
+  const showTasks = searchParams.get("tasks") !== "0";
 
   useEffect(() => {
     document.title = "Ruteliste — print";
@@ -168,16 +172,11 @@ const EmployeeRoutePrint = () => {
                       className="print-stop py-5 border-b border-border last:border-b-0 print:border-black/25"
                     >
                       <div className="flex gap-4">
-                        {/* Number + checkbox column */}
+                        {/* Nummerkolonne */}
                         <div className="shrink-0 flex flex-col items-center gap-2 pt-0.5">
                           <div className="w-9 h-9 rounded-full bg-foreground text-background print:bg-white print:text-black print:border-[1.5px] print:border-black flex items-center justify-center text-[14px] font-semibold tabular-nums shadow-sm print:shadow-none">
                             {i + 1}
                           </div>
-                          <div className="w-px flex-1 bg-border print:bg-black/30 min-h-[10px]" />
-                          <div
-                            className="w-6 h-6 border-[1.5px] border-foreground rounded-[5px] print:border-black bg-background print:bg-white"
-                            aria-label="Afkrydsningsfelt"
-                          />
                         </div>
 
                         {/* Body */}
@@ -197,7 +196,7 @@ const EmployeeRoutePrint = () => {
                                 <span>{s.address}</span>
                               </p>
                             )}
-                            {s.customer_phone && (
+                            {showContact && s.customer_phone && (
                               <p className="flex items-center gap-1.5 tabular-nums">
                                 <Phone className="h-3.5 w-3.5 shrink-0" />
                                 <span>{s.customer_phone}</span>
@@ -205,7 +204,7 @@ const EmployeeRoutePrint = () => {
                             )}
                           </div>
 
-                          {cleanedSummary && (
+                          {showTasks && cleanedSummary && (
                             <div className="mt-3 rounded-md border-l-[3px] border-foreground bg-muted/50 px-3 py-2 text-sm text-foreground print:bg-transparent print:border-l-2 print:border-black print:px-2 print:py-1">
                               <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground print:text-black/70">
                                 Opgave
@@ -214,21 +213,13 @@ const EmployeeRoutePrint = () => {
                             </div>
                           )}
 
-                          {s.notes && (
+                          {showNotes && s.notes && (
                             <div className="mt-2 flex gap-2 text-sm text-foreground print:text-black">
                               <StickyNote className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground print:text-black/70" />
                               <p className="italic">{s.notes}</p>
                             </div>
                           )}
 
-                          {/* Signature lines */}
-                          <div className="print-signature mt-3.5">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground print:text-black/60 font-medium">
-                              Noter / underskrift
-                            </p>
-                            <div className="mt-1.5 border-b border-foreground/30 print:border-black/60 h-5" />
-                            <div className="mt-1 border-b border-foreground/30 print:border-black/60 h-5" />
-                          </div>
                         </div>
                       </div>
                     </li>
@@ -239,7 +230,7 @@ const EmployeeRoutePrint = () => {
 
             {/* Footer */}
             <footer className="print-footer mt-6 pt-3 border-t border-border print:border-black/40 flex items-center justify-between flex-wrap gap-2 text-[11px] text-muted-foreground print:text-black/70">
-              <p>Udskrevet {new Date().toLocaleString("da-DK")}</p>
+              <p>Udskrevet {new Date().toLocaleDateString("da-DK")}</p>
               <p className="font-semibold tracking-tight text-foreground print:text-black">Serviceydere</p>
             </footer>
           </div>

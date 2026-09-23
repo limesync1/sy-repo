@@ -54,7 +54,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
       </header>
 
       <main className="mx-auto grid w-full max-w-5xl flex-1 content-start items-start gap-3 px-3 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(260px,0.72fr)_minmax(420px,1.28fr)] lg:gap-8 lg:py-14">
-        <section className="overflow-hidden rounded-[6px] bg-foreground px-5 py-5 text-background shadow-[0_18px_45px_-30px_hsl(var(--foreground)/0.7)] sm:px-7 sm:py-7 lg:sticky lg:top-20">
+        <section className="overflow-hidden rounded-md bg-foreground px-5 py-5 text-background shadow-sm sm:px-7 sm:py-7 lg:sticky lg:top-20">
           <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-accent text-accent-foreground">
             <BriefcaseBusiness className="h-4 w-4" />
           </div>
@@ -65,7 +65,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           </p>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-[6px] border border-border bg-card shadow-sm">
+        <section className="min-w-0 overflow-hidden rounded-md border border-border bg-card shadow-sm">
           <div className="border-b border-border px-4 py-4 sm:px-5">
             <h2 className="text-base font-semibold text-foreground">Dine arbejdspladser</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Du kan altid skifte igen fra profilmenuen.</p>
