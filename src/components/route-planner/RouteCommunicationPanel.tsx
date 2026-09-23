@@ -55,16 +55,17 @@ export function RouteCommunicationPanel({
   };
 
   return (
-    <div className="space-y-2.5 rounded-md border border-border bg-card p-3">
-      <div className="flex items-center gap-2.5">
+    <section className="overflow-hidden rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
+      <div className="flex items-center gap-2.5 border-b border-border bg-secondary/35 px-3 py-2">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-accent/10 text-accent">
           <BellRing className="h-3.5 w-3.5" />
         </span>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">Kontakt medarbejder</p>
-          <p className="truncate text-[11px] text-muted-foreground">Beskeden markeres på den valgte rute eller aftale</p>
+          <p className="text-[11px] font-bold uppercase text-foreground">Kontakt medarbejder</p>
+          <p className="truncate text-[10px] text-muted-foreground">Vises på den valgte rute eller aftale</p>
         </div>
       </div>
+      <div className="space-y-2.5 p-3">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
         <div className="space-y-1">
         <Label className="text-[11px]">Modtager</Label>
@@ -90,6 +91,7 @@ export function RouteCommunicationPanel({
         {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         Send besked
       </Button>
-    </div>
+      </div>
+    </section>
   );
 }

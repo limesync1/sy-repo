@@ -1500,7 +1500,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
+    <div className="employee-route-run fixed inset-0 flex flex-col bg-background overflow-hidden">
       {/* Valg af kørselstilstand — spørges første gang man starter en rute */}
       <RouteModeDialog
         open={modeDialogOpen}
@@ -2040,7 +2040,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Før start: kompakt kørselsdock med ét klart næste trin ─── */}
         {!routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2 sm:p-4">
-            <section className="mx-auto max-w-xl overflow-hidden rounded-md border border-border/80 bg-foreground text-background shadow-xl">
+            <section className="route-drive-dock mx-auto max-w-xl overflow-hidden rounded-md border border-background/15 bg-foreground text-background shadow-xl">
               <div className="flex items-center justify-between gap-3 border-b border-background/15 px-3.5 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-semibold uppercase text-background/65">{todayLabel}</p>
@@ -2110,7 +2110,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pointer-events-none sm:p-4">
-            <Card className="mx-auto max-w-xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
+            <Card className="route-drive-dock mx-auto max-w-xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 px-3 pt-2 pb-1.5">
                 {sortedStops.map((s, i) => (
