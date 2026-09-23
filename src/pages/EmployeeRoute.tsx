@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition, useReorderStops } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -39,6 +39,11 @@ import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completi
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
+import {
+  computeFlex, evaluateMove, findSpeedOpportunity, minutesNow,
+  type FlexLevel, type StopFlex,
+} from "@/components/employee-route/routeSlack";
+import { ArrowUp, ArrowDown, Zap } from "lucide-react";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
