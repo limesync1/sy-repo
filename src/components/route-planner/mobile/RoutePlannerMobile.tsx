@@ -23,6 +23,7 @@ import {
   MapPin,
   Plus,
   Search,
+  ShoppingBag,
   Sparkles,
   GripVertical,
   Trash2,
@@ -1444,7 +1445,7 @@ function NewRouteDialog({
   }, [eligible, jobSearch]);
 
   const handleSubmit = async () => {
-    if (submitting) return;
+    if (submitting || selected.length === 0) return;
     setSubmitting(true);
     try {
       const created = await createRoute.mutateAsync({

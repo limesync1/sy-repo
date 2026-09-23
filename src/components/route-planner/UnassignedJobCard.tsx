@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
-  MapPin, Clock, Phone,
+  MapPin, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock,
   Info, Check, Repeat, Hourglass,
 } from "lucide-react";
