@@ -79,7 +79,7 @@ export const WeatherBadge = ({ weather, size = "compact", className }: Props) =>
             </span>
           )}
           {isFrost && size === "compact" && (
-            <Snowflake className="h-2.5 w-2.5 text-blue-600" strokeWidth={2.5} />
+          <Snowflake className="h-2.5 w-2.5 text-blue-600 dark:text-blue-300" strokeWidth={2.5} />
           )}
         </div>
       </TooltipTrigger>
@@ -182,7 +182,7 @@ const Metric = ({
     <p
       className={cn(
         "text-xs font-semibold tabular-nums leading-tight",
-        highlight && "text-red-600",
+        highlight && "text-destructive",
       )}
     >
       {value}

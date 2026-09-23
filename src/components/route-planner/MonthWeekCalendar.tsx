@@ -1488,7 +1488,7 @@ const RoutePillInner = ({
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-semibold text-foreground leading-[1.15] tracking-normal line-clamp-3 break-words" title={route.name || undefined}>
+          <div className="min-h-[1.75rem] max-w-full text-[12px] font-semibold text-foreground leading-[1.15] tracking-normal line-clamp-2 overflow-hidden" title={route.name || undefined}>
             {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
           </div>
           <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
@@ -1680,7 +1680,7 @@ const RoutePillInner = ({
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
-          <div className="absolute bottom-1 right-1 flex items-center gap-px rounded-md opacity-100">
+          <div className="absolute bottom-1 right-1 z-[3] flex items-center gap-px rounded-[4px] border border-border/80 bg-card/95 p-px shadow-sm backdrop-blur-sm opacity-100">
         {!isVirtual && stopCount >= 2 && (
           <button
             type="button"

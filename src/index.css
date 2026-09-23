@@ -247,6 +247,25 @@
     --planner-ink-soft: 215 16% 38%;
   }
 
+  /* Plannerens mørke tema har egne arbejdsflader. Det undgår den flade,
+     næsten sorte visning og holder kalender, kort og overlays adskilt. */
+  .dark .route-planner-workspace,
+  .dark.route-planner-open,
+  .dark .route-planner-open,
+  .dark .route-planner-open [role="dialog"],
+  .dark .route-planner-open [role="menu"],
+  .dark .route-planner-open [data-radix-popper-content-wrapper] {
+    --accent: 184 78% 45%;
+    --accent-foreground: 222 47% 8%;
+    --ring: 184 78% 45%;
+    --planner-success: 151 56% 48%;
+    --planner-warning: 40 90% 58%;
+    --planner-danger: 0 75% 62%;
+    --planner-surface: 222 34% 8%;
+    --planner-surface-raised: 220 27% 12%;
+    --planner-ink-soft: 215 16% 68%;
+  }
+
   .route-planner-open [role="dialog"] {
     border-radius: 0.5rem;
     border-color: hsl(var(--border));
@@ -273,6 +292,30 @@
   .route-planner-open .planner-overlay-footer {
     background: hsl(var(--card));
     border-color: hsl(var(--border));
+  }
+
+  .dark .route-planner-open [role="dialog"],
+  .dark .route-planner-open .planner-overlay {
+    border-color: hsl(var(--border) / 0.9);
+    background: hsl(var(--planner-surface-raised));
+    box-shadow: 0 28px 72px -30px hsl(222 60% 2% / 0.9);
+  }
+
+  .dark .route-planner-open .planner-overlay-header,
+  .dark .route-planner-open .planner-overlay-footer {
+    background: hsl(var(--planner-surface-raised));
+    border-color: hsl(var(--border) / 0.82);
+  }
+
+  .dark .route-planner-open .planner-overlay-body {
+    background: hsl(var(--planner-surface));
+  }
+
+  .dark .route-planner-open [data-radix-popper-content-wrapper] [role="menu"],
+  .dark .route-planner-open [data-radix-popper-content-wrapper] [role="listbox"] {
+    background: hsl(var(--planner-surface-raised));
+    border-color: hsl(var(--border) / 0.9);
+    box-shadow: 0 20px 52px -24px hsl(222 60% 2% / 0.9);
   }
 
   .route-planner-open [role="dialog"] input,
@@ -318,6 +361,51 @@
 
   .route-planner-workspace .planner-card {
     box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
+  }
+
+  .dark .route-planner-workspace .planner-board,
+  .dark .route-planner-workspace .planner-mobile-board {
+    border-color: hsl(var(--border) / 0.9);
+    background: hsl(var(--planner-surface-raised));
+    box-shadow: 0 18px 46px -28px hsl(222 60% 2% / 0.92);
+  }
+
+  .dark .route-planner-workspace .planner-toolbar,
+  .dark .route-planner-workspace .planner-mobile-toolbar,
+  .dark .route-planner-workspace .planner-inbox-header {
+    border-color: hsl(var(--border) / 0.82);
+    background: hsl(var(--planner-surface-raised));
+  }
+
+  .dark .route-planner-workspace .planner-card {
+    border-color: hsl(var(--border) / 0.92);
+    background: hsl(var(--card));
+    box-shadow: 0 1px 2px hsl(222 60% 2% / 0.62);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .dark .route-planner-workspace .planner-card:hover {
+      border-color: hsl(var(--accent) / 0.55);
+      background: hsl(var(--secondary) / 0.72);
+      box-shadow: 0 10px 26px -18px hsl(var(--accent) / 0.38);
+    }
+  }
+
+  .dark .route-planner-workspace [aria-pressed="true"],
+  .dark .route-planner-workspace [data-state="active"] {
+    border-color: hsl(var(--accent) / 0.5);
+    background-color: hsl(var(--accent) / 0.13);
+    color: hsl(var(--foreground));
+  }
+
+  .dark .route-planner-workspace input,
+  .dark .route-planner-workspace textarea,
+  .dark .route-planner-workspace [role="combobox"],
+  .dark .route-planner-open input,
+  .dark .route-planner-open textarea,
+  .dark .route-planner-open [role="combobox"] {
+    border-color: hsl(var(--border) / 0.9);
+    background: hsl(var(--background) / 0.78);
   }
 
   .route-planner-workspace .planner-card:active {
@@ -613,6 +701,46 @@
   padding: 6px 8px 0 0;
   font-size: 20px;
   color: hsl(0 0% 45%);
+}
+
+/* Kortets egne kontroller og popups følger plannerens tema. Selve OSM-dataene
+   forbliver genkendelige, mens lysstyrken dæmpes i mørk visning. */
+.planner-route-map .leaflet-popup-content-wrapper,
+.planner-route-map .leaflet-popup-tip,
+.planner-route-map .leaflet-control-layers,
+.planner-route-map .leaflet-bar a {
+  border-color: hsl(var(--border));
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+
+.planner-route-map .leaflet-bar a:hover,
+.planner-route-map .leaflet-bar a:focus-visible {
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+
+.planner-route-map .leaflet-popup-close-button,
+.dark .leaflet-popup.rich-business-popup .leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground));
+}
+
+.planner-route-map .leaflet-control-attribution {
+  background: hsl(var(--background) / 0.84);
+  color: hsl(var(--muted-foreground));
+  backdrop-filter: blur(6px);
+}
+
+.planner-route-map .leaflet-control-attribution a {
+  color: hsl(var(--accent));
+}
+
+.dark .planner-route-map .leaflet-tile-pane {
+  filter: brightness(0.72) saturate(0.72) contrast(1.08);
+}
+
+.dark .planner-route-map .leaflet-control-layers-separator {
+  border-color: hsl(var(--border));
 }
 
 /* ─── Leaflet z-index scoping ───
