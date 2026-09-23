@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -117,8 +117,8 @@ const BetaNotice = () => {
 
   /** Selve tilmeldingen — e-mail først, rollevalg som to små valg under. */
   const signupForm = (
-    <form onSubmit={submit} noValidate className="mt-5 space-y-3">
-      <div className="flex flex-col gap-2 sm:flex-row">
+    <form onSubmit={submit} noValidate className="mt-4 space-y-3">
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
         <Input
           id="beta-email"
           type="email"
@@ -131,9 +131,9 @@ const BetaNotice = () => {
           aria-label="Din e-mail"
           aria-invalid={!!error}
           aria-describedby={error ? "beta-email-error" : undefined}
-          className="h-11 flex-1 bg-background"
+          className="h-10 min-w-0 bg-background"
         />
-        <Button type="submit" disabled={saving} className="h-11 shrink-0 px-5">
+        <Button type="submit" disabled={saving} className="h-10 shrink-0 px-5">
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Skriv mig op
         </Button>
@@ -145,8 +145,10 @@ const BetaNotice = () => {
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground">
-        <span>Jeg er</span>
+      <fieldset className="flex min-w-0 items-center gap-2 text-[12.5px] text-muted-foreground">
+        <legend className="sr-only">Tilmeldingstype</legend>
+        <span className="shrink-0">Jeg er</span>
+        <div className="inline-grid min-w-0 grid-cols-2 rounded-md border border-border bg-secondary/60 p-0.5">
         {(
           [
             { key: "kunde" as const, label: "kunde" },
@@ -159,16 +161,17 @@ const BetaNotice = () => {
             aria-pressed={audience === opt.key}
             onClick={() => setAudience(opt.key)}
             className={cn(
-              "rounded-full px-2.5 py-0.5 font-medium transition-colors",
+              "min-w-0 rounded px-2.5 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               audience === opt.key
-                ? "bg-foreground text-background"
-                : "text-muted-foreground underline underline-offset-4 hover:text-foreground",
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {opt.label}
           </button>
         ))}
-      </div>
+        </div>
+      </fieldset>
 
       <p className="text-[12px] leading-5 text-muted-foreground">
         Én mail, den dag vi åbner. Ikke andet.
@@ -177,7 +180,7 @@ const BetaNotice = () => {
   );
 
   const confirmation = (
-    <div className="mt-6 flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
+    <div className="mt-4 flex items-start gap-3 rounded-lg border border-success/30 bg-success/10 p-3">
       <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
       <div>
         <p className="text-sm font-semibold text-foreground">Du står på listen</p>
@@ -191,12 +194,13 @@ const BetaNotice = () => {
   /** Fælles indhold i både stribe-dialogen og velkomst-popup'en. */
   const card = (
     <>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        Testfase
-      </p>
-      <DialogTitle className="mt-2 text-[22px] font-bold leading-tight tracking-tight text-foreground">
-        {title}
-      </DialogTitle>
+      <div className="flex items-start gap-3 pr-7">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent"><BellRing className="h-4 w-4" /></span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Testfase</p>
+          <DialogTitle className="mt-1 text-xl font-semibold leading-tight text-foreground">{title}</DialogTitle>
+        </div>
+      </div>
       <DialogDescription className="mt-2 text-[14px] leading-6 text-muted-foreground">
         {body}
       </DialogDescription>
@@ -209,9 +213,9 @@ const BetaNotice = () => {
       <aside
         role="region"
         aria-label="Besked om testfase"
-        className="w-full border-b border-border bg-surface text-foreground"
+        className="w-full border-b border-border bg-secondary/70 text-foreground"
       >
-        <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-4 py-2.5 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-4 py-2 text-center sm:px-6 lg:px-8">
           <p className="text-[13.5px] leading-6">
             <span className="font-semibold">{title}</span>{" "}
             <span className="text-muted-foreground">{body}</span>
@@ -229,7 +233,7 @@ const BetaNotice = () => {
                 setJustSignedUp(false);
                 setOpen(true);
               }}
-              className="group inline-flex items-center gap-1 rounded-full bg-foreground px-3.5 py-1 text-[12.5px] font-semibold text-background transition-opacity hover:opacity-90"
+              className="group inline-flex items-center gap-1 rounded-md bg-foreground px-3.5 py-1.5 text-[12.5px] font-semibold text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Få besked når vi åbner
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -240,7 +244,7 @@ const BetaNotice = () => {
 
       {/* Dialog fra stribens knap */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl border-border bg-card p-6 sm:max-w-[420px] sm:p-7">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border-border bg-card p-5 sm:max-w-[430px] sm:p-6">
           {card}
         </DialogContent>
       </Dialog>
@@ -254,12 +258,12 @@ const BetaNotice = () => {
             else setPopupOpen(true);
           }}
         >
-          <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl border-border bg-card p-6 sm:max-w-[420px] sm:p-7">
+          <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border-border bg-card p-5 sm:max-w-[430px] sm:p-6">
             {card}
             <button
               type="button"
               onClick={dismissPopup}
-              className="mt-4 block text-[13px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+              className="mt-3 block w-full rounded-md py-2 text-center text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Nej tak — kig bare rundt
             </button>

@@ -17,6 +17,7 @@ import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { useServices } from "@/hooks/useDatabase";
+import { useActiveAccountingIntegration } from "@/hooks/useActiveAccountingIntegration";
 import CustomerContactsSection from "./CustomerContactsSection";
 import CustomerDocumentsSection from "./CustomerDocumentsSection";
 import NotificationOverridesPanel from "./NotificationOverridesPanel";
@@ -88,31 +89,10 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
-  const [accountingEnabled, setAccountingEnabled] = useState<boolean>(false);
+  const { data: activeAccountingIntegration } = useActiveAccountingIntegration(open ? businessId : undefined);
+  const accountingEnabled = !!activeAccountingIntegration;
   const { data: services = [] } = useServices(businessId);
   const hasActiveServices = services.some((service) => service.is_active !== false);
-
-  // Tjek om virksomheden har et regnskabsprogram aktiveret — ellers skjuler vi
-  // hele "Regnskab & fakturering"-sektionen, så panelet er rent og enkelt.
-  useEffect(() => {
-    if (!open || !businessId) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("businesses")
-          .select("settings")
-          .eq("id", businessId)
-          .maybeSingle();
-        if (cancelled) return;
-        const enabled = !!(data?.settings as any)?.accounting_integration_enabled;
-        setAccountingEnabled(enabled);
-      } catch {
-        if (!cancelled) setAccountingEnabled(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [open, businessId]);
 
   // Geocode address — used after CVR autofill so adressefeltet ikke vises som "ikke fundet"
   const geocodeCurrentAddress = async (addr: string, zip: string, ci: string) => {
