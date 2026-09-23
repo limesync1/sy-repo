@@ -700,6 +700,12 @@ function RouteSettingsSheet({
               })}
             </div>
           </div>
+          <div className="rounded-md border border-border bg-secondary/35 px-3 py-2.5">
+            <Label className="text-[10px] uppercase text-muted-foreground">Dato</Label>
+            <p className="mt-0.5 text-sm font-semibold text-foreground">
+              {format(parseISO(route.route_date), "EEEE d. MMMM yyyy", { locale: da })}
+            </p>
+          </div>
           <RouteCommunicationPanel route={route} stops={stops} employees={employees} />
         </div>
         <div className="planner-overlay-footer space-y-2 border-t border-border p-4">

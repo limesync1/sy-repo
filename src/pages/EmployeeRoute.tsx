@@ -1486,6 +1486,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onFinish={onBack}
         onMoveStop={handleMoveStop}
         reordering={reorderStops.isPending}
+        notification={routeNotifications[0] ? {
+          title: routeNotifications[0].route_stops?.customer_name
+            ? `Aftale · ${routeNotifications[0].route_stops.customer_name}`
+            : `Rute · ${routeNotifications[0].routes?.name || route.name || "Dagens rute"}`,
+          message: routeNotifications[0].message,
+        } : null}
+        onMarkNotificationRead={routeNotifications.length > 0
+          ? () => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))
+          : undefined}
       />
     );
   }

@@ -25,3 +25,9 @@
 - [x] Tilføj ulæste rute-/aftalenotifikationer til én medarbejder ad gangen
 - [x] Vis sikker, batteriskånsom live-position kun under aktiv rute
 - [x] Verificér alle flows på mobil, tablet og computer
+
+## Smartere rutekørsel og medarbejderbeskeder
+- [x] Ensret den aktive kortkørsel og den strømbesparende listevisning
+- [x] Flyt kompakt medarbejderkontakt fra stoplisten til renteredigereringen efter dato
+- [x] Fjern manuel planmail fra ruteplanlæggeren
+- [x] Vis rute- eller aftalekontekst på medarbejderens beskeder

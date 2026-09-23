@@ -13,6 +13,7 @@ import {
   PartyPopper,
   Undo2,
   Loader2,
+  BellRing,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,8 @@ type Props = {
   /** Flyt et stop op/ned i rækkefølgen mens man kører. */
   onMoveStop?: (stopId: string, dir: -1 | 1) => void;
   reordering?: boolean;
+  notification?: { title: string; message: string } | null;
+  onMarkNotificationRead?: () => void;
 };
 
 export const RouteChecklistView = ({
@@ -57,6 +60,8 @@ export const RouteChecklistView = ({
   onFinish,
   onMoveStop,
   reordering = false,
+  notification = null,
+  onMarkNotificationRead,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
 
@@ -101,6 +106,21 @@ export const RouteChecklistView = ({
           />
         </div>
       </header>
+
+      {notification && (
+        <div className="border-b border-destructive/25 bg-destructive/5 px-3 py-2.5">
+          <div className="mx-auto flex max-w-2xl items-start gap-2.5">
+            <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-semibold uppercase text-destructive">{notification.title}</p>
+              <p className="mt-0.5 text-xs font-medium leading-relaxed text-foreground">{notification.message}</p>
+            </div>
+            {onMarkNotificationRead && (
+              <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs" onClick={onMarkNotificationRead}>Set</Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-24 pt-3 sm:px-5 sm:pt-4">
         {allDone ? (
