@@ -2018,12 +2018,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3">
-            <Card className="overflow-hidden rounded-xl border-border shadow-xl">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 sm:p-4">
+            <Card className="mx-auto max-w-xl overflow-hidden rounded-lg border-border shadow-xl">
               {/* Dagens overblik — øverste sektion */}
-              <div className="px-4 pt-3.5 pb-3 bg-card border-b border-border">
+              <div className="border-l-4 border-l-primary bg-card px-3.5 py-3 sm:px-4">
                 {/* Header-rad: titel + antal stop */}
-                <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="mb-2.5 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <p className="text-[11px] text-muted-foreground font-medium truncate">
@@ -2050,8 +2050,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
 
                 {/* Tre nøgletal — admin-stil grid uden flashy farver */}
-                <div className="grid grid-cols-3 gap-1.5 mb-3">
-                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                <div className="mb-3 grid grid-cols-2 divide-x divide-border overflow-hidden rounded-md border border-border bg-secondary/35">
+                  <div className="px-2 py-2 text-center">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {remainingStops.length}
@@ -2060,18 +2060,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       )}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                  <div className="px-2 py-2 text-center">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {route?.total_distance_km != null && route.total_distance_km > 0
                         ? `${route.total_distance_km.toFixed(1)} km`
                         : "—"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Slut ca.</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {estimatedEndAt || "—"}
                     </p>
                   </div>
                 </div>
@@ -2104,40 +2098,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {/* Info-grid: km, tid, ETA — for første leg.  Vi viser kun de tre
                   tal der betyder noget, og bruger altid den korrigerede ETA
                   (med DK trafik-buffer) — ingen toggle, ingen badges. */}
-              {(directions || etaLabel) && (
-                <>
-                  <div className="grid grid-cols-3 divide-x divide-border bg-background border-t border-b border-border">
-                    <div className="px-2 py-2 text-center">
-                      <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                      <p className="text-sm font-bold tabular-nums mt-0.5">
-                        {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
-                      </p>
-                    </div>
-                    <div className="px-2 py-2 text-center">
-                      <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
-                      <p className="text-sm font-bold tabular-nums mt-0.5">
-                        {(() => {
-                          const d = directions ? pickDuration(directions, false) : null;
-                          return d != null ? formatMin(d) : "—";
-                        })()}
-                      </p>
-                    </div>
-                    <div className="px-2 py-2 text-center">
-                      <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                      <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
-                        {etaLabel || "—"}
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <div className="p-3">
+              <div className="border-t border-border p-3">
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
                   disabled={routeDateLocked}
-                  className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md hover:shadow-lg active:scale-[0.99] transition-all bg-foreground text-background hover:bg-foreground/90"
+                  className="h-11 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90"
                 >
                   <Play className="h-5 w-5 fill-current" /> {routeDateLocked ? "Låst til rutedagen" : "Start dagens rute"}
                 </Button>
@@ -2148,9 +2114,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pb-2.5 pointer-events-none">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pointer-events-none sm:p-4">
             <Card
-              className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/85"
+              className="mx-auto max-w-xl overflow-hidden pointer-events-auto rounded-lg border-border shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90"
             >
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 px-3 pt-2 pb-1.5">
@@ -2177,7 +2143,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-base font-bold shrink-0 shadow-sm"
+                   className="flex h-10 w-10 items-center justify-center rounded-md text-background text-base font-bold shrink-0"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
@@ -2243,7 +2209,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="sm"
-                    className={`gap-1.5 h-10 rounded-xl text-[13px] font-semibold transition-all active:scale-[0.99] ${
+                    className={`gap-1.5 h-10 rounded-md text-[13px] font-semibold transition-colors ${
                       isAtNextStop
                         ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/25"
                         : "bg-foreground text-background hover:bg-foreground/90"
@@ -2262,12 +2228,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     variant="outline"
                     size="sm"
                     aria-label="Åbn i Maps"
-                    className="h-10 w-10 p-0 rounded-xl border-border hover:bg-secondary"
+                    className="h-10 w-10 p-0 rounded-md border-border hover:bg-secondary"
                   >
                     <Navigation className="h-4 w-4" />
                   </Button>
                   {nextStop.customer_phone ? (
-                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-10 w-10 p-0 rounded-xl border-border hover:bg-secondary">
+                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-10 w-10 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
                         <Phone className="h-4 w-4" />
                       </a>
