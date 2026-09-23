@@ -8,5 +8,5 @@
 - [x] Fjern statusfilteret "I gang"
 - [x] Vis aftaler uden rute fast på mobil, så de kan trækkes direkte til ruter
 - [x] Test hele resultatet på computer, tablet og mobil
-- [ ] Gør rutenavne læsbare direkte på rutekort uden klik
-- [ ] Gør aftalekort i "Aftaler uden rute" mere kompakte på computer og mobil
+- [x] Gør rutenavne læsbare direkte på rutekort uden klik
+- [x] Gør aftalekort i "Aftaler uden rute" mere kompakte på computer og mobil

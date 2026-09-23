@@ -1182,7 +1182,7 @@ function UnassignedDock({
           {loading ? (
             <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-[4.5rem] w-full rounded-md" />
+                <Skeleton key={i} className="h-16 w-full rounded-md" />
               ))}
             </div>
           ) : jobs.length === 0 ? (
@@ -1190,7 +1190,7 @@ function UnassignedDock({
               Ingen aftaler matcher søgningen.
             </div>
           ) : (
-            <div className="space-y-2 pb-1">
+            <div className="space-y-1.5 pb-1">
               {jobs.map((job) => (
                 <DraggableJobCard
                   key={job.id}
@@ -1295,7 +1295,7 @@ function DraggableJobCard({
       {/* Tynd venstre urgency-rail */}
       <div aria-hidden className={cn("w-[3px] shrink-0", urgency.rail)} />
 
-       <div className="flex-1 min-w-0 px-2.5 py-2 pl-3 space-y-1">
+       <div className="flex-1 min-w-0 px-2 py-1.5 pl-2.5 space-y-0.5">
         {/* Drag-handle/check + navn + dato-pille */}
         <div className="flex items-start gap-1.5">
           {selectMode && !pending ? (
@@ -1310,9 +1310,9 @@ function DraggableJobCard({
           ) : !pending ? (
             <span
               aria-hidden
-              className="-ml-1 flex h-7 w-5 shrink-0 items-center justify-center text-muted-foreground/60"
+                className="-ml-1 flex h-5 w-4 shrink-0 items-center justify-center text-muted-foreground/60"
             >
-              <GripVertical className="h-4 w-4" />
+              <GripVertical className="h-3.5 w-3.5" />
             </span>
           ) : null}
            <h3 className="min-w-0 flex-1 truncate text-[13px] font-semibold capitalize leading-tight text-foreground">
@@ -1359,7 +1359,7 @@ function DraggableJobCard({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 w-full justify-start gap-1.5 px-1 text-[11px] text-muted-foreground hover:text-foreground"
+            className="h-6 w-full justify-start gap-1.5 px-0.5 text-[10.5px] text-muted-foreground hover:text-foreground"
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
               event.stopPropagation();

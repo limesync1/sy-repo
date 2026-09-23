@@ -267,7 +267,7 @@ export const UnassignedJobCard = ({
       aria-describedby={isPending ? undefined : "unassigned-drag-instructions"}
       className={cn(
         CARD_BASE,
-        "flex min-h-[112px]",
+        "flex min-h-[88px]",
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
         isPending ? "" : "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
         isDragging
@@ -327,7 +327,7 @@ export const UnassignedJobCard = ({
           },
           "aria-label": `Åbn detaljer for ${job.customer_name}`,
         })}
-        className={`${compact ? "p-3 pl-9" : "p-3.5 pl-10"} space-y-2 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+        className={`${compact ? "px-2 py-1.5 pl-8" : "px-2.5 py-2 pl-8"} space-y-1.5 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}
@@ -343,7 +343,7 @@ export const UnassignedJobCard = ({
                 title={items[0].service_name}
                 className={cn(
                   "shrink-0 inline-flex items-center justify-center rounded-md bg-secondary/70 ring-1 ring-border/60",
-                  compact ? "h-8 w-8 p-1.5" : "h-9 w-9 p-1.5",
+                  compact ? "h-6 w-6 p-1" : "h-7 w-7 p-1.5",
                 )}
               >
                 <IndustryIcon
@@ -353,7 +353,7 @@ export const UnassignedJobCard = ({
                 />
               </span>
             )}
-            <h3 className={`${compact ? "text-[14px]" : "text-[15px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1`}>
+            <h3 className="min-w-0 flex-1 truncate text-[13px] font-semibold capitalize leading-tight text-foreground">
               {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
               {job.customer_name}
             </h3>
@@ -402,7 +402,7 @@ export const UnassignedJobCard = ({
 
         {/* INFO-LINJE — én samlet metadata-linje: adresse · interval · tid */}
         {!isPending && (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground leading-tight tabular-nums">
+          <div className="flex flex-nowrap items-center gap-x-2 overflow-hidden text-[10.5px] text-muted-foreground leading-tight tabular-nums">
             {fullAddress && (
               <span
                 className="inline-flex items-center gap-1 min-w-0 max-w-full"
@@ -444,7 +444,7 @@ export const UnassignedJobCard = ({
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`flex-1 px-2 py-2 text-[11px] font-semibold ${SEGMENT_BTN}`}
+              className={`flex-1 px-2 py-1.5 text-[10.5px] font-semibold ${SEGMENT_BTN}`}
               title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
             >
               <RouteIcon className="h-3 w-3" />
@@ -458,7 +458,7 @@ export const UnassignedJobCard = ({
               onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
               title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
-              className={`flex-1 px-2 py-2 text-[11px] font-semibold ${SEGMENT_BTN}`}
+              className={`flex-1 px-2 py-1.5 text-[10.5px] font-semibold ${SEGMENT_BTN}`}
             >
               {expanded ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronRight className="h-2.5 w-2.5" />}
               {expanded ? "Skjul" : "Mere info"}
