@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Printer, X } from "lucide-react";
+import { Printer } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -49,17 +49,14 @@ export default function RoutePrintDialog({ open, onOpenChange, date, routes, bus
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md max-h-[90vh] overflow-auto p-0">
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-background px-4 py-2 print:hidden">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-3xl max-h-[90vh] overflow-auto rounded-md p-0">
+        <div className="planner-overlay-header sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-background px-4 py-2 pr-14 print:hidden">
           <p className="text-sm font-semibold">
             Print ruter — {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })}
           </p>
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={() => window.print()}>
               <Printer className="h-3.5 w-3.5 mr-1" /> Print / Gem som PDF
-            </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onOpenChange(false)} aria-label="Luk">
-              <X className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

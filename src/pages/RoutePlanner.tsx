@@ -1826,15 +1826,18 @@ const Planner = () => {
     const perRouteCount = new Map<string, { name: string; date: string; n: number }>();
 
     try {
-      for (const job of jobs) {
-        if (job.status === "pending") { skipped.push({ job, reason: "pending" }); continue; }
-        if (job.latitude == null || job.longitude == null) { skipped.push({ job, reason: "no-gps" }); continue; }
-        const jobDateRaw = job.preferred_date || job.next_service_date;
-        if (!jobDateRaw) { skipped.push({ job, reason: "no-date" }); continue; }
-        const jobDate = String(jobDateRaw).slice(0, 10);
+      // Forslagene er uafhængige netværksopslag. Hent dem samtidig, mens
+      // selve tildelingen fortsat sker i rækkefølge af hensyn til kapacitet.
+      const suggestionResults = new Map<string, { suggestions: any[]; error?: SkipReason }>();
+      const suggestionJobs = jobs.filter((job) =>
+        job.status !== "pending"
+        && job.latitude != null
+        && job.longitude != null
+        && (job.preferred_date || job.next_service_date),
+      );
+      await Promise.all(suggestionJobs.map(async (job) => {
+        const jobDate = String(job.preferred_date || job.next_service_date).slice(0, 10);
         const duration = Number(job.estimated_duration_minutes) || 30;
-
-        let suggestions: any[] = [];
         try {
           const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
             _business_id: businessId,
@@ -1847,12 +1850,25 @@ const Planner = () => {
             _weather_bad: false,
             _skill_key: null,
           });
-          if (error) { skipped.push({ job, reason: "rpc-error" }); continue; }
-          suggestions = (rpc as any)?.suggestions || [];
+          suggestionResults.set(job.id, error
+            ? { suggestions: [], error: "rpc-error" }
+            : { suggestions: (rpc as any)?.suggestions || [] });
         } catch {
-          skipped.push({ job, reason: "rpc-error" });
-          continue;
+          suggestionResults.set(job.id, { suggestions: [], error: "rpc-error" });
         }
+      }));
+
+      for (const job of jobs) {
+        if (job.status === "pending") { skipped.push({ job, reason: "pending" }); continue; }
+        if (job.latitude == null || job.longitude == null) { skipped.push({ job, reason: "no-gps" }); continue; }
+        const jobDateRaw = job.preferred_date || job.next_service_date;
+        if (!jobDateRaw) { skipped.push({ job, reason: "no-date" }); continue; }
+        const jobDate = String(jobDateRaw).slice(0, 10);
+        const duration = Number(job.estimated_duration_minutes) || 30;
+
+        const suggestionResult = suggestionResults.get(job.id);
+        if (suggestionResult?.error) { skipped.push({ job, reason: suggestionResult.error }); continue; }
+        const suggestions = suggestionResult?.suggestions ?? [];
 
         if (suggestions.length === 0) { skipped.push({ job, reason: "no-route" }); continue; }
 
@@ -3318,8 +3334,8 @@ const Planner = () => {
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
                 </Tooltip>
                 {createOpen && (
-                <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
-                  <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+                <DialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden flex flex-col">
+                  <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
                       icon={<RouteIcon className="h-4 w-4" />}
                       accent={newRouteColor}
@@ -3332,7 +3348,7 @@ const Planner = () => {
                     />
                   </DialogHeader>
 
-                  <div className="px-3 sm:px-5 py-3 space-y-2.5 bg-secondary/20 overflow-y-auto">
+                  <div className="planner-overlay-body px-3 sm:px-5 py-3 space-y-2.5 bg-secondary/20 overflow-y-auto">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
                       <div className="space-y-2.5">
                         <Field label="Navn (valgfrit)">
@@ -4511,12 +4527,12 @@ const Planner = () => {
                           )}
                         </Button>
                       </SheetTrigger>
-                      <SheetContent side="bottom" className="h-[74dvh] max-h-[74dvh] rounded-t-2xl p-0 flex flex-col">
-                        <div className="shrink-0 border-b px-4 py-3 pr-12">
+                      <SheetContent side="bottom" className="planner-overlay h-[74dvh] max-h-[74dvh] rounded-t-md p-0 flex flex-col">
+                        <div className="planner-overlay-header shrink-0 border-b px-4 py-3 pr-12">
                           <p className="text-sm font-semibold text-foreground">Filtrér ruter</p>
                           <p className="mt-0.5 text-xs text-muted-foreground">Vælg medarbejdere eller statusser — kalenderen opdateres med det samme.</p>
                         </div>
-                        <div className="flex-1 overflow-y-auto space-y-4 px-4 py-4">
+                        <div className="planner-overlay-body flex-1 overflow-y-auto space-y-4 px-4 py-4">
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <Label className="text-xs font-semibold">Medarbejdere</Label>
@@ -4590,7 +4606,7 @@ const Planner = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="shrink-0 border-t bg-card px-4 py-3">
+                        <div className="planner-overlay-footer shrink-0 border-t bg-card px-4 py-3">
                           <Button
                             variant={filtersActive ? "outline" : "default"}
                             size="sm"

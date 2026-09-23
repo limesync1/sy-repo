@@ -88,8 +88,8 @@ export const BulkMoveRoutesDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
-        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
+        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<CalendarDays className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Flyt {routes.length} {routes.length === 1 ? "rute" : "ruter"}</DialogTitle>}
@@ -101,7 +101,7 @@ export const BulkMoveRoutesDialog = ({
           />
         </DialogHeader>
 
-        <div className="space-y-4 px-4 sm:px-5 py-4 bg-secondary/20">
+        <div className="planner-overlay-body space-y-4 px-4 sm:px-5 py-4 bg-secondary/20">
           {/* Offset-vælger */}
           <div className="flex items-end gap-3">
             <div className="flex-1 space-y-1.5">

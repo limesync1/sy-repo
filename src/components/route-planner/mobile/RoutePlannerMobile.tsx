@@ -31,6 +31,7 @@ import {
   CheckSquare,
   X,
   RefreshCw,
+  Route as RouteIcon,
 } from "lucide-react";
 import {
   DndContext,
@@ -93,6 +94,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "@/components/route-planner/lib/card-styles";
+import { SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 import { formatInterval } from "@/lib/interval";
 import { isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
@@ -107,6 +109,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 import { MobileRouteDetailSheet } from "./MobileRouteDetailSheet";
+import { MobileAssignSheet } from "./MobileAssignSheet";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -167,6 +170,7 @@ export default function RoutePlannerMobile() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [assignJob, setAssignJob] = useState<any | null>(null);
   // Aktiv drag — bruges til DragOverlay og til at vise drop-zoner.
   const [drag, setDrag] = useState<
     | { kind: "job"; job: any }
@@ -563,6 +567,7 @@ export default function RoutePlannerMobile() {
               selectedJobs={selectedJobs}
               onToggleJob={toggleJobSelected}
               onBulkAssign={() => setBulkAssignOpen(true)}
+              onAssignJob={setAssignJob}
               isTablet={isTablet}
             />
           </div>
@@ -609,6 +614,16 @@ export default function RoutePlannerMobile() {
         <CreateOrderDialogHost
           businessId={businessId}
           businessName={business?.name || ""}
+        />
+      )}
+
+      {assignJob && businessId && (
+        <MobileAssignSheet
+          open={!!assignJob}
+          onOpenChange={(next) => !next && setAssignJob(null)}
+          job={assignJob}
+          businessId={businessId}
+          initialDate={effectiveJobDate(assignJob) || date}
         />
       )}
 
@@ -1059,6 +1074,7 @@ function UnassignedDock({
   selectedJobs,
   onToggleJob,
   onBulkAssign,
+  onAssignJob,
   isTablet,
 }: {
   loading: boolean;
@@ -1073,6 +1089,7 @@ function UnassignedDock({
   selectedJobs: Set<string>;
   onToggleJob: (id: string) => void;
   onBulkAssign: () => void;
+  onAssignJob: (job: any) => void;
   isTablet: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -1093,7 +1110,7 @@ function UnassignedDock({
           ? "border-destructive bg-destructive/5 ring-2 ring-inset ring-destructive/20"
           : "border-border/70",
       )}
-      style={isTablet ? undefined : { height: total === 0 && !isStopDrag ? "auto" : "36dvh" }}
+      style={isTablet ? undefined : { height: total === 0 && !isStopDrag ? "auto" : "min(31dvh, 17rem)" }}
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
@@ -1165,7 +1182,7 @@ function UnassignedDock({
           {loading ? (
             <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-md" />
+                <Skeleton key={i} className="h-[4.5rem] w-full rounded-md" />
               ))}
             </div>
           ) : jobs.length === 0 ? (
@@ -1181,6 +1198,7 @@ function UnassignedDock({
                   selectMode={selectMode}
                   selected={selectedJobs.has(job.id)}
                   onToggle={() => onToggleJob(job.id)}
+                  onAssign={() => onAssignJob(job)}
                   fullWidth
                 />
               ))}
@@ -1209,12 +1227,14 @@ function DraggableJobCard({
   selectMode,
   selected,
   onToggle,
+  onAssign,
   fullWidth,
 }: {
   job: any;
   selectMode: boolean;
   selected: boolean;
   onToggle: () => void;
+  onAssign: () => void;
   fullWidth: boolean;
 }) {
   const pending = isJobPending(job);
@@ -1275,7 +1295,7 @@ function DraggableJobCard({
       {/* Tynd venstre urgency-rail */}
       <div aria-hidden className={cn("w-[3px] shrink-0", urgency.rail)} />
 
-      <div className="flex-1 min-w-0 p-2.5 pl-3 space-y-1.5">
+       <div className="flex-1 min-w-0 px-2.5 py-2 pl-3 space-y-1">
         {/* Drag-handle/check + navn + dato-pille */}
         <div className="flex items-start gap-1.5">
           {selectMode && !pending ? (
@@ -1295,7 +1315,7 @@ function DraggableJobCard({
               <GripVertical className="h-4 w-4" />
             </span>
           ) : null}
-          <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold capitalize leading-tight text-foreground">
+           <h3 className="min-w-0 flex-1 truncate text-[13px] font-semibold capitalize leading-tight text-foreground">
             {job.customer_name || "Ukendt kunde"}
           </h3>
           <span
@@ -1310,7 +1330,7 @@ function DraggableJobCard({
 
         {/* Service + pris — matcher desktop UnassignedJobCard */}
         {itemCount > 0 && (
-          <div className="flex items-baseline justify-between gap-2 rounded-md bg-secondary/30 px-1.5 py-1">
+          <div className="flex items-baseline justify-between gap-2">
             <p className="min-w-0 flex-1 truncate text-[11px] font-semibold leading-snug text-foreground/80">
               {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
               {items[0].service_name}
@@ -1332,6 +1352,23 @@ function DraggableJobCard({
             <MapPin className="h-2.5 w-2.5 shrink-0" />
             <span className="truncate">{fullAddress}</span>
           </p>
+        )}
+
+        {!selectMode && !pending && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 w-full justify-start gap-1.5 px-1 text-[11px] text-muted-foreground hover:text-foreground"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAssign();
+            }}
+          >
+            <RouteIcon className="h-3 w-3" />
+            Vælg rute
+          </Button>
         )}
 
       </div>
@@ -1539,13 +1576,13 @@ function NewRouteDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-h-[92dvh] max-w-md overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Ny rute</DialogTitle>
-          <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg de aftaler,
-            der skal med på ruten.
-          </DialogDescription>
+      <DialogContent className="planner-overlay max-h-[92dvh] max-w-md overflow-y-auto">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<Plus className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Ny rute</DialogTitle>}
+            description={<DialogDescription className="text-xs">{format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg de aftaler, der skal med på ruten.</DialogDescription>}
+          />
         </DialogHeader>
 
         <div className="space-y-3">
@@ -1628,7 +1665,7 @@ function NewRouteDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
+        <DialogFooter className="planner-overlay-footer -mx-6 -mb-6 mt-2 border-t px-5 py-3 flex-col gap-2 sm:flex-row sm:gap-2">
           <Button
             variant="outline"
             className="h-11 w-full sm:w-auto"
@@ -1714,12 +1751,12 @@ function BulkAssignSheet({
 
   const [busy, setBusy] = useState(false);
 
-  const assignTo = async (routeId: string) => {
-    if (busy) return;
-    setBusy(true);
+  const assignTo = async (routeId: string, alreadyBusy = false) => {
+    if (busy && !alreadyBusy) return;
+    if (!alreadyBusy) setBusy(true);
     let ok = 0, fail = 0, movedCount = 0;
     let lastError = "";
-    for (const job of jobs) {
+    const results = await Promise.all(jobs.map(async (job) => {
       const payload = {
         route_id: routeId,
         order_id: job.id,
@@ -1735,6 +1772,7 @@ function BulkAssignSheet({
         time_window_end: null,
       };
       try {
+        let moved = false;
         try {
           await addStop.mutateAsync(payload);
         } catch (err: any) {
@@ -1743,13 +1781,21 @@ function BulkAssignSheet({
           if (!existing) throw err;
           await deleteStop.mutateAsync(existing.id);
           await addStop.mutateAsync(payload);
-          movedCount++;
+          moved = true;
         }
         void linkAgreementToRoute(job.id, routeId);
-        ok++;
+        return { ok: true, moved };
       } catch (err: any) {
-        lastError = String(err?.message || "");
+        return { ok: false, moved: false, error: String(err?.message || "") };
+      }
+    }));
+    for (const result of results) {
+      if (result.ok) {
+        ok++;
+        if (result.moved) movedCount++;
+      } else {
         fail++;
+        lastError = result.error || lastError;
       }
     }
     setBusy(false);
@@ -1780,7 +1826,7 @@ function BulkAssignSheet({
         name: null,
         color: pickAvailableColor(usedColors),
       });
-      await assignTo(r.id);
+      await assignTo(r.id, true);
     } catch (err: any) {
       toast.error("Kunne ikke oprette rute", { description: err?.message });
       setBusy(false);
@@ -1789,12 +1835,13 @@ function BulkAssignSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Tildel {jobs.length} aftaler</DialogTitle>
-          <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg en rute eller opret en ny.
-          </DialogDescription>
+      <DialogContent className="planner-overlay max-w-md">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<RouteIcon className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Tildel {jobs.length} aftaler</DialogTitle>}
+            description={<DialogDescription className="text-xs">{format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg en rute eller opret en ny.</DialogDescription>}
+          />
         </DialogHeader>
         <div className="space-y-2">
           {existingRoutes.length === 0 ? (
@@ -1808,9 +1855,9 @@ function BulkAssignSheet({
                 type="button"
                 disabled={busy}
                 onClick={() => assignTo(r.id)}
-                className="flex w-full items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-left transition-colors hover:bg-secondary/50 disabled:opacity-50"
+                className="flex w-full items-center gap-2 rounded-md border border-border bg-card p-2.5 text-left transition-[background-color,border-color,transform] hover:border-accent/40 hover:bg-secondary/50 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
               >
-                <span className="h-8 w-8 shrink-0 rounded-lg" style={{ backgroundColor: r.color }} />
+                <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: r.color }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">{r.name || "Rute uden navn"}</p>
                 </div>

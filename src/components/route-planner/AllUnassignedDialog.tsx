@@ -69,8 +69,8 @@ export const AllUnassignedDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
+      <DialogContent className="planner-overlay max-w-2xl">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
           <SheetHeaderBlock
             icon={<MapPin className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Alle aftaler uden rute ({jobs.length})</DialogTitle>}

@@ -175,9 +175,9 @@ export const RouteStopsPanel = ({
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
-            "flex flex-col p-0 shadow-xl",
+            "planner-overlay flex flex-col p-0 shadow-xl",
             isCompact
-              ? "h-[86dvh] max-h-[86dvh] rounded-t-2xl"
+              ? "h-[86dvh] max-h-[86dvh] rounded-t-md"
               : "w-full sm:max-w-sm lg:right-[28rem]",
           )}
           hideOverlay={!isCompact}
@@ -210,7 +210,7 @@ export const RouteStopsPanel = ({
         >
           <SheetHeader
             className={cn(
-              "relative px-4 pl-5 py-3.5 border-b shrink-0 text-left bg-card",
+              "planner-overlay-header relative px-4 pl-5 py-3 border-b shrink-0 text-left bg-card",
               isCompact && "pr-14",
             )}
           >
@@ -242,7 +242,7 @@ export const RouteStopsPanel = ({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-2 bg-secondary/15">
+          <div className="planner-overlay-body flex-1 overflow-y-auto p-3 bg-secondary/15">
             {items.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <EmptyState
@@ -389,7 +389,7 @@ const SortableStopRow = ({
         {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
         <div className="flex shrink-0 items-center pr-1.5">
           <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[12px] font-bold tabular-nums shadow-sm ring-1 ring-card sm:h-8 sm:w-8 sm:text-sm"
             style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
             aria-label={`Stop ${index}`}
           >
@@ -427,7 +427,7 @@ const SortableStopRow = ({
             {assigneeEmps.length > 0 && (
               <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
             )}
-            <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
+            <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
           </div>
 
           {/* Ydelse — sekundær linje */}

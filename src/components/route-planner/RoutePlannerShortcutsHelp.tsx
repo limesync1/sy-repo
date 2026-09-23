@@ -1,6 +1,8 @@
 // Tastatur-genveje for ruteplanlæggeren — vist i en dialog så hele listen
 // er læsbar (i stedet for en lille tooltip). Åbnes med "?" eller via knappen.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Keyboard } from "lucide-react";
+import { SheetHeaderBlock } from "./SheetSection";
 
 const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] = [
   {
@@ -52,12 +54,13 @@ export default function RoutePlannerShortcutsHelp({
 }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md">
-        <DialogHeader>
-          <DialogTitle>Tastatur-genveje</DialogTitle>
-          <DialogDescription>
-            Hurtigere planlægning. Genveje ignoreres mens du skriver i et felt.
-          </DialogDescription>
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<Keyboard className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Tastaturgenveje</DialogTitle>}
+            description={<DialogDescription className="text-xs">Hurtigere planlægning. Genveje ignoreres, mens du skriver i et felt.</DialogDescription>}
+          />
         </DialogHeader>
         <div className="grid gap-5 sm:grid-cols-2">
           {SECTIONS.map((s) => (

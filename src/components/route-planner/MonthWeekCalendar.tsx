@@ -906,15 +906,15 @@ const DayCellInner = ({
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       data-density-target="day"
       className={cn(
-        "border-r border-border last:border-r-0 relative group flex flex-col gap-2.5 p-3 transition-[background-color,box-shadow,opacity] duration-150",
-        compact ? "min-h-[132px]" : "min-h-[184px]",
+        "border-r border-border last:border-r-0 relative group flex flex-col gap-1.5 p-2 transition-[background-color,box-shadow,opacity] duration-150",
+        compact ? "min-h-[116px]" : "min-h-[164px]",
         !inMonth && "bg-muted/10",
         // Lidt kraftigere weekend-tint så uge-rytmen er nem at scanne i
         // måneds-view. Stadig subtil nok til ikke at konkurrere med selve
         // rute-pillerne. Bibeholdes ikke for fortidsdage (de dæmpes alligevel).
         inMonth && isWeekend && !isPast && "bg-secondary/30",
         isPast && "bg-muted/15",
-        today && "bg-accent/[0.05] shadow-[inset_0_3px_0_hsl(var(--accent))]",
+        today && "bg-accent/[0.05]",
         inMonth && !isPast && !isDragActive && "hover:bg-secondary/45",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
@@ -1363,7 +1363,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "cursor-pointer min-h-[78px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
+        "cursor-pointer min-h-[58px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1481,7 +1481,7 @@ const RoutePillInner = ({
           // Lidt mere højre-padding når der er medarbejder-avatarer på
           // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
           // pillens højre kant i smalle måneds-celler.
-          "relative z-[1] pl-3 py-1.5 flex items-center justify-between gap-1.5",
+          "relative z-[1] pl-2.5 py-1 flex items-center justify-between gap-1",
           (visibleEmployees.length > 0 || extraEmployees > 0) ? "pr-2.5" : "pr-2",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
@@ -1681,7 +1681,7 @@ const RoutePillInner = ({
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
-          <div className="shrink-0 flex items-center gap-px rounded-md opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-150">
+          <div className="shrink-0 flex items-center gap-px rounded-md opacity-100">
         {!isVirtual && stopCount >= 2 && (
           <button
             type="button"
@@ -1705,7 +1705,7 @@ const RoutePillInner = ({
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
                 disabled={busy}
-                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground opacity-40 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
+                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >

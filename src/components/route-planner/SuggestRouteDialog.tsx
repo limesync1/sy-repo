@@ -199,8 +199,8 @@ export const SuggestRouteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-md">
-        <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
+      <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-md">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
           <SheetHeaderBlock
             icon={<Sparkles className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Find den bedste rute til {job.customer_name || "aftalen"}</DialogTitle>}
@@ -364,7 +364,7 @@ export const SuggestRouteDialog = ({
           </div>
         )}
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="planner-overlay-footer -mx-6 -mb-6 mt-2 gap-2 border-t px-5 py-3">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Annuller
           </Button>
@@ -407,7 +407,7 @@ const SuggestionCard = ({
       type="button"
       onClick={onChoose}
       className={cn(
-        "w-full text-left rounded-xl border p-3.5 transition-all",
+        "w-full text-left rounded-md border p-3 transition-[background-color,border-color,box-shadow,transform] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         chosen
           ? "border-foreground bg-foreground/5 ring-2 ring-foreground/10"
           : "border-border bg-card hover:border-foreground/40",

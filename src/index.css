@@ -253,6 +253,28 @@
     box-shadow: 0 28px 70px -34px hsl(var(--foreground) / 0.5);
   }
 
+  .route-planner-open .planner-overlay {
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    box-shadow: 0 24px 64px -30px hsl(var(--foreground) / 0.48);
+  }
+
+  .route-planner-open .planner-overlay-header {
+    background: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+
+  .route-planner-open .planner-overlay-body {
+    background: hsl(var(--secondary) / 0.22);
+    scrollbar-gutter: stable;
+  }
+
+  .route-planner-open .planner-overlay-footer {
+    background: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+
   .route-planner-open [role="dialog"] input,
   .route-planner-open [role="dialog"] textarea,
   .route-planner-open [role="dialog"] button,

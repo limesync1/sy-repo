@@ -41,8 +41,8 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col bg-background p-0">
-        <SheetHeader className="px-4 sm:px-5 py-4 pr-12 border-b border-border/70 shrink-0 space-y-0 text-left">
+      <SheetContent side="right" className="planner-overlay w-full sm:max-w-md flex flex-col bg-background p-0">
+        <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<CalendarDays className="h-4 w-4" />}
             title={<SheetTitle className="text-base capitalize">{date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}</SheetTitle>}
@@ -71,7 +71,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
           </SheetHeaderBlock>
         </SheetHeader>
 
-        <div className="flex-1 overflow-auto px-5 py-4 bg-secondary/[0.16]">
+        <div className="planner-overlay-body flex-1 overflow-auto px-5 py-4 bg-secondary/[0.16]">
           {sorted.length === 0 ? (
             <EmptyState
               icon={<CalendarDays className="h-5 w-5" />}
