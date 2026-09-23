@@ -122,6 +122,7 @@ import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { detectConflicts } from "@/lib/route-conflicts";
 import { cn } from "@/lib/utils";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
@@ -4717,7 +4718,6 @@ const Planner = () => {
                 customerName: s.customer_name ?? null,
                 serviceSummary: s.service_summary ?? null,
                 plannedArrival: s.planned_arrival ?? null,
-                durationMinutes: s.duration_minutes ?? null,
               }));
           })()}
           targetStopCount={(pendingRouteMerge?.target as any)?.stops?.length ?? 0}
