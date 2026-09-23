@@ -269,9 +269,8 @@ export function useRoutePlannerDnd(opts: {
           }
           const cap = capacityByDate.get(targetRoute.route_date);
           let newLoadPct: number | null = null;
-          if (cap && cap.minutes_capacity > 0) {
-            const addMin = Number(job.duration_minutes) || 0;
-            newLoadPct = ((cap.minutes_booked + addMin) / cap.minutes_capacity) * 100;
+          if (cap && cap.stops_capacity > 0) {
+            newLoadPct = ((cap.stops_booked + 1) / cap.stops_capacity) * 100;
           }
           setDragEta({ extraDriveMin, newLoadPct });
         } catch { clearDragEta(); }
@@ -289,9 +288,8 @@ export function useRoutePlannerDnd(opts: {
         const cap = capacityByDate.get(overData.date);
         const job = activeData.job ?? {};
         let newLoadPct: number | null = null;
-        if (cap && cap.minutes_capacity > 0) {
-          const addMin = Number(job.duration_minutes) || 0;
-          newLoadPct = ((cap.minutes_booked + addMin) / cap.minutes_capacity) * 100;
+        if (cap && cap.stops_capacity > 0) {
+          newLoadPct = ((cap.stops_booked + 1) / cap.stops_capacity) * 100;
         }
         setDragEta({ newLoadPct, message: "Opretter ny rute" });
         return;
