@@ -309,7 +309,19 @@ export const EmployeeShell = ({
                     }}
                   >
                     <span className={cn("mt-1 mr-2 h-2 w-2 shrink-0 rounded-full", item.read_at ? "bg-muted-foreground/30" : "bg-destructive")} />
-                    <span className="min-w-0 text-xs leading-relaxed">{item.message}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[11px] font-semibold text-foreground">
+                        {item.route_stops?.customer_name
+                          ? `Aftale · ${item.route_stops.customer_name}`
+                          : `Rute · ${item.routes?.name || "Planlagt rute"}`}
+                      </span>
+                      {item.route_stops?.address && (
+                        <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
+                          {item.route_stops.address}
+                        </span>
+                      )}
+                      <span className="mt-1 block text-xs leading-relaxed text-foreground">{item.message}</span>
+                    </span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

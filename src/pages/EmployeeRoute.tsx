@@ -1486,6 +1486,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onFinish={onBack}
         onMoveStop={handleMoveStop}
         reordering={reorderStops.isPending}
+        notification={routeNotifications[0] ? {
+          title: routeNotifications[0].route_stops?.customer_name
+            ? `Aftale · ${routeNotifications[0].route_stops.customer_name}`
+            : `Rute · ${routeNotifications[0].routes?.name || route.name || "Dagens rute"}`,
+          message: routeNotifications[0].message,
+        } : null}
+        onMarkNotificationRead={routeNotifications.length > 0
+          ? () => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))
+          : undefined}
       />
     );
   }
@@ -1568,7 +1577,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <div className="relative z-30 border-b border-destructive/25 bg-destructive/5 px-3 py-2">
           <div className="mx-auto flex max-w-3xl items-start gap-2">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-            <p className="min-w-0 flex-1 text-xs font-medium text-foreground">{routeNotifications[0].message}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-semibold uppercase text-destructive">
+                {routeNotifications[0].route_stops?.customer_name
+                  ? `Aftale · ${routeNotifications[0].route_stops.customer_name}`
+                  : `Rute · ${routeNotifications[0].routes?.name || route.name || "Dagens rute"}`}
+              </p>
+              <p className="text-xs font-medium text-foreground">{routeNotifications[0].message}</p>
+            </div>
             <Button size="sm" variant="outline" className="h-7 shrink-0 text-xs" onClick={() => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))}>Set</Button>
           </div>
         </div>

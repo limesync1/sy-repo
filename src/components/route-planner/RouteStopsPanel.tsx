@@ -48,7 +48,6 @@ import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 
 const RouteMap = lazy(() => import("./RouteMap"));
 
@@ -287,7 +286,6 @@ export const RouteStopsPanel = ({
                   }} />
                 </Suspense>
               )}
-              <RouteCommunicationPanel route={route} stops={items} employees={employees} />
             </div>
             {items.length === 0 ? (
               <div className="flex h-full items-center justify-center">

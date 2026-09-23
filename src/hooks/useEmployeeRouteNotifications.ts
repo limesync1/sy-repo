@@ -11,7 +11,7 @@ export const useEmployeeRouteNotifications = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employee_route_notifications")
-        .select("*")
+        .select("*, routes(name, route_date), route_stops(customer_name, address)")
         .eq("employee_id", employee!.id)
         .order("created_at", { ascending: false })
         .limit(30);
