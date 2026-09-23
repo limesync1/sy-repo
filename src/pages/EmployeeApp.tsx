@@ -371,6 +371,8 @@ const EmployeeApp = () => {
               description: nextStop.full_address || nextStop.address || "",
               cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
+          } else if (dayStarted && allRoutesDone && !dayEnded) {
+            suggestion = {
               tone: "calm",
               title: "Alle stop er færdige — godt arbejde!",
               description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",

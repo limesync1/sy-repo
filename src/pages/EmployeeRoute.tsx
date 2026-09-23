@@ -2179,22 +2179,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         tydelig forsinkelse, eller hvornår du er fremme.
                         Aldrig "96 min i god tid" — det siger intet brugbart. */}
                     {nearNextStop ? (
-                      <p className="text-[10px] leading-tight font-semibold text-emerald-600">
-                        næsten fremme
-                      </p>
-                    ) : delayMinutes != null && delayMinutes > 15 ? (
-                      <p className="text-[10px] leading-tight font-semibold tabular-nums text-amber-600">
-                        {delayMinutes} min bagud
-                      </p>
-                    ) : etaLabel ? (
-                      <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
-                        fremme {etaLabel}
-                      </p>
-                    ) : (
-                      <p className="text-[10px] text-muted-foreground leading-tight">
-                        til næste
-                      </p>
-                    )}
+                    <p className="text-[10px] leading-tight font-semibold text-emerald-600">
+                      næsten fremme
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground leading-tight">
+                      til næste
+                    </p>
+                  )}
                   </div>
                 ) : null}
                 <span className="ml-1 text-muted-foreground/70 group-hover:text-foreground transition-colors">
@@ -2629,11 +2621,7 @@ const StopListPanel = ({
                   >
                     {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </span>
-                  {plannedTime && (
-                    <span className="text-[10px] text-muted-foreground tabular-nums font-bold mt-1.5 leading-none">
-                      {plannedTime}
-                    </span>
-                  )}
+                  
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
