@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -61,6 +63,8 @@ export const RouteChecklistView = ({
   onNavigate,
   onSwitchToGuide,
   onFinish,
+  onMoveStop,
+  reordering = false,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
 
