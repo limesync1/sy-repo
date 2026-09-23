@@ -9,7 +9,8 @@ Deno.serve(async (req) => {
     const client = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } })
     const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const { data: { user } } = await client.auth.getUser(); if (!user) return json({ error: 'unauthorized' }, 401)
-    const { routeId, employeeId } = await req.json()
+    const { routeId, employeeId, requestId } = await req.json()
+    if (!routeId || !employeeId) return json({ error: 'invalid_request' }, 400)
     const { data: route } = await admin.from('routes').select('*, businesses(name,owner_id)').eq('id', routeId).single()
     const { data: employee } = await admin.from('employees').select('name,email,business_id').eq('id', employeeId).single()
     if (!route || !employee || route.business_id !== employee.business_id || route.businesses?.owner_id !== user.id) return json({ error: 'forbidden' }, 403)
@@ -18,7 +19,7 @@ Deno.serve(async (req) => {
     const { data: stops } = ids.length ? await admin.from('route_stops').select('*').eq('route_id', routeId).in('id', ids).order('sequence') : { data: [] }
     if (!employee.email || !stops?.length) return json({ error: 'missing_recipient_or_stops' }, 400)
     await admin.from('routes').update({ status: 'dispatched' }).eq('id', routeId)
-    const result = await sendTemplateEmail('route-overview', employee.email, { idempotencyKey: `route-dispatch-${routeId}-${employeeId}-${route.updated_at}`, templateData: {
+    const result = await sendTemplateEmail('route-overview', employee.email, { idempotencyKey: requestId ? `route-dispatch-${routeId}-${employeeId}-${requestId}` : `route-dispatch-${routeId}-${employeeId}-${route.updated_at}`, templateData: {
       employeeName: employee.name, businessName: route.businesses?.name, routeName: route.name || 'Din ruteplan',
       routeDate: new Date(route.route_date).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
       stops: stops.map((stop: any, index: number) => ({ number: index + 1, customerName: stop.customer_name || 'Aftale', address: stop.address || 'Adresse ikke angivet', service: stop.service_summary || undefined })),

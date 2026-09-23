@@ -531,6 +531,7 @@ export function MobileRouteDetailSheet({
                     </Button>
                   )}
                 </div>
+                <RouteCommunicationPanel route={route} stops={stops} employees={employees} stop={activeStop} />
               </div>
 
               <div className="planner-overlay-footer space-y-2 border-t border-border p-4">

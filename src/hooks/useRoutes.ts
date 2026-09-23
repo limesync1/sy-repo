@@ -1386,6 +1386,11 @@ export const useSetStopAssignees = () => {
       stop_id, employee_ids, lead_id,
     }: { stop_id: string; employee_ids: string[]; lead_id?: string | null }) => {
       return getStopQueue(stop_id).run(async () => {
+        const [{ data: stopRow }, { data: previousRows }] = await Promise.all([
+          supabase.from("route_stops").select("route_id").eq("id", stop_id).maybeSingle(),
+          supabase.from("route_stop_assignees").select("employee_id").eq("stop_id", stop_id),
+        ]);
+        const previousIds = new Set((previousRows ?? []).map((row) => row.employee_id));
         const { error: delErr } = await supabase
           .from("route_stop_assignees")
           .delete()
@@ -1400,6 +1405,14 @@ export const useSetStopAssignees = () => {
           .from("route_stop_assignees")
           .upsert(rows, { onConflict: "stop_id,employee_id", ignoreDuplicates: false });
         if (insErr) throw friendlyAssigneeError(insErr);
+        const newlyAssigned = employee_ids.filter((id) => !previousIds.has(id));
+        if (stopRow?.route_id && newlyAssigned.length > 0) {
+          void Promise.allSettled(newlyAssigned.map((employeeId) =>
+            supabase.functions.invoke("route-assignment-email", {
+              body: { routeId: stopRow.route_id, employeeId, requestId: crypto.randomUUID() },
+            }),
+          ));
+        }
         return { count: rows.length };
       });
     },
