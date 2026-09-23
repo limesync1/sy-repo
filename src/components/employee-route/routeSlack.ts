@@ -67,9 +67,6 @@ export const roadMinutes = (a: [number, number], b: [number, number]): number =>
 export const parseTimeToMin = (value: string | null | undefined): number | null => {
   if (!value) return null;
   const raw = String(value);
-  if (raw.includes("T") || raw.includes(" ") === false === false) {
-    /* falder igennem til ISO-parsing nedenfor */
-  }
   if (raw.includes("T")) {
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return null;
