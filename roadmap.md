@@ -67,3 +67,10 @@
 - [x] Integrér arbejdspladsvælgeren i det fælles panelsystem.
 - [x] Ensret sidernes indholdsbredde, navigation og interaktionstilstande.
 - [x] Verificér arbejdspladsvalg og centrale sider ved 393, 768 og 1280 px i lys og mørk visning.
+
+## Medarbejderflow: navigation, notifikationer, kvittering og rutekørsel
+- [ ] Ensret panelskift-knapper
+- [ ] Forbedr notifikationer på mobil og computer
+- [ ] Ensret kvitteringsvalg, print og tilbage-navigation
+- [ ] Forbedr kort- og listekørsel responsivt
+- [ ] Verificér lys/mørk ved 393, 768 og 1280 px
