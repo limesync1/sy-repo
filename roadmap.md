@@ -16,3 +16,12 @@
 - [x] Udbred ruteplanlæggerens komplette designsystem til hele virksomheds- og medarbejderpanelet
 - [x] Fjern resterende udførelsestider fra aftaler og ensret panelernes sidste detaljevinduer
 - [x] Start projektets opdatering af e-mailafsendelse
+
+## Medarbejderpanel og mobil planlægning
+- [ ] Ret medarbejderpanelets header, logo og responsive layout
+- [ ] Standardisér alle popup-vinduer på mobil og fjern overlap
+- [ ] Gør virksomhedens ruteoversigt og ruteflytning fuldt mobilvenlig
+- [ ] Tilføj automatisk og manuel mobilvenlig planoversigt på e-mail
+- [ ] Tilføj ulæste rute-/aftalenotifikationer til én medarbejder ad gangen
+- [ ] Vis sikker, batteriskånsom live-position kun under aktiv rute
+- [ ] Verificér alle flows på mobil, tablet og computer
