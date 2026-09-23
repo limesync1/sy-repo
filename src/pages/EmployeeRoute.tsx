@@ -1830,12 +1830,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
            Alle kontroller deler én base-klasse (`floatCtrlBase`) så stik-,
            skygge-, ring- og active-feedback er 100% ensartet. Aktive states
            bruger fremhævet baggrund + en lille indikator-prik. */}
-        <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+          <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && !allDone && (
             <button
               type="button"
               onClick={() => setListOpen((v) => !v)}
-              className={`relative h-12 w-12 rounded-full bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:bg-secondary hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center ${listOpen ? "ring-2 ring-foreground/15" : ""}`}
+              className={`relative h-11 w-11 rounded-full bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-lg hover:bg-secondary transition-colors duration-150 active:scale-[0.96] flex items-center justify-center ${listOpen ? "ring-2 ring-accent" : ""}`}
               aria-label="Vis liste"
               aria-pressed={listOpen}
             >
@@ -1846,7 +1846,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <button
               type="button"
               onClick={() => setAudioEnabled((v) => !v)}
-              className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center ${
+              className={`relative h-11 w-11 rounded-full backdrop-blur-md border shadow-lg transition-colors duration-150 active:scale-[0.96] flex items-center justify-center ${
                 audioEnabled
                   ? "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
                   : "bg-muted/95 border-border text-muted-foreground hover:bg-muted"
@@ -1878,11 +1878,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Link
                 to="/medarbejder"
                 aria-label="Tilbage"
-                className="h-12 w-12 rounded-full bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:bg-secondary hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-card/95 text-foreground shadow-lg backdrop-blur-md transition-colors duration-150 hover:bg-secondary active:scale-[0.96]"
               >
                 <ArrowLeft className="h-[19px] w-[19px]" strokeWidth={2.25} />
               </Link>
-              <div className="flex items-center gap-2.5 pl-3 pr-3.5 h-12 rounded-full bg-card/95 backdrop-blur-md border border-border/80 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)]">
+              <div className="flex h-11 items-center gap-2.5 rounded-md border border-border/80 bg-card/95 pl-3 pr-3.5 shadow-lg backdrop-blur-md">
                 <div className="flex items-center gap-1.5">
                   <span
                     className="h-2.5 w-2.5 rounded-full shrink-0"
@@ -1908,7 +1908,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Maneuver banner — floating top center */}
             {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute top-[72px] left-3 right-[72px] z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-xl rounded-2xl pointer-events-auto bg-card border-border animate-in fade-in slide-in-from-top-2 duration-300">
+                <Card className="overflow-hidden rounded-md border-border bg-card shadow-xl pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
                     <div className="flex flex-col items-center justify-center w-[88px] shrink-0 bg-foreground text-background py-3.5 px-1">
                       <ManeuverIcon
@@ -1953,10 +1953,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {isRerouting && (
               <div className="absolute top-[68px] left-3 right-[68px] z-[1001] pointer-events-none">
                 <div
-                  className="rounded-2xl shadow-2xl border bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200"
+                  className="flex items-center gap-3 rounded-md border bg-background/95 px-3 py-2.5 shadow-xl backdrop-blur animate-in fade-in slide-in-from-top-2 duration-200"
                 >
                   <div
-                    className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md"
                     style={{ background: themeColor }}
                   >
                     <Loader2 className="h-4.5 w-4.5 animate-spin text-background" />
@@ -2040,7 +2040,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Før start: kompakt kørselsdock med ét klart næste trin ─── */}
         {!routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2 sm:p-4">
-            <section className="route-drive-dock mx-auto max-w-xl overflow-hidden rounded-md border border-background/15 bg-foreground text-background shadow-xl">
+            <section className="route-drive-dock mx-auto max-w-2xl overflow-hidden rounded-md border border-background/15 bg-foreground text-background shadow-xl">
               <div className="flex items-center justify-between gap-3 border-b border-background/15 px-3.5 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-semibold uppercase text-background/65">{todayLabel}</p>
@@ -2110,7 +2110,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pointer-events-none sm:p-4">
-            <Card className="route-drive-dock mx-auto max-w-xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
+            <Card className="route-drive-dock mx-auto max-w-2xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 px-3 pt-2 pb-1.5">
                 {sortedStops.map((s, i) => (

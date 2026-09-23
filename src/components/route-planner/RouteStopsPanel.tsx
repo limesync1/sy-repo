@@ -241,7 +241,7 @@ export const RouteStopsPanel = ({
         >
           <SheetHeader
             className={cn(
-              "planner-overlay-header relative px-4 pl-5 py-3 border-b shrink-0 text-left bg-card",
+              "planner-overlay-header relative px-5 pl-6 py-4 border-b shrink-0 text-left bg-card",
               isCompact && "pr-14",
             )}
           >
@@ -252,7 +252,7 @@ export const RouteStopsPanel = ({
               className="absolute left-0 top-0 bottom-0 w-1"
               style={{ background: route.color }}
             />
-            <SheetTitle className="flex items-center gap-2 text-[15px] leading-tight">
+            <SheetTitle className="flex items-center gap-2 text-[17px] leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
                 Stops på ruten
               </span>
@@ -273,9 +273,9 @@ export const RouteStopsPanel = ({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="planner-overlay-body flex-1 overflow-y-auto p-3 bg-secondary/15">
+          <div className="planner-overlay-body flex-1 overflow-y-auto p-4 bg-secondary/20">
             <div className="mb-3 space-y-2">
-              <Button variant="outline" className="w-full gap-2" onClick={() => setMapOpen((value) => !value)} disabled={!mapStops.length}>
+              <Button variant="outline" className="h-10 w-full gap-2 bg-card" onClick={() => setMapOpen((value) => !value)} disabled={!mapStops.length}>
                 <MapIcon className="h-4 w-4" />{mapOpen ? "Skjul kort" : livePositions.length ? `Vis kort · ${livePositions.length} aktiv` : "Vis kort"}
               </Button>
               {mapOpen && mapStops.length > 0 && (
