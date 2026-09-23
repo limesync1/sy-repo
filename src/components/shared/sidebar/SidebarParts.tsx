@@ -243,3 +243,51 @@ export const SidebarFooterItem = ({
     </TooltipProvider>
   );
 };
+
+/* ------------------------------------------------------------------ */
+/* RoleSwitchFooterItem — fælles, fremhævet skift mellem panelroller. */
+/* ------------------------------------------------------------------ */
+export const RoleSwitchFooterItem = ({
+  icon: Icon, label, onClick, collapsed,
+}: {
+  icon: any;
+  label: string;
+  onClick: () => void;
+  collapsed: boolean;
+}) => {
+  const button = (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={collapsed ? label : undefined}
+      className={cn(
+        "group relative flex w-full items-center overflow-hidden rounded-[4px] text-sm font-semibold text-foreground transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        "hover:bg-secondary active:bg-secondary/80",
+        collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
+      )}
+    >
+      <span className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent via-success to-warning p-[2px]">
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-card">
+          <Icon className="h-3.5 w-3.5 text-foreground" aria-hidden="true" />
+        </span>
+      </span>
+      <span className={cn(
+        "truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        collapsed ? "max-w-0 -translate-x-1 opacity-0" : "max-w-[170px] translate-x-0 opacity-100",
+      )}>
+        {label}
+      </span>
+    </button>
+  );
+
+  if (!collapsed) return button;
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="right" sideOffset={8}>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
