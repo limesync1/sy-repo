@@ -244,24 +244,28 @@ export const RouteChecklistView = ({
                         </div>
                         {onMoveStop && (
                           <div className="flex shrink-0 flex-col gap-1">
-                            <button
+                            <Button
+                              variant="outline"
+                              size="icon"
                               type="button"
                               aria-label="Flyt stoppet tidligere på ruten"
                               disabled={reordering}
                               onClick={() => onMoveStop(s.id, -1)}
-                               className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                              className="h-8 w-8 rounded-[4px] text-muted-foreground hover:text-foreground"
                             >
                               <ArrowUp className="h-3.5 w-3.5" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
                               type="button"
                               aria-label="Flyt stoppet senere på ruten"
                               disabled={reordering || i >= remaining.length - 2}
                               onClick={() => onMoveStop(s.id, 1)}
-                               className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                              className="h-8 w-8 rounded-[4px] text-muted-foreground hover:text-foreground"
                             >
                               <ArrowDown className="h-3.5 w-3.5" />
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -276,11 +280,12 @@ export const RouteChecklistView = ({
         {/* Udførte stop */}
         {completed.length > 0 && (
           <section className="mt-5">
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={() => setShowDone((v) => !v)}
               aria-expanded={showDone}
-               className="flex w-full items-center justify-between rounded-md border border-border bg-card px-3 py-3 text-left"
+              className="h-auto w-full justify-between rounded-md bg-card px-3 py-3 text-left"
             >
               <span className="flex items-center gap-2 text-[13.5px] font-medium text-foreground">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -292,7 +297,7 @@ export const RouteChecklistView = ({
                   showDone && "rotate-180",
                 )}
               />
-            </button>
+            </Button>
             {showDone && (
               <ul className="mt-2 space-y-2">
                 {completed.map((s) => (
