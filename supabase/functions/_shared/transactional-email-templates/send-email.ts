@@ -1,6 +1,7 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { EmailAPIError, sendLovableEmail } from 'npm:@lovable.dev/email-js@0.1.0'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TEMPLATES } from './registry.ts'
 
 // Server-only: reads LOVABLE_API_KEY. Import from edge functions only — never
@@ -66,6 +67,23 @@ export async function sendTemplateEmail(
       ? template.subject(templateData)
       : template.subject
 
+  const messageId = options.idempotencyKey || crypto.randomUUID()
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const logClient = supabaseUrl && serviceKey ? createClient(supabaseUrl, serviceKey) : null
+  const writeLog = async (status: 'sent' | 'suppressed' | 'failed', errorMessage?: string) => {
+    if (!logClient) return
+    const { error } = await logClient.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: recipient,
+      status,
+      error_message: errorMessage?.slice(0, 1000) ?? null,
+      metadata: { templateData },
+    })
+    if (error) console.error('Email log write failed', { code: error.code, message: error.message })
+  }
+
   try {
     await sendLovableEmail(
       {
@@ -77,17 +95,20 @@ export async function sendTemplateEmail(
         text,
         purpose: 'transactional',
         label: templateName,
-        idempotency_key: options.idempotencyKey || crypto.randomUUID(),
+        idempotency_key: messageId,
         reply_to: options.replyTo,
       },
       { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
     )
   } catch (error) {
     if (error instanceof EmailAPIError && error.code === 'recipient_suppressed') {
+      await writeLog('suppressed')
       return { sent: false, reason: 'recipient_suppressed' }
     }
+    await writeLog('failed', error instanceof Error ? error.message : String(error))
     throw error
   }
 
+  await writeLog('sent')
   return { sent: true }
 }
