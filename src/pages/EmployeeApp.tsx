@@ -317,9 +317,9 @@ const EmployeeApp = () => {
             tone={dayStarted && !dayEnded ? "emerald" : dayEnded ? "neutral" : "amber"}
             hint={
               workday?.started_at && dayEnded
-                ? `${format(new Date(workday.started_at), "HH:mm")}–${format(new Date(workday!.ended_at!), "HH:mm")} · ${workday.duration_minutes ?? 0} min`
+                ? `${format(new Date(workday.started_at), "HH:mm")}–${format(new Date(workday!.ended_at!), "HH:mm")}`
                 : workday?.started_at && !dayEnded
-                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}${elapsedLabel ? ` · ${elapsedLabel}` : ""}`
+                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}${elapsedLabel ? `` : ""}`
                   : isCurrentDay ? "Tryk Start dag når du er klar" : null
             }
           />
@@ -451,7 +451,7 @@ const EmployeeApp = () => {
                               Arbejdsdag {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
                               {workday?.ended_at ? `–${format(new Date(workday.ended_at), "HH:mm")}` : ""}
                               {workday?.duration_minutes != null
-                                ? ` · ${Math.floor(workday.duration_minutes / 60)}t ${workday.duration_minutes % 60}min`
+                                ? ``
                                 : ""}
                             </span>
                           </>
@@ -460,7 +460,7 @@ const EmployeeApp = () => {
                             <Clock className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
                             <span>
                               Start {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
-                              {elapsedLabel ? ` · ${elapsedLabel}` : ""}
+                              {elapsedLabel ? `` : ""}
                               {totalStops > 0 ? ` · ${completedStops}/${totalStops} stop` : ""}
                             </span>
                           </>
