@@ -10,3 +10,5 @@
 - [x] Test hele resultatet på computer, tablet og mobil
 - [x] Gør rutenavne læsbare direkte på rutekort uden klik
 - [x] Gør aftalekort i "Aftaler uden rute" mere kompakte på computer og mobil
+- [ ] Hold rutekortets handlinger fri af rutenavn og metadata
+- [ ] Forbedr mørk visning på hele ruteplanlæggeren og dens vinduer
