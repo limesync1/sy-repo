@@ -311,13 +311,6 @@ const EmployeeApp = () => {
             hint={routes.length > 0 ? `${routes.length === 1 ? "1 rute planlagt" : `${routes.length} ruter planlagt`}` : "Ingen ruter"}
           />
           <StatCard
-            label="Næste start"
-            value={routes[0]?.planned_start_time?.slice(0, 5) || "—"}
-            icon={<Clock />}
-            tone="blue"
-            hint={routes[0]?.name || (routes[0] ? "Første rute" : "Ingen ruter")}
-          />
-          <StatCard
             label="Arbejdsdag"
             value={dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
             icon={<PlayCircle />}
@@ -379,9 +372,6 @@ const EmployeeApp = () => {
               tone: "primary",
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
               description: [
-                arr ? `Planlagt kl. ${arr}` : null,
-                nextStop.full_address || nextStop.address,
-              ].filter(Boolean).join(" · "),
               cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
           } else if (dayStarted && allRoutesDone && !dayEnded) {
@@ -653,7 +643,7 @@ const EmployeeApp = () => {
                     </h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Alle {total} stop er færdige
-                      {lastDoneAt ? ` · sidst kl. ${format(new Date(lastDoneAt), "HH:mm")}` : ""}
+                      
                     </p>
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2.5 py-1 text-[11px] font-semibold text-feature-cool-foreground shrink-0">
