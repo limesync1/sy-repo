@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Building2, MapPin, ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { setEmployeeWorkspace } from "@/lib/employee-workspace";
@@ -38,8 +37,8 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-secondary/50">
-      <header className="border-b border-border bg-card">
+    <div className="service-panel-workspace flex min-h-dvh flex-col bg-secondary/50">
+      <header className="service-panel-topbar border-b border-border bg-card">
         <div className="mx-auto flex h-14 max-w-3xl items-center px-4">
           <Link to="/" aria-label="Forside" className="flex items-center">
             <img
@@ -54,12 +53,12 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-        <div className="mb-6 sm:mb-8">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-9">
+        <div className="mb-5 sm:mb-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Vælg arbejdsplads
           </p>
-          <h1 className="mt-1.5 text-2xl font-bold text-foreground sm:text-3xl">
+          <h1 className="mt-1.5 text-2xl font-semibold text-foreground">
             Hvilket medarbejderpanel vil du åbne?
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -68,7 +67,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           </p>
         </div>
 
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-2 sm:grid-cols-2">
           {employees.map((emp) => {
             const biz = emp.business;
             const name = biz?.name || "Virksomhed";
@@ -80,17 +79,17 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   onClick={() => choose(emp.business_id)}
                   disabled={!!pending}
                   className={cn(
-                    "group flex w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-all",
-                    "hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
-                    active ? "border-foreground/40 ring-1 ring-foreground/20" : "border-border",
+                    "service-panel-card group flex w-full items-center gap-3 rounded-[5px] border bg-card p-3 text-left transition-all",
+                    "hover:border-accent/40 hover:bg-secondary/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                    active ? "border-accent/45 bg-accent/5 ring-1 ring-accent/20" : "border-border",
                     pending === emp.business_id && "opacity-70",
                   )}
                 >
-                  <Avatar className="h-12 w-12 shrink-0 rounded-xl ring-1 ring-border">
+                  <Avatar className="h-11 w-11 shrink-0 rounded-[4px] ring-1 ring-border">
                     {biz?.logo_url ? (
-                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-xl object-cover" />
+                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-[4px] object-cover" />
                     ) : null}
-                    <AvatarFallback className="rounded-xl bg-secondary text-sm font-bold text-foreground">
+                    <AvatarFallback className="rounded-[4px] bg-secondary text-sm font-bold text-foreground">
                       {initialsOf(name)}
                     </AvatarFallback>
                   </Avatar>
@@ -116,7 +115,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   </div>
 
                   {active ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-[4px] bg-success/10 px-2 py-1 text-[11px] font-semibold text-success">
                       <Check className="h-3 w-3" strokeWidth={3} /> Aktiv
                     </span>
                   ) : (
@@ -128,7 +127,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           })}
         </ul>
 
-        <label className="mt-6 flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-card px-4 py-3">
+        <label className="service-panel-card mt-4 flex cursor-pointer items-center gap-2.5 rounded-[5px] border border-border bg-card px-3 py-2.5">
           <Checkbox
             checked={remember}
             onCheckedChange={(v) => setRemember(v === true)}
