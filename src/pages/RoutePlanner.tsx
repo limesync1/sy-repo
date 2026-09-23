@@ -87,6 +87,7 @@ import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog"
 import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
+import { stopCapacity } from "@/components/route-planner/lib/stop-capacity";
 import SickLeaveDialogHost, { openSickLeaveDialog } from "@/components/route-planner/SickLeaveDialogHost";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { dragMetrics } from "@/lib/drag-metrics";
@@ -587,22 +588,19 @@ const Planner = () => {
   // skill-mismatch-detektion. Begge er rene "info"-lag der ikke ændrer
   // adfærd — bare hjælper brugeren med at se overbelastning eller
   // medarbejdere der mangler en færdighed for et stop på ruten.
-  const { data: dailyCapacityRows = [] } = useDailyCapacity({
-    business_id: businessId,
-    start: calendarRange.start,
-    end: calendarRange.end,
-  });
   const capacityByDate = useMemo(() => {
-    const m = new Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>();
-    for (const row of dailyCapacityRows) {
-      m.set(row.route_date, {
-        load_pct: Number(row.load_pct) || 0,
-        minutes_booked: row.minutes_booked,
-        minutes_capacity: row.minutes_capacity,
-      });
+    const counts = new Map<string, number>();
+    const routeDates = new Map((calendarRoutesRaw as any[]).map((route) => [route.id, route.route_date]));
+    for (const stop of calendarStops as any[]) {
+      if (stop.status === "cancelled") continue;
+      const routeDate = routeDates.get(stop.route_id);
+      if (routeDate) counts.set(routeDate, (counts.get(routeDate) ?? 0) + 1);
     }
+    const employeeCount = Math.max(1, activeEmployees.length);
+    const m = new Map<string, ReturnType<typeof stopCapacity>>();
+    counts.forEach((count, routeDate) => m.set(routeDate, stopCapacity(count, employeeCount)));
     return m;
-  }, [dailyCapacityRows]);
+  }, [calendarRoutesRaw, calendarStops, activeEmployees.length]);
 
   const { data: skillMismatchRows = [] } = useRouteSkillMismatch({
     business_id: businessId,
@@ -979,11 +977,7 @@ const Planner = () => {
   const periodSummary = useMemo(() => {
     const routeCount = calendarRoutesRaw.length;
     const stopCount = calendarStops.length;
-    const workMinutes = (calendarStops as any[]).reduce(
-      (sum, s) => sum + (Number(s.duration_minutes) || 0),
-      0,
-    );
-    return { routeCount, stopCount, workMinutes };
+    return { routeCount, stopCount };
   }, [calendarRoutesRaw.length, calendarStops]);
 
   /* Stop assignment handler */
@@ -1621,7 +1615,7 @@ const Planner = () => {
   const overloadedDatesSet = useMemo(() => {
     const s = new Set<string>();
     for (const [d, c] of capacityByDate.entries()) {
-      if (c.load_pct >= 110 && c.minutes_booked >= 720) s.add(d);
+      if (c.stops_booked > c.stops_capacity) s.add(d);
     }
     return s;
   }, [capacityByDate]);
@@ -4445,11 +4439,11 @@ const Planner = () => {
                     className="h-full rounded-lg"
                     autoSaveId="route-planner:unassigned-split"
                   >
-                    <ResizablePanel id="unassigned" order={1} defaultSize={22} minSize={16} maxSize={36} className="overflow-hidden">
+                    <ResizablePanel id="unassigned" order={1} defaultSize={28} minSize={25} maxSize={40} className="overflow-hidden">
                       {unassignedCard}
                     </ResizablePanel>
                     <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                    <ResizablePanel id="calendar" order={2} defaultSize={78} className="overflow-hidden">
+                    <ResizablePanel id="calendar" order={2} defaultSize={72} className="overflow-hidden">
                       {calendarBlock}
                     </ResizablePanel>
                   </ResizablePanelGroup>
@@ -4639,17 +4633,7 @@ const Planner = () => {
                       </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="w-[88vw] max-w-sm p-0 flex flex-col">
-                      <div className="flex flex-1 min-h-0 items-center justify-center p-6">
-                        <div className="max-w-xs text-center">
-                          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-                            <Monitor className="h-6 w-6 text-foreground" />
-                          </div>
-                          <h3 className="mb-1.5 text-base font-semibold">Kun på computer</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Planlægning af aftaler uden rute kræver en større skærm. Åbn siden på en computer for at trække aftaler ind på ruter.
-                          </p>
-                        </div>
-                      </div>
+                      <div className="flex min-h-0 flex-1 flex-col">{unassignedCard}</div>
                     </SheetContent>
                   </Sheet>
                 </div>

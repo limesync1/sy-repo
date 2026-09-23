@@ -22,6 +22,7 @@ import { memo, useMemo } from "react";
 import type { CalendarRoute } from "./MonthWeekCalendar";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
+import type { StopCapacity } from "./lib/stop-capacity";
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 const readableTokenOn = (color?: string | null) => {
@@ -49,7 +50,7 @@ type Props = {
   loadingWeather?: boolean;
   weatherError?: boolean;
   busyTargets?: Set<string>;
-  capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  capacityByDate?: Map<string, StopCapacity>;
   /** Sæt af rute-ids med medarbejder-tids-konflikt — vises som rødt badge. */
   conflictedRouteIds?: Set<string>;
 };
@@ -193,7 +194,7 @@ type DayRowProps = {
   weatherError?: boolean;
   busy?: boolean;
   busyRouteIds?: Set<string>;
-  capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  capacity?: StopCapacity | null;
   conflictedRouteIds?: Set<string>;
 };
 
@@ -354,16 +355,16 @@ const DayRowInner = ({
           </button>
         )}
       </div>
-      {capacity && capacity.minutes_capacity > 0 && !isPast && (
+       {capacity && capacity.stops_capacity > 0 && !isPast && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden"
-          title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
+           title={`Belastning: ${capacity.stops_booked} af ${capacity.stops_capacity} stop`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
               "h-full transition-[width] duration-300",
-              capacity.load_pct >= 110 && capacity.minutes_booked >= 720
+               capacity.stops_booked > capacity.stops_capacity
                 ? "bg-destructive"
                 : capacity.load_pct >= 90
                 ? "bg-amber-500/80"
