@@ -229,13 +229,13 @@ export const EmployeeShell = ({
 
     <div className="service-panel-workspace employee-panel-workspace isolate flex min-h-dvh flex-col bg-secondary/50">
       {/* Topbar — altid synlig */}
-      <header className="service-panel-topbar sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="flex h-14 items-center gap-3 px-3 sm:px-5">
+      <header className="employee-panel-header sticky top-0 z-40 border-b border-background/10 bg-foreground text-background shadow-sm">
+        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-3 sm:h-16 sm:px-5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Forside">
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-7 w-auto sm:h-8"
+              className="h-7 w-auto brightness-0 invert sm:h-8"
               width={1920}
               height={539}
               decoding="async"
@@ -259,8 +259,8 @@ export const EmployeeShell = ({
                   className={cn(
                     "inline-flex h-8 items-center gap-2 rounded-[4px] px-3 text-sm font-medium transition-colors",
                     active
-                       ? "bg-accent/10 text-accent shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.24)]"
-                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                       ? "bg-accent text-accent-foreground"
+                       : "text-background/65 hover:bg-background/10 hover:text-background",
                   )}
                   aria-current={active ? "page" : undefined}
                 >
@@ -272,7 +272,7 @@ export const EmployeeShell = ({
           </nav>
 
           {/* Mobile/tablet sidetitel */}
-          <h1 className="truncate text-base font-semibold text-foreground sm:text-lg lg:hidden">
+          <h1 className="truncate text-base font-semibold text-background sm:text-lg lg:hidden">
             {title ?? currentNav?.label}
           </h1>
 
@@ -286,7 +286,7 @@ export const EmployeeShell = ({
               <button
                 type="button"
                 onClick={() => setPickerOpen(true)}
-                 className="flex h-8 min-w-0 shrink items-center gap-2 rounded-[4px] border border-border bg-background pl-1 pr-2.5 text-xs font-semibold text-foreground transition-colors hover:border-accent/40 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                 className="flex h-8 min-w-0 shrink items-center gap-2 rounded-[4px] border border-background/20 bg-background/10 pl-1 pr-2.5 text-xs font-semibold text-background transition-colors hover:border-accent/60 hover:bg-background/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
                 title={`Aktiv virksomhed: ${activeBusinessName}`}
               >
@@ -299,7 +299,7 @@ export const EmployeeShell = ({
                         className="rounded-full object-cover"
                       />
                     ) : null}
-                    <AvatarFallback className="rounded-full bg-card text-[10px] font-bold text-foreground">
+                    <AvatarFallback className="rounded-full bg-background/15 text-[10px] font-bold text-background">
                       {businessInitials}
                     </AvatarFallback>
                   </Avatar>
@@ -311,7 +311,7 @@ export const EmployeeShell = ({
                   </span>
                 </span>
                 <span className="hidden max-w-[160px] truncate sm:inline">{activeBusinessName}</span>
-                <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                 <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-background/55" />
               </button>
             )}
 
@@ -401,7 +401,7 @@ export const EmployeeShell = ({
       <main
         className={cn(
            "service-panel-content relative z-0 flex-1 min-w-0",
-          contentPadding ? "p-2.5 sm:p-4 md:p-6" : "",
+          contentPadding ? "p-2.5 sm:p-4 md:p-6 lg:p-7" : "",
           // 64px bottom-nav + safe-area på mobil/tablet.
           visibleNav.length > 1 ? "pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : "",
           contentClassName,
@@ -413,7 +413,7 @@ export const EmployeeShell = ({
       {/* Bundnavigation — kun mobil/tablet, kun hvis vi har mere end ét punkt */}
       {visibleNav.length > 1 && (
         <nav
-           className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:hidden"
+           className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-[0_-6px_20px_-18px_hsl(var(--foreground)/0.5)] backdrop-blur supports-[backdrop-filter]:bg-card/85 lg:hidden"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           aria-label="Bundnavigation"
         >
@@ -429,7 +429,7 @@ export const EmployeeShell = ({
                     onTouchStart={() => prefetchTab(item.value)}
                     className={cn(
                       "flex w-full flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
-                      active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                       active ? "text-accent" : "text-muted-foreground hover:text-foreground",
                     )}
                     aria-current={active ? "page" : undefined}
                   >

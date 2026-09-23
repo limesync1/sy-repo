@@ -562,12 +562,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   hint="Synlig for medarbejderen"
                 >
                   <PlanningSection
-                    timeSlot={timeSlot}
-                    setTimeSlot={setTimeSlot}
                     notes={notes}
                     setNotes={setNotes}
-                    
-                    distanceToNextKm={stop.distance_to_next_km}
                   />
                 </Section>
               )}

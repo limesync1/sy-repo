@@ -15,12 +15,12 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
 import {
-  Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
+  Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
   Unlock as UnlockIcon,
 } from "lucide-react";
-import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
+import { format, addDays, parseISO, isToday } from "date-fns";
 import { da } from "date-fns/locale";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
@@ -28,7 +28,6 @@ import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import SEO from "@/components/SEO";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
-import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -197,9 +196,6 @@ const EmployeeApp = () => {
   const isFutureDay = date > todayStr();
   const dayStarted = !!workday?.started_at && !workday?.ended_at;
   const dayEnded = !!workday?.ended_at;
-  const elapsedLabel = workday?.started_at && !workday?.ended_at
-    ? formatDistanceStrict(new Date(workday.started_at), new Date(), { locale: da, unit: "minute" })
-    : null;
 
   // Date navigator — kompakt, klar visuel struktur:
   //  [‹]  [📅 dato (popover)]  [›]   [Gå til i dag?]
@@ -208,11 +204,11 @@ const EmployeeApp = () => {
   // vises en lille knap helt til højre indeni boksen.
   const dateNav = (
     <div className="flex w-full items-center sm:w-auto">
-      <div className="flex w-full items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:w-auto">
+      <div className="flex w-full items-center gap-1 rounded-[5px] border border-border bg-card p-1 shadow-sm sm:w-auto">
         <Button
           size="icon"
           variant="ghost"
-          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          className="h-9 w-9 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
           onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
           aria-label="Forrige dag"
         >
@@ -223,7 +219,7 @@ const EmployeeApp = () => {
             <Button
               size="sm"
               variant="ghost"
-              className="h-9 flex-1 min-w-0 gap-1.5 rounded-lg px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
+              className="h-9 flex-1 min-w-0 gap-1.5 rounded-[4px] px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
             >
               <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
               <span className="capitalize tabular-nums truncate">
@@ -249,7 +245,7 @@ const EmployeeApp = () => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          className="h-9 w-9 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
           onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
           aria-label="Næste dag"
         >
@@ -264,7 +260,7 @@ const EmployeeApp = () => {
               onClick={() => setDate(todayStr())}
               aria-label="Gå til i dag"
               title="Gå til i dag"
-              className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+              className="h-9 w-9 shrink-0 rounded-[4px] bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
             >
               <CalendarCheck className="h-4 w-4" />
             </Button>
@@ -283,47 +279,26 @@ const EmployeeApp = () => {
       />
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date} className="w-full space-y-3 sm:space-y-4">
-        <PageHeader
-          title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
-          description={
-            totalStops > 0
-              ? `${completedStops} af ${totalStops} stop færdige`
-              : "Ingen stop planlagt"
-          }
-          action={dateNav}
-        />
-
-        {/* Top-overblik: stat-kort + arbejdsdag-handling — samme stil som virksomhedspanelet */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          <StatCard
-            label="Stop i dag"
-            value={`${completedStops}/${totalStops}`}
-            icon={<CheckCircle2 />}
-            tone="emerald"
-            hint={totalStops > 0 ? `${Math.round((completedStops / Math.max(totalStops, 1)) * 100)}% gennemført` : "Ingen stop"}
-          />
-          <StatCard
-            label="Ruter"
-            value={routes.length}
-            icon={<RouteIcon />}
-            tone="violet"
-            hint={routes.length > 0 ? `${routes.length === 1 ? "1 rute planlagt" : `${routes.length} ruter planlagt`}` : "Ingen ruter"}
-          />
-          <StatCard
-            label="Arbejdsdag"
-            value={dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
-            icon={<PlayCircle />}
-            tone={dayStarted && !dayEnded ? "emerald" : dayEnded ? "neutral" : "amber"}
-            hint={
-              workday?.started_at && dayEnded
-                ? `${format(new Date(workday.started_at), "HH:mm")}–${format(new Date(workday!.ended_at!), "HH:mm")} · ${workday.duration_minutes ?? 0} min`
-                : workday?.started_at && !dayEnded
-                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}${elapsedLabel ? ` · ${elapsedLabel}` : ""}`
-                  : isCurrentDay ? "Tryk Start dag når du er klar" : null
-            }
-          />
-        </div>
+      <PageTransition transitionKey={date} className="employee-day mx-auto w-full max-w-6xl space-y-3 sm:space-y-4">
+        <section className="flex flex-col gap-3 rounded-[6px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase text-accent">Min dag</p>
+            <h2 className="mt-0.5 truncate text-xl font-semibold capitalize text-foreground">
+              {format(dateObj, "EEEE d. MMMM", { locale: da })}
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{completedStops}/{totalStops} stop</span>
+              <span aria-hidden>·</span>
+              <span>{routes.length === 1 ? "1 rute" : `${routes.length} ruter`}</span>
+              <span aria-hidden>·</span>
+              <span className={cn("inline-flex items-center gap-1 font-medium", dayStarted ? "text-success" : "text-muted-foreground")}>
+                <span className={cn("h-1.5 w-1.5 rounded-full", dayStarted ? "bg-success" : "bg-muted-foreground/45")} />
+                {dayEnded ? "Dagen er afsluttet" : dayStarted ? "Dagen er startet" : "Dagen er ikke startet"}
+              </span>
+            </div>
+          </div>
+          <div className="w-full sm:w-auto">{dateNav}</div>
+        </section>
 
         {/* ─────────── Smart "Næste skridt" forslag ───────────
             Foreslår medarbejderen den mest logiske handling lige nu —
@@ -383,9 +358,7 @@ const EmployeeApp = () => {
             suggestion = {
               tone: "calm",
               title: "Din arbejdsdag er i gang",
-              description: elapsedLabel
-                ? `Tid registreret: ${elapsedLabel}. Stop dagen, når du er færdig.`
-                : "Stop dagen, når du er færdig — så registreres din arbejdstid korrekt.",
+              description: "Stop dagen, når du er færdig — så registreres din arbejdsdag korrekt.",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayEnded && routes.length > 0) {
@@ -424,10 +397,10 @@ const EmployeeApp = () => {
 
           const Cta = suggestion.cta;
           return (
-            <Card className={cn("overflow-hidden rounded-xl border shadow-sm", toneClasses)}>
-              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+            <Card className={cn("overflow-hidden rounded-[5px] border-l-[3px] border-l-accent shadow-sm", toneClasses)}>
+              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-4">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={cn("flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
+                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px]", iconWrap)} aria-hidden>
                     <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0">
@@ -440,40 +413,13 @@ const EmployeeApp = () => {
                     <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground tabular-nums">
                       {suggestion.description}
                     </p>
-                    {/* Live arbejdsdag-status under forslaget — så medarbejderen
-                        altid kan se start, varighed og fremdrift uden et separat kort. */}
-                    {(dayStarted || dayEnded) && (
-                      <p className="mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground tabular-nums">
-                        {dayEnded ? (
-                          <>
-                            <CheckCircle2 className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
-                            <span>
-                              Arbejdsdag {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
-                              {workday?.ended_at ? `–${format(new Date(workday.ended_at), "HH:mm")}` : ""}
-                              {workday?.duration_minutes != null
-                                ? ` · ${Math.floor(workday.duration_minutes / 60)}t ${workday.duration_minutes % 60}min`
-                                : ""}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
-                            <span>
-                              Start {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
-                              {elapsedLabel ? ` · ${elapsedLabel}` : ""}
-                              {totalStops > 0 ? ` · ${completedStops}/${totalStops} stop` : ""}
-                            </span>
-                          </>
-                        )}
-                      </p>
-                    )}
                   </div>
                 </div>
                 <Button
                   asChild={!!Cta.to}
                   onClick={Cta.onClick}
                   size="lg"
-                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-[4px] bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
                   {Cta.to ? (
                     <Link to={Cta.to}>
@@ -495,9 +441,9 @@ const EmployeeApp = () => {
         {(routesLoading || stopsLoading) && (
           <div className="grid gap-4 lg:grid-cols-2">
             {[0, 1].map((i) => (
-              <Card key={i} className="overflow-hidden rounded-xl border-border/80 shadow-sm">
+              <Card key={i} className="overflow-hidden rounded-[5px] border-border/80 shadow-sm">
                 <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
-                  <Skeleton className="h-7 w-7 rounded-lg" />
+                  <Skeleton className="h-7 w-7 rounded-[4px]" />
                   <div className="min-w-0 flex-1 space-y-2">
                     <Skeleton className="h-4 w-40" />
                     <Skeleton className="h-3 w-24" />
@@ -513,12 +459,12 @@ const EmployeeApp = () => {
                   </div>
                   <Skeleton className="h-2 w-full rounded-full" />
                   <div className="space-y-2">
-                    <Skeleton className="h-10 w-full rounded-lg" />
-                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-[4px]" />
+                    <Skeleton className="h-10 w-full rounded-[4px]" />
                   </div>
                   <div className="flex gap-2">
-                    <Skeleton className="h-11 flex-1 rounded-lg" />
-                    <Skeleton className="h-11 w-11 rounded-lg" />
+                    <Skeleton className="h-11 flex-1 rounded-[4px]" />
+                    <Skeleton className="h-11 w-11 rounded-[4px]" />
                   </div>
                 </div>
               </Card>
@@ -527,8 +473,8 @@ const EmployeeApp = () => {
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="rounded-xl border-dashed border-border p-6 sm:p-10 text-center shadow-sm">
-            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-secondary">
+          <Card className="rounded-[5px] border-dashed border-border p-6 sm:p-10 text-center shadow-sm">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-[8px] bg-secondary">
               <CalendarIcon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
             <p className="text-sm sm:text-base font-semibold mb-1">Ingen ruter denne dag</p>
@@ -605,7 +551,6 @@ const EmployeeApp = () => {
             r.start_latitude != null && r.start_longitude != null
               ? [Number(r.start_latitude), Number(r.start_longitude)]
               : null;
-          const startTime = r.planned_start_time?.slice(0, 5) || "08:00";
           const firstPendingId = myStops.find((s) => s.status !== "completed")?.id ?? null;
           // En rute er "team" hvis et eller flere stop ikke er specifikt
           // tildelt nogen (assignee) — så er hele ruten en fælles opgave.
@@ -623,12 +568,12 @@ const EmployeeApp = () => {
             return (
               <Card
                 key={r.id}
-                className="surface-admin overflow-hidden rounded-xl border-border/80 opacity-95 shadow-sm"
+                className="surface-admin overflow-hidden rounded-[5px] border-border/80 opacity-95 shadow-sm"
                 aria-label={`Rute ${r.name || ""} er færdig`}
               >
                 <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] border border-border"
                     style={{ background: color }}
                     aria-hidden
                   >
@@ -647,7 +592,7 @@ const EmployeeApp = () => {
                     <CheckCircle2 className="h-3 w-3" /> Færdig
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-3 p-3 sm:p-5 text-xs">
+                <div className="grid grid-cols-2 gap-3 p-3 sm:p-5 text-xs">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
@@ -669,7 +614,7 @@ const EmployeeApp = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-9 w-full gap-2 rounded-[4px] border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                   >
                     <Eye className="h-3.5 w-3.5" /> Vis & udskriv kvittering
                   </Button>
@@ -681,13 +626,13 @@ const EmployeeApp = () => {
           return (
             <Card
               key={r.id}
-              className="group surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
+              className="group surface-admin overflow-hidden rounded-[5px] border-border/80 shadow-sm transition-colors hover:border-accent/35"
             >
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}
               <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                 <span
-                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-[4px] border border-border shadow-sm"
                   style={{ background: color }}
                   aria-hidden
                 >
@@ -721,27 +666,19 @@ const EmployeeApp = () => {
               </div>
 
               {/* Kort-preview */}
-              <RouteMiniMap stops={myStops} startCoord={startCoord} color={color} />
+              <div className="hidden sm:block"><RouteMiniMap stops={myStops} startCoord={startCoord} color={color} /></div>
 
               {/* Body */}
               <div className="space-y-3 sm:space-y-4 p-3 sm:p-5">
                 {/* Meta-grid — strukturerede tal-felter ligesom statskort i
                     virksomhedspanelet. Tre faste kolonner = forudsigelig
                     visuel rytme på alle skærmstørrelser. */}
-                <div className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-secondary/30 p-2.5">
+                <div className="grid grid-cols-2 gap-2 rounded-[4px] border border-border bg-secondary/30 p-2.5">
                   <div className="px-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Start</p>
-                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{startTime}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{done}/{total}</p>
                   </div>
-                  <div className="border-l border-border px-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Varighed</p>
-                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
-                      {r.total_duration_minutes != null && r.total_duration_minutes > 0
-                        ? `${Math.round(r.total_duration_minutes / 60)}t ${r.total_duration_minutes % 60}min`
-                        : "—"}
-                    </p>
-                  </div>
-                  <div className="border-l border-border px-2">
+                  <div className="border-l border-border px-2.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
                       {r.total_distance_km != null && r.total_distance_km > 0
@@ -752,7 +689,7 @@ const EmployeeApp = () => {
                 </div>
 
                 {r.start_address && (
-                  <div className="flex items-start gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs">
+                  <div className="flex items-start gap-2 rounded-[4px] border border-border bg-card px-3 py-2 text-xs">
                     <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Startadresse</p>
@@ -779,9 +716,9 @@ const EmployeeApp = () => {
 
                 {/* Stop-preview liste — divide-y row-stil ligesom kunder/aftaler */}
                 {total > 0 && (
-                  <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  <div className="overflow-hidden rounded-[4px] border border-border bg-card">
                     <div className="divide-y divide-border">
-                      {myStops.slice(0, 4).map((s, i) => {
+                      {myStops.slice(0, 3).map((s, i) => {
                         const isNext = s.id === firstPendingId;
                         const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
                         return (
@@ -835,9 +772,9 @@ const EmployeeApp = () => {
                           </button>
                         );
                       })}
-                      {myStops.length > 4 && (
+                      {myStops.length > 3 && (
                         <div className="px-3 py-2 text-[11px] text-muted-foreground">
-                          +{myStops.length - 4} flere stop
+                          +{myStops.length - 3} flere stop
                         </div>
                       )}
                     </div>
@@ -851,7 +788,7 @@ const EmployeeApp = () => {
                   <Button
                     asChild={total > 0}
                     size="lg"
-                    className="h-10 sm:h-11 flex-1 gap-2 rounded-lg bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 flex-1 gap-2 rounded-[4px] bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >
@@ -880,7 +817,7 @@ const EmployeeApp = () => {
                     size="lg"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-10 sm:h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 shrink-0 rounded-[4px] border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     aria-label="Forhåndsvis & udskriv liste"
                     title="Forhåndsvis & udskriv liste"
                   >
