@@ -31,3 +31,10 @@
 - [x] Flyt kompakt medarbejderkontakt fra stoplisten til renteredigereringen efter dato
 - [x] Fjern manuel planmail fra ruteplanlæggeren
 - [x] Vis rute- eller aftalekontekst på medarbejderens beskeder
+
+## Samlet rettelse af rutekørsel og rutehandlinger
+- [ ] Forenkle kontakt til medarbejder med tydelige medarbejderikoner
+- [ ] Fjerne kortvisningsknapper fra rutedetaljerne
+- [ ] Holde tildel- og slet-handlinger synlige på stopkort
+- [ ] Redesign kørselsguide og stopliste på mobil, tablet og computer
+- [ ] Verificér lys/mørk visning og centrale handlinger

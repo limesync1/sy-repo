@@ -2,7 +2,7 @@
 // optimér-knap, manuel om-sortering, rute-indstillinger (omdøb, farve,
 // slet) og tap på et stop åbner stop-detaljer med handlinger
 // (ring, kort, medarbejder, markér udført, fjern).
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   Loader2,
   MapPin,
-  Map as MapIcon,
   Navigation,
   Phone,
   ShoppingBag,
@@ -20,7 +19,7 @@ import {
   Settings2,
   Sparkles,
   Trash2,
-  User,
+  UserPlus,
 } from "lucide-react";
 
 import {
@@ -58,12 +57,7 @@ import {
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { RouteCommunicationPanel } from "@/components/route-planner/RouteCommunicationPanel";
-
-// Kortet er tungt (Leaflet) — hent det først når brugeren folder det ud.
-const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
 
 const mapsUrl = (stop: RouteStop) => {
   if (stop.latitude != null && stop.longitude != null) {
@@ -93,7 +87,6 @@ export function MobileRouteDetailSheet({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDeleteRoute, setConfirmDeleteRoute] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
-  const [mapOpen, setMapOpen] = useState(false);
   const [optimizeResult, setOptimizeResult] = useState<string | null>(null);
 
 
@@ -107,24 +100,6 @@ export function MobileRouteDetailSheet({
   const deleteRoute = useDeleteRoute();
 
   const doneCount = stops.filter((s) => s.status === "completed").length;
-  const { data: livePositions = [] } = useQuery({
-    queryKey: ["route-live-positions", route.id],
-    refetchInterval: open ? 20_000 : false,
-    enabled: open,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("route_live_positions").select("*").eq("route_id", route.id).gt("expires_at", new Date().toISOString());
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-  const mapLivePositions = livePositions.map((position) => ({
-    employeeId: position.employee_id,
-    lat: position.latitude,
-    lng: position.longitude,
-    label: employees.find((employee) => employee.id === position.employee_id)?.name || "Medarbejder",
-    currentStopLabel: stops.find((item) => item.id === position.current_stop_id)?.customer_name || undefined,
-    recordedAt: position.recorded_at,
-  }));
 
   const activeEmployees = (employees || []).filter((e) => e.is_active !== false);
   const empName = (id: string | null | undefined) =>
@@ -138,24 +113,6 @@ export function MobileRouteDetailSheet({
     if (fresh && fresh !== activeStop) setActiveStop(fresh);
   }, [stops]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Stop med koordinater tegnes på kortet i den aktuelle (optimerede) rækkefølge.
-  const mapStops = useMemo(
-    () =>
-      stops
-        .filter((s) => s.latitude != null && s.longitude != null)
-        .map((s, i) => ({
-          id: s.id,
-          lat: Number(s.latitude),
-          lng: Number(s.longitude),
-          label: s.customer_name || "Stop",
-          sublabel: s.full_address || s.address || undefined,
-          index: i + 1,
-          distanceToNextKm: (s as any).distance_to_next_km ?? null,
-          travelTimeToNextMin: (s as any).travel_time_to_next_min ?? null,
-        })),
-    [stops],
-  );
-
   const handleOptimize = async () => {
     try {
       const res = await optimize.mutateAsync(route.id);
@@ -165,8 +122,6 @@ export function MobileRouteDetailSheet({
       if (mins != null) parts.push(`${Math.round(mins)} min`);
       const summary = parts.length > 0 ? parts.join(" · ") : null;
       setOptimizeResult(summary);
-      // Vis resultatet med det samme på kortet, så rækkefølgen kan ses.
-      if (mapStops.length > 1) setMapOpen(true);
       toast.success("Rute optimeret", { description: summary ?? undefined });
     } catch (err: any) {
       toast.error("Kunne ikke optimere", { description: err?.message });
@@ -293,7 +248,7 @@ export function MobileRouteDetailSheet({
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                 className="h-9 flex-1 gap-2 rounded-md text-xs"
+                 className="h-9 w-full gap-2 rounded-md text-xs"
                 onClick={handleOptimize}
                 disabled={optimize.isPending || stops.length < 2}
               >
@@ -304,50 +259,13 @@ export function MobileRouteDetailSheet({
                 )}
                 Optimér
               </Button>
-              <Button
-                variant={mapOpen ? "secondary" : "outline"}
-                 className="h-9 flex-1 gap-2 rounded-md text-xs"
-                onClick={() => setMapOpen((v) => !v)}
-                disabled={mapStops.length === 0}
-              >
-                <MapIcon className="h-4 w-4" />
-                {mapOpen ? "Skjul kort" : "Vis kort"}
-              </Button>
             </div>
             {optimizeResult && (
               <p className="text-[11px] text-muted-foreground">
                 Optimeret rækkefølge · {optimizeResult}
               </p>
             )}
-            {mapStops.length === 0 && stops.length > 0 && (
-              <p className="text-[11px] text-muted-foreground">
-                Ingen af stoppene har koordinater endnu, så kortet er tomt.
-              </p>
-            )}
           </div>
-
-          {mapOpen && mapStops.length > 0 && (
-            <div className="border-b border-border bg-secondary/30 p-3">
-              <Suspense
-                fallback={
-                  <div className="flex h-56 items-center justify-center rounded-lg bg-secondary">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                }
-              >
-                <RouteMap
-                  routes={[{ color: route.color || "#0ea5e9", stops: mapStops }]}
-                  height="14rem"
-                  livePositions={mapLivePositions}
-                  selectedStopId={activeStop?.id ?? null}
-                  onStopClick={(id) => {
-                    const s = stops.find((st) => st.id === id);
-                    if (s) setActiveStop(s);
-                  }}
-                />
-              </Suspense>
-            </div>
-          )}
 
 
            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
@@ -406,6 +324,26 @@ export function MobileRouteDetailSheet({
                             )}
                           </div>
                         </button>
+                        <div className="flex shrink-0 items-stretch self-stretch overflow-hidden rounded-md border border-border bg-secondary/25">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-auto min-h-11 w-10 rounded-none"
+                            onClick={() => setActiveStop(stop)}
+                            aria-label="Tilknyt medarbejder"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-auto min-h-11 w-10 rounded-none border-l border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setConfirmRemove(stop)}
+                            aria-label="Fjern fra rute"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                         {stops.length > 1 && (
                           <div className="flex shrink-0 flex-col gap-0.5">
                             <Button
@@ -503,7 +441,7 @@ export function MobileRouteDetailSheet({
                                 : "border-border bg-card text-muted-foreground hover:bg-secondary/50",
                             )}
                           >
-                            {selected ? <Check className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                            {selected ? <Check className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
                             {e.name}
                           </button>
                         );
