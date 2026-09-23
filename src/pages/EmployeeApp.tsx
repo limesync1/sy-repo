@@ -311,13 +311,6 @@ const EmployeeApp = () => {
             hint={routes.length > 0 ? `${routes.length === 1 ? "1 rute planlagt" : `${routes.length} ruter planlagt`}` : "Ingen ruter"}
           />
           <StatCard
-            label="Næste start"
-            value={routes[0]?.planned_start_time?.slice(0, 5) || "—"}
-            icon={<Clock />}
-            tone="blue"
-            hint={routes[0]?.name || (routes[0] ? "Første rute" : "Ingen ruter")}
-          />
-          <StatCard
             label="Arbejdsdag"
             value={dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
             icon={<PlayCircle />}
@@ -372,16 +365,10 @@ const EmployeeApp = () => {
               cta: { label: "Start dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
             };
           } else if (dayStarted && nextStop && nextRoute) {
-            const arr = nextStop.planned_arrival
-              ? format(new Date(nextStop.planned_arrival), "HH:mm")
-              : null;
             suggestion = {
               tone: "primary",
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
-              description: [
-                arr ? `Planlagt kl. ${arr}` : null,
-                nextStop.full_address || nextStop.address,
-              ].filter(Boolean).join(" · "),
+              description: nextStop.full_address || nextStop.address || "",
               cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
           } else if (dayStarted && allRoutesDone && !dayEnded) {
@@ -653,7 +640,7 @@ const EmployeeApp = () => {
                     </h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Alle {total} stop er færdige
-                      {lastDoneAt ? ` · sidst kl. ${format(new Date(lastDoneAt), "HH:mm")}` : ""}
+                      
                     </p>
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2.5 py-1 text-[11px] font-semibold text-feature-cool-foreground shrink-0">
@@ -665,14 +652,7 @@ const EmployeeApp = () => {
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
                   </div>
-                  {r.total_duration_minutes != null && r.total_duration_minutes > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Varighed</p>
-                      <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
-                        ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
-                      </p>
-                    </div>
-                  )}
+                  
                   {r.total_distance_km != null && r.total_distance_km > 0 && (
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
@@ -803,9 +783,6 @@ const EmployeeApp = () => {
                     <div className="divide-y divide-border">
                       {myStops.slice(0, 4).map((s, i) => {
                         const isNext = s.id === firstPendingId;
-                        const arrivalLabel = s.planned_arrival
-                          ? format(new Date(s.planned_arrival), "HH:mm")
-                          : null;
                         const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
                         return (
                           <button
@@ -854,11 +831,6 @@ const EmployeeApp = () => {
                                 </Badge>
                               </div>
                             </div>
-                            {arrivalLabel && (
-                              <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
-                                {arrivalLabel}
-                              </span>
-                            )}
                             <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                           </button>
                         );
@@ -929,8 +901,8 @@ const EmployeeApp = () => {
           side={isMobile ? "bottom" : "right"}
           className={
             isMobile
-              ? "h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-2xl !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
-              : "w-full p-0 flex flex-col sm:max-w-lg"
+              ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
+              : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
           }
         >
           {detailsStop && (

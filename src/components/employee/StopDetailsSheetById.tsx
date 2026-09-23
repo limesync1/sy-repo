@@ -81,8 +81,8 @@ export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
         side={isMobile ? "bottom" : "right"}
         className={
           isMobile
-            ? "h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-2xl !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
-            : "w-full p-0 flex flex-col sm:max-w-lg"
+            ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
+            : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
         }
       >
         {isLoading || !data ? (

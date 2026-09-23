@@ -1801,7 +1801,6 @@ const AftaleTab = ({
                     { key: "in_route", label: "På rute", count: inRouteOrders.length },
                   ]
                 : []),
-              { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
               { key: "completed", label: "Udførte", count: counts.completed || 0 },
               { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
             ],
@@ -1870,7 +1869,7 @@ const AftaleTab = ({
                 </span>
                 {!upcomingExpanded && nextDate && (
                   <span className="ml-1 hidden truncate text-[11px] text-muted-foreground sm:inline">
-                    · næste {nextRel} · {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} kl. {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                    · næste {nextRel} · {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                   </span>
                 )}
                 <ChevronDown className={`ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform ${upcomingExpanded ? "rotate-180" : ""}`} />
@@ -1934,13 +1933,8 @@ const AftaleTab = ({
                     </div>
                     <div className="truncate text-[10px] text-muted-foreground">{sub.service_name}</div>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-[11px] font-medium tabular-nums text-foreground">
-                      {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                    </div>
-                    <div className="text-[10px] tabular-nums text-muted-foreground">
-                      {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
-                    </div>
+                  <div className="shrink-0 text-right text-[11px] font-medium tabular-nums text-foreground">
+                    {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                   </div>
                 </button>
               );
@@ -2436,15 +2430,6 @@ const AftaleTab = ({
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                          {routeStop.planned_arrival && (
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Ankomst {new Date(routeStop.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
-                              {routeStop.planned_departure && (
-                                <> – {new Date(routeStop.planned_departure).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</>
-                              )}
-                            </span>
-                          )}
                           {routeStop.status && (
                             <span className="inline-flex items-center gap-1">
                               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />

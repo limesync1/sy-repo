@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Loader2, Printer, ExternalLink, Clock, Flag, Route as RouteIcon,
+  Loader2, Printer, ExternalLink, Flag, Route as RouteIcon,
   MapPin, ClipboardList, ListChecks, StickyNote, Phone,
 } from "lucide-react";
 import { useMyRouteData } from "@/hooks/useRoutes";
@@ -149,9 +149,6 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
           <ol className="divide-y divide-border">
             {sorted.map((s: any, i: number) => {
               const cleaned = s.service_summary ? stripPrices(s.service_summary) : "";
-              const arrival = s.planned_arrival
-                ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
-                : null;
               return (
                 <li key={s.id} className="py-3">
                   <div className="flex gap-3">
@@ -165,11 +162,6 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <h4 className="text-sm font-semibold leading-tight text-foreground">{s.customer_name || "Stop"}</h4>
-                        {arrival && (
-                          <span className="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-foreground">
-                            <Clock className="h-2.5 w-2.5" /> kl. {arrival}
-                          </span>
-                        )}
                       </div>
                       <div className="mt-1 grid gap-0.5 text-[11px] text-muted-foreground">
                         {s.address && (

@@ -14,3 +14,5 @@
 - [x] Forbedr mørk visning på hele ruteplanlæggeren og dens vinduer
 - [x] Kvalitetssikr hele redesignets layout, vinduer, tilstande og responsive visninger
 - [x] Udbred ruteplanlæggerens komplette designsystem til hele virksomheds- og medarbejderpanelet
+- [x] Fjern resterende udførelsestider fra aftaler og ensret panelernes sidste detaljevinduer
+- [ ] Start projektets opdatering af e-mailafsendelse
