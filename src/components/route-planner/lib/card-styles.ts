@@ -6,7 +6,7 @@
  * herunder — så ALT kører på samme design-token-pakke. */
 export const CARD_BORDER = "border-border/90";
 export const CARD_HOVER =
-  "hover:border-accent/45 hover:bg-card hover:shadow-[0_8px_22px_-18px_hsl(var(--foreground)/0.55)]";
+  "hover:border-accent/45 hover:bg-card hover:shadow-[0_8px_22px_-18px_hsl(var(--foreground)/0.55)] dark:hover:bg-secondary/70";
 export const CARD_SELECTED =
   "border-accent ring-2 ring-accent/20 bg-accent/[0.055] shadow-[0_8px_22px_-18px_hsl(var(--accent)/0.7)]";
 export const CARD_DRAGGING = "border-accent ring-2 ring-accent/25 bg-accent/[0.06] opacity-90 shadow-lg";
