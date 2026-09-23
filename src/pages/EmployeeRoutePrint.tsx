@@ -205,11 +205,6 @@ const EmployeeRoutePrint = () => {
                               <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground print:text-black tabular-nums rounded-md bg-muted px-2 py-1 print:bg-transparent print:border print:border-black/30 print:px-1.5 print:py-0.5">
                                 <Clock className="h-3 w-3" />
                                 kl. {arrival}
-                                {s.duration_minutes > 0 && (
-                                  <span className="text-muted-foreground print:text-black/70">
-                                    {" "}· {s.duration_minutes} min
-                                  </span>
-                                )}
                               </span>
                             )}
                           </div>

@@ -281,7 +281,7 @@ export const PlanningPanel = ({
                           {format(d.date, "EEE d.", { locale: da }).replace(".", ".")}
                         </span>
                         <span className={cn("tabular-nums", over ? "font-semibold text-destructive" : "text-foreground")}>
-                          {formatDurationMin(totalMin, { short: true })} · {d.stopCount} stop
+                          {d.stopCount} stop
                         </span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/60 ring-1 ring-inset ring-border/30">

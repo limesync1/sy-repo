@@ -7,8 +7,7 @@
 export const CARD_BORDER = "border-border/55";
 export const CARD_HOVER =
   "hover:border-foreground/20 hover:bg-card " +
-  "hover:shadow-[0_2px_4px_-2px_hsl(var(--foreground)/0.08),0_8px_24px_-10px_hsl(var(--foreground)/0.22)] " +
-  "hover:-translate-y-[2px]";
+  "hover:shadow-[0_2px_8px_-4px_hsl(var(--foreground)/0.16)]";
 export const CARD_SELECTED =
   "border-accent ring-2 ring-accent/30 shadow-[0_0_0_1px_hsl(var(--accent)/0.15),0_4px_14px_-6px_hsl(var(--accent)/0.35)]";
 export const CARD_DRAGGING = "ring-1 ring-accent opacity-95";
@@ -19,9 +18,9 @@ export const CARD_RAIL_WIDTH = "w-[3px]";
  *  så aftalekort og rute-piller deler præcis samme radius, kant, skygge og
  *  transition. */
 export const CARD_BASE =
-  `group relative ${"rounded-xl"} border bg-card overflow-hidden ` +
-  "shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)] " +
-  "transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out";
+  `group relative ${"rounded-md"} border bg-card overflow-hidden ` +
+  "shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)] " +
+  "transition-[background-color,border-color,box-shadow] duration-150 ease-out";
 
 /* ─────────────────────────────────────────────────────────────────────────
    FÆLLES PILL/CARD DESIGN-TOKENS
@@ -33,9 +32,9 @@ export const CARD_BASE =
    ───────────────────────────────────────────────────────────────────────── */
 
 /** Fælles radius for alle piller/kort i planneren. */
-export const PILL_RADIUS = "rounded-xl";
+export const PILL_RADIUS = "rounded-md";
 /** Mindre radius (bruges hvor rounded-xl er for kraftigt, fx kalender-celler). */
-export const PILL_RADIUS_SM = "rounded-lg";
+export const PILL_RADIUS_SM = "rounded-md";
 /** Standard kant. */
 export const PILL_BORDER = "border border-border/55";
 /** Standard skygge — multi-layer, blød elevation. */
@@ -48,7 +47,7 @@ export const PILL_SHADOW_HOVER =
 export const PILL_TRANSITION =
   "transition-[background-color,border-color,opacity,box-shadow,transform] duration-200 ease-out";
 /** Standard hover-løft. */
-export const PILL_HOVER_LIFT = "hover:-translate-y-[1.5px] hover:border-foreground/25";
+export const PILL_HOVER_LIFT = "hover:border-foreground/25";
 /** Bredde på venstre farve-rail (fælles for rute-pille og stop-kort). */
 export const PILL_RAIL_WIDTH = "w-[3px]";
 /** Aktiv multi-select-tilstand for piller (samme som kort, lille variant). */

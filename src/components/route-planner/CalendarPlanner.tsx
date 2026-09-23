@@ -623,7 +623,6 @@ const SlotCell = ({
               <span className="text-[10px] font-bold tabular-nums leading-none">
                 {slotTime} – {endHH}:{endMM}
               </span>
-              <span className="text-[9px] tabular-nums opacity-80 mt-0.5">{dragDurationMin} min</span>
             </div>
           </div>
         </>

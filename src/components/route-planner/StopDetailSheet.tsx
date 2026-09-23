@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
+import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, type RouteStop } from "@/hooks/useRoutes";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -18,7 +18,7 @@ import {
   MapPin, Phone, Mail, Clock, Trash2, Check, Loader2,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
   Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
-  TimerReset, CheckCircle2,
+  CheckCircle2,
 } from "lucide-react";
 import { cn, readableTextOn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -60,14 +60,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const setAssignees = useSetStopAssignees();
   const { data: myBusiness } = useMyBusiness();
   const { data: allEmployees = [] } = useEmployees(myBusiness?.id);
-  const { data: timeEntries = [] } = useStopTimeEntries(stop?.id ? [stop.id] : []);
   const activeEmployees = useMemo(
     () => (allEmployees as any[]).filter((e) => e.is_active),
     [allEmployees],
   );
 
-  const [durationHours, setDurationHours] = useState<number>(0);
-  const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -80,9 +77,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   useEffect(() => {
     if (!stop) return;
-    const totalMin = stop.duration_minutes || 30;
-    setDurationHours(Math.floor(totalMin / 60));
-    setDurationMinutes(totalMin % 60);
     const s = stop.time_window_start?.slice(0, 5) || "";
     const e = stop.time_window_end?.slice(0, 5) || "";
     setTimeSlot(s && e ? `${s}-${e}` : "");
@@ -119,7 +113,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const subscriptions: any[] = (order as any)?.subscriptions || [];
   const business = (order as any)?.businesses;
 
-  // Autosave: debounce ændringer i varighed/tidsvindue/note/tildelte
+  // Autosave: debounce ændringer i tidsvindue/note/tildelte
   // medarbejdere og skriv dem til DB efter 700 ms uden ny aktivitet.
   useEffect(() => {
     if (!stop || readOnly) return;
@@ -133,11 +127,9 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     setSaveState("saving");
     saveTimer.current = setTimeout(async () => {
       try {
-        const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
         const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
         await updateStop.mutateAsync({
           id: stop.id,
-          duration_minutes: totalMin,
           time_window_start: s || null,
           time_window_end: e || null,
           notes: notes || null,
@@ -162,7 +154,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [durationHours, durationMinutes, timeSlot, notes, assigneeIds, leadId, readOnly, stop?.id]);
+  }, [timeSlot, notes, assigneeIds, leadId, readOnly, stop?.id]);
 
   if (!stop) return null;
 
@@ -308,16 +300,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         return (
                           <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
                             Udført af {names.join(", ")}
-                          </p>
-                        );
-                      })()}
-                      {(() => {
-                        const completed = (timeEntries || []).filter((e: any) => e.duration_minutes != null && e.duration_minutes > 0);
-                        if (!completed.length) return null;
-                        const teamMin = Math.max(...completed.map((e: any) => e.duration_minutes));
-                        return (
-                          <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
-                            Faktisk tid brugt: <span className="font-semibold">{fmtMinutes(teamMin)}</span>
                           </p>
                         );
                       })()}
@@ -474,16 +456,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                               </div>
                             )}
 
-                            {/* Hourly breakdown when no calc steps */}
-                            {stepDetails.length === 0 && hours !== null && (
-                              <div className="mt-2 rounded-md bg-secondary/40 px-2.5 py-1 text-[11px] flex justify-between">
-                                <span className="text-muted-foreground">
-                                  Timer: <span className="text-foreground/80">{hours} {hours === 1 ? "time" : "timer"}</span>
-                                </span>
-                                <span className="font-medium text-foreground">{Math.round(Number(item.total_price))} kr</span>
-                              </div>
-                            )}
-
                             {/* Customer note on this specific line */}
                             {customNote && (
                               <p className="text-[11px] mt-2 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-amber-900 dark:bg-amber-500/10 dark:border-amber-500/25 dark:text-amber-200">
@@ -584,14 +556,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
               {/* Planning */}
               {!readOnly && (
-                <TimeSpentSection
-                  entries={timeEntries}
-                  employees={activeEmployees}
-                />
-              )}
-
-              {/* Planning */}
-              {!readOnly && (
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
                   title="Intern note"
@@ -600,10 +564,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   <PlanningSection
                     timeSlot={timeSlot}
                     setTimeSlot={setTimeSlot}
-                    durationHours={durationHours}
-                    setDurationHours={setDurationHours}
-                    durationMinutes={durationMinutes}
-                    setDurationMinutes={setDurationMinutes}
                     notes={notes}
                     setNotes={setNotes}
                     plannedArrival={stop.planned_arrival}
@@ -699,114 +659,9 @@ const TIME_SLOTS: { value: string; short: string; label: string }[] = [
   { value: "08:00-16:00", short: "08–16", label: "Hele dagen" },
 ];
 
-const DURATION_PRESETS: { hours: number; minutes: number; label: string }[] = [
-  { hours: 0, minutes: 15, label: "15 min" },
-  { hours: 0, minutes: 30, label: "30 min" },
-  { hours: 0, minutes: 45, label: "45 min" },
-  { hours: 1, minutes: 0, label: "1 time" },
-  { hours: 1, minutes: 30, label: "1½ time" },
-  { hours: 2, minutes: 0, label: "2 timer" },
-  { hours: 3, minutes: 0, label: "3 timer" },
-  { hours: 4, minutes: 0, label: "4 timer" },
-];
-
-/* ────────────────────────────────────────────
-   TimeSpentSection — viser faktisk brugt tid pr. medarbejder
-   på dette stop. Bruges af virksomhedsejeren.
-   ──────────────────────────────────────────── */
-const fmtMinutes = (mins: number | null | undefined) => {
-  if (mins == null || mins <= 0) return "—";
-  const h = Math.floor(mins / 60);
-  const m = Math.round(mins % 60);
-  if (h === 0) return `${m} min`;
-  if (m === 0) return `${h} t`;
-  return `${h} t ${m} min`;
-};
-
-const TimeSpentSection = ({
-  entries, employees,
-}: {
-  entries: any[];
-  employees: any[];
-}) => {
-  if (!entries || entries.length === 0) {
-    return (
-      <Section
-        icon={<TimerReset className="h-3.5 w-3.5" />}
-        title="Faktisk tid brugt"
-        tone="muted"
-        hint="Endnu ingen registrering"
-      >
-        <p className="text-xs text-muted-foreground italic">
-          Når medarbejdere har checket ind/ud på dette stop vises deres tider her.
-          Hver medarbejder lærer sit eget tempo — næste aftale hos samme kunde får et personligt estimat.
-        </p>
-      </Section>
-    );
-  }
-
-  const empMap = new Map(employees.map((e) => [e.id, e]));
-  const completed = entries.filter((e) => e.duration_minutes != null && e.duration_minutes > 0);
-  const inProgress = entries.filter((e) => e.duration_minutes == null);
-  const teamMin = completed.length > 0 ? Math.max(...completed.map((e) => e.duration_minutes)) : null;
-
-  return (
-    <Section
-      icon={<TimerReset className="h-3.5 w-3.5" />}
-      title="Faktisk tid brugt"
-      tone="emerald"
-      hint={teamMin != null ? `Team: ${fmtMinutes(teamMin)}` : `${inProgress.length} i gang`}
-    >
-      <div className="rounded-lg border divide-y bg-background">
-        {entries.map((e) => {
-          const emp = empMap.get(e.employee_id);
-          const inProg = e.duration_minutes == null;
-          return (
-            <div key={e.id} className="flex items-center gap-2.5 px-3 py-2">
-              {emp?.avatar_url ? (
-                <img
-                  src={emp.avatar_url}
-                  alt={emp.name}
-                  className="h-7 w-7 rounded-full object-cover ring-1 ring-border"
-                 loading="lazy" decoding="async"/>
-              ) : (
-                <span
-                  className="h-7 w-7 rounded-full ring-1 ring-border inline-flex items-center justify-center text-[11px] font-semibold"
-                  style={{ background: emp?.color || "hsl(var(--muted))", color: readableTextOn(emp?.color) }}
-                >
-                  {(emp?.name || "?").trim().split(/\s+/).slice(0, 2).map((p: string) => p[0]).join("").toUpperCase()}
-                </span>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{emp?.name || "Ukendt medarbejder"}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  {format(parseISO(e.started_at), "HH:mm", { locale: da })}
-                  {e.ended_at ? ` – ${format(parseISO(e.ended_at), "HH:mm", { locale: da })}` : " · i gang"}
-                  {e.is_team_fallback && " · team-fallback"}
-                </p>
-              </div>
-              <span className={cn("text-sm font-semibold tabular-nums", inProg ? "text-blue-600 dark:text-blue-400" : "text-foreground")}>
-                {inProg ? "—" : fmtMinutes(e.duration_minutes)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <p className="text-[11px] text-muted-foreground mt-2">
-        Hver medarbejder lærer sit eget tempo — næste gang denne kunde booker servicen, får dén tildelte medarbejder
-        et personligt estimat baseret på sin egen historik.
-      </p>
-    </Section>
-  );
-};
-
 type PlanningProps = {
   timeSlot: string;
   setTimeSlot: (v: string) => void;
-  durationHours: number;
-  setDurationHours: (n: number) => void;
-  durationMinutes: number;
-  setDurationMinutes: (n: number) => void;
   notes: string;
   setNotes: (v: string) => void;
   plannedArrival: string | null | undefined;
@@ -815,23 +670,12 @@ type PlanningProps = {
 
 const PlanningSection = ({
   timeSlot, setTimeSlot,
-  durationHours, setDurationHours,
-  durationMinutes, setDurationMinutes,
   notes, setNotes,
   plannedArrival, distanceToNextKm,
 }: PlanningProps) => {
   const [slotOpen, setSlotOpen] = useState(false);
-  const [durOpen, setDurOpen] = useState(false);
 
   const selectedSlot = TIME_SLOTS.find((s) => s.value === timeSlot);
-  const totalMin = durationHours * 60 + durationMinutes;
-  const durationLabel = totalMin === 0
-    ? "Vælg varighed"
-    : durationHours === 0
-      ? `${durationMinutes} min`
-      : durationMinutes === 0
-        ? `${durationHours} ${durationHours === 1 ? "time" : "timer"}`
-        : `${durationHours} t ${durationMinutes} min`;
 
   return (
     <div className="space-y-4">

@@ -1,5 +1,5 @@
 // Mobil bottom-sheet: tilføj et stop til en rute ud fra en fri adresse
-// (DAWA-autocomplete, ingen API-nøgle), med start- og sluttid, varighed
+// (DAWA-autocomplete, ingen API-nøgle), med start- og sluttid
 // og valgfri medarbejder. Bruges når stoppet ikke kommer fra en bestilling.
 import { useMemo, useState } from "react";
 import { Loader2, MapPin, Plus } from "lucide-react";
@@ -57,7 +57,6 @@ export function AddAddressStopSheet({
   const [note, setNote] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [duration, setDuration] = useState("30");
   const [employeeId, setEmployeeId] = useState<string | null>(null);
 
   const addStop = useAddStop();
@@ -68,7 +67,7 @@ export function AddAddressStopSheet({
   );
 
   const derived = minutesBetween(start, end);
-  const effectiveDuration = derived ?? Math.max(5, Number(duration) || 30);
+  const effectiveDuration = derived ?? 30;
   const canSubmit = addr.address.trim().length > 2 && !addStop.isPending;
 
   const reset = () => {
@@ -78,7 +77,6 @@ export function AddAddressStopSheet({
     setNote("");
     setStart("");
     setEnd("");
-    setDuration("30");
     setEmployeeId(null);
   };
 
@@ -122,7 +120,7 @@ export function AddAddressStopSheet({
 
   return (
     <Sheet open={open} onOpenChange={close}>
-      <SheetContent side="bottom" className="flex max-h-[92vh] flex-col gap-0 rounded-t-2xl p-0">
+      <SheetContent side="bottom" className="flex max-h-[92vh] flex-col gap-0 rounded-t-lg p-0">
         <SheetHeader className="border-b border-border px-4 py-3 pr-14 text-left">
           <SheetTitle className="text-base">Tilføj stop</SheetTitle>
           <SheetDescription className="text-xs">
@@ -177,27 +175,6 @@ export function AddAddressStopSheet({
                 className="h-11"
               />
             </div>
-          </div>
-
-          <div>
-            <Label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Varighed (minutter)
-            </Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={5}
-              step={5}
-              value={derived != null ? String(derived) : duration}
-              disabled={derived != null}
-              onChange={(e) => setDuration(e.target.value)}
-              className="h-11"
-            />
-            {derived != null && (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Beregnet ud fra start- og sluttid.
-              </p>
-            )}
           </div>
 
           <div>

@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDurationMin } from "@/lib/duration-format";
 import type { RouteStop } from "@/hooks/useRoutes";
 
 /**
@@ -73,7 +72,6 @@ export const RouteChecklistView = ({
   const next = remaining[0];
   const allDone = stops.length > 0 && remaining.length === 0;
   const progress = stops.length > 0 ? (completed.length / stops.length) * 100 : 0;
-  const remainingMin = remaining.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
 
   const addressOf = (s: RouteStop) => s.full_address || s.address || null;
 
@@ -91,7 +89,6 @@ export const RouteChecklistView = ({
             <h1 className="truncate text-[15px] font-semibold text-foreground">{routeName}</h1>
             <p className="text-[11.5px] tabular-nums text-muted-foreground">
               {completed.length} af {stops.length} klaret
-              {remaining.length > 0 ? ` · ca. ${formatDurationMin(remainingMin)} tilbage` : ""}
             </p>
           </div>
           <Button
@@ -161,9 +158,6 @@ export const RouteChecklistView = ({
                       <Clock className="h-3.5 w-3.5" />
                       Planlagt {hhmm(next.planned_arrival)}
                     </span>
-                  )}
-                  {next.duration_minutes > 0 && (
-                    <span className="tabular-nums">{formatDurationMin(next.duration_minutes)} på stedet</span>
                   )}
                 </div>
                 {next.service_summary && (

@@ -2657,11 +2657,6 @@ const StopListPanel = ({
                     </p>
                   )}
                   <div className="mt-0.5 flex items-center gap-2 flex-wrap">
-                    {s.duration_minutes > 0 && (
-                      <p className="text-[10px] text-muted-foreground tabular-nums flex items-center gap-1">
-                        <Clock className="h-3 w-3" />~{s.duration_minutes} min
-                      </p>
-                    )}
                     {!isDone && flex && (
                       <span
                         className="text-[10px] font-semibold tabular-nums flex items-center gap-1"

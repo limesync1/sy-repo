@@ -18,7 +18,6 @@ import {
   CalendarClock,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Inbox,
   Loader2,
   MapPin,
@@ -137,15 +136,6 @@ const findStopOnOtherRoute = async (
 };
 
 
-
-const formatDur = (min: number) => {
-  if (!min) return "0 min";
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  if (h === 0) return `${m} min`;
-  if (m === 0) return `${h} t`;
-  return `${h} t ${m} min`;
-};
 
 export default function RoutePlannerMobile() {
   // Mørk-tilstand for hele siden mens planlæggeren er åben.
@@ -471,15 +461,15 @@ export default function RoutePlannerMobile() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => { setDrag(null); stopDragAutoScroll(); }}
         >
-        <div className="relative flex h-full min-h-0 flex-col bg-gradient-to-b from-background via-background to-secondary/20">
+        <div className="relative flex h-full min-h-0 flex-col bg-background">
           {/* Dato-strip */}
-          <div className="shrink-0 border-b border-border/60 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-3 pt-3 pb-2.5">
-            <div className="mb-2.5 flex items-center justify-between">
+          <div className="shrink-0 border-b border-border bg-card px-3 py-2">
+            <div className="mb-1.5 flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full"
+                  className="h-8 w-8 rounded-md"
                   onClick={() => setDate(format(addDays(parseISO(date), -7), "yyyy-MM-dd"))}
                   aria-label="Forrige uge"
                 >
@@ -488,7 +478,7 @@ export default function RoutePlannerMobile() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full"
+                  className="h-8 w-8 rounded-md"
                   onClick={() => setDate(format(addDays(parseISO(date), 7), "yyyy-MM-dd"))}
                   aria-label="Næste uge"
                 >
@@ -498,7 +488,7 @@ export default function RoutePlannerMobile() {
               <button
                 type="button"
                 onClick={() => setDate(todayStr())}
-                className="rounded-full px-3 py-1 text-sm font-semibold capitalize tabular-nums text-foreground hover:bg-secondary transition-colors"
+                className="rounded-md px-2 py-1 text-xs font-semibold capitalize tabular-nums text-foreground hover:bg-secondary transition-colors"
               >
                 {weekLabel}
               </button>
@@ -516,7 +506,7 @@ export default function RoutePlannerMobile() {
                     type="button"
                     onClick={() => setDate(d)}
                     className={cn(
-                      "relative flex flex-col items-center gap-0.5 rounded-md py-1.5 transition-colors",
+                       "relative flex flex-col items-center gap-0.5 rounded-[4px] py-1 transition-colors",
                       isSel
                         ? "bg-foreground text-background"
                         : "hover:bg-secondary",
@@ -718,7 +708,7 @@ function RoutesPane({
   return (
     <div
       ref={scrollRef}
-      className={cn("relative min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-3", className)}
+      className={cn("relative min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-2.5", className)}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -734,16 +724,16 @@ function RoutesPane({
         </div>
       )}
       <div style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull === 0 ? "transform 200ms" : undefined }}>
-      <div className="mb-2.5 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between border-b border-border/70 pb-2">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dagens ruter
           </p>
-          <p className="mt-0.5 text-base font-semibold capitalize text-foreground">
+          <p className="mt-0.5 text-sm font-semibold capitalize text-foreground">
             {format(parseISO(date), "EEEE d. MMM", { locale: da })}
           </p>
         </div>
-        <Button onClick={onCreate} size="sm" className="gap-1.5 rounded-full">
+        <Button onClick={onCreate} size="sm" className="h-8 gap-1.5 rounded-md px-3 text-xs">
           <Plus className="h-4 w-4" />
           Ny rute
         </Button>
@@ -756,9 +746,9 @@ function RoutesPane({
           ))}
         </div>
       ) : routes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-12 text-center">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
-            <CalendarClock className="h-7 w-7 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-card py-7 text-center">
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary/50">
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
           </div>
           <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
           <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
@@ -799,7 +789,6 @@ function DroppableRouteCard({
     data: { type: "route", routeId: route.id },
   });
   const done = stops.filter((s) => s.status === "completed").length;
-  const totalMin = route.total_duration_minutes ?? 0;
   const optimize = useOptimizeRoute();
   const optimizing = optimize.isPending && optimize.variables === route.id;
   const stopIds = stops.map((s) => s.id);
@@ -808,7 +797,7 @@ function DroppableRouteCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "relative overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-all",
+        "relative overflow-hidden rounded-md border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-all",
         isOver
           ? "border-accent bg-accent/10 ring-2 ring-accent shadow-[0_8px_24px_-8px_hsl(var(--accent)/0.5)] scale-[1.01]"
           : dragActive
@@ -829,12 +818,6 @@ function DroppableRouteCard({
           onClick={() => onOpenRoute(route)}
           className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
         >
-          <span
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold leading-none text-background"
-            style={{ background: route.color }}
-          >
-            {(route.name || "R").charAt(0).toUpperCase()}
-          </span>
           <div className="min-w-0 flex-1 py-0.5">
             <p className="truncate text-[15px] font-semibold leading-tight tracking-tight text-foreground">
               {route.name || "Rute uden navn"}
@@ -847,12 +830,6 @@ function DroppableRouteCard({
                 <span className="inline-flex items-center gap-1">
                   <span className="h-1 w-1 rounded-full bg-border" />
                   {route.total_distance_km.toFixed(1)} km
-                </span>
-              )}
-              {totalMin > 0 && (
-                <span className="inline-flex items-center gap-1">
-                  <span className="h-1 w-1 rounded-full bg-border" />
-                  {formatDur(totalMin)}
                 </span>
               )}
             </div>
@@ -936,7 +913,6 @@ function SortableStopRow({
     transition,
   };
   const completed = stop.status === "completed";
-  const dur = (stop as any).duration_minutes as number | undefined;
   const interval = (stop as any).agreement_interval as string | undefined;
   const intervalLabel = interval ? formatInterval(interval) : null;
   const distanceToNext = (stop as any).distance_to_next_km as number | undefined;
@@ -971,7 +947,7 @@ function SortableStopRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative overflow-hidden rounded-xl",
+         "relative overflow-hidden rounded-md",
         isDragging && "z-10 opacity-30",
       )}
     >
@@ -1063,12 +1039,6 @@ function SortableStopRow({
               </span>
             )}
           </button>
-          {dur ? (
-            <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-              <Clock className="h-2.5 w-2.5" />
-              {dur}m
-            </span>
-          ) : null}
         </div>
       </div>
     </li>
@@ -1132,7 +1102,7 @@ function UnassignedDock({
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary">
+           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-secondary/50">
             {isStopDrag && isOver ? (
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             ) : (
@@ -1164,7 +1134,7 @@ function UnassignedDock({
               type="button"
               size="sm"
               variant={selectMode ? "secondary" : "ghost"}
-              className="h-7 gap-1 rounded-full px-2 text-[11px]"
+               className="h-7 gap-1 rounded-md px-2 text-[11px]"
               onClick={onToggleSelectMode}
             >
               {selectMode ? <X className="h-3 w-3" /> : <CheckSquare className="h-3 w-3" />}
@@ -1231,7 +1201,7 @@ function UnassignedDock({
           <span className="text-xs font-semibold text-foreground">
             {selectedCount} valgt
           </span>
-          <Button size="sm" className="h-8 rounded-full" onClick={onBulkAssign}>
+             <Button size="sm" className="h-8 rounded-md" onClick={onBulkAssign}>
             Tildel rute
           </Button>
         </div>
@@ -1392,7 +1362,7 @@ function DraggableJobCard({
 /* DragOverlay-indhold — flyder under fingeren */
 function FloatingChip({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="pointer-events-none flex w-56 items-center gap-2 rounded-2xl border border-accent bg-card p-2.5 shadow-2xl ring-2 ring-accent/40">
+    <div className="pointer-events-none flex w-56 items-center gap-2 rounded-md border border-accent bg-card p-2.5 shadow-lg ring-1 ring-accent/40">
       <GripVertical className="h-4 w-4 shrink-0 text-accent" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] font-semibold text-foreground">{title}</p>
@@ -1713,8 +1683,6 @@ function NewRouteDialog({
     </Dialog>
   );
 }
-
-export { formatDur };
 
 /* ──────────────────────── Mini-map ─────────────────────────
  * Lille SVG-forhåndsvisning af rute-stoppene normaliseret til en

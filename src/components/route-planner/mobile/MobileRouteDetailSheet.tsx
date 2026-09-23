@@ -223,11 +223,11 @@ export function MobileRouteDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="flex max-h-[90vh] flex-col gap-0 rounded-t-2xl p-0">
+        <SheetContent side="bottom" className="flex max-h-[90vh] flex-col gap-0 rounded-t-lg p-0">
           <SheetHeader className="border-b border-border px-4 py-3 pr-14 text-left">
             <div className="flex items-center gap-2.5">
               <span
-                className="h-8 w-1.5 shrink-0 rounded-full"
+                className="h-8 w-1 shrink-0 rounded-sm"
                 style={{ backgroundColor: route.color }}
                 aria-hidden
               />
@@ -256,14 +256,14 @@ export function MobileRouteDetailSheet({
 
           <div className="space-y-2 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Button className="h-11 flex-1 gap-2" onClick={() => setAddStopOpen(true)}>
+               <Button className="h-9 flex-1 gap-2 rounded-md text-xs" onClick={() => setAddStopOpen(true)}>
                 <Plus className="h-4 w-4" />
                 Tilføj stop
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                className="h-11 w-11 shrink-0"
+                 className="h-9 w-9 shrink-0 rounded-md"
                 onClick={() => setSettingsOpen(true)}
                 aria-label="Rute-indstillinger"
               >
@@ -273,7 +273,7 @@ export function MobileRouteDetailSheet({
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                className="h-11 flex-1 gap-2"
+                 className="h-9 flex-1 gap-2 rounded-md text-xs"
                 onClick={handleOptimize}
                 disabled={optimize.isPending || stops.length < 2}
               >
@@ -286,7 +286,7 @@ export function MobileRouteDetailSheet({
               </Button>
               <Button
                 variant={mapOpen ? "secondary" : "outline"}
-                className="h-11 flex-1 gap-2"
+                 className="h-9 flex-1 gap-2 rounded-md text-xs"
                 onClick={() => setMapOpen((v) => !v)}
                 disabled={mapStops.length === 0}
               >
@@ -329,29 +329,29 @@ export function MobileRouteDetailSheet({
           )}
 
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+           <div className="min-h-0 flex-1 overflow-y-auto p-3">
             {stops.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-                  <MapPin className="h-6 w-6 text-muted-foreground" />
+                <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary/50">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium text-foreground">Ingen stop på ruten</p>
                 <p className="mt-1 max-w-[17rem] text-xs text-muted-foreground">
                   Tryk "Tilføj stop" for at skrive en adresse, eller tildel en aftale fra fanen
                   "Uden rute".
                 </p>
-                <Button className="mt-4 h-11 gap-2" onClick={() => setAddStopOpen(true)}>
+                <Button className="mt-3 h-9 gap-2 rounded-md text-xs" onClick={() => setAddStopOpen(true)}>
                   <Plus className="h-4 w-4" />
                   Tilføj stop
                 </Button>
               </div>
             ) : (
-              <ol className="space-y-2">
+              <ol className="space-y-1.5">
                 {stops.map((stop, idx) => {
                   const completed = stop.status === "completed";
                   return (
                     <li key={stop.id}>
-                      <div className="flex items-center gap-1.5 rounded-xl border border-border bg-card p-2 pl-3">
+                      <div className="flex items-center gap-1.5 rounded-md border border-border bg-card p-1.5 pl-2">
                         <button
                           type="button"
                           onClick={() => setActiveStop(stop)}
@@ -359,7 +359,7 @@ export function MobileRouteDetailSheet({
                         >
                           <span
                             className={cn(
-                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                              "flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] text-[11px] font-semibold",
                               completed
                                 ? "bg-emerald-600 text-white dark:bg-emerald-500"
                                 : "bg-secondary text-foreground",
@@ -370,7 +370,7 @@ export function MobileRouteDetailSheet({
                           <div className="min-w-0 flex-1">
                             <p
                               className={cn(
-                                "truncate text-sm font-medium",
+                                "truncate text-xs font-semibold",
                                 completed ? "text-muted-foreground line-through" : "text-foreground",
                               )}
                             >
@@ -391,7 +391,7 @@ export function MobileRouteDetailSheet({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9"
+                               className="h-7 w-7 rounded-[4px]"
                               disabled={idx === 0 || reorderStops.isPending}
                               onClick={() => moveStop(idx, -1)}
                               aria-label="Flyt op"
@@ -405,7 +405,7 @@ export function MobileRouteDetailSheet({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9"
+                               className="h-7 w-7 rounded-[4px]"
                               disabled={idx === stops.length - 1 || reorderStops.isPending}
                               onClick={() => moveStop(idx, 1)}
                               aria-label="Flyt ned"
