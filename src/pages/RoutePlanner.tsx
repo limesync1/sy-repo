@@ -869,9 +869,7 @@ const Planner = () => {
         const ad = effectiveJobDate(a) || "9999-12-31";
         const bd = effectiveJobDate(b) || "9999-12-31";
         if (ad !== bd) return ad < bd ? -1 : 1;
-        const at = a.preferred_time_start || "99:99";
-        const bt = b.preferred_time_start || "99:99";
-        return at < bt ? -1 : at > bt ? 1 : 0;
+        return 0;
       });
     } else if (sortBy === "price") {
       sorted.sort((a: any, b: any) => Number(b.total_amount || 0) - Number(a.total_amount || 0));
