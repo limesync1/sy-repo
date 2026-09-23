@@ -165,27 +165,23 @@ export const SidebarCollapseToggle = ({
           <button
             type="button"
             onClick={onToggle}
-            aria-label={collapsed ? "Udvid sidebar" : "Kollaps sidebar"}
+            aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
             aria-pressed={collapsed}
-             className="hidden lg:inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-[4px] border border-border bg-background text-xs font-medium text-muted-foreground transition-colors hover:border-accent/35 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="hidden h-8 w-full items-center justify-center gap-1.5 rounded-[4px] border border-border bg-background text-xs font-medium text-muted-foreground transition-colors hover:border-accent/35 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:inline-flex"
           >
             {collapsed ? (
               <ChevronsRight className="h-3.5 w-3.5" aria-hidden="true" />
             ) : (
               <>
                 <ChevronsLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Kollaps</span>
-                <kbd className="ml-1 inline-flex h-4 items-center rounded border border-border bg-secondary px-1 font-mono text-[9px] font-semibold">[</kbd>
+                  <span>Skjul sidemenu</span>
               </>
             )}
           </button>
         </TooltipTrigger>
-        {collapsed && (
-          <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2">
-            <span>Udvid sidebar</span>
-            <kbd className="inline-flex h-4 items-center rounded border border-border/60 bg-background/20 px-1 font-mono text-[10px] font-semibold">[</kbd>
+          <TooltipContent side={collapsed ? "right" : "top"} sideOffset={8} className="z-[80] whitespace-nowrap">
+            {collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
           </TooltipContent>
-        )}
       </Tooltip>
     </TooltipProvider>
   );

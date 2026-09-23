@@ -34,7 +34,7 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="relative bg-surface py-16 md:py-24">
+    <section className="relative bg-surface py-12 sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
@@ -42,7 +42,7 @@ const WhyUs = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Hvorfor Serviceydere
             </span>
-            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:text-[2.75rem]">
               Trygt valg, hver gang
             </h2>
             <p className="mt-4 max-w-md text-[15px] leading-7 text-muted-foreground">
@@ -66,7 +66,7 @@ const WhyUs = () => {
           </div>
         </div>
 
-          <ul className="mt-10 grid border-y border-border md:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-border">
+          <ul className="mt-8 grid border-y border-border md:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-border 2xl:mt-10">
             {benefits.map((b, i) => (
               <li
                 key={b.title}

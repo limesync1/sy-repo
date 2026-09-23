@@ -18,9 +18,9 @@ type Props = {
 };
 
 const CTABand = ({ eyebrow, title, body, primary, secondary, className }: Props) => (
-  <section className={cn("w-full bg-ocean px-4 py-12 sm:px-6 sm:py-16 lg:px-8", className)}>
+  <section className={cn("w-full bg-ocean px-4 py-10 sm:px-6 sm:py-12 lg:px-8 2xl:py-16", className)}>
     <div
-      className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-3xl px-6 py-12 text-ocean-foreground sm:px-10 sm:py-16"
+      className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-2xl px-5 py-9 text-ocean-foreground sm:px-8 sm:py-11 2xl:rounded-3xl 2xl:px-10 2xl:py-16"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
       <div

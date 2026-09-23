@@ -358,7 +358,7 @@ export const AdminShell = ({
       <aside
         className={cn(
           "service-panel-sidebar fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:h-dvh lg:translate-x-0",
-          collapsed ? "lg:w-[68px]" : "lg:w-[248px]",
+          collapsed ? "lg:w-[68px]" : "lg:w-[216px] xl:w-[248px]",
           sidebarOpen ? "translate-x-0 shadow-2xl lg:shadow-none" : "-translate-x-full shadow-none",
         )}
         aria-label="Hovednavigation"
@@ -486,7 +486,7 @@ export const AdminShell = ({
       <div
         className={cn(
           "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-          collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]",
+          collapsed ? "lg:pl-[68px]" : "lg:pl-[216px] xl:pl-[248px]",
         )}
       >
         <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
@@ -510,8 +510,8 @@ export const AdminShell = ({
                   {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {collapsed ? "Vis sidemenu" : "Skjul sidemenu"} <span className="opacity-60">[</span>
+              <TooltipContent side="bottom" sideOffset={8} className="z-[80] whitespace-nowrap">
+                {collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
               </TooltipContent>
             </Tooltip>
           )}

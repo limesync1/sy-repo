@@ -61,15 +61,15 @@ const Testimonials = () => {
   if (!shuffled.length) return null;
 
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-12 sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-14">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
               Anmeldelser
             </span>
-            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">
               Det siger kunderne
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -91,7 +91,7 @@ const Testimonials = () => {
           {shuffled.map((r) => (
             <article
               key={r.id}
-              className="relative flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[360px]"
+              className="relative flex w-[286px] shrink-0 flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[330px] 2xl:w-[360px] 2xl:p-7"
             >
               <Quote aria-hidden className="absolute right-5 top-5 h-7 w-7 rotate-180 text-foreground/5" />
               <div className="mb-4 flex items-center gap-1">

@@ -24,7 +24,6 @@ import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
   SidebarCollapseToggle,
-  SIDEBAR_WIDTH_EXPANDED, SIDEBAR_WIDTH_COLLAPSED,
 } from "@/components/shared/sidebar/SidebarParts";
 import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
@@ -174,7 +173,7 @@ const PlatformAdmin = () => {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   // Persisted collapse-state (key matches the convention from useSidebarCollapsed).
-  // [-toggle, breakpoint lg+ shows toggle in footer.
+  // Sammenfoldning vises i sidepanelets footer på større skærme.
   const { collapsed, toggle } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
   // Drift-badges: ulæste chats, forfaldne ordrer mv. → vises i sidebar/bottom-nav.
   const badges = useAdminBadges();
@@ -221,8 +220,6 @@ const PlatformAdmin = () => {
 
   const current = NAV.find((n) => n.value === tab);
   const currentGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.value === tab))?.label;
-  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
-
   return (
     <AdminFiltersProvider>
       <div className="admin-shell flex min-h-dvh bg-secondary/50">
@@ -234,24 +231,20 @@ const PlatformAdmin = () => {
 
         {/* Sidebar — samme look som virksomhedspanelet */}
         <aside
-          style={{ width: `${sidebarPx}px` }}
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0",
+            collapsed ? "lg:w-[68px]" : "lg:w-[216px] xl:w-[248px]",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
           )}
           aria-label="Hovednavigation"
         >
           <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
             <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
-              <img
-                src="/serviceydere-logo-dark.webp"
-                alt="Serviceydere"
-                className={cn("w-auto", collapsed ? "h-9" : "h-10")}
-                width={1920}
-                height={539}
-                decoding="async"
-                loading="lazy"
-              />
+              {collapsed ? (
+                <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-lg object-contain" width={64} height={64} decoding="async" loading="lazy" />
+              ) : (
+                <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-9 w-auto" width={1920} height={539} decoding="async" loading="lazy" />
+              )}
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -345,7 +338,7 @@ const PlatformAdmin = () => {
             )}
           </header>
 
-          <main className="flex-1 min-w-0 p-4 pb-[calc(env(safe-area-inset-bottom)+72px)] sm:p-6 sm:pb-6">
+          <main className="min-w-0 flex-1 p-3 pb-[calc(env(safe-area-inset-bottom)+72px)] sm:p-4 sm:pb-6 xl:p-6">
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>

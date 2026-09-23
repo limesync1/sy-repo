@@ -24,14 +24,14 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="bg-ocean py-14 text-ocean-foreground sm:py-16 md:py-24">
+    <section className="bg-ocean py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/65">
             <span className="h-px w-6 bg-ocean-foreground/35" />
             Sådan virker det
           </span>
-          <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]">
+          <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] sm:text-[2.2rem] lg:text-[2.4rem] 2xl:text-[2.75rem]">
             Fra søgning til booking på 5 minutter
           </h2>
           <p className="mt-3 max-w-lg text-[15px] leading-7 text-ocean-foreground/70">
@@ -39,9 +39,9 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        <ol className="mt-8 grid gap-3 sm:mt-10 md:mt-14 md:grid-cols-3">
+        <ol className="mt-8 grid gap-3 sm:mt-9 md:grid-cols-3 2xl:mt-14">
             {steps.map((step, i) => (
-              <li key={step.title} className="rounded-lg border border-ocean-foreground/10 bg-ocean-foreground/[0.06] p-5 sm:p-7">
+              <li key={step.title} className="rounded-lg border border-ocean-foreground/10 bg-ocean-foreground/[0.06] p-5 xl:p-6 2xl:p-7">
                 <div className="flex items-center gap-3 md:justify-between md:gap-4">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ocean-foreground/25 text-xs font-semibold tabular-nums text-ocean-foreground">
                     {i + 1}
@@ -51,7 +51,7 @@ const HowItWorks = () => {
                     <step.icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                 </div>
-                <div className="mt-4 md:mt-8">
+                <div className="mt-4 md:mt-6 2xl:mt-8">
                   <h3 className="hidden text-lg font-semibold sm:text-xl md:block">{step.title}</h3>
                   <p className="max-w-sm text-[14px] leading-6 text-ocean-foreground/70 md:mt-2">
                     {step.description}

@@ -156,7 +156,7 @@ const SiteNav = ({ active, right }: Props) => {
             <img
               src="/serviceydere-logo-dark.webp"
             alt="Serviceydere – find og book lokale serviceydere i Danmark"
-              className="h-9 sm:h-10 md:h-12 w-auto"
+              className="h-9 w-auto sm:h-10 lg:h-12"
               width={1920}
               height={539}
               decoding="async"
@@ -166,7 +166,7 @@ const SiteNav = ({ active, right }: Props) => {
 
           {/* Primær nav — opdelt i to tydelige sektioner med små labels ovenover,
               så både kunder og virksomheder med det samme kan se hvad der er for dem. */}
-          <div className="hidden items-center gap-3 md:flex lg:gap-4">
+          <div className="hidden items-center gap-3 lg:flex lg:gap-4">
             {NAV_GROUPS.map((group, gi) => (
               <div key={group.id} className="flex items-center gap-3 lg:gap-4">
                 <div className="flex flex-col items-start gap-1.5" role="group" aria-label={group.label}>
@@ -257,12 +257,12 @@ const SiteNav = ({ active, right }: Props) => {
               </>
             ) : (
               <>
-                <Link to="/log-ind" className="hidden md:inline-block">
+                <Link to="/log-ind" className="hidden lg:inline-block">
                   <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
                     Log ind
                   </button>
                 </Link>
-                <Link to="/log-ind?signup=1" className="hidden sm:inline-block">
+                <Link to="/log-ind?signup=1" className="hidden lg:inline-block">
                   <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow active:scale-95">
                     Opret konto
                   </button>
@@ -272,7 +272,7 @@ const SiteNav = ({ active, right }: Props) => {
 
             <button
               onClick={() => setOpen((v) => !v)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary lg:hidden"
               aria-label={open ? "Luk menu" : "Åbn menu"}
               aria-expanded={open}
             >
@@ -282,7 +282,7 @@ const SiteNav = ({ active, right }: Props) => {
         </div>
 
         {open && (
-          <div className="mb-4 rounded-2xl border border-border bg-card p-3 shadow-xl md:hidden">
+          <div className="mb-4 rounded-2xl border border-border bg-card p-3 shadow-xl lg:hidden">
             {NAV_GROUPS.map((group, gi) => (
               <div key={group.id} className={gi > 0 ? "mt-2" : ""}>
                 {gi > 0 && <div className="mb-2 h-px bg-border" />}

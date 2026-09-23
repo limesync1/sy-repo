@@ -331,7 +331,7 @@ export const EmployeeShell = ({
       <aside
         className={cn(
           "service-panel-sidebar fixed inset-y-0 left-0 z-40 hidden h-dvh flex-col border-r border-border transition-[width] duration-300 lg:flex",
-          collapsed ? "w-[68px]" : "w-[248px]",
+          collapsed ? "w-[68px]" : "w-[216px] xl:w-[248px]",
         )}
         aria-label="Hovednavigation"
       >
@@ -395,7 +395,7 @@ export const EmployeeShell = ({
         </div>
       </aside>
 
-      <div className={cn("flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300", collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]")}>
+      <div className={cn("flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300", collapsed ? "lg:pl-[68px]" : "lg:pl-[216px] xl:pl-[248px]")}> 
         <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:px-5">
           <Link to="/" className="flex shrink-0 items-center lg:hidden" aria-label="Forside">
             <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-md object-contain" width={64} height={64} />
@@ -406,7 +406,7 @@ export const EmployeeShell = ({
                 {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
               </button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"} <span className="opacity-60">[</span></TooltipContent>
+            <TooltipContent side="bottom" sideOffset={8} className="z-[80] whitespace-nowrap">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</TooltipContent>
           </Tooltip>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">{title ?? currentNav?.label}</h1>

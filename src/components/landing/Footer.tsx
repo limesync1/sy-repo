@@ -7,8 +7,8 @@ const Link = SmartLink;
 const Footer = () => {
   return (
     <footer className="bg-foreground text-background">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <div className="mb-8 grid gap-5 rounded-[28px] border border-background/10 bg-background/5 p-5 sm:p-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 2xl:py-12">
+        <div className="mb-7 grid gap-5 rounded-2xl border border-background/10 bg-background/5 p-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-center 2xl:mb-8 2xl:rounded-[28px] 2xl:p-6">
           <div>
             <h3 className="text-xl font-semibold text-background">Find hurtigere frem</h3>
             <p className="mt-2 max-w-xl text-sm leading-6 text-background/70">
