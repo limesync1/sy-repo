@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
@@ -7,8 +7,6 @@ import {
   ArrowLeft,
   Printer,
   Loader2,
-  Rows3,
-  Rows2,
   MapPin,
   Phone,
   Route as RouteIcon,
@@ -16,6 +14,9 @@ import {
   ListChecks,
   StickyNote,
   ClipboardList,
+  Contact,
+  FileText,
+  AlignJustify,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,12 +25,18 @@ import { stripPrices } from "@/lib/employee-display";
 const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const { user, loading } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data, isLoading } = useMyRouteData(routeId);
-  const [compact, setCompact] = useState(() => searchParams.get("density") === "compact");
+  const compact = searchParams.get("density") !== "standard";
   const showNotes = searchParams.get("notes") === "1";
   const showContact = searchParams.get("contact") !== "0";
   const showTasks = searchParams.get("tasks") !== "0";
+  const updateOption = (key: "notes" | "contact" | "tasks" | "density", value: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set(key, value);
+    if (!next.has("from")) next.set("from", "today");
+    setSearchParams(next, { replace: true });
+  };
 
   useEffect(() => {
     document.title = "Ruteliste — print";
@@ -56,7 +63,7 @@ const EmployeeRoutePrint = () => {
       <div className="print:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto max-w-3xl px-3 sm:px-4 py-2.5 flex items-center gap-2">
           <Button asChild variant="ghost" size="icon" className="rounded-lg h-9 w-9 shrink-0">
-            <Link to={`/medarbejder/rute/${routeId}`} aria-label="Tilbage">
+             <Link to="/medarbejder" aria-label="Tilbage til Min dag">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -67,22 +74,21 @@ const EmployeeRoutePrint = () => {
             </p>
           </div>
           <Button
-            onClick={() => setCompact((v) => !v)}
-            size="sm"
-            variant="outline"
-            className="h-9 rounded-lg gap-1.5 px-2.5 sm:px-3"
-            title="Skift tæthed"
-          >
-            {compact ? <Rows3 className="h-4 w-4" /> : <Rows2 className="h-4 w-4" />}
-            <span className="hidden sm:inline">{compact ? "Standard" : "Kompakt"}</span>
-          </Button>
-          <Button
             onClick={() => window.print()}
             size="sm"
             className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 gap-1.5 shadow-sm px-3"
           >
             <Printer className="h-4 w-4" /> Udskriv
           </Button>
+        </div>
+      </div>
+
+      <div className="print:hidden border-b border-border bg-card">
+        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2 px-3 py-2 sm:grid-cols-4 sm:px-4">
+          <PrintOption icon={<StickyNote className="h-3.5 w-3.5" />} label="Noter" active={showNotes} onClick={() => updateOption("notes", showNotes ? "0" : "1")} />
+          <PrintOption icon={<Contact className="h-3.5 w-3.5" />} label="Kontakt" active={showContact} onClick={() => updateOption("contact", showContact ? "0" : "1")} />
+          <PrintOption icon={<FileText className="h-3.5 w-3.5" />} label="Opgaver" active={showTasks} onClick={() => updateOption("tasks", showTasks ? "0" : "1")} />
+          <PrintOption icon={<AlignJustify className="h-3.5 w-3.5" />} label="Kompakt" active={compact} onClick={() => updateOption("density", compact ? "standard" : "compact")} />
         </div>
       </div>
 
@@ -330,16 +336,12 @@ const EmployeeRoutePrint = () => {
 };
 
 /* Metadata-celle med ikon */
-const MetaItem = ({
-  icon,
-  label,
-  value,
-}: {
+const MetaItem = forwardRef<HTMLDivElement, {
   icon?: React.ReactNode;
   label: string;
   value: React.ReactNode;
-}) => (
-  <div className="min-w-0">
+}>(({ icon, label, value }, ref) => (
+  <div ref={ref} className="min-w-0">
     <dt className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground print:text-black/60 font-medium">
       {icon}
       <span>{label}</span>
@@ -348,6 +350,20 @@ const MetaItem = ({
       {value}
     </dd>
   </div>
+));
+MetaItem.displayName = "MetaItem";
+
+const PrintOption = ({ icon, label, active, onClick }: { icon: React.ReactNode; label: string; active: boolean; onClick: () => void }) => (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    aria-pressed={active}
+    onClick={onClick}
+    className={`h-9 justify-start gap-2 rounded-[4px] text-xs ${active ? "border-accent/40 bg-accent/10 text-foreground" : "text-muted-foreground"}`}
+  >
+    {icon}<span>{label}</span><span className={`ml-auto h-2 w-2 rounded-full ${active ? "bg-accent" : "bg-muted-foreground/30"}`} />
+  </Button>
 );
 
 export default EmployeeRoutePrint;

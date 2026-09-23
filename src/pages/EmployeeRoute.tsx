@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
+import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
 import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition, useReorderStops } from "@/hooks/useRoutes";
@@ -399,6 +399,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [listOpen, setListOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   // Default: kompakt (kun header) — så medarbejderen ALTID kan se kortet/ruten.
   // Detaljer kan udvides med ét tap på kortet.
   const [collapsed, setCollapsed] = useState(true);
@@ -612,6 +613,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const routeDateLocked = !!routeDateKey && routeDateKey > localDateKey() && !earlyAllowedForRoute;
 
   const sortedStops = useMemo(() => [...stops].sort((a, b) => a.sequence - b.sequence), [stops]);
+  useEffect(() => {
+    const stopId = searchParams.get("stop");
+    if (!stopId || !sortedStops.some((stop) => stop.id === stopId)) return;
+    setHighlightedId(stopId);
+    setSelectedId(stopId);
+    const next = new URLSearchParams(searchParams);
+    next.delete("stop");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, sortedStops]);
   const validStops = useMemo(
     () => sortedStops.filter((s) => s.latitude != null && s.longitude != null),
     [sortedStops],
@@ -1988,8 +1998,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 pointer-events-none sm:bottom-[60px] sm:p-4">
-            <Card className="route-drive-dock mx-auto max-w-2xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/97 backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
+          <div className="pointer-events-none absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:bottom-[60px] sm:p-4 lg:left-auto lg:right-3 lg:w-[30rem] lg:p-0">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-2xl overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
                 {sortedStops.map((s, i) => (
@@ -2191,15 +2201,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3">
-            <Card className="overflow-hidden shadow-xl rounded-xl border-border">
-              <div className="p-5 text-center space-y-3">
-                <div className="h-14 w-14 mx-auto rounded-xl flex items-center justify-center bg-secondary">
-                  <CheckCircle2 className="h-8 w-8 text-foreground" />
+          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:left-auto lg:w-[28rem]">
+            <Card className="mx-auto max-w-md overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
+              <div className="space-y-3 p-3.5 text-center sm:p-4">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-success/10 text-success">
+                  <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-semibold text-lg text-foreground">Rute færdig</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base font-semibold text-foreground">Rute færdig</p>
+                  <p className="text-xs text-muted-foreground">
                     Alle {sortedStops.length} stop udført
                     {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
                   </p>
@@ -2219,7 +2229,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
                 <Button
                   size="lg"
-                    className="w-full gap-2 h-12 rounded-md bg-foreground text-background hover:bg-foreground/90"
+                    className="h-11 w-full gap-2 rounded-md bg-foreground text-background hover:bg-foreground/90"
                   onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
                 >
                   Til oversigt
@@ -2391,7 +2401,7 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-xl rounded-t-md transition-transform duration-300 ease-out border-t border-x border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl rounded-t-md border-x border-t border-border bg-card shadow-xl transition-transform duration-300 ease-out lg:max-w-2xl"
         style={{
           transform: open ? "translateY(0)" : "translateY(calc(100% - 52px))",
           maxHeight: "min(68dvh, 42rem)",
@@ -2435,7 +2445,7 @@ const StopListPanel = ({
         </button>
 
         <div
-          className="overflow-y-auto border-t bg-secondary/20 p-2.5 space-y-2"
+          className="space-y-1.5 overflow-y-auto border-t bg-secondary/20 p-2 sm:p-2.5"
           style={{ maxHeight: "calc(min(68dvh, 42rem) - 52px)" }}
         >
           {stops.length === 0 && (
@@ -2460,7 +2470,7 @@ const StopListPanel = ({
                     onSelectStop(s);
                   }
                 }}
-                className={`w-full text-left p-2.5 rounded-md border flex items-center gap-2.5 transition-colors hover:bg-secondary/50 active:bg-secondary cursor-pointer ${
+                className={`flex w-full cursor-pointer items-center gap-2 rounded-md border p-2 text-left transition-colors hover:bg-secondary/50 active:bg-secondary sm:gap-2.5 sm:p-2.5 ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
@@ -2477,9 +2487,9 @@ const StopListPanel = ({
                 }}
               >
                 {/* Tids-kolonne — kalender-stil */}
-                <div className="flex flex-col items-center justify-start pt-0.5 w-11 shrink-0">
+                <div className="flex w-9 shrink-0 flex-col items-center justify-start pt-0.5 sm:w-11">
                   <span
-                     className={`flex h-9 w-9 items-center justify-center rounded-md font-bold text-[13px] shrink-0 text-background shadow-sm ${
+                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] text-[12px] font-bold text-background shadow-sm sm:h-9 sm:w-9 sm:text-[13px] ${
                       isDone
                         ? "bg-emerald-500"
                         : isNext

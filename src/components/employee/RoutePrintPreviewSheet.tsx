@@ -7,7 +7,7 @@
 // Layoutet bevidst MATCHER virksomhedspanelets sheet-stil
 // (StopDetailSheet) så medarbejder- og virksomhedspanelet føles ensartet.
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
@@ -36,12 +36,29 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
   const [showContact, setShowContact] = useState(true);
   const [showTasks, setShowTasks] = useState(true);
   const [compact, setCompact] = useState(true);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("sy.employee.receipt-options") || "null");
+      if (!saved) return;
+      setShowNotes(saved.notes === true);
+      setShowContact(saved.contact !== false);
+      setShowTasks(saved.tasks !== false);
+      setCompact(saved.compact !== false);
+    } catch {
+      // Ugyldige ældre indstillinger ignoreres.
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("sy.employee.receipt-options", JSON.stringify({ notes: showNotes, contact: showContact, tasks: showTasks, compact }));
+  }, [showNotes, showContact, showTasks, compact]);
   const printPath = useMemo(() => {
     const params = new URLSearchParams({
       notes: showNotes ? "1" : "0",
       contact: showContact ? "1" : "0",
       tasks: showTasks ? "1" : "0",
       density: compact ? "compact" : "standard",
+      from: "today",
     });
     return routeId ? `/medarbejder/rute/${routeId}/print?${params.toString()}` : "#";
   }, [routeId, showNotes, showContact, showTasks, compact]);
@@ -73,12 +90,21 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2 rounded-md border border-border bg-card p-2 sm:grid-cols-4">
+              <section className="rounded-md border border-border bg-card p-2.5 shadow-sm" aria-label="Vælg indhold i kvitteringen">
+                <div className="mb-2 flex items-center justify-between gap-3 px-0.5">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Indhold og visning</p>
+                    <p className="text-[10px] text-muted-foreground">Valgene følger med til print.</p>
+                  </div>
+                  <Badge variant="secondary" className="h-5 rounded-[4px] text-[9px]">Gemmes</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <PreviewOption icon={<StickyNote className="h-3.5 w-3.5" />} label="Noter" checked={showNotes} onChange={setShowNotes} />
                 <PreviewOption icon={<Contact className="h-3.5 w-3.5" />} label="Kontakt" checked={showContact} onChange={setShowContact} />
                 <PreviewOption icon={<FileText className="h-3.5 w-3.5" />} label="Opgaver" checked={showTasks} onChange={setShowTasks} />
                 <PreviewOption icon={<AlignJustify className="h-3.5 w-3.5" />} label="Kompakt" checked={compact} onChange={setCompact} />
-              </div>
+                </div>
+              </section>
               <PreviewArticle data={data} showNotes={showNotes} showContact={showContact} showTasks={showTasks} compact={compact} />
             </div>
           )}
@@ -99,7 +125,7 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
             asChild
             className="h-9 gap-1.5 rounded-[4px] bg-accent text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:bg-accent/90"
           >
-            <Link to={printPath}>
+            <Link to={printPath} onClick={() => onOpenChange(false)}>
               <Printer className="h-4 w-4" /> Gå til print
             </Link>
           </Button>

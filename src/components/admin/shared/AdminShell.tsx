@@ -22,59 +22,12 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import {
-  SidebarNavButton, SidebarFooterItem,
+  SidebarNavButton, SidebarFooterItem, RoleSwitchFooterItem,
 } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
-
-/**
- * RoleSwitchFooterItem — speciel sidebar-knap til at skifte mellem
- * virksomheds- og medarbejder-panel. Får en conic-gradient (rgb) ring
- * rundt om ikonet så den skiller sig tydeligt ud fra "Se din side" og
- * "Log ud".
- */
-const RoleSwitchFooterItem = ({
-  icon: Icon, label, onClick, collapsed,
-}: { icon: any; label: string; onClick: () => void; collapsed: boolean }) => {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={collapsed ? label : undefined}
-      className={cn(
-        "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-semibold text-foreground transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
-        "hover:bg-secondary",
-        collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background"
-        style={{
-          backgroundImage:
-            "conic-gradient(from 0deg, #ef4444, #f59e0b, #84cc16, #06b6d4, #6366f1, #d946ef, #ef4444)",
-          padding: "2px",
-        }}
-      >
-        <span className="flex h-full w-full items-center justify-center rounded-full bg-card">
-          <Icon className="h-3.5 w-3.5 text-foreground" />
-        </span>
-      </span>
-      <span
-        className={cn(
-          "truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-          collapsed ? "max-w-0 -translate-x-1 opacity-0" : "max-w-[170px] translate-x-0 opacity-100",
-        )}
-      >
-        {label}
-      </span>
-
-    </button>
-  );
-};
 
 export type AdminTabKey =
   | "getting-started" | "dashboard" | "services" | "orders" | "customers"
