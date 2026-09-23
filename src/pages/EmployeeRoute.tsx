@@ -651,11 +651,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return () => { void supabase.rpc("clear_route_position", { _route_id: routeId }); };
   }, [routeId]);
 
-  useEffect(() => {
-    if (!allDone || !routeStarted) return;
-    void supabase.rpc("clear_route_position", { _route_id: routeId });
-  }, [allDone, routeStarted, routeId]);
-
   const startCoord: [number, number] | null = useMemo(() => {
     if (!route) return null;
     return route.start_latitude != null && route.start_longitude != null
@@ -970,6 +965,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
+  useEffect(() => {
+    if (!allDone || !routeStarted) return;
+    void supabase.rpc("clear_route_position", { _route_id: routeId });
+  }, [allDone, routeStarted, routeId]);
   // Brug Serviceydere accent (dark-blue) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
   const themeColor = "hsl(206 99% 30%)";
