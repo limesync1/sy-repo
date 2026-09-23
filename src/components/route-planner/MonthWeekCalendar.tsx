@@ -1329,7 +1329,7 @@ const RoutePillInner = ({
   // I månedsvisning er cellerne smalle (~110px). For at undgå at metadata-
   // rækken wrapper til 3-4 linjer (og dermed gør pillen + hele kalender-
   // rækken unødigt høj) viser vi færre felter og holder dem på én linje.
-  const visibleEmployees = route.attachedEmployees.slice(0, compact ? 2 : 3);
+  const visibleEmployees = route.attachedEmployees.slice(0, compact ? 0 : 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
   const canDelete = !!onDelete && !isVirtual && !busy;
@@ -1363,7 +1363,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "cursor-pointer min-h-[58px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
+        "cursor-pointer min-h-[72px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1481,15 +1481,17 @@ const RoutePillInner = ({
           // Lidt mere højre-padding når der er medarbejder-avatarer på
           // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
           // pillens højre kant i smalle måneds-celler.
-          "relative z-[1] pl-2.5 py-1 flex items-center justify-between gap-1",
-          (visibleEmployees.length > 0 || extraEmployees > 0) ? "pr-2.5" : "pr-2",
+          "relative z-[1] min-h-[70px] pl-2.5 pr-2 py-1.5 flex flex-col items-stretch gap-1",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
+          <div className="text-[13px] font-semibold text-foreground leading-[1.2] tracking-normal line-clamp-2 break-words" title={route.name || undefined}>
+            {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
+          </div>
+          <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
             {projectedKind && (() => {
               const unlockLabel = format(parseISO(route.route_date), "d. MMM yyyy", { locale: da });
               const meta = projectedKind === "future"
@@ -1597,9 +1599,6 @@ const RoutePillInner = ({
                 {!compact && "Konflikt"}
               </span>
             )}
-            <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
-              {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
-            </span>
             {hasSkillMismatch && (
               <span
                 className="shrink-0 inline-flex"
@@ -1612,7 +1611,7 @@ const RoutePillInner = ({
           </div>
           <div
             className={cn(
-              "mt-1 flex items-center gap-x-2 text-[11px] text-muted-foreground tabular-nums overflow-hidden",
+              "mt-0.5 flex items-center gap-x-2 pr-14 text-[10.5px] text-muted-foreground tabular-nums overflow-hidden",
               compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
@@ -1642,7 +1641,7 @@ const RoutePillInner = ({
         </div>
         {/* Medarbejder-avatarer */}
         {visibleEmployees.length > 0 && (
-          <div className="flex -space-x-1 shrink-0" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
+          <div className="absolute bottom-1.5 right-14 flex -space-x-1" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
             {visibleEmployees.map((emp) =>
               emp.avatar_url ? (
                 <img
@@ -1681,7 +1680,7 @@ const RoutePillInner = ({
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
-          <div className="shrink-0 flex items-center gap-px rounded-md opacity-100">
+          <div className="absolute bottom-1 right-1 flex items-center gap-px rounded-md opacity-100">
         {!isVirtual && stopCount >= 2 && (
           <button
             type="button"
