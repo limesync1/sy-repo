@@ -29,6 +29,7 @@ import { getCategoryIcon } from "@/lib/category-icons";
 import { NumberStepper } from "@/components/shared/NumberStepper";
 
 import { IndustryIcon } from "@/components/IndustryIcon";
+import ActiveServiceRequired from "./ActiveServiceRequired";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
@@ -74,7 +75,7 @@ interface Props {
 }
 
 const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName, initialCustomer }: Props) => {
-  const { data: services = [] } = useServices(businessId);
+  const { data: services = [], isLoading: servicesLoading } = useServices(businessId);
   const activeServices = useMemo(() => (services as any[]).filter((s) => s.is_active !== false) as Service[], [services]);
 
   // Customer
@@ -171,6 +172,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const handleSubmit = async () => {
     if (submittingRef.current) return;
     submittingRef.current = true;
+    if (activeServices.length === 0) {
+      toast.error("Opret eller aktivér en service før du opretter en bestilling");
+      submittingRef.current = false;
+      return;
+    }
     if (!customerName.trim() || !customerEmail.trim()) {
       toast.error("Udfyld kundens navn og email");
       submittingRef.current = false;
@@ -356,7 +362,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           </SheetHeaderBlock>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
+        {servicesLoading ? (
+          <div className="flex min-h-[260px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        ) : activeServices.length === 0 ? (
+          <ActiveServiceRequired />
+        ) : <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
           {/* Kunde */}
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
@@ -648,10 +658,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             />
             <p className="text-[10px] text-muted-foreground text-right mt-1">{businessMessage.length}/500</p>
           </Section>
-        </div>
+        </div>}
 
         {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
-        <SheetFooterBar>
+        {activeServices.length > 0 && <SheetFooterBar>
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
               <div className="flex items-baseline gap-2">
@@ -677,7 +687,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </Button>
             </div>
           </div>
-        </SheetFooterBar>
+        </SheetFooterBar>}
       </DialogContent>
     </Dialog>
   );

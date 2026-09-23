@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
-  BarChart3, ChevronDown, Calendar as CalendarIcon, Clock, Users, Palette,
+  BarChart3, ChevronDown, Calendar as CalendarIcon, Users, Palette,
   Inbox, AlertTriangle, TrendingUp,
 } from "lucide-react";
 import {
@@ -17,8 +17,8 @@ import {
   format, eachDayOfInterval,
 } from "date-fns";
 import { da } from "date-fns/locale";
-import { formatDurationMin } from "@/lib/duration-format";
 import { cn } from "@/lib/utils";
+import { STOPS_PER_EMPLOYEE_DAY } from "./lib/stop-capacity";
 
 /**
  * PlanningPanel — kompakt højrepanel for ruteplanlæggeren, åbnes via en knap
@@ -60,23 +60,14 @@ interface Props {
   onFilterAssigneeIds: (ids: string[]) => void;
   /** Antal aftaler i poolen som endnu ikke er lagt på en rute. */
   unassignedCount?: number;
-  /**
-   * Kapacitetstærskel pr. dag i minutter — dage hvor (arbejde + kørsel)
-   * overstiger dette får en advarsel. Default 8 timer (480 min).
-   */
+  /** Bagudkompatibel prop. Belastning beregnes altid ud fra stop. */
   dailyCapacityMin?: number;
 }
 
 export const PlanningPanel = ({
   businessId, anchorDate, stops, routes, employees, filterAssigneeIds, onFilterAssigneeIds,
-  unassignedCount = 0, dailyCapacityMin = 480,
+  unassignedCount = 0,
 }: Props) => {
-  // Samme tolerance som ConflictBanner — 15 % over kapacitet før vi
-  // alarmerer, og kun dage med meningsfuldt booket arbejde (>6 timer).
-  const OVERBOOK_FACTOR = 1.3;
-  // Mindst 13 timers booket arbejde + kørsel før dagen flagges
-  // overbooket — undgår alarm på normale, lange dage.
-  const OVERBOOK_MIN_MIN = 780;
   const [open, setOpen] = useState(false);
   // Forklaringer er åbnet by-default — brugeren skal kunne se farve-
   // legenden uden et ekstra klik hver gang planlægningspanelet åbnes.
@@ -135,40 +126,25 @@ export const PlanningPanel = ({
       if (isWithinInterval(d, { start: mStart, end: mEnd })) monthRevenue += amt;
     }
 
-    // Kørselstid pr. ugedag i den viste uge
     const days = eachDayOfInterval({ start: wStart, end: wEnd });
-    const drivePerDay = days.map((d) => {
+    const loadPerDay = days.map((d) => {
       const key = format(d, "yyyy-MM-dd");
       const dayStops = stopsByDate.get(key) || [];
-      const driveMin = dayStops.reduce(
-        (acc, s) => acc + (Number(s.travel_time_to_next_min) || 0),
-        0,
-      );
-      const workMin = dayStops.reduce(
-        (acc, s) => acc + (Number(s.duration_minutes) || 0),
-        0,
-      );
-      return { date: d, key, driveMin, workMin, stopCount: dayStops.length };
-    }).filter((d) => d.driveMin > 0 || d.workMin > 0 || d.stopCount > 0);
-
-    const weekDriveTotal = drivePerDay.reduce((acc, d) => acc + d.driveMin, 0);
+      const capacity = Math.max(1, employees.length) * STOPS_PER_EMPLOYEE_DAY;
+      return { date: d, key, stopCount: dayStops.length, capacity };
+    }).filter((d) => d.stopCount > 0);
 
     // Aggregater til topkortene
-    const weekStopCount = drivePerDay.reduce((acc, d) => acc + d.stopCount, 0);
-    const activeDays = drivePerDay.filter((d) => d.stopCount > 0).length;
+    const weekStopCount = loadPerDay.reduce((acc, d) => acc + d.stopCount, 0);
+    const activeDays = loadPerDay.length;
     const avgStopsPerDay = activeDays > 0 ? weekStopCount / activeDays : 0;
-    const overbookedDays = drivePerDay.filter(
-      (d) =>
-        d.driveMin + d.workMin > dailyCapacityMin * OVERBOOK_FACTOR &&
-        d.driveMin + d.workMin >= OVERBOOK_MIN_MIN,
-    );
-    const weekWorkTotal = drivePerDay.reduce((acc, d) => acc + d.workMin, 0);
+    const overbookedDays = loadPerDay.filter((d) => d.stopCount > d.capacity);
 
     return {
-      weekRevenue, monthRevenue, drivePerDay, weekDriveTotal,
-      weekStopCount, avgStopsPerDay, overbookedDays, weekWorkTotal,
+      weekRevenue, monthRevenue, loadPerDay,
+      weekStopCount, avgStopsPerDay, overbookedDays,
     };
-  }, [anchorDate, routes, stops, amountByOrder, dailyCapacityMin]);
+  }, [anchorDate, routes, stops, amountByOrder, employees.length]);
 
   const toggleEmployee = (id: string) => {
     if (filterAssigneeIds.includes(id)) {
@@ -232,7 +208,7 @@ export const PlanningPanel = ({
                       {stats.overbookedDays.length} overbooked dag{stats.overbookedDays.length === 1 ? "" : "e"}
                     </p>
                     <p className="text-muted-foreground">
-                      {stats.overbookedDays.map((d) => format(d.date, "EEE d.", { locale: da })).join(", ")} — over {Math.round(dailyCapacityMin / 60)} t arbejde + kørsel
+                       {stats.overbookedDays.map((d) => format(d.date, "EEE d.", { locale: da })).join(", ")} — flere stop end dagens kapacitet
                     </p>
                   </div>
                 </div>
@@ -248,7 +224,7 @@ export const PlanningPanel = ({
             <div className="mt-2 grid grid-cols-2 gap-2">
               <MiniStat label="Aftaler" value={String(stats.weekStopCount)} />
               <MiniStat label="Snit/dag" value={stats.avgStopsPerDay > 0 ? stats.avgStopsPerDay.toFixed(1) : "—"} />
-              <MiniStat label="Kørsel" value={stats.weekDriveTotal > 0 ? formatDurationMin(stats.weekDriveTotal, { short: true }) : "—"} />
+               <MiniStat label="Kapacitet/dag" value={`${Math.max(1, employees.length) * STOPS_PER_EMPLOYEE_DAY} stop`} />
             </div>
           </section>
 
@@ -264,16 +240,15 @@ export const PlanningPanel = ({
           </section>
 
           {/* Planlagt kørsel */}
-          {stats.drivePerDay.length > 0 && (
+           {stats.loadPerDay.length > 0 && (
             <section>
               <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
                 Belastning pr. dag
               </SectionLabel>
               <ul className="mt-2 space-y-1.5">
-                {stats.drivePerDay.map((d) => {
-                  const totalMin = d.driveMin + d.workMin;
-                  const pct = Math.min(100, Math.round((totalMin / dailyCapacityMin) * 100));
-                  const over = totalMin > dailyCapacityMin;
+                 {stats.loadPerDay.map((d) => {
+                   const pct = Math.min(100, Math.round((d.stopCount / d.capacity) * 100));
+                   const over = d.stopCount > d.capacity;
                   return (
                     <li key={d.key} className="space-y-1">
                       <div className="flex items-center justify-between gap-2 text-xs">
@@ -281,7 +256,7 @@ export const PlanningPanel = ({
                           {format(d.date, "EEE d.", { locale: da }).replace(".", ".")}
                         </span>
                         <span className={cn("tabular-nums", over ? "font-semibold text-destructive" : "text-foreground")}>
-                          {d.stopCount} stop
+                           {d.stopCount} af {d.capacity} stop
                         </span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/60 ring-1 ring-inset ring-border/30">
@@ -302,7 +277,7 @@ export const PlanningPanel = ({
                 })}
               </ul>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                Baseret på en standardarbejdsdag på {Math.round(dailyCapacityMin / 60)} timer (arbejde + kørsel).
+                 Kapaciteten er {STOPS_PER_EMPLOYEE_DAY} stop pr. aktiv medarbejder.
               </p>
             </section>
           )}
