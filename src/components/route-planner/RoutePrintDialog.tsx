@@ -17,7 +17,6 @@ export type PrintRoute = {
     address?: string | null;
     city?: string | null;
     phone?: string | null;
-    startTime?: string | null;
     notes?: string | null;
   }[];
 };
@@ -83,7 +82,7 @@ export default function RoutePrintDialog({ open, onOpenChange, date, routes, bus
               </header>
               <ol className="space-y-2">
                 {r.stops.map((s, i) => (
-                  <li key={i} className="grid grid-cols-[24px_1fr_auto] gap-2 border-b border-dashed border-border py-2 text-sm">
+                   <li key={i} className="grid grid-cols-[24px_1fr] gap-2 border-b border-dashed border-border py-2 text-sm">
                     <span className="font-bold tabular-nums">{i + 1}.</span>
                     <div className="min-w-0">
                       <p className="font-medium">{s.customerName}</p>
@@ -92,9 +91,6 @@ export default function RoutePrintDialog({ open, onOpenChange, date, routes, bus
                       )}
                       {s.phone && <p className="text-xs">{s.phone}</p>}
                       {s.notes && <p className="mt-1 text-xs italic text-muted-foreground">"{s.notes}"</p>}
-                    </div>
-                    <div className="text-right text-xs tabular-nums whitespace-nowrap">
-                      {s.startTime && <p className="font-medium">{s.startTime}</p>}
                     </div>
                   </li>
                 ))}

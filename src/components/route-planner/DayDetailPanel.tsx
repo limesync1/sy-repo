@@ -18,7 +18,6 @@ export type DayStop = {
   routeColor?: string | null;
   customerName: string;
   address?: string | null;
-  startTime?: string | null; // "HH:mm"
   serviceSummary?: string | null;
 };
 
@@ -30,10 +29,7 @@ type Props = {
 };
 
 export default function DayDetailPanel({ open, onOpenChange, date, stops }: Props) {
-  const sorted = useMemo(
-    () => [...stops].sort((a, b) => (a.startTime ?? "99:99").localeCompare(b.startTime ?? "99:99")),
-    [stops],
-  );
+  const sorted = useMemo(() => [...stops], [stops]);
   const routes = useMemo(() => {
     const map = new Map<string, string>();
     for (const s of sorted) {

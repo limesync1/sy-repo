@@ -95,8 +95,8 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
               </DialogTitle>
             }
             description={
-              <DialogDescription className="text-xs leading-snug">
-                Hvem gjorde hvad, hvornår og hvorfra. Tekniske spor (IP og enhed) er kun synlige for virksomhedens ejer.
+               <DialogDescription className="text-xs leading-snug">
+                 Hvem gjorde hvad og hvorfra. Tekniske spor er kun synlige for virksomhedens ejer.
               </DialogDescription>
             }
           />
@@ -126,15 +126,12 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
                       return (
                         <li key={row.id} className="pl-4 relative">
                           <span className={`absolute -left-[7px] top-3 h-3 w-3 rounded-full border-2 border-background shadow-sm ${meta.ring}`} />
-                          <div className="rounded-lg border border-border/70 bg-card p-2.5 shadow-sm">
-                            <div className="flex items-start justify-between gap-2">
+                           <div className="rounded-[5px] border border-border/70 bg-card p-2.5">
+                             <div className="flex items-start gap-2">
                               <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold ${meta.badge}`}>
                                 <Icon className="h-3 w-3" />
                                 {label}
                               </span>
-                              <time className="tabular-nums text-[11px] text-muted-foreground font-medium shrink-0">
-                                {format(parseISO(row.created_at), "HH:mm", { locale: da })}
-                              </time>
                             </div>
 
                             {row.summary && (

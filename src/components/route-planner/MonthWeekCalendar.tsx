@@ -462,7 +462,7 @@ export const MonthWeekCalendar = ({
   // Lokal state — overlever ikke reload (med vilje: en filtrering på "klar"
   // skal ikke forvirre næste gang man åbner planneren). Filteret anvendes
   // KUN i kalender-visningen og påvirker ikke det data RoutePlanner ser.
-  type StatusFilter = "all" | "planned" | "ready" | "in_progress" | "completed";
+  type StatusFilter = "all" | "planned" | "ready" | "completed";
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [employeeFilter, setEmployeeFilter] = useState<Set<string>>(new Set());
 
@@ -488,9 +488,6 @@ export const MonthWeekCalendar = ({
     const anyDone = doneCount > 0 && !allDone;
     if (statusFilter === "completed") {
       return status === "completed" || allDone;
-    }
-    if (statusFilter === "in_progress") {
-      return status === "in_progress" || anyDone;
     }
     if (statusFilter === "ready") {
       return status === "ready" || status === "confirmed";
@@ -578,23 +575,22 @@ export const MonthWeekCalendar = ({
 
   return (
     <>
-    <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
+    <Card className="overflow-hidden flex flex-col h-full rounded-none border-0 bg-card shadow-none">
       {/* ─── Hurtig filtrering ───
           Status-chips + medarbejder-popover. Ensartet chip/dropdown-stil:
           alle triggere har samme højde (h-7), pill-form (rounded-full),
           ring-1 i hvile og ring-2/accent når aktiv. Aktive piller bruger
           accent (jf. design-memory: accent kun til emphasis som aktive
           filter-piller, links og focus-rings — ikke generel hover). */}
-      <div className="shrink-0 flex items-center flex-wrap gap-2 px-3 py-2 border-b border-border/70 bg-gradient-to-b from-secondary/25 to-card text-[11.5px]">
+      <div className="shrink-0 flex items-center flex-wrap gap-2 px-3 py-2 border-b border-border/70 bg-secondary/25 text-[11.5px]">
         <span className="inline-flex items-center gap-1.5 text-muted-foreground font-semibold uppercase tracking-[0.12em] text-[10px] pr-1 select-none">
           <Filter className="h-3 w-3" /> Filter
         </span>
-        <div className="inline-flex items-center gap-1 rounded-full bg-background/60 ring-1 ring-border/70 p-0.5 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.06)]">
+        <div className="inline-flex items-center gap-0.5 rounded-[4px] bg-background ring-1 ring-border/70 p-0.5">
         {([
           { key: "all", label: "Alle" },
           { key: "planned", label: "Planlagt" },
           { key: "ready", label: "Klar" },
-          { key: "in_progress", label: "I gang" },
           { key: "completed", label: "Udført" },
         ] as { key: StatusFilter; label: string }[]).map((opt) => {
           const active = statusFilter === opt.key;
@@ -604,9 +600,9 @@ export const MonthWeekCalendar = ({
               type="button"
               onClick={() => setStatusFilter(opt.key)}
               className={cn(
-                "h-6 px-2.5 rounded-full text-[11px] font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+                "h-6 px-2.5 rounded-[3px] text-[11px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                 active
-                  ? "bg-accent text-accent-foreground shadow-[0_1px_3px_-1px_hsl(var(--accent)/0.55)]"
+                  ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary",
               )}
               aria-pressed={active}
