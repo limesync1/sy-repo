@@ -375,18 +375,8 @@ export const EmployeeShell = ({
                   className="hidden h-9 shrink-0 items-center gap-2 rounded-md px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary sm:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label="Skift til virksomhedspanel"
               >
-                <span
-                  aria-hidden="true"
-                  className="relative inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    backgroundImage:
-                      "conic-gradient(from 0deg, #ef4444, #f59e0b, #84cc16, #06b6d4, #6366f1, #d946ef, #ef4444)",
-                    padding: "2px",
-                  }}
-                >
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-card">
-                    <Briefcase className="h-3 w-3 text-foreground" />
-                  </span>
+                <span aria-hidden="true" className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
+                  <Briefcase className="h-3 w-3" />
                 </span>
                 <span className="hidden md:inline">Virksomhedspanel</span>
                 <span className="md:hidden">Virksomhed</span>

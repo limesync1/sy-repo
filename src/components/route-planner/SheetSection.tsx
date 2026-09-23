@@ -33,14 +33,14 @@ export const SheetHeaderBlock = ({
   // — i dark mode er det næsten hvidt, så vi skal pege på
   // primary-foreground for at undgå hvid-på-hvid.
   const hasAccent = !!accent;
-  const bg = accent || "hsl(var(--primary))";
-  const iconColor = hasAccent && accent ? readableTextOn(accent) : "hsl(var(--primary-foreground))";
+  const bg = accent || "hsl(var(--secondary))";
+  const iconColor = hasAccent && accent ? readableTextOn(accent) : "hsl(var(--foreground))";
   const hasBadge = badge != null || icon != null;
   return (
     <div className="flex items-start gap-3">
       {hasBadge && (
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 shadow-sm"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 ring-1 ring-inset ring-border"
           style={{ background: bg, color: iconColor }}
           aria-hidden={!badge}
         >

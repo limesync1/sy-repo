@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { formatKr as formatKrShared } from "@/lib/commission";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -143,7 +143,7 @@ const RouteMiniMap = ({
 const EmployeeApp = () => {
   const { user, loading } = useAuth();
   const [date, setDate] = useState(todayStr());
-  const isMobile = useIsMobile();
+  const isCompact = useIsBelowBreakpoint(1024);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
   // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
@@ -835,9 +835,9 @@ const EmployeeApp = () => {
           og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
       <Sheet open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
         <SheetContent
-          side={isMobile ? "bottom" : "right"}
+          side={isCompact ? "bottom" : "right"}
           className={
-            isMobile
+            isCompact
               ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
               : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
           }
