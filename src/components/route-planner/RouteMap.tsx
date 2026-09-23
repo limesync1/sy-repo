@@ -46,7 +46,7 @@ type Props = {
   livePositions?: Array<{ employeeId: string; lat: number; lng: number; label: string; currentStopLabel?: string; recordedAt: string }>;
 };
 
-const FitBounds = ({ points, trigger }: { points: [number, number][]; trigger: number }) => {
+const FitBounds = ({ points, trigger }: { points: [number, number][]; trigger: string }) => {
   const map = useMap();
   useEffect(() => {
     if (points.length === 0) return;
@@ -241,8 +241,9 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
     const pts: [number, number][] = [];
     for (const r of routes) for (const s of r.stops) pts.push([s.lat, s.lng]);
     for (const s of unassigned) pts.push([s.lat, s.lng]);
+    for (const position of livePositions) pts.push([position.lat, position.lng]);
     return pts;
-  }, [routes, unassigned]);
+  }, [routes, unassigned, livePositions]);
 
   // Find selected stop across all routes
   const selectedStop = useMemo<MapStop | null>(() => {
@@ -255,7 +256,10 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
   }, [selectedStopId, routes, unassigned]);
 
   const center: [number, number] = allPoints[0] || [56.0, 10.5];
-  const fitTrigger = useMemo(() => allPoints.length, [allPoints]);
+  const fitTrigger = useMemo(
+    () => allPoints.map(([lat, lng]) => `${lat.toFixed(4)},${lng.toFixed(4)}`).join("|"),
+    [allPoints],
+  );
 
   const getGeom = useRouteGeometries(routes);
 

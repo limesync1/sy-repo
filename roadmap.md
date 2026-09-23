@@ -48,9 +48,9 @@
 - [x] Verificér lys/mørk visning og centrale handlinger
 
 ## Panel-QA, live-position og kvittering
-- [ ] Fjern dobbelt medarbejderbillede i “Kontakt medarbejder”.
-- [ ] Gennemgå virksomheds- og medarbejderpanel på mobil og computer for overlap og mærkelige visninger.
-- [ ] Vis live-position fra aktive ruter via en betinget handling i “Rediger rute”.
-- [ ] Forbedr kvitteringsvisningen med kun dato, uden afkrydsning og underskrift.
-- [ ] Tilføj valgfri visning af noter og aftalte ekstra redigeringshandlinger.
-- [ ] Verificér centrale panelvisninger i lys og mørk tilstand på mobil og computer.
+- [x] Fjern dobbelt medarbejderbillede i “Kontakt medarbejder”.
+- [x] Gennemgå virksomheds- og medarbejderpanel på mobil og computer for overlap og mærkelige visninger.
+- [x] Vis live-position fra aktive ruter via en betinget handling i “Rediger rute”.
+- [x] Forbedr kvitteringsvisningen med kun dato, uden afkrydsning og underskrift.
+- [x] Tilføj valgfri visning af noter og aftalte ekstra redigeringshandlinger.
+- [x] Verificér centrale panelvisninger i lys og mørk tilstand på mobil og computer.

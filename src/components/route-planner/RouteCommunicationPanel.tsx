@@ -103,10 +103,14 @@ export function RouteCommunicationPanel({
               <Label className="text-[11px] font-semibold text-foreground">Medarbejder</Label>
               <Select value={employeeId} onValueChange={setEmployeeId}>
                 <SelectTrigger className="h-11 w-full bg-background sm:h-10">
-                  <span className="flex min-w-0 items-center gap-2">
-                    {selectedEmployee && <EmployeeAvatar employee={selectedEmployee} className="h-7 w-7 shrink-0" />}
-                    <SelectValue placeholder="Vælg medarbejder" />
-                  </span>
+                    <SelectValue placeholder="Vælg medarbejder">
+                      {selectedEmployee ? (
+                        <span className="flex min-w-0 items-center gap-2 text-left">
+                          <EmployeeAvatar employee={selectedEmployee} className="h-7 w-7 shrink-0" />
+                          <span className="min-w-0 truncate">{selectedEmployee.name}</span>
+                        </span>
+                      ) : null}
+                    </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {choices.map((employee) => (
@@ -122,7 +126,7 @@ export function RouteCommunicationPanel({
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <Label className="text-[11px] font-semibold text-foreground">Besked til {selectedEmployee?.name || "medarbejderen"}</Label>
+                <Label className="min-w-0 truncate text-[11px] font-semibold text-foreground">Besked til {selectedEmployee?.name || "medarbejderen"}</Label>
                 <span className="text-[10px] tabular-nums text-muted-foreground">{message.length}/500</span>
               </div>
               <Textarea

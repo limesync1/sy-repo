@@ -744,12 +744,13 @@ const EmployeeRow = ({
             <PopoverContent
               align="start"
               side="bottom"
-              className="w-72 p-3 space-y-3"
+              collisionPadding={16}
+              className="w-72 max-w-[calc(100vw-2rem)] space-y-3 p-3"
               onOpenAutoFocus={(e) => e.preventDefault()}
             >
               {/* Stor visning af billedet, så man kan se med sikkerhed at det
                   er den rigtige medarbejder — den lille avatar er for lille. */}
-              <div className="overflow-hidden rounded-xl border border-border bg-secondary/40">
+              <div className="overflow-hidden rounded-md border border-border bg-secondary/40">
                 {employee.avatar_url ? (
                   <img
                     src={employee.avatar_url}
