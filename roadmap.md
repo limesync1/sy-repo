@@ -69,8 +69,8 @@
 - [x] Verificér arbejdspladsvalg og centrale sider ved 393, 768 og 1280 px i lys og mørk visning.
 
 ## Medarbejderflow: navigation, notifikationer, kvittering og rutekørsel
-- [ ] Ensret panelskift-knapper
-- [ ] Forbedr notifikationer på mobil og computer
-- [ ] Ensret kvitteringsvalg, print og tilbage-navigation
-- [ ] Forbedr kort- og listekørsel responsivt
-- [ ] Verificér lys/mørk ved 393, 768 og 1280 px
+- [x] Ensret panelskift-knapper
+- [x] Forbedr notifikationer på mobil og computer
+- [x] Ensret kvitteringsvalg, print og tilbage-navigation
+- [x] Forbedr kort- og listekørsel responsivt
+- [x] Verificér lys/mørk ved 393, 768 og 1280 px

@@ -353,29 +353,6 @@ const MetaItem = forwardRef<HTMLDivElement, {
 ));
 MetaItem.displayName = "MetaItem";
 
-/* Metadata-celle med ikon */
-/* Kept as a forwardRef because the print transition may attach a ref. */
-/*
-  icon,
-  label,
-  value,
-}: {
-  icon?: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}) => (
-  <div className="min-w-0">
-    <dt className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground print:text-black/60 font-medium">
-      {icon}
-      <span>{label}</span>
-    </dt>
-    <dd className="mt-1 text-[16px] font-semibold text-foreground print:text-black tabular-nums leading-tight">
-      {value}
-    </dd>
-  </div>
-);
-*/
-
 const PrintOption = ({ icon, label, active, onClick }: { icon: React.ReactNode; label: string; active: boolean; onClick: () => void }) => (
   <Button
     type="button"
