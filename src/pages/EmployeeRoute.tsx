@@ -333,16 +333,20 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
 
 
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
-const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
-
-/** Format total minutes as "Xt Ymin" / "Y min". Useful for rute-totals. */
+/** Format total minutes as natural Danish route time, e.g. "3 t. 45 min.". */
 const formatHoursMin = (mins: number | null | undefined): string => {
   if (mins == null || !Number.isFinite(mins)) return "—";
-  const m = Math.round(mins);
+  const m = Math.max(0, Math.round(mins));
   if (m < 60) return `${m} min`;
   const h = Math.floor(m / 60);
   const r = m % 60;
-  return r === 0 ? `${h}t` : `${h}t ${r}min`;
+  return r === 0 ? `${h} t.` : `${h} t. ${r} min.`;
+};
+
+const formatMin = (seconds: number | null) => {
+  if (seconds == null) return "—";
+  if (seconds < 60) return "<1 min";
+  return formatHoursMin(seconds / 60);
 };
 
 /** Format absolute time (HH:mm) from Date in da-DK locale. */
@@ -2049,8 +2053,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </div>
                 </div>
 
-                {/* Tre nøgletal — admin-stil grid uden flashy farver */}
-                <div className="mb-3 grid grid-cols-2 divide-x divide-border overflow-hidden rounded-md border border-border bg-secondary/35">
+                {/* Ruten i tre tal — samme information før og under kørslen. */}
+                <div className="mb-3 grid grid-cols-3 divide-x divide-border overflow-hidden rounded-md border border-border bg-secondary/35">
                   <div className="px-2 py-2 text-center">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
@@ -2066,6 +2070,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       {route?.total_distance_km != null && route.total_distance_km > 0
                         ? `${route.total_distance_km.toFixed(1)} km`
                         : "—"}
+                    </p>
+                  </div>
+                  <div className="px-2 py-2 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
+                      {formatHoursMin(route?.total_duration_minutes)}
                     </p>
                   </div>
                 </div>
@@ -2170,7 +2180,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                 </div>
                 {isAtNextStop ? (
-                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-emerald-500/15 text-emerald-700">
+                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-success/15 text-success">
                     <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500" />
                     Fremme
                   </Badge>
@@ -2186,8 +2196,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         tydelig forsinkelse, eller hvornår du er fremme.
                         Aldrig "96 min i god tid" — det siger intet brugbart. */}
                     {nearNextStop ? (
-                    <p className="text-[10px] leading-tight font-semibold text-emerald-600">
+                    <p className="text-[10px] leading-tight font-semibold text-success">
                       næsten fremme
+                    </p>
+                  ) : directions?.duration_s != null ? (
+                    <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
+                      {formatMin(directions.duration_s)}
                     </p>
                   ) : (
                     <p className="text-[10px] text-muted-foreground leading-tight">
@@ -2211,7 +2225,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     size="sm"
                     className={`gap-1.5 h-10 rounded-md text-[13px] font-semibold transition-colors ${
                       isAtNextStop
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/25"
+                        ? "bg-success hover:bg-success/90 text-success-foreground shadow-sm"
                         : "bg-foreground text-background hover:bg-foreground/90"
                     }`}
                     disabled={updateStatus.isPending || routeDateLocked}
@@ -2250,7 +2264,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <div className="p-3 pt-2 space-y-2.5 border-t border-border/60">
                   {/* Adresse + service */}
                   {((nextStop.full_address || nextStop.address) || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
-                    <div className="rounded-xl bg-secondary/40 border border-border/60 p-2.5 space-y-1.5">
+                    <div className="rounded-md bg-secondary/40 border border-border/60 p-2.5 space-y-1.5">
                       {(nextStop.full_address || nextStop.address) && (
                         <p
                           className="text-[13px] flex items-start gap-1.5 leading-snug"
@@ -2270,7 +2284,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
                   {/* Info-grid: km, tid, ETA */}
                   {(directions || etaLabel) && (
-                    <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
+                    <div className="grid grid-cols-3 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Distance</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
@@ -2278,7 +2292,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                           </p>
                         </div>
                         <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Tid</p>
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Køretid</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {(() => {
                               const d = directions ? pickDuration(directions, false) : null;
@@ -2302,7 +2316,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     onClick={() => setSelectedId(nextStop.id)}
                     variant="outline"
                     size="sm"
-                    className="w-full gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary transition-colors"
+                    className="w-full gap-1.5 h-10 rounded-md text-xs font-semibold border-border hover:bg-secondary transition-colors"
                   >
                     <Info className="h-3.5 w-3.5" /> Se alle detaljer
                   </Button>
@@ -2328,7 +2342,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </p>
                 </div>
                 {/* Mini-stats */}
-                <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
+                <div className="grid grid-cols-3 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
                   <div className="px-2 py-2.5">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">{sortedStops.length}</p>
@@ -2340,15 +2354,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </p>
                   </div>
                   <div className="px-2 py-2.5">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      "—"
+                      {formatHoursMin(route.total_duration_minutes)}
                     </p>
                   </div>
                 </div>
                 <Button
                   size="lg"
-                  className="w-full gap-2 h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90"
+                    className="w-full gap-2 h-12 rounded-md bg-foreground text-background hover:bg-foreground/90"
                   onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
                 >
                   Til oversigt
@@ -2377,7 +2391,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         */}
         <SheetContent
           side="bottom"
-          className={`p-0 rounded-t-2xl flex flex-col transition-[max-height,height] duration-300 ease-out ${
+          className={`p-0 rounded-t-lg flex flex-col transition-[max-height,height] duration-300 ease-out ${
             sheetExpanded ? "max-h-[82vh] h-[82vh]" : "max-h-[42vh] h-[42vh]"
           }`}
         >
@@ -2386,7 +2400,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <button
             type="button"
             onClick={() => setSheetExpanded((v) => !v)}
-            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             aria-label={sheetExpanded ? "Gør detaljer mindre" : "Gør detaljer større"}
             aria-expanded={sheetExpanded}
           >
@@ -2528,7 +2542,7 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-[0_-12px_32px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-xl rounded-t-lg transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
           transform: open ? "translateY(0)" : "translateY(calc(100% - 46px))",
           maxHeight: "65vh",
@@ -2538,7 +2552,7 @@ const StopListPanel = ({
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2.5 px-4 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2.5 px-4 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-lg relative"
           aria-expanded={open}
           aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
@@ -2599,7 +2613,7 @@ const StopListPanel = ({
                     onSelectStop(s);
                   }
                 }}
-                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] cursor-pointer ${
+                className={`w-full text-left p-2.5 rounded-md border flex items-stretch gap-2.5 transition-colors hover:bg-secondary/50 active:bg-secondary cursor-pointer ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
@@ -2618,7 +2632,7 @@ const StopListPanel = ({
                 {/* Tids-kolonne — kalender-stil */}
                 <div className="flex flex-col items-center justify-start pt-0.5 w-11 shrink-0">
                   <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl font-bold text-[13px] shrink-0 text-background shadow-sm ${
+                     className={`flex h-9 w-9 items-center justify-center rounded-md font-bold text-[13px] shrink-0 text-background shadow-sm ${
                       isDone
                         ? "bg-emerald-500"
                         : isNext
@@ -2679,7 +2693,7 @@ const StopListPanel = ({
                         aria-label="Flyt stoppet tidligere på ruten"
                         disabled={reordering || posInRemaining <= 0}
                         onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, -1); }}
-                        className="h-7 w-7 rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                         className="h-8 w-8 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
                       >
                         <ArrowUp className="h-3.5 w-3.5" />
                       </button>
@@ -2688,7 +2702,7 @@ const StopListPanel = ({
                         aria-label="Flyt stoppet senere på ruten"
                         disabled={reordering || posInRemaining < 0 || posInRemaining >= remainingIds.length - 1}
                         onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, 1); }}
-                        className="h-7 w-7 rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                         className="h-8 w-8 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
                       >
                         <ArrowDown className="h-3.5 w-3.5" />
                       </button>
