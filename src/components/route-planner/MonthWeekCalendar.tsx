@@ -906,15 +906,15 @@ const DayCellInner = ({
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       data-density-target="day"
       className={cn(
-        "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
-        compact ? "min-h-[118px]" : "min-h-[170px]",
+        "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-2 p-3 transition-all duration-200",
+        compact ? "min-h-[132px]" : "min-h-[184px]",
         !inMonth && "bg-muted/10",
         // Lidt kraftigere weekend-tint så uge-rytmen er nem at scanne i
         // måneds-view. Stadig subtil nok til ikke at konkurrere med selve
         // rute-pillerne. Bibeholdes ikke for fortidsdage (de dæmpes alligevel).
         inMonth && isWeekend && !isPast && "bg-secondary/30",
         isPast && "bg-muted/15",
-        today && "bg-foreground/[0.035] ring-1 ring-inset ring-foreground/20",
+        today && "bg-accent/[0.055] ring-1 ring-inset ring-accent/35",
         inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
@@ -975,7 +975,7 @@ const DayCellInner = ({
             className={cn(
               "inline-flex items-center justify-center rounded-md text-[12.5px] font-bold tabular-nums transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
               today
-                ? "h-7 w-7 text-foreground ring-2 ring-foreground/80 hover:bg-foreground hover:text-background"
+                ? "h-7 w-7 bg-accent text-accent-foreground shadow-sm hover:bg-accent/90"
                 : "h-6 w-6 text-foreground/90 hover:bg-secondary group-hover:bg-secondary/70 group-hover:text-foreground",
               !inMonth && !today && "text-muted-foreground/40",
               isPast && !today && "text-muted-foreground/55",
@@ -1363,7 +1363,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "cursor-pointer",
+        "cursor-pointer min-h-[72px] shadow-sm hover:shadow-md",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1426,7 +1426,7 @@ const RoutePillInner = ({
           På projicerede ruter dropper vi tinten (stripes håndterer det). */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-[3px] pointer-events-none rounded-l-lg"
+        className="absolute inset-y-0 left-0 w-1 pointer-events-none"
         style={{ background: route.color }}
       />
       {!isVirtual && (
