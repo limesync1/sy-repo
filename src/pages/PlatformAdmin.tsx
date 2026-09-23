@@ -24,7 +24,6 @@ import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
   SidebarCollapseToggle,
-  SIDEBAR_WIDTH_EXPANDED, SIDEBAR_WIDTH_COLLAPSED,
 } from "@/components/shared/sidebar/SidebarParts";
 import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
