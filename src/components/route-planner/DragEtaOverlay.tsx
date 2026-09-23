@@ -69,7 +69,6 @@ export default function DragEtaOverlay({ targetId }: Props) {
   const bg = chipBgForSeverity(severity);
   const lines: string[] = [];
   if (validation?.topMessage) lines.push(validation.topMessage);
-  if (eta?.extraDriveMin != null) lines.push(`+${Math.round(eta.extraDriveMin)} min kørsel`);
   if (eta?.newLoadPct != null) lines.push(`Kapacitet ${Math.round(eta.newLoadPct)}%`);
   if (eta?.message) lines.push(eta.message);
 
