@@ -80,7 +80,7 @@ export const StopDetailsContent = ({
       }
     }
     return { canComplete: true, futureLabel: null as string | null };
-  }, [stop, route?.date, route?.allowEarly]);
+  }, [route?.date, route?.allowEarly]);
 
   // Fuld adresse: vej + postnr + by — vi viser ALDRIG kun gaden uden
   // postnr/by, da flere danske vejnavne findes i flere byer.

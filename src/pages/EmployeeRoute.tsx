@@ -1288,16 +1288,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     try {
       await reorderStops.mutateAsync(updates);
       buzz(14);
-      toast.success("Rækkefølgen er ændret"););
-      } else {
-        const d = Math.round(ev.deltaMin);
-        toast.success("Rækkefølgen er ændret", {
-          description:
-            d < -1 ? `Du sparer ca. ${Math.abs(d)} min.`
-              : d > 1 ? `Det koster ca. ${d} min ekstra.`
-                : undefined,
-        });
-      }
+      toast.success("Rækkefølgen er ændret");
     } catch {
       toast.error("Kunne ikke ændre rækkefølgen", { description: "Prøv igen om lidt." });
     }
