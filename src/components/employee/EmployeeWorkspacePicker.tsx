@@ -53,7 +53,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-9">
+      <main className="mx-auto w-full max-w-xl flex-1 px-4 py-4 sm:py-6">
         <div className="mb-5 sm:mb-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Vælg arbejdsplads
@@ -67,7 +67,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           </p>
         </div>
 
-        <ul className="grid gap-2 sm:grid-cols-2">
+        <ul className="grid gap-2 grid-cols-1">
           {employees.map((emp) => {
             const biz = emp.business;
             const name = biz?.name || "Virksomhed";

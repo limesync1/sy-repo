@@ -208,11 +208,11 @@ const EmployeeApp = () => {
   // vises en lille knap helt til højre indeni boksen.
   const dateNav = (
     <div className="flex w-full items-center sm:w-auto">
-      <div className="flex w-full items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:w-auto">
+      <div className="flex w-full items-center gap-1 rounded-[5px] border border-border bg-card p-1 shadow-sm sm:w-auto">
         <Button
           size="icon"
           variant="ghost"
-          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          className="h-9 w-9 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
           onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
           aria-label="Forrige dag"
         >
@@ -223,7 +223,7 @@ const EmployeeApp = () => {
             <Button
               size="sm"
               variant="ghost"
-              className="h-9 flex-1 min-w-0 gap-1.5 rounded-lg px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
+              className="h-9 flex-1 min-w-0 gap-1.5 rounded-[4px] px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
             >
               <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
               <span className="capitalize tabular-nums truncate">
@@ -249,7 +249,7 @@ const EmployeeApp = () => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          className="h-9 w-9 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
           onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
           aria-label="Næste dag"
         >
@@ -264,7 +264,7 @@ const EmployeeApp = () => {
               onClick={() => setDate(todayStr())}
               aria-label="Gå til i dag"
               title="Gå til i dag"
-              className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+              className="h-9 w-9 shrink-0 rounded-[4px] bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
             >
               <CalendarCheck className="h-4 w-4" />
             </Button>
@@ -319,7 +319,7 @@ const EmployeeApp = () => {
               workday?.started_at && dayEnded
                 ? `${format(new Date(workday.started_at), "HH:mm")}–${format(new Date(workday!.ended_at!), "HH:mm")}`
                 : workday?.started_at && !dayEnded
-                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}${elapsedLabel ? `` : ""}`
+                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}`
                   : isCurrentDay ? "Tryk Start dag når du er klar" : null
             }
           />
@@ -424,10 +424,10 @@ const EmployeeApp = () => {
 
           const Cta = suggestion.cta;
           return (
-            <Card className={cn("overflow-hidden rounded-xl border shadow-sm", toneClasses)}>
+            <Card className={cn("overflow-hidden rounded-[5px] border shadow-sm", toneClasses)}>
               <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={cn("flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
+                  <div className={cn("flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-[5px]", iconWrap)} aria-hidden>
                     <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0">
@@ -473,7 +473,7 @@ const EmployeeApp = () => {
                   asChild={!!Cta.to}
                   onClick={Cta.onClick}
                   size="lg"
-                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-[4px] bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
                   {Cta.to ? (
                     <Link to={Cta.to}>
@@ -495,9 +495,9 @@ const EmployeeApp = () => {
         {(routesLoading || stopsLoading) && (
           <div className="grid gap-4 lg:grid-cols-2">
             {[0, 1].map((i) => (
-              <Card key={i} className="overflow-hidden rounded-xl border-border/80 shadow-sm">
+              <Card key={i} className="overflow-hidden rounded-[5px] border-border/80 shadow-sm">
                 <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
-                  <Skeleton className="h-7 w-7 rounded-lg" />
+                  <Skeleton className="h-7 w-7 rounded-[4px]" />
                   <div className="min-w-0 flex-1 space-y-2">
                     <Skeleton className="h-4 w-40" />
                     <Skeleton className="h-3 w-24" />
@@ -513,12 +513,12 @@ const EmployeeApp = () => {
                   </div>
                   <Skeleton className="h-2 w-full rounded-full" />
                   <div className="space-y-2">
-                    <Skeleton className="h-10 w-full rounded-lg" />
-                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-[4px]" />
+                    <Skeleton className="h-10 w-full rounded-[4px]" />
                   </div>
                   <div className="flex gap-2">
-                    <Skeleton className="h-11 flex-1 rounded-lg" />
-                    <Skeleton className="h-11 w-11 rounded-lg" />
+                    <Skeleton className="h-11 flex-1 rounded-[4px]" />
+                    <Skeleton className="h-11 w-11 rounded-[4px]" />
                   </div>
                 </div>
               </Card>
@@ -527,8 +527,8 @@ const EmployeeApp = () => {
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="rounded-xl border-dashed border-border p-6 sm:p-10 text-center shadow-sm">
-            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-secondary">
+          <Card className="rounded-[5px] border-dashed border-border p-6 sm:p-10 text-center shadow-sm">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-[8px] bg-secondary">
               <CalendarIcon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
             <p className="text-sm sm:text-base font-semibold mb-1">Ingen ruter denne dag</p>
@@ -623,12 +623,12 @@ const EmployeeApp = () => {
             return (
               <Card
                 key={r.id}
-                className="surface-admin overflow-hidden rounded-xl border-border/80 opacity-95 shadow-sm"
+                className="surface-admin overflow-hidden rounded-[5px] border-border/80 opacity-95 shadow-sm"
                 aria-label={`Rute ${r.name || ""} er færdig`}
               >
                 <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] border border-border"
                     style={{ background: color }}
                     aria-hidden
                   >
@@ -647,7 +647,7 @@ const EmployeeApp = () => {
                     <CheckCircle2 className="h-3 w-3" /> Færdig
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-3 p-3 sm:p-5 text-xs">
+                <div className="grid grid-cols-2 gap-3 p-3 sm:p-5 text-xs">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
@@ -669,7 +669,7 @@ const EmployeeApp = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-9 w-full gap-2 rounded-[4px] border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                   >
                     <Eye className="h-3.5 w-3.5" /> Vis & udskriv kvittering
                   </Button>
@@ -681,13 +681,13 @@ const EmployeeApp = () => {
           return (
             <Card
               key={r.id}
-              className="group surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
+              className="group surface-admin overflow-hidden rounded-[5px] border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
             >
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}
               <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                 <span
-                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-[4px] border border-border shadow-sm"
                   style={{ background: color }}
                   aria-hidden
                 >
@@ -728,20 +728,8 @@ const EmployeeApp = () => {
                 {/* Meta-grid — strukturerede tal-felter ligesom statskort i
                     virksomhedspanelet. Tre faste kolonner = forudsigelig
                     visuel rytme på alle skærmstørrelser. */}
-                <div className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-secondary/30 p-2.5">
-                  <div className="px-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Start</p>
-                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{startTime}</p>
-                  </div>
-                  <div className="border-l border-border px-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Varighed</p>
-                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
-                      {r.total_duration_minutes != null && r.total_duration_minutes > 0
-                        ? `${Math.round(r.total_duration_minutes / 60)}t ${r.total_duration_minutes % 60}min`
-                        : "—"}
-                    </p>
-                  </div>
-                  <div className="border-l border-border px-2">
+                <div className="grid grid-cols-1 gap-2 rounded-[4px] border border-border bg-secondary/30 p-2.5">
+                  <div className="px-2.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
                       {r.total_distance_km != null && r.total_distance_km > 0
@@ -750,9 +738,10 @@ const EmployeeApp = () => {
                     </p>
                   </div>
                 </div>
+                </div>
 
                 {r.start_address && (
-                  <div className="flex items-start gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs">
+                  <div className="flex items-start gap-2 rounded-[4px] border border-border bg-card px-3 py-2 text-xs">
                     <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Startadresse</p>
@@ -779,7 +768,7 @@ const EmployeeApp = () => {
 
                 {/* Stop-preview liste — divide-y row-stil ligesom kunder/aftaler */}
                 {total > 0 && (
-                  <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  <div className="overflow-hidden rounded-[4px] border border-border bg-card">
                     <div className="divide-y divide-border">
                       {myStops.slice(0, 4).map((s, i) => {
                         const isNext = s.id === firstPendingId;
@@ -851,7 +840,7 @@ const EmployeeApp = () => {
                   <Button
                     asChild={total > 0}
                     size="lg"
-                    className="h-10 sm:h-11 flex-1 gap-2 rounded-lg bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 flex-1 gap-2 rounded-[4px] bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >
@@ -880,7 +869,7 @@ const EmployeeApp = () => {
                     size="lg"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-10 sm:h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 shrink-0 rounded-[4px] border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     aria-label="Forhåndsvis & udskriv liste"
                     title="Forhåndsvis & udskriv liste"
                   >
