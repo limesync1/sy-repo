@@ -25,7 +25,6 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
-import { getCategoryIcon } from "@/lib/category-icons";
 import { NumberStepper } from "@/components/shared/NumberStepper";
 
 import { IndustryIcon } from "@/components/IndustryIcon";
@@ -489,8 +488,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 {servicesByCategory.map(([category, group], idx) => (
                   <SelectGroup key={category}>
                     {idx > 0 && <SelectSeparator />}
-                    <SelectLabel className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      <span aria-hidden className="text-[12px] leading-none">{getCategoryIcon(category)}</span>
+                    <SelectLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       {category}
                     </SelectLabel>
                     {group.map((s) => {

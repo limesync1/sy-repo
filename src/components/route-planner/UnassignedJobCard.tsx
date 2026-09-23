@@ -433,7 +433,7 @@ export const UnassignedJobCard = ({
       </div>
 
       {/* ───────────────────────────────────────────────────────────────────
-          3) ACTION-BÅND — "Vælg rute manuelt" åbner dialog hvor brugeren
+          3) ACTION-BÅND — "Vælg rute" åbner dialog hvor brugeren
              selv vælger blandt forslag (modsat header-knappens auto-fordel).
              Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
@@ -448,7 +448,7 @@ export const UnassignedJobCard = ({
               title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
             >
               <RouteIcon className="h-3 w-3" />
-              Vælg rute manuelt
+              Vælg rute
             </button>
           )}
           {(job.customer_phone || itemCount > 1 || job.notes) && (

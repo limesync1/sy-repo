@@ -3318,8 +3318,8 @@ const Planner = () => {
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
                 </Tooltip>
                 {createOpen && (
-                <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
-                  <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+                <DialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden flex flex-col">
+                  <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
                       icon={<RouteIcon className="h-4 w-4" />}
                       accent={newRouteColor}
@@ -3332,7 +3332,7 @@ const Planner = () => {
                     />
                   </DialogHeader>
 
-                  <div className="px-3 sm:px-5 py-3 space-y-2.5 bg-secondary/20 overflow-y-auto">
+                  <div className="planner-overlay-body px-3 sm:px-5 py-3 space-y-2.5 bg-secondary/20 overflow-y-auto">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
                       <div className="space-y-2.5">
                         <Field label="Navn (valgfrit)">

@@ -37,10 +37,10 @@ export const SheetHeaderBlock = ({
   const iconColor = hasAccent && accent ? readableTextOn(accent) : "hsl(var(--primary-foreground))";
   const hasBadge = badge != null || icon != null;
   return (
-    <div className="flex items-start gap-3 border-b border-border pb-3">
+    <div className="flex items-start gap-2.5">
       {hasBadge && (
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 shadow-sm"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold shrink-0 shadow-sm"
           style={{ background: bg, color: iconColor }}
           aria-hidden={!badge}
         >
@@ -48,7 +48,7 @@ export const SheetHeaderBlock = ({
         </span>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-[17px] font-semibold leading-tight text-left truncate text-foreground">
+        <div className="text-[16px] font-semibold leading-tight text-left truncate text-foreground">
           {title}
         </div>
         {description && (
@@ -208,5 +208,5 @@ export const SheetFooterBar = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("border-t px-4 py-2.5 shrink-0 bg-card", className)}>{children}</div>
+  <div className={cn("planner-overlay-footer border-t px-4 py-2.5 shrink-0 bg-card", className)}>{children}</div>
 );

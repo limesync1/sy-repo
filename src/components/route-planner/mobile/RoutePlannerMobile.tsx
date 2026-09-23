@@ -1093,7 +1093,7 @@ function UnassignedDock({
           ? "border-destructive bg-destructive/5 ring-2 ring-inset ring-destructive/20"
           : "border-border/70",
       )}
-      style={isTablet ? undefined : { height: total === 0 && !isStopDrag ? "auto" : "36dvh" }}
+      style={isTablet ? undefined : { height: total === 0 && !isStopDrag ? "auto" : "min(31dvh, 17rem)" }}
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
@@ -1165,7 +1165,7 @@ function UnassignedDock({
           {loading ? (
             <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-md" />
+                <Skeleton key={i} className="h-[4.5rem] w-full rounded-md" />
               ))}
             </div>
           ) : jobs.length === 0 ? (
@@ -1275,7 +1275,7 @@ function DraggableJobCard({
       {/* Tynd venstre urgency-rail */}
       <div aria-hidden className={cn("w-[3px] shrink-0", urgency.rail)} />
 
-      <div className="flex-1 min-w-0 p-2.5 pl-3 space-y-1.5">
+       <div className="flex-1 min-w-0 px-2.5 py-2 pl-3 space-y-1">
         {/* Drag-handle/check + navn + dato-pille */}
         <div className="flex items-start gap-1.5">
           {selectMode && !pending ? (
@@ -1295,7 +1295,7 @@ function DraggableJobCard({
               <GripVertical className="h-4 w-4" />
             </span>
           ) : null}
-          <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold capitalize leading-tight text-foreground">
+           <h3 className="min-w-0 flex-1 truncate text-[13px] font-semibold capitalize leading-tight text-foreground">
             {job.customer_name || "Ukendt kunde"}
           </h3>
           <span
@@ -1310,7 +1310,7 @@ function DraggableJobCard({
 
         {/* Service + pris — matcher desktop UnassignedJobCard */}
         {itemCount > 0 && (
-          <div className="flex items-baseline justify-between gap-2 rounded-md bg-secondary/30 px-1.5 py-1">
+          <div className="flex items-baseline justify-between gap-2">
             <p className="min-w-0 flex-1 truncate text-[11px] font-semibold leading-snug text-foreground/80">
               {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
               {items[0].service_name}

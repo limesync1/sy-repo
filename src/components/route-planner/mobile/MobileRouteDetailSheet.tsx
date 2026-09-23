@@ -222,8 +222,8 @@ export function MobileRouteDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="flex max-h-[90vh] flex-col gap-0 rounded-t-lg p-0">
-          <SheetHeader className="border-b border-border px-4 py-3 pr-14 text-left">
+        <SheetContent side="bottom" className="planner-overlay flex max-h-[90vh] flex-col gap-0 rounded-t-md p-0">
+          <SheetHeader className="planner-overlay-header border-b border-border px-4 py-3 pr-14 text-left">
             <div className="flex items-center gap-2.5">
               <span
                 className="h-8 w-1 shrink-0 rounded-sm"
