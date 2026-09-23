@@ -906,7 +906,7 @@ const DayCellInner = ({
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       data-density-target="day"
       className={cn(
-        "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-2 p-3 transition-all duration-200",
+        "border-r border-border last:border-r-0 relative group flex flex-col gap-2.5 p-3 transition-[background-color,box-shadow,opacity] duration-150",
         compact ? "min-h-[132px]" : "min-h-[184px]",
         !inMonth && "bg-muted/10",
         // Lidt kraftigere weekend-tint så uge-rytmen er nem at scanne i
@@ -914,8 +914,8 @@ const DayCellInner = ({
         // rute-pillerne. Bibeholdes ikke for fortidsdage (de dæmpes alligevel).
         inMonth && isWeekend && !isPast && "bg-secondary/30",
         isPast && "bg-muted/15",
-        today && "bg-accent/[0.055] ring-1 ring-inset ring-accent/35",
-        inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
+        today && "bg-accent/[0.05] shadow-[inset_0_3px_0_hsl(var(--accent))]",
+        inMonth && !isPast && !isDragActive && "hover:bg-secondary/45",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
@@ -1363,7 +1363,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "cursor-pointer min-h-[72px] shadow-sm hover:shadow-md",
+        "cursor-pointer min-h-[78px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1402,7 +1402,7 @@ const RoutePillInner = ({
         // Multi-select visuelt — tydelig accent-ring på valgte piller, og
         // svag dæmpning på ikke-valgte piller mens man er i valg-tilstand,
         // så valget altid er let at scanne i en travl kalender.
-        selected && "ring-1 ring-accent border-accent",
+        selected && "ring-2 ring-accent/25 border-accent bg-accent/[0.055] shadow-md",
         anySelected && !selected && !isVirtual && !isPast && "opacity-70 hover:opacity-100",
         anySelected && (isVirtual || isPast) && "opacity-30",
       )}

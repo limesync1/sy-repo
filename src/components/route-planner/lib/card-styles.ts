@@ -4,12 +4,12 @@
 
 /* Aftalekort-aliasser (bagudkompatibilitet). Pege på de fælles PILL-tokens
  * herunder — så ALT kører på samme design-token-pakke. */
-export const CARD_BORDER = "border-border/80";
+export const CARD_BORDER = "border-border/90";
 export const CARD_HOVER =
-  "hover:border-accent/55 hover:bg-accent/[0.025] hover:shadow-sm";
+  "hover:border-accent/45 hover:bg-card hover:shadow-[0_8px_22px_-18px_hsl(var(--foreground)/0.55)]";
 export const CARD_SELECTED =
-  "border-accent ring-1 ring-accent/30 bg-accent/[0.025]";
-export const CARD_DRAGGING = "ring-1 ring-accent opacity-95";
+  "border-accent ring-2 ring-accent/20 bg-accent/[0.055] shadow-[0_8px_22px_-18px_hsl(var(--accent)/0.7)]";
+export const CARD_DRAGGING = "border-accent ring-2 ring-accent/25 bg-accent/[0.06] opacity-90 shadow-lg";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
 export const CARD_RAIL_WIDTH = "w-1";
 
@@ -17,8 +17,8 @@ export const CARD_RAIL_WIDTH = "w-1";
  *  så aftalekort og rute-piller deler præcis samme radius, kant, skygge og
  *  transition. */
 export const CARD_BASE =
-  `group relative rounded-md border bg-card overflow-hidden shadow-sm ` +
-  "transition-[background-color,border-color,box-shadow] duration-150 ease-out";
+  `planner-card group relative rounded-md border bg-card overflow-hidden ` +
+  "transition-[background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out";
 
 /* ─────────────────────────────────────────────────────────────────────────
    FÆLLES PILL/CARD DESIGN-TOKENS
@@ -34,22 +34,20 @@ export const PILL_RADIUS = "rounded-[5px]";
 /** Mindre radius (bruges hvor rounded-xl er for kraftigt, fx kalender-celler). */
 export const PILL_RADIUS_SM = "rounded-[4px]";
 /** Standard kant. */
-export const PILL_BORDER = "border border-border/55";
+export const PILL_BORDER = "border border-border/85";
 /** Standard skygge — multi-layer, blød elevation. */
-export const PILL_SHADOW =
-  "shadow-sm";
+export const PILL_SHADOW = "shadow-[0_1px_2px_hsl(var(--foreground)/0.06)]";
 /** Hover-skygge — dybere elevation. */
-export const PILL_SHADOW_HOVER =
-  "hover:shadow-md";
+export const PILL_SHADOW_HOVER = "hover:shadow-[0_8px_20px_-16px_hsl(var(--foreground)/0.55)]";
 /** Standard transition for pille/kort-stilarter. */
 export const PILL_TRANSITION =
-  "transition-[background-color,border-color,opacity] duration-150 ease-out";
+  "transition-[background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out";
 /** Standard hover-løft. */
-export const PILL_HOVER_LIFT = "hover:border-foreground/25";
+export const PILL_HOVER_LIFT = "hover:border-accent/40 hover:bg-card";
 /** Bredde på venstre farve-rail (fælles for rute-pille og stop-kort). */
 export const PILL_RAIL_WIDTH = "w-[3px]";
 /** Aktiv multi-select-tilstand for piller (samme som kort, lille variant). */
-export const PILL_SELECTED = "ring-1 ring-accent border-accent";
+export const PILL_SELECTED = "ring-2 ring-accent/20 border-accent bg-accent/[0.055]";
 
 /** Komplet base-klassesæt for en pille (kalender-rute-pille). Brug som
  *  første argument til `cn(...)` så alle piller deler nøjagtigt samme
