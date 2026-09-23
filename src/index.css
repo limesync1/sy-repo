@@ -299,6 +299,18 @@
     box-shadow: 8px 0 24px -24px hsl(var(--foreground) / 0.38);
   }
 
+  .role-switch-ring {
+    background: conic-gradient(
+      from 210deg,
+      hsl(var(--accent)),
+      hsl(var(--success)),
+      hsl(var(--warning)),
+      hsl(var(--destructive)),
+      hsl(var(--accent))
+    );
+    box-shadow: 0 0 0 1px hsl(var(--background) / 0.7), 0 0 14px -5px hsl(var(--accent) / 0.75);
+  }
+
   .dark .service-panel-sidebar {
     background: hsl(var(--planner-surface-raised));
     box-shadow: 8px 0 28px -24px hsl(222 60% 2% / 0.92);
