@@ -1012,7 +1012,7 @@ export const RouteEditSheet = ({
                       style={{ background: c.value }}
                       aria-label={`Vælg farve ${c.name}`}
                     >
-                      {selected && <Check className="h-2.5 w-2.5 text-white drop-shadow" strokeWidth={4} />}
+                      {selected && <Check className="h-2.5 w-2.5 drop-shadow" style={{ color: readableTextOn(c.value) }} strokeWidth={4} />}
                     </button>
                   );
                 })}

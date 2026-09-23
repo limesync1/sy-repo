@@ -703,6 +703,46 @@
   color: hsl(0 0% 45%);
 }
 
+/* Kortets egne kontroller og popups følger plannerens tema. Selve OSM-dataene
+   forbliver genkendelige, mens lysstyrken dæmpes i mørk visning. */
+.planner-route-map .leaflet-popup-content-wrapper,
+.planner-route-map .leaflet-popup-tip,
+.planner-route-map .leaflet-control-layers,
+.planner-route-map .leaflet-bar a {
+  border-color: hsl(var(--border));
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+
+.planner-route-map .leaflet-bar a:hover,
+.planner-route-map .leaflet-bar a:focus-visible {
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+
+.planner-route-map .leaflet-popup-close-button,
+.dark .leaflet-popup.rich-business-popup .leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground));
+}
+
+.planner-route-map .leaflet-control-attribution {
+  background: hsl(var(--background) / 0.84);
+  color: hsl(var(--muted-foreground));
+  backdrop-filter: blur(6px);
+}
+
+.planner-route-map .leaflet-control-attribution a {
+  color: hsl(var(--accent));
+}
+
+.dark .planner-route-map .leaflet-tile-pane {
+  filter: brightness(0.72) saturate(0.72) contrast(1.08);
+}
+
+.dark .planner-route-map .leaflet-control-layers-separator {
+  border-color: hsl(var(--border));
+}
+
 /* ─── Leaflet z-index scoping ───
    Leaflet's defaults (.leaflet-pane = 400, .leaflet-top/.leaflet-bottom = 1000)
    hører til INDEN i .leaflet-container — men tile-billeder og controls kan

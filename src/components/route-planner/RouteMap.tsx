@@ -270,7 +270,7 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
   }, []);
 
   return (
-    <div ref={containerRef} style={{ height, width: "100%" }} className="relative rounded-lg overflow-hidden bg-background">
+    <div ref={containerRef} style={{ height, width: "100%" }} className="planner-route-map relative rounded-lg overflow-hidden border border-border bg-background">
       <MapContainer
         center={center}
         zoom={7}
@@ -364,7 +364,7 @@ const RouteLayer = ({
       {positions.length > 1 && (
         <>
           {/* Casing for contrast */}
-          <Polyline positions={positions} pathOptions={{ color: "#ffffff", weight: 8, opacity: 0.9 }} />
+          <Polyline positions={positions} pathOptions={{ color: "hsl(var(--background))", weight: 8, opacity: 0.9 }} />
           <Polyline positions={positions} pathOptions={{ color: route.color, weight: 5, opacity: 0.95, lineCap: "round", lineJoin: "round" }} />
         </>
       )}
