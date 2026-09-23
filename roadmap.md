@@ -96,6 +96,6 @@
 - [x] Verificér typekontrol, database og offentlige visninger ved 390, 768 og 1280 px.
 
 ## Responsiv kvittering og print
-- [ ] Saml forhåndsvisning og print i ét ensartet kvitteringslayout.
-- [ ] Gør valg, indhold og handlinger enkle på mobil og computer.
-- [ ] Kontrollér skærmvisning og A4-print uden overlap eller afskåret tekst.
+- [x] Saml forhåndsvisning og print i ét ensartet kvitteringslayout.
+- [x] Gør valg, indhold og handlinger enkle på mobil og computer.
+- [x] Kontrollér skærmvisning og A4-print uden overlap eller afskåret tekst.
