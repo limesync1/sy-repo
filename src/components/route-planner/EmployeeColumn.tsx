@@ -49,22 +49,22 @@ export const EmployeeColumn = ({
   return (
     <Card
       ref={setNodeRef}
-      className={`group/col relative flex flex-col p-3 rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] transition-all duration-200 ${
+      className={`group/col relative flex min-h-[360px] flex-col rounded-md border-border/70 bg-card p-2.5 shadow-none transition-colors duration-150 ${
         isOver
-          ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
-          : "hover:border-foreground/25 hover:shadow-[0_6px_16px_-6px_hsl(var(--foreground)/0.18)]"
+          ? "border-accent/70 bg-accent/[0.04] ring-1 ring-accent/30"
+          : "hover:border-foreground/25"
       }`}
     >
       {/* Top accent stripe matches route color */}
       <span
         aria-hidden
-        className="absolute inset-x-0 top-0 h-1 rounded-t-lg opacity-90"
+        className="absolute inset-y-0 left-0 w-[3px] rounded-l-md opacity-90"
         style={{ background: color }}
       />
       {/* Header */}
-      <header className="flex items-start gap-2.5 mb-3.5 mt-1">
+      <header className="mb-2 flex items-start gap-2 pl-1">
         <div
-          className="h-8 w-8 rounded-md shrink-0 ring-2 ring-background shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)] flex items-center justify-center"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1 ring-border"
           style={{ background: color }}
         >
           <span className="text-[10px] font-bold text-background leading-none">
@@ -81,14 +81,14 @@ export const EmployeeColumn = ({
             )}
           </div>
           {subtitle && <p className="text-[11px] text-muted-foreground truncate mt-0.5 leading-snug">{subtitle}</p>}
-          <div className="mt-1.5 flex flex-wrap items-center gap-1">
-            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 rounded-md font-semibold tabular-nums">
+           <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+             <span className="font-semibold tabular-nums text-foreground">
               {completedCount > 0 ? `${completedCount}/${stops.length}` : `${stops.length}`} stop
-            </Badge>
+             </span>
             {totalKm != null && totalKm > 0 && (
-              <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-0.5 rounded-md tabular-nums border-border/70">
+               <span className="inline-flex items-center gap-0.5 tabular-nums">
                 <Navigation className="h-2.5 w-2.5" />{totalKm.toFixed(1)} km
-              </Badge>
+               </span>
             )}
           </div>
         </div>
@@ -96,7 +96,7 @@ export const EmployeeColumn = ({
 
       {/* Action row */}
       {stops.length >= 1 && (onOptimize || onDispatch) && (
-        <div className="flex gap-1.5 mb-3">
+         <div className="mb-2 flex gap-1 border-y border-border/60 py-1.5">
           {onOptimize && stops.length >= 2 && (
             <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
@@ -120,11 +120,11 @@ export const EmployeeColumn = ({
       )}
 
       {/* Stops list */}
-      <div className="flex-1 space-y-2 min-h-[100px]">
+       <div className="min-h-[250px] flex-1 space-y-1.5 overflow-y-auto">
         <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
           {stops.length === 0 && (
             <div
-              className={`text-[11px] text-center py-8 px-3 border-2 border-dashed rounded-md transition-all ${
+               className={`min-h-[220px] px-3 text-[11px] text-center border border-dashed rounded-md transition-all flex items-center justify-center ${
                 isOver
                   ? "border-accent/60 bg-accent/[0.06] text-accent font-medium"
                   : "border-border/50 text-muted-foreground/70 hover:border-border hover:bg-secondary/20"
