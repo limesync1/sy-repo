@@ -33,8 +33,8 @@
 - [x] Vis rute- eller aftalekontekst på medarbejderens beskeder
 
 ## Samlet rettelse af rutekørsel og rutehandlinger
-- [ ] Forenkle kontakt til medarbejder med tydelige medarbejderikoner
-- [ ] Fjerne kortvisningsknapper fra rutedetaljerne
-- [ ] Holde tildel- og slet-handlinger synlige på stopkort
-- [ ] Redesign kørselsguide og stopliste på mobil, tablet og computer
+- [x] Forenkle kontakt til medarbejder med tydelige medarbejderikoner
+- [x] Fjerne kortvisningsknapper fra rutedetaljerne
+- [x] Holde tildel- og slet-handlinger synlige på stopkort
+- [x] Redesign kørselsguide og stopliste på mobil, tablet og computer
 - [ ] Verificér lys/mørk visning og centrale handlinger
