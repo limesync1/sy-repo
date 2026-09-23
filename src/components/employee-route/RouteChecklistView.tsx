@@ -76,30 +76,30 @@ export const RouteChecklistView = ({
   return (
     <div className="employee-route-run flex min-h-dvh flex-col bg-surface">
       {/* Header */}
-      <header className="sticky top-0 z-20 shrink-0 border-b border-background/15 bg-foreground text-background shadow-lg">
+      <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card text-foreground shadow-sm">
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-2 px-2 sm:h-16 sm:px-5">
-          <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
+          <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-md">
             <Link to="/medarbejder" aria-label="Tilbage til dagens ruter">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[15px] font-bold text-background">{routeName}</h1>
-            <p className="text-[11.5px] tabular-nums text-background/65">
+            <h1 className="truncate text-[15px] font-bold text-foreground">{routeName}</h1>
+            <p className="text-[11.5px] tabular-nums text-muted-foreground">
               {completed.length} af {stops.length} klaret
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="h-10 shrink-0 gap-1.5 border border-background/15 bg-background/10 px-2.5 text-[12.5px] text-background hover:bg-background/15 hover:text-background"
+            className="h-10 shrink-0 gap-1.5 border border-border bg-background px-2.5 text-[12.5px] text-foreground hover:bg-secondary"
             onClick={onSwitchToGuide}
           >
             <Navigation2 className="h-4 w-4" />
             Kort
           </Button>
         </div>
-        <div className="h-1 w-full bg-background/15" aria-hidden>
+        <div className="h-1 w-full bg-secondary" aria-hidden>
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, background: themeColor }}
@@ -116,7 +116,7 @@ export const RouteChecklistView = ({
               <p className="mt-0.5 text-xs font-medium leading-relaxed text-foreground">{notification.message}</p>
             </div>
             {onMarkNotificationRead && (
-              <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs" onClick={onMarkNotificationRead}>Set</Button>
+              <Button variant="outline" size="sm" className="h-8 shrink-0 text-xs" onClick={onMarkNotificationRead}>Markér som læst</Button>
             )}
           </div>
         </div>
@@ -125,7 +125,7 @@ export const RouteChecklistView = ({
       <main className="mx-auto w-full max-w-2xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
         {allDone ? (
           <section className="rounded-md border border-border bg-card p-6 text-center">
-            <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+            <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
               <PartyPopper className="h-7 w-7" />
             </span>
             <h2 className="mt-3 text-xl font-bold text-foreground">Ruten er kørt færdig</h2>
@@ -144,13 +144,13 @@ export const RouteChecklistView = ({
                 className="overflow-hidden rounded-md border border-border bg-card shadow-sm"
                 aria-label="Næste stop"
               >
-                <div className="flex items-center gap-2 border-b border-border bg-foreground px-3 py-2 text-background">
+                <div className="flex items-center gap-2 border-b border-border bg-secondary/45 px-3 py-2 text-foreground">
                   <span
                     className="inline-flex h-6 w-6 items-center justify-center rounded-[4px] bg-accent text-[11px] font-bold text-accent-foreground"
                   >
                     {completed.length + 1}
                   </span>
-                  <span className="text-[11px] font-semibold uppercase text-background/70">
+                  <span className="text-[11px] font-semibold uppercase text-muted-foreground">
                     Næste stop
                   </span>
                 </div>

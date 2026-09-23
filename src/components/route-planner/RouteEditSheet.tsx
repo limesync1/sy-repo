@@ -51,7 +51,14 @@ import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow } from "date-fns";
 import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 
-export type RouteEmployeeOption = { id: string; name: string };
+export type RouteEmployeeOption = {
+  id: string;
+  name: string;
+  avatar_url?: string | null;
+  color?: string | null;
+  email?: string | null;
+  is_active?: boolean | null;
+};
 
 /**
  * Toggle pr. rute: tillad medarbejdere at udføre ruten FØR den faktiske dato
@@ -906,14 +913,8 @@ export const RouteEditSheet = ({
           <SheetHeader
             className="planner-overlay-header relative px-5 py-4 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
-            <span
-              aria-hidden
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
-              style={{ background: color }}
-            />
             <SheetHeaderBlock
               icon={<Pencil className="h-4 w-4" />}
-              accent={color}
               title={
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute
