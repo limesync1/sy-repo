@@ -87,3 +87,10 @@
 - [x] Brug supportportrættet i kundeservicevisninger
 - [x] Genåbn færdige ruter automatisk ved nye stop
 - [x] Verificér centrale flows på mobil og computer
+
+## Oprydning, chat og offentligt design
+- [x] Vis kun regnskabs- og faktureringsfelter ved en faktisk aktiv integration.
+- [x] Sørg for at chatvisninger åbner ved nyeste besked, også efter billedindlæsning.
+- [x] Forbedr “Drift hele forretningen fra ét sted.” og testfasevisninger responsivt.
+- [x] Fjern dokumenteret forældede tabeller, opslag og døde kildefiler.
+- [x] Verificér typekontrol, database og offentlige visninger ved 390, 768 og 1280 px.
