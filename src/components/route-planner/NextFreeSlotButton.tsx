@@ -9,21 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
-type Capacity = { load_pct: number };
+type Capacity = { load_pct: number; stops_capacity: number; stops_booked: number };
 
 type Props = {
   /** Aktuel dato — bruges som startpunkt. */
   fromDate: string;
   capacityByDate: Map<string, Capacity>;
   onGoTo: (date: string) => void;
-  /** Tærskel i %; default 80 — alt over regnes som "fuld". */
-  threshold?: number;
   /** Max antal dage at lede frem. */
   horizonDays?: number;
 };
 
 export default function NextFreeSlotButton({
-  fromDate, capacityByDate, onGoTo, threshold = 80, horizonDays = 90,
+  fromDate, capacityByDate, onGoTo, horizonDays = 90,
 }: Props) {
   const find = useCallback(() => {
     try {
@@ -32,19 +30,19 @@ export default function NextFreeSlotButton({
         const d = format(addDays(start, i), "yyyy-MM-dd");
         const cap = capacityByDate.get(d);
         // Ingen kapacitets-info = ingen booket arbejde = ledigt.
-        if (!cap || cap.load_pct < threshold) {
+        if (!cap || cap.stops_booked < cap.stops_capacity) {
           onGoTo(d);
-          toast.success(`Hopper til ${d}`, { description: cap ? `Belastning ${Math.round(cap.load_pct)}%` : "Ingen booket arbejde" });
+          toast.success(`Hopper til ${d}`, { description: cap ? `${cap.stops_booked} af ${cap.stops_capacity} stop planlagt` : "Ingen stop planlagt" });
           return;
         }
       }
       toast.message("Ingen ledige slots fundet", {
-        description: `Alle ${horizonDays} dage er over ${threshold}% belastet.`,
+        description: `Alle ${horizonDays} dage har nået deres stopkapacitet.`,
       });
     } catch (e: any) {
       toast.error("Kunne ikke finde slot", { description: e?.message });
     }
-  }, [fromDate, capacityByDate, threshold, horizonDays, onGoTo]);
+  }, [fromDate, capacityByDate, horizonDays, onGoTo]);
 
   return (
     <Tooltip>
@@ -54,7 +52,7 @@ export default function NextFreeSlotButton({
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="text-xs">
-        Spring til første dag med under {threshold}% belastning
+        Spring til første dag med ledig stopkapacitet
       </TooltipContent>
     </Tooltip>
   );
