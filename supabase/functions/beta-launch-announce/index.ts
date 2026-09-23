@@ -4,6 +4,8 @@
 // idempotency-nøglen er bundet til rækkens id), og kun platform-admins må
 // udløse den.
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { EmailAPIError } from 'npm:@lovable.dev/email-js@0.1.0'
+import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,27 +63,21 @@ Deno.serve(async (req) => {
 
   for (const row of recipients) {
     try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({
-          templateName: 'beta-launch',
-          recipientEmail: row.email,
-          idempotencyKey: `beta-launch-${row.id}`,
-          templateData: { audience: row.role_interest },
-        }),
+      const result = await sendTemplateEmail('beta-launch', row.email, {
+        idempotencyKey: `beta-launch-${row.id}`,
+        templateData: { audience: row.role_interest },
       })
-      if (!res.ok) {
+      if (!result.sent) {
         failed.push(row.email)
         continue
       }
       await admin.from('beta_signups').update({ notified_at: new Date().toISOString() }).eq('id', row.id)
       sent++
-    } catch (_err) {
+    } catch (error) {
       failed.push(row.email)
+      if (error instanceof EmailAPIError && error.status === 429) {
+        await new Promise((resolve) => setTimeout(resolve, (error.retryAfterSeconds ?? 60) * 1000))
+      }
     }
     // Lille pause så vi ikke rammer udbyderens rate limit.
     await new Promise((r) => setTimeout(r, 120))

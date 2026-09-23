@@ -3,6 +3,7 @@
 // and invokes send-transactional-email for each, using the business's saved
 // template (or a sensible default) with placeholder substitution.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -241,15 +242,16 @@ Deno.serve(async (req) => {
         if (smsErr) throw new Error(smsErr.message ?? String(smsErr));
         if (smsRes && smsRes.ok === false) throw new Error(smsRes.error ?? "Ukendt SMS-fejl");
       } else {
-        const { error: invokeErr } = await admin.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "customer-notification",
-            recipientEmail: job.recipient_email,
-            idempotencyKey: `cust-notif-${job.id}`,
-            templateData: { subject, body, businessName: biz.name ?? "" },
-          },
+        const result = await sendTemplateEmail("customer-notification", job.recipient_email, {
+          idempotencyKey: `cust-notif-${job.id}`,
+          templateData: { subject, body, businessName: biz.name ?? "" },
         });
-        if (invokeErr) throw new Error(invokeErr.message ?? String(invokeErr));
+        if (!result.sent) {
+          await admin.from("customer_notification_queue").update({
+            status: "cancelled", last_error: "Modtageren kan ikke kontaktes via e-mail",
+          }).eq("id", job.id);
+          continue;
+        }
       }
 
       await admin.from("customer_notification_queue").update({
