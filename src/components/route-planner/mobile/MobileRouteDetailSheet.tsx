@@ -424,10 +424,10 @@ export function MobileRouteDetailSheet({
 
       {/* Stop-detaljer */}
       <Sheet open={!!activeStop} onOpenChange={(o) => !o && setActiveStop(null)}>
-        <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-lg p-0">
+        <SheetContent side="bottom" className="planner-overlay flex max-h-[85vh] flex-col gap-0 rounded-t-md p-0">
           {activeStop && (
             <>
-              <SheetHeader className="border-b border-border px-4 py-3 text-left">
+              <SheetHeader className="planner-overlay-header border-b border-border px-4 py-3 pr-14 text-left">
                 <div className="flex items-center justify-between gap-2">
                   <SheetTitle className="truncate text-base">
                     {activeStop.customer_name || "Ukendt kunde"}
@@ -441,7 +441,7 @@ export function MobileRouteDetailSheet({
                 </div>
               </SheetHeader>
 
-              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+              <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Adresse
@@ -510,7 +510,7 @@ export function MobileRouteDetailSheet({
                 </div>
               </div>
 
-              <div className="space-y-2 border-t border-border p-4">
+              <div className="planner-overlay-footer space-y-2 border-t border-border p-4">
                 <Button
                   className="w-full gap-2"
                   variant={activeStop.status === "completed" ? "outline" : "default"}
@@ -632,11 +632,11 @@ function RouteSettingsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-lg p-0">
-        <SheetHeader className="border-b border-border px-4 py-3 text-left">
+      <SheetContent side="bottom" className="planner-overlay flex max-h-[85vh] flex-col gap-0 rounded-t-md p-0">
+        <SheetHeader className="planner-overlay-header border-b border-border px-4 py-3 pr-14 text-left">
           <SheetTitle className="text-base">Rute-indstillinger</SheetTitle>
         </SheetHeader>
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
           <div className="space-y-1.5">
             <Label htmlFor="mobile-route-name" className="text-xs uppercase tracking-wide text-muted-foreground">
               Navn
@@ -673,7 +673,7 @@ function RouteSettingsSheet({
             </div>
           </div>
         </div>
-        <div className="space-y-2 border-t border-border p-4">
+        <div className="planner-overlay-footer space-y-2 border-t border-border p-4">
           <Button className="w-full gap-2" onClick={() => onSave(name.trim(), color)} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Gem ændringer

@@ -35,8 +35,8 @@ export function DiagnosticsDialog({ open, onOpenChange, items, onAssignRoute }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-2xl max-h-[80vh] overflow-y-auto rounded-md">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
           <SheetHeaderBlock
             icon={<AlertTriangle className="h-4 w-4" />}
             title={<DialogTitle className="text-base">{items.length === 1 ? "1 aftale kan ikke projiceres" : `${items.length} aftaler kan ikke projiceres`}</DialogTitle>}
@@ -90,7 +90,7 @@ export function DiagnosticsDialog({ open, onOpenChange, items, onAssignRoute }: 
           )}
         </div>
 
-        <DialogFooter className="-mx-6 -mb-6 mt-2 border-t bg-card px-5 py-4">
+        <DialogFooter className="planner-overlay-footer -mx-6 -mb-6 mt-2 border-t bg-card px-5 py-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Luk</Button>
         </DialogFooter>
       </DialogContent>

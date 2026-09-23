@@ -136,8 +136,8 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) onOpenChange(v); }}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
-        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
+        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<CalendarDays className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Flyt opstartsdato for {jobs.length} aftale{jobs.length === 1 ? "" : "r"}</DialogTitle>}
@@ -149,7 +149,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
           />
         </DialogHeader>
 
-        <div className="px-5 py-4 space-y-4 overflow-y-auto">
+        <div className="planner-overlay-body px-5 py-4 space-y-4 overflow-y-auto">
           <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
             <TabsList className="grid grid-cols-2 w-full h-9">
               <TabsTrigger value="set" className="text-xs">Sæt fælles dato</TabsTrigger>
@@ -222,7 +222,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
           </div>
         </div>
 
-        <DialogFooter className="px-5 py-3 border-t bg-card shrink-0 gap-2">
+        <DialogFooter className="planner-overlay-footer px-5 py-3 border-t bg-card shrink-0 gap-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy} className="h-9">
             Annullér
           </Button>
