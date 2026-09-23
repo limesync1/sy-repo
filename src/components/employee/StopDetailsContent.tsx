@@ -208,12 +208,8 @@ export const StopDetailsContent = ({
           ? "border-feature-warm/40 text-feature-warm-foreground bg-feature-warm/10"
           : "border-border text-muted-foreground bg-secondary/50";
 
-  const arrivalLabel = stop.planned_arrival
-    ? format(new Date(stop.planned_arrival), "HH:mm", { locale: da })
-    : null;
-  const completedLabel = stop.completed_at
-    ? format(new Date(stop.completed_at), "EEEE d. MMM 'kl.' HH:mm", { locale: da })
-    : null;
+  const arrivalLabel = null;
+  const completedLabel = null;
   const accent = route?.color || "hsl(var(--primary))";
 
   // Send/gensend faktura — kun synlig når aftalen er markeret udført OG der
@@ -274,20 +270,12 @@ export const StopDetailsContent = ({
               <CheckCircle2 className="h-2.5 w-2.5" />Færdig
             </Badge>
           ) : null}
-          {arrivalLabel && (
-            <Badge variant="outline" className="gap-1 text-[10px]">
-              <Clock className="h-2.5 w-2.5" />{arrivalLabel}
-            </Badge>
-          )}
+          
           <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
           </Badge>
         </SheetHeaderBlock>
-        {completedLabel && (
-          <p className="mt-2 inline-flex items-center gap-1 rounded-md bg-feature-cool/10 px-2 py-0.5 text-[11px] font-medium text-feature-cool-foreground">
-            <CheckCircle2 className="h-3 w-3" /> Markeret færdig {completedLabel}
-          </p>
-        )}
+        
         {/* Hurtig-handlinger: Maps + Ring direkte i header — ingen scroll nødvendig.
             Stor touch-target, kompakt layout, samme stil som virksomhedspanelet. */}
         {!readOnly && (fullAddress || stop.customer_phone) && (

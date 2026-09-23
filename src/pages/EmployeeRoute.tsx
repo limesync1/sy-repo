@@ -2335,7 +2335,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <div className="px-2 py-2.5">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {route.total_duration_minutes != null ? `${route.total_duration_minutes} min` : "—"}
+                      "—"
                     </p>
                   </div>
                 </div>
@@ -2576,7 +2576,7 @@ const StopListPanel = ({
             const isDone = s.status === "completed";
             const isNext = s.id === nextStopId;
             const meta = statusMeta(s);
-            const plannedTime = formatPlannedTime(s.planned_arrival);
+            const plannedTime = null;
             const flex = flexById.get(s.id) ?? null;
             const posInRemaining = remainingIds.indexOf(s.id);
             return (

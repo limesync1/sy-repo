@@ -652,14 +652,7 @@ const EmployeeApp = () => {
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
                   </div>
-                  {r.total_duration_minutes != null && r.total_duration_minutes > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Varighed</p>
-                      <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
-                        ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
-                      </p>
-                    </div>
-                  )}
+                  
                   {r.total_distance_km != null && r.total_distance_km > 0 && (
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>

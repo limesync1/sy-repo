@@ -566,7 +566,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                     setTimeSlot={setTimeSlot}
                     notes={notes}
                     setNotes={setNotes}
-                    plannedArrival={stop.planned_arrival}
+                    
                     distanceToNextKm={stop.distance_to_next_km}
                   />
                 </Section>
@@ -668,60 +668,7 @@ type PlanningProps = {
   distanceToNextKm: number | null | undefined;
 };
 
-const PlanningSection = ({
-  timeSlot, setTimeSlot,
-  notes, setNotes,
-  plannedArrival, distanceToNextKm,
-}: PlanningProps) => {
-  const [slotOpen, setSlotOpen] = useState(false);
-
-  const selectedSlot = TIME_SLOTS.find((s) => s.value === timeSlot);
-
-  return (
-    <div className="space-y-4">
-        {/* Note */}
-        <div className="space-y-2">
-          <Label>Intern note</Label>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            placeholder="Fx 'Brug bagindgangen', 'Hund i haven'..."
-            className="resize-none"
-          />
-          <p className="text-[11px] text-muted-foreground">
-            Synlig for medarbejderen i medarbejder-appen.
-          </p>
-        </div>
-    </div>
-  );
-};
-
-/* ────────────────────────────────────────────
-   AssigneePicker — vælg én eller flere medarbejdere på aftalen.
-   • Klik på chip = tilføj/fjern.
-   • Crown-ikon = sæt som lead (primær).
-   • Provision fordeles automatisk ligeligt ved completion (50/50, 33/33/33...).
-   ──────────────────────────────────────────── */
-
-type EmployeeOption = {
-  id: string;
-  name: string;
-  color?: string | null;
-  avatar_url?: string | null;
-};
-
-const AssigneePicker = ({
-  employees,
-  assigneeIds,
-  leadId,
-  onChange,
-}: {
-  employees: EmployeeOption[];
-  assigneeIds: string[];
-  leadId: string | null;
-  onChange: (ids: string[], lead: string | null) => void;
-}) => {
+const PlanningSection = ({ notes, setNotes }: any) => {
   const toggle = (id: string) => {
     if (assigneeIds.includes(id)) {
       const next = assigneeIds.filter((x) => x !== id);
