@@ -5157,20 +5157,11 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
       derive_zone_key: { Args: { zip: string }; Returns: string }
       detect_route_duplicates: { Args: never; Returns: number }
       dismiss_dlq_job: {
         Args: { _dlq_id: string; _note?: string }
         Returns: undefined
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
       }
       enqueue_monthly_consolidated_invoices: {
         Args: { _business_id: string; _month: number; _year: number }
@@ -5537,15 +5528,6 @@ export type Database = {
           moved_count: number
         }[]
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       open_projected_route_base: {
         Args: {
           _base_route_id: string
@@ -5609,14 +5591,6 @@ export type Database = {
           body: string
           enabled: boolean
           title: string
-        }[]
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
         }[]
       }
       recalc_route_totals: { Args: { _route_id: string }; Returns: undefined }
