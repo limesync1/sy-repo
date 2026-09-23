@@ -31,6 +31,7 @@ import { PageHeader, PrimaryButton, SearchInput, EmptyState, StatCard } from "@/
 import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useActiveAccountingIntegration } from "@/hooks/useActiveAccountingIntegration";
 import {
   AccountingStatusRow,
   CustomerOrderStatusSummary,
@@ -571,6 +572,8 @@ interface Props { businessId: string; businessName?: string }
 const CustomersTab = ({ businessId, businessName }: Props) => {
   const qc = useQueryClient();
   const { data: customers = [], isLoading } = useCustomers(businessId);
+  const { data: activeAccountingIntegration } = useActiveAccountingIntegration(businessId);
+  const hasActiveAccounting = !!activeAccountingIntegration;
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
@@ -1029,7 +1032,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                         )}
                       </div>
                       {/* Aggregeret regnskabsstatus: viser fx "1 forfalden · 1 rykker · 3 betalt" */}
-                      {c.accounting_summary && (
+                      {hasActiveAccounting && c.accounting_summary && (
                         <div className="mt-1.5">
                           <CustomerOrderStatusSummary summary={c.accounting_summary} />
                         </div>
@@ -1127,6 +1130,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         businessId={businessId}
         email={selectedEmail}
         customer={filtered.find(c => c.email === selectedEmail) || null}
+        hasActiveAccounting={hasActiveAccounting}
         onClose={() => setSelectedEmail(null)}
       />
 
@@ -1169,10 +1173,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   );
 };
 
-const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
+const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting, onClose }: {
   businessId: string;
   email: string | null;
   customer: Customer | null;
+  hasActiveAccounting: boolean;
   onClose: () => void;
 }) => {
   const { data, isLoading } = useCustomerDetails(businessId, email);
@@ -1288,7 +1293,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                               {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
                             </span>
                             <StatusBadge status={nextOrder.status} />
-                            <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
+                            {hasActiveAccounting && <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />}
                             {nextOrder.preferred_date && (
                               <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
                                 <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
@@ -1301,7 +1306,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     </div>
                   </div>
 
-                  {customer.accounting_summary && (customer.accounting_summary.overdue > 0 || customer.accounting_summary.reminders > 0 || customer.accounting_summary.unpaid > 0) && (
+                  {hasActiveAccounting && customer.accounting_summary && (customer.accounting_summary.overdue > 0 || customer.accounting_summary.reminders > 0 || customer.accounting_summary.unpaid > 0) && (
                     <div className="rounded-lg border border-border bg-card px-3 py-2">
                       <CustomerOrderStatusSummary summary={customer.accounting_summary} />
                     </div>
@@ -1328,7 +1333,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                     {o.is_paused
                                       ? <Badge variant="outline" className="h-5 border-warning/40 bg-warning/10 px-1.5 text-[10px] text-warning-foreground">På pause</Badge>
                                       : <StatusBadge status={o.status} />}
-                                    <AccountingStatusRow order={o as OrderForStatus} size="xs" />
+                                    {hasActiveAccounting && <AccountingStatusRow order={o as OrderForStatus} size="xs" />}
                                   </div>
                                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
                                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {format(parseISO(o.created_at), "d. MMM yyyy", { locale: da })}</span>
