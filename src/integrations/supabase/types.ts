@@ -2356,6 +2356,78 @@ export type Database = {
           },
         ]
       }
+      employee_route_notifications: {
+        Row: {
+          business_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          message: string
+          read_at: string | null
+          route_id: string | null
+          route_stop_id: string | null
+          sender_user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          message: string
+          read_at?: string | null
+          route_id?: string | null
+          route_stop_id?: string | null
+          sender_user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          route_id?: string | null
+          route_stop_id?: string | null
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_route_notifications_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_route_notifications_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_route_notifications_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_route_notifications_route_stop_id_fkey"
+            columns: ["route_stop_id"]
+            isOneToOne: false
+            referencedRelation: "route_stops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_route_notifications_sender_user_id_fkey"
+            columns: ["sender_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       employee_skills: {
         Row: {
           business_id: string
@@ -3481,6 +3553,77 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_live_positions: {
+        Row: {
+          accuracy_m: number | null
+          business_id: string
+          current_stop_id: string | null
+          employee_id: string
+          expires_at: string
+          heading: number | null
+          latitude: number
+          longitude: number
+          recorded_at: string
+          route_id: string
+          speed_mps: number | null
+        }
+        Insert: {
+          accuracy_m?: number | null
+          business_id: string
+          current_stop_id?: string | null
+          employee_id: string
+          expires_at?: string
+          heading?: number | null
+          latitude: number
+          longitude: number
+          recorded_at?: string
+          route_id: string
+          speed_mps?: number | null
+        }
+        Update: {
+          accuracy_m?: number | null
+          business_id?: string
+          current_stop_id?: string | null
+          employee_id?: string
+          expires_at?: string
+          heading?: number | null
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+          route_id?: string
+          speed_mps?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_live_positions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_live_positions_current_stop_id_fkey"
+            columns: ["current_stop_id"]
+            isOneToOne: false
+            referencedRelation: "route_stops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_live_positions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_live_positions_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
             referencedColumns: ["id"]
           },
         ]
@@ -4960,6 +5103,7 @@ export type Database = {
       }
       cleanup_route_mutation_claims: { Args: never; Returns: number }
       cleanup_route_planner_idempotency: { Args: never; Returns: number }
+      clear_route_position: { Args: { _route_id: string }; Returns: undefined }
       close_chat_conversation_by_token: {
         Args: { p_token: string }
         Returns: undefined
@@ -5479,6 +5623,18 @@ export type Database = {
       remove_route_stop_safely: { Args: { _stop_id: string }; Returns: Json }
       reopen_route: { Args: { _route_id: string }; Returns: undefined }
       reorder_route_stops: { Args: { _updates: Json }; Returns: undefined }
+      report_route_position: {
+        Args: {
+          _accuracy_m?: number
+          _current_stop_id?: string
+          _heading?: number
+          _latitude: number
+          _longitude: number
+          _route_id: string
+          _speed_mps?: number
+        }
+        Returns: undefined
+      }
       request_business_deletion_code: {
         Args: { p_business_id: string }
         Returns: string

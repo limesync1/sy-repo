@@ -476,8 +476,33 @@
 
     .service-panel-open [role="dialog"] {
       max-width: calc(100vw - 1rem);
-      max-height: calc(100dvh - 1rem);
+      max-height: calc(100svh - 1rem);
+      overflow-wrap: anywhere;
     }
+
+    .service-panel-open [role="dialog"] > * {
+      min-width: 0;
+      max-width: 100%;
+    }
+  }
+
+  .route-live-position__pulse {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border-radius: 9999px;
+    background: hsl(var(--accent) / 0.18);
+    border: 1px solid hsl(var(--background));
+    box-shadow: 0 2px 8px hsl(var(--foreground) / 0.24);
+  }
+
+  .route-live-position__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: hsl(var(--accent));
+    border: 2px solid hsl(var(--background));
   }
 
   .route-planner-open .planner-overlay {

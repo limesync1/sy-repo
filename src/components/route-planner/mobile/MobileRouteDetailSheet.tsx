@@ -58,6 +58,9 @@ import {
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { RouteCommunicationPanel } from "@/components/route-planner/RouteCommunicationPanel";
 
 // Kortet er tungt (Leaflet) — hent det først når brugeren folder det ud.
 const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
@@ -104,6 +107,24 @@ export function MobileRouteDetailSheet({
   const deleteRoute = useDeleteRoute();
 
   const doneCount = stops.filter((s) => s.status === "completed").length;
+  const { data: livePositions = [] } = useQuery({
+    queryKey: ["route-live-positions", route.id],
+    refetchInterval: open ? 20_000 : false,
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("route_live_positions").select("*").eq("route_id", route.id).gt("expires_at", new Date().toISOString());
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const mapLivePositions = livePositions.map((position) => ({
+    employeeId: position.employee_id,
+    lat: position.latitude,
+    lng: position.longitude,
+    label: employees.find((employee) => employee.id === position.employee_id)?.name || "Medarbejder",
+    currentStopLabel: stops.find((item) => item.id === position.current_stop_id)?.customer_name || undefined,
+    recordedAt: position.recorded_at,
+  }));
 
   const activeEmployees = (employees || []).filter((e) => e.is_active !== false);
   const empName = (id: string | null | undefined) =>
@@ -222,7 +243,7 @@ export function MobileRouteDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="planner-overlay flex max-h-[90vh] flex-col gap-0 rounded-t-md p-0">
+          <SheetContent side="bottom" className="planner-overlay flex h-[calc(100svh-0.5rem)] max-h-[calc(100svh-0.5rem)] flex-col gap-0 rounded-t-md p-0 sm:h-[90svh]">
           <SheetHeader className="planner-overlay-header border-b border-border px-4 py-3 pr-14 text-left">
             <div className="flex items-center gap-2.5">
               <span
@@ -317,6 +338,7 @@ export function MobileRouteDetailSheet({
                 <RouteMap
                   routes={[{ color: route.color || "#0ea5e9", stops: mapStops }]}
                   height="14rem"
+                  livePositions={mapLivePositions}
                   selectedStopId={activeStop?.id ?? null}
                   onStopClick={(id) => {
                     const s = stops.find((st) => st.id === id);
@@ -328,7 +350,8 @@ export function MobileRouteDetailSheet({
           )}
 
 
-           <div className="min-h-0 flex-1 overflow-y-auto p-3">
+           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+            <RouteCommunicationPanel route={route} stops={stops} employees={employees} />
             {stops.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary/50">

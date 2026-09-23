@@ -35,6 +35,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
 import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
@@ -385,6 +386,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Tidlig udførelse — afgør om "Markér udført" må trykkes på fremtidige
   // rutedatoer. Samme resolver som EmployeeApp bruger på dagslisten.
   const { data: meEmp } = useMyEmployee();
+  const { data: employeeNotifications = [] } = useEmployeeRouteNotifications();
+  const markNotificationRead = useMarkRouteNotificationRead();
   const empMode = ((meEmp as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
   const { data: bizEarlyDefault = false } = useQuery({
     queryKey: ["business-early-default", meEmp?.business_id],
@@ -554,7 +557,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     // Watcheren nedlægges helt (ikke bare ignoreres), så radioen får ro
     // og telefonen hverken bliver varm eller tapper batteri.
     if (!pageVisible) return;
-    const shouldWatch = routeStarted || geoPermission === "granted";
+    const shouldWatch = routeStarted;
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
     const MIN_INTERVAL_MS = 4000;
@@ -622,6 +625,36 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   );
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
+  const routeNotifications = employeeNotifications.filter((item) => item.route_id === routeId && !item.read_at);
+
+  useEffect(() => {
+    if (!routeStarted || !pageVisible || !filtered || !meEmp?.id || !route) return;
+    let cancelled = false;
+    const pushPosition = async () => {
+      if (cancelled) return;
+      await supabase.rpc("report_route_position", {
+        _route_id: routeId,
+        _latitude: filtered.pos[0],
+        _longitude: filtered.pos[1],
+        _heading: filtered.heading ?? undefined,
+        _accuracy_m: filtered.accuracyM ?? undefined,
+        _speed_mps: filtered.speedMps ?? undefined,
+        _current_stop_id: nextStop?.id ?? undefined,
+      });
+    };
+    void pushPosition();
+    const timer = window.setInterval(pushPosition, 25_000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, nextStop?.id, filtered?.pos[0], filtered?.pos[1]]);
+
+  useEffect(() => {
+    return () => { void supabase.rpc("clear_route_position", { _route_id: routeId }); };
+  }, [routeId]);
+
+  useEffect(() => {
+    if (!allDone || !routeStarted) return;
+    void supabase.rpc("clear_route_position", { _route_id: routeId });
+  }, [allDone, routeStarted, routeId]);
 
   const startCoord: [number, number] | null = useMemo(() => {
     if (!route) return null;
@@ -1526,6 +1559,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             />
           </div>
         </header>
+      )}
+      {routeNotifications.length > 0 && (
+        <div className="relative z-30 border-b border-destructive/25 bg-destructive/5 px-3 py-2">
+          <div className="mx-auto flex max-w-3xl items-start gap-2">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <p className="min-w-0 flex-1 text-xs font-medium text-foreground">{routeNotifications[0].message}</p>
+            <Button size="sm" variant="outline" className="h-7 shrink-0 text-xs" onClick={() => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))}>Set</Button>
+          </div>
+        </div>
       )}
 
       {/* ─── Map fills everything ─── */}

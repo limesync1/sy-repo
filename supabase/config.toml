@@ -27,6 +27,8 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.route-directions]
     verify_jwt = false
+  [functions.route-overview-email]
+    verify_jwt = true
   [functions.admin-reset-password]
     verify_jwt = true
   [functions.customer-approve-order]
