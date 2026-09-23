@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Printer, ExternalLink, Clock, Flag, Route as RouteIcon,
-  Timer, MapPin, ClipboardList, ListChecks, StickyNote, Phone,
+  MapPin, ClipboardList, ListChecks, StickyNote, Phone,
 } from "lucide-react";
 import { useMyRouteData } from "@/hooks/useRoutes";
 import { stripPrices } from "@/lib/employee-display";

@@ -51,7 +51,7 @@ export function LegendPopover() {
             <Section title="Advarsler & dage">
               <Row swatch={<AlertTriangle className="h-3.5 w-3.5 text-amber-500" />} label="Skill-mismatch" desc="Medarbejder mangler en færdighed" />
               <Row swatch={<Dot className="bg-destructive" />} label="Konflikt" desc="Overbooket eller tidsoverlap" />
-              <Row swatch={<BarBg />} label="Kapacitets-bjælke" desc="Arbejdstid vs. 8-timers dag" />
+              <Row swatch={<BarBg />} label="Kapacitets-bjælke" desc="Planlagte stop vs. dagens stopkapacitet" />
               <Row swatch={<Inbox className="h-3.5 w-3.5 text-muted-foreground" />} label="Aftaler uden rute" desc="Skal placeres på kalenderen" />
             </Section>
           </div>

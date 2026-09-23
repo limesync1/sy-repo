@@ -17,7 +17,7 @@ import type { StopCapacity } from "./lib/stop-capacity";
 /**
  * Vedvarende konflikt-banner øverst i rute-kalenderen.
  * Samler de mest aktuelle alarmer i én linje:
- *  • Dage hvor (arbejde + kørsel) overstiger kapacitet (load_pct > 100)
+ *  • Dage hvor antallet af stop overstiger medarbejdernes stopkapacitet
  *  • Ruter hvor tildelt medarbejder mangler en påkrævet færdighed
  *
  * Banneret kan lukkes — det dukker først op igen når nye konflikter opstår

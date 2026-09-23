@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Sparkles, MapPin, Clock, Wrench, Cloud, CheckCircle2,
+  Sparkles, MapPin, Wrench, Cloud, CheckCircle2,
   AlertTriangle, User, Loader2, MapPinned, CalendarSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
