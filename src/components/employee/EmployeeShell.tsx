@@ -190,6 +190,11 @@ export const EmployeeShell = ({
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
+  useEffect(() => {
+    document.body.classList.add("service-panel-open");
+    return () => document.body.classList.remove("service-panel-open");
+  }, []);
+
   // Aktiv virksomhed — panelets data hentes udelukkende for denne.
   const activeBusiness = employee?.business ?? null;
   const activeBusinessName = activeBusiness?.name || "Virksomhed";
@@ -222,9 +227,9 @@ export const EmployeeShell = ({
 
   return (
 
-    <div className="isolate flex min-h-dvh flex-col bg-secondary/50">
+    <div className="service-panel-workspace employee-panel-workspace isolate flex min-h-dvh flex-col bg-secondary/50">
       {/* Topbar — altid synlig */}
-      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <header className="service-panel-topbar sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <div className="flex h-14 items-center gap-3 px-3 sm:px-5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Forside">
             <img
@@ -252,9 +257,9 @@ export const EmployeeShell = ({
                   onMouseEnter={() => prefetchTab(item.value)}
                   onFocus={() => prefetchTab(item.value)}
                   className={cn(
-                    "inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
+                    "inline-flex h-8 items-center gap-2 rounded-[4px] px-3 text-sm font-medium transition-colors",
                     active
-                      ? "bg-secondary text-foreground"
+                       ? "bg-accent/10 text-accent shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.24)]"
                       : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
                   )}
                   aria-current={active ? "page" : undefined}
@@ -281,7 +286,7 @@ export const EmployeeShell = ({
               <button
                 type="button"
                 onClick={() => setPickerOpen(true)}
-                className="flex h-9 min-w-0 shrink items-center gap-2 rounded-full border border-border bg-secondary/60 pl-1 pr-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                 className="flex h-8 min-w-0 shrink items-center gap-2 rounded-[4px] border border-border bg-background pl-1 pr-2.5 text-xs font-semibold text-foreground transition-colors hover:border-accent/40 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
                 title={`Aktiv virksomhed: ${activeBusinessName}`}
               >
@@ -395,7 +400,7 @@ export const EmployeeShell = ({
       {/* Main — får ekstra bund-padding på mobil/tablet for at gøre plads til bottom-nav */}
       <main
         className={cn(
-          "relative z-0 flex-1 min-w-0",
+           "service-panel-content relative z-0 flex-1 min-w-0",
           contentPadding ? "p-2.5 sm:p-4 md:p-6" : "",
           // 64px bottom-nav + safe-area på mobil/tablet.
           visibleNav.length > 1 ? "pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : "",
@@ -408,7 +413,7 @@ export const EmployeeShell = ({
       {/* Bundnavigation — kun mobil/tablet, kun hvis vi har mere end ét punkt */}
       {visibleNav.length > 1 && (
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:hidden"
+           className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:hidden"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           aria-label="Bundnavigation"
         >
@@ -431,7 +436,7 @@ export const EmployeeShell = ({
                     <span
                       className={cn(
                         "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
-                        active ? "bg-secondary" : "bg-transparent",
+                         active ? "bg-accent/10 text-accent" : "bg-transparent",
                       )}
                     >
                       <Icon className="h-5 w-5" />

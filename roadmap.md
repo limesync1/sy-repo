@@ -13,4 +13,4 @@
 - [x] Hold rutekortets handlinger fri af rutenavn og metadata
 - [x] Forbedr mørk visning på hele ruteplanlæggeren og dens vinduer
 - [x] Kvalitetssikr hele redesignets layout, vinduer, tilstande og responsive visninger
-- [ ] Udbred ruteplanlæggerens komplette designsystem til hele virksomheds- og medarbejderpanelet
+- [x] Udbred ruteplanlæggerens komplette designsystem til hele virksomheds- og medarbejderpanelet

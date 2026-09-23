@@ -45,9 +45,9 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-1.5rem)] rounded-2xl p-5 sm:max-w-[440px] sm:p-6">
+      <DialogContent className="planner-overlay max-w-[calc(100vw-1rem)] rounded-[6px] p-4 sm:max-w-[440px] sm:p-5">
         <DialogHeader className="text-left">
-          <DialogTitle className="text-[19px] font-bold leading-tight">
+          <DialogTitle className="text-lg font-semibold leading-tight">
             Hvordan vil du køre ruten?
           </DialogTitle>
           <DialogDescription className="text-[13.5px] leading-6">
@@ -55,7 +55,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-1 grid gap-2.5">
+        <div className="mt-1 grid gap-2">
           {options.map((o) => {
             const Icon = o.icon;
             return (
@@ -64,12 +64,12 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 type="button"
                 onClick={() => onChoose(o.mode, remember)}
                 className={cn(
-                  "group flex w-full items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all",
-                  "min-h-[76px] active:scale-[0.99] hover:border-foreground/30 hover:shadow-sm",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+                  "group flex w-full items-start gap-3 rounded-[5px] border border-border bg-card p-3 text-left transition-all",
+                  "min-h-[70px] active:scale-[0.99] hover:border-accent/40 hover:bg-secondary/40 hover:shadow-sm",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 )}
               >
-                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] bg-secondary text-foreground">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -87,7 +87,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
           })}
         </div>
 
-        <label className="mt-1 flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-secondary/40 px-3 py-2.5">
+        <label className="mt-1 flex cursor-pointer items-center gap-2.5 rounded-[4px] border border-border bg-secondary/40 px-3 py-2.5">
           <Checkbox
             checked={remember}
             onCheckedChange={(v) => setRemember(v === true)}

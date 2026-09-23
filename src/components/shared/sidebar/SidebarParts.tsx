@@ -58,11 +58,11 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
         aria-current={active ? "page" : undefined}
         aria-label={collapsed ? label : undefined}
         className={cn(
-          "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-medium text-left transition-[background-color,color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+          "group relative flex w-full items-center overflow-hidden rounded-[4px] text-sm font-medium text-left transition-[background-color,color,padding] duration-150",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
           collapsed ? "h-10 justify-center px-0" : "gap-2.5 px-3 py-2.5",
           active
-            ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
+            ? "bg-accent/10 text-accent shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.22)]"
             : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
         )}
       >
@@ -70,11 +70,11 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
         <span
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-foreground transition-opacity",
+            "pointer-events-none absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-accent transition-opacity",
             active ? "opacity-100" : "opacity-0",
           )}
         />
-        <Icon className={cn("h-4 w-4 shrink-0", active && "text-foreground")} aria-hidden="true" />
+        <Icon className={cn("h-4 w-4 shrink-0", active && "text-accent")} aria-hidden="true" />
         {/* Labelen fades og glider ud i stedet for at forsvinde brat — det
             gør collapse/expand markant mere roligt at se på. */}
         <span
@@ -167,7 +167,7 @@ export const SidebarCollapseToggle = ({
             onClick={onToggle}
             aria-label={collapsed ? "Udvid sidebar" : "Kollaps sidebar"}
             aria-pressed={collapsed}
-            className="hidden lg:inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+             className="hidden lg:inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-[4px] border border-border bg-background text-xs font-medium text-muted-foreground transition-colors hover:border-accent/35 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {collapsed ? (
               <ChevronsRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -205,8 +205,8 @@ export const SidebarFooterItem = ({
   danger?: boolean;
 }) => {
   const className = cn(
-    "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-medium transition-[background-color,color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+    "group relative flex w-full items-center overflow-hidden rounded-[4px] text-sm font-medium transition-[background-color,color,padding] duration-150",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
     collapsed ? "h-10 justify-center px-0" : "gap-2 px-3 py-2",
     danger
       // Log ud står altid i destruktiv-rød — også uden hover — så den
