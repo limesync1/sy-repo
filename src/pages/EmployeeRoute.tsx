@@ -2583,6 +2583,8 @@ const StopListPanel = ({
             const isNext = s.id === nextStopId;
             const meta = statusMeta(s);
             const plannedTime = formatPlannedTime(s.planned_arrival);
+            const flex = flexById.get(s.id) ?? null;
+            const posInRemaining = remainingIds.indexOf(s.id);
             return (
               <div
                 key={s.id}
