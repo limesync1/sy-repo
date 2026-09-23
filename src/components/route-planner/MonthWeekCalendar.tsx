@@ -1814,15 +1814,13 @@ const RoutePillInner = ({
             // afstand. Helt udførte ruter får emerald-stribe.
             completedCount > 0 && "h-1.5",
           )}
-          title={
-            completedCount > 0
-              ? `${completedCount} af ${stopCount} stop udført (${Math.round((completedCount / stopCount) * 100)}%) · Belastning ${loadPct}%`
-               : `${stopCount} af ${routeCapacity.stops_capacity} stop (${empCount} medarbejder${empCount === 1 ? "" : "e"})`
-          }
+          title={completedCount > 0
+            ? `${completedCount} af ${stopCount} stop udført · ${stopCount} af ${routeCapacity.stops_capacity} stop planlagt`
+            : `${stopCount} af ${routeCapacity.stops_capacity} stop planlagt (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={
             completedCount > 0
               ? `${completedCount} af ${stopCount} stop udført`
-              : `Belastning ${loadPct} procent`
+              : `${stopCount} af ${routeCapacity.stops_capacity} stop planlagt`
           }
         >
           {/* Belastnings-baggrund (subtil) */}
