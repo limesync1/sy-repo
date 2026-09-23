@@ -20,6 +20,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { FULL_KNOWLEDGE, CITATION_INSTRUCTIONS, KNOWLEDGE_CATEGORIES, parseCitations } from "../_shared/serviceydere-knowledge.ts";
 import { sanitizeLinks } from "../_shared/valid-links.ts";
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -116,22 +117,17 @@ Deno.serve(async (req) => {
         .join("\n");
 
     const notifyEscalation = async (reason: string, transcript: string) => {
-      admin.functions
-        .invoke("send-transactional-email", {
-          body: {
-            templateName: "new-chat-message",
-            recipientEmail: "kontakt@serviceydere.dk",
-            idempotencyKey: `chat-escalate-${conv.id}`,
-            templateData: {
+      sendTemplateEmail("new-chat-message", "kontakt@serviceydere.dk", {
+        idempotencyKey: `chat-escalate-${conv.id}`,
+        templateData: {
               conversationToken: token,
               visitorName: conv.visitor_name,
               visitorEmail: conv.visitor_email,
               subject: conv.subject || "",
               message: `🙋 ${reason}\n\n--- AI-dialog indtil nu ---\n${transcript || "(ingen beskeder)"}`,
               isLoggedIn: false,
-            },
-          },
-        })
+        },
+      })
         .catch(() => {});
     };
 

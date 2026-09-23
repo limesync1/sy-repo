@@ -1,74 +1,90 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
+
 import {
- LOGO_URL,
- main,
- wrapper,
- headerBar,
- container,
- logo,
- eyebrow,
- h1,
- text,
- buttonSection,
- button,
- linkCard,
- linkCardText,
- smallLink,
- link,
- securityBox,
- securityTitle,
- securityText,
- footer,
- footerText,
-} from './_styles.ts'
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Text,
+} from 'npm:@react-email/components@0.0.22'
 
 interface InviteEmailProps {
- siteName: string
- siteUrl: string
- confirmationUrl: string
+  siteName: string
+  siteUrl: string
+  confirmationUrl: string
 }
 
-export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailProps) => (
- <Html lang="da" dir="ltr">
- <Head />
- <Preview>Du er inviteret til {siteName}</Preview>
- <Body style={main}>
- <Container style={wrapper}>
- <Section style={headerBar}>
-  <Img src={LOGO_URL} alt={siteName} width="170" height="48" style={logo} />
- </Section>
- <Container style={container}>
- <Text style={eyebrow}>Invitation</Text>
- <Heading style={h1}>Du er inviteret</Heading>
- <Text style={text}>
- Du er blevet inviteret til at deltage på <Link href={siteUrl} style={link}>{siteName}</Link>.
- Accepter invitationen for at oprette din konto og få adgang.
- </Text>
-
- <Section style={buttonSection}>
- <Button style={button} href={confirmationUrl}>Acceptér invitation</Button>
- </Section>
-
- <Section style={linkCard}>
- <Text style={linkCardText}>Hvis knappen ikke virker, så brug dette link i din browser:</Text>
- <Link href={confirmationUrl} style={smallLink}>{confirmationUrl}</Link>
- </Section>
-
- <Section style={securityBox}>
- <Text style={securityTitle}>Forventede du ikke invitationen?</Text>
- <Text style={securityText}>Så kan du ignorere e-mailen. Kontoen bliver først oprettet, når invitationen accepteres.</Text>
- </Section>
- </Container>
-
- <Section style={footer}>
- <Text style={footerText}>Invitationen blev sendt til denne adresse for at give dig adgang til {siteName}.</Text>
- </Section>
- </Container>
- </Body>
- </Html>
+export const InviteEmail = ({
+  siteName,
+  siteUrl,
+  confirmationUrl,
+}: InviteEmailProps) => (
+  <Html lang="en" dir="ltr">
+    <Head>
+      <style>{darkModeCss}</style>
+    </Head>
+    <Preview>You've been invited to join {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>You've been invited</Heading>
+        <Text style={text}>
+          You've been invited to join{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          . Click the button below to accept the invitation and create your
+          account.
+        </Text>
+        <Button className="dm-btn" style={button} href={confirmationUrl}>
+          Accept Invitation
+        </Button>
+        <Text style={footer}>
+          If you weren't expecting this invitation, you can safely ignore this
+          email.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
 )
 
 export default InviteEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  border: '1px solid #000000',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+// Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
+const darkModeCss = `
+  @media (prefers-color-scheme: dark) {
+    .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+  }
+  [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+  [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+`

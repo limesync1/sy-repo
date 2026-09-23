@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.103.0";
 import { lookupDkZip, haversineKm } from "./dk-postcodes.ts";
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -404,12 +405,9 @@ ${bizSummaries}`,
             const notif = (biz?.notification_settings as any) || {};
             if (notif.lead_emails === false) return;
 
-            await supabase.functions.invoke("send-transactional-email", {
-              body: {
-                templateName: "new-lead",
-                recipientEmail: recipient,
-                idempotencyKey: `new-lead-${qr.id}-${biz.id}`,
-                templateData: {
+            await sendTemplateEmail("new-lead", recipient, {
+              idempotencyKey: `new-lead-${qr.id}-${biz.id}`,
+              templateData: {
                   businessName: biz.name,
                   ownerName: profileByOwner.get(biz.owner_id) || null,
                   customerName,
@@ -425,7 +423,6 @@ ${bizSummaries}`,
                   customerEmail: shareContact ? customerEmail : null,
                   customerPhone: shareContact ? customerPhone : null,
                   leadsUrl: "https://serviceydere.dk/virksomhed?tab=leads",
-                },
               },
             }).catch((e) => console.error("send lead email failed:", biz.id, e));
           }));

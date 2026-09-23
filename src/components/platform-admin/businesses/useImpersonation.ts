@@ -22,38 +22,16 @@ export function useImpersonation() {
 
   const open = async (b: { id: string; name: string }) => {
     setState({ business: b, sentTo: null, inputCode: "", loading: true, redeeming: false });
-    const { data: code, error } = await supabase.rpc("admin_create_impersonation_code", { p_business_id: b.id });
-    if (error || !code) {
-      toast.error("Kunne ikke generere kode: " + (error?.message ?? "ukendt fejl"));
-      setState(null);
-      return;
-    }
-    const { data: userData } = await supabase.auth.getUser();
-    const adminEmail = userData?.user?.email;
-    if (!adminEmail) {
-      toast.error("Kunne ikke finde din admin-email");
-      setState(null);
-      return;
-    }
-    const adminName =
-      (userData?.user?.user_metadata as Record<string, unknown>)?.full_name as string ||
-      (userData?.user?.user_metadata as Record<string, unknown>)?.name as string ||
-      adminEmail.split("@")[0];
-    const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-      body: {
-        templateName: "admin-impersonation-code",
-        recipientEmail: adminEmail,
-        idempotencyKey: `admin-impersonation-${b.id}-${code}`,
-        templateData: { businessName: b.name, code: code as string, expiresInMinutes: 15, adminName },
-      },
+    const { data, error } = await supabase.functions.invoke("business-security-email", {
+      body: { action: "impersonation-code", businessId: b.id },
     });
-    if (mailErr) {
-      toast.error("Kunne ikke sende kode på e-mail: " + mailErr.message);
+    if (error || !data?.sent || !data?.sentTo) {
+      toast.error("Kunne ikke sende kode på e-mail: " + (error?.message ?? "ukendt fejl"));
       setState(null);
       return;
     }
-    toast.success(`Kode sendt til ${adminEmail}`);
-    setState({ business: b, sentTo: adminEmail, inputCode: "", loading: false, redeeming: false });
+    toast.success(`Kode sendt til ${data.sentTo}`);
+    setState({ business: b, sentTo: data.sentTo, inputCode: "", loading: false, redeeming: false });
   };
 
   const redeem = async () => {

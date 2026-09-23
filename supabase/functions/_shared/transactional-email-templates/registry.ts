@@ -26,6 +26,7 @@ import { template as customerWelcome } from './customer-welcome.tsx'
 import { template as adminImpersonationCode } from './admin-impersonation-code.tsx'
 import { template as businessDeletionCode } from './business-deletion-code.tsx'
 import { template as betaLaunch } from './beta-launch.tsx'
+import { template as businessWelcome } from './business-welcome.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -45,4 +46,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'admin-impersonation-code': adminImpersonationCode,
   'business-deletion-code': businessDeletionCode,
   'beta-launch': betaLaunch,
+  'business-welcome': businessWelcome,
 }

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.95.0'
+import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -217,13 +218,9 @@ Deno.serve(async (req) => {
   // Notify the business owner — fire and forget
   const biz: any = order.businesses
   if (biz?.email) {
-    supabase.functions
-      .invoke('send-transactional-email', {
-        body: {
-          templateName: 'order-status-update',
-          recipientEmail: biz.email,
-          idempotencyKey: `manual-order-${decision}-${order.id}`,
-          templateData: {
+    sendTemplateEmail('order-status-update', biz.email, {
+      idempotencyKey: `manual-order-${decision}-${order.id}`,
+      templateData: {
             customerName: order.customer_name,
             businessName: biz.name,
             orderId: order.id,
@@ -233,9 +230,8 @@ Deno.serve(async (req) => {
               : 'Kunden har afvist bestillingen',
             totalAmount: Number(order.total_amount || 0),
             note: customerMessage || undefined,
-          },
-        },
-      })
+      },
+    })
       .catch(() => { /* non-blocking */ })
   }
 

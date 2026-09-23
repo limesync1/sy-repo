@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -183,10 +184,9 @@ Deno.serve(async (req) => {
   const origin = req.headers.get('origin') || 'https://serviceydere.dk'
   const loginUrl = `${origin}/log-ind`
 
-  const emailResp = await admin.functions.invoke('send-transactional-email', {
-    body: {
-      templateName: 'employee-welcome',
-      recipientEmail: email,
+  let emailSent = false
+  try {
+    const result = await sendTemplateEmail('employee-welcome', email, {
       idempotencyKey: `employee-welcome-${employee.id}`,
       templateData: {
         employeeName: name,
@@ -197,14 +197,17 @@ Deno.serve(async (req) => {
         accountAlreadyExisted,
         loginUrl,
       },
-    },
-  })
+    })
+    emailSent = result.sent
+  } catch (error) {
+    console.error('Employee welcome email failed', error)
+  }
 
   return new Response(
     JSON.stringify({
       ok: true,
       employee,
-      emailSent: !emailResp.error,
+      emailSent,
       accountAlreadyExisted,
     }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

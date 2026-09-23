@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -85,10 +86,9 @@ Deno.serve(async (req) => {
   }
 
   // Send transactional email with the reset link
-  const emailResp = await admin.functions.invoke('send-transactional-email', {
-    body: {
-      templateName: 'employee-password-reset',
-      recipientEmail: emp.email,
+  let emailSent = false
+  try {
+    const result = await sendTemplateEmail('employee-password-reset', emp.email, {
       idempotencyKey: `employee-pwreset-${emp.id}-${Date.now()}`,
       templateData: {
         employeeName: emp.name,
@@ -97,10 +97,14 @@ Deno.serve(async (req) => {
         resetUrl: actionLink,
       },
     },
-  })
+    )
+    emailSent = result.sent
+  } catch (error) {
+    console.error('Employee password email failed', error)
+  }
 
   return new Response(
-    JSON.stringify({ ok: true, emailSent: !emailResp.error }),
+    JSON.stringify({ ok: true, emailSent }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   )
 })

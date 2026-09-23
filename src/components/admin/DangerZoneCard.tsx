@@ -38,22 +38,13 @@ export const DangerZoneCard = ({ businessId, businessName, ownerEmail }: Props) 
     if (cooldown > 0 || sending) return;
     setSending(true);
     try {
-      const { data: codeValue, error } = await supabase.rpc("request_business_deletion_code", {
-        p_business_id: businessId,
-      });
-      if (error || !codeValue) throw new Error(error?.message || "Kunne ikke generere kode");
       const email = ownerEmail;
       if (!email) throw new Error("Ingen e-mail tilknyttet din konto");
-      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "business-deletion-code",
-          recipientEmail: email,
-          idempotencyKey: `biz-del-${businessId}-${codeValue}`,
-          templateData: { businessName, code: codeValue, expiresInMinutes: 15 },
-        },
+      const { data, error } = await supabase.functions.invoke("business-security-email", {
+        body: { action: "deletion-code", businessId },
       });
-      if (mailErr) throw mailErr;
-      setSentTo(email);
+      if (error || !data?.sent) throw error || new Error("Mailen kunne ikke sendes");
+      setSentTo(data.sentTo || email);
       setStep("code");
       setCooldown(COOLDOWN_SECONDS);
       toast.success(`Kode sendt til ${email}`);

@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -104,17 +105,13 @@ Deno.serve(async (req) => {
 
   // Send welcome email with credentials (fire-and-forget)
   const origin = req.headers.get('origin') || 'https://serviceydere.dk'
-  admin.functions.invoke('send-transactional-email', {
-    body: {
-      templateName: 'customer-welcome',
-      recipientEmail: email,
-      idempotencyKey: `customer-welcome-${created.user.id}`,
-      templateData: {
+  sendTemplateEmail('customer-welcome', email, {
+    idempotencyKey: `customer-welcome-${created.user.id}`,
+    templateData: {
         customerName: name || undefined,
         email,
         password,
         loginUrl: `${origin}/min-konto`,
-      },
     },
   }).catch(() => {})
 

@@ -357,26 +357,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       // Send notifikation til virksomhedens email — hent den server-side via
       // edge function for at undgå at vise emailen i klienten.
       supabase.functions
-        .invoke("send-transactional-email", {
-          body: {
-            templateName: "new-chat-message",
-            // Recipient sættes server-side: vi sender business_id med så
-            // edge function kan slå virksomhedens email op. Som fallback
-            // sender vi direkte hvis funktionen ikke kender business_id.
-            recipientEmail: "kontakt@serviceydere.dk",
-            idempotencyKey: `biz-chat-start-${conv.id}`,
-            templateData: {
-              conversationToken: token,
-              visitorName: parsed.data.name,
-              visitorEmail: parsed.data.email,
-              subject: parsed.data.subject || "",
-              message: parsed.data.message,
-              isLoggedIn: !!user,
-              adminUrl: `${window.location.origin}/virksomhed?tab=livechat`,
-            },
-            businessId,
-          },
-        })
+        .invoke("chat-start-email", { body: { token } })
         .catch(() => {});
     } catch (e: any) {
       setError(e?.message || "Kunne ikke starte chatten. Prøv igen.");

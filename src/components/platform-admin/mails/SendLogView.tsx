@@ -62,15 +62,16 @@ export function SendLogView() {
     setResendingId(row.message_id);
     try {
       const templateData = row.metadata?.templateData ?? row.metadata?.template_data ?? {};
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
+      const { data, error } = await supabase.functions.invoke("admin-preview-template", {
         body: {
+          action: "send",
           templateName: row.template_name,
           recipientEmail: row.recipient_email,
           idempotencyKey: `admin-resend-${row.message_id}-${Date.now()}`,
           templateData,
         },
       });
-      if (error) throw error;
+      if (error || !data?.sent) throw error || new Error("Modtageren kan ikke kontaktes");
       toast.success(`Gen-sendt til ${row.recipient_email}`);
       refetch();
     } catch (e: any) {
