@@ -45,11 +45,7 @@ const EmployeeRoutePrint = () => {
   const { route, stops, employee } = data;
   const sorted = [...stops].sort((a, b) => a.sequence - b.sequence);
   const businessName = (route as any).businesses?.name || "";
-  const startTime = route.planned_start_time?.slice(0, 5) || "08:00";
   const distance = route.total_distance_km != null ? `${Number(route.total_distance_km).toFixed(1)} km` : "—";
-  const totalTime = route.total_duration_minutes != null
-    ? `${Math.floor(route.total_duration_minutes / 60)}t ${route.total_duration_minutes % 60}m`
-    : "—";
 
   return (
     <div className={`min-h-screen bg-muted/40 print:bg-white print-root ${compact ? "is-compact" : ""}`}>
@@ -132,11 +128,9 @@ const EmployeeRoutePrint = () => {
               </div>
 
               {/* Meta strip with subtle card */}
-              <dl className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 print:bg-transparent print:border-black/30">
-                <MetaItem icon={<Clock className="h-3.5 w-3.5" />} label="Start" value={startTime} />
+              <dl className="mt-5 grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 print:bg-transparent print:border-black/30">
                 <MetaItem icon={<Flag className="h-3.5 w-3.5" />} label="Stop" value={String(sorted.length)} />
                 <MetaItem icon={<RouteIcon className="h-3.5 w-3.5" />} label="Distance" value={distance} />
-                <MetaItem icon={<Timer className="h-3.5 w-3.5" />} label="Tid i alt" value={totalTime} />
               </dl>
 
               {route.start_address && (
