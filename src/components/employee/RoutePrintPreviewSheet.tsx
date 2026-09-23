@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Loader2, Printer, ExternalLink, Flag, Route as RouteIcon,
+  Loader2, Printer, Flag, Route as RouteIcon,
   MapPin, ClipboardList, ListChecks, StickyNote, Phone, Contact, FileText, AlignJustify,
 } from "lucide-react";
 import { useMyRouteData } from "@/hooks/useRoutes";
@@ -111,16 +111,7 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
         </div>
 
         {/* Footer-handlinger */}
-        <SheetFooterBar className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button
-            asChild
-            variant="outline"
-            className="h-9 gap-1.5 rounded-[4px] border-border bg-card text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <Link to={printPath} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-4 w-4" /> Åbn fuld visning
-            </Link>
-          </Button>
+        <SheetFooterBar className="flex justify-end">
           <Button
             asChild
             className="h-9 gap-1.5 rounded-[4px] bg-accent text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:bg-accent/90"

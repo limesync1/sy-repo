@@ -7,12 +7,8 @@ import SiteNav from "@/components/SiteNav";
 // ikke ser en kort Suspense-flash når de scroller (det føltes som om
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
 // stadig så initial JS-bundle bliver markant mindre.
-import Stats from "@/components/landing/Stats";
 import Categories from "@/components/landing/Categories";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
-const GetQuotes         = lazy(() => import("@/components/landing/GetQuotes"));
-const PopularCities     = lazy(() => import("@/components/landing/PopularCities"));
-const AudienceSplit     = lazy(() => import("@/components/landing/AudienceSplit"));
 const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
 const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
 const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
@@ -111,17 +107,13 @@ const Index = () => {
           via dens egen min-height/transition. */}
       <Suspense fallback={null}>
         <main id="main">
-          <Reveal><Stats /></Reveal>
-          <Reveal><AudienceSplit /></Reveal>
           <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
-          <Reveal><GetQuotes /></Reveal>
           <Reveal><Testimonials /></Reveal>
           <Reveal><WhyUs /></Reveal>
-          <Reveal><PopularCities /></Reveal>
           <Reveal><ForBusinesses /></Reveal>
 
-          <Reveal>
+          <Reveal className="bg-ocean">
             <CTABand
               eyebrow="Kom i gang"
               title="Beskriv opgaven én gang — få op til 3 tilbud"

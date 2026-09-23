@@ -26,6 +26,7 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import supportPortrait from "@/assets/serviceydere-support.jpg.asset.json";
 import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 
@@ -546,9 +547,8 @@ export const AdminShell = ({
             >
               <span className="relative flex h-6 w-6 items-center justify-center shrink-0">
                 <img
-                  src="/serviceydere-ikon.webp"
-                  alt=""
-                  aria-hidden="true"
+                  src={supportPortrait.url}
+                  alt="Serviceydere kundeservice"
                   className="h-6 w-6 rounded-full object-cover"
                 />
                 <span className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-2 w-2">

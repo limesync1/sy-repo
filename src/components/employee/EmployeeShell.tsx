@@ -335,14 +335,14 @@ export const EmployeeShell = ({
         )}
         aria-label="Hovednavigation"
       >
-        <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center" : "px-4")}>
-          <Link to="/" className="flex items-center overflow-hidden" aria-label="Forside">
+        <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center px-0" : "justify-between px-4")}>
+          <Link to="/" className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")} aria-label="Forside">
             {collapsed ? (
-              <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-md object-contain" width={64} height={64} />
+              <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-lg object-contain" width={64} height={64} decoding="async" loading="lazy" />
             ) : (
               <>
-                <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-8 w-auto dark:hidden" width={1920} height={539} />
-                <img src="/serviceydere-logo.webp" alt="Serviceydere" className="hidden h-8 w-auto dark:block" width={1920} height={539} />
+                <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-9 w-auto dark:hidden" width={1920} height={539} decoding="async" loading="lazy" />
+                <img src="/serviceydere-logo.webp" alt="Serviceydere" className="hidden h-9 w-auto dark:block" width={1920} height={539} decoding="async" loading="lazy" />
               </>
             )}
           </Link>
@@ -402,11 +402,11 @@ export const EmployeeShell = ({
           </Link>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={toggleCollapsed} className="hidden h-9 w-9 lg:inline-flex" aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}>
+              <button type="button" onClick={toggleCollapsed} className="hidden rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex" aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"} aria-pressed={collapsed}>
                 {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-              </Button>
+              </button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</TooltipContent>
+            <TooltipContent side="bottom">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"} <span className="opacity-60">[</span></TooltipContent>
           </Tooltip>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">{title ?? currentNav?.label}</h1>

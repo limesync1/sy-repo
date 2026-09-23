@@ -15,6 +15,7 @@ import ChatInboxList from "./ChatInboxList";
 import BusinessRecommendationCard from "./BusinessRecommendationCard";
 import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
+import supportPortrait from "@/assets/serviceydere-support.jpg.asset.json";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -800,10 +801,9 @@ const LiveChatWidget = () => {
         >
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
-              src="/serviceydere-ikon.webp"
-              alt=""
-              aria-hidden="true"
-              className="h-8 w-8 object-contain"
+              src={supportPortrait.url}
+              alt="Serviceydere kundeservice"
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-background/20"
             />
             <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
@@ -856,7 +856,7 @@ const LiveChatWidget = () => {
               <div className="relative flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
-                    <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
+                    <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-10 w-10 rounded-2xl object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14px] font-semibold leading-tight">Kundeservice</p>
@@ -1072,7 +1072,7 @@ const LiveChatWidget = () => {
                           <div className="w-9 flex-shrink-0">
                             {showAvatar && (
                               <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
-                                <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                                <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-9 w-9 rounded-2xl object-cover" />
                               </span>
                             )}
                           </div>
@@ -1210,7 +1210,7 @@ const LiveChatWidget = () => {
                     <div className="flex items-end gap-2 animate-in fade-in duration-200">
                       <div className="w-9 flex-shrink-0">
                         <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
-                          <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                          <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-9 w-9 rounded-2xl object-cover" />
                         </span>
                       </div>
                       <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
