@@ -48,9 +48,8 @@ const REMINDER_TONE: Record<string, string> = {
 
 const fmtDate = (iso?: string | null) =>
   iso
-    ? new Date(iso).toLocaleString("da-DK", {
+    ? new Date(iso).toLocaleDateString("da-DK", {
         day: "numeric", month: "short", year: "numeric",
-        hour: "2-digit", minute: "2-digit",
       })
     : "";
 

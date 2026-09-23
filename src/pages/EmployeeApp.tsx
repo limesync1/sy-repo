@@ -832,11 +832,6 @@ const EmployeeApp = () => {
                                 </Badge>
                               </div>
                             </div>
-                            {arrivalLabel && (
-                              <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
-                                {arrivalLabel}
-                              </span>
-                            )}
                             <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                           </button>
                         );
@@ -907,8 +902,8 @@ const EmployeeApp = () => {
           side={isMobile ? "bottom" : "right"}
           className={
             isMobile
-              ? "h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-2xl !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
-              : "w-full p-0 flex flex-col sm:max-w-lg"
+              ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
+              : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
           }
         >
           {detailsStop && (
