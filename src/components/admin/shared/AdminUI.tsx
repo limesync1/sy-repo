@@ -46,7 +46,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-      "h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm",
+      "h-9 rounded-[4px] bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-4 shadow-sm",
       // Holdt simpelt: kun farve-overgang ved hover, lille press-feedback ved klik.
       // Ingen "lift" eller ikon-skalering — det føltes tilfældigt på en CTA.
       "transition-colors duration-150 ease-out active:scale-[0.98]",
@@ -96,11 +96,11 @@ export const StatCard = ({
   return (
     // Diskret hover: kun border bliver lidt mørkere. Ingen lift/rotation som
     // ellers fik nøgletals-kortene til at "danse" tilfældigt.
-    <Card className={cn("rounded-xl border-border shadow-sm transition-colors duration-150 ease-out hover:border-foreground/15", ring)}>
-      <CardContent className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
+    <Card className={cn("service-panel-card rounded-[5px] border-border shadow-sm transition-colors duration-150 ease-out hover:border-accent/35", ring)}>
+      <CardContent className="flex items-start gap-2.5 p-3">
         <div
           className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4 [&_svg]:w-4 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5",
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] [&_svg]:h-4 [&_svg]:w-4",
             tones[tone],
           )}
         >
@@ -108,7 +108,7 @@ export const StatCard = ({
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">{label}</p>
-          <p className="mt-0.5 break-words text-lg font-bold leading-tight tracking-tight tabular-nums text-foreground sm:mt-1 sm:text-2xl">
+          <p className="mt-0.5 break-words text-lg font-bold leading-tight tracking-normal tabular-nums text-foreground sm:text-xl">
             {value}
           </p>
           {hint && <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground sm:mt-1 sm:text-xs">{hint}</p>}
@@ -134,8 +134,8 @@ export const SectionCard = React.forwardRef<
 >(({ title, icon, description, action, children, className }, ref) => (
   // Blød fade-in (ingen translate). Sektion-kort forklarer ikke handlinger,
   // så de skal ikke "flyve ind" — bare ankomme stille.
-  <Card ref={ref} className={cn("rounded-xl border-border shadow-sm", className)}>
-    <CardContent className="p-5 sm:p-6 space-y-4">
+  <Card ref={ref} className={cn("service-panel-card rounded-[5px] border-border shadow-sm", className)}>
+    <CardContent className="p-3.5 sm:p-4 space-y-3">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3 pb-1">
           <div className="min-w-0">
@@ -212,7 +212,7 @@ export const SearchInput = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="pl-9 rounded-lg h-10"
+      className="pl-9 rounded-[4px] h-9"
     />
   </div>
 );
@@ -228,9 +228,9 @@ export const EmptyState = React.forwardRef<
     action?: React.ReactNode;
   }
 >(({ icon, title, description, action }, ref) => (
-  <Card ref={ref} className="rounded-xl border-dashed border-border">
-    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary [&_svg]:h-6 [&_svg]:w-6 [&_svg]:text-muted-foreground/40">
+  <Card ref={ref} className="service-panel-card rounded-[5px] border-dashed border-border">
+    <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[4px] bg-secondary [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-muted-foreground/50">
         {icon}
       </div>
       <p className="text-sm font-semibold text-foreground">{title}</p>

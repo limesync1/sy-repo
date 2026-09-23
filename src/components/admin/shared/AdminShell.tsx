@@ -298,6 +298,11 @@ export const AdminShell = ({
   }, []);
   const collapsed = collapsible && collapsedPref && isDesktop;
 
+  useEffect(() => {
+    document.body.classList.add("service-panel-open");
+    return () => document.body.classList.remove("service-panel-open");
+  }, []);
+
   // ESC lukker mobil-sidebar — letter tastatur-navigation.
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -384,7 +389,7 @@ export const AdminShell = ({
   };
 
   return (
-    <div className="flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
+    <div className="service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
       {/* Mobil-overlay fader ind/ud i stedet for at poppe hårdt frem. */}
       <div
         aria-hidden={!sidebarOpen}
@@ -398,7 +403,7 @@ export const AdminShell = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:h-dvh lg:translate-x-0",
+          "service-panel-sidebar fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:h-dvh lg:translate-x-0",
           collapsed ? "lg:w-[68px]" : "lg:w-[248px]",
           sidebarOpen ? "translate-x-0 shadow-2xl lg:shadow-none" : "-translate-x-full shadow-none",
         )}
@@ -455,7 +460,7 @@ export const AdminShell = ({
         {/* Business info */}
         <div
           className={cn(
-            "mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card shadow-sm",
+            "mt-3 mb-3 shrink-0 rounded-[5px] border border-border bg-card shadow-sm",
             collapsed ? "mx-2 px-2 py-2" : "mx-3 px-3 py-3",
           )}
           title={collapsed ? business.name : undefined}
@@ -530,7 +535,7 @@ export const AdminShell = ({
           collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]",
         )}
       >
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
+        <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden"
@@ -613,7 +618,7 @@ export const AdminShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0 max-w-full overflow-x-hidden",
+            "service-panel-content flex-1 min-w-0 max-w-full overflow-x-hidden",
             contentPadding
               ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
               : "pb-[calc(env(safe-area-inset-bottom)+6.75rem)] lg:pb-0",
