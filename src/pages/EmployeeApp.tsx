@@ -15,7 +15,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
 import {
-  Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
+  Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
   Unlock as UnlockIcon,
@@ -196,9 +196,6 @@ const EmployeeApp = () => {
   const isFutureDay = date > todayStr();
   const dayStarted = !!workday?.started_at && !workday?.ended_at;
   const dayEnded = !!workday?.ended_at;
-  const elapsedLabel = workday?.started_at && !workday?.ended_at
-    ? formatDistanceStrict(new Date(workday.started_at), new Date(), { locale: da, unit: "minute" })
-    : null;
 
   // Date navigator — kompakt, klar visuel struktur:
   //  [‹]  [📅 dato (popover)]  [›]   [Gå til i dag?]
@@ -361,9 +358,7 @@ const EmployeeApp = () => {
             suggestion = {
               tone: "calm",
               title: "Din arbejdsdag er i gang",
-              description: elapsedLabel
-                ? `Tid registreret: ${elapsedLabel}. Stop dagen, når du er færdig.`
-                : "Stop dagen, når du er færdig — så registreres din arbejdstid korrekt.",
+              description: "Stop dagen, når du er færdig — så registreres din arbejdsdag korrekt.",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayEnded && routes.length > 0) {
@@ -402,10 +397,10 @@ const EmployeeApp = () => {
 
           const Cta = suggestion.cta;
           return (
-            <Card className={cn("overflow-hidden rounded-[5px] border shadow-sm", toneClasses)}>
-              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+            <Card className={cn("overflow-hidden rounded-[5px] border-l-[3px] border-l-accent shadow-sm", toneClasses)}>
+              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-4">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={cn("flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-[5px]", iconWrap)} aria-hidden>
+                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px]", iconWrap)} aria-hidden>
                     <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0">
@@ -418,33 +413,6 @@ const EmployeeApp = () => {
                     <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground tabular-nums">
                       {suggestion.description}
                     </p>
-                    {/* Live arbejdsdag-status under forslaget — så medarbejderen
-                        altid kan se start, varighed og fremdrift uden et separat kort. */}
-                    {(dayStarted || dayEnded) && (
-                      <p className="mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground tabular-nums">
-                        {dayEnded ? (
-                          <>
-                            <CheckCircle2 className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
-                            <span>
-                              Arbejdsdag {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
-                              {workday?.ended_at ? `–${format(new Date(workday.ended_at), "HH:mm")}` : ""}
-                              {workday?.duration_minutes != null
-                                ? ``
-                                : ""}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
-                            <span>
-                              Start {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
-                              {elapsedLabel ? `` : ""}
-                              {totalStops > 0 ? ` · ${completedStops}/${totalStops} stop` : ""}
-                            </span>
-                          </>
-                        )}
-                      </p>
-                    )}
                   </div>
                 </div>
                 <Button
@@ -583,7 +551,6 @@ const EmployeeApp = () => {
             r.start_latitude != null && r.start_longitude != null
               ? [Number(r.start_latitude), Number(r.start_longitude)]
               : null;
-          const startTime = r.planned_start_time?.slice(0, 5) || "08:00";
           const firstPendingId = myStops.find((s) => s.status !== "completed")?.id ?? null;
           // En rute er "team" hvis et eller flere stop ikke er specifikt
           // tildelt nogen (assignee) — så er hele ruten en fælles opgave.
@@ -659,7 +626,7 @@ const EmployeeApp = () => {
           return (
             <Card
               key={r.id}
-              className="group surface-admin overflow-hidden rounded-[5px] border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
+              className="group surface-admin overflow-hidden rounded-[5px] border-border/80 shadow-sm transition-colors hover:border-accent/35"
             >
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}
@@ -699,15 +666,19 @@ const EmployeeApp = () => {
               </div>
 
               {/* Kort-preview */}
-              <RouteMiniMap stops={myStops} startCoord={startCoord} color={color} />
+              <div className="hidden sm:block"><RouteMiniMap stops={myStops} startCoord={startCoord} color={color} /></div>
 
               {/* Body */}
               <div className="space-y-3 sm:space-y-4 p-3 sm:p-5">
                 {/* Meta-grid — strukturerede tal-felter ligesom statskort i
                     virksomhedspanelet. Tre faste kolonner = forudsigelig
                     visuel rytme på alle skærmstørrelser. */}
-                <div className="grid grid-cols-1 gap-2 rounded-[4px] border border-border bg-secondary/30 p-2.5">
-                  <div className="px-2.5">
+                <div className="grid grid-cols-2 gap-2 rounded-[4px] border border-border bg-secondary/30 p-2.5">
+                  <div className="px-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{done}/{total}</p>
+                  </div>
+                  <div className="border-l border-border px-2.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
                       {r.total_distance_km != null && r.total_distance_km > 0
@@ -715,7 +686,6 @@ const EmployeeApp = () => {
                         : "—"}
                     </p>
                   </div>
-                </div>
                 </div>
 
                 {r.start_address && (
@@ -748,7 +718,7 @@ const EmployeeApp = () => {
                 {total > 0 && (
                   <div className="overflow-hidden rounded-[4px] border border-border bg-card">
                     <div className="divide-y divide-border">
-                      {myStops.slice(0, 4).map((s, i) => {
+                      {myStops.slice(0, 3).map((s, i) => {
                         const isNext = s.id === firstPendingId;
                         const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
                         return (
@@ -802,9 +772,9 @@ const EmployeeApp = () => {
                           </button>
                         );
                       })}
-                      {myStops.length > 4 && (
+                      {myStops.length > 3 && (
                         <div className="px-3 py-2 text-[11px] text-muted-foreground">
-                          +{myStops.length - 4} flere stop
+                          +{myStops.length - 3} flere stop
                         </div>
                       )}
                     </div>
