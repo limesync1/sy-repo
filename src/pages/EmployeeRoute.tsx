@@ -1592,18 +1592,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Preview-route — vist FØR start, så hele turen er synlig.
                 Tegnet under (lavere z) det aktive leg når begge findes. */}
-            {!routeStarted && previewLine.length > 1 && (
+            {previewLine.length > 1 && (
               <>
                 <Polyline
                   positions={previewLine}
-                  pathOptions={{ color: "white", weight: 12, opacity: 0.9, lineCap: "round", lineJoin: "round" }}
+                  pathOptions={{
+                    color: "white",
+                    weight: routeStarted ? 8 : 12,
+                    opacity: routeStarted ? 0.6 : 0.9,
+                    lineCap: "round",
+                    lineJoin: "round",
+                  }}
                 />
                 <Polyline
                   positions={previewLine}
                   pathOptions={{
                     color: themeColor,
-                    weight: 6,
-                    opacity: 0.85,
+                    weight: routeStarted ? 4 : 6,
+                    opacity: routeStarted ? 0.55 : 0.85,
                     lineCap: "round",
                     lineJoin: "round",
                     dashArray: "2 10",
