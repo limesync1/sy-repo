@@ -28,7 +28,6 @@ export type BulkAddJobItem = {
   id: string;
   customer_name: string | null;
   address: string | null;
-  estimated_duration_minutes: number | null;
 };
 
 export type BulkAddRouteOption = {
@@ -39,8 +38,6 @@ export type BulkAddRouteOption = {
   employeeName?: string | null;
   /** Antal eksisterende stop — bruges til at vise rutens belastning. */
   stopCount: number;
-  /** Samlet planlagt varighed på ruten (min) — kan være null hvis ukendt. */
-  totalMin?: number | null;
 };
 
 type Props = {

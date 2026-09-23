@@ -43,7 +43,6 @@ type Enrichment = {
   routeId?: string | null;
   employeeNames?: string[];
   occurrenceDate?: string | null;
-  occurrencePlannedArrival?: string | null;
   orderId?: string | null;
   externalOrderNumber?: string | null;
   triggerReason?: string | null;

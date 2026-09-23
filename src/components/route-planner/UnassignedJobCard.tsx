@@ -3,7 +3,7 @@ import { useDraggable } from "@dnd-kit/core";
 import {
   MapPin, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock,
-  Info, Check, Repeat, Hourglass,
+  Info, Check, Repeat,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
@@ -80,7 +80,7 @@ type Props = {
   anySelected?: boolean;
   /** Toggle bulk-valg af dette kort. */
   onToggleSelect?: (e: React.MouseEvent) => void;
-  /** Kompakt visning — skjuler varighed/badges og holder skema-banner på én linje. */
+  /** Kompakt visning til den smalle aftalepool. */
   compact?: boolean;
 };
 
@@ -415,9 +415,7 @@ export const UnassignedJobCard = ({
 
             {!compact && (
               <span className="inline-flex items-center gap-1">
-                {isRecurring
-                  ? <Repeat className="h-3 w-3 shrink-0 text-muted-foreground/50" />
-                  : <Hourglass className="h-3 w-3 shrink-0 text-muted-foreground/50" />}
+                {isRecurring && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground/50" />}
                 <span className="truncate">{intervalLabel}</span>
               </span>
             )}

@@ -112,7 +112,6 @@ type SubRow = {
 type RouteStopRow = {
   id: string;
   status: string;
-  planned_arrival: string | null;
   completed_at: string | null;
   routes: { id: string; route_date: string; name: string | null } | null;
 };
@@ -357,14 +356,13 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
       if (orderIds.length > 0) {
         const stopsRes = await supabase
           .from("route_stops")
-          .select("id, status, planned_arrival, completed_at, routes!inner(id, route_date, name, business_id)")
+          .select("id, status, completed_at, routes!inner(id, route_date, name, business_id)")
           .in("order_id", orderIds);
         stops = ((stopsRes.data || []) as any[])
           .filter(s => s.routes?.business_id === businessId)
           .map(s => ({
             id: s.id,
             status: s.status,
-            planned_arrival: s.planned_arrival,
             completed_at: s.completed_at,
             routes: s.routes ? { id: s.routes.id, route_date: s.routes.route_date, name: s.routes.name } : null,
           }));
