@@ -70,8 +70,8 @@ export const MergeRoutesDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-4 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:p-6">
-        <AlertDialogHeader className="min-w-0 text-left space-y-2">
+      <AlertDialogContent className="planner-overlay left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-0 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%]">
+        <AlertDialogHeader className="planner-overlay-header min-w-0 border-b px-4 py-3 pr-12 text-left space-y-2 sm:px-5">
           <SheetHeaderBlock
             icon={<Combine className="h-4 w-4" />}
             title={<AlertDialogTitle className="text-base">Flet ruter</AlertDialogTitle>}
@@ -127,7 +127,7 @@ export const MergeRoutesDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-2 pt-1">
+        <div className="planner-overlay-body space-y-2 px-4 py-3 sm:px-5">
           <ScopeOption
             selected={scope === "single"}
             onClick={() => setScope("single")}
@@ -161,7 +161,7 @@ export const MergeRoutesDialog = ({
           />
         </div>
 
-        <AlertDialogFooter className="pt-1">
+        <AlertDialogFooter className="planner-overlay-footer border-t px-4 py-3 sm:px-5">
           <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
           <Button
             onClick={async () => { await onConfirm(scope); }}

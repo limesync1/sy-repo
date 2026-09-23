@@ -2,7 +2,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
-  HelpCircle, Lock, Sparkles, History, Repeat, CheckCircle2, AlertTriangle, Inbox, CalendarArrowDown,
+  HelpCircle, Lock, Sparkles, History, Repeat, CheckCircle2, AlertTriangle, Inbox, CalendarArrowDown, Send,
 } from "lucide-react";
 
 /**
@@ -36,6 +36,7 @@ export function LegendPopover() {
         <div className="max-h-[70vh] overflow-y-auto">
           <div className="p-3 space-y-3 text-xs">
             <Section title="Rute-status">
+              <Row swatch={<BadgeChip className="bg-accent/15 text-accent ring-accent/30"><Send className="h-2.5 w-2.5" /></BadgeChip>} label="Sendt" desc="Ruten er sendt til medarbejderen" />
               <Row swatch={<BadgeChip className="bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300"><CheckCircle2 className="h-2.5 w-2.5" /></BadgeChip>} label="Udført" desc="Alle stop er færdige" />
             </Section>
             <Divider />

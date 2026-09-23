@@ -208,8 +208,8 @@ const DayOverviewSheet = ({
 
   return (
     <Sheet open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/70 space-y-1">
+      <SheetContent side="right" className="planner-overlay w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 space-y-1">
           <div className="flex items-center gap-2">
             <span className={cn(
               "inline-flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold tabular-nums",
@@ -236,12 +236,12 @@ const DayOverviewSheet = ({
         </SheetHeader>
 
         {/* Opsummering */}
-        <div className="px-5 py-4 grid grid-cols-2 gap-2 border-b border-border/70">
-          <div className="rounded-lg border border-border/70 bg-card p-3">
+        <div className="planner-overlay-body px-4 sm:px-5 py-3 grid grid-cols-2 gap-2 border-b border-border/70">
+          <div className="rounded-[5px] border border-border/70 bg-card p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Ruter</div>
             <div className="text-xl font-bold tabular-nums">{routes.length}</div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-card p-3">
+          <div className="rounded-[5px] border border-border/70 bg-card p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Stop</div>
             <div className="text-xl font-bold tabular-nums">
               {completedStops > 0 && (
@@ -253,7 +253,7 @@ const DayOverviewSheet = ({
               <div className="text-[10px] text-muted-foreground">{pendingStops} mangler</div>
             )}
           </div>
-          <div className="rounded-lg border border-border/70 bg-card p-3">
+          <div className="rounded-[5px] border border-border/70 bg-card p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Omsætning</div>
             <div className="text-xl font-bold tabular-nums">{fmtRouteKr(totalRevenue)}</div>
           </div>
@@ -315,7 +315,7 @@ const DayOverviewSheet = ({
         )}
 
         {/* Liste over dagens ruter — i planlagt rækkefølge */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
+        <div className="planner-overlay-body flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-2">
           {routes.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-12">
               Ingen ruter på denne dag endnu.
@@ -333,7 +333,7 @@ const DayOverviewSheet = ({
                   type="button"
                   onClick={() => onSelectRoute(r)}
                   className={cn(
-                    "group w-full text-left rounded-lg border border-border/70 bg-card p-3 hover:border-foreground/30 hover:shadow-sm transition-all relative overflow-hidden",
+                    "planner-card group w-full text-left rounded-[5px] border border-border/70 bg-card p-3 hover:border-accent/40 hover:shadow-sm transition-all relative overflow-hidden",
                     isVirtual && "border-dashed bg-muted/40",
                   )}
                 >
@@ -965,8 +965,8 @@ const DayCellInner = ({
         </div>
       )}
       {/* Dato-header */}
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-1">
+      <div className="flex min-w-0 items-center justify-between gap-0.5 mb-1.5 overflow-hidden">
+        <div className="flex min-w-0 items-center gap-0.5">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onOpenDayOverview(dateStr); }}
@@ -994,7 +994,7 @@ const DayCellInner = ({
             />
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0.5">
           {weather && (
             <WeatherBadge weather={weather} size={compact ? "compact" : "full"} />
           )}
@@ -1023,8 +1023,8 @@ const DayCellInner = ({
             className={cn(
               "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.92] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 hover:bg-secondary hover:text-foreground hover:border-border",
               emptyDay
-                ? "opacity-0 text-muted-foreground/80 group-hover:opacity-100"
-                : "opacity-0 group-hover:opacity-90 text-muted-foreground",
+                ? "text-muted-foreground/70 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+                : "text-muted-foreground/70 md:opacity-0 md:group-hover:opacity-90 md:focus-visible:opacity-100",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
             title="Opret rute denne dag"
@@ -1363,7 +1363,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "cursor-pointer min-h-[80px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
+        "w-full max-w-full cursor-pointer min-h-[80px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1481,15 +1481,15 @@ const RoutePillInner = ({
           // Lidt mere højre-padding når der er medarbejder-avatarer på
           // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
           // pillens højre kant i smalle måneds-celler.
-          "relative z-[1] min-h-[78px] pl-2.5 pr-2 py-1.5 flex flex-col items-stretch gap-0.5",
+          "relative z-[1] min-h-[78px] min-w-0 pl-2.5 pr-2 py-1.5 flex flex-col items-stretch gap-0.5 overflow-hidden",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",
         )}
       >
-        <div className="min-w-0 flex-1">
-          <div className="min-h-[1.75rem] max-w-full text-[12px] font-semibold text-foreground leading-[1.15] tracking-normal line-clamp-2 overflow-hidden" title={route.name || undefined}>
-            {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="min-h-[1.75rem] max-w-full break-words text-[11.5px] font-semibold text-foreground leading-[1.2] tracking-normal line-clamp-2 overflow-hidden" title={route.name || "Rute"}>
+            {route.name?.trim() || "Rute"}
           </div>
           <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
             {projectedKind && (() => {
@@ -1611,7 +1611,8 @@ const RoutePillInner = ({
           </div>
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-x-2 pr-14 text-[10.5px] text-muted-foreground tabular-nums overflow-hidden",
+              "mt-0.5 flex min-w-0 items-center gap-x-1.5 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
+              (canOptimize || canDelete || canHistory) && "pr-14",
               compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
