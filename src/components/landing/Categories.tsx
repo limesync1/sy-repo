@@ -27,7 +27,7 @@ const CategoryCard = ({
   <Link
     key={cat.key}
     to={`/search?category=${encodeURIComponent(cat.key)}`}
-    className={`group relative flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-5 text-foreground transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-md ${className ?? ""}`}
+    className={`group relative flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-4 text-foreground transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-md 2xl:p-5 ${className ?? ""}`}
   >
     <div className="relative flex items-start justify-between">
       <span className="flex h-16 w-16 items-center justify-center">
@@ -51,15 +51,15 @@ const Categories = () => {
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background py-14 sm:py-16 md:py-24">
+    <section className="bg-background py-12 sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between">
+        <div className="mb-7 flex flex-col gap-5 md:mb-8 md:flex-row md:items-end md:justify-between 2xl:mb-10">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
               Servicebrancher
             </span>
-            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">
               Find den rette branche
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -79,7 +79,7 @@ const Categories = () => {
         {/* Desktop / tablet */}
         <div id="all-service-categories" className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
           {visible.map((cat) => (
-            <CategoryCard key={cat.key} cat={cat} className="min-h-[172px]" />
+            <CategoryCard key={cat.key} cat={cat} className="min-h-[156px] 2xl:min-h-[172px]" />
           ))}
         </div>
 
@@ -103,7 +103,7 @@ const Categories = () => {
         <div className="sm:hidden">
           <HorizontalScroller ariaLabel="Servicebrancher — stryg vandret for at se flere" fadeEdges={false}>
             {sorted.map((cat) => (
-              <CategoryCard key={cat.key} cat={cat} className="min-h-[184px] w-[calc(100vw-4rem)] max-w-[300px] shrink-0 snap-start" />
+              <CategoryCard key={cat.key} cat={cat} className="min-h-[168px] w-[calc(100vw-4rem)] max-w-[300px] shrink-0 snap-start" />
             ))}
           </HorizontalScroller>
           <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

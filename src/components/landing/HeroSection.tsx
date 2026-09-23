@@ -42,14 +42,14 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-16">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:pb-14 lg:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="max-w-2xl">
           <span className="animate-fade-in inline-flex items-center gap-2.5 text-[10.5px] font-medium uppercase tracking-[0.24em] text-background/60 sm:text-[11px]">
             <span className="h-px w-6 bg-[hsl(var(--hero-cyan))]" />
             Danmarks serviceplatform
           </span>
 
-          <h1 className="animate-fade-in mt-4 max-w-[21rem] text-[2.15rem] font-semibold leading-[1.04] tracking-[-0.035em] text-background sm:max-w-none sm:text-[3rem] lg:text-[4rem]">
+          <h1 className="animate-fade-in mt-4 max-w-[21rem] text-[2.15rem] font-semibold leading-[1.04] text-background sm:max-w-none sm:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
@@ -57,12 +57,12 @@ const HeroSection = () => {
             <br className="hidden sm:block" /> til opgaven.
           </h1>
 
-          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-lg text-[15px] leading-[1.65] text-background/75 sm:mt-6 sm:text-[17px]">
+          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-lg text-[15px] leading-[1.65] text-background/75 sm:mt-5 sm:text-base 2xl:mt-6 2xl:text-[17px]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
           {/* Søgefelt i et løftet panel, så det læses som sidens primære handling. */}
-          <div className="animate-fade-in [animation-delay:200ms] relative z-20 mt-6 w-full max-w-xl rounded-[20px] border border-background/20 bg-background/[0.09] p-2.5 backdrop-blur-sm sm:mt-8 sm:rounded-[22px] sm:p-3">
+          <div className="animate-fade-in [animation-delay:200ms] relative z-20 mt-6 w-full max-w-xl rounded-[20px] border border-background/20 bg-background/[0.09] p-2.5 backdrop-blur-sm sm:mt-7 sm:rounded-[22px] sm:p-3 2xl:mt-8">
             <SearchSuggest
               variant="hero"
               showNearLabel={false}
@@ -99,7 +99,7 @@ const HeroSection = () => {
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
         <div aria-hidden className="relative hidden lg:block">
-          <div className="relative overflow-hidden rounded-[32px] border border-background/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)]">
+          <div className="relative overflow-hidden rounded-[24px] border border-background/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)] 2xl:rounded-[32px]">
             <img
               src={heroImage}
               alt=""
@@ -108,7 +108,7 @@ const HeroSection = () => {
               fetchPriority="high"
               decoding="async"
               loading="eager"
-              className="h-[30rem] w-full object-cover object-[65%_center]"
+              className="h-[24rem] w-full object-cover object-[65%_center] xl:h-[26rem] 2xl:h-[30rem]"
             />
             <div
               className="absolute inset-0"

@@ -906,8 +906,8 @@ const DayCellInner = ({
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       data-density-target="day"
       className={cn(
-        "border-r border-border last:border-r-0 relative group flex flex-col gap-1.5 p-2 transition-[background-color,box-shadow,opacity] duration-150",
-        compact ? "min-h-[116px]" : "min-h-[164px]",
+        "border-r border-border last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-[background-color,box-shadow,opacity] duration-150 2xl:gap-1.5 2xl:p-2",
+        compact ? "min-h-[96px] 2xl:min-h-[116px]" : "min-h-[132px] 2xl:min-h-[164px]",
         !inMonth && "bg-muted/10",
         // Lidt kraftigere weekend-tint så uge-rytmen er nem at scanne i
         // måneds-view. Stadig subtil nok til ikke at konkurrere med selve
@@ -1481,7 +1481,7 @@ const RoutePillInner = ({
           // Lidt mere højre-padding når der er medarbejder-avatarer på
           // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
           // pillens højre kant i smalle måneds-celler.
-          "relative z-[1] min-h-[78px] min-w-0 pl-2.5 pr-2 py-1.5 flex flex-col items-stretch gap-0.5 overflow-hidden",
+          "relative z-[1] min-h-[68px] min-w-0 py-1.5 pl-2 pr-1.5 2xl:min-h-[78px] 2xl:pl-2.5 2xl:pr-2 flex flex-col items-stretch gap-0.5 overflow-hidden",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",

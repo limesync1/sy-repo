@@ -267,7 +267,7 @@ export const UnassignedJobCard = ({
       aria-describedby={isPending ? undefined : "unassigned-drag-instructions"}
       className={cn(
         CARD_BASE,
-        "flex min-h-[88px]",
+        "flex min-h-[76px] 2xl:min-h-[84px]",
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
         isPending ? "" : "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
         isDragging

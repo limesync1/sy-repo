@@ -59,15 +59,15 @@ const ForBusinesses = () => {
   const p = { ...PRICING_FALLBACK, ...(pricing ?? {}) };
 
   return (
-    <section className="bg-secondary py-16 md:py-24">
+    <section className="bg-secondary py-12 sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-14">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
               For virksomheder
             </span>
-            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">
               Alt du skal bruge for at drive din servicevirksomhed
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -99,7 +99,7 @@ const ForBusinesses = () => {
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Hero-tile — altid fuld bredde øverst. */}
           <article
-            className="relative isolate overflow-hidden rounded-[28px] p-8 sm:p-10 lg:col-span-3 text-background"
+            className="relative isolate overflow-hidden rounded-2xl p-6 sm:p-8 lg:col-span-3 2xl:rounded-[28px] 2xl:p-10 text-background"
             style={{ backgroundColor: "hsl(var(--hero-bg))" }}
           >
             {/* Ambient glows for premium-følelse */}
@@ -115,7 +115,7 @@ const ForBusinesses = () => {
               <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch lg:gap-12">
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch lg:gap-8 2xl:gap-12">
               <div className="max-w-xl">
                 <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur">
                   <span
@@ -200,7 +200,7 @@ const ForBusinesses = () => {
           {features.map((f) => (
             <article
               key={f.title}
-              className="group flex h-full flex-col gap-4 rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
+              className="group flex h-full flex-col gap-3 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-border 2xl:gap-4 2xl:p-6"
             >
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${f.tone}`}>
                 <f.icon className="h-5 w-5" />
@@ -216,8 +216,8 @@ const ForBusinesses = () => {
         {/* Prismodel i kort form — de fulde detaljer står på prissiden, så
             forsiden ikke bliver til en prisliste. Tallene kommer fra samme
             kilde som /software/priser. */}
-        <div className="mt-14 overflow-hidden rounded-[28px] border border-border/70 bg-card">
-          <div className="grid gap-8 p-7 sm:p-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <div className="mt-10 overflow-hidden rounded-2xl border border-border/70 bg-card 2xl:mt-14 2xl:rounded-[28px]">
+          <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-center 2xl:gap-8 2xl:p-10">
             <div>
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 <span className="h-px w-6 bg-foreground/30" />

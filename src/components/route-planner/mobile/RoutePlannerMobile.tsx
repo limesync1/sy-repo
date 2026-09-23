@@ -178,7 +178,7 @@ export default function RoutePlannerMobile() {
     | null
   >(null);
   // Tablet (≥768 men <1024) → vis ruter + dock side om side.
-  const isTablet = !useIsBelowBreakpoint(640);
+  const isTablet = !useIsBelowBreakpoint(768);
   // Peger-position til auto-scroll under drag.
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const qc = useQueryClient();
@@ -1104,7 +1104,7 @@ function UnassignedDock({
       className={cn(
         "bg-card transition-[background-color,border-color,box-shadow] duration-150",
         isTablet
-          ? "flex w-[340px] shrink-0 flex-col border-l"
+          ? "flex w-[clamp(17rem,36vw,21rem)] shrink-0 flex-col border-l"
           : "shrink-0 border-t",
         isStopDrag && isOver
           ? "border-destructive bg-destructive/5 ring-2 ring-inset ring-destructive/20"
