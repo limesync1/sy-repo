@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
@@ -7,8 +7,6 @@ import {
   ArrowLeft,
   Printer,
   Loader2,
-  Rows3,
-  Rows2,
   MapPin,
   Phone,
   Route as RouteIcon,
@@ -338,7 +336,26 @@ const EmployeeRoutePrint = () => {
 };
 
 /* Metadata-celle med ikon */
-const MetaItem = ({
+const MetaItem = forwardRef<HTMLDivElement, {
+  icon?: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}>(({ icon, label, value }, ref) => (
+  <div ref={ref} className="min-w-0">
+    <dt className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground print:text-black/60 font-medium">
+      {icon}
+      <span>{label}</span>
+    </dt>
+    <dd className="mt-1 text-[16px] font-semibold text-foreground print:text-black tabular-nums leading-tight">
+      {value}
+    </dd>
+  </div>
+));
+MetaItem.displayName = "MetaItem";
+
+/* Metadata-celle med ikon */
+/* Kept as a forwardRef because the print transition may attach a ref. */
+/*
   icon,
   label,
   value,
@@ -357,6 +374,7 @@ const MetaItem = ({
     </dd>
   </div>
 );
+*/
 
 const PrintOption = ({ icon, label, active, onClick }: { icon: React.ReactNode; label: string; active: boolean; onClick: () => void }) => (
   <Button
