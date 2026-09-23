@@ -6,7 +6,7 @@ import {
   Route,
   Calculator,
   Sparkles,
-  TrendingUp,
+  LayoutDashboard,
   Check,
   Upload,
 } from "lucide-react";
@@ -99,23 +99,10 @@ const ForBusinesses = () => {
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Hero-tile — altid fuld bredde øverst. */}
           <article
-            className="relative isolate overflow-hidden rounded-2xl p-6 sm:p-8 lg:col-span-3 2xl:rounded-[28px] 2xl:p-10 text-background"
+            className="relative isolate overflow-hidden rounded-xl border border-background/10 p-5 text-background sm:p-7 lg:col-span-3 2xl:p-9"
             style={{ backgroundColor: "hsl(var(--hero-bg))" }}
           >
-            {/* Ambient glows for premium-følelse */}
-            <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-              <div
-                className="absolute -top-24 -right-24 h-[26rem] w-[26rem] rounded-full blur-[110px] opacity-40"
-                style={{ backgroundColor: "hsl(var(--hero-mid))" }}
-              />
-              <div
-                className="absolute -bottom-32 -left-16 h-[22rem] w-[22rem] rounded-full blur-[100px] opacity-25"
-                style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
-              />
-              <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch lg:gap-8 2xl:gap-12">
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-stretch lg:gap-10">
               <div className="max-w-xl">
                 <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur">
                   <span
@@ -124,11 +111,8 @@ const ForBusinesses = () => {
                   />
                   Alt-i-én panel
                 </span>
-                <h3 className="mt-4 text-[1.6rem] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[2rem]">
-                  Drift hele forretningen{" "}
-                  <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
-                    fra ét sted.
-                  </span>
+                <h3 className="mt-4 text-[1.6rem] font-semibold leading-[1.12] sm:text-[2rem]">
+                  Drift hele forretningen <span className="text-accent">fra ét sted.</span>
                 </h3>
                 <p className="mt-3 text-sm leading-6 text-background/85 sm:text-[15px]">
                   Kundekartotek, bookingkalender, ruteplanlægning, fakturering og medarbejderlogins — i ét panel, så du slipper for at hoppe mellem fem forskellige systemer.
@@ -153,31 +137,20 @@ const ForBusinesses = () => {
                 </ul>
               </div>
 
-              {/* Mini "stats"-panel — illustration af dashboardet (eksempeltal). */}
-              <div className="flex w-full flex-col rounded-2xl border border-background/15 bg-background/[0.04] p-5 backdrop-blur">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-background/75">
-                    Eksempel · denne uge
-                  </span>
-                  <TrendingUp className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
+              <div className="w-full rounded-lg border border-background/15 bg-background/[0.06] p-4 sm:p-5">
+                <div className="flex items-center gap-2 border-b border-background/10 pb-3">
+                  <LayoutDashboard className="h-4 w-4 text-accent" />
+                  <span className="text-xs font-semibold text-background">Dagens overblik</span>
                 </div>
-                <div className="mt-3">
-                  <div className="text-3xl font-semibold tabular-nums">42.180 kr</div>
-                  <div className="mt-1 text-xs text-background/80">Planlagt omsætning</div>
+                <div className="mt-3 space-y-2">
+                  {["Kunder og bestillinger", "Ruter og medarbejdere", "Fakturering og status"].map((label, index) => (
+                    <div key={label} className="flex items-center justify-between rounded-md border border-background/10 bg-background/[0.05] px-3 py-2.5">
+                      <span className="text-xs text-background/85">{label}</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded bg-background/10 text-[11px] font-semibold text-background">{index + 1}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="mt-5 grid grid-cols-2 gap-3 border-t border-background/10 pt-4 text-left">
-                  <div>
-                    <div className="text-lg font-semibold tabular-nums">18</div>
-                    <div className="text-[11px] text-background/75">Aftaler</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold tabular-nums">4 t 20 m</div>
-                    <div className="text-[11px] text-background/75">Kørsel</div>
-                  </div>
-                </div>
-                <p className="mt-auto pt-4 text-[10px] leading-4 text-background/55">
-                  Skærmbillede til illustration — dine tal afhænger af opgavevolumen.
-                </p>
+                <p className="mt-3 text-[11px] leading-5 text-background/65">Samlet overblik uden at skifte mellem forskellige systemer.</p>
               </div>
             </div>
 
@@ -200,9 +173,9 @@ const ForBusinesses = () => {
           {features.map((f) => (
             <article
               key={f.title}
-              className="group flex h-full flex-col gap-3 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-border 2xl:gap-4 2xl:p-6"
+               className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-card p-5 transition-colors hover:border-accent/40 hover:bg-secondary/35 2xl:p-6"
             >
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${f.tone}`}>
+               <div className={`flex h-9 w-9 items-center justify-center rounded-md ${f.tone}`}>
                 <f.icon className="h-5 w-5" />
               </div>
               <div>

@@ -769,7 +769,9 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                           >
                             {m.image_url && (
                               <a href={m.image_url} target="_blank" rel="noopener noreferrer" className="block">
-                                <img src={m.image_url} alt="Vedhæftet billede" className="max-h-64 w-auto object-cover" />
+                                <img src={m.image_url} alt="Vedhæftet billede" onLoad={() => {
+                                  if (!userScrolledUpRef.current) requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "auto" }));
+                                }} className="max-h-64 w-auto object-cover" />
                               </a>
                             )}
                             {m.content && (

@@ -2308,54 +2308,6 @@ export type Database = {
         }
         Relationships: []
       }
-      employee_invitations: {
-        Row: {
-          accepted_at: string | null
-          business_id: string
-          created_at: string
-          email: string
-          employee_id: string
-          expires_at: string
-          id: string
-          token: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          business_id: string
-          created_at?: string
-          email: string
-          employee_id: string
-          expires_at?: string
-          id?: string
-          token: string
-        }
-        Update: {
-          accepted_at?: string | null
-          business_id?: string
-          created_at?: string
-          email?: string
-          employee_id?: string
-          expires_at?: string
-          id?: string
-          token?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employee_invitations_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_invitations_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       employee_route_notifications: {
         Row: {
           business_id: string
@@ -3308,51 +3260,6 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: []
-      }
-      quotes: {
-        Row: {
-          business_id: string
-          created_at: string
-          id: string
-          message: string | null
-          price: number
-          quote_request_id: string
-          status: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          id?: string
-          message?: string | null
-          price: number
-          quote_request_id: string
-          status?: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          id?: string
-          message?: string | null
-          price?: number
-          quote_request_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quotes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quotes_quote_request_id_fkey"
-            columns: ["quote_request_id"]
-            isOneToOne: false
-            referencedRelation: "quote_requests"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       reviews: {
         Row: {
@@ -5248,25 +5155,6 @@ export type Database = {
       get_employee_capacity_usage: {
         Args: { _date: string; _employee_id: string }
         Returns: Json
-      }
-      get_employee_invitation_by_token: {
-        Args: { _token: string }
-        Returns: {
-          accepted_at: string | null
-          business_id: string
-          created_at: string
-          email: string
-          employee_id: string
-          expires_at: string
-          id: string
-          token: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "employee_invitations"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       get_order_for_approval: {
         Args: { p_order_id: string; p_token: string }

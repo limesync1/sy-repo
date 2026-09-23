@@ -61,6 +61,15 @@ const PlatformLiveChatTab = () => {
   const searchRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
   const userScrolledUpRef = useRef(false);
+  const scrollToLatest = useCallback((behavior: ScrollBehavior = "auto") => {
+    if (userScrolledUpRef.current) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = scrollRef.current;
+        if (el) el.scrollTo({ top: el.scrollHeight, behavior });
+      });
+    });
+  }, []);
 
   // Load canned with migration from v1
   useEffect(() => {
@@ -169,9 +178,9 @@ const PlatformLiveChatTab = () => {
     const el = scrollRef.current;
     if (!el) return;
     if (initialMessagesLoad.current || !userScrolledUpRef.current) {
-      el.scrollTo({ top: el.scrollHeight, behavior: initialMessagesLoad.current ? "auto" : "smooth" });
+      scrollToLatest(initialMessagesLoad.current ? "auto" : "smooth");
     }
-  }, [messages, activeId]);
+  }, [messages, activeId, scrollToLatest]);
 
   // Reset scroll-tracking when switching conversations and watch user scroll.
   useEffect(() => {
@@ -499,7 +508,7 @@ const PlatformLiveChatTab = () => {
               </div>
             )}
 
-            <MessageList ref={scrollRef} messages={messages} />
+            <MessageList ref={scrollRef} messages={messages} onContentLoad={() => scrollToLatest("auto")} />
 
             {active.status === "closed" ? (
               <div className="border-t border-border bg-card p-4 text-center">

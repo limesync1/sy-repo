@@ -1106,6 +1106,9 @@ const LiveChatWidget = () => {
                                 <img
                                   src={m.image_url}
                                   alt="Vedhæftet billede"
+                                  onLoad={() => {
+                                    if (!userScrolledUpRef.current) scrollToBottom("auto");
+                                  }}
                                   loading="lazy"
                                   className="max-h-52 w-full object-contain sm:max-h-64"
                                 />

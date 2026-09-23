@@ -402,37 +402,6 @@ export const useQuoteRequests = (categories?: string[] | null) => {
   });
 };
 
-// Create quote (business owner)
-export const useCreateQuote = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (quote: TablesInsert<"quotes">) => {
-      const { data, error } = await supabase.from("quotes").insert(quote).select().single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["quote-requests"] }),
-  });
-};
-
-// Fetch quotes for a business
-export const useMyQuotes = (businessId: string | undefined) => {
-  return useQuery({
-    queryKey: ["my-quotes", businessId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quotes")
-        .select("*, quote_requests(*)")
-        .eq("business_id", businessId!)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!businessId,
-    staleTime: 60_000,
-  });
-};
-
 // ── Customer Orders ──
 export const useMyOrders = () => {
   const { user } = useAuth();

@@ -3,13 +3,13 @@ import { CheckCheck, Sparkles } from "lucide-react";
 import type { Message } from "./shared";
 import { formatTime, initials } from "./shared";
 
-type Props = { messages: Message[] };
+type Props = { messages: Message[]; onContentLoad?: () => void };
 
 /**
  * Scrollende beskedliste — wraps messages og rendrer dem som boble-tråd.
  * `forwardRef` så orkestratoren kan styre auto-scroll og "user scrolled up".
  */
-const MessageList = forwardRef<HTMLDivElement, Props>(function MessageList({ messages }, ref) {
+const MessageList = forwardRef<HTMLDivElement, Props>(function MessageList({ messages, onContentLoad }, ref) {
   let lastAdminIdx = -1;
   for (let j = messages.length - 1; j >= 0; j--) {
     if (messages[j].sender_type === "admin" && !messages[j].is_system) { lastAdminIdx = j; break; }
@@ -58,7 +58,7 @@ const MessageList = forwardRef<HTMLDivElement, Props>(function MessageList({ mes
 
                 {m.image_url && (
                   <a href={m.image_url} target="_blank" rel="noopener noreferrer" className="block">
-                    <img src={m.image_url} alt="Vedhæftet billede" className="max-h-72 w-auto object-cover" />
+                    <img src={m.image_url} alt="Vedhæftet billede" onLoad={onContentLoad} className="max-h-72 w-auto object-cover" />
                   </a>
                 )}
                 {m.content && <div className="whitespace-pre-wrap break-words px-3.5 py-2">{m.content}</div>}
