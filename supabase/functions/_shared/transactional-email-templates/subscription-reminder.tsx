@@ -34,11 +34,9 @@ const INTERVAL_LABEL: Record<string, string> = {
 }
 const fmt = (n: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(n)
 const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) } catch { return s } }
-const fmtTime = (s?: string) => { if (!s) return null; try { return new Date(s).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) } catch { return null } }
 
 const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, businessEmail, serviceName, nextServiceDate, interval, totalPrice, daysUntil, completedCycles, details }: SubscriptionReminderProps) => {
  const date = fmtDate(nextServiceDate)
- const time = fmtTime(nextServiceDate)
  const intervalLabel = interval ? (INTERVAL_LABEL[interval] ?? interval) : null
  const headline = daysUntil != null ? (daysUntil <= 1 ? 'Din service er i morgen ' : `Din næste service om ${daysUntil} dage`) : 'Din næste service nærmer sig '
 
@@ -59,7 +57,6 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  <Section style={cardAccent}>
  <Text style={{ ...cardLabel, color: '#0e7490' }}>Næste servicedato</Text>
  <Text style={{ fontSize: '20px', fontWeight: 700, color: '#0d1729', margin: '0 0 4px', lineHeight: '1.2' }}> {date}</Text>
- {time && time !== '00:00' && <Text style={{ ...cardValue, fontSize: '14px', color: '#0e7490', margin: 0 }}> kl. {time}</Text>}
 </Section>
  )}
 
@@ -75,7 +72,7 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  <Text style={h2}>Før besøget</Text>
  <ol style={stepList}>
  <li style={stepItem}><span style={stepNumber}>1</span>Sørg for adgang til adressen, så virksomheden kan komme i gang med det samme.</li>
- <li style={stepItem}><span style={stepNumber}>2</span>Hvis tidspunktet ikke passer længere, så kontakt virksomheden hurtigst muligt.</li>
+ <li style={stepItem}><span style={stepNumber}>2</span>Hvis datoen ikke passer længere, så kontakt virksomheden hurtigst muligt.</li>
  <li style={stepItem}><span style={stepNumber}>3</span>Du kan pause eller ændre aftalen direkte i dit kundepanel.</li>
  </ol>
 
@@ -113,7 +110,7 @@ export const template = {
  businessPhone: '+45 70 20 30 40',
  businessEmail: 'kontakt@rengoering-kbh.dk',
  serviceName: 'Privatrengøring 80 m²',
- nextServiceDate: '2026-05-05T10:00:00Z',
+ nextServiceDate: '2026-05-05',
  interval: 'hver_14_dag',
  totalPrice: 599,
  daysUntil: 2,

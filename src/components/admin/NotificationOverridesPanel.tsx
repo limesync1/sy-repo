@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone, Clock } from "lucide-react";
+import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -28,12 +28,11 @@ import { toast } from "sonner";
  *   3. Aftale    (scope='agreement', match på subscription_id)
  */
 
-type EventKey = "service_upcoming" | "service_completed";
+type EventKey = "service_completed";
 type Channel = "email" | "sms";
 type Scope = "customer" | "agreement";
 
 const EVENTS: { key: EventKey; label: string; help: string; Icon: typeof Bell }[] = [
-  { key: "service_upcoming",  label: "Påmindelse inden besøg", help: "Sendes kort før vi kommer.", Icon: Bell },
   { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når opgaven er udført.", Icon: CheckCircle2 },
 ];
 
@@ -292,13 +291,6 @@ function EventRow({
         />
       </div>
 
-      {event.key === "service_upcoming" && !toggleOnly && (
-        <LeadTimePicker
-          value={leadOverride}
-          onChange={(mins) => onSetLeadTime(event.key, mins)}
-        />
-      )}
-
       <CustomizeSheet
         open={customizeChannel !== null}
         onOpenChange={(o) => !o && setCustomizeChannel(null)}
@@ -395,7 +387,6 @@ function CustomizeSheet({
     (txt || "(tom)")
       .replace(/\{\{kundens_navn\}\}/g, "Anna")
       .replace(/\{\{service\}\}/g, "Rengøring")
-      .replace(/\{\{tidspunkt\}\}/g, "i morgen kl. 10:00")
       .replace(/\{\{virksomhed\}\}/g, "Ready2Clean");
 
   return (
@@ -457,7 +448,6 @@ function CustomizeSheet({
               {[
                 { k: "{{kundens_navn}}", l: "Kundenavn" },
                 { k: "{{service}}", l: "Service" },
-                { k: "{{tidspunkt}}", l: "Tidspunkt" },
                 { k: "{{virksomhed}}", l: "Virksomhed" },
               ].map((v) => (
                 <button
@@ -498,13 +488,6 @@ function CustomizeSheet({
               </div>
             )}
           </div>
-
-          {eventKey === "service_upcoming" && (
-            <p className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-              <Clock className="inline h-3 w-3 mr-1 -mt-0.5" />
-              Tidspunktet for hvornår påmindelsen sendes vælges direkte i panelet under "Hvornår".
-            </p>
-          )}
         </div>
 
         {/* Footer */}
@@ -595,7 +578,7 @@ function LeadTimePicker({
     <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/20 p-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          <Clock className="h-3 w-3" /> Hvornår
+          <Bell className="h-3 w-3" /> Hvornår
         </div>
         <span className="text-[11px] text-foreground/70">
           {value == null ? "Bruger standard" : `${formatLead(value)} før`}

@@ -46,13 +46,13 @@ const EVENT_INTRO: Record<SubscriptionEvent, (svc: string, biz: string) => strin
  paused: (svc, biz) =>`Din tilbagevendende aftale "${svc}" hos ${biz} er sat på pause. Der planlægges ikke nye besøg, før aftalen bliver genoptaget.`,
  resumed: (svc, biz) =>`Din aftale "${svc}" hos ${biz} er nu aktiv igen, og næste service er planlagt.`,
  cancelled: (svc, biz) =>`Din aftale "${svc}" hos ${biz} er nu opsagt. Der bliver ikke planlagt flere besøg på denne aftale.`,
- rescheduled: (svc, biz) =>`Tidspunktet for din næste "${svc}" hos ${biz} er blevet flyttet.`,
+ rescheduled: (svc, biz) =>`Datoen for din næste "${svc}" hos ${biz} er blevet flyttet.`,
 }
 const EVENT_NEXT: Record<SubscriptionEvent, string[]> = {
  paused: ['Aftalen er midlertidigt stoppet, og der planlægges ingen nye serviceringer.', 'Du kan genoptage aftalen når som helst fra dit kundepanel.'],
  resumed: ['Næste service er planlagt og udføres på den nye aktive aftale.', 'Du kan stadig pause eller opsige aftalen igen senere.'],
  cancelled: ['Aftalen er afsluttet, og der kommer ikke flere serviceringer eller opkrævninger.', 'Hvis du vil i gang igen, kan du altid bestille en ny service.'],
- rescheduled: ['Sørg for adgang til adressen på den nye dato.', 'Kontakt virksomheden direkte, hvis det nye tidspunkt ikke passer.'],
+ rescheduled: ['Sørg for adgang til adressen på den nye dato.', 'Kontakt virksomheden direkte, hvis den nye dato ikke passer.'],
 }
 const fmt = (n: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(n)
 const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) } catch { return s } }

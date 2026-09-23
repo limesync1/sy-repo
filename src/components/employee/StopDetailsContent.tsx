@@ -57,28 +57,14 @@ export const StopDetailsContent = ({
   const { data: meEmployee } = useMyEmployee();
   const isDone = stop.status === "completed";
 
-  // Lås "Markér udført" indtil stoppets dato/tidspunkt er aktuelt — så en
-  // medarbejder ikke kan udføre en fremtidig forekomst før tid.
-  // Brug planned_arrival (præcis tidsstempel) hvis sat, ellers route.date.
+  // Lås "Markér udført" indtil rutens dato er aktuel.
   const { canComplete, futureLabel } = useMemo(() => {
     // Hvis virksomheden/medarbejderen/ruten tillader tidlig udførelse,
-    // er stoppet altid eksekverbart — uanset planned_arrival / route.date.
+    // er stoppet altid eksekverbart — uanset rutens dato.
     if (route?.allowEarly) {
       return { canComplete: true, futureLabel: null as string | null };
     }
     const now = new Date();
-    const planned = (stop as any).planned_arrival
-      ? new Date((stop as any).planned_arrival)
-      : null;
-    if (planned && !isNaN(planned.getTime())) {
-      if (planned.getTime() > now.getTime()) {
-        return {
-          canComplete: false,
-          futureLabel: format(planned, "d. MMM", { locale: da }),
-        };
-      }
-      return { canComplete: true, futureLabel: null as string | null };
-    }
     if (route?.date) {
       const d = new Date(route.date);
       if (!isNaN(d.getTime())) {
@@ -94,7 +80,7 @@ export const StopDetailsContent = ({
       }
     }
     return { canComplete: true, futureLabel: null as string | null };
-  }, [stop, route?.date, route?.allowEarly]);
+  }, [route?.date, route?.allowEarly]);
 
   // Fuld adresse: vej + postnr + by — vi viser ALDRIG kun gaden uden
   // postnr/by, da flere danske vejnavne findes i flere byer.

@@ -453,7 +453,7 @@ export const useStartWorkday = () => {
       // Tydelig bekræftelse med præcist tidsstempel — så medarbejderen
       // altid ved hvad der er registreret.
       const startedAt = data?.started_at ? new Date(data.started_at) : new Date();
-      const time = startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+       const time = startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       toast.success("Arbejdsdag startet", {
         description: `Tidsregistrering begyndte kl. ${time}.`,
       });
@@ -485,15 +485,14 @@ export const useEndWorkday = () => {
       qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
       const endedAt = data?.ended_at ? new Date(data.ended_at) : new Date();
       const startedAt = data?.started_at ? new Date(data.started_at) : null;
-      const endTime = endedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-      const durationMin = data?.duration_minutes ?? (startedAt
-        ? Math.max(0, Math.round((endedAt.getTime() - startedAt.getTime()) / 60000))
-        : null);
+       const endTime = endedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+       const durationSec = startedAt ? Math.max(0, Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000)) : null;
       const startTime = startedAt
-        ? startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+         ? startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
         : null;
+       const duration = durationSec == null ? null : `${String(Math.floor(durationSec / 3600)).padStart(2, "0")} : ${String(Math.floor((durationSec % 3600) / 60)).padStart(2, "0")} : ${String(durationSec % 60).padStart(2, "0")}`;
       const desc = startTime
-        ? `Registreret ${startTime}–${endTime}${durationMin != null ? ` · ${Math.floor(durationMin / 60)}t ${durationMin % 60}min` : ""}.`
+         ? `Registreret ${startTime}–${endTime}${duration ? ` · ${duration}` : ""}.`
         : `Stoppet kl. ${endTime}.`;
       toast.success("Arbejdsdag afsluttet", { description: desc });
     },
