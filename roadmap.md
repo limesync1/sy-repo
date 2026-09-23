@@ -4,4 +4,4 @@
 - [x] Fjern alle synlige udførelsestidspunkter fra aftaler, fletning og historik
 - [x] Fjern statusfilteret "I gang"
 - [x] Vis aftaler uden rute fast på mobil, så de kan trækkes direkte til ruter
-- [x] Test hele resultatet på computer, tablet og mobil
+- [ ] Test hele resultatet på computer, tablet og mobil
