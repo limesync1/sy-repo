@@ -351,7 +351,6 @@ export function MobileRouteDetailSheet({
 
 
            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-            <RouteCommunicationPanel route={route} stops={stops} employees={employees} />
             {stops.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary/50">
@@ -531,7 +530,6 @@ export function MobileRouteDetailSheet({
                     </Button>
                   )}
                 </div>
-                <RouteCommunicationPanel route={route} stops={stops} employees={employees} stop={activeStop} />
               </div>
 
               <div className="planner-overlay-footer space-y-2 border-t border-border p-4">
@@ -590,6 +588,8 @@ export function MobileRouteDetailSheet({
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         route={route}
+        stops={stops}
+        employees={employees}
         onSave={async (name, color) => {
           try {
             await updateAppearance.mutateAsync({ route, name: name || null, color });
@@ -633,6 +633,8 @@ function RouteSettingsSheet({
   open,
   onOpenChange,
   route,
+  stops,
+  employees,
   onSave,
   saving,
   onRequestDelete,
@@ -640,6 +642,8 @@ function RouteSettingsSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   route: Route;
+  stops: RouteStop[];
+  employees: any[];
   onSave: (name: string, color: string) => void;
   saving: boolean;
   onRequestDelete: () => void;
@@ -696,6 +700,7 @@ function RouteSettingsSheet({
               })}
             </div>
           </div>
+          <RouteCommunicationPanel route={route} stops={stops} employees={employees} />
         </div>
         <div className="planner-overlay-footer space-y-2 border-t border-border p-4">
           <Button className="w-full gap-2" onClick={() => onSave(name.trim(), color)} disabled={saving}>
