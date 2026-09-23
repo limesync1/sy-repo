@@ -46,7 +46,7 @@ type Props = {
   livePositions?: Array<{ employeeId: string; lat: number; lng: number; label: string; currentStopLabel?: string; recordedAt: string }>;
 };
 
-const FitBounds = ({ points, trigger }: { points: [number, number][]; trigger: number }) => {
+const FitBounds = ({ points, trigger }: { points: [number, number][]; trigger: string }) => {
   const map = useMap();
   useEffect(() => {
     if (points.length === 0) return;
@@ -256,7 +256,10 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
   }, [selectedStopId, routes, unassigned]);
 
   const center: [number, number] = allPoints[0] || [56.0, 10.5];
-  const fitTrigger = useMemo(() => allPoints.length, [allPoints]);
+  const fitTrigger = useMemo(
+    () => allPoints.map(([lat, lng]) => `${lat.toFixed(4)},${lng.toFixed(4)}`).join("|"),
+    [allPoints],
+  );
 
   const getGeom = useRouteGeometries(routes);
 
