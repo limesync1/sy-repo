@@ -11,7 +11,7 @@
 - [x] Ret hovertekst og ensret sidemenu-kontrol i alle tre paneler.
 - [x] Indfør kompakt panel- og ruteplanlæggerlayout på mindre computere.
 - [x] Gør forsiden mere kompakt og jævnt skaleret på tværs af skærmstørrelser.
-- [ ] Verificér mobil, tablet, 13-tommer laptop og bred desktop.
+- [x] Verificér mobil, tablet, 13-tommer laptop og bred desktop.
 # Ruteplanlægger-modernisering
 - [x] Kræv aktiv service før bestilling og skjul inaktive offentligt
 - [x] Gennemfør en tydelig, professionel omlægning af hele planlæggerens arbejdsflade
