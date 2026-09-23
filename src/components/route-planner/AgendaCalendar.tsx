@@ -358,7 +358,7 @@ const DayRowInner = ({
        {capacity && capacity.stops_capacity > 0 && !isPast && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden"
-           title={`Belastning: ${capacity.stops_booked} af ${capacity.stops_capacity} stop`}
+           title={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
           aria-label={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
         >
           <div

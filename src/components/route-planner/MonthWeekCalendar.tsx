@@ -267,7 +267,7 @@ const DayOverviewSheet = ({
         {capacity && capacity.stops_capacity > 0 && (
           <div className="px-5 py-3 border-b border-border/70 space-y-1">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Dagens belastning</span>
+              <span>Stopkapacitet</span>
               <span className="tabular-nums font-semibold text-foreground">
                 {capacity.stops_booked} af {capacity.stops_capacity} stop
               </span>
@@ -1159,8 +1159,8 @@ const DayCellInner = ({
       {capacity && capacity.stops_capacity > 0 && inMonth && !isPast && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden group/cap"
-          title={`Belastning: ${capacity.stops_booked} af ${capacity.stops_capacity} stop`}
-          aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
+          title={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
+          aria-label={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
         >
           <div
             className={cn(
