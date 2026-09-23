@@ -1684,8 +1684,6 @@ function NewRouteDialog({
   );
 }
 
-export { formatDur };
-
 /* ──────────────────────── Mini-map ─────────────────────────
  * Lille SVG-forhåndsvisning af rute-stoppene normaliseret til en
  * bounding box. Ingen eksterne kort-API'er — viser ruteformen og

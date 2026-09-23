@@ -9,17 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, ArrowRight, CalendarDays, Clock, Loader2, MapPin, Route as RouteIcon, Search, User } from "lucide-react";
+import { ArrowRight, CalendarDays, Loader2, MapPin, Route as RouteIcon, Search, User } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
-import { formatDurationMin } from "@/lib/duration-format";
 
 /**
  * Bulk-tilføj valgte aftaler til en eksisterende rute med ét tryk.
  *
  * Brugeren ser:
- *   - Listen af valgte aftaler med adresse + varighed.
+ *   - Listen af valgte aftaler med adresse.
  *   - En søgbar liste af mulige mål-ruter (dato + navn + medarbejder).
- *   - Samlet varighed + advarsel hvis ruten er fyldt op.
  *
  * Selve mutationen sker udenfor — vi kalder bare `onConfirm(routeId)` så
  * RoutePlanner kan køre serielle `addStop`-mutationer gennem mutation-queue'en
@@ -71,11 +69,6 @@ export const BulkAddToRouteDialog = ({
     }
   }, [open]);
 
-  const totalDuration = useMemo(
-    () => jobs.reduce((acc, j) => acc + (Number(j.estimated_duration_minutes) || 30), 0),
-    [jobs],
-  );
-
   const filteredRoutes = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = routes.slice().sort((a, b) => a.route_date.localeCompare(b.route_date));
@@ -109,9 +102,6 @@ export const BulkAddToRouteDialog = ({
           <div className="border-b sm:border-b-0 sm:border-r p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <span>Valgte aftaler</span>
-              <span className="tabular-nums normal-case font-medium text-foreground/80">
-                {formatDurationMin(totalDuration, { short: true })} i alt
-              </span>
             </div>
             <ScrollArea className="h-56">
               <div className="space-y-1.5 pr-2">
@@ -198,11 +188,6 @@ export const BulkAddToRouteDialog = ({
                             <span className="inline-flex items-center gap-0.5">
                               <MapPin className="h-2.5 w-2.5" />{r.stopCount} stop
                             </span>
-                            {r.totalMin != null && r.totalMin > 0 && (
-                              <span className="inline-flex items-center gap-0.5">
-                                <Clock className="h-2.5 w-2.5" />{formatDurationMin(r.totalMin, { short: true })}
-                              </span>
-                            )}
                             {r.employeeName && (
                               <span className="inline-flex items-center gap-0.5 truncate">
                                 <User className="h-2.5 w-2.5" />{r.employeeName}
@@ -222,22 +207,6 @@ export const BulkAddToRouteDialog = ({
               </div>
             </ScrollArea>
 
-            {/* Advarsel: meget lang rute */}
-            {selectedRouteId && (() => {
-              const r = routes.find((x) => x.id === selectedRouteId);
-              if (!r) return null;
-              const projected = (r.totalMin || 0) + totalDuration;
-              const hugeRoute = projected > 9 * 60; // > 9 timers planlagt arbejde
-              if (!hugeRoute) return null;
-              return (
-                <div className="flex items-start gap-2 rounded-md border border-amber-300/60 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                  <span>
-                    Ruten lander på {formatDurationMin(projected, { short: true })} planlagt arbejde — overvej at fordele aftalerne på flere dage.
-                  </span>
-                </div>
-              );
-            })()}
           </div>
         </div>
 
