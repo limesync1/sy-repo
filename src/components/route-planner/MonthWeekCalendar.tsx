@@ -1488,7 +1488,7 @@ const RoutePillInner = ({
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="min-h-[2.75rem] pr-12 text-[12px] font-semibold text-foreground leading-[1.15] tracking-normal line-clamp-3 break-words" title={route.name || undefined}>
+          <div className="min-h-[1.75rem] max-w-full text-[12px] font-semibold text-foreground leading-[1.15] tracking-normal line-clamp-2 overflow-hidden" title={route.name || undefined}>
             {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
           </div>
           <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
