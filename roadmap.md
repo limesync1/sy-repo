@@ -1,8 +1,8 @@
 # Ruteplanlægger-modernisering
 - [x] Kræv aktiv service før bestilling og skjul inaktive offentligt
-- [ ] Gennemfør en tydelig, professionel omlægning af hele planlæggerens arbejdsflade
-- [ ] Ensret normal, hover, active, selected, focus, disabled, loading, fejl og drag/drop
-- [ ] Ensret alle ruteplanlæggerens dialoger, paneler og popups
+- [x] Gennemfør en tydelig, professionel omlægning af hele planlæggerens arbejdsflade
+- [x] Ensret normal, hover, active, selected, focus, disabled, loading, fejl og drag/drop
+- [x] Ensret alle ruteplanlæggerens dialoger, paneler og popups
 - [ ] Verificér den reelle indloggede visning på computer, tablet og mobil
 - [x] Fjern alle synlige udførelsestidspunkter fra aftaler, fletning og historik
 - [x] Fjern statusfilteret "I gang"

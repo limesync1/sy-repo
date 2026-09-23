@@ -212,7 +212,7 @@ export function MobileAssignSheet({
                   disabled={busy}
                   onClick={() => assignToExisting(r.id)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99] disabled:opacity-60",
+                    "flex min-h-14 w-full items-center gap-3 rounded-md border border-border bg-card p-3 text-left transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-accent/40 hover:bg-secondary/50 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
                   )}
                 >
                   <span

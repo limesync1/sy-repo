@@ -340,7 +340,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
             <button
               type="button"
               onClick={toggleAll}
-              className="text-accent hover:underline font-medium"
+              className="min-h-9 rounded-md px-2 font-medium text-accent hover:bg-accent/10 active:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               {allSelected ? "Fravælg alle" : "Vælg alle"}
             </button>
@@ -362,8 +362,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                 <label
                   key={s.id}
                   className={cn(
-                    "flex items-start gap-2.5 p-2.5 cursor-pointer hover:bg-secondary/50 transition-colors",
-                    isSelected && "bg-accent/5",
+                    "flex min-h-14 items-start gap-2.5 p-2.5 cursor-pointer transition-colors hover:bg-secondary/50 focus-within:ring-2 focus-within:ring-inset focus-within:ring-accent",
+                    isSelected && "bg-accent/[0.055]",
                   )}
                 >
                   <Checkbox
@@ -399,8 +399,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                 type="button"
                 onClick={() => setMode("date")}
                 className={cn(
-                  "flex-1 text-xs font-medium py-1.5 rounded transition-colors flex items-center justify-center gap-1.5",
-                  mode === "date" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  "flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  mode === "date" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
                 )}
               >
                 <CalendarDays className="h-3.5 w-3.5" /> Ny dato
@@ -409,8 +409,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                 type="button"
                 onClick={() => setMode("route")}
                 className={cn(
-                  "flex-1 text-xs font-medium py-1.5 rounded transition-colors flex items-center justify-center gap-1.5",
-                  mode === "route" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  "flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  mode === "route" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
                 )}
               >
                 <RouteIcon className="h-3.5 w-3.5" /> Eksisterende rute
@@ -457,8 +457,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                         type="button"
                         onClick={() => setTargetRouteId(r.id)}
                         className={cn(
-                          "w-full flex items-center gap-3 p-2.5 text-left transition-colors",
-                          isSelected ? "bg-accent/10" : "hover:bg-secondary/50",
+                          "w-full min-h-14 flex items-center gap-3 p-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
+                          isSelected ? "bg-accent/[0.07] ring-1 ring-inset ring-accent/25" : "hover:bg-secondary/50",
                         )}
                       >
                         <span

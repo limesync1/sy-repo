@@ -65,7 +65,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
     enabled: open && !!routeId,
     queryFn: async () => {
       const { data, error } = await (supabase as any).rpc("route_audit_feed", {
-        p_route_id: routeId!,
+        p_route_id: routeId,
         p_limit: 100,
       });
       if (error) throw error;
@@ -77,8 +77,9 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
     const map = new Map<string, AuditRow[]>();
     for (const row of data ?? []) {
       const key = format(parseISO(row.created_at), "yyyy-MM-dd");
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(row);
+      const existing = map.get(key);
+      if (existing) existing.push(row);
+      else map.set(key, [row]);
     }
     return Array.from(map.entries());
   }, [data]);
@@ -101,7 +102,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
             }
           />
         </DialogHeader>
-        <div className="max-h-[65vh] overflow-auto px-4 sm:px-5 py-4 bg-secondary/[0.16]">
+        <div className="max-h-[65vh] overflow-auto px-4 sm:px-5 py-4 bg-secondary/25">
           {isLoading ? (
             <div className="flex items-center justify-center py-10 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin mr-2" /> Henter…
@@ -126,7 +127,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
                       return (
                         <li key={row.id} className="pl-4 relative">
                           <span className={`absolute -left-[7px] top-3 h-3 w-3 rounded-full border-2 border-background shadow-sm ${meta.ring}`} />
-                           <div className="rounded-[5px] border border-border/70 bg-card p-2.5">
+                            <div className="rounded-md border border-border bg-card p-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] transition-[border-color,box-shadow] hover:border-accent/30 hover:shadow-sm">
                              <div className="flex items-start gap-2">
                               <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold ${meta.badge}`}>
                                 <Icon className="h-3 w-3" />

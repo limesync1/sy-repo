@@ -10,6 +10,12 @@ export const CARD_HOVER =
 export const CARD_SELECTED =
   "border-accent ring-2 ring-accent/20 bg-accent/[0.055] shadow-[0_8px_22px_-18px_hsl(var(--accent)/0.7)]";
 export const CARD_DRAGGING = "border-accent ring-2 ring-accent/25 bg-accent/[0.06] opacity-90 shadow-lg";
+export const CARD_FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1";
+export const CARD_ACTIVE = "active:translate-y-0 active:shadow-sm";
+export const CARD_DISABLED = "disabled:pointer-events-none disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45";
+export const CARD_ERROR = "border-destructive/55 bg-destructive/[0.035]";
+export const CARD_SUCCESS = "border-success/45 bg-success/[0.035]";
+export const CARD_BUSY = "pointer-events-none animate-pulse opacity-65";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
 export const CARD_RAIL_WIDTH = "w-1";
 
@@ -48,6 +54,8 @@ export const PILL_HOVER_LIFT = "hover:border-accent/40 hover:bg-card";
 export const PILL_RAIL_WIDTH = "w-[3px]";
 /** Aktiv multi-select-tilstand for piller (samme som kort, lille variant). */
 export const PILL_SELECTED = "ring-2 ring-accent/20 border-accent bg-accent/[0.055]";
+export const PILL_FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1";
+export const PILL_ACTIVE = "active:scale-[0.99] active:shadow-sm";
 
 /** Komplet base-klassesæt for en pille (kalender-rute-pille). Brug som
  *  første argument til `cn(...)` så alle piller deler nøjagtigt samme
