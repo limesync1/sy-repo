@@ -267,7 +267,7 @@ export const RoleSwitchFooterItem = ({
         collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
       )}
     >
-      <span className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent via-success to-warning p-[2px]">
+      <span className="role-switch-ring relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full p-[2px]">
         <span className="flex h-full w-full items-center justify-center rounded-full bg-card">
           <Icon className="h-3.5 w-3.5 text-foreground" aria-hidden="true" />
         </span>

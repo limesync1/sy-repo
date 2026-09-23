@@ -1,4 +1,4 @@
-import { ArrowRight, BadgeCheck, Star, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -9,7 +9,7 @@ import heroImage from "@/assets/hero-window-cleaning.webp";
  * Forsidens hero — redaktionelt split-layout.
  *
  * Venstre side bærer budskab + søgning på en rolig, mørk havflade. Højre side
- * viser motivet i et afrundet "vindue" med to flydende beviskort, så heroen
+ * viser motivet i et afrundet "vindue", så heroen
  * får dybde uden at teksten ligger oven på et grumset foto.
  */
 const HeroSection = () => {
@@ -97,7 +97,7 @@ const HeroSection = () => {
           </div>
         </div>
 
-        {/* Højre side — motiv i afrundet vindue med flydende beviskort. */}
+        {/* Højre side — motiv i et roligt, afrundet vindue. */}
         <div aria-hidden className="relative hidden lg:block">
           <div className="relative overflow-hidden rounded-[32px] border border-background/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)]">
             <img
@@ -119,28 +119,6 @@ const HeroSection = () => {
             />
           </div>
 
-          <div className="absolute -left-8 top-10 flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 text-foreground shadow-xl">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-success/10 text-success">
-              <BadgeCheck className="h-5 w-5" />
-            </span>
-            <div>
-              <div className="text-[13px] font-semibold leading-tight">CVR-verificeret</div>
-              <div className="text-[11px] text-muted-foreground">Alle virksomheder tjekkes</div>
-            </div>
-          </div>
-
-          <div className="absolute -bottom-6 -right-4 flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 text-foreground shadow-xl">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent">
-              <Zap className="h-5 w-5" />
-            </span>
-            <div>
-              <div className="flex items-center gap-1 text-[13px] font-semibold leading-tight">
-                Svar samme dag
-                <Star className="h-3.5 w-3.5 fill-warning text-warning" />
-              </div>
-              <div className="text-[11px] text-muted-foreground">Op til 3 tilbud, gratis</div>
-            </div>
-          </div>
         </div>
       </div>
     </header>
