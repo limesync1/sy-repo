@@ -172,8 +172,8 @@ export const PlanningPanel = ({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[360px] sm:max-w-sm p-0 overflow-y-auto bg-background">
-        <SheetHeader className="px-5 pt-5 pb-4 border-b border-border/70 bg-card">
+      <SheetContent side="right" className="planner-overlay w-[360px] sm:max-w-sm p-0 overflow-y-auto bg-background">
+        <SheetHeader className="planner-overlay-header px-5 py-3 pr-12 border-b border-border/70 bg-card">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-secondary ring-1 ring-border/70">
               <BarChart3 className="h-3.5 w-3.5 text-foreground" />
@@ -187,7 +187,7 @@ export const PlanningPanel = ({
           </div>
         </SheetHeader>
 
-        <div className="px-5 py-4 space-y-5 bg-secondary/[0.12]">
+        <div className="planner-overlay-body px-5 py-4 space-y-5 bg-secondary/[0.12]">
           {/* Hurtigt overblik øverst — viser umiddelbart hvad der kræver
               opmærksomhed (uplanlagte aftaler, overbookede dage). */}
           {(unassignedCount > 0 || stats.overbookedDays.length > 0) && (

@@ -179,8 +179,8 @@ export default function SickLeaveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh]">
-        <DialogHeader className="shrink-0 space-y-0 border-b px-4 py-4 pr-12 text-left sm:px-6 sm:py-5">
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
             icon={<Thermometer className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Meld medarbejder syg</DialogTitle>}
@@ -213,7 +213,7 @@ export default function SickLeaveDialog({
           </ol>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto">
           <div className="space-y-5 px-4 py-5 sm:px-6 sm:py-6">
             <div ref={headingRef} tabIndex={-1} className="outline-none" />
 
@@ -300,7 +300,7 @@ export default function SickLeaveDialog({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <DialogFooter className="planner-overlay-footer shrink-0 flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <Button
             variant="ghost"
             size="sm"

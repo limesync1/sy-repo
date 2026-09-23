@@ -94,6 +94,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "@/components/route-planner/lib/card-styles";
+import { SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 import { formatInterval } from "@/lib/interval";
 import { isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
@@ -1359,6 +1360,7 @@ function DraggableJobCard({
             variant="ghost"
             size="sm"
             className="h-7 w-full justify-start gap-1.5 px-1 text-[11px] text-muted-foreground hover:text-foreground"
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
               event.stopPropagation();
               onAssign();
@@ -1574,13 +1576,13 @@ function NewRouteDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-h-[92dvh] max-w-md overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Ny rute</DialogTitle>
-          <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg de aftaler,
-            der skal med på ruten.
-          </DialogDescription>
+      <DialogContent className="planner-overlay max-h-[92dvh] max-w-md overflow-y-auto">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<Plus className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Ny rute</DialogTitle>}
+            description={<DialogDescription className="text-xs">{format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg de aftaler, der skal med på ruten.</DialogDescription>}
+          />
         </DialogHeader>
 
         <div className="space-y-3">
@@ -1663,7 +1665,7 @@ function NewRouteDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
+        <DialogFooter className="planner-overlay-footer -mx-6 -mb-6 mt-2 border-t px-5 py-3 flex-col gap-2 sm:flex-row sm:gap-2">
           <Button
             variant="outline"
             className="h-11 w-full sm:w-auto"
@@ -1749,12 +1751,12 @@ function BulkAssignSheet({
 
   const [busy, setBusy] = useState(false);
 
-  const assignTo = async (routeId: string) => {
-    if (busy) return;
-    setBusy(true);
+  const assignTo = async (routeId: string, alreadyBusy = false) => {
+    if (busy && !alreadyBusy) return;
+    if (!alreadyBusy) setBusy(true);
     let ok = 0, fail = 0, movedCount = 0;
     let lastError = "";
-    for (const job of jobs) {
+    const results = await Promise.all(jobs.map(async (job) => {
       const payload = {
         route_id: routeId,
         order_id: job.id,
@@ -1778,13 +1780,21 @@ function BulkAssignSheet({
           if (!existing) throw err;
           await deleteStop.mutateAsync(existing.id);
           await addStop.mutateAsync(payload);
-          movedCount++;
+          return { ok: true, moved: true };
         }
         void linkAgreementToRoute(job.id, routeId);
-        ok++;
+        return { ok: true, moved: false };
       } catch (err: any) {
-        lastError = String(err?.message || "");
+        return { ok: false, moved: false, error: String(err?.message || "") };
+      }
+    }));
+    for (const result of results) {
+      if (result.ok) {
+        ok++;
+        if (result.moved) movedCount++;
+      } else {
         fail++;
+        lastError = result.error || lastError;
       }
     }
     setBusy(false);
@@ -1815,7 +1825,7 @@ function BulkAssignSheet({
         name: null,
         color: pickAvailableColor(usedColors),
       });
-      await assignTo(r.id);
+      await assignTo(r.id, true);
     } catch (err: any) {
       toast.error("Kunne ikke oprette rute", { description: err?.message });
       setBusy(false);
@@ -1824,12 +1834,13 @@ function BulkAssignSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Tildel {jobs.length} aftaler</DialogTitle>
-          <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg en rute eller opret en ny.
-          </DialogDescription>
+      <DialogContent className="planner-overlay max-w-md">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<RouteIcon className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Tildel {jobs.length} aftaler</DialogTitle>}
+            description={<DialogDescription className="text-xs">{format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg en rute eller opret en ny.</DialogDescription>}
+          />
         </DialogHeader>
         <div className="space-y-2">
           {existingRoutes.length === 0 ? (
@@ -1843,9 +1854,9 @@ function BulkAssignSheet({
                 type="button"
                 disabled={busy}
                 onClick={() => assignTo(r.id)}
-                className="flex w-full items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-left transition-colors hover:bg-secondary/50 disabled:opacity-50"
+                className="flex w-full items-center gap-2 rounded-md border border-border bg-card p-2.5 text-left transition-[background-color,border-color,transform] hover:border-accent/40 hover:bg-secondary/50 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
               >
-                <span className="h-8 w-8 shrink-0 rounded-lg" style={{ backgroundColor: r.color }} />
+                <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: r.color }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">{r.name || "Rute uden navn"}</p>
                 </div>
