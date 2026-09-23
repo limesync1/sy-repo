@@ -15,7 +15,7 @@ import {
   Map as MapIcon,
   Navigation,
   Phone,
-  Plus,
+  ShoppingBag,
   RotateCcw,
   Settings2,
   Sparkles,
@@ -56,7 +56,7 @@ import {
   type RouteStop,
 } from "@/hooks/useRoutes";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
-import { AddAddressStopSheet } from "./AddAddressStopSheet";
+import { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import { toast } from "sonner";
 
 // Kortet er tungt (Leaflet) — hent det først når brugeren folder det ud.
@@ -90,7 +90,6 @@ export function MobileRouteDetailSheet({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDeleteRoute, setConfirmDeleteRoute] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
-  const [addStopOpen, setAddStopOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [optimizeResult, setOptimizeResult] = useState<string | null>(null);
 
@@ -256,9 +255,9 @@ export function MobileRouteDetailSheet({
 
           <div className="space-y-2 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
-               <Button className="h-9 flex-1 gap-2 rounded-md text-xs" onClick={() => setAddStopOpen(true)}>
-                <Plus className="h-4 w-4" />
-                Tilføj stop
+               <Button className="h-9 flex-1 gap-2 rounded-md text-xs" onClick={() => openCreateOrderDialog()}>
+                 <ShoppingBag className="h-4 w-4" />
+                 Opret bestilling
               </Button>
               <Button
                 variant="outline"
@@ -337,12 +336,11 @@ export function MobileRouteDetailSheet({
                 </div>
                 <p className="text-sm font-medium text-foreground">Ingen stop på ruten</p>
                 <p className="mt-1 max-w-[17rem] text-xs text-muted-foreground">
-                  Tryk "Tilføj stop" for at skrive en adresse, eller tildel en aftale fra fanen
-                  "Uden rute".
+                   Opret først en bestilling, og tildel derefter aftalen fra "Uden rute".
                 </p>
-                <Button className="mt-3 h-9 gap-2 rounded-md text-xs" onClick={() => setAddStopOpen(true)}>
-                  <Plus className="h-4 w-4" />
-                  Tilføj stop
+                 <Button className="mt-3 h-9 gap-2 rounded-md text-xs" onClick={() => openCreateOrderDialog()}>
+                   <ShoppingBag className="h-4 w-4" />
+                   Opret bestilling
                 </Button>
               </div>
             ) : (
@@ -602,15 +600,6 @@ export function MobileRouteDetailSheet({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Tilføj stop ud fra fri adresse */}
-      <AddAddressStopSheet
-        open={addStopOpen}
-        onOpenChange={setAddStopOpen}
-        routeId={route.id}
-        nextSequence={stops.length}
-        employees={employees}
-        onAdded={() => setMapOpen(true)}
-      />
     </>
   );
 }

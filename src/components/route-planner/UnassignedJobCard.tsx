@@ -416,14 +416,6 @@ export const UnassignedJobCard = ({
               </span>
             )}
 
-            {job.preferred_time_start && !compact && (
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3 shrink-0 text-muted-foreground/50" />
-                {job.preferred_time_start.slice(0, 5)}
-                {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
-              </span>
-            )}
-
             {!compact && (
               <span className="inline-flex items-center gap-1">
                 {isRecurring
