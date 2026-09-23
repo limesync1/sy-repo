@@ -28,10 +28,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getEmployeeWorkspace, setEmployeeWorkspace } from "@/lib/employee-workspace";
 import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
-import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
-import { SidebarFooterItem, SidebarGroupLabel, SidebarNavButton } from "@/components/shared/sidebar/SidebarParts";
+import { useEmployeeRouteNotifications, useMarkAllRouteNotificationsRead, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
+import { RoleSwitchFooterItem, SidebarFooterItem, SidebarGroupLabel, SidebarNavButton } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { EmployeeNotifications, type EmployeeRouteNotification } from "@/components/employee/EmployeeNotifications";
 
 
 
@@ -90,7 +93,10 @@ export const EmployeeShell = ({
   const queryClient = useQueryClient();
   const { data: routeNotifications = [] } = useEmployeeRouteNotifications();
   const markNotificationRead = useMarkRouteNotificationRead();
+  const markAllNotificationsRead = useMarkAllRouteNotificationsRead();
   const unreadNotifications = routeNotifications.filter((item) => !item.read_at);
+  const isMobile = useIsMobile();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   // Arbejder brugeren for flere virksomheder, skal der vælges arbejdsplads
   // før panelet vises. `pickerOpen` tvinger vælgeren frem ved manuelt skift.
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -228,46 +234,62 @@ export const EmployeeShell = ({
     );
   }
 
-  const notificationMenu = (
+  const openNotification = (item: EmployeeRouteNotification) => {
+    if (!item.read_at) markNotificationRead.mutate(item.id);
+    const targetRouteId = item.route_id || item.route_stops?.route_id;
+    if (!targetRouteId) return;
+    setNotificationsOpen(false);
+    const stopQuery = item.route_stop_id ? `?stop=${encodeURIComponent(item.route_stop_id)}` : "";
+    navigate(`/medarbejder/rute/${targetRouteId}${stopQuery}`);
+  };
+
+  const notificationContent = (
+    <EmployeeNotifications
+      notifications={routeNotifications as EmployeeRouteNotification[]}
+      onOpen={openNotification}
+      onMarkAllRead={() => markAllNotificationsRead.mutate()}
+      markingAll={markAllNotificationsRead.isPending}
+      compact={!isMobile}
+    />
+  );
+
+  const notificationTrigger = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative h-9 w-9 shrink-0"
+      aria-label={`${unreadNotifications.length} ulæste notifikationer`}
+    >
+      <Bell className="h-4 w-4" />
+      {unreadNotifications.length > 0 && (
+        <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+          {Math.min(unreadNotifications.length, 9)}
+        </span>
+      )}
+    </Button>
+  );
+
+  const notificationMenu = isMobile ? (
+    <>
+      <span onClick={() => setNotificationsOpen(true)}>{notificationTrigger}</span>
+      <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+        <SheetContent side="bottom" className="max-h-[86dvh] gap-0 overflow-hidden p-0 sm:mx-auto sm:max-w-lg" hideCloseButton>
+          <div className="flex justify-center py-2" aria-hidden><span className="h-1 w-10 rounded-full bg-muted-foreground/30" /></div>
+          <SheetHeader className="sr-only">
+            <SheetTitle>Notifikationer</SheetTitle>
+            <SheetDescription>Beskeder om dine ruter og aftaler</SheetDescription>
+          </SheetHeader>
+          {notificationContent}
+        </SheetContent>
+      </Sheet>
+    </>
+  ) : (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 shrink-0" aria-label={`${unreadNotifications.length} ulæste notifikationer`}>
-          <Bell className="h-4 w-4" />
-          {unreadNotifications.length > 0 && (
-            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
-              {Math.min(unreadNotifications.length, 9)}
-            </span>
-          )}
-        </Button>
+        {notificationTrigger}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1rem)] p-1.5">
-        <DropdownMenuLabel>Notifikationer</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {routeNotifications.length === 0 ? (
-          <p className="px-2 py-5 text-center text-xs text-muted-foreground">Ingen beskeder endnu</p>
-        ) : routeNotifications.slice(0, 8).map((item) => (
-          <DropdownMenuItem
-            key={item.id}
-            className={cn("mb-1 min-h-12 items-start whitespace-normal p-2", !item.read_at && "bg-accent/10")}
-            onSelect={() => {
-              if (!item.read_at) markNotificationRead.mutate(item.id);
-              if (item.route_id) navigate(`/medarbejder/rute/${item.route_id}`);
-            }}
-          >
-            <span className={cn("mt-1 mr-2 h-2 w-2 shrink-0 rounded-full", item.read_at ? "bg-muted-foreground/30" : "bg-destructive")} />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[11px] font-semibold text-foreground">
-                {item.route_stops?.customer_name
-                  ? `Aftale · ${item.route_stops.customer_name}`
-                  : `Rute · ${item.routes?.name || "Planlagt rute"}`}
-              </span>
-              {item.route_stops?.address && (
-                <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{item.route_stops.address}</span>
-              )}
-              <span className="mt-1 block text-xs leading-relaxed text-foreground">{item.message}</span>
-            </span>
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="end" className="w-[24rem] max-w-[calc(100vw-1rem)] overflow-hidden p-0">
+        {notificationContent}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -368,7 +390,7 @@ export const EmployeeShell = ({
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
           {multiWorkspace && <SidebarFooterItem icon={Building2} label="Skift arbejdsplads" onClick={() => setPickerOpen(true)} collapsed={collapsed} />}
-          {(myBusiness || isSoloOwner) && <SidebarFooterItem icon={Briefcase} label="Virksomhedspanel" onClick={() => navigate("/virksomhed")} collapsed={collapsed} />}
+          {(myBusiness || isSoloOwner) && <RoleSwitchFooterItem icon={Briefcase} label="Virksomhedspanel" onClick={() => navigate("/virksomhed")} collapsed={collapsed} />}
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
         </div>
       </aside>
