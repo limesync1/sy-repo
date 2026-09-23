@@ -1447,6 +1447,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           toast.success("Skiftet til kørselsguide");
         }}
         onFinish={onBack}
+        onMoveStop={handleMoveStop}
+        reordering={reorderStops.isPending}
       />
     );
   }
@@ -2583,6 +2585,8 @@ const StopListPanel = ({
             const isNext = s.id === nextStopId;
             const meta = statusMeta(s);
             const plannedTime = formatPlannedTime(s.planned_arrival);
+            const flex = flexById.get(s.id) ?? null;
+            const posInRemaining = remainingIds.indexOf(s.id);
             return (
               <div
                 key={s.id}
@@ -2652,19 +2656,62 @@ const StopListPanel = ({
                       <MapPin className="h-3 w-3 shrink-0" />{s.full_address || s.address}
                     </p>
                   )}
-                  {s.duration_minutes > 0 && (
-                    <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5 flex items-center gap-1">
-                      <Clock className="h-3 w-3" />~{s.duration_minutes} min
-                    </p>
-                  )}
+                  <div className="mt-0.5 flex items-center gap-2 flex-wrap">
+                    {s.duration_minutes > 0 && (
+                      <p className="text-[10px] text-muted-foreground tabular-nums flex items-center gap-1">
+                        <Clock className="h-3 w-3" />~{s.duration_minutes} min
+                      </p>
+                    )}
+                    {!isDone && flex && (
+                      <span
+                        className="text-[10px] font-semibold tabular-nums flex items-center gap-1"
+                        style={{ color: FLEX_TONE[flex.level] }}
+                        title={
+                          flex.level === "flexible"
+                            ? "Kan flyttes frit i rækkefølgen"
+                            : "Begrænset af et aftalt tidsvindue"
+                        }
+                      >
+                        <span
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ background: FLEX_TONE[flex.level] }}
+                        />
+                        {flex.label}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground shrink-0 px-2.5 py-1.5 rounded-lg hover:bg-secondary self-center transition-colors uppercase tracking-wider"
-                >
-                  Detaljer
-                </button>
+                <div className="flex flex-col items-center justify-center gap-1 shrink-0">
+                  {canReorder && !isDone && (
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        aria-label="Flyt stoppet tidligere på ruten"
+                        disabled={reordering || posInRemaining <= 0}
+                        onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, -1); }}
+                        className="h-7 w-7 rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Flyt stoppet senere på ruten"
+                        disabled={reordering || posInRemaining < 0 || posInRemaining >= remainingIds.length - 1}
+                        onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, 1); }}
+                        className="h-7 w-7 rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
+                    className="text-[10px] font-bold text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary transition-colors uppercase tracking-wider"
+                  >
+                    Detaljer
+                  </button>
+                </div>
               </div>
             );
           })}

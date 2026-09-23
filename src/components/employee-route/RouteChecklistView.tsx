@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -45,6 +47,9 @@ type Props = {
   onNavigate: (stop: RouteStop) => void;
   onSwitchToGuide: () => void;
   onFinish: () => void;
+  /** Flyt et stop op/ned i rækkefølgen mens man kører. */
+  onMoveStop?: (stopId: string, dir: -1 | 1) => void;
+  reordering?: boolean;
 };
 
 export const RouteChecklistView = ({
@@ -58,6 +63,8 @@ export const RouteChecklistView = ({
   onNavigate,
   onSwitchToGuide,
   onFinish,
+  onMoveStop,
+  reordering = false,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
 
@@ -240,6 +247,28 @@ export const RouteChecklistView = ({
                           <span className="shrink-0 text-[12px] tabular-nums text-muted-foreground">
                             {hhmm(s.planned_arrival)}
                           </span>
+                        )}
+                        {onMoveStop && (
+                          <div className="flex shrink-0 flex-col gap-1">
+                            <button
+                              type="button"
+                              aria-label="Flyt stoppet tidligere på ruten"
+                              disabled={reordering}
+                              onClick={() => onMoveStop(s.id, -1)}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Flyt stoppet senere på ruten"
+                              disabled={reordering || i >= remaining.length - 2}
+                              onClick={() => onMoveStop(s.id, 1)}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </li>
