@@ -1298,6 +1298,40 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       autoOptimizeRef.current = false;
     }
   };
+  reoptRef.current = reoptimizeFromHere;
+
+  /** Flyt ét stop op/ned i rækkefølgen mens man kører. */
+  const handleMoveStop = async (stopId: string, dir: -1 | 1) => {
+    const list = remainingStops;
+    const from = list.findIndex((s) => s.id === stopId);
+    const to = from + dir;
+    if (from < 0 || to < 0 || to >= list.length) return;
+    const ev = evaluateMove(list, from, to, flexOrigin, minutesNow());
+    const completed = sortedStops.filter((s) => s.status === "completed");
+    const updates = [...completed, ...ev.order].map((s, i) => ({ id: s.id, sequence: i + 1 }));
+    try {
+      await reorderStops.mutateAsync(updates);
+      buzz(14);
+      const broken = ev.brokenStopId ? sortedStops.find((s) => s.id === ev.brokenStopId) : null;
+      if (!ev.feasible && broken) {
+        toast.warning(`${broken.customer_name || "Et stop"} når ikke sit tidsvindue`, {
+          description: "Rækkefølgen er ændret — overvej at flytte den tilbage.",
+        });
+      } else {
+        const d = Math.round(ev.deltaMin);
+        toast.success("Rækkefølgen er ændret", {
+          description:
+            d < -1 ? `Du sparer ca. ${Math.abs(d)} min.`
+              : d > 1 ? `Det koster ca. ${d} min ekstra.`
+                : undefined,
+        });
+      }
+    } catch {
+      toast.error("Kunne ikke ændre rækkefølgen", { description: "Prøv igen om lidt." });
+    }
+  };
+
+
 
   const handleComplete = async (s: RouteStop) => {
     if (routeDateLocked) {
