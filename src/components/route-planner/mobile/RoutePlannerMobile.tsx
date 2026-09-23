@@ -1772,6 +1772,7 @@ function BulkAssignSheet({
         time_window_end: null,
       };
       try {
+        let moved = false;
         try {
           await addStop.mutateAsync(payload);
         } catch (err: any) {
@@ -1780,10 +1781,10 @@ function BulkAssignSheet({
           if (!existing) throw err;
           await deleteStop.mutateAsync(existing.id);
           await addStop.mutateAsync(payload);
-          return { ok: true, moved: true };
+          moved = true;
         }
         void linkAgreementToRoute(job.id, routeId);
-        return { ok: true, moved: false };
+        return { ok: true, moved };
       } catch (err: any) {
         return { ok: false, moved: false, error: String(err?.message || "") };
       }
