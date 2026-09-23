@@ -74,3 +74,10 @@
 - [x] Ensret kvitteringsvalg, print og tilbage-navigation
 - [x] Forbedr kort- og listekørsel responsivt
 - [x] Verificér lys/mørk ved 393, 768 og 1280 px
+
+## Oprydning af panel, forside, kundeservice og færdige ruter
+- [ ] Fjern ekstra kvitteringshandling og ensret medarbejdernavigation
+- [ ] Ryd de valgte forsidesektioner og opdelere
+- [ ] Brug supportportrættet i kundeservicevisninger
+- [ ] Genåbn færdige ruter automatisk ved nye stop
+- [ ] Verificér centrale flows på mobil og computer
