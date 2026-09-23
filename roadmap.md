@@ -37,4 +37,4 @@
 - [x] Fjerne kortvisningsknapper fra rutedetaljerne
 - [x] Holde tildel- og slet-handlinger synlige på stopkort
 - [x] Redesign kørselsguide og stopliste på mobil, tablet og computer
-- [ ] Verificér lys/mørk visning og centrale handlinger
+- [x] Verificér lys/mørk visning og centrale handlinger
