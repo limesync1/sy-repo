@@ -228,6 +228,37 @@
     padding-bottom: 0.25rem;
   }
 
+  /* Ruteplanlæggerens arbejdsflade og portalbaserede dialoger deler samme
+     kompakte, operationelle udtryk. Klassen lever kun mens siden er åben. */
+  .route-planner-workspace,
+  .route-planner-open [role="dialog"],
+  .route-planner-open [role="menu"],
+  .route-planner-open [data-radix-popper-content-wrapper] {
+    letter-spacing: 0;
+  }
+
+  .route-planner-open [role="dialog"] {
+    border-radius: 0.375rem;
+    border-color: hsl(var(--border) / 0.85);
+    box-shadow: 0 18px 50px -28px hsl(var(--foreground) / 0.42);
+  }
+
+  .route-planner-open [role="dialog"] input,
+  .route-planner-open [role="dialog"] textarea,
+  .route-planner-open [role="dialog"] button,
+  .route-planner-open [role="menu"] {
+    border-radius: 0.25rem;
+  }
+
+  .route-planner-workspace h1,
+  .route-planner-workspace h2,
+  .route-planner-workspace h3,
+  .route-planner-workspace h4,
+  .route-planner-workspace h5,
+  .route-planner-workspace h6 {
+    letter-spacing: 0;
+  }
+
   h1,
   h2,
   h3,

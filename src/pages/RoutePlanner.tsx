@@ -276,6 +276,10 @@ const Planner = () => {
   // sidebar, topbar og alt portal-indhold (dialoger, sheets, popovers,
   // dropdowns) følger temaet. Ryddes op ved unmount.
   const plannerTheme = usePlannerThemeEffect();
+  useEffect(() => {
+    document.documentElement.classList.add("route-planner-open");
+    return () => document.documentElement.classList.remove("route-planner-open");
+  }, []);
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
@@ -4209,7 +4213,7 @@ const Planner = () => {
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
-              <div className="hidden h-full xl:flex xl:flex-col xl:gap-1.5">
+              <div className="hidden h-full lg:flex lg:flex-col lg:gap-1.5">
                 <div className="shrink-0 rounded-[5px] border border-border/70 bg-card p-1.5 shadow-none 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
@@ -4436,7 +4440,7 @@ const Planner = () => {
                     className="h-full rounded-[5px]"
                     autoSaveId="route-planner:unassigned-split"
                   >
-                    <ResizablePanel id="unassigned" order={1} defaultSize={30} minSize={28} maxSize={38} className="overflow-hidden">
+                    <ResizablePanel id="unassigned" order={1} defaultSize={32} minSize={30} maxSize={38} className="overflow-hidden">
                       {unassignedCard}
                     </ResizablePanel>
                     <ResizableHandle withHandle className="w-1.5 bg-border/50 hover:bg-accent/20 transition-colors" />
@@ -4450,7 +4454,7 @@ const Planner = () => {
               {/* Mobil/tablet/narrow desktop (<xl, <1280px): dedikeret toolbar + agenda-kalender fuld
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
-              <div className="flex h-full flex-col gap-1.5 xl:hidden">
+              <div className="flex h-full flex-col gap-1.5 lg:hidden">
                 <div className="shrink-0 space-y-1.5 rounded-[5px] border border-border/70 bg-card p-1.5 shadow-none">
                   <div className="flex items-center gap-1.5">
                     <Button

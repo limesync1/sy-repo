@@ -528,7 +528,12 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 Gem kunde
               </Button>
               {!initial?.id && (
-                <Button onClick={() => handleSave(true)} disabled={saving} className="h-9 bg-accent text-accent-foreground hover:bg-accent/90">
+                <Button
+                  onClick={() => handleSave(true)}
+                  disabled={saving}
+                  title={hasActiveServices ? "Gem kunden og opret en bestilling" : "Opret en aktiv service før du kan oprette bestillinger"}
+                  className="h-9 bg-accent text-accent-foreground hover:bg-accent/90"
+                >
                   <ShoppingBag className="h-4 w-4 mr-1.5" />
                   Gem og opret bestilling
                 </Button>

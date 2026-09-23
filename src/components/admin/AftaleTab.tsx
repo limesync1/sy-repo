@@ -784,7 +784,7 @@ const AftaleTab = ({
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
-  const [createOrderOpen, setCreateOrderOpen] = useState(autoOpenCreate);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   // Opret-rute dialog (samme design som ruteplanlægger).
   const [createRouteOpen, setCreateRouteOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
@@ -796,6 +796,15 @@ const AftaleTab = ({
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   // Kommende-aftaler-strip: kollapset som standard for ikke at stjæle plads.
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!autoOpenCreate || !services) return;
+    if (!hasActiveServices) {
+      toast.error("Opret en aktiv service først", { description: "Bestillinger skal knyttes til en aktiv service." });
+      return;
+    }
+    setCreateOrderOpen(true);
+  }, [autoOpenCreate, hasActiveServices, services]);
 
   // ─── Drag & drop til rute-pool ───
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
