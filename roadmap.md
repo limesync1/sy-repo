@@ -66,4 +66,4 @@
 - [x] Bevar kompakt top og bundnavigation på mobil og tablet.
 - [x] Integrér arbejdspladsvælgeren i det fælles panelsystem.
 - [x] Ensret sidernes indholdsbredde, navigation og interaktionstilstande.
-- [ ] Verificér arbejdspladsvalg og centrale sider ved 393, 768 og 1280 px i lys og mørk visning.
+- [x] Verificér arbejdspladsvalg og centrale sider ved 393, 768 og 1280 px i lys og mørk visning.
