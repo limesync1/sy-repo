@@ -29,6 +29,8 @@ import { memo, useMemo, useState } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
 import { PILL_BASE } from "./lib/card-styles";
+import type { StopCapacity } from "./lib/stop-capacity";
+import { stopCapacity } from "./lib/stop-capacity";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -116,7 +118,7 @@ type Props = {
   /** Dagligt kapacitetsoverblik — vises som tynd farve-bar i bunden af
    *  hver dag-celle. Grøn (<70%), gul (70-100%), rød (>100%). Hjælper
    *  brugeren med at se overbelastning før de tildeler endnu et stop. */
-  capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  capacityByDate?: Map<string, StopCapacity>;
   /** Sæt af rute-ids hvor mindst én tildelt medarbejder mangler den
    *  færdighed et stop kræver. Vises som lille ⚠-ikon på rute-pillen. */
   mismatchedRouteIds?: Set<string>;
@@ -173,7 +175,7 @@ const DayOverviewSheet = ({
 }: {
   date: string;
   routes: CalendarRoute[];
-  capacity: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  capacity: StopCapacity | null;
   weather: WeatherDay | null;
   onClose: () => void;
   onSelectRoute: (route: Route) => void;
@@ -196,11 +198,6 @@ const DayOverviewSheet = ({
   const pendingStops = totalStops - completedStops;
   const totalRevenue = routes.reduce(
     (sum, r) => sum + r.stops.reduce((s2, s) => s2 + Number((s as any).order_amount || 0), 0),
-    0,
-  );
-  const totalMinutes = routes.reduce(
-    (sum, r) => sum + (Number(r.total_duration_minutes || 0) ||
-      r.stops.reduce((s2, s) => s2 + Number(s.travel_time_to_next_min || 0), 0)),
     0,
   );
   const employees = (() => {
@@ -260,20 +257,19 @@ const DayOverviewSheet = ({
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Omsætning</div>
             <div className="text-xl font-bold tabular-nums">{fmtRouteKr(totalRevenue)}</div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-card p-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Arbejdstid</div>
-            <div className="text-xl font-bold tabular-nums">{totalMinutes > 0 ? fmtRouteMin(totalMinutes) : "—"}</div>
+           <div className="rounded-md border border-border/70 bg-card p-3">
+             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Kapacitet</div>
+             <div className="text-xl font-bold tabular-nums">{capacity ? `${capacity.stops_booked}/${capacity.stops_capacity}` : totalStops}</div>
+             <div className="text-[10px] text-muted-foreground">stop</div>
           </div>
         </div>
 
-        {capacity && capacity.minutes_capacity > 0 && (
+        {capacity && capacity.stops_capacity > 0 && (
           <div className="px-5 py-3 border-b border-border/70 space-y-1">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
               <span>Dagens belastning</span>
               <span className="tabular-nums font-semibold text-foreground">
-                {Math.round(capacity.load_pct)}% ·{" "}
-                {Math.round((capacity.minutes_booked / 60) * 10) / 10}t /{" "}
-                {Math.round(capacity.minutes_capacity / 60)}t
+                {capacity.stops_booked} af {capacity.stops_capacity} stop
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-border/40 overflow-hidden">
@@ -862,7 +858,7 @@ type DayCellProps = {
   /** Toggle af bulk-valg på rute-pille. */
   onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
   /** Kapacitetsinfo for denne dag — render som tynd farve-bar i bunden. */
-  capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  capacity?: StopCapacity | null;
   /** Sæt af rute-ids der har skill-mismatch — videresendes til RoutePill. */
   mismatchedRouteIds?: Set<string>;
   /** Sæt af rute-ids med medarbejder-tids-konflikt — videresendes til RoutePill. */
@@ -1160,10 +1156,10 @@ const DayCellInner = ({
           kapacitet der allerede er booket. Grøn (<70%), gul (70-100%),
           rød (>100%). Skjules på dage uden kapacitet (= ingen aktive
           medarbejdere), helt tomme dage og fortid. */}
-      {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
+      {capacity && capacity.stops_capacity > 0 && inMonth && !isPast && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden group/cap"
-          title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
+          title={`Belastning: ${capacity.stops_booked} af ${capacity.stops_capacity} stop`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
@@ -1174,7 +1170,7 @@ const DayCellInner = ({
               //   ≥110% + reelt booket    → rød (overbooket)
               //   ≥90%                     → gul (tæt på fuldt)
               //   ellers                    → neutral foreground-tone
-              capacity.load_pct >= 110 && capacity.minutes_booked >= 720
+              capacity.stops_booked > capacity.stops_capacity
                 ? "bg-destructive"
                 : capacity.load_pct >= 90
                 ? "bg-amber-500/80"
@@ -1212,7 +1208,7 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.selectedRouteIds === next.selectedRouteIds &&
     prev.onToggleRouteSelection === next.onToggleRouteSelection &&
     prev.capacity?.load_pct === next.capacity?.load_pct &&
-    prev.capacity?.minutes_capacity === next.capacity?.minutes_capacity &&
+    prev.capacity?.stops_capacity === next.capacity?.stops_capacity &&
     prev.mismatchedRouteIds === next.mismatchedRouteIds &&
     prev.conflictedRouteIds === next.conflictedRouteIds
   );
@@ -1340,7 +1336,6 @@ const RoutePillInner = ({
         : "past"
     : null;
   const isFutureProjected = projectedKind === "future";
-  const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
   // tildelt medarbejder. Hurtig visuel indikator for overload uden ekstra
@@ -1349,13 +1344,9 @@ const RoutePillInner = ({
   // Vi bruger IKKE et fast 30-min fallback pr. stop — det fik ruter med
   // få stop til at se "overbooket" ud uden grund (fx 4 stop = 120 min uden
   // reel arbejdstid). Stop uden gemt varighed tæller som 0 minutter.
-  const workMin = route.stops.reduce(
-    (sum, s) => sum + Math.max(Number((s as any).duration_minutes) || 0, 0),
-    0,
-  ) + (travelMin || 0);
   const empCount = Math.max(route.attachedEmployees.length || route.attachedEmployeeCount || 0, 1);
-  const capacityMin = empCount * 480; // 8 timer pr. medarbejder
-  const loadPct = workMin > 0 ? Math.min(150, Math.round((workMin / capacityMin) * 100)) : 0;
+  const routeCapacity = stopCapacity(stopCount, empCount);
+  const loadPct = routeCapacity.load_pct;
   const loadColor =
     loadPct >= 100 ? "bg-destructive"
       : loadPct >= 85 ? "bg-amber-500"
@@ -1864,7 +1855,7 @@ const RoutePillInner = ({
           title={
             completedCount > 0
               ? `${completedCount} af ${stopCount} stop udført (${Math.round((completedCount / stopCount) * 100)}%) · Belastning ${loadPct}%`
-              : `Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`
+               : `${stopCount} af ${routeCapacity.stops_capacity} stop (${empCount} medarbejder${empCount === 1 ? "" : "e"})`
           }
           aria-label={
             completedCount > 0

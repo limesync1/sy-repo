@@ -3,6 +3,7 @@ import { format, parseISO, isWithinInterval } from "date-fns";
 import { da } from "date-fns/locale";
 import { AlertTriangle, Wrench, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { StopCapacity } from "./lib/stop-capacity";
 
 // Tolerance før en dag kategoriseres som overbooket. Vi accepterer 15 %
 // over kapacitet før vi alarmerer — dels for at undgå falske alarmer ved
@@ -12,19 +13,11 @@ import { cn } from "@/lib/utils";
 // 30 % over nominel kapacitet — i praksis svarer det til ca. 10½ timers
 // arbejde for en 8-timers dag, hvilket de fleste medarbejdere fint kan
 // nå en travl dag uden at "overbooking" er reelt et problem.
-const OVERBOOK_PCT_THRESHOLD = 130;
-// Kræv også at der faktisk er booket meningsfuldt arbejde — så en dag
-// med en lille kapacitet (fx 1 medarbejder med 2 timer) ikke straks
-// vises som "overbooked" når der lægges en enkelt aftale ind.
-// Mindst 13 timers reelt booket arbejde + kørsel før vi flagger dagen
-// som overbooket. Det giver plads til lange men håndterbare dage uden
-// at trigger advarsler unødigt.
-const OVERBOOK_MIN_BOOKED_MIN = 780;
 
 /**
  * Vedvarende konflikt-banner øverst i rute-kalenderen.
  * Samler de mest aktuelle alarmer i én linje:
- *  • Dage hvor (arbejde + kørsel) overstiger kapacitet (load_pct > 100)
+ *  • Dage hvor antallet af stop overstiger medarbejdernes stopkapacitet
  *  • Ruter hvor tildelt medarbejder mangler en påkrævet færdighed
  *
  * Banneret kan lukkes — det dukker først op igen når nye konflikter opstår
@@ -32,7 +25,7 @@ const OVERBOOK_MIN_BOOKED_MIN = 780;
  * så det altid er synligt.
  */
 type Props = {
-  capacityByDate: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  capacityByDate: Map<string, StopCapacity>;
   mismatchedRouteIds: Set<string>;
   rangeStart: string; // yyyy-MM-dd
   rangeEnd: string;
@@ -47,10 +40,7 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
       try {
         const d = parseISO(k);
         if (!isWithinInterval(d, { start, end })) return;
-        if (
-          (v.load_pct ?? 0) >= OVERBOOK_PCT_THRESHOLD &&
-          (v.minutes_booked ?? 0) >= OVERBOOK_MIN_BOOKED_MIN
-        ) {
+        if (v.stops_booked > v.stops_capacity) {
           out.push(k);
         }
       } catch { /* ignore */ }

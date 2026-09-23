@@ -6,10 +6,9 @@
  * herunder — så ALT kører på samme design-token-pakke. */
 export const CARD_BORDER = "border-border/55";
 export const CARD_HOVER =
-  "hover:border-foreground/20 hover:bg-card " +
-  "hover:shadow-[0_2px_8px_-4px_hsl(var(--foreground)/0.16)]";
+  "hover:border-foreground/25 hover:bg-secondary/20";
 export const CARD_SELECTED =
-  "border-accent ring-2 ring-accent/30 shadow-[0_0_0_1px_hsl(var(--accent)/0.15),0_4px_14px_-6px_hsl(var(--accent)/0.35)]";
+  "border-accent ring-1 ring-accent/40";
 export const CARD_DRAGGING = "ring-1 ring-accent opacity-95";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
 export const CARD_RAIL_WIDTH = "w-[3px]";
@@ -19,7 +18,6 @@ export const CARD_RAIL_WIDTH = "w-[3px]";
  *  transition. */
 export const CARD_BASE =
   `group relative ${"rounded-md"} border bg-card overflow-hidden ` +
-  "shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)] " +
   "transition-[background-color,border-color,box-shadow] duration-150 ease-out";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -39,10 +37,10 @@ export const PILL_RADIUS_SM = "rounded-md";
 export const PILL_BORDER = "border border-border/55";
 /** Standard skygge — multi-layer, blød elevation. */
 export const PILL_SHADOW =
-  "shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)]";
+  "shadow-none";
 /** Hover-skygge — dybere elevation. */
 export const PILL_SHADOW_HOVER =
-  "hover:shadow-[0_2px_4px_-2px_hsl(var(--foreground)/0.08),0_8px_24px_-10px_hsl(var(--foreground)/0.22)]";
+  "hover:shadow-none";
 /** Standard transition for pille/kort-stilarter. */
 export const PILL_TRANSITION =
   "transition-[background-color,border-color,opacity,box-shadow,transform] duration-200 ease-out";

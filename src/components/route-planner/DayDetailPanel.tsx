@@ -4,9 +4,8 @@
 import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Clock, MapPin, ArrowRight, CalendarDays } from "lucide-react";
+import { Clock, MapPin, CalendarDays } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatDurationMin } from "@/lib/duration-format";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
@@ -20,7 +19,6 @@ export type DayStop = {
   customerName: string;
   address?: string | null;
   startTime?: string | null; // "HH:mm"
-  durationMin?: number | null;
   serviceSummary?: string | null;
 };
 
@@ -31,20 +29,10 @@ type Props = {
   stops: DayStop[];
 };
 
-function diffMinutes(a: string, b: string): number {
-  const [ah, am] = a.split(":").map(Number);
-  const [bh, bm] = b.split(":").map(Number);
-  return (bh * 60 + bm) - (ah * 60 + am);
-}
-
 export default function DayDetailPanel({ open, onOpenChange, date, stops }: Props) {
   const sorted = useMemo(
     () => [...stops].sort((a, b) => (a.startTime ?? "99:99").localeCompare(b.startTime ?? "99:99")),
     [stops],
-  );
-  const totalMinutes = useMemo(
-    () => sorted.reduce((sum, s) => sum + (s.durationMin ?? 0), 0),
-    [sorted],
   );
   const routes = useMemo(() => {
     const map = new Map<string, string>();
@@ -98,10 +86,6 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
           ) : (
             <ol className="relative ml-3 border-l-2 border-border/70 space-y-3 py-1">
               {sorted.map((s, idx) => {
-                const prev = sorted[idx - 1];
-                const gap = (s.startTime && prev?.startTime && prev?.durationMin != null)
-                  ? diffMinutes(prev.startTime, s.startTime) - (prev.durationMin ?? 0)
-                  : null;
                 return (
                   <li key={s.id} className="pl-4 relative">
                     <span

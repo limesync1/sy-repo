@@ -35,7 +35,7 @@ export default function UnassignedBulkBar({
   const visible = visibleCount ?? selectedCount;
   return (
     <div
-      className="sticky bottom-0 z-20 mt-1 rounded-lg border border-foreground/15 bg-card/95 backdrop-blur shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150"
+      className="sticky bottom-0 z-20 mt-1 overflow-hidden rounded-md border border-foreground/15 bg-card/95 backdrop-blur animate-in fade-in slide-in-from-bottom-2 duration-150"
       role="region"
       aria-label="Bulk-handlinger for valgte aftaler"
     >
@@ -83,13 +83,13 @@ export default function UnassignedBulkBar({
           )}
         </div>
       )}
-      <div className={onAddToRoute ? "grid grid-cols-3 divide-x divide-border/60" : "grid grid-cols-2 divide-x divide-border/60"}>
+      <div className="flex flex-wrap divide-x divide-border/60">
         {onAddToRoute && (
           <button
             type="button"
             onClick={onAddToRoute}
             disabled={busy}
-            className="flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            className="flex h-9 min-w-[110px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
             title="Læg de valgte aftaler ind på en eksisterende rute"
           >
             <RouteIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -100,7 +100,7 @@ export default function UnassignedBulkBar({
           type="button"
           onClick={onShiftDate}
           disabled={busy || !onShiftDate}
-          className="flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            className="flex h-9 min-w-[110px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
           title="Flyt opstartsdato for de valgte aftaler"
         >
           <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
@@ -110,7 +110,7 @@ export default function UnassignedBulkBar({
           type="button"
           onClick={onCancel}
           disabled={busy || !onCancel}
-          className="flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-inset"
+            className="flex h-9 min-w-[90px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-inset"
           title="Annullér de valgte aftaler"
         >
           <Trash2 className="h-3.5 w-3.5" />

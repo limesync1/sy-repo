@@ -34,13 +34,13 @@ export const SheetHeaderBlock = ({
   // primary-foreground for at undgå hvid-på-hvid.
   const hasAccent = !!accent;
   const bg = accent || "hsl(var(--primary))";
-  const iconColor = hasAccent ? readableTextOn(accent!) : "hsl(var(--primary-foreground))";
+  const iconColor = hasAccent && accent ? readableTextOn(accent) : "hsl(var(--primary-foreground))";
   const hasBadge = badge != null || icon != null;
   return (
     <div className="flex items-start gap-3">
       {hasBadge && (
         <span
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold shrink-0 shadow-sm"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0"
           style={{ background: bg, color: iconColor }}
           aria-hidden={!badge}
         >
@@ -111,7 +111,7 @@ export const Section = ({
       {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    <div className="rounded-xl border border-border/60 bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <div className="rounded-md border border-border/70 bg-card p-2.5">
       {children}
     </div>
   </div>
@@ -138,12 +138,12 @@ export const CollapsibleSection = ({
 }) => {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className={cn("bg-card rounded-xl border border-border", className)}>
+    <div className={cn("bg-card rounded-md border border-border", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-center gap-1.5 px-3.5 py-2.5 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        className="w-full flex items-center gap-1.5 px-3 py-2 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         <span className="text-muted-foreground inline-flex items-center justify-center h-4 w-4">
           {icon}
@@ -160,7 +160,7 @@ export const CollapsibleSection = ({
           )}
         />
       </button>
-      {open && <div className="px-3.5 pb-3.5 pt-0.5">{children}</div>}
+      {open && <div className="px-3 pb-3 pt-0.5">{children}</div>}
     </div>
   );
 };
@@ -208,5 +208,5 @@ export const SheetFooterBar = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("border-t p-4 shrink-0 bg-card", className)}>{children}</div>
+  <div className={cn("border-t px-4 py-3 shrink-0 bg-card", className)}>{children}</div>
 );

@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Sparkles, MapPin, Clock, Wrench, Cloud, CheckCircle2,
+  Sparkles, MapPin, Wrench, Cloud, CheckCircle2,
   AlertTriangle, User, Loader2, MapPinned, CalendarSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -359,7 +359,6 @@ export const SuggestRouteDialog = ({
                 isTop={idx === 0}
                 chosen={chosen === s.route_id}
                 onChoose={() => setChosen(s.route_id)}
-                durationMinutes={duration}
               />
             ))}
           </div>
@@ -391,20 +390,16 @@ export const SuggestRouteDialog = ({
 };
 
 const SuggestionCard = ({
-  suggestion: s, isTop, chosen, onChoose, durationMinutes,
+  suggestion: s, isTop, chosen, onChoose,
 }: {
   suggestion: RouteSuggestion;
   isTop: boolean;
   chosen: boolean;
   onChoose: () => void;
-  durationMinutes: number;
 }) => {
-  const hoursUsed = (s.minutes_used + durationMinutes) / 60;
-  const hoursPct = s.capacity.hours_max ? Math.min(100, (hoursUsed / s.capacity.hours_max) * 100) : null;
   const stopsPct = s.capacity.stops_max ? Math.min(100, ((s.stop_count + 1) / s.capacity.stops_max) * 100) : null;
 
   const overCapacity =
-    (s.capacity.hours_max != null && hoursUsed > s.capacity.hours_max) ||
     (s.capacity.stops_max != null && s.stop_count + 1 > s.capacity.stops_max);
 
   return (
@@ -470,13 +465,7 @@ const SuggestionCard = ({
       </div>
 
       {/* Kapacitets-bars */}
-      <div className="mt-3 grid grid-cols-3 gap-3">
-        <CapacityBar
-          label="Arbejdstid"
-          icon={<Clock className="h-3 w-3" />}
-          value={fmtCap(hoursUsed, s.capacity.hours_max, " t")}
-          pct={hoursPct}
-        />
+       <div className="mt-3 grid grid-cols-2 gap-3">
         <CapacityBar
           label="Besøg"
           icon={<MapPin className="h-3 w-3" />}
