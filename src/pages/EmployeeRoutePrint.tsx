@@ -1,26 +1,10 @@
-import { forwardRef, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { AlignJustify, ArrowLeft, Contact, FileText, Loader2, Printer, StickyNote } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { RouteReceiptDocument } from "@/components/employee/RouteReceiptDocument";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  Printer,
-  Loader2,
-  MapPin,
-  Phone,
-  Route as RouteIcon,
-  Flag,
-  ListChecks,
-  StickyNote,
-  ClipboardList,
-  Contact,
-  FileText,
-  AlignJustify,
-} from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { da } from "date-fns/locale";
-import { stripPrices } from "@/lib/employee-display";
 
 const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();
@@ -31,10 +15,11 @@ const EmployeeRoutePrint = () => {
   const showNotes = searchParams.get("notes") === "1";
   const showContact = searchParams.get("contact") !== "0";
   const showTasks = searchParams.get("tasks") !== "0";
+
   const updateOption = (key: "notes" | "contact" | "tasks" | "density", value: string) => {
     const next = new URLSearchParams(searchParams);
     next.set(key, value);
-    if (!next.has("from")) next.set("from", "today");
+    next.set("from", "today");
     setSearchParams(next, { replace: true });
   };
 
@@ -43,326 +28,67 @@ const EmployeeRoutePrint = () => {
   }, []);
 
   if (loading || isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Indlæser...
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Indlæser…</div>;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
-  if (!data) return <div className="p-8 text-center">Rute ikke fundet.</div>;
+  if (!data) return <div className="p-8 text-center text-sm">Rute ikke fundet.</div>;
 
-  const { route, stops, employee } = data;
-  const sorted = [...stops].sort((a, b) => a.sequence - b.sequence);
-  const businessName = (route as any).businesses?.name || "";
-  const distance = route.total_distance_km != null ? `${Number(route.total_distance_km).toFixed(1)} km` : "—";
+  const stopCount = data.stops.length;
 
   return (
-    <div className={`min-h-screen bg-muted/40 print:bg-white print-root ${compact ? "is-compact" : ""}`}>
-      {/* Action bar — hidden on print */}
-      <div className="print:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto max-w-3xl px-3 sm:px-4 py-2.5 flex items-center gap-2">
-          <Button asChild variant="ghost" size="icon" className="rounded-lg h-9 w-9 shrink-0">
-             <Link to="/medarbejder" aria-label="Tilbage til Min dag">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+    <div className="receipt-print-root min-h-screen bg-secondary/30 print:bg-background">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur print:hidden">
+        <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2.5 sm:px-5">
+          <Button asChild variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-[4px]">
+            <Link to="/medarbejder" aria-label="Tilbage til Min dag"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-sm tracking-tight truncate">Print ruteliste</h1>
-            <p className="text-[11px] text-muted-foreground truncate">
-              A4 · {sorted.length} stop · {compact ? "kompakt" : "standard"}
-            </p>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-semibold">Print kvittering</h1>
+            <p className="truncate text-[11px] text-muted-foreground">{stopCount} stop · A4</p>
           </div>
-          <Button
-            onClick={() => window.print()}
-            size="sm"
-            className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 gap-1.5 shadow-sm px-3"
-          >
-            <Printer className="h-4 w-4" /> Udskriv
+          <Button onClick={() => window.print()} className="h-9 gap-2 rounded-[4px] px-3 text-xs font-semibold sm:text-sm">
+            <Printer className="h-4 w-4" /><span>Print</span>
           </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="print:hidden border-b border-border bg-card">
-        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2 px-3 py-2 sm:grid-cols-4 sm:px-4">
-          <PrintOption icon={<StickyNote className="h-3.5 w-3.5" />} label="Noter" active={showNotes} onClick={() => updateOption("notes", showNotes ? "0" : "1")} />
-          <PrintOption icon={<Contact className="h-3.5 w-3.5" />} label="Kontakt" active={showContact} onClick={() => updateOption("contact", showContact ? "0" : "1")} />
-          <PrintOption icon={<FileText className="h-3.5 w-3.5" />} label="Opgaver" active={showTasks} onClick={() => updateOption("tasks", showTasks ? "0" : "1")} />
-          <PrintOption icon={<AlignJustify className="h-3.5 w-3.5" />} label="Kompakt" active={compact} onClick={() => updateOption("density", compact ? "standard" : "compact")} />
+      <section className="border-b border-border bg-card print:hidden" aria-label="Vælg indhold i kvitteringen">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-1.5 px-3 py-2.5 sm:grid-cols-4 sm:px-5">
+          <PrintOption icon={<StickyNote />} label="Noter" active={showNotes} onClick={() => updateOption("notes", showNotes ? "0" : "1")} />
+          <PrintOption icon={<Contact />} label="Kontakt" active={showContact} onClick={() => updateOption("contact", showContact ? "0" : "1")} />
+          <PrintOption icon={<FileText />} label="Opgaver" active={showTasks} onClick={() => updateOption("tasks", showTasks ? "0" : "1")} />
+          <PrintOption icon={<AlignJustify />} label="Kompakt" active={compact} onClick={() => updateOption("density", compact ? "standard" : "compact")} />
         </div>
-      </div>
+      </section>
 
-      {/* The "paper" — emulates an A4 sheet on screen */}
-      <div className="px-3 sm:px-6 py-4 sm:py-8 print:p-0">
-        <article
-          className="print-sheet relative mx-auto bg-card text-foreground border border-border shadow-md rounded-md overflow-hidden
-                     max-w-[210mm] w-full
-                     print:bg-white print:text-black print:border-0 print:shadow-none print:rounded-none
-                     print:max-w-none print:w-auto print:mx-0"
-        >
-          {/* Top brand stripe */}
-          <div className="print-stripe h-1.5 w-full bg-foreground print:bg-black" />
+      <main className="mx-auto max-w-5xl p-2.5 sm:p-6 print:max-w-none print:p-0">
+        <RouteReceiptDocument data={data} showNotes={showNotes} showContact={showContact} showTasks={showTasks} compact={compact} />
+      </main>
 
-          <div className="px-5 sm:px-10 py-6 sm:py-9 print:px-0 print:py-0">
-            {/* ───────── Document header ───────── */}
-            <header className="print-header pb-5">
-              <div className="flex items-start justify-between gap-6">
-                <div className="min-w-0">
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground print:border-black/40 print:text-black/70 font-medium">
-                    <ClipboardList className="h-3 w-3" />
-                    Ruteliste
-                  </div>
-                  <h1 className="mt-2.5 text-[24px] sm:text-[28px] leading-tight font-semibold tracking-tight text-foreground print:text-black">
-                    {route.name || "Rute"}
-                  </h1>
-                  <p className="mt-1 text-sm text-muted-foreground print:text-black/70 capitalize">
-                    {format(parseISO(route.route_date), "EEEE d. MMMM yyyy", { locale: da })}
-                  </p>
-                </div>
-                {businessName && (
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-muted-foreground print:text-black/60 font-medium">
-                      Udført af
-                    </p>
-                    <p className="mt-1 text-[15px] font-semibold text-foreground print:text-black">
-                      {businessName}
-                    </p>
-                    {employee && (
-                      <p className="text-xs text-muted-foreground print:text-black/70 mt-0.5">
-                        {employee.name}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Meta strip with subtle card */}
-              <dl className="mt-5 grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 print:bg-transparent print:border-black/30">
-                <MetaItem icon={<Flag className="h-3.5 w-3.5" />} label="Stop" value={String(sorted.length)} />
-                <MetaItem icon={<RouteIcon className="h-3.5 w-3.5" />} label="Distance" value={distance} />
-              </dl>
-
-              {route.start_address && (
-                <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground print:text-black/70">
-                  <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                  <span>
-                    <span className="font-medium text-foreground print:text-black">Startadresse:</span>{" "}
-                    {route.start_address}
-                  </span>
-                </p>
-              )}
-            </header>
-
-            {/* Section divider with label */}
-            <div className="print-section-label flex items-center gap-3 py-2">
-              <ListChecks className="h-4 w-4 text-muted-foreground print:text-black/70" />
-              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground print:text-black/70 font-semibold">
-                Stop på ruten
-              </span>
-              <div className="flex-1 h-px bg-border print:bg-black/30" />
-              <span className="text-[11px] tabular-nums text-muted-foreground print:text-black/70 font-medium">
-                {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
-              </span>
-            </div>
-
-            {/* ───────── Stops list ───────── */}
-            {sorted.length === 0 ? (
-              <p className="py-16 text-center text-sm text-muted-foreground">Ingen stop på ruten.</p>
-            ) : (
-              <ol className="print-stops mt-1">
-                {sorted.map((s, i) => {
-                  const cleanedSummary = s.service_summary ? stripPrices(s.service_summary) : "";
-                  return (
-                    <li
-                      key={s.id}
-                      className="print-stop py-5 border-b border-border last:border-b-0 print:border-black/25"
-                    >
-                      <div className="flex gap-4">
-                        {/* Nummerkolonne */}
-                        <div className="shrink-0 flex flex-col items-center gap-2 pt-0.5">
-                          <div className="w-9 h-9 rounded-full bg-foreground text-background print:bg-white print:text-black print:border-[1.5px] print:border-black flex items-center justify-center text-[14px] font-semibold tabular-nums shadow-sm print:shadow-none">
-                            {i + 1}
-                          </div>
-                        </div>
-
-                        {/* Body */}
-                        <div className="flex-1 min-w-0">
-                          {/* Title row */}
-                          <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                            <h3 className="font-semibold text-[16px] leading-tight text-foreground print:text-black">
-                              {s.customer_name || "Stop"}
-                            </h3>
-                          </div>
-
-                          {/* Address & phone with icons */}
-                          <div className="mt-2 grid gap-1 text-sm text-muted-foreground print:text-black/80">
-                            {s.address && (
-                              <p className="flex items-start gap-1.5">
-                                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                                <span>{s.address}</span>
-                              </p>
-                            )}
-                            {showContact && s.customer_phone && (
-                              <p className="flex items-center gap-1.5 tabular-nums">
-                                <Phone className="h-3.5 w-3.5 shrink-0" />
-                                <span>{s.customer_phone}</span>
-                              </p>
-                            )}
-                          </div>
-
-                          {showTasks && cleanedSummary && (
-                            <div className="mt-3 rounded-md border-l-[3px] border-foreground bg-muted/50 px-3 py-2 text-sm text-foreground print:bg-transparent print:border-l-2 print:border-black print:px-2 print:py-1">
-                              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground print:text-black/70">
-                                Opgave
-                              </p>
-                              <p className="mt-0.5">{cleanedSummary}</p>
-                            </div>
-                          )}
-
-                          {showNotes && s.notes && (
-                            <div className="mt-2 flex gap-2 text-sm text-foreground print:text-black">
-                              <StickyNote className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground print:text-black/70" />
-                              <p className="italic">{s.notes}</p>
-                            </div>
-                          )}
-
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-
-            {/* Footer */}
-            <footer className="print-footer mt-6 pt-3 border-t border-border print:border-black/40 flex items-center justify-between flex-wrap gap-2 text-[11px] text-muted-foreground print:text-black/70">
-              <p>Udskrevet {new Date().toLocaleDateString("da-DK")}</p>
-              <p className="font-semibold tracking-tight text-foreground print:text-black">Serviceydere</p>
-            </footer>
-          </div>
-        </article>
-      </div>
-
-      {/* Dedikeret print-stylesheet — kalibreret til A4 */}
       <style>{`
-        /* Skærm-tæthed når "Kompakt" er aktiv — preview af print-density */
-        .print-root.is-compact .print-stop { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-        .print-root.is-compact .print-signature { margin-top: 0.5rem; }
-        .print-root.is-compact .print-signature > div { height: 0.875rem !important; }
-
         @media print {
-          @page { size: A4 portrait; margin: 14mm 14mm 16mm 14mm; }
-
-          html, body {
-            background: #fff !important;
-            color: #000 !important;
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            font-size: 10pt;
-            line-height: 1.4;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-
-          .print-root { background: #fff !important; }
-          .print-sheet { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
-          .print-stripe { display: none !important; }
-
-          /* Typografi i pt for forudsigelig A4-rendering */
-          .print-root h1 { font-size: 16pt; line-height: 1.15; }
-          .print-root h3 { font-size: 10.5pt; line-height: 1.25; }
-          .print-root .text-\\[10px\\] { font-size: 7.5pt !important; }
-          .print-root .text-\\[11px\\] { font-size: 8pt !important; letter-spacing: 0.04em; }
-          .print-root .text-\\[13px\\] { font-size: 9.5pt !important; }
-          .print-root .text-\\[14px\\] { font-size: 10pt !important; }
-          .print-root .text-\\[15px\\] { font-size: 10.5pt !important; }
-          .print-root .text-\\[16px\\] { font-size: 11pt !important; }
-          .print-root .text-\\[22px\\] { font-size: 16pt !important; }
-          .print-root .text-\\[24px\\] { font-size: 17pt !important; }
-          .print-root .text-\\[26px\\] { font-size: 18pt !important; }
-          .print-root .text-\\[28px\\] { font-size: 19pt !important; }
-          .print-root .text-xs { font-size: 8pt !important; }
-          .print-root .text-sm { font-size: 9.5pt !important; }
-
-          /* Stop-tæthed */
-          .print-stop { padding: 4mm 0 !important; }
-          .print-signature { margin-top: 3mm !important; }
-          .print-signature > div { height: 5mm !important; }
-          .print-signature > div + div { margin-top: 1mm !important; }
-
-          .print-header { padding-bottom: 4mm !important; }
-          .print-section-label { padding: 2mm 0 !important; }
-          .print-footer { margin-top: 6mm !important; padding-top: 2mm !important; }
-
-          /* Ingen skygger / fade-baggrunde */
-          .print-root .shadow-sm { box-shadow: none !important; }
-          .print-root .shadow-md { box-shadow: none !important; }
-          .print-root .bg-card { background: #fff !important; }
-          .print-root .bg-muted, .print-root .bg-muted\\/40, .print-root .bg-muted\\/50 { background: transparent !important; }
-
-          /* Side-bryd kontrol */
-          .print-stop, .print-header, .print-footer {
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-          }
-          .print-header { break-after: avoid; page-break-after: avoid; }
-          .print-stop h3 { break-after: avoid; page-break-after: avoid; }
-
-          .print\\:hidden { display: none !important; }
-          .print\\:p-0 { padding: 0 !important; }
-          .print\\:px-0 { padding-left: 0 !important; padding-right: 0 !important; }
-          .print\\:py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
-          .print\\:mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
-          .print\\:max-w-none { max-width: none !important; }
-          .print\\:w-auto { width: auto !important; }
-          .print\\:text-black { color: #000 !important; }
-          .print\\:text-black\\/60 { color: rgba(0,0,0,0.6) !important; }
-          .print\\:text-black\\/70 { color: rgba(0,0,0,0.7) !important; }
-          .print\\:text-black\\/80 { color: rgba(0,0,0,0.8) !important; }
-          .print\\:border-black { border-color: #000 !important; }
-          .print\\:border-black\\/30 { border-color: rgba(0,0,0,0.3) !important; }
-          .print\\:border-black\\/25 { border-color: rgba(0,0,0,0.25) !important; }
-          .print\\:border-black\\/40 { border-color: rgba(0,0,0,0.4) !important; }
-          .print\\:border-black\\/60 { border-color: rgba(0,0,0,0.6) !important; }
-          .print\\:border-0 { border-width: 0 !important; }
-          .print\\:break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-          .print\\:bg-white { background: #fff !important; }
-          .print\\:bg-transparent { background: transparent !important; }
-          .print\\:shadow-none { box-shadow: none !important; }
-          .print\\:rounded-none { border-radius: 0 !important; }
+          @page { size: A4 portrait; margin: 13mm 14mm 15mm; }
+          html, body { background: #fff !important; color: #000 !important; font-family: Inter, system-ui, sans-serif; font-size: 10pt; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          .receipt-print-root { min-height: 0 !important; background: #fff !important; }
+          .receipt-document, .receipt-document * { color: #000 !important; box-shadow: none !important; }
+          .receipt-document { background: #fff !important; }
+          .receipt-document-inner { padding: 0 !important; }
+          .receipt-document .bg-secondary\\/30 { background: transparent !important; }
+          .receipt-header, .receipt-stop, .receipt-footer { break-inside: avoid; page-break-inside: avoid; }
+          .receipt-stop { padding-top: ${compact ? "2.5mm" : "4mm"} !important; padding-bottom: ${compact ? "2.5mm" : "4mm"} !important; }
+          .receipt-document h1 { font-size: 17pt !important; }
+          .receipt-document h2 { font-size: 10.5pt !important; }
         }
       `}</style>
     </div>
   );
 };
 
-/* Metadata-celle med ikon */
-const MetaItem = forwardRef<HTMLDivElement, {
-  icon?: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}>(({ icon, label, value }, ref) => (
-  <div ref={ref} className="min-w-0">
-    <dt className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground print:text-black/60 font-medium">
-      {icon}
-      <span>{label}</span>
-    </dt>
-    <dd className="mt-1 text-[16px] font-semibold text-foreground print:text-black tabular-nums leading-tight">
-      {value}
-    </dd>
-  </div>
-));
-MetaItem.displayName = "MetaItem";
-
-const PrintOption = ({ icon, label, active, onClick }: { icon: React.ReactNode; label: string; active: boolean; onClick: () => void }) => (
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    aria-pressed={active}
-    onClick={onClick}
-    className={`h-9 justify-start gap-2 rounded-[4px] text-xs ${active ? "border-accent/40 bg-accent/10 text-foreground" : "text-muted-foreground"}`}
-  >
-    {icon}<span>{label}</span><span className={`ml-auto h-2 w-2 rounded-full ${active ? "bg-accent" : "bg-muted-foreground/30"}`} />
+const PrintOption = ({ icon, label, active, onClick }: { icon: React.ReactElement; label: string; active: boolean; onClick: () => void }) => (
+  <Button type="button" variant="outline" size="sm" aria-pressed={active} onClick={onClick} className="h-9 justify-start gap-2 rounded-[4px] px-2.5 text-xs">
+    <span className="text-muted-foreground [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
+    <span className="truncate">{label}</span>
+    <span className={`ml-auto h-2 w-2 shrink-0 rounded-full ${active ? "bg-accent" : "bg-muted-foreground/25"}`} />
   </Button>
 );
 
