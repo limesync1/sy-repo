@@ -70,12 +70,6 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                   <MapPin className="h-3 w-3" />
                   {sorted.length} stop
                 </span>
-                {totalMinutes > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/80">
-                    <Clock className="h-3 w-3" />
-                    {formatDurationMin(totalMinutes)}
-                  </span>
-                )}
                 {routes.length > 1 && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
                     {routes.slice(0, 4).map(([name, color]) => (
@@ -114,16 +108,6 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       className="absolute -left-[8px] top-2 h-3.5 w-3.5 rounded-full border-2 border-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)]"
                       style={{ backgroundColor: s.routeColor ?? "hsl(var(--primary))" }}
                     />
-                    {gap != null && gap > 0 && (
-                      <div className="mb-1.5 text-[10.5px] text-muted-foreground/80 flex items-center gap-1 italic">
-                        <ArrowRight className="h-3 w-3" /> {formatDurationMin(gap)} ledig tid
-                      </div>
-                    )}
-                    {gap != null && gap < 0 && (
-                      <div className="mb-1.5 inline-flex items-center gap-1 text-[10.5px] text-destructive font-semibold bg-destructive/10 px-2 py-0.5 rounded-full">
-                        ⚠ Overlap ({formatDurationMin(Math.abs(gap))})
-                      </div>
-                    )}
                     <div
                       className={cn(CARD_BASE, CARD_BORDER, CARD_HOVER, "p-2.5 pl-3.5")}
                     >

@@ -4,9 +4,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle, RefreshCw } from "lucide-react";
+import { MapPin, Sparkles, Navigation, Loader2, Send, AlertCircle, RefreshCw } from "lucide-react";
 import type { RouteStop } from "@/hooks/useRoutes";
-import { formatDurationMin } from "@/lib/duration-format";
 import { formatInterval } from "@/lib/interval";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "./lib/card-styles";
@@ -89,11 +88,6 @@ export const EmployeeColumn = ({
             {totalKm != null && totalKm > 0 && (
               <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-0.5 rounded-md tabular-nums border-border/70">
                 <Navigation className="h-2.5 w-2.5" />{totalKm.toFixed(1)} km
-              </Badge>
-            )}
-            {totalMin != null && totalMin > 0 && (
-              <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-0.5 rounded-md tabular-nums border-border/70">
-                <Clock className="h-2.5 w-2.5" />{formatDurationMin(totalMin, { short: true })}
               </Badge>
             )}
           </div>
