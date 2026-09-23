@@ -1487,7 +1487,7 @@ const RoutePillInner = ({
             : "cursor-grab active:cursor-grabbing",
         )}
       >
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <div className="min-h-[1.75rem] max-w-full break-words text-[11.5px] font-semibold text-foreground leading-[1.2] tracking-normal line-clamp-2 overflow-hidden" title={route.name || "Rute"}>
             {route.name?.trim() || "Rute"}
           </div>
