@@ -27,7 +27,6 @@ export type MergeStopPreview = {
   customerName: string | null;
   serviceSummary: string | null;
   plannedArrival: string | null;
-  durationMinutes?: number | null;
 };
 
 type Props = {

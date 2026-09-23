@@ -136,7 +136,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) onOpenChange(v); }}>
-      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
         <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<CalendarDays className="h-4 w-4" />}

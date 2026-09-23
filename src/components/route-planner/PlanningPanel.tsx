@@ -242,7 +242,7 @@ export const PlanningPanel = ({
           {/* Planlagt kørsel */}
            {stats.loadPerDay.length > 0 && (
             <section>
-              <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
+               <SectionLabel icon={<BarChart3 className="h-3.5 w-3.5" />}>
                 Belastning pr. dag
               </SectionLabel>
               <ul className="mt-2 space-y-1.5">

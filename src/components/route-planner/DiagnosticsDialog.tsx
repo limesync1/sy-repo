@@ -35,7 +35,7 @@ export function DiagnosticsDialog({ open, onOpenChange, items, onAssignRoute }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md max-h-[80vh] overflow-y-auto">
         <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
           <SheetHeaderBlock
             icon={<AlertTriangle className="h-4 w-4" />}

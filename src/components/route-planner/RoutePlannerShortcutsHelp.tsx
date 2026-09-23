@@ -52,7 +52,7 @@ export default function RoutePlannerShortcutsHelp({
 }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md">
         <DialogHeader>
           <DialogTitle>Tastatur-genveje</DialogTitle>
           <DialogDescription>

@@ -1336,6 +1336,7 @@ const RoutePillInner = ({
         : "past"
     : null;
   const isFutureProjected = projectedKind === "future";
+  const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
   // tildelt medarbejder. Hurtig visuel indikator for overload uden ekstra
