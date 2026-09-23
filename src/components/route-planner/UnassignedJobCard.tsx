@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
-  MapPin, Clock, Phone,
+  MapPin, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock,
   Info, Check, Repeat, Hourglass,
 } from "lucide-react";
@@ -413,14 +413,6 @@ export const UnassignedJobCard = ({
               >
                 <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-muted-foreground/50" : "text-orange-500"}`} />
                 <span className="truncate">{fullAddress}</span>
-              </span>
-            )}
-
-            {job.preferred_time_start && !compact && (
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3 shrink-0 text-muted-foreground/50" />
-                {job.preferred_time_start.slice(0, 5)}
-                {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
               </span>
             )}
 

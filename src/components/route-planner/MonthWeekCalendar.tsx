@@ -1047,7 +1047,7 @@ const DayCellInner = ({
                 : "opacity-0 group-hover:opacity-90 text-muted-foreground",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
-            title="Opret tom rute denne dag"
+            title="Opret rute denne dag"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>

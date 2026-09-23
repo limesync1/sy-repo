@@ -23,6 +23,7 @@ import {
   MapPin,
   Plus,
   Search,
+  ShoppingBag,
   Sparkles,
   GripVertical,
   Trash2,
@@ -94,6 +95,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "@/components/route-planner/lib/card-styles";
 import { formatInterval } from "@/lib/interval";
 import { isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
+import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 
 import {
   effectiveJobDate,
@@ -308,8 +310,8 @@ export default function RoutePlannerMobile() {
           longitude: job.longitude,
           service_summary: serviceSummaryForJob(job),
           duration_minutes: Number(job.estimated_duration_minutes) || 30,
-          time_window_start: job.preferred_time_start || null,
-          time_window_end: job.preferred_time_end || null,
+          time_window_start: null,
+          time_window_end: null,
         };
         try {
           let movedFrom: string | null = null;
@@ -603,6 +605,13 @@ export default function RoutePlannerMobile() {
             setCreateOpen(false);
             setOpenRoute(r);
           }}
+        />
+      )}
+
+      {businessId && (
+        <CreateOrderDialogHost
+          businessId={businessId}
+          businessName={business?.name || ""}
         />
       )}
 
@@ -1436,7 +1445,7 @@ function NewRouteDialog({
   }, [eligible, jobSearch]);
 
   const handleSubmit = async () => {
-    if (submitting) return;
+    if (submitting || selected.length === 0) return;
     setSubmitting(true);
     try {
       const created = await createRoute.mutateAsync({
@@ -1464,8 +1473,8 @@ function NewRouteDialog({
           longitude: job.longitude,
           service_summary: serviceSummaryForJob(job),
           duration_minutes: Number(job.estimated_duration_minutes) || 30,
-          time_window_start: job.preferred_time_start || null,
-          time_window_end: job.preferred_time_end || null,
+          time_window_start: null,
+          time_window_end: null,
         };
         try {
           let stop: RouteStop;
@@ -1503,23 +1512,6 @@ function NewRouteDialog({
               ? `${failed[0].name} ${failed[0].reason}.`
               : "Ingen af aftalerne kunne lægges på ruten.",
         });
-        return;
-      }
-
-      if (selected.length === 0) {
-        // Tom rute er bevidst valgt — brugeren tilføjer adresse-stop bagefter.
-        qcDialog.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>(
-          { queryKey: ["route-calendar", businessId] },
-          (old) =>
-            old && !old.routes.some((r) => r.id === created.id)
-              ? { ...old, routes: [...old.routes, created] }
-              : old,
-        );
-        toast.success("Tom rute oprettet", {
-          description: "Tilføj stop med adresse i rutens detaljer.",
-        });
-        reset();
-        onCreated(created);
         return;
       }
 
@@ -1580,8 +1572,8 @@ function NewRouteDialog({
         <DialogHeader>
           <DialogTitle>Ny rute</DialogTitle>
           <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg aftaler, eller
-            opret en tom rute og tilføj stop med adresse bagefter.
+            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg de aftaler,
+            der skal med på ruten.
           </DialogDescription>
         </DialogHeader>
 
@@ -1605,8 +1597,12 @@ function NewRouteDialog({
               </label>
             </div>
             {eligible.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-card/40 p-4 text-center text-xs text-muted-foreground">
-                Ingen aftaler uden rute. Opret en bestilling først.
+              <div className="rounded-md border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
+                <p>Ingen aftaler uden rute.</p>
+                <Button type="button" variant="outline" className="mt-3 h-8 gap-1.5 text-xs" onClick={() => { onOpenChange(false); openCreateOrderDialog(); }}>
+                  <ShoppingBag className="h-3.5 w-3.5" />
+                  Opret bestilling
+                </Button>
               </div>
             ) : (
               <>
@@ -1666,7 +1662,7 @@ function NewRouteDialog({
             variant="outline"
             className="h-11 w-full sm:w-auto"
             onClick={() => onOpenChange(false)}
-            disabled={submitting}
+            disabled={submitting || selected.length === 0}
           >
             Annullér
           </Button>
@@ -1676,7 +1672,7 @@ function NewRouteDialog({
             disabled={submitting}
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {selected.length > 0 ? `Opret rute med ${selected.length}` : "Opret tom rute"}
+            {selected.length > 0 ? `Opret rute med ${selected.length}` : "Vælg mindst én aftale"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1764,8 +1760,8 @@ function BulkAssignSheet({
         longitude: job.longitude,
         service_summary: serviceSummaryForJob(job),
         duration_minutes: Number(job.estimated_duration_minutes) || 30,
-        time_window_start: job.preferred_time_start || null,
-        time_window_end: job.preferred_time_end || null,
+        time_window_start: null,
+        time_window_end: null,
       };
       try {
         try {
