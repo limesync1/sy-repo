@@ -20,7 +20,7 @@ import {
   Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
   Unlock as UnlockIcon,
 } from "lucide-react";
-import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
+import { format, addDays, parseISO, isToday } from "date-fns";
 import { da } from "date-fns/locale";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
