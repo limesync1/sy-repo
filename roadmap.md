@@ -18,10 +18,10 @@
 - [x] Start projektets opdatering af e-mailafsendelse
 
 ## Medarbejderpanel og mobil planlægning
-- [ ] Ret medarbejderpanelets header, logo og responsive layout
-- [ ] Standardisér alle popup-vinduer på mobil og fjern overlap
-- [ ] Gør virksomhedens ruteoversigt og ruteflytning fuldt mobilvenlig
-- [ ] Tilføj automatisk og manuel mobilvenlig planoversigt på e-mail
-- [ ] Tilføj ulæste rute-/aftalenotifikationer til én medarbejder ad gangen
-- [ ] Vis sikker, batteriskånsom live-position kun under aktiv rute
-- [ ] Verificér alle flows på mobil, tablet og computer
+- [x] Ret medarbejderpanelets header, logo og responsive layout
+- [x] Standardisér alle popup-vinduer på mobil og fjern overlap
+- [x] Gør virksomhedens ruteoversigt og ruteflytning fuldt mobilvenlig
+- [x] Tilføj automatisk og manuel mobilvenlig planoversigt på e-mail
+- [x] Tilføj ulæste rute-/aftalenotifikationer til én medarbejder ad gangen
+- [x] Vis sikker, batteriskånsom live-position kun under aktiv rute
+- [x] Verificér alle flows på mobil, tablet og computer
