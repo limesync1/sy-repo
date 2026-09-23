@@ -18,7 +18,6 @@ export type PrintRoute = {
     city?: string | null;
     phone?: string | null;
     startTime?: string | null;
-    durationMin?: number | null;
     notes?: string | null;
   }[];
 };
@@ -96,9 +95,6 @@ export default function RoutePrintDialog({ open, onOpenChange, date, routes, bus
                     </div>
                     <div className="text-right text-xs tabular-nums whitespace-nowrap">
                       {s.startTime && <p className="font-medium">{s.startTime}</p>}
-                      {s.durationMin != null && s.durationMin > 0 && (
-                        <p className="text-muted-foreground">{s.durationMin} min</p>
-                      )}
                     </div>
                   </li>
                 ))}

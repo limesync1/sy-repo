@@ -48,7 +48,7 @@ export function useRoutePlannerDnd(opts: {
   calendarRoutesRaw: any[];
   visibleCalendarStops: any[];
   calendarStops: any[];
-  capacityByDate: Map<string, { minutes_capacity: number; minutes_booked: number }>;
+  capacityByDate: Map<string, { load_pct: number; stops_capacity: number; stops_booked: number }>;
   virtualCalendarRoutes: any[];
   routeOccurrenceExceptions: any[];
   todayStr: () => string;

@@ -97,7 +97,7 @@ import { AdminShell } from "@/components/admin/shared/AdminShell";
 import HelpTip from "@/components/route-planner/HelpTip";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
-import { useDailyCapacity, useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
+import { useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
@@ -122,9 +122,7 @@ import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { detectConflicts } from "@/lib/route-conflicts";
 import { cn } from "@/lib/utils";
-import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
-import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
@@ -168,21 +166,8 @@ const toMin = (t: string | null | undefined): number | null => {
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
-  // Ruteplanlæggeren er bevidst kun tilgængelig på computere — drag-and-drop
-  // planlægning, kortvisning og parallelle paneler kræver en stor skærm og
-  // præcis pointer. På mobil/tablet viser vi en venlig "kun på computer"
-  // forklaring i stedet for at hænge brugeren op med en uanvendelig UI.
-  // Tablets (<1024px) får den fingervenlige mobil-planlægger med fuld
-  // drag-and-drop — desktop-layoutet bliver for trangt og dets kompakte
-  // tablet-fallback viser kun "Kun på computer" for aftaler-uden-rute.
-  // Mobil-planlæggeren har nu samme funktionalitet (DnD, ruter, multi-
-  // select, optimering), så den er det bedre valg under 1024px.
-  const isSmallScreen = useIsBelowBreakpoint(1024);
   if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
-  // Under 768px (telefoner) viser vi den fingervenlige mobil-planlægger
-  // i stedet for drag-and-drop-desktopen.
-  if (isSmallScreen) return <RoutePlannerMobile />;
   return <Planner />;
 };
 
@@ -5771,7 +5756,6 @@ const Planner = () => {
                 startTime: s.planned_arrival
                   ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
                   : null,
-                durationMin: s.duration_minutes ?? null,
                 notes: s.notes ?? null,
               })),
           })))}
@@ -5796,7 +5780,6 @@ const Planner = () => {
                 startTime: s.planned_arrival
                   ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
                   : null,
-                durationMin: s.duration_minutes ?? null,
                 serviceSummary: s.service_summary ?? null,
               }))
           ))}
