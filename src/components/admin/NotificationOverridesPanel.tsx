@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone, Clock } from "lucide-react";
+import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -28,12 +28,11 @@ import { toast } from "sonner";
  *   3. Aftale    (scope='agreement', match på subscription_id)
  */
 
-type EventKey = "service_upcoming" | "service_completed";
+type EventKey = "service_completed";
 type Channel = "email" | "sms";
 type Scope = "customer" | "agreement";
 
 const EVENTS: { key: EventKey; label: string; help: string; Icon: typeof Bell }[] = [
-  { key: "service_upcoming",  label: "Påmindelse inden besøg", help: "Sendes kort før vi kommer.", Icon: Bell },
   { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når opgaven er udført.", Icon: CheckCircle2 },
 ];
 
@@ -292,13 +291,6 @@ function EventRow({
         />
       </div>
 
-      {event.key === "service_upcoming" && !toggleOnly && (
-        <LeadTimePicker
-          value={leadOverride}
-          onChange={(mins) => onSetLeadTime(event.key, mins)}
-        />
-      )}
-
       <CustomizeSheet
         open={customizeChannel !== null}
         onOpenChange={(o) => !o && setCustomizeChannel(null)}
@@ -395,7 +387,6 @@ function CustomizeSheet({
     (txt || "(tom)")
       .replace(/\{\{kundens_navn\}\}/g, "Anna")
       .replace(/\{\{service\}\}/g, "Rengøring")
-      .replace(/\{\{tidspunkt\}\}/g, "i morgen kl. 10:00")
       .replace(/\{\{virksomhed\}\}/g, "Ready2Clean");
 
   return (
@@ -457,7 +448,6 @@ function CustomizeSheet({
               {[
                 { k: "{{kundens_navn}}", l: "Kundenavn" },
                 { k: "{{service}}", l: "Service" },
-                { k: "{{tidspunkt}}", l: "Tidspunkt" },
                 { k: "{{virksomhed}}", l: "Virksomhed" },
               ].map((v) => (
                 <button

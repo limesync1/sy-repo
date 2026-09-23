@@ -6,11 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { TimePickerPopover } from "@/components/shared/TimePickerPopover";
 import { FieldLabel } from "@/components/admin/shared/AdminUI";
 
 interface Props {
@@ -21,7 +20,7 @@ interface Props {
   onSmsEnabledChange: (v: boolean) => void;
 }
 
-type EventKey = "service_upcoming" | "service_completed";
+type EventKey = "service_completed";
 
 const EVENTS: {
   key: EventKey;
@@ -31,17 +30,6 @@ const EVENTS: {
   Icon: typeof Bell;
   defaults: { subject: string; body: string };
 }[] = [
-  {
-    key: "service_upcoming",
-    label: "Påmindelse inden besøg",
-    shortLabel: "Sendes inden I kommer",
-    help: "En venlig påmindelse til kunden om hvornår I kommer forbi. Sendes automatisk et stykke tid før det planlagte besøg.",
-    Icon: Bell,
-    defaults: {
-      subject: "Vi kommer og udfører {{service}}",
-      body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
-    },
-  },
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
@@ -56,7 +44,6 @@ const EVENTS: {
 ];
 
 const SMS_DEFAULTS: Record<EventKey, string> = {
-  service_upcoming: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
   service_completed: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
 };
 
@@ -67,7 +54,6 @@ const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
   { key: "firmanavn", label: "Jeres firmanavn", example: "Rengøring København" },
   { key: "telefon", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
   { key: "service", label: "Service", example: "ugentlig rengøring" },
-  { key: "tidspunkt", label: "Tidspunkt", example: "torsdag d. 7. maj kl. 10:00" },
 ];
 
 // Mapping: dansk eller gammelt engelsk navn → eksempel-værdi
@@ -76,7 +62,6 @@ const ALIASES: Record<string, string> = {
   firmanavn: "firmanavn", business_name: "firmanavn",
   telefon: "telefon", business_phone: "telefon",
   service: "service", service_name: "service",
-  tidspunkt: "tidspunkt", planned_arrival: "tidspunkt",
 };
 const EXAMPLE_VARS: Record<string, string> = Object.fromEntries(PLACEHOLDERS.map((p) => [p.key, p.example]));
 
@@ -387,7 +372,7 @@ export function CustomerNotificationsSettings({
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
 
-  const [activeEvent, setActiveEvent] = useState<EventKey>("service_upcoming");
+  const [activeEvent, setActiveEvent] = useState<EventKey>("service_completed");
   const [channelTab, setChannelTab] = useState<"email" | "sms">("email");
   // Auto-save state — vi gemmer i baggrunden uden knapper.
 
@@ -566,12 +551,6 @@ export function CustomerNotificationsSettings({
                     )}>
                       <MessageSquare className="h-2.5 w-2.5" /> SMS {sOn ? "til" : "fra"}
                     </span>
-                    {e.key === "service_upcoming" && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår påmindelsen sendes før besøget">
-                        <AlarmClock className="h-2.5 w-2.5" />
-                        {formatSchedule(drafts[e.key].days, drafts[e.key].time)}
-                      </span>
-                    )}
                   </div>
                 </div>
               </button>
@@ -601,21 +580,6 @@ export function CustomerNotificationsSettings({
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
           </div>
-
-          {/* Unified schedule — gælder for både e-mail og SMS for denne besked */}
-          {activeEvent === "service_upcoming" && (
-            <div className="border-b border-border bg-muted/10 p-4 sm:p-5">
-              <SchedulePicker
-                label="Hvornår skal påmindelsen sendes?"
-                days={drafts[activeEvent].days}
-                time={drafts[activeEvent].time}
-                onChange={(s) => {
-                  setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }));
-                  setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }));
-                }}
-              />
-            </div>
-          )}
 
           {/* Channel tabs */}
           <div className="flex overflow-x-auto border-b border-border bg-card px-2 sm:px-3">

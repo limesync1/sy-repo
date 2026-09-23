@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
@@ -36,6 +36,13 @@ import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+const formatWorkDuration = (seconds: number) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  return [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60), safe % 60]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(" : ");
+};
 
 // Vis ALTID ører — så medarbejderen ser præcist beløb i hele appen.
 const formatKr = (n?: number | null) => formatKrShared(Number(n) || 0);
@@ -151,6 +158,7 @@ const EmployeeApp = () => {
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
+  const [workdayNow, setWorkdayNow] = useState(() => Date.now());
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
   // Tidlig udførelse — hent medarbejderens egen indstilling og virksomhedens
@@ -196,6 +204,15 @@ const EmployeeApp = () => {
   const isFutureDay = date > todayStr();
   const dayStarted = !!workday?.started_at && !workday?.ended_at;
   const dayEnded = !!workday?.ended_at;
+  useEffect(() => {
+    if (!dayStarted) return;
+    setWorkdayNow(Date.now());
+    const timer = window.setInterval(() => setWorkdayNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [dayStarted, workday?.started_at]);
+  const actualWorkSeconds = workday?.started_at
+    ? Math.max(0, Math.floor(((workday.ended_at ? new Date(workday.ended_at).getTime() : workdayNow) - new Date(workday.started_at).getTime()) / 1000))
+    : 0;
 
   // Date navigator — kompakt, klar visuel struktur:
   //  [‹]  [📅 dato (popover)]  [›]   [Gå til i dag?]
@@ -295,6 +312,11 @@ const EmployeeApp = () => {
                 <span className={cn("h-1.5 w-1.5 rounded-full", dayStarted ? "bg-success" : "bg-muted-foreground/45")} />
                 {dayEnded ? "Dagen er afsluttet" : dayStarted ? "Dagen er startet" : "Dagen er ikke startet"}
               </span>
+              {!!workday?.started_at && (
+                <span className="rounded-[4px] border border-border bg-secondary/50 px-2 py-1 font-semibold tabular-nums text-foreground" aria-label="Faktisk registreret arbejdstid">
+                  {formatWorkDuration(actualWorkSeconds)}
+                </span>
+              )}
             </div>
           </div>
           <div className="w-full sm:w-auto">{dateNav}</div>

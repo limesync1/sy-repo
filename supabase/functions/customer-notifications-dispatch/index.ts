@@ -14,10 +14,6 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const DEFAULTS: Record<string, { subject: string; body: string }> = {
-  service_upcoming: {
-    subject: "Vi kommer og udfører {{service}}",
-    body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
-  },
   service_completed: {
     subject: "Vi har udført {{service}}",
     body: "Hej {{kundens_navn}},\n\nVi har i dag været forbi og udført {{service}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{firmanavn}}",
@@ -25,9 +21,6 @@ const DEFAULTS: Record<string, { subject: string; body: string }> = {
 };
 
 const SMS_DEFAULTS: Record<string, { body: string }> = {
-  service_upcoming: {
-    body: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
-  },
   service_completed: {
     body: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
   },
@@ -41,15 +34,6 @@ function buildSmsFooter(businessName: string, businessPhone: string | null): str
     return `\n\nDenne SMS kan ikke besvares. Kontakt ${name} på ${businessPhone.trim()}.`;
   }
   return `\n\nDenne SMS kan ikke besvares. Kontakt ${name} direkte.`;
-}
-
-function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return "";
-  try {
-    return new Intl.DateTimeFormat("da-DK", {
-      dateStyle: "long", timeStyle: "short", timeZone: "Europe/Copenhagen",
-    }).format(new Date(iso));
-  } catch { return iso; }
 }
 
 function render(tpl: string, vars: Record<string, string>): string {
@@ -89,7 +73,7 @@ Deno.serve(async (req) => {
         admin.from("businesses").select("id, name, phone, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
         admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle(),
         job.route_stop_id
-          ? admin.from("route_stops").select("planned_arrival, service_summary").eq("id", job.route_stop_id).maybeSingle()
+          ? admin.from("route_stops").select("service_summary").eq("id", job.route_stop_id).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
       const biz = bizRes.data;
@@ -196,20 +180,17 @@ Deno.serve(async (req) => {
       const businessName = biz.name ?? "";
       const businessPhone = (biz as any).phone ?? "";
       const serviceName = stop?.service_summary ?? "din service";
-      const arrival = fmtDate(stop?.planned_arrival);
       const vars: Record<string, string> = {
         // Danske navne
         kundens_navn: customerName,
         firmanavn: businessName,
         telefon: businessPhone,
         service: serviceName,
-        tidspunkt: arrival,
         // Bagudkompatibilitet
         customer_name: customerName,
         business_name: businessName,
         business_phone: businessPhone,
         service_name: serviceName,
-        planned_arrival: arrival,
       };
       const subject = render(subjectTpl, vars);
       let body = render(bodyTpl, vars);
