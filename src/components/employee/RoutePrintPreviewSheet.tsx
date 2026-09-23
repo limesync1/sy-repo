@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useMyRouteData } from "@/hooks/useRoutes";
 import { stripPrices } from "@/lib/employee-display";
+import { SheetFooterBar } from "@/components/route-planner/SheetSection";
 
 type Props = {
   open: boolean;
@@ -34,12 +35,12 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full p-0 flex flex-col sm:max-w-xl"
+        className="planner-overlay w-full p-0 flex flex-col sm:max-w-xl"
       >
         {/* Header */}
-        <SheetHeader className="shrink-0 border-b border-border bg-card px-5 py-4 text-left space-y-1">
+        <SheetHeader className="planner-overlay-header shrink-0 border-b border-border bg-card px-4 py-3 text-left space-y-1">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-[4px] bg-accent text-accent-foreground">
               <ClipboardList className="h-3.5 w-3.5" />
             </span>
             <SheetTitle className="text-base font-semibold">Forhåndsvisning af kvittering</SheetTitle>
@@ -50,7 +51,7 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
         </SheetHeader>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto bg-secondary/30 p-4 sm:p-5">
+        <div className="planner-overlay-body flex-1 overflow-y-auto bg-secondary/30 p-3 sm:p-4">
           {isLoading || !data ? (
             <div className="flex h-40 items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Henter rutedata…
@@ -61,11 +62,11 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
         </div>
 
         {/* Footer-handlinger */}
-        <div className="shrink-0 border-t border-border bg-card px-5 py-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <SheetFooterBar className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button
             asChild
             variant="outline"
-            className="h-10 gap-1.5 rounded-lg border-border bg-card text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="h-9 gap-1.5 rounded-[4px] border-border bg-card text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <Link to={routeId ? `/medarbejder/rute/${routeId}/print` : "#"} target="_blank" rel="noreferrer">
               <ExternalLink className="h-4 w-4" /> Åbn fuld visning
@@ -73,13 +74,13 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
           </Button>
           <Button
             asChild
-            className="h-10 gap-1.5 rounded-lg bg-foreground text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background"
+            className="h-9 gap-1.5 rounded-[4px] bg-accent text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:bg-accent/90"
           >
             <Link to={routeId ? `/medarbejder/rute/${routeId}/print` : "#"}>
               <Printer className="h-4 w-4" /> Gå til print
             </Link>
           </Button>
-        </div>
+        </SheetFooterBar>
       </SheetContent>
     </Sheet>
   );

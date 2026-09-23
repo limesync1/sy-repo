@@ -85,13 +85,13 @@ export const StatCard = ({
     blue: "bg-accent/10 text-accent",
     violet: "bg-feature-lilac text-feature-lilac-foreground",
     danger: "bg-destructive/10 text-destructive",
-    warn: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
-    ok: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",
+    warn: "bg-warning/12 text-warning-foreground dark:text-warning",
+    ok: "bg-success/12 text-success",
   };
   const ring =
     tone === "danger" ? "ring-1 ring-destructive/30"
-    : tone === "warn" ? "ring-1 ring-amber-400/30"
-    : tone === "ok" ? "ring-1 ring-emerald-400/30"
+    : tone === "warn" ? "ring-1 ring-warning/30"
+    : tone === "ok" ? "ring-1 ring-success/30"
     : "";
   return (
     // Diskret hover: kun border bliver lidt mørkere. Ingen lift/rotation som

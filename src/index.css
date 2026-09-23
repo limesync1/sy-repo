@@ -387,6 +387,50 @@
     scrollbar-gutter: stable;
   }
 
+  /* Ældre faner arver den kompakte geometri, indtil deres lokale markup kan
+     fjernes. Scope holder offentlige sider helt uberørte. */
+  .service-panel-content .rounded-2xl,
+  .service-panel-content .rounded-xl,
+  .service-panel-open [role="dialog"] .rounded-2xl,
+  .service-panel-open [role="dialog"] .rounded-xl,
+  .service-panel-open [role="menu"].rounded-xl,
+  .service-panel-open [role="listbox"].rounded-xl {
+    border-radius: 0.375rem !important;
+  }
+
+  .service-panel-content .shadow-2xl,
+  .service-panel-content .shadow-xl,
+  .service-panel-content .shadow-lg {
+    box-shadow: 0 8px 26px -20px hsl(var(--foreground) / 0.42) !important;
+  }
+
+  .service-panel-open [role="dialog"] button,
+  .service-panel-open [role="dialog"] input,
+  .service-panel-open [role="dialog"] textarea,
+  .service-panel-open [role="dialog"] [role="combobox"] {
+    border-radius: 0.25rem;
+  }
+
+  .service-panel-content table {
+    font-size: 0.8125rem;
+  }
+
+  .service-panel-content thead {
+    background: hsl(var(--secondary) / 0.72);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .service-panel-content tbody tr {
+    border-color: hsl(var(--border));
+    transition: background-color 150ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .service-panel-content tbody tr:hover {
+      background: hsl(var(--secondary) / 0.46);
+    }
+  }
+
   .dark .service-panel-open [role="dialog"],
   .dark .service-panel-open .planner-overlay {
     border-color: hsl(var(--border) / 0.9);
