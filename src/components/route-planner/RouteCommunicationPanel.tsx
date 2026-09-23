@@ -59,7 +59,7 @@ export function RouteCommunicationPanel({
     setSending("email");
     try {
       const { data, error } = await supabase.functions.invoke("route-overview-email", {
-        body: { routeId: route.id, employeeId },
+        body: { routeId: route.id, employeeId, requestId: crypto.randomUUID() },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
       toast.success(data?.sent === false ? "Medarbejderen har fravalgt app-mails" : "Planen er sendt");

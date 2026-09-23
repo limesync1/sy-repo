@@ -3,7 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { z } from 'npm:zod@3.23.8'
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
-const BodySchema = z.object({ routeId: z.string().uuid(), employeeId: z.string().uuid() })
+const BodySchema = z.object({ routeId: z.string().uuid(), employeeId: z.string().uuid(), requestId: z.string().uuid().optional() })
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
 Deno.serve(async (req) => {
@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await client.auth.getUser()
     if (!user) return json({ error: 'unauthorized' }, 401)
 
-    const { routeId, employeeId } = parsed.data
+    const { routeId, employeeId, requestId } = parsed.data
     const [{ data: route }, { data: employee }] = await Promise.all([
       admin.from('routes').select('*, businesses(name,owner_id)').eq('id', routeId).single(),
       admin.from('employees').select('name,email,business_id').eq('id', employeeId).single(),
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     if (!stops.length) return json({ error: 'employee_has_no_stops_on_route' }, 400)
 
     const result = await sendTemplateEmail('route-overview', employee.email, {
-      idempotencyKey: `route-overview-${routeId}-${employeeId}-${route.updated_at}`,
+      idempotencyKey: requestId ? `route-overview-${routeId}-${employeeId}-${requestId}` : `route-overview-${routeId}-${employeeId}-${route.updated_at}`,
       templateData: {
         employeeName: employee.name,
         businessName: route.businesses?.name,
