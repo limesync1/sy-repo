@@ -37,10 +37,10 @@ export const SheetHeaderBlock = ({
   const iconColor = hasAccent && accent ? readableTextOn(accent) : "hsl(var(--primary-foreground))";
   const hasBadge = badge != null || icon != null;
   return (
-    <div className="flex items-start gap-2.5">
+    <div className="flex items-start gap-3 border-b border-border pb-3">
       {hasBadge && (
         <span
-          className="flex h-8 w-8 items-center justify-center rounded-[5px] text-sm font-bold shrink-0"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 shadow-sm"
           style={{ background: bg, color: iconColor }}
           aria-hidden={!badge}
         >
@@ -48,11 +48,11 @@ export const SheetHeaderBlock = ({
         </span>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-base font-semibold leading-tight text-left truncate text-foreground">
+        <div className="text-[17px] font-semibold leading-tight text-left truncate text-foreground">
           {title}
         </div>
         {description && (
-          <div className="text-[11px] leading-snug text-muted-foreground mt-0.5 text-left">
+          <div className="text-xs leading-snug text-muted-foreground mt-1 text-left">
             {description}
           </div>
         )}
@@ -90,7 +90,7 @@ export const Section = ({
 }) => (
   // Matcher kunde-detalje-sheetet (rounded-xl border-border bg-card, h4 uppercase
   // tracking-wider) så de to paneler ser ud som ét designsystem.
-  <div className={cn("space-y-1", className)}>
+  <div className={cn("space-y-1.5", className)}>
     <div className="flex items-center gap-1.5">
       <span
         className={cn(
@@ -105,13 +105,13 @@ export const Section = ({
       >
         <span className="[&>svg]:h-3 [&>svg]:w-3 inline-flex">{icon}</span>
       </span>
-      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <h4 className="text-[11px] font-semibold text-foreground">
         {title}
       </h4>
       {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    <div className="rounded-[5px] border border-border/70 bg-card p-2.5">
+    <div className="rounded-md border border-border bg-card p-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
       {children}
     </div>
   </div>

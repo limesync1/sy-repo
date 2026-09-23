@@ -274,7 +274,7 @@ const DayRowInner = ({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-border hover:bg-card hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               aria-label="Opret rute denne dag"
               title="Opret rute"
             >
@@ -341,7 +341,7 @@ const DayRowInner = ({
           <button
             type="button"
             onClick={() => onCreateRoute(dateStr)}
-            className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-[11px] text-muted-foreground hover:border-foreground/40 hover:bg-secondary hover:text-foreground transition-colors"
+            className="flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-[11px] font-medium text-muted-foreground hover:border-accent/50 hover:bg-accent/[0.04] hover:text-foreground active:bg-accent/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <Plus className="h-3.5 w-3.5" />
             Opret rute
@@ -562,7 +562,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           type="button"
           onClick={(e) => { e.stopPropagation(); onOptimize(); }}
           disabled={optimizing}
-          className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded hover:bg-secondary text-muted-foreground hover:text-foreground disabled:opacity-50"
+           className="shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-md border border-transparent hover:border-border hover:bg-secondary text-muted-foreground hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
           aria-label="Optimér rækkefølge"
           title="Optimér rækkefølge"
         >

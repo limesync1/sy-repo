@@ -3516,15 +3516,15 @@ const Planner = () => {
           const unassignedCard = (
                 <Card
                    data-tour="routes-unassigned"
-                   className={cn(
+                    className={cn(
                       "planner-inbox flex flex-col h-full overflow-hidden transition-colors duration-150 border-0 bg-card shadow-none",
-                      selectedJobIds.size > 0 && "ring-1 ring-accent/40",
+                      selectedJobIds.size > 0 && "ring-2 ring-inset ring-accent/25",
                    )}
                  >
-                    <div className="planner-inbox-header relative px-4 pt-4 pb-3 border-b border-border/70 bg-secondary/35 space-y-3">
-                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
+                    <div className="planner-inbox-header relative px-4 pt-4 pb-3 border-b border-border space-y-3">
+                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
                     <div className="flex items-start gap-3 pr-10 xl:pr-0">
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-accent text-accent-foreground shrink-0 shadow-sm">
+                       <span className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-accent/20 bg-accent/10 text-accent shrink-0">
                         <Inbox className="h-[18px] w-[18px]" />
                       </span>
                       <div className="flex-1 min-w-0">
@@ -3543,7 +3543,7 @@ const Planner = () => {
                         )}
                       </div>
                       {filteredUnassigned.length > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-md bg-foreground text-background text-xs font-bold tabular-nums shrink-0">
+                        <span className="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-md bg-accent text-accent-foreground text-xs font-bold tabular-nums shrink-0 shadow-sm">
                           {filteredUnassigned.length}
                         </span>
                       )}
@@ -3846,7 +3846,7 @@ const Planner = () => {
 
                   <div
                     data-density-target="list"
-                    className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]"
+                    className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-secondary/25"
                   >
                     {unassignedError && (
                       <EmptyState
@@ -4209,13 +4209,13 @@ const Planner = () => {
           );
 
           return (
-             <div className="planner-canvas flex-1 overflow-hidden bg-secondary/45 p-2 lg:p-3" style={{ height: "calc(100vh - 56px)" }}>
+              <div className="planner-canvas flex-1 overflow-hidden p-2 lg:p-3" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
               <div className="hidden h-full lg:flex lg:flex-col lg:gap-2.5">
-                <div className="planner-toolbar shrink-0 rounded-md border border-border/70 bg-card px-2.5 py-2 shadow-sm 2xl:hidden">
+                <div className="planner-toolbar shrink-0 rounded-md border border-border bg-card px-3 py-2.5 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
                       variant="outline"
@@ -4436,7 +4436,7 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <div className="planner-board grid h-full min-h-0 grid-cols-[23.5rem_minmax(0,1fr)] overflow-hidden rounded-md border border-border bg-background shadow-sm">
+                    <div className="planner-board grid h-full min-h-0 grid-cols-[24rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background">
                       <aside className="min-w-0 overflow-hidden border-r border-border bg-card">
                         {unassignedCard}
                       </aside>
@@ -4451,7 +4451,7 @@ const Planner = () => {
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
               <div className="flex h-full flex-col gap-2 lg:hidden">
-                <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-md border border-border bg-card p-2 shadow-sm">
+                <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-lg border border-border bg-card p-2.5">
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
@@ -4620,11 +4620,11 @@ const Planner = () => {
                   </div>
 
                 </div>
-                <div className="planner-mobile-board grid min-h-0 flex-1 grid-rows-[minmax(17rem,38dvh)_minmax(18rem,1fr)] overflow-hidden rounded-md border border-border bg-background shadow-sm">
-                  <section className="min-h-0 overflow-hidden border-b border-border" aria-label="Aftaler uden rute">
+                <div className="planner-mobile-board min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-background">
+                  <section className="min-h-[22rem] border-b border-border" aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
-                  <section className="min-h-0 overflow-hidden" aria-label="Rutekalender">
+                  <section className="min-h-[32rem]" aria-label="Rutekalender">
                     {mobileCalendarBlock}
                   </section>
                 </div>

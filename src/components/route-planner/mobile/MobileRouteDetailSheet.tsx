@@ -353,7 +353,7 @@ export function MobileRouteDetailSheet({
                         <button
                           type="button"
                           onClick={() => setActiveStop(stop)}
-                          className="flex min-w-0 flex-1 items-center gap-3 text-left active:scale-[0.99]"
+                          className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md text-left active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                         >
                           <span
                             className={cn(
@@ -389,7 +389,7 @@ export function MobileRouteDetailSheet({
                             <Button
                               variant="ghost"
                               size="icon"
-                               className="h-7 w-7 rounded-[4px]"
+                               className="h-10 w-10 rounded-md"
                               disabled={idx === 0 || reorderStops.isPending}
                               onClick={() => moveStop(idx, -1)}
                               aria-label="Flyt op"
@@ -403,7 +403,7 @@ export function MobileRouteDetailSheet({
                             <Button
                               variant="ghost"
                               size="icon"
-                               className="h-7 w-7 rounded-[4px]"
+                               className="h-10 w-10 rounded-md"
                               disabled={idx === stops.length - 1 || reorderStops.isPending}
                               onClick={() => moveStop(idx, 1)}
                               aria-label="Flyt ned"
@@ -424,7 +424,7 @@ export function MobileRouteDetailSheet({
 
       {/* Stop-detaljer */}
       <Sheet open={!!activeStop} onOpenChange={(o) => !o && setActiveStop(null)}>
-        <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-2xl p-0">
+        <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-lg p-0">
           {activeStop && (
             <>
               <SheetHeader className="border-b border-border px-4 py-3 text-left">
@@ -475,7 +475,7 @@ export function MobileRouteDetailSheet({
                             disabled={setAssignees.isPending}
                             onClick={() => assignEmployee(activeStop, e.id)}
                             className={cn(
-                              "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
+                              "inline-flex min-h-10 items-center gap-1 rounded-md border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-45",
                               selected
                                 ? "border-accent bg-accent/10 text-foreground"
                                 : "border-border bg-card text-muted-foreground hover:bg-secondary/50",
@@ -632,7 +632,7 @@ function RouteSettingsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-2xl p-0">
+      <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-lg p-0">
         <SheetHeader className="border-b border-border px-4 py-3 text-left">
           <SheetTitle className="text-base">Rute-indstillinger</SheetTitle>
         </SheetHeader>
@@ -661,7 +661,7 @@ function RouteSettingsSheet({
                     onClick={() => setColor(c.value)}
                     aria-label={c.name}
                     className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-full transition-transform active:scale-95",
+                      "flex h-11 w-11 items-center justify-center rounded-md transition-[box-shadow,transform] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
                       selected && "ring-2 ring-offset-2 ring-offset-background ring-foreground",
                     )}
                     style={{ backgroundColor: c.value }}

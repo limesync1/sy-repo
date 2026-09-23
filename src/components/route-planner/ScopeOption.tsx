@@ -2,6 +2,7 @@
 // så de altid har samme look, padding, ring og radio-prik.
 import { cn } from "@/lib/utils";
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   selected: boolean;
@@ -16,13 +17,14 @@ type Props = {
 export const ScopeOption = ({
   selected, onClick, disabled, title, description, icon, extra,
 }: Props) => (
-  <button
+  <Button
     type="button"
+    variant="outline"
     onClick={onClick}
     disabled={disabled}
     className={cn(
-      "w-full min-w-0 text-left rounded-md border p-2.5 transition-colors",
-      selected ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:bg-secondary/40",
+      "h-auto w-full min-w-0 justify-start whitespace-normal text-left rounded-md border p-3",
+      selected ? "border-accent bg-accent/[0.055] ring-2 ring-accent/20 hover:bg-accent/[0.07]" : "border-border bg-card hover:border-accent/40 hover:bg-secondary/40",
       disabled && "opacity-50 cursor-not-allowed hover:bg-transparent",
     )}
   >
@@ -38,5 +40,5 @@ export const ScopeOption = ({
     </div>
     <p className="min-w-0 pl-5 text-[11px] leading-snug text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
     {extra && <div className="pl-5">{extra}</div>}
-  </button>
+  </Button>
 );

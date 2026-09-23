@@ -259,7 +259,7 @@ export const UnassignedJobCard = ({
       ref={setNodeRef}
       {...(isPending ? {} : listeners)}
       {...(isPending ? {} : attributes)}
-      style={isDragging ? { opacity: 0.45 } : undefined}
+      style={isDragging ? { opacity: 0.62 } : undefined}
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
@@ -267,11 +267,11 @@ export const UnassignedJobCard = ({
       aria-describedby={isPending ? undefined : "unassigned-drag-instructions"}
       className={cn(
         CARD_BASE,
-        "flex",
+        "flex min-h-[112px]",
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
         isPending ? "" : "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
         isDragging
-          ? "border-dashed border-accent/60 bg-secondary/30 shadow-none ring-0"
+          ? "border-dashed border-accent bg-accent/[0.06] shadow-lg ring-2 ring-accent/20"
           : isPending
           ? "border-amber-300/60"
           : selected
@@ -327,7 +327,7 @@ export const UnassignedJobCard = ({
           },
           "aria-label": `Åbn detaljer for ${job.customer_name}`,
         })}
-        className={`${compact ? "p-2.5 pl-8" : "p-3 pl-9"} space-y-1.5 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+        className={`${compact ? "p-3 pl-9" : "p-3.5 pl-10"} space-y-2 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}
@@ -353,7 +353,7 @@ export const UnassignedJobCard = ({
                 />
               </span>
             )}
-            <h3 className={`${compact ? "text-sm" : "text-[15px]"} font-bold leading-tight text-foreground truncate capitalize min-w-0 flex-1 tracking-tight`}>
+            <h3 className={`${compact ? "text-[14px]" : "text-[15px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1`}>
               {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
               {job.customer_name}
             </h3>
@@ -438,7 +438,7 @@ export const UnassignedJobCard = ({
              Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
       {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
-        <div className="flex border-t border-border/60 divide-x divide-border/60 bg-card">
+        <div className="flex border-t border-border divide-x divide-border bg-secondary/20">
           {onSuggestRoute && (
             <button
               type="button"

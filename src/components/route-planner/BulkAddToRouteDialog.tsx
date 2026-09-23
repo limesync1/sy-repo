@@ -163,8 +163,8 @@ export const BulkAddToRouteDialog = ({
                       onClick={() => setSelectedRouteId(r.id)}
                       disabled={loading}
                       className={cn(
-                        "w-full text-left rounded-md border bg-card px-2 py-1.5 transition-colors",
-                        "hover:border-foreground/40 hover:bg-secondary/40",
+                        "w-full min-h-12 text-left rounded-md border bg-card px-2.5 py-2 transition-[background-color,border-color,box-shadow,transform] duration-150",
+                        "hover:border-accent/40 hover:bg-secondary/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
                         selected && "border-accent ring-2 ring-accent/25 bg-accent/[0.04]",
                       )}
                     >

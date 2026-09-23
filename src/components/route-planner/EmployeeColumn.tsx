@@ -49,10 +49,10 @@ export const EmployeeColumn = ({
   return (
     <Card
       ref={setNodeRef}
-      className={`group/col relative flex min-h-[440px] flex-col rounded-[5px] border-border/70 bg-card p-3 shadow-none transition-colors duration-150 ${
+      className={`group/col relative flex min-h-[480px] flex-col rounded-md border-border bg-card p-3.5 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 ${
         isOver
-          ? "border-accent/70 bg-accent/[0.04] ring-1 ring-accent/30"
-          : "hover:border-foreground/25"
+          ? "border-accent bg-accent/[0.06] ring-2 ring-accent/20 shadow-lg"
+          : "hover:border-accent/35 hover:shadow-md"
       }`}
     >
       {/* Top accent stripe matches route color */}
@@ -180,7 +180,7 @@ const SortableStopCard = ({
         CARD_BASE,
         "p-2.5 pl-3 cursor-pointer",
         isSelected
-          ? "border-accent/60 ring-1 ring-accent/25 bg-accent/[0.025]"
+          ? "border-accent ring-2 ring-accent/20 bg-accent/[0.055] shadow-sm"
           : isDone
           ? "border-emerald-200/70 bg-emerald-50/40 dark:border-emerald-500/25 dark:bg-emerald-500/10 opacity-80"
           : cn(CARD_BORDER, CARD_HOVER),

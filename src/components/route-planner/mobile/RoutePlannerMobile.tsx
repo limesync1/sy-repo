@@ -721,7 +721,7 @@ function RoutesPane({
         </div>
       )}
       <div style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull === 0 ? "transform 200ms" : undefined }}>
-      <div className="mb-2 flex items-center justify-between border-b border-border/70 pb-2">
+          <div className="mb-3 flex items-center justify-between border-b border-border pb-2.5">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dagens ruter
@@ -739,7 +739,7 @@ function RoutesPane({
       {loading ? (
         <div className="space-y-2.5">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+          <Skeleton key={i} className="h-28 w-full rounded-md" />
           ))}
         </div>
       ) : routes.length === 0 ? (
@@ -794,12 +794,12 @@ function DroppableRouteCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "relative overflow-hidden rounded-md border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-all",
+        "planner-card relative overflow-hidden rounded-md border bg-card transition-[background-color,border-color,box-shadow,transform] duration-150",
         isOver
-          ? "border-accent bg-accent/10 ring-2 ring-accent shadow-[0_8px_24px_-8px_hsl(var(--accent)/0.5)] scale-[1.01]"
+          ? "border-accent bg-accent/[0.07] ring-2 ring-accent/25 shadow-lg"
           : dragActive
             ? "border-dashed border-2 border-accent/60 bg-accent/[0.04]"
-            : "border-border/60 hover:border-foreground/20",
+            : "border-border hover:border-accent/40 hover:shadow-md",
       )}
     >
       {/* Tynd venstre farve-rail — diskret, ikke dominerende */}
@@ -813,7 +813,7 @@ function DroppableRouteCard({
         <button
           type="button"
           onClick={() => onOpenRoute(route)}
-          className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
+          className="flex min-w-0 flex-1 items-start gap-2.5 rounded-md text-left active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <div className="min-w-0 flex-1 py-0.5">
             <p className="truncate text-[15px] font-semibold leading-tight tracking-tight text-foreground">
@@ -1085,12 +1085,12 @@ function UnassignedDock({
     <div
       ref={setNodeRef}
       className={cn(
-        "bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-colors",
+        "bg-card transition-[background-color,border-color,box-shadow] duration-150",
         isTablet
           ? "flex w-[340px] shrink-0 flex-col border-l"
           : "shrink-0 border-t",
         isStopDrag && isOver
-          ? "border-destructive bg-destructive/5"
+          ? "border-destructive bg-destructive/5 ring-2 ring-inset ring-destructive/20"
           : "border-border/70",
       )}
       style={isTablet ? undefined : { height: total === 0 && !isStopDrag ? "auto" : "36dvh" }}
@@ -1151,7 +1151,7 @@ function UnassignedDock({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Søg kunde eller adresse"
-            className="h-8 rounded-full pl-7 text-xs"
+            className="h-9 rounded-md border-border bg-background pl-8 text-xs focus-visible:ring-accent"
           />
         </div>
       )}
@@ -1265,7 +1265,7 @@ function DraggableJobCard({
         selectMode && !pending && "cursor-pointer",
         !pending && !selectMode && "cursor-grab touch-none active:cursor-grabbing",
         selected
-          ? "border-accent ring-1 ring-accent/30"
+          ? "border-accent ring-2 ring-accent/20 bg-accent/[0.055] shadow-sm"
           : pending
             ? "border-amber-300/50"
             : cn(CARD_BORDER, CARD_HOVER),
