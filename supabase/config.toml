@@ -5,6 +5,12 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.handle-email-events]
+    verify_jwt = false
+  [functions.order-email-notification]
+    verify_jwt = false
+  [functions.chat-start-email]
+    verify_jwt = false
   [functions.customer-notifications-dispatch]
     verify_jwt = false
   [functions.preview-transactional-email]
