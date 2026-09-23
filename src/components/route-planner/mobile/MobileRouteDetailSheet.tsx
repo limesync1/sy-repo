@@ -118,8 +118,6 @@ export function MobileRouteDetailSheet({
       const res = await optimize.mutateAsync(route.id);
       const parts: string[] = [];
       if (res?.total_km != null) parts.push(`${Math.round(res.total_km)} km`);
-      const mins = (res as any)?.total_duration_min ?? (res as any)?.total_minutes;
-      if (mins != null) parts.push(`${Math.round(mins)} min`);
       const summary = parts.length > 0 ? parts.join(" · ") : null;
       setOptimizeResult(summary);
       toast.success("Rute optimeret", { description: summary ?? undefined });

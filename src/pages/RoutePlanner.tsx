@@ -5506,7 +5506,6 @@ const Planner = () => {
                 id: j.id,
                 customer_name: j.customer_name ?? null,
                 address: j.address || [j.zip_code, j.city].filter(Boolean).join(" ") || null,
-                estimated_duration_minutes: j.estimated_duration_minutes ?? null,
               });
             }
             return items;
@@ -5516,7 +5515,6 @@ const Planner = () => {
             for (const r of calendarRoutesRaw) {
               if ((r as any).isVirtual) continue;
               const stops = calendarStops.filter((s) => s.route_id === r.id);
-              const totalMin = stops.reduce((acc, s) => acc + (s.duration_minutes || 30), 0);
               items.push({
                 id: r.id,
                 name: r.name,
@@ -5524,7 +5522,6 @@ const Planner = () => {
                 color: r.color,
                 employeeName: (r as any).employees?.[0]?.name ?? null,
                 stopCount: stops.length,
-                totalMin,
               });
             }
             return items;

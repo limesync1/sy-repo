@@ -31,7 +31,6 @@ type Occurrence = {
   sequence_index: number;
   status: string;
   completed_at: string | null;
-  planned_arrival: string | null;
   invoice_external_id: string | null;
   invoice_external_number: string | null;
   invoice_status: string | null;
@@ -68,7 +67,7 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
 
       const { data: occs } = await supabase
         .from("agreement_occurrences")
-        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival, invoice_external_id, invoice_external_number, invoice_status, external_order_number, occurrence_number")
+        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, invoice_external_id, invoice_external_number, invoice_status, external_order_number, occurrence_number")
         .in("agreement_id", agreementIds)
         .order("sequence_index", { ascending: true });
 
@@ -126,9 +125,7 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
           const completedList = row.occurrences.filter((o) => o.status === "completed").slice(-2);
           for (const c of completedList) items.push({ key: c.id, n: c.sequence_index + 1, kind: "done", date: c.occurrence_date, occ: c });
           if (next) {
-            const locked = next.planned_arrival
-              ? isFuture(parseISO(next.planned_arrival))
-              : isFuture(parseISO(next.occurrence_date));
+            const locked = isFuture(parseISO(next.occurrence_date));
             items.push({ key: next.id, n: next.sequence_index + 1, kind: "next", date: next.occurrence_date, locked, occ: next });
           }
           for (const p of projected) items.push({ key: p.id, n: p.sequence_index + 1, kind: "future", date: p.occurrence_date, occ: p });
