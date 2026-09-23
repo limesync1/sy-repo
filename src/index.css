@@ -601,6 +601,17 @@
     box-shadow: 0 18px 46px -22px hsl(var(--foreground) / 0.58), 0 2px 8px hsl(var(--foreground) / 0.12);
   }
 
+  .employee-route-run .leaflet-control-container {
+    font-family: Manrope, Inter, InterFallback, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  @media (max-width: 639px) {
+    .employee-route-run .route-drive-dock {
+      width: 100%;
+      max-height: min(42dvh, 22rem);
+    }
+  }
+
   .employee-route-run .leaflet-container {
     background: hsl(var(--surface-strong));
   }
