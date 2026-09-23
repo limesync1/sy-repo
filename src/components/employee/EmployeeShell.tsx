@@ -1,11 +1,6 @@
-// EmployeeShell — slank, mobil-først shell til medarbejder-app'en.
-//
-// Med kun 2–3 navigationspunkter er et fuldt sidepanel overkill. I stedet
-// bruger vi:
-//   • En sticky topbar (logo + sidetitel + profilmenu) på ALLE størrelser.
-//   • Horisontale tabs i topbaren på desktop (lg+).
-//   • En bundnavigation på mobil/tablet (<lg) — tomlevenligt, native-app-
-//     agtigt, og frigør den fulde skærmbredde til indhold.
+// EmployeeShell — medarbejderpanelets fælles panelramme.
+// Matcher virksomhedspanelets sidebar/topbar på computer og bruger en
+// kompakt topbar + bundnavigation på mobil og tablet.
 //
 // Brug:
 //   <EmployeeShell activeTab="today" title="Min dag" topbarRight={...}>
@@ -15,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
-  Bell, Check, ChevronsUpDown,
+  Bell, Check, ChevronsUpDown, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +29,9 @@ import { cn } from "@/lib/utils";
 import { getEmployeeWorkspace, setEmployeeWorkspace } from "@/lib/employee-workspace";
 import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
 import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
+import { SidebarFooterItem, SidebarGroupLabel, SidebarNavButton } from "@/components/shared/sidebar/SidebarParts";
+import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 
@@ -100,6 +98,7 @@ export const EmployeeShell = ({
   // sessionen i stedet for at gemme det permanent.
   const [rememberChoice, setRememberChoice] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string | null>(() => getEmployeeWorkspace());
+  const { collapsed, toggle: toggleCollapsed } = useSidebarCollapsed("sy.sidebar.collapsed.employee");
   const multiWorkspace = (myEmployeeRecords?.length ?? 0) > 1;
   const needsWorkspaceChoice =
     multiWorkspace &&
@@ -229,264 +228,219 @@ export const EmployeeShell = ({
     );
   }
 
+  const notificationMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative h-9 w-9 shrink-0" aria-label={`${unreadNotifications.length} ulæste notifikationer`}>
+          <Bell className="h-4 w-4" />
+          {unreadNotifications.length > 0 && (
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+              {Math.min(unreadNotifications.length, 9)}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1rem)] p-1.5">
+        <DropdownMenuLabel>Notifikationer</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {routeNotifications.length === 0 ? (
+          <p className="px-2 py-5 text-center text-xs text-muted-foreground">Ingen beskeder endnu</p>
+        ) : routeNotifications.slice(0, 8).map((item) => (
+          <DropdownMenuItem
+            key={item.id}
+            className={cn("mb-1 min-h-12 items-start whitespace-normal p-2", !item.read_at && "bg-accent/10")}
+            onSelect={() => {
+              if (!item.read_at) markNotificationRead.mutate(item.id);
+              if (item.route_id) navigate(`/medarbejder/rute/${item.route_id}`);
+            }}
+          >
+            <span className={cn("mt-1 mr-2 h-2 w-2 shrink-0 rounded-full", item.read_at ? "bg-muted-foreground/30" : "bg-destructive")} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[11px] font-semibold text-foreground">
+                {item.route_stops?.customer_name
+                  ? `Aftale · ${item.route_stops.customer_name}`
+                  : `Rute · ${item.routes?.name || "Planlagt rute"}`}
+              </span>
+              {item.route_stops?.address && (
+                <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{item.route_stops.address}</span>
+              )}
+              <span className="mt-1 block text-xs leading-relaxed text-foreground">{item.message}</span>
+            </span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const profileMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="ghost" className="h-10 max-w-[12rem] gap-2 px-1.5 sm:px-2" aria-label="Profilmenu">
+          <Avatar className="h-8 w-8 rounded-full ring-1 ring-border" style={{ background: accentColor }}>
+            {employee?.avatar_url ? <AvatarImage src={employee.avatar_url} alt={displayName} className="rounded-full object-cover" /> : null}
+            <AvatarFallback className="rounded-full text-xs font-bold text-background" style={{ background: accentColor }}>{initials}</AvatarFallback>
+          </Avatar>
+          <span className="hidden min-w-0 text-left sm:block">
+            <span className="block truncate text-xs font-semibold text-foreground">{displayName}</span>
+            <span className="block truncate text-[10px] text-muted-foreground">{subLabel}</span>
+          </span>
+          <ChevronsUpDown className="hidden h-3.5 w-3.5 shrink-0 text-muted-foreground sm:block" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuLabel className="flex flex-col">
+          <span className="truncate font-semibold">{displayName}</span>
+          <span className="truncate text-xs font-normal text-muted-foreground">{subLabel}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {multiWorkspace && (
+          <DropdownMenuItem onClick={() => setPickerOpen(true)}><Building2 className="mr-2 h-4 w-4" />Skift virksomhed</DropdownMenuItem>
+        )}
+        {myBusiness && (
+          <DropdownMenuItem onClick={() => navigate("/virksomhed")}><Briefcase className="mr-2 h-4 w-4" />Skift til virksomhedspanel</DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive"><LogOut className="mr-2 h-4 w-4" />Log ud</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
-
-    <div className="service-panel-workspace employee-panel-workspace isolate flex min-h-dvh flex-col bg-secondary/50">
-      {/* Topbar — altid synlig */}
-      <header className="employee-panel-header sticky top-0 z-40 border-b border-border bg-card text-foreground shadow-sm">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-5">
-          <Link to="/" className="flex shrink-0 items-center" aria-label="Forside">
-            <img
-              src="/serviceydere-logo-dark.webp"
-              alt="Serviceydere"
-              className="h-6 w-auto sm:h-7"
-              width={1920}
-              height={539}
-              decoding="async"
-              fetchPriority="high"
-              loading="lazy"
-            />
+    <div className="service-panel-workspace employee-panel-workspace isolate flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
+      <aside
+        className={cn(
+          "service-panel-sidebar fixed inset-y-0 left-0 z-40 hidden h-dvh flex-col border-r border-border transition-[width] duration-300 lg:flex",
+          collapsed ? "w-[68px]" : "w-[248px]",
+        )}
+        aria-label="Hovednavigation"
+      >
+        <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center" : "px-4")}>
+          <Link to="/" className="flex items-center overflow-hidden" aria-label="Forside">
+            {collapsed ? (
+              <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-md object-contain" width={64} height={64} />
+            ) : (
+              <>
+                <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-8 w-auto dark:hidden" width={1920} height={539} />
+                <img src="/serviceydere-logo.webp" alt="Serviceydere" className="hidden h-8 w-auto dark:block" width={1920} height={539} />
+              </>
+            )}
           </Link>
+        </div>
 
-          {/* Desktop nav — horisontale tabs */}
-          <nav className="ml-2 hidden items-center gap-1 lg:flex" aria-label="Hovednavigation">
-            {visibleNav.map((item) => {
-              const Icon = item.icon;
-              const active = activeTab === item.value;
-              return (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => navigate(item.href)}
-                  onMouseEnter={() => prefetchTab(item.value)}
-                  onFocus={() => prefetchTab(item.value)}
-                  className={cn(
-                    "inline-flex h-8 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors",
-                    active
-                       ? "bg-accent/10 text-accent"
-                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                  )}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Mobile/tablet sidetitel */}
-          <h1 className="min-w-0 truncate text-sm font-semibold text-foreground sm:text-base lg:hidden">
-            {title ?? currentNav?.label}
-          </h1>
-
-          <div className="ml-auto flex min-w-0 items-center gap-2">
-            {topbarRight}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-9 w-9 shrink-0" aria-label={`${unreadNotifications.length} ulæste notifikationer`}>
-                  <Bell className="h-4 w-4" />
-                  {unreadNotifications.length > 0 && (
-                    <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
-                      {Math.min(unreadNotifications.length, 9)}
-                    </span>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1rem)] p-1.5">
-                <DropdownMenuLabel>Notifikationer</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {routeNotifications.length === 0 ? (
-                  <p className="px-2 py-5 text-center text-xs text-muted-foreground">Ingen beskeder endnu</p>
-                ) : routeNotifications.slice(0, 8).map((item) => (
-                  <DropdownMenuItem
-                    key={item.id}
-                    className={cn("mb-1 min-h-12 items-start whitespace-normal p-2", !item.read_at && "bg-accent/10")}
-                    onSelect={() => {
-                      if (!item.read_at) markNotificationRead.mutate(item.id);
-                      if (item.route_id) navigate(`/medarbejder/rute/${item.route_id}`);
-                    }}
-                  >
-                    <span className={cn("mt-1 mr-2 h-2 w-2 shrink-0 rounded-full", item.read_at ? "bg-muted-foreground/30" : "bg-destructive")} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[11px] font-semibold text-foreground">
-                        {item.route_stops?.customer_name
-                          ? `Aftale · ${item.route_stops.customer_name}`
-                          : `Rute · ${item.routes?.name || "Planlagt rute"}`}
-                      </span>
-                      {item.route_stops?.address && (
-                        <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
-                          {item.route_stops.address}
-                        </span>
-                      )}
-                      <span className="mt-1 block text-xs leading-relaxed text-foreground">{item.message}</span>
-                    </span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Aktiv virksomhed — synlig genvej til at skifte arbejdsplads
-                uden at åbne profilmenuen. Den grønne markør bekræfter hvilken
-                virksomhed panelets data hører til. */}
-            {multiWorkspace && (
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                 className="flex h-9 min-w-0 max-w-[8.5rem] shrink items-center gap-1.5 rounded-md border border-border bg-secondary/50 pl-1 pr-2 text-xs font-semibold text-foreground transition-colors hover:border-accent/60 hover:bg-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:max-w-[13rem]"
-                aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
-                title={`Aktiv virksomhed: ${activeBusinessName}`}
-              >
-                <span className="relative inline-flex shrink-0">
-                  <Avatar className="h-7 w-7 rounded-full ring-2 ring-border">
-                    {activeBusiness?.logo_url ? (
-                      <AvatarImage
-                        src={activeBusiness.logo_url}
-                        alt={activeBusinessName}
-                        className="rounded-full object-cover"
-                      />
-                    ) : null}
-                    <AvatarFallback className="rounded-full bg-secondary text-[10px] font-bold text-foreground">
-                      {businessInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span
-                    aria-hidden="true"
-                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-success ring-2 ring-card"
-                  >
-                     <Check className="h-2 w-2 text-success-foreground" strokeWidth={4} />
-                  </span>
-                </span>
-                <span className="hidden max-w-[160px] truncate sm:inline">{activeBusinessName}</span>
-                 <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              </button>
+        <div className={cn("mx-3 mt-3 rounded-[5px] border border-border bg-card shadow-sm", collapsed ? "px-2 py-2" : "p-3")}>
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}>
+            <Avatar className="h-9 w-9 shrink-0 rounded-[5px] border border-border bg-background">
+              {activeBusiness?.logo_url ? <AvatarImage src={activeBusiness.logo_url} alt={activeBusinessName} className="object-contain p-0.5" /> : null}
+              <AvatarFallback className="rounded-[5px] bg-secondary text-xs font-bold text-foreground">{businessInitials}</AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">{activeBusinessName}</p>
+                <p className="truncate text-[11px] text-muted-foreground">{employee?.title || "Medarbejder"}</p>
+              </div>
             )}
-
-
-
-            {/* Solo-ejer genvej — kun synlig når virksomheden har præcis
-                1 medarbejder og det er ejeren selv. Spejler "Skift til
-                medarbejder"-knappen i AdminShell's footer. */}
-            {isSoloOwner && (
-              <button
-                type="button"
-                onClick={() => navigate("/virksomhed")}
-                  className="hidden h-9 shrink-0 items-center gap-2 rounded-md px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary sm:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                aria-label="Skift til virksomhedspanel"
-              >
-                <span aria-hidden="true" className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
-                  <Briefcase className="h-3 w-3" />
-                </span>
-                <span className="hidden md:inline">Virksomhedspanel</span>
-                <span className="md:hidden">Virksomhed</span>
-              </button>
+            {!collapsed && multiWorkspace && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setPickerOpen(true)} aria-label="Skift arbejdsplads">
+                <ChevronsUpDown className="h-4 w-4" />
+              </Button>
             )}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="flex shrink-0 items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-secondary sm:pr-2"
-                  aria-label="Profilmenu"
-                >
-                  <Avatar className="h-8 w-8 rounded-full ring-2 ring-border" style={{ background: accentColor }}>
-                    {employee?.avatar_url ? (
-                      <AvatarImage src={employee.avatar_url} alt={displayName} className="rounded-full object-cover" />
-                    ) : null}
-                    <AvatarFallback
-                      className="rounded-full text-background text-xs font-bold"
-                      style={{ background: accentColor }}
-                    >
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden max-w-[140px] truncate text-sm font-medium text-foreground sm:inline">
-                    {displayName}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60">
-                <DropdownMenuLabel className="flex flex-col">
-                  <span className="truncate font-semibold">{displayName}</span>
-                  <span className="truncate text-xs font-normal text-muted-foreground">{subLabel}</span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {multiWorkspace && (
-                  <DropdownMenuItem onClick={() => setPickerOpen(true)}>
-                    <Building2 className="mr-2 h-4 w-4" />
-                    Skift virksomhed
-                  </DropdownMenuItem>
-                )}
-
-                {myBusiness && (
-                  <DropdownMenuItem onClick={() => navigate("/virksomhed")}>
-                    <Briefcase className="mr-2 h-4 w-4" />
-                    Skift til virksomhedspanel
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log ud
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
-      </header>
 
-      {/* Main — får ekstra bund-padding på mobil/tablet for at gøre plads til bottom-nav */}
-      <main
-        className={cn(
-           "service-panel-content relative z-0 flex-1 min-w-0",
-          contentPadding ? "p-2.5 sm:p-4 md:p-6 lg:p-7" : "",
-          // 64px bottom-nav + safe-area på mobil/tablet.
-          visibleNav.length > 1 ? "pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : "",
-          contentClassName,
-        )}
-      >
-        {children}
-      </main>
-
-      {/* Bundnavigation — kun mobil/tablet, kun hvis vi har mere end ét punkt */}
-      {visibleNav.length > 1 && (
-        <nav
-           className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-[0_-6px_20px_-18px_hsl(var(--foreground)/0.5)] backdrop-blur supports-[backdrop-filter]:bg-card/85 lg:hidden"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          aria-label="Bundnavigation"
-        >
-          <ul className="mx-auto flex max-w-md items-stretch justify-around">
-            {visibleNav.map((item) => {
-              const Icon = item.icon;
-              const active = activeTab === item.value;
-              return (
-                <li key={item.value} className="flex-1">
-                  <button
-                    type="button"
-                    onClick={() => navigate(item.href)}
-                    onTouchStart={() => prefetchTab(item.value)}
-                    className={cn(
-                      "flex w-full flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
-                       active ? "text-accent" : "text-muted-foreground hover:text-foreground",
-                    )}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    <span
-                      className={cn(
-                        "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
-                         active ? "bg-accent/10 text-accent" : "bg-transparent",
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="leading-tight">{item.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <nav className={cn("flex-1 overflow-y-auto pb-3", collapsed ? "px-2" : "px-3")}>
+          <SidebarGroupLabel collapsed={collapsed}>Arbejde</SidebarGroupLabel>
+          <div className="space-y-1">
+            {visibleNav.map((item) => (
+              <SidebarNavButton
+                key={item.value}
+                icon={item.icon}
+                label={item.label}
+                active={activeTab === item.value}
+                collapsed={collapsed}
+                badge={item.value === "today" ? unreadNotifications.length : null}
+                badgeWarn={item.value === "today" && unreadNotifications.length > 0}
+                onClick={() => navigate(item.href)}
+                onMouseEnter={() => prefetchTab(item.value)}
+                onFocus={() => prefetchTab(item.value)}
+              />
+            ))}
+          </div>
         </nav>
-      )}
+
+        <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          {multiWorkspace && <SidebarFooterItem icon={Building2} label="Skift arbejdsplads" onClick={() => setPickerOpen(true)} collapsed={collapsed} />}
+          {(myBusiness || isSoloOwner) && <SidebarFooterItem icon={Briefcase} label="Virksomhedspanel" onClick={() => navigate("/virksomhed")} collapsed={collapsed} />}
+          <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
+        </div>
+      </aside>
+
+      <div className={cn("flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300", collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]")}>
+        <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:px-5">
+          <Link to="/" className="flex shrink-0 items-center lg:hidden" aria-label="Forside">
+            <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-md object-contain" width={64} height={64} />
+          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={toggleCollapsed} className="hidden h-9 w-9 lg:inline-flex" aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}>
+                {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</TooltipContent>
+          </Tooltip>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">{title ?? currentNav?.label}</h1>
+            <p className="hidden truncate text-[11px] text-muted-foreground sm:block">{activeBusinessName}</p>
+          </div>
+          <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
+            {topbarRight}
+            {notificationMenu}
+            {multiWorkspace && (
+              <Button type="button" variant="outline" onClick={() => setPickerOpen(true)} className="hidden h-9 max-w-[12rem] gap-2 px-2.5 md:inline-flex"
+                aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
+              >
+                <Building2 className="h-4 w-4 shrink-0" /><span className="truncate">{activeBusinessName}</span><ChevronsUpDown className="h-3.5 w-3.5 shrink-0" />
+              </Button>
+            )}
+            {profileMenu}
+          </div>
+        </header>
+
+        <main
+          className={cn(
+            "service-panel-content relative z-0 min-w-0 flex-1 overflow-x-hidden",
+            contentPadding ? "px-3 pt-3 pb-[calc(72px+env(safe-area-inset-bottom))] sm:px-5 sm:pt-5 lg:px-6 lg:pb-6" : "pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0",
+            contentClassName,
+          )}
+        >
+          {children}
+        </main>
+
+        {visibleNav.length > 1 && (
+          <nav className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-[0_-6px_20px_-18px_hsl(var(--foreground)/0.5)] backdrop-blur lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }} aria-label="Bundnavigation">
+            <ul className="mx-auto flex max-w-md items-stretch justify-around">
+              {visibleNav.map((item) => {
+                const Icon = item.icon;
+                const active = activeTab === item.value;
+                return (
+                  <li key={item.value} className="flex-1">
+                    <button type="button" onClick={() => navigate(item.href)} onTouchStart={() => prefetchTab(item.value)} className={cn("relative flex min-h-[58px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors", active ? "text-accent" : "text-muted-foreground hover:text-foreground")} aria-current={active ? "page" : undefined}>
+                      <span
+                      className={cn(
+                          "flex h-7 w-12 items-center justify-center rounded-[5px] transition-colors",
+                          active ? "bg-accent/10 text-accent" : "bg-transparent",
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.value === "today" && unreadNotifications.length > 0 && <span className="absolute right-[calc(50%-22px)] top-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-card" />}
+                      </span>
+                      <span className="leading-tight">{item.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )}
+      </div>
     </div>
   );
 };

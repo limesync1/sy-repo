@@ -37,14 +37,14 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
   };
 
   return (
-    <div className="service-panel-workspace flex min-h-dvh flex-col bg-secondary/50">
+    <div className="service-panel-workspace employee-panel-workspace flex min-h-dvh flex-col bg-secondary/50">
       <header className="service-panel-topbar border-b border-border bg-card">
-        <div className="mx-auto flex h-14 max-w-5xl items-center px-4 sm:px-6">
+        <div className="flex h-14 items-center px-4 sm:px-6">
           <Link to="/" aria-label="Forside" className="flex items-center">
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-7 w-auto"
+              className="h-8 w-auto"
               width={1920}
               height={539}
               decoding="async"
@@ -53,19 +53,27 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-5xl flex-1 content-start items-start gap-3 px-3 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(260px,0.72fr)_minmax(420px,1.28fr)] lg:gap-8 lg:py-14">
-        <section className="overflow-hidden rounded-md bg-foreground px-5 py-5 text-background shadow-sm sm:px-7 sm:py-7 lg:sticky lg:top-20">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-accent text-accent-foreground">
-            <BriefcaseBusiness className="h-4 w-4" />
+      <main className="mx-auto grid w-full max-w-6xl flex-1 content-start items-start gap-4 px-3 py-4 sm:px-6 sm:py-8 lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-6 lg:py-10">
+        <section className="overflow-hidden rounded-[6px] border border-border bg-card shadow-sm lg:sticky lg:top-20">
+          <div className="border-b border-border bg-secondary/45 p-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-foreground text-background">
+              <BriefcaseBusiness className="h-4 w-4" />
+            </div>
+            <p className="mt-4 text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>
+            <h1 className="mt-1 text-xl font-semibold leading-tight text-foreground">Vælg arbejdsplads</h1>
           </div>
-          <p className="mt-5 text-[11px] font-semibold uppercase text-background/60 sm:mt-6">Medarbejderpanel</p>
-          <h1 className="mt-1 text-2xl font-semibold leading-tight text-background sm:text-3xl">Vælg arbejdsplads</h1>
-          <p className="mt-3 max-w-sm text-sm leading-6 text-background/70">
-            Du har adgang til {employees.length} virksomheder. Vælg hvor du arbejder i dag.
-          </p>
+          <div className="p-4">
+            <p className="text-sm leading-6 text-muted-foreground">
+              Du har adgang til {employees.length} virksomheder. Vælg hvor du arbejder i dag.
+            </p>
+            <div className="mt-4 flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
+              <Building2 className="h-4 w-4 shrink-0" />
+              <span>{employees.length} arbejdspladser tilgængelige</span>
+            </div>
+          </div>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-md border border-border bg-card shadow-sm">
+        <section className="min-w-0 overflow-hidden rounded-[6px] border border-border bg-card shadow-sm">
           <div className="border-b border-border px-4 py-4 sm:px-5">
             <h2 className="text-base font-semibold text-foreground">Dine arbejdspladser</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Du kan altid skifte igen fra profilmenuen.</p>
@@ -82,9 +90,9 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   onClick={() => choose(emp.business_id)}
                   disabled={!!pending}
                   className={cn(
-                    "group flex min-h-[68px] w-full items-center gap-3 bg-card px-4 py-3 text-left transition-colors sm:px-5",
-                    "hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
-                    active && "bg-accent/5",
+                    "group flex min-h-[72px] w-full items-center gap-3 bg-card px-3 py-3 text-left transition-colors sm:px-5",
+                    "hover:bg-secondary/60 active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
+                    active && "bg-accent/5 shadow-[inset_3px_0_0_hsl(var(--accent))]",
                     pending === emp.business_id && "opacity-70",
                   )}
                 >
@@ -118,7 +126,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   </div>
 
                   {active ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-[4px] bg-success/10 px-2 py-1 text-[11px] font-semibold text-success">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-[4px] bg-accent/10 px-2 py-1 text-[11px] font-semibold text-accent">
                       <Check className="h-3 w-3" strokeWidth={3} /> Aktiv
                     </span>
                   ) : (
@@ -129,7 +137,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
             );
           })}
           </ul>
-        <label className="flex min-h-12 cursor-pointer items-center gap-3 border-t border-border bg-secondary/35 px-4 py-3 sm:px-5">
+        <label className="flex min-h-12 cursor-pointer items-center gap-3 border-t border-border bg-secondary/35 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5">
           <Checkbox
             checked={remember}
             onCheckedChange={(v) => setRemember(v === true)}
