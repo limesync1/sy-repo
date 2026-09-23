@@ -17,7 +17,7 @@ import {
 import {
   MapPin, Phone, Mail, Clock, Trash2, Check, Loader2,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
-  Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
+  User, Package, CalendarClock, Users, Crown, X as XIcon,
   CheckCircle2,
 } from "lucide-react";
 import { cn, readableTextOn } from "@/lib/utils";
@@ -65,7 +65,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     [allEmployees],
   );
 
-  const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
@@ -77,9 +76,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   useEffect(() => {
     if (!stop) return;
-    const s = stop.time_window_start?.slice(0, 5) || "";
-    const e = stop.time_window_end?.slice(0, 5) || "";
-    setTimeSlot(s && e ? `${s}-${e}` : "");
     setNotes(stop.notes || "");
     setAssigneeIds(stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []));
     setLeadId(stop.lead_employee_id ?? stop.assigned_employee_id ?? null);
@@ -113,7 +109,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const subscriptions: any[] = (order as any)?.subscriptions || [];
   const business = (order as any)?.businesses;
 
-  // Autosave: debounce ændringer i tidsvindue/note/tildelte
+  // Autosave: debounce ændringer i note/tildelte
   // medarbejdere og skriv dem til DB efter 700 ms uden ny aktivitet.
   useEffect(() => {
     if (!stop || readOnly) return;
@@ -127,11 +123,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     setSaveState("saving");
     saveTimer.current = setTimeout(async () => {
       try {
-        const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
         await updateStop.mutateAsync({
           id: stop.id,
-          time_window_start: s || null,
-          time_window_end: e || null,
           notes: notes || null,
         } as any);
         const currentIds = (stop.assignee_ids ?? []).slice().sort().join(",");
@@ -154,7 +147,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeSlot, notes, assigneeIds, leadId, readOnly, stop?.id]);
+  }, [notes, assigneeIds, leadId, readOnly, stop?.id]);
 
   if (!stop) return null;
 

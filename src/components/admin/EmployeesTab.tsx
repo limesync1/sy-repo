@@ -1447,20 +1447,20 @@ const EmployeeTasksDialog = ({
         supabase
           .from("route_stops")
           .select(`
-            id, status, planned_arrival, completed_at, address, order_id,
-            customer_name, service_summary, duration_minutes, sequence,
+            id, status, completed_at, address, order_id,
+            customer_name, service_summary, sequence,
             routes ( id, name, route_date )
           `)
           .eq("assigned_employee_id", employeeId)
-          .order("planned_arrival", { ascending: false })
+          .order("sequence", { ascending: true })
           .limit(200),
         supabase
           .from("route_stop_assignees")
           .select(`
             stop_id, is_lead,
             route_stops (
-              id, status, planned_arrival, completed_at, address, order_id,
-              customer_name, service_summary, duration_minutes, sequence,
+              id, status, completed_at, address, order_id,
+              customer_name, service_summary, sequence,
               routes ( id, name, route_date )
             )
           `)
@@ -1468,7 +1468,7 @@ const EmployeeTasksDialog = ({
           .limit(200),
         supabase
           .from("employee_completed_stops")
-          .select("id, stop_id, completed_at, customer_name, service_summary, address, duration_minutes, route_name, route_date, earnings, order_amount")
+          .select("id, stop_id, completed_at, customer_name, service_summary, address, route_name, route_date, earnings, order_amount")
           .eq("employee_id", employeeId)
           .order("completed_at", { ascending: false })
           .limit(500),
@@ -1492,12 +1492,10 @@ const EmployeeTasksDialog = ({
           ...(existing || {}),
           id: key,
           status: "completed",
-          planned_arrival: existing?.planned_arrival ?? null,
           completed_at: sn.completed_at,
           address: existing?.address ?? sn.address,
           customer_name: existing?.customer_name ?? sn.customer_name,
           service_summary: existing?.service_summary ?? sn.service_summary,
-          duration_minutes: existing?.duration_minutes ?? sn.duration_minutes,
           routes: existing?.routes ?? (sn.route_name || sn.route_date
             ? { id: null, name: sn.route_name, route_date: sn.route_date }
             : null),
@@ -1561,8 +1559,8 @@ const EmployeeTasksDialog = ({
   const upcoming = (stops || [])
     .filter((s) => s.status !== "completed" && s.status !== "skipped")
     .sort((a, b) => {
-      const av = a.planned_arrival || a.routes?.route_date || "";
-      const bv = b.planned_arrival || b.routes?.route_date || "";
+      const av = a.routes?.route_date || "";
+      const bv = b.routes?.route_date || "";
       return String(av).localeCompare(String(bv));
     });
   const completed = (stops || [])
@@ -1586,9 +1584,9 @@ const EmployeeTasksDialog = ({
     (sum, s: any) => sum + Number(s.order_amount || 0), 0,
   );
 
-  const fmtDateTime = (iso?: string | null) => {
+  const fmtDate = (iso?: string | null) => {
     if (!iso) return "—";
-    try { return format(parseISO(iso), "d. MMM yyyy 'kl.' HH:mm", { locale: da }); }
+    try { return format(parseISO(iso), "d. MMM yyyy", { locale: da }); }
     catch { return iso; }
   };
 
@@ -1682,9 +1680,7 @@ const EmployeeTasksDialog = ({
                     <div className="text-right shrink-0">
                       <p className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
                         <Clock className="h-3 w-3" />
-                        {tab === "completed"
-                          ? fmtDateTime(s.completed_at)
-                          : fmtDateTime(s.planned_arrival)}
+                        {fmtDate(tab === "completed" ? s.completed_at : s.routes?.route_date)}
                       </p>
                       {s.routes?.name && (
                         <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]">

@@ -155,7 +155,7 @@ export function AccountingLogsPanel({
         ? supabase
             .from("agreement_occurrences")
             .select(
-              "id, agreement_id, occurrence_date, planned_arrival, total_amount, route_id",
+              "id, agreement_id, occurrence_date, total_amount, route_id",
             )
             .in("id", Array.from(orderEntityIds))
         : Promise.resolve({ data: [] as any[] }),
@@ -257,7 +257,6 @@ export function AccountingLogsPanel({
         const agr = occ ? agreementById.get(occ.agreement_id) : agreementById.get(r.entity_id);
         if (occ) {
           e.occurrenceDate = occ.occurrence_date;
-          e.occurrencePlannedArrival = occ.planned_arrival;
           e.agreementPrice = occ.total_amount;
           const route = occ.route_id ? routeById.get(occ.route_id) : null;
           if (route) {
@@ -489,11 +488,6 @@ export function AccountingLogsPanel({
                       )}
                       {e.occurrenceDate && (
                         <Field label="Forekomst-dato">{e.occurrenceDate}</Field>
-                      )}
-                      {e.occurrencePlannedArrival && (
-                        <Field label="Planlagt ankomst">
-                          {fmtLocal(e.occurrencePlannedArrival)}
-                        </Field>
                       )}
                       {e.employeeNames && e.employeeNames.length > 0 && (
                         <Field label="Medarbejdere">{e.employeeNames.join(", ")}</Field>
