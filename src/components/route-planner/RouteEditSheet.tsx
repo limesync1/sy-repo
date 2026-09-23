@@ -881,7 +881,7 @@ export const RouteEditSheet = ({
           side={isCompact ? "bottom" : "right"}
           className={cn(
             "planner-overlay route-edit-workspace flex flex-col p-0 shadow-sm",
-            isCompact ? "h-[92dvh] max-h-[92dvh] rounded-t-md" : "w-full sm:max-w-[31rem]",
+            isCompact ? "h-[92dvh] max-h-[92dvh] rounded-t-md" : "w-full sm:max-w-md",
           )}
           hideOverlay={!isCompact}
           hideCloseButton={false}
