@@ -68,7 +68,7 @@ const DynamicBusinessContent = () => {
   type ServiceItem = NonNullable<typeof services>[number];
   const groupedServices = useMemo(() => {
     const groups: Record<string, Record<string, ServiceItem[]>> = {};
-    services?.forEach((s) => {
+    services?.filter((s) => s.is_active !== false).forEach((s) => {
       const cat = (s as any).service_category || "Øvrige";
       const sub = (s as any).subcategory || "";
       if (!groups[cat]) groups[cat] = {};
