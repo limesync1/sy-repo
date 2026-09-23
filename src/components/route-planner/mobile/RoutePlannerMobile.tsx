@@ -106,7 +106,6 @@ import {
 } from "./mobile-helpers";
 import { supabase } from "@/integrations/supabase/client";
 
-import { MobileAssignSheet } from "./MobileAssignSheet";
 import { MobileRouteDetailSheet } from "./MobileRouteDetailSheet";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -161,7 +160,6 @@ export default function RoutePlannerMobile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [search, setSearch] = useState("");
-  const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
   // "Ny rute"-dialog — opretter først rute når brugeren bekræfter.
   const [createOpen, setCreateOpen] = useState(false);
@@ -558,7 +556,6 @@ export default function RoutePlannerMobile() {
               setSearch={setSearch}
               jobs={filteredUnassigned}
               total={unassigned.length}
-              onAssign={(job) => setAssignJob(job)}
               dragActive={!!drag}
               isStopDrag={drag?.kind === "stop"}
               selectMode={selectMode}
@@ -631,16 +628,7 @@ export default function RoutePlannerMobile() {
         />
       )}
 
-      {/* Sheets */}
-      {assignJob && businessId && (
-        <MobileAssignSheet
-          open={!!assignJob}
-          onOpenChange={(o) => !o && setAssignJob(null)}
-          job={assignJob}
-          businessId={businessId}
-          initialDate={effectiveJobDate(assignJob) || date}
-        />
-      )}
+      {/* Rutedetaljer */}
       {openRoute && businessId && (
         <MobileRouteDetailSheet
           open={!!openRoute}
@@ -1107,7 +1095,7 @@ function UnassignedDock({
           ? "border-destructive bg-destructive/5"
           : "border-border/70",
       )}
-      style={isTablet ? undefined : { maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
+      style={isTablet ? undefined : { height: total === 0 && !isStopDrag ? "auto" : "36dvh" }}
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
@@ -1174,12 +1162,12 @@ function UnassignedDock({
       {(total > 0 || loading) && (
         <div className={cn(
           "px-3 pt-1",
-          isTablet ? "min-h-0 flex-1 overflow-y-auto pb-3" : "overflow-x-auto overflow-y-hidden pb-3",
+          "min-h-0 flex-1 overflow-y-auto pb-3",
         )}>
           {loading ? (
-            <div className={cn(isTablet ? "space-y-2" : "flex gap-2")}>
+            <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className={cn("h-24 rounded-2xl", isTablet ? "w-full" : "w-44 shrink-0")} />
+                <Skeleton key={i} className="h-24 w-full rounded-md" />
               ))}
             </div>
           ) : jobs.length === 0 ? (
@@ -1187,16 +1175,15 @@ function UnassignedDock({
               Ingen aftaler matcher søgningen.
             </div>
           ) : (
-            <div className={cn(isTablet ? "space-y-2 pb-1" : "flex gap-2 pb-1")}>
+            <div className="space-y-2 pb-1">
               {jobs.map((job) => (
                 <DraggableJobCard
                   key={job.id}
                   job={job}
-                  onAssign={onAssign}
                   selectMode={selectMode}
                   selected={selectedJobs.has(job.id)}
                   onToggle={() => onToggleJob(job.id)}
-                  fullWidth={isTablet}
+                  fullWidth
                 />
               ))}
             </div>
@@ -1221,14 +1208,12 @@ function UnassignedDock({
 
 function DraggableJobCard({
   job,
-  onAssign,
   selectMode,
   selected,
   onToggle,
   fullWidth,
 }: {
   job: any;
-  onAssign: (job: any) => void;
   selectMode: boolean;
   selected: boolean;
   onToggle: () => void;
@@ -1351,18 +1336,6 @@ function DraggableJobCard({
           </p>
         )}
 
-        {!pending && !selectMode && (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-7 w-full justify-center rounded-md bg-secondary/60 text-[11px] font-medium text-foreground/80 hover:bg-secondary"
-            onClick={(e) => { e.stopPropagation(); onAssign(job); }}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            Vælg rute
-          </Button>
-        )}
       </div>
     </div>
   );

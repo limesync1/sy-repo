@@ -3961,10 +3961,12 @@ const Planner = () => {
                           for (let i = 1; i <= 90; i++) {
                             const d = format(addDays(start, i), "yyyy-MM-dd");
                             const cap = capacityByDate.get(d);
-                            if (!cap || cap.load_pct < 80) {
+                            if (!cap || cap.stops_booked < cap.stops_capacity) {
                               setDate(d);
                               toast.success(`Hopper til ${d}`, {
-                                description: cap ? `Belastning ${Math.round(cap.load_pct)}%` : "Ingen booket arbejde",
+                                description: cap
+                                  ? `${cap.stops_booked} af ${cap.stops_capacity} stop planlagt`
+                                  : "Ingen stop planlagt",
                               });
                               return;
                             }
