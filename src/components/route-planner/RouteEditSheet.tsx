@@ -880,8 +880,8 @@ export const RouteEditSheet = ({
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
-            "planner-overlay flex flex-col p-0 shadow-sm",
-            isCompact ? "h-[86dvh] max-h-[86dvh] rounded-t-md" : "w-full sm:max-w-md",
+            "planner-overlay route-edit-workspace flex flex-col p-0 shadow-sm",
+            isCompact ? "h-[92dvh] max-h-[92dvh] rounded-t-md" : "w-full sm:max-w-md",
           )}
           hideOverlay={!isCompact}
           hideCloseButton={false}
@@ -904,7 +904,7 @@ export const RouteEditSheet = ({
           }}
         >
           <SheetHeader
-            className="planner-overlay-header relative px-4 py-3 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
+            className="planner-overlay-header relative px-5 py-4 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
             <span
               aria-hidden
@@ -933,7 +933,7 @@ export const RouteEditSheet = ({
             />
           </SheetHeader>
 
-          <div className="planner-overlay-body flex-1 overflow-y-auto px-3.5 py-3 space-y-3 bg-secondary/15">
+          <div className="planner-overlay-body flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-secondary/20">
             {/* Tidslinje: viser udførte kørsler + næste planlagte for tilbagevendende
                 aftaler på basisruten. Skjules på projektioner (de viser kun én dag). */}
             {!isProjection && route?.id && (seriesInfo?.recurringAppointmentCount ?? 0) > 0 && (

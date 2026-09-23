@@ -74,32 +74,32 @@ export const RouteChecklistView = ({
   const addressOf = (s: RouteStop) => s.full_address || s.address || null;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
+    <div className="employee-route-run flex min-h-dvh flex-col bg-surface">
       {/* Header */}
-      <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card">
-        <div className="flex h-14 items-center gap-2 px-3">
+      <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-foreground text-background shadow-sm">
+        <div className="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-3 sm:px-5">
           <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
             <Link to="/medarbejder" aria-label="Tilbage til dagens ruter">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[15px] font-semibold text-foreground">{routeName}</h1>
-            <p className="text-[11.5px] tabular-nums text-muted-foreground">
+            <h1 className="truncate text-[15px] font-bold text-background">{routeName}</h1>
+            <p className="text-[11.5px] tabular-nums text-background/65">
               {completed.length} af {stops.length} klaret
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="h-9 shrink-0 gap-1.5 px-2.5 text-[12.5px]"
+            className="h-9 shrink-0 gap-1.5 border-background/20 bg-background/10 px-2.5 text-[12.5px] text-background hover:bg-background/15 hover:text-background"
             onClick={onSwitchToGuide}
           >
             <Navigation2 className="h-4 w-4" />
             Kort
           </Button>
         </div>
-        <div className="h-1.5 w-full bg-secondary" aria-hidden>
+        <div className="h-1 w-full bg-background/15" aria-hidden>
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, background: themeColor }}
@@ -122,7 +122,7 @@ export const RouteChecklistView = ({
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-24 pt-3 sm:px-5 sm:pt-4">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-24 pt-3 sm:px-5 sm:pt-5">
         {allDone ? (
           <section className="rounded-md border border-border bg-card p-6 text-center">
             <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
@@ -244,24 +244,28 @@ export const RouteChecklistView = ({
                         </div>
                         {onMoveStop && (
                           <div className="flex shrink-0 flex-col gap-1">
-                            <button
+                            <Button
+                              variant="outline"
+                              size="icon"
                               type="button"
                               aria-label="Flyt stoppet tidligere på ruten"
                               disabled={reordering}
                               onClick={() => onMoveStop(s.id, -1)}
-                               className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                              className="h-8 w-8 rounded-[4px] text-muted-foreground hover:text-foreground"
                             >
                               <ArrowUp className="h-3.5 w-3.5" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
                               type="button"
                               aria-label="Flyt stoppet senere på ruten"
                               disabled={reordering || i >= remaining.length - 2}
                               onClick={() => onMoveStop(s.id, 1)}
-                               className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                              className="h-8 w-8 rounded-[4px] text-muted-foreground hover:text-foreground"
                             >
                               <ArrowDown className="h-3.5 w-3.5" />
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -276,11 +280,12 @@ export const RouteChecklistView = ({
         {/* Udførte stop */}
         {completed.length > 0 && (
           <section className="mt-5">
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={() => setShowDone((v) => !v)}
               aria-expanded={showDone}
-               className="flex w-full items-center justify-between rounded-md border border-border bg-card px-3 py-3 text-left"
+              className="h-auto w-full justify-between rounded-md bg-card px-3 py-3 text-left"
             >
               <span className="flex items-center gap-2 text-[13.5px] font-medium text-foreground">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -292,7 +297,7 @@ export const RouteChecklistView = ({
                   showDone && "rotate-180",
                 )}
               />
-            </button>
+            </Button>
             {showDone && (
               <ul className="mt-2 space-y-2">
                 {completed.map((s) => (
