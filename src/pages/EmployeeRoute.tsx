@@ -672,9 +672,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
    * dobbelt-fetch'er undervejs.
    */
   const previewWaypoints = useMemo(() => {
-    if (routeStarted) return null;
     const wps: { lat: number; lng: number }[] = [];
-    if (startCoord) wps.push({ lat: startCoord[0], lng: startCoord[1] });
+    // Før start: hele turen fra startadressen. Under kørsel: resten af
+    // dagen fra næste stop og frem, så en ny rækkefølge straks kan ses
+    // på kortet (det aktive ben tegnes ovenpå).
+    if (!routeStarted && startCoord) wps.push({ lat: startCoord[0], lng: startCoord[1] });
     for (const s of sortedStops) {
       if (s.status === "completed") continue;
       if (s.latitude == null || s.longitude == null) continue;
