@@ -3,6 +3,7 @@
 // Opretter business + business_plans-række med valgt prøveperiode og
 // sender velkomstmail med login.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -228,18 +229,14 @@ Deno.serve(async (req) => {
   // 6) Velkomstmail (fire-and-forget)
   if (sendWelcome) {
     const origin = req.headers.get("origin") || "https://serviceydere.dk";
-    admin.functions.invoke("send-transactional-email", {
-      body: {
-        templateName: "business-welcome",
-        recipientEmail: ownerEmail,
-        idempotencyKey: `business-welcome-${biz.id}`,
-        templateData: {
+    sendTemplateEmail("business-welcome", ownerEmail, {
+      idempotencyKey: `business-welcome-${biz.id}`,
+      templateData: {
           businessName: biz.name,
           loginUrl: `${origin}/log-ind`,
           email: ownerEmail,
           password: createdPassword || undefined,
           trialDays,
-        },
       },
     }).catch(() => {});
   }
