@@ -28,7 +28,6 @@ import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import SEO from "@/components/SEO";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
-import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -283,47 +282,26 @@ const EmployeeApp = () => {
       />
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date} className="w-full space-y-3 sm:space-y-4">
-        <PageHeader
-          title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
-          description={
-            totalStops > 0
-              ? `${completedStops} af ${totalStops} stop færdige`
-              : "Ingen stop planlagt"
-          }
-          action={dateNav}
-        />
-
-        {/* Top-overblik: stat-kort + arbejdsdag-handling — samme stil som virksomhedspanelet */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          <StatCard
-            label="Stop i dag"
-            value={`${completedStops}/${totalStops}`}
-            icon={<CheckCircle2 />}
-            tone="emerald"
-            hint={totalStops > 0 ? `${Math.round((completedStops / Math.max(totalStops, 1)) * 100)}% gennemført` : "Ingen stop"}
-          />
-          <StatCard
-            label="Ruter"
-            value={routes.length}
-            icon={<RouteIcon />}
-            tone="violet"
-            hint={routes.length > 0 ? `${routes.length === 1 ? "1 rute planlagt" : `${routes.length} ruter planlagt`}` : "Ingen ruter"}
-          />
-          <StatCard
-            label="Arbejdsdag"
-            value={dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
-            icon={<PlayCircle />}
-            tone={dayStarted && !dayEnded ? "emerald" : dayEnded ? "neutral" : "amber"}
-            hint={
-              workday?.started_at && dayEnded
-                ? `${format(new Date(workday.started_at), "HH:mm")}–${format(new Date(workday!.ended_at!), "HH:mm")}`
-                : workday?.started_at && !dayEnded
-                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}`
-                  : isCurrentDay ? "Tryk Start dag når du er klar" : null
-            }
-          />
-        </div>
+      <PageTransition transitionKey={date} className="employee-day mx-auto w-full max-w-6xl space-y-3 sm:space-y-4">
+        <section className="flex flex-col gap-3 rounded-[6px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase text-accent">Min dag</p>
+            <h2 className="mt-0.5 truncate text-xl font-semibold capitalize text-foreground">
+              {format(dateObj, "EEEE d. MMMM", { locale: da })}
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{completedStops}/{totalStops} stop</span>
+              <span aria-hidden>·</span>
+              <span>{routes.length === 1 ? "1 rute" : `${routes.length} ruter`}</span>
+              <span aria-hidden>·</span>
+              <span className={cn("inline-flex items-center gap-1 font-medium", dayStarted ? "text-success" : "text-muted-foreground")}>
+                <span className={cn("h-1.5 w-1.5 rounded-full", dayStarted ? "bg-success" : "bg-muted-foreground/45")} />
+                {dayEnded ? "Dagen er afsluttet" : dayStarted ? "Dagen er startet" : "Dagen er ikke startet"}
+              </span>
+            </div>
+          </div>
+          <div className="w-full sm:w-auto">{dateNav}</div>
+        </section>
 
         {/* ─────────── Smart "Næste skridt" forslag ───────────
             Foreslår medarbejderen den mest logiske handling lige nu —
