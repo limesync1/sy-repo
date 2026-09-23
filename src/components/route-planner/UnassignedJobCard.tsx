@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
-import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
 import { parseInterval, formatInterval } from "@/lib/interval";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -167,19 +166,6 @@ export const UnassignedJobCard = ({
   // Vis hele adressen: gade, postnummer og by samlet
   const cityLine = [job.zip_code, job.city].filter(Boolean).join(" ");
   const fullAddress = [job.address, cityLine].filter(Boolean).join(", ");
-
-  // Foretrukken kilde til varighed: eksplicit estimeret felt fra ordren.
-  // Falder tilbage til tidsvindue. Vi viser kun varighed hvis vi har
-  // et reelt tal — et hard-coded "30 min" forvirrer mere end det hjælper.
-  let estimatedMin: number | null = null;
-  if (job.estimated_duration_minutes && job.estimated_duration_minutes > 0) {
-    estimatedMin = job.estimated_duration_minutes;
-  } else if (job.preferred_time_start && job.preferred_time_end) {
-    const [sh, sm] = job.preferred_time_start.split(":").map(Number);
-    const [eh, em] = job.preferred_time_end.split(":").map(Number);
-    const diff = (eh * 60 + em) - (sh * 60 + sm);
-    if (diff > 0) estimatedMin = diff;
-  }
 
   // Foretrukken dato — recurring abonnementer bruger next_service_date som "skal udføres senest".
   // For engangs aftaler bruges kundens preferred_date.

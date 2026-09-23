@@ -60,14 +60,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const setAssignees = useSetStopAssignees();
   const { data: myBusiness } = useMyBusiness();
   const { data: allEmployees = [] } = useEmployees(myBusiness?.id);
-  const { data: timeEntries = [] } = useStopTimeEntries(stop?.id ? [stop.id] : []);
   const activeEmployees = useMemo(
     () => (allEmployees as any[]).filter((e) => e.is_active),
     [allEmployees],
   );
 
-  const [durationHours, setDurationHours] = useState<number>(0);
-  const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -80,9 +77,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   useEffect(() => {
     if (!stop) return;
-    const totalMin = stop.duration_minutes || 30;
-    setDurationHours(Math.floor(totalMin / 60));
-    setDurationMinutes(totalMin % 60);
     const s = stop.time_window_start?.slice(0, 5) || "";
     const e = stop.time_window_end?.slice(0, 5) || "";
     setTimeSlot(s && e ? `${s}-${e}` : "");
@@ -119,7 +113,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const subscriptions: any[] = (order as any)?.subscriptions || [];
   const business = (order as any)?.businesses;
 
-  // Autosave: debounce ændringer i varighed/tidsvindue/note/tildelte
+  // Autosave: debounce ændringer i tidsvindue/note/tildelte
   // medarbejdere og skriv dem til DB efter 700 ms uden ny aktivitet.
   useEffect(() => {
     if (!stop || readOnly) return;
@@ -133,11 +127,9 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     setSaveState("saving");
     saveTimer.current = setTimeout(async () => {
       try {
-        const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
         const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
         await updateStop.mutateAsync({
           id: stop.id,
-          duration_minutes: totalMin,
           time_window_start: s || null,
           time_window_end: e || null,
           notes: notes || null,
@@ -162,7 +154,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [durationHours, durationMinutes, timeSlot, notes, assigneeIds, leadId, readOnly, stop?.id]);
+  }, [timeSlot, notes, assigneeIds, leadId, readOnly, stop?.id]);
 
   if (!stop) return null;
 
@@ -308,16 +300,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         return (
                           <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
                             Udført af {names.join(", ")}
-                          </p>
-                        );
-                      })()}
-                      {(() => {
-                        const completed = (timeEntries || []).filter((e: any) => e.duration_minutes != null && e.duration_minutes > 0);
-                        if (!completed.length) return null;
-                        const teamMin = Math.max(...completed.map((e: any) => e.duration_minutes));
-                        return (
-                          <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
-                            Faktisk tid brugt: <span className="font-semibold">{fmtMinutes(teamMin)}</span>
                           </p>
                         );
                       })()}
@@ -584,14 +566,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
               {/* Planning */}
               {!readOnly && (
-                <TimeSpentSection
-                  entries={timeEntries}
-                  employees={activeEmployees}
-                />
-              )}
-
-              {/* Planning */}
-              {!readOnly && (
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
                   title="Intern note"
@@ -600,10 +574,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   <PlanningSection
                     timeSlot={timeSlot}
                     setTimeSlot={setTimeSlot}
-                    durationHours={durationHours}
-                    setDurationHours={setDurationHours}
-                    durationMinutes={durationMinutes}
-                    setDurationMinutes={setDurationMinutes}
                     notes={notes}
                     setNotes={setNotes}
                     plannedArrival={stop.planned_arrival}
@@ -803,10 +773,6 @@ const TimeSpentSection = ({
 type PlanningProps = {
   timeSlot: string;
   setTimeSlot: (v: string) => void;
-  durationHours: number;
-  setDurationHours: (n: number) => void;
-  durationMinutes: number;
-  setDurationMinutes: (n: number) => void;
   notes: string;
   setNotes: (v: string) => void;
   plannedArrival: string | null | undefined;
@@ -815,23 +781,12 @@ type PlanningProps = {
 
 const PlanningSection = ({
   timeSlot, setTimeSlot,
-  durationHours, setDurationHours,
-  durationMinutes, setDurationMinutes,
   notes, setNotes,
   plannedArrival, distanceToNextKm,
 }: PlanningProps) => {
   const [slotOpen, setSlotOpen] = useState(false);
-  const [durOpen, setDurOpen] = useState(false);
 
   const selectedSlot = TIME_SLOTS.find((s) => s.value === timeSlot);
-  const totalMin = durationHours * 60 + durationMinutes;
-  const durationLabel = totalMin === 0
-    ? "Vælg varighed"
-    : durationHours === 0
-      ? `${durationMinutes} min`
-      : durationMinutes === 0
-        ? `${durationHours} ${durationHours === 1 ? "time" : "timer"}`
-        : `${durationHours} t ${durationMinutes} min`;
 
   return (
     <div className="space-y-4">
