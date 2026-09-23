@@ -1,6 +1,6 @@
 // Customer notifications dispatcher
 // Reads pending rows from public.customer_notification_queue whose send_at <= now()
-// and invokes send-transactional-email for each, using the business's saved
+// and sends through the managed email API using the business's saved
 // template (or a sensible default) with placeholder substitution.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";

@@ -5,17 +5,9 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
-  [functions.process-email-queue]
-    verify_jwt = true
-  [functions.send-transactional-email]
-    verify_jwt = false
   [functions.customer-notifications-dispatch]
     verify_jwt = false
   [functions.preview-transactional-email]
-    verify_jwt = false
-  [functions.handle-email-unsubscribe]
-    verify_jwt = false
-  [functions.handle-email-suppression]
     verify_jwt = false
   [functions.sitemap]
     verify_jwt = false

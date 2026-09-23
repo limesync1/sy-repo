@@ -2382,8 +2382,6 @@ export const useDispatchRoute = () => {
       if (eErr) throw eErr;
       if (!emp?.email) throw new Error("Medarbejderen har ingen email");
 
-      const biz: any = (route as any).businesses;
-
       // Stops where this employee is one of the assignees on this route
       const { data: myAssignments } = await supabase
         .from("route_stop_assignees")
@@ -2402,11 +2400,6 @@ export const useDispatchRoute = () => {
       if (stopList.length === 0) throw new Error("Medarbejderen har ingen stop på denne rute");
 
       await supabase.from("routes").update({ status: "dispatched" }).eq("id", routeId);
-
-      const dateLabel = new Date(route.route_date).toLocaleDateString("da-DK", {
-        weekday: "long", day: "numeric", month: "long", year: "numeric",
-      });
-      const first = stopList[0];
 
       const { data: sendResult, error: sendErr } = await supabase.functions.invoke("route-assignment-email", {
         body: { routeId, employeeId },

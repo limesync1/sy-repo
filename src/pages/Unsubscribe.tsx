@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -43,7 +43,6 @@ export default function Unsubscribe() {
         </section>
 
       <Card className="w-full rounded-[2rem] border border-border bg-card p-8 text-center shadow-[0_20px_50px_-34px_hsl(var(--foreground)/0.28)] space-y-4">
-        {
           <>
             <CheckCircle2 className="h-10 w-10 mx-auto text-foreground" />
             <h1 className="text-2xl font-bold">E-mailindstillinger administreres sikkert</h1>
@@ -54,32 +53,6 @@ export default function Unsubscribe() {
               <Link to="/">Tilbage til forsiden</Link>
             </Button>
           </>
-        }
-        {state === "already" && (
-          <>
-            <CheckCircle2 className="h-10 w-10 mx-auto text-foreground" />
-            <h1 className="text-2xl font-bold">Allerede afmeldt</h1>
-            <p className="text-muted-foreground">
-              Denne e-mailadresse er allerede afmeldt vores udsendelser.
-            </p>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/">Tilbage til forsiden</Link>
-            </Button>
-          </>
-        )}
-        {(state === "invalid" || state === "error") && (
-          <>
-            <XCircle className="h-10 w-10 mx-auto text-destructive" />
-            <h1 className="text-2xl font-bold">Linket virker ikke</h1>
-            <p className="text-muted-foreground">
-              Linket er enten udløbet eller ugyldigt. Kontakt os, hvis du fortsat
-              modtager uønskede e-mails.
-            </p>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/">Tilbage til forsiden</Link>
-            </Button>
-          </>
-        )}
       </Card>
       </div>
     </main>

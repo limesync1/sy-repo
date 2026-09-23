@@ -1428,15 +1428,6 @@ const AftaleTab = ({
 
       const order = (orders || []).find((o: any) => o.id === orderId) as any;
       if (order?.customer_email) {
-        const event = responseType === "adjusted" ? "adjusted" : responseType === "accepted" ? "confirmed" : "cancelled";
-        const { data: biz } = await supabase
-          .from("businesses")
-          .select("name, phone, email, address, zip_code, city")
-          .eq("id", businessId)
-          .maybeSingle();
-        const businessAddress = biz
-          ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
-          : undefined;
         const { data: mailResult, error: mailErr } = await supabase.functions.invoke("order-email-notification", {
           body: { orderId, kind: "status-update" },
         });

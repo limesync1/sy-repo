@@ -238,24 +238,6 @@ const CartSheet = () => {
         const orderResult = { id: parentOrderId };
 
         // Send order confirmation email (fire-and-forget; non-blocking)
-        const hasRecurring = group.items.some(
-          (i) => i.interval && i.interval !== "engangskøb"
-        );
-        let businessInfo: any = null;
-        if (businessId !== "unknown") {
-          const { data: biz } = await supabase
-            .from("businesses")
-            .select("name, phone, email, address, city, zip_code")
-            .eq("id", businessId)
-            .maybeSingle();
-          businessInfo = biz;
-        }
-        const businessAddress = businessInfo
-          ? [businessInfo.address, [businessInfo.zip_code, businessInfo.city].filter(Boolean).join(" ")]
-              .filter(Boolean)
-              .join(", ")
-          : undefined;
-
         supabase.functions
           .invoke("order-email-notification", { body: { orderId: orderResult.id, kind: "confirmation" } })
           .catch((err) => console.warn("Email send failed (non-blocking):", err));
