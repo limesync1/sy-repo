@@ -315,9 +315,9 @@ export const EmployeeShell = ({
                           ? `Aftale · ${item.route_stops.customer_name}`
                           : `Rute · ${item.routes?.name || "Planlagt rute"}`}
                       </span>
-                      {item.route_stops && (item.route_stops.full_address || item.route_stops.address) && (
+                      {item.route_stops?.address && (
                         <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
-                          {item.route_stops.full_address || item.route_stops.address}
+                          {item.route_stops.address}
                         </span>
                       )}
                       <span className="mt-1 block text-xs leading-relaxed text-foreground">{item.message}</span>
