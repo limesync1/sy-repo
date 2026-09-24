@@ -29,7 +29,7 @@ import { ROUTE_COLORS, pickAvailableColor } from "./RouteEditSheet";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
-import { getSubcategoryIcon } from "@/lib/category-icons";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -357,7 +357,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
             )}
             {stops.map((s) => {
               const isSelected = selected.has(s.id);
-              const icon = getSubcategoryIcon(s.service_summary);
               return (
                 <label
                   key={s.id}
@@ -375,7 +374,11 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                     className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-base leading-none ring-1 ring-border"
                     aria-hidden
                   >
-                    {icon}
+                    <IndustryIcon
+                      name={s.service_summary}
+                      className="h-5 w-5 object-contain"
+                      alt=""
+                    />
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
