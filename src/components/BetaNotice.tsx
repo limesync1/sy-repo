@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -45,6 +45,13 @@ const BetaNotice = () => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(SIGNUP_KEY) === "1";
   });
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  /** Sæt fokus på e-mailfeltet — ikke rollevalget, som ellers får en tydelig fokus-ring. */
+  const focusEmail = (e: Event) => {
+    e.preventDefault();
+    window.setTimeout(() => emailRef.current?.focus(), 30);
+  };
 
   const { data } = useQuery({
     queryKey: ["public-beta-notice"],
