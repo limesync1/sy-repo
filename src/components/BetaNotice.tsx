@@ -156,7 +156,8 @@ const BetaNotice = () => {
   );
 
   const emailField = (
-    <Input
+      <Input
+      ref={emailRef}
       id="beta-email"
       type="email"
       inputMode="email"
@@ -173,7 +174,7 @@ const BetaNotice = () => {
   );
 
   const submitButton = (
-    <Button type="submit" disabled={saving} className="h-12 w-full rounded-xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+    <Button type="submit" disabled={saving} className="h-12 w-full rounded-xl bg-beta-accent text-white text-[15px] font-semibold shadow-lg shadow-beta-accent/25 transition-all hover:bg-beta-accent/90 active:scale-[0.98]">
       {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       Skriv mig op
     </Button>
