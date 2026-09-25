@@ -247,8 +247,8 @@ const BetaNotice = () => {
       </aside>
 
       {/* Dialog fra stribens knap */}
-      <Dialog open={open} onOpenChange={setOpen} onOpenAutoFocus={focusEmail}>
-        <DialogContent className={dialogClass}>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className={dialogClass} onOpenAutoFocus={focusEmail}>
           {/* Marine header med teal glød */}
           <div className="relative overflow-hidden bg-ocean px-6 pb-7 pt-9 text-center sm:px-8">
             <span
@@ -285,9 +285,8 @@ const BetaNotice = () => {
             if (!v) dismissPopup();
             else setPopupOpen(true);
           }}
-          onOpenAutoFocus={focusEmail}
         >
-          <DialogContent className={dialogClass}>
+          <DialogContent className={dialogClass} onOpenAutoFocus={focusEmail}>
             <div className="relative overflow-hidden bg-ocean px-6 pb-7 pt-9 text-center sm:px-8">
               <span
                 aria-hidden
