@@ -3,16 +3,16 @@ import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle2, ArrowRight, BellRing } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 /**
  * BetaNotice — besked om testfase på alle offentlige sider.
  *  1. Smal stribe øverst med en "Få besked når vi åbner"-knap.
- *  2. Ét kort, roligt kort der åbner ved første besøg i sessionen.
+ *  2. Ét indbydende modal-kort ("Premium marine glow") ved første besøg i sessionen:
+ *     mørk marine-header med teal glød + lys formularflade.
  * Tilmeldingen gemmes via RPC'en `join_beta_waitlist`.
  */
 
@@ -115,44 +115,17 @@ const BetaNotice = () => {
     setDone(true);
   };
 
-  /** Selve tilmeldingen — e-mail først, rollevalg som to små valg under. */
-  const signupForm = (
-    <form onSubmit={submit} noValidate className="mt-4 space-y-3">
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-        <Input
-          id="beta-email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          maxLength={254}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="din@mail.dk"
-          aria-label="Din e-mail"
-          aria-invalid={!!error}
-          aria-describedby={error ? "beta-email-error" : undefined}
-          className="h-10 min-w-0 bg-background"
-        />
-        <Button type="submit" disabled={saving} className="h-10 shrink-0 px-5">
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Skriv mig op
-        </Button>
-      </div>
-
-      {error && (
-        <p id="beta-email-error" className="text-[12.5px] text-destructive">
-          {error}
-        </p>
-      )}
-
-      <fieldset className="flex min-w-0 items-center gap-2 text-[12.5px] text-muted-foreground">
-        <legend className="sr-only">Tilmeldingstype</legend>
-        <span className="shrink-0">Jeg er</span>
-        <div className="inline-grid min-w-0 grid-cols-2 rounded-md border border-border bg-secondary/60 p-0.5">
+  /** Rollevalg — to små valg over e-mailfeltet, som i det valgte design. */
+  const roleSelector = (
+    <fieldset>
+      <legend className="mb-2 ml-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Jeg er:
+      </legend>
+      <div className="flex rounded-xl bg-secondary p-1">
         {(
           [
-            { key: "kunde" as const, label: "kunde" },
-            { key: "virksomhed" as const, label: "virksomhed" },
+            { key: "kunde" as const, label: "Kunde" },
+            { key: "virksomhed" as const, label: "Virksomhed" },
           ]
         ).map((opt) => (
           <button
@@ -161,7 +134,7 @@ const BetaNotice = () => {
             aria-pressed={audience === opt.key}
             onClick={() => setAudience(opt.key)}
             className={cn(
-              "min-w-0 rounded px-2.5 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "flex-1 rounded-lg py-2 text-[13.5px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]",
               audience === opt.key
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -170,43 +143,65 @@ const BetaNotice = () => {
             {opt.label}
           </button>
         ))}
-        </div>
-      </fieldset>
+      </div>
+    </fieldset>
+  );
 
-      <p className="text-[12px] leading-5 text-muted-foreground">
+  const emailField = (
+    <Input
+      id="beta-email"
+      type="email"
+      inputMode="email"
+      autoComplete="email"
+      maxLength={254}
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="din@mail.dk"
+      aria-label="Din e-mail"
+      aria-invalid={!!error}
+      aria-describedby={error ? "beta-email-error" : undefined}
+      className="h-12 rounded-xl px-4 text-[15px]"
+    />
+  );
+
+  const submitButton = (
+    <Button type="submit" disabled={saving} className="h-12 w-full rounded-xl text-[15px] font-semibold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+      {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Skriv mig op
+    </Button>
+  );
+
+  /** Selve tilmeldingen — rollevalg først, derefter e-mail, derefter knap. */
+  const signupForm = (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      {roleSelector}
+      {emailField}
+      {error && (
+        <p id="beta-email-error" className="text-[12.5px] text-destructive">
+          {error}
+        </p>
+      )}
+      {submitButton}
+      <p className="text-center text-[11.5px] leading-tight text-muted-foreground">
         Én mail, den dag vi åbner. Ikke andet.
       </p>
     </form>
   );
 
   const confirmation = (
-    <div className="mt-4 flex items-start gap-3 rounded-lg border border-success/30 bg-success/10 p-3">
-      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-      <div>
-        <p className="text-sm font-semibold text-foreground">Du står på listen</p>
-        <p className="mt-0.5 text-[13px] leading-6 text-muted-foreground">
-          Vi skriver til {email || "dig"}, så snart vi åbner. Kig gerne rundt imens.
-        </p>
-      </div>
+    <div className="flex flex-col items-center py-3 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-beta-accent/10 text-beta-accent">
+        <CheckCircle2 className="h-7 w-7" />
+      </span>
+      <p className="mt-4 text-lg font-bold tracking-tight text-foreground">Du står på listen</p>
+      <p className="mt-1.5 max-w-[260px] text-[13.5px] leading-relaxed text-muted-foreground">
+        Vi skriver til {email || "dig"}, så snart vi åbner. Kig gerne rundt imens.
+      </p>
     </div>
   );
 
-  /** Fælles indhold i både stribe-dialogen og velkomst-popup'en. */
-  const card = (
-    <>
-      <div className="flex items-start gap-3 pr-7">
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent"><BellRing className="h-4 w-4" /></span>
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Testfase</p>
-          <DialogTitle className="mt-1 text-xl font-semibold leading-tight text-foreground">{title}</DialogTitle>
-        </div>
-      </div>
-      <DialogDescription className="mt-2 text-[14px] leading-6 text-muted-foreground">
-        {body}
-      </DialogDescription>
-      {justSignedUp ? confirmation : signupForm}
-    </>
-  );
+  const dialogClass =
+    "max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] gap-0 overflow-y-auto rounded-3xl border-border/60 bg-card p-0 shadow-[0_32px_64px_-24px_hsl(204_96%_13%/0.45)] sm:max-w-[400px] [&>button]:text-white/60 hover:[&>button]:bg-white/10 hover:[&>button]:text-white";
 
   return (
     <>
@@ -223,7 +218,7 @@ const BetaNotice = () => {
 
           {done ? (
             <span className="inline-flex items-center gap-1.5 text-[13px] font-medium">
-              <CheckCircle2 className="h-4 w-4 text-accent" />
+              <CheckCircle2 className="h-4 w-4 text-beta-accent" />
               Du står på listen
             </span>
           ) : (
@@ -244,8 +239,32 @@ const BetaNotice = () => {
 
       {/* Dialog fra stribens knap */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border-border bg-card p-5 sm:max-w-[430px] sm:p-6">
-          {card}
+        <DialogContent className={dialogClass}>
+          {/* Marine header med teal glød */}
+          <div className="relative overflow-hidden bg-ocean px-6 pb-7 pt-9 text-center sm:px-8">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-20 -top-24 h-48 w-48 rounded-full bg-hero-cyan opacity-20 blur-3xl"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-24 bottom-[-4rem] h-40 w-40 rounded-full bg-hero-cyan opacity-10 blur-3xl"
+            />
+            <div className="relative">
+              <span className="inline-block rounded-full bg-hero-cyan/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-hero-cyan">
+                Testfase
+              </span>
+              <DialogTitle className="mt-3.5 text-2xl font-bold tracking-tight text-white">
+                {title}
+              </DialogTitle>
+              <DialogDescription className="mx-auto mt-2.5 max-w-[280px] text-[13.5px] leading-relaxed text-white/65">
+                {body}
+              </DialogDescription>
+            </div>
+          </div>
+
+          {/* Lys formularflade */}
+          <div className="p-6 sm:p-7">{justSignedUp ? confirmation : signupForm}</div>
         </DialogContent>
       </Dialog>
 
@@ -258,15 +277,39 @@ const BetaNotice = () => {
             else setPopupOpen(true);
           }}
         >
-          <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border-border bg-card p-5 sm:max-w-[430px] sm:p-6">
-            {card}
-            <button
-              type="button"
-              onClick={dismissPopup}
-              className="mt-3 block w-full rounded-md py-2 text-center text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Nej tak — kig bare rundt
-            </button>
+          <DialogContent className={dialogClass}>
+            <div className="relative overflow-hidden bg-ocean px-6 pb-7 pt-9 text-center sm:px-8">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -left-20 -top-24 h-48 w-48 rounded-full bg-hero-cyan opacity-20 blur-3xl"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-24 bottom-[-4rem] h-40 w-40 rounded-full bg-hero-cyan opacity-10 blur-3xl"
+              />
+              <div className="relative">
+                <span className="inline-block rounded-full bg-hero-cyan/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-hero-cyan">
+                  Testfase
+                </span>
+                <DialogTitle className="mt-3.5 text-2xl font-bold tracking-tight text-white">
+                  {title}
+                </DialogTitle>
+                <DialogDescription className="mx-auto mt-2.5 max-w-[280px] text-[13.5px] leading-relaxed text-white/65">
+                  {body}
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="p-6 sm:p-7">
+              {justSignedUp ? confirmation : signupForm}
+              <button
+                type="button"
+                onClick={dismissPopup}
+                className="mt-4 block w-full rounded-md py-1.5 text-center text-[13px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Nej tak — kig bare rundt
+              </button>
+            </div>
           </DialogContent>
         </Dialog>
       )}
