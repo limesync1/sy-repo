@@ -76,6 +76,9 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         "accent-soft": "hsl(var(--accent-soft))",
+        /* Brandteal til Testfase-modal og hero-cyan til glødeflader. */
+        "beta-accent": "hsl(var(--beta-accent))",
+        "hero-cyan": "hsl(var(--hero-cyan))",
         "feature-cool": "hsl(var(--feature-cool))",
         "feature-cool-foreground": "hsl(var(--feature-cool-foreground))",
         "feature-warm": "hsl(var(--feature-warm))",
