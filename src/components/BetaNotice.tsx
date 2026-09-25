@@ -12,8 +12,7 @@ import { Button } from "@/components/ui/button";
 /**
  * BetaNotice — besked om testfase på alle offentlige sider.
  *  1. Smal stribe øverst med en "Få besked når vi åbner"-knap.
- *  2. Ét indbydende modal-kort ("Premium marine glow") ved første besøg i sessionen:
- *     mørk marine-header med teal glød + lys formularflade.
+ *  2. Ét lyst modal-kort i samme rolige marine/teal-design som forsiden.
  * Tilmeldingen gemmes via RPC'en `join_beta_waitlist`.
  */
 
@@ -129,27 +128,28 @@ const BetaNotice = () => {
       <legend className="mb-2 ml-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         Jeg er:
       </legend>
-      <div className="flex rounded-xl bg-secondary p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-secondary p-1">
         {(
           [
             { key: "kunde" as const, label: "Kunde" },
             { key: "virksomhed" as const, label: "Virksomhed" },
           ]
         ).map((opt) => (
-          <button
+          <Button
             key={opt.key}
             type="button"
+            variant="ghost"
             aria-pressed={audience === opt.key}
             onClick={() => setAudience(opt.key)}
             className={cn(
-              "flex-1 rounded-lg py-2 text-[13.5px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]",
+              "h-10 rounded-md text-[13.5px] font-medium",
               audience === opt.key
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                ? "border border-border bg-card text-foreground shadow-sm hover:bg-card"
+                : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
             )}
           >
             {opt.label}
-          </button>
+          </Button>
         ))}
       </div>
     </fieldset>
@@ -169,12 +169,12 @@ const BetaNotice = () => {
       aria-label="Din e-mail"
       aria-invalid={!!error}
       aria-describedby={error ? "beta-email-error" : undefined}
-      className="h-12 rounded-xl px-4 text-[15px]"
+      className="h-12 rounded-lg border-border bg-background px-4 text-[15px] shadow-none placeholder:text-muted-foreground focus-visible:border-beta-accent focus-visible:ring-beta-accent/20"
     />
   );
 
   const submitButton = (
-    <Button type="submit" disabled={saving} className="h-12 w-full rounded-xl bg-beta-accent text-white text-[15px] font-semibold shadow-lg shadow-beta-accent/25 transition-all hover:bg-beta-accent/90 active:scale-[0.98]">
+    <Button type="submit" disabled={saving} className="h-12 w-full rounded-lg bg-foreground text-background text-[15px] font-semibold shadow-sm hover:bg-foreground/90">
       {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       Skriv mig op
     </Button>
@@ -210,7 +210,22 @@ const BetaNotice = () => {
   );
 
   const dialogClass =
-    "max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] gap-0 overflow-y-auto rounded-3xl border-border/60 bg-card p-0 shadow-[0_32px_64px_-24px_hsl(204_96%_13%/0.45)] sm:max-w-[400px] [&>button]:text-white/60 hover:[&>button]:bg-white/10 hover:[&>button]:text-white";
+    "max-h-[calc(100dvh-1rem)] max-w-[calc(100vw-1rem)] gap-0 overflow-y-auto rounded-2xl border border-border bg-card p-0 shadow-2xl shadow-foreground/15 sm:max-w-[430px] [&>button]:right-4 [&>button]:top-4 [&>button]:h-10 [&>button]:w-10 [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-secondary [&>button]:text-foreground [&>button]:opacity-100 hover:[&>button]:bg-muted focus-visible:[&>button]:ring-beta-accent";
+
+  const dialogHeader = (
+    <div className="border-b border-border bg-surface px-6 pb-6 pt-7 pr-16 text-left sm:px-8 sm:pb-7 sm:pt-8 sm:pr-20">
+      <div className="mb-4 flex items-center gap-2">
+        <span aria-hidden className="h-2 w-2 rounded-full bg-beta-accent" />
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">Testfase</span>
+      </div>
+      <DialogTitle className="text-[26px] font-bold leading-tight text-foreground sm:text-[28px]">
+        {title}
+      </DialogTitle>
+      <DialogDescription className="mt-2.5 max-w-[340px] text-sm leading-6 text-muted-foreground">
+        {body}
+      </DialogDescription>
+    </div>
+  );
 
   return (
     <>
@@ -249,31 +264,8 @@ const BetaNotice = () => {
       {/* Dialog fra stribens knap */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className={dialogClass} onOpenAutoFocus={focusEmail}>
-          {/* Marine header med teal glød */}
-          <div className="relative overflow-hidden bg-ocean px-6 pb-7 pt-9 text-center sm:px-8">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -left-20 -top-24 h-48 w-48 rounded-full bg-hero-cyan opacity-20 blur-3xl"
-            />
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -right-24 bottom-[-4rem] h-40 w-40 rounded-full bg-hero-cyan opacity-10 blur-3xl"
-            />
-            <div className="relative">
-              <span className="inline-block rounded-full bg-hero-cyan/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-hero-cyan">
-                Testfase
-              </span>
-              <DialogTitle className="mt-3.5 text-2xl font-bold tracking-tight text-white">
-                {title}
-              </DialogTitle>
-              <DialogDescription className="mx-auto mt-2.5 max-w-[280px] text-[13.5px] leading-relaxed text-white/65">
-                {body}
-              </DialogDescription>
-            </div>
-          </div>
-
-          {/* Lys formularflade */}
-          <div className="p-6 sm:p-7">{justSignedUp ? confirmation : signupForm}</div>
+          {dialogHeader}
+          <div className="p-6 sm:p-8">{justSignedUp ? confirmation : signupForm}</div>
         </DialogContent>
       </Dialog>
 
@@ -287,37 +279,17 @@ const BetaNotice = () => {
           }}
         >
           <DialogContent className={dialogClass} onOpenAutoFocus={focusEmail}>
-            <div className="relative overflow-hidden bg-ocean px-6 pb-7 pt-9 text-center sm:px-8">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-20 -top-24 h-48 w-48 rounded-full bg-hero-cyan opacity-20 blur-3xl"
-              />
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -right-24 bottom-[-4rem] h-40 w-40 rounded-full bg-hero-cyan opacity-10 blur-3xl"
-              />
-              <div className="relative">
-                <span className="inline-block rounded-full bg-hero-cyan/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-hero-cyan">
-                  Testfase
-                </span>
-                <DialogTitle className="mt-3.5 text-2xl font-bold tracking-tight text-white">
-                  {title}
-                </DialogTitle>
-                <DialogDescription className="mx-auto mt-2.5 max-w-[280px] text-[13.5px] leading-relaxed text-white/65">
-                  {body}
-                </DialogDescription>
-              </div>
-            </div>
-
-            <div className="p-6 sm:p-7">
+            {dialogHeader}
+            <div className="p-6 sm:p-8">
               {justSignedUp ? confirmation : signupForm}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={dismissPopup}
-                className="mt-4 block w-full rounded-md py-1.5 text-center text-[13px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-3 h-10 w-full text-[13px] font-medium text-muted-foreground hover:text-foreground"
               >
                 Nej tak — kig bare rundt
-              </button>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
