@@ -90,8 +90,8 @@ export const Section = ({
 }) => (
   // Matcher kunde-detalje-sheetet (rounded-xl border-border bg-card, h4 uppercase
   // tracking-wider) så de to paneler ser ud som ét designsystem.
-  <div className={cn("overflow-hidden rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]", className)}>
-    <div className="flex min-h-9 items-center gap-2 border-b border-border bg-secondary/35 px-3 py-2">
+  <div className={cn("relative rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]", className)}>
+    <div className="flex min-h-9 items-center gap-2 rounded-t-[calc(0.375rem-1px)] border-b border-border bg-secondary/35 px-3 py-2">
       <span
         className={cn(
           "inline-flex items-center justify-center h-5 w-5 rounded-[4px] shrink-0",

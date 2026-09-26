@@ -157,7 +157,7 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
       </div>
 
       {open && suggestions.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-lg">
+        <div className="absolute left-0 top-full z-[100] mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-lg">
           <ul className="max-h-72 overflow-y-auto py-1 text-sm">
             {suggestions.map((s, i) => (
               <li key={(s.data.id || s.tekst) + i}>

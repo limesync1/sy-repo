@@ -37,19 +37,19 @@ const features = [
     icon: Users,
     title: "Flere kunder i dit område",
     text: "Bliv vist for private og virksomheder der søger efter præcis dine ydelser lokalt — uden at betale for klik.",
-    tone: "bg-feature-cool text-feature-cool-foreground",
+    tone: "bg-accent/10 text-accent",
   },
   {
     icon: Route,
     title: "Ruteplanlægning inkluderet",
     text: "Planlæg dagens stop, optimer kørerækkefølgen og send ruten direkte til medarbejderens telefon. Inkluderet i basis — ikke et tilkøb.",
-    tone: "bg-feature-warm text-feature-warm-foreground",
+    tone: "bg-warning/10 text-warning-foreground",
   },
   {
     icon: Calculator,
     title: "Indbygget prisberegner",
     text: "Tilføj en prisberegner til dine ydelser, så kunden selv kan udfylde m², timer eller antal og se prisen før de booker.",
-    tone: "bg-feature-lilac text-feature-lilac-foreground",
+    tone: "bg-primary/10 text-primary",
   },
 ];
 
@@ -59,7 +59,7 @@ const ForBusinesses = () => {
   const p = { ...PRICING_FALLBACK, ...(pricing ?? {}) };
 
   return (
-    <section className="bg-secondary py-12 sm:py-14 lg:py-16 2xl:py-24">
+    <section className="border-y border-border/70 bg-surface py-12 sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-14">
           <div className="max-w-2xl">
@@ -95,41 +95,30 @@ const ForBusinesses = () => {
           </div>
         </div>
 
-        {/* Hero-tile øverst i fuld bredde + 3 feature-kort under. Ingen tomme celler. */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Hero-tile — altid fuld bredde øverst. */}
-          <article
-            className="relative isolate overflow-hidden rounded-xl border border-background/10 p-5 text-background sm:p-7 lg:col-span-3 2xl:p-9"
-            style={{ backgroundColor: "hsl(var(--hero-bg))" }}
-          >
-            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-stretch lg:gap-10">
+        <div className="overflow-hidden rounded-lg border border-ocean-foreground/10 bg-ocean text-ocean-foreground shadow-sm">
+          <article className="p-5 sm:p-7 2xl:p-9">
+            <div className="grid gap-7 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
               <div className="max-w-xl">
-                <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
-                  />
+                <span className="inline-flex items-center gap-2 rounded-full border border-ocean-foreground/20 bg-ocean-foreground/[0.07] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-ocean-foreground/80">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                   Alt-i-én panel
                 </span>
                 <h3 className="mt-4 text-[1.6rem] font-semibold leading-[1.12] sm:text-[2rem]">
                   Drift hele forretningen <span className="text-accent">fra ét sted.</span>
                 </h3>
-                <p className="mt-3 text-sm leading-6 text-background/85 sm:text-[15px]">
+                <p className="mt-3 text-sm leading-6 text-ocean-foreground/75 sm:text-[15px]">
                   Kundekartotek, bookingkalender, ruteplanlægning, fakturering og medarbejderlogins — i ét panel, så du slipper for at hoppe mellem fem forskellige systemer.
                 </p>
 
-                <ul className="mt-6 space-y-2.5 text-sm text-background/90">
+                <ul className="mt-6 space-y-2.5 text-sm text-ocean-foreground/90">
                   {[
                     "Egen virksomhedsprofil med søgesynlighed på Google",
                     "Bookingkalender og ruteplanlægning til medarbejdere",
                     "Automatisk fakturering med e-conomic & Dinero",
                   ].map((t) => (
                     <li key={t} className="flex items-center gap-2.5">
-                      <span
-                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                        style={{ backgroundColor: "hsl(var(--hero-cyan-bright) / 0.18)" }}
-                      >
-                        <Check className="h-3 w-3" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                        <Check className="h-3 w-3 text-accent" />
                       </span>
                       {t}
                     </li>
@@ -137,53 +126,53 @@ const ForBusinesses = () => {
                 </ul>
               </div>
 
-              <div className="w-full rounded-lg border border-background/15 bg-background/[0.06] p-4 sm:p-5">
-                <div className="flex items-center gap-2 border-b border-background/10 pb-3">
+              <div className="w-full rounded-md border border-ocean-foreground/15 bg-ocean-foreground/[0.06] p-4 sm:p-5">
+                <div className="flex items-center gap-2 border-b border-ocean-foreground/10 pb-3">
                   <LayoutDashboard className="h-4 w-4 text-accent" />
-                  <span className="text-xs font-semibold text-background">Dagens overblik</span>
+                  <span className="text-xs font-semibold text-ocean-foreground">Dagens overblik</span>
                 </div>
                 <div className="mt-3 space-y-2">
                   {["Kunder og bestillinger", "Ruter og medarbejdere", "Fakturering og status"].map((label, index) => (
-                    <div key={label} className="flex items-center justify-between rounded-md border border-background/10 bg-background/[0.05] px-3 py-2.5">
-                      <span className="text-xs text-background/85">{label}</span>
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-background/10 text-[11px] font-semibold text-background">{index + 1}</span>
+                    <div key={label} className="flex items-center justify-between rounded-md border border-ocean-foreground/10 bg-ocean-foreground/[0.05] px-3 py-2.5">
+                      <span className="text-xs text-ocean-foreground/85">{label}</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded bg-ocean-foreground/10 text-[11px] font-semibold text-ocean-foreground">{index + 1}</span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px] leading-5 text-background/65">Samlet overblik uden at skifte mellem forskellige systemer.</p>
+                <p className="mt-3 text-[11px] leading-5 text-ocean-foreground/65">Samlet overblik uden at skifte mellem forskellige systemer.</p>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-col items-start gap-3 border-t border-ocean-foreground/10 pt-5 sm:flex-row sm:items-center">
               <SmartLink
                 to="/opret-virksomhed"
-                className="group inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+                className="group inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-all hover:-translate-y-0.5 hover:bg-accent/90"
               >
                 Prøv gratis i {p.trial_days} dage
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
-              <span className="text-xs text-background/80">
+              <span className="text-xs leading-5 text-ocean-foreground/75">
                 Ingen betalingskort ved start · ingen binding · derefter {kr(p.base_price_dkk)} kr/md.
               </span>
             </div>
 
           </article>
-
-          {/* 4 feature-kort i den højre kolonne på desktop, 2x2 grid på mindre. */}
-          {features.map((f) => (
-            <article
-              key={f.title}
-               className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-card p-5 transition-colors hover:border-accent/40 hover:bg-secondary/35 2xl:p-6"
-            >
-               <div className={`flex h-9 w-9 items-center justify-center rounded-md ${f.tone}`}>
-                <f.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-[15px] font-semibold leading-tight text-foreground">{f.title}</h3>
-                <p className="mt-2 text-[13.5px] leading-6 text-muted-foreground">{f.text}</p>
-              </div>
-            </article>
-          ))}
+          <div className="grid border-t border-ocean-foreground/10 md:grid-cols-3">
+            {features.map((f, index) => (
+              <article
+                key={f.title}
+                className={`group flex gap-3.5 p-5 transition-colors hover:bg-ocean-foreground/[0.05] sm:p-6 ${index > 0 ? "border-t border-ocean-foreground/10 md:border-l md:border-t-0" : ""}`}
+              >
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${f.tone}`}>
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-[15px] font-semibold leading-tight text-ocean-foreground">{f.title}</h3>
+                  <p className="mt-1.5 text-[13px] leading-5 text-ocean-foreground/70">{f.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
 
         {/* Prismodel i kort form — de fulde detaljer står på prissiden, så
