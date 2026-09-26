@@ -99,11 +99,12 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
 
   return (
     <Sheet open={!!businessId} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent side="right" className="planner-overlay flex w-full flex-col overflow-hidden p-0 sm:max-w-2xl">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <BusinessSheetHeader business={business} ownerEmail={owner?.email} isDeleted={isDeleted} />
 
         <Tabs defaultValue="overview" className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 sm:grid-cols-5">
             <TabsTrigger value="overview">Oversigt</TabsTrigger>
             <TabsTrigger value="plan">Plan</TabsTrigger>
             <TabsTrigger value="users">Brugere</TabsTrigger>
@@ -143,6 +144,7 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
             />
           </TabsContent>
         </Tabs>
+        </div>
       </SheetContent>
     </Sheet>
   );

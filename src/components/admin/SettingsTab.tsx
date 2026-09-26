@@ -1403,11 +1403,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                           <CheckCircle2 className="h-3 w-3" /> Live
                         </span>
                       ) : domainStatus === "pending_activation" || domainStatus === "verified" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-600">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
                           <Loader2 className="h-3 w-3 animate-spin" /> Afventer aktivering
                         </span>
                       ) : domainStatus === "pending_dns" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning-foreground dark:text-warning">
                           <AlertCircle className="h-3 w-3" /> Ejerskab er OK · venter på pegningen (CNAME)
                         </span>
                       ) : domainStatus === "pending_ownership" ? (

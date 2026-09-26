@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 export const TrendBadge = ({ pct }: { pct: number }) => {
   const Icon = pct > 0 ? ArrowUp : pct < 0 ? ArrowDown : Minus;
   const tone = pct > 0
-    ? "text-emerald-600 bg-emerald-500/10"
+    ? "text-success bg-success/10"
     : pct < 0
-      ? "text-red-600 bg-red-500/10"
+      ? "text-destructive bg-destructive/10"
       : "text-muted-foreground bg-secondary";
   return (
     <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${tone}`}>
@@ -71,14 +71,14 @@ export const PulseCard = ({
   dot: "emerald" | "blue" | "violet" | "amber" | "muted";
 }) => {
   const dots: Record<string, string> = {
-    emerald: "bg-emerald-500",
+    emerald: "bg-success",
     blue: "bg-accent",
-    violet: "bg-violet-500",
-    amber: "bg-amber-500",
+    violet: "bg-feature-lilac-foreground",
+    amber: "bg-warning",
     muted: "bg-muted-foreground/40",
   };
   return (
-    <Card className="rounded-xl border-border shadow-sm">
+    <Card className="service-panel-card rounded-[5px] border-border shadow-sm">
       <CardContent className="flex items-center gap-2.5 p-3">
         <span className={cn("h-2 w-2 shrink-0 rounded-full", dots[dot])} />
         <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -104,7 +104,7 @@ export const ActionCard = ({
 }) => {
   const tones: Record<string, string> = {
     danger: "border-destructive/30 bg-destructive/5 hover:bg-destructive/10 text-destructive",
-    warn: "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-700",
+    warn: "border-warning/30 bg-warning/5 hover:bg-warning/10 text-warning-foreground dark:text-warning",
     info: "border-accent/30 bg-accent/5 hover:bg-accent/10 text-accent",
   };
   const disabled = count === 0;
@@ -114,11 +114,11 @@ export const ActionCard = ({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "group flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors w-full",
+        "group flex w-full items-start gap-3 rounded-[5px] border p-3.5 text-left transition-colors",
         disabled ? "border-border bg-secondary/30 text-muted-foreground cursor-default" : tones[tone],
       )}
     >
-      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px]",
         disabled ? "bg-secondary" : "bg-background/80")}>
         <Icon className="h-4 w-4" />
       </div>

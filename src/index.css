@@ -288,7 +288,7 @@
     box-shadow: 0 28px 70px -34px hsl(var(--foreground) / 0.5);
   }
 
-  /* Fælles arbejdsdesign for virksomhedens og medarbejderens paneler. */
+  /* Fælles arbejdsdesign for virksomheds-, medarbejder- og platform-adminpanel. */
   .service-panel-workspace {
     --radius: 0.375rem;
     background: hsl(var(--planner-surface));
@@ -425,6 +425,27 @@
     border-color: hsl(var(--border));
     background: hsl(var(--planner-surface-raised));
     box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
+  }
+
+  .service-panel-content > * {
+    min-width: 0;
+  }
+
+  .service-panel-content [data-panel-toolbar] {
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.3125rem;
+    background: hsl(var(--planner-surface-raised));
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
+  }
+
+  .service-panel-open [role="tablist"] {
+    border-radius: 0.3125rem;
+    background: hsl(var(--secondary) / 0.72);
+  }
+
+  .service-panel-open [role="tab"] {
+    min-height: 2rem;
+    border-radius: 0.25rem;
   }
 
   .employee-panel-workspace .rounded-2xl,

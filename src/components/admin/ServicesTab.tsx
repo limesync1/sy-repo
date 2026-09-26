@@ -320,7 +320,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
           </DialogHeader>
           <div className="flex-1 overflow-y-auto bg-secondary/20 p-4 sm:p-5">
             {showForm && !hasIndustries && (
-              <Card className="mb-4 surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
+              <Card className="mb-4 surface-admin rounded-[5px] border-warning/30 bg-warning/10 shadow-sm">
                 <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-2.5">
                     <span className="text-lg leading-none">⚠️</span>

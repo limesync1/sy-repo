@@ -609,9 +609,9 @@ const ImpersonationBanner = () => {
   const id = (() => { try { return window.sessionStorage.getItem("sy.impersonate.business_id"); } catch { return null; } })();
   if (!id) return null;
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[5px] border border-warning/30 bg-warning/10 px-4 py-2.5 text-sm text-warning-foreground dark:text-warning">
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-warning" />
         <span><strong>Platform-admin</strong> · Du ser denne virksomheds panel via en impersonation-kode.</span>
       </div>
       <button

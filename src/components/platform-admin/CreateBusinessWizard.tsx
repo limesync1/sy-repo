@@ -203,7 +203,7 @@ export default function CreateBusinessWizard({ open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
+      <SheetContent className="planner-overlay flex w-full flex-col overflow-hidden p-0 sm:max-w-3xl">
         {/* Header med progress */}
         <div className="border-b border-border px-5 py-4 sm:px-6">
           {/* Lukkeknap leveres af SheetContent — undgå dobbelt X. */}

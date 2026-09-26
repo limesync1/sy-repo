@@ -8,7 +8,7 @@ import { Download, Plus, Building2, UploadCloud, Loader2, ChevronLeft, ChevronRi
 import { toast } from "sonner";
 import { exportCsv } from "./lib/csv";
 import { useAdminMutation } from "./lib/useAdminMutation";
-import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -150,9 +150,9 @@ const PlatformBusinessesTab = () => {
             <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
               <Download className="h-3.5 w-3.5" /> CSV
             </Button>
-            <Button size="sm" onClick={() => setCreateOpen(true)} className="h-9 gap-1.5">
+            <PrimaryButton onClick={() => setCreateOpen(true)} className="gap-1.5">
               <Plus className="h-3.5 w-3.5" /> Opret virksomhed
-            </Button>
+            </PrimaryButton>
           </div>
         }
       />
@@ -182,7 +182,7 @@ const PlatformBusinessesTab = () => {
           description="Justér søgning eller filter for at se flere resultater."
         />
       ) : (
-        <Card className="rounded-xl border-border shadow-sm overflow-hidden">
+        <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
           <div className="flex items-center gap-3 border-b border-border bg-secondary/30 px-4 py-2 text-xs font-medium text-muted-foreground">
             <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
             <span>Vælg alle på siden ({rows.length})</span>

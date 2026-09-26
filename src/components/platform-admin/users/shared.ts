@@ -24,7 +24,7 @@ export const SORT_LABELS: [SortKey, string][] = [
 
 export const roleColor = (role: string) =>
   role === "admin" ? "bg-accent/15 text-accent border-accent/30" :
-  role === "business_owner" ? "bg-violet-500/10 text-violet-700 border-violet-500/20" :
+  role === "business_owner" ? "bg-feature-lilac text-feature-lilac-foreground border-feature-lilac-foreground/20" :
   "bg-secondary text-muted-foreground border-border";
 
 export const loginStatus = (iso: string | null) => {
@@ -33,7 +33,7 @@ export const loginStatus = (iso: string | null) => {
   if (days < 1) return { label: "Aktiv i dag", tone: "bg-success/10 text-success" };
   if (days < 7) return { label: `Sidst for ${Math.round(days)} dage siden`, tone: "bg-success/10 text-success" };
   if (days < 30) return { label: `Sidst for ${Math.round(days)} dage siden`, tone: "bg-secondary text-foreground" };
-  return { label: `Inaktiv i ${Math.round(days / 30)} mdr.`, tone: "bg-amber-500/10 text-amber-700" };
+  return { label: `Inaktiv i ${Math.round(days / 30)} mdr.`, tone: "bg-warning/10 text-warning-foreground dark:text-warning" };
 };
 
 export const ACTIVITY_CHIPS = [

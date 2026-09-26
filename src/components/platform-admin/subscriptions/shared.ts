@@ -33,19 +33,19 @@ export const monthlyAmount = (p: any): number =>
     : Number(p.monthly_price_dkk || 0);
 
 export const statusColor: Record<string, string> = {
-  active: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  paused: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  cancelled: "bg-red-500/10 text-red-700 border-red-500/20",
+  active: "bg-success/10 text-success border-success/20",
+  paused: "bg-warning/10 text-warning-foreground dark:text-warning border-warning/20",
+  cancelled: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 export const planStatusColor: Record<string, string> = {
-  trialing: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  active: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  past_due: "bg-red-500/10 text-red-700 border-red-500/20",
-  canceled: "bg-slate-500/10 text-slate-700 border-slate-500/20",
-  cancelled: "bg-slate-500/10 text-slate-700 border-slate-500/20",
-  incomplete: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  unpaid: "bg-red-500/10 text-red-700 border-red-500/20",
+  trialing: "bg-accent/10 text-accent border-accent/20",
+  active: "bg-success/10 text-success border-success/20",
+  past_due: "bg-destructive/10 text-destructive border-destructive/20",
+  canceled: "bg-secondary text-muted-foreground border-border",
+  cancelled: "bg-secondary text-muted-foreground border-border",
+  incomplete: "bg-warning/10 text-warning-foreground dark:text-warning border-warning/20",
+  unpaid: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 export type FieldProps = { label: string; children: ReactNode };
