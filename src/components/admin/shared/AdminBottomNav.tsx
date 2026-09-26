@@ -27,7 +27,7 @@ export default function AdminBottomNav({ activeTab, routePlanningEnabled, onSele
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden"
+      className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
       style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}
       aria-label="Hurtig navigation"
     >
@@ -41,20 +41,14 @@ export default function AdminBottomNav({ activeTab, routePlanningEnabled, onSele
                 type="button"
                 onClick={() => onSelect(it.key)}
                 className={cn(
-                  "relative flex w-full flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                    "relative flex min-h-[58px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
                   active
-                    ? "text-foreground"
+                      ? "text-accent"
                     : "text-muted-foreground hover:text-foreground active:text-foreground",
                 )}
                 aria-current={active ? "page" : undefined}
               >
-                {active && (
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-4 top-0 h-0.5 rounded-full bg-foreground"
-                  />
-                )}
-                <Icon className="h-5 w-5" />
+                <span className={cn("flex h-7 w-12 items-center justify-center rounded-[5px]", active && "bg-accent/10 text-accent")}><Icon className="h-5 w-5" /></span>
                 <span className="leading-tight">{it.label}</span>
               </button>
             </li>
@@ -64,10 +58,10 @@ export default function AdminBottomNav({ activeTab, routePlanningEnabled, onSele
           <button
             type="button"
             onClick={onOpenMenu}
-            className="flex w-full flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
+            className="flex min-h-[58px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
             aria-label="Åbn fuld menu"
           >
-            <Menu className="h-5 w-5" />
+            <span className="flex h-7 w-12 items-center justify-center rounded-[5px]"><Menu className="h-5 w-5" /></span>
             <span className="leading-tight">Mere</span>
           </button>
         </li>
