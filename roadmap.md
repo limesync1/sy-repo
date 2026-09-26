@@ -101,7 +101,7 @@
 - [x] Kontrollér skærmvisning og A4-print uden overlap eller afskåret tekst.
 
 ## Ét samlet design på alle paneler
-- [ ] Saml virksomhed-, medarbejder- og platform-admin i samme panelramme.
-- [ ] Ensret navigation, sidehoveder, kort, kontroller og tilstande.
-- [ ] Ensret modaler, sidevinduer, faner og mobilnavigation.
-- [ ] Kontrollér centrale sider ved 393, 768, 1280 og 1440 px i lys og mørk visning.
+- [x] Saml virksomhed-, medarbejder- og platform-admin i samme panelramme.
+- [x] Ensret navigation, sidehoveder, kort, kontroller og tilstande.
+- [x] Ensret modaler, sidevinduer, faner og mobilnavigation.
+- [x] Kontrollér centrale sider ved 393, 768, 1280 og 1440 px i lys og mørk visning.

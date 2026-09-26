@@ -18,6 +18,7 @@ import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
 import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import AdminShortcutsHelp from "@/components/platform-admin/AdminShortcutsHelp";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
 import { useAdminBadges } from "@/components/platform-admin/lib/useAdminBadges";
 import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
@@ -315,16 +316,20 @@ const PlatformAdmin = () => {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <button
-              type="button"
-              onClick={toggle}
-              className="hidden rounded-[4px] p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:inline-flex"
-              aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
-              title={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
-              aria-pressed={collapsed}
-            >
-              {collapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={toggle}
+                  className="hidden rounded-[4px] p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:inline-flex"
+                  aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
+                  aria-pressed={collapsed}
+                >
+                  {collapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={8} className="z-[80] whitespace-nowrap">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</TooltipContent>
+            </Tooltip>
             {/* Breadcrumb: group → current tab. Giver kontekst på tværs af 13 faner. */}
             <div className="flex min-w-0 items-center gap-1.5 text-sm">
               {currentGroup && (
@@ -360,11 +365,17 @@ const PlatformAdmin = () => {
             </button>
 
             {current?.hasRange && (
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="hidden min-w-0 items-center gap-2 md:flex">
                 <RangePicker />
               </div>
             )}
           </header>
+
+          {current?.hasRange && (
+            <div className="border-b border-border bg-card px-3 py-2 md:hidden">
+              <RangePicker />
+            </div>
+          )}
 
           <main className="service-panel-content min-w-0 flex-1 overflow-x-hidden px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6">
             {/* PageTransition fader nyt indhold ind når tab skifter,
