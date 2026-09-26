@@ -332,7 +332,7 @@ const EmployeeStats = () => {
                     <ListChecks className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-semibold text-foreground">Daglig aktivitet</h3>
+                    <h3 className="text-sm font-semibold text-foreground tracking-tight">Daglig aktivitet</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">Aftaler og indtjening fordelt på dage.</p>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ const EmployeeStats = () => {
                               className="grid w-full gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
                             >
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-foreground capitalize">
+                                <p className="text-sm font-semibold text-foreground tracking-tight capitalize">
                                   {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
                                 </p>
                                 <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
@@ -395,7 +395,7 @@ const EmployeeStats = () => {
                                       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                                         <div className="min-w-0 space-y-1.5">
                                           <div className="flex flex-wrap items-center gap-2">
-                                            <p className="truncate text-sm font-semibold text-foreground">
+                                            <p className="truncate text-sm font-semibold text-foreground tracking-tight">
                                               {e.customerName || "Opgave"}
                                             </p>
                                             <Badge
@@ -459,7 +459,7 @@ const EmployeeStats = () => {
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => setDetailStopId(e.stopId)}
-                                          className="h-8 gap-1.5 rounded-[5px] px-2.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                                          className="h-8 gap-1.5 rounded-[5px] px-2.5 text-[11px] font-semibold text-foreground tracking-tight transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                                         >
                                           <Eye className="h-3.5 w-3.5" />
                                           Vis detaljer

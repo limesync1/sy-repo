@@ -104,7 +104,7 @@ export const RouteReceiptDocument = ({
               return (
                 <li key={stop.id} className={cn("receipt-stop", compact ? "py-2.5" : "py-4")}>
                   <div className="grid grid-cols-[28px_minmax(0,1fr)] gap-2.5 sm:grid-cols-[32px_minmax(0,1fr)] sm:gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-[50%] border border-border bg-foreground text-[11px] font-semibold tabular-nums text-background sm:h-8 sm:w-8">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-foreground text-[11px] font-semibold tabular-nums text-background sm:h-8 sm:w-8">
                       {index + 1}
                     </span>
                     <div className="min-w-0">

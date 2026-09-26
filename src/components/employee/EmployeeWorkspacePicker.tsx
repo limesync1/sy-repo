@@ -75,7 +75,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
 
         <section className="min-w-0 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm">
           <div className="border-b border-border px-4 py-4 sm:px-5">
-            <h2 className="text-base font-semibold text-foreground">Dine arbejdspladser</h2>
+            <h2 className="text-base font-semibold text-foreground tracking-tight">Dine arbejdspladser</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Du kan altid skifte igen fra profilmenuen.</p>
           </div>
           <ul className="divide-y divide-border">
@@ -96,17 +96,17 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                     pending === emp.business_id && "opacity-70",
                   )}
                 >
-                  <Avatar className="h-10 w-10 shrink-0 rounded-[5px] ring-1 ring-border">
+                  <Avatar className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-border">
                     {biz?.logo_url ? (
-                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-[5px] object-cover" />
+                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-lg object-cover" />
                     ) : null}
-                    <AvatarFallback className="rounded-[5px] bg-secondary text-sm font-bold text-foreground">
+                    <AvatarFallback className="rounded-lg bg-secondary text-sm font-bold text-foreground">
                       {initialsOf(name)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+                    <p className="truncate text-sm font-semibold text-foreground tracking-tight">{name}</p>
                     <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
                       {biz?.city ? (
                         <>

@@ -29,7 +29,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, ma
     <div className="flex min-h-0 flex-col bg-card">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">Notifikationer</p>
+          <p className="text-sm font-semibold text-foreground tracking-tight">Notifikationer</p>
           <p className="text-[11px] text-muted-foreground">{unread ? `${unread} ulæste beskeder` : "Alt er læst"}</p>
         </div>
         {unread > 0 && (
@@ -65,7 +65,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, ma
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground">
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">
                     {isStop ? `Aftale · ${item.route_stops?.customer_name}` : `Rute · ${item.routes?.name || "Planlagt rute"}`}
                   </span>
                   {!item.read_at && <span className="h-2 w-2 shrink-0 rounded-full bg-destructive" aria-label="Ulæst" />}
