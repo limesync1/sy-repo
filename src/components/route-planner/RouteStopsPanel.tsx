@@ -2,7 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -98,6 +98,21 @@ export const RouteStopsPanel = ({
   const setAssignees = useSetStopAssignees();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
+  const firstSeenAtStopRef = useRef(new Map<string, string>());
+
+  useEffect(() => {
+    if (!route?.id) {
+      firstSeenAtStopRef.current.clear();
+      return;
+    }
+    livePositions.forEach((position) => {
+      if (!position.current_stop_id) return;
+      const key = `${position.current_stop_id}:${position.employee_id}`;
+      if (!firstSeenAtStopRef.current.has(key)) {
+        firstSeenAtStopRef.current.set(key, position.recorded_at);
+      }
+    });
+  }, [livePositions, route?.id]);
 
   // Lokal sorteret liste — opdateres når DB-data ændrer sig
   const [items, setItems] = useState<RouteStop[]>([]);
@@ -266,6 +281,7 @@ export const RouteStopsPanel = ({
                         color={route.color}
                         employees={employees}
                         livePositions={livePositions.filter((position) => position.current_stop_id === stop.id)}
+                        firstSeenAtStop={firstSeenAtStopRef.current}
                         isProjection={isProjection}
                         onSetAssignees={(ids, lead) =>
                           setAssignees.mutate({ stop_id: stop.id, employee_ids: ids, lead_id: lead })
@@ -324,6 +340,7 @@ type RowProps = {
   color: string;
   employees: EmpAvatar[];
   livePositions: RouteLivePosition[];
+  firstSeenAtStop: Map<string, string>;
   isProjection?: boolean;
   onSetAssignees: (ids: string[], lead: string | null) => void;
   onSelect: () => void;
@@ -331,7 +348,7 @@ type RowProps = {
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, onSetAssignees, onSelect, onRemove, isProjection = false,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, isProjection = false,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
@@ -501,7 +518,7 @@ const SortableStopRow = ({
         {/* Live-status ligger uden for det klikbare stopindhold, så triggeren
             er gyldig på både mus, tastatur og touch. */}
         {hasLivePresence && (
-          <LiveStopPresence positions={livePositions} employees={employees} />
+          <LiveStopPresence stopId={stop.id} positions={livePositions} employees={employees} firstSeenAtStop={firstSeenAtStop} />
         )}
 
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
@@ -533,11 +550,15 @@ const SortableStopRow = ({
 };
 
 const LiveStopPresence = ({
+  stopId,
   positions,
   employees,
+  firstSeenAtStop,
 }: {
+  stopId: string;
   positions: RouteLivePosition[];
   employees: EmpAvatar[];
+  firstSeenAtStop: Map<string, string>;
 }) => (
   <Popover>
     <PopoverTrigger asChild>
@@ -570,7 +591,8 @@ const LiveStopPresence = ({
           const name = employee?.name || "Medarbejder";
           let arrivalLabel = "Netop registreret";
           try {
-            arrivalLabel = `Ankom cirka kl. ${format(parseISO(position.recorded_at), "HH.mm", { locale: da })}`;
+            const firstSeen = firstSeenAtStop.get(`${stopId}:${position.employee_id}`) || position.recorded_at;
+            arrivalLabel = `Ankom cirka kl. ${format(parseISO(firstSeen), "HH.mm", { locale: da })}`;
           } catch {
             // Behold en robust fallback hvis en ældre position mangler gyldigt tidspunkt.
           }
