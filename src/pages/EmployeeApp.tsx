@@ -297,7 +297,7 @@ const EmployeeApp = () => {
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
       <PageTransition transitionKey={date} className="employee-day mx-auto w-full max-w-6xl space-y-3 sm:space-y-4">
-        <section className="flex flex-col gap-3 rounded-[6px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <section className="flex flex-col gap-3 rounded-[5px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase text-accent">Min dag</p>
             <h2 className="mt-0.5 truncate text-xl font-semibold capitalize text-foreground">

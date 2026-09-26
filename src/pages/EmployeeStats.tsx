@@ -147,7 +147,7 @@ const EmployeeStats = () => {
   })();
 
   const rangePicker = (
-    <div className="w-full overflow-hidden rounded-md border border-border bg-card shadow-sm sm:w-auto">
+    <div className="w-full overflow-hidden rounded-[5px] border border-border bg-card shadow-sm sm:w-auto">
       <div className="flex gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
@@ -156,7 +156,7 @@ const EmployeeStats = () => {
           variant="ghost"
           onClick={() => { setRange(k); setCustomRange(undefined); }}
           className={cn(
-            "h-9 shrink-0 rounded-md px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
+            "h-9 shrink-0 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
             range === k
               ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -171,7 +171,7 @@ const EmployeeStats = () => {
             size="sm"
             variant="ghost"
             className={cn(
-              "h-9 shrink-0 gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
+              "h-9 shrink-0 gap-1.5 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
               range === "custom"
                 ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -224,10 +224,10 @@ const EmployeeStats = () => {
 
         {isLoading || !s ? (
           <>
-            <Card className="overflow-hidden rounded-lg border-border shadow-sm">
+            <Card className="overflow-hidden rounded-[5px] border-border shadow-sm">
               <div className="flex flex-col gap-3 border-l-4 border-l-primary p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
                 <div className="flex items-center gap-4">
-                  <Skeleton className="h-12 w-12 rounded-md sm:h-14 sm:w-14" />
+                  <Skeleton className="h-12 w-12 rounded-[5px] sm:h-14 sm:w-14" />
                   <div className="space-y-2">
                     <Skeleton className="h-3 w-24" />
                     <Skeleton className="h-8 w-40" />
@@ -242,10 +242,10 @@ const EmployeeStats = () => {
             </Card>
             <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
               {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-20 rounded-md" />
+                <Skeleton key={i} className="h-20 rounded-[5px]" />
               ))}
             </div>
-            <Card className="service-panel-card rounded-md border-border shadow-sm">
+            <Card className="service-panel-card rounded-[5px] border-border shadow-sm">
               <div className="space-y-2 p-5">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="flex items-center gap-3 py-2">
@@ -263,10 +263,10 @@ const EmployeeStats = () => {
         ) : (
           <>
             {/* Hero: medarbejderens egen indtjening — fremhævet som det vigtigste tal */}
-            <Card className="service-panel-card overflow-hidden rounded-md border-border shadow-sm">
+            <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary sm:h-12 sm:w-12">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] bg-primary/10 text-primary sm:h-12 sm:w-12">
                     <Wallet className="h-5 w-5 sm:h-7 sm:w-7" />
                   </div>
                   <div className="min-w-0">
@@ -297,7 +297,7 @@ const EmployeeStats = () => {
             </Card>
 
             {/* Ét samlet, roligt nøgletalsoverblik i stedet for fem farvede kort. */}
-            <div className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-sm lg:grid-cols-5">
+            <div className="grid grid-cols-2 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:grid-cols-5">
               {[
                 { label: "Ruter", value: s.routesCount, icon: RouteIcon },
                 { label: "Opgaver", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
@@ -313,7 +313,7 @@ const EmployeeStats = () => {
                     index === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0",
                   )}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[5px] bg-secondary text-muted-foreground">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
@@ -325,10 +325,10 @@ const EmployeeStats = () => {
             </div>
 
             {/* Daglig oversigt */}
-            <Card className="service-panel-card rounded-md border-border shadow-sm">
+            <Card className="service-panel-card rounded-[5px] border-border shadow-sm">
               <CardContent className="p-0">
                 <div className="flex items-start gap-3 border-b border-border px-4 py-3 sm:px-5">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-secondary text-foreground">
                     <ListChecks className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -368,7 +368,7 @@ const EmployeeStats = () => {
                                   />
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between gap-3 rounded-md bg-secondary/50 px-3 py-2 sm:justify-end sm:bg-transparent sm:p-0">
+                              <div className="flex items-center justify-between gap-3 rounded-[5px] bg-secondary/50 px-3 py-2 sm:justify-end sm:bg-transparent sm:p-0">
                                 <div className="text-right">
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
@@ -390,7 +390,7 @@ const EmployeeStats = () => {
                                   {d.entries.map((e) => (
                                     <li
                                       key={e.stopId}
-                                      className="group rounded-md p-3 transition-colors hover:bg-card/60"
+                                      className="group rounded-[5px] p-3 transition-colors hover:bg-card/60"
                                     >
                                       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                                         <div className="min-w-0 space-y-1.5">
@@ -432,13 +432,13 @@ const EmployeeStats = () => {
                                             )}
                                           </div>
                                           {e.note && (
-                                            <p className="mt-1 flex items-start gap-1.5 rounded-md bg-card px-2 py-1.5 text-[11px] text-muted-foreground">
+                                            <p className="mt-1 flex items-start gap-1.5 rounded-[5px] bg-card px-2 py-1.5 text-[11px] text-muted-foreground">
                                               <FileText className="mt-0.5 h-3 w-3 shrink-0" />
                                               <span>{e.note}</span>
                                             </p>
                                           )}
                                         </div>
-                                        <div className="flex items-center justify-between gap-4 rounded-md bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
+                                        <div className="flex items-center justify-between gap-4 rounded-[5px] bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
                                             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
                                             <p className="text-xs font-medium tabular-nums text-muted-foreground">
@@ -459,7 +459,7 @@ const EmployeeStats = () => {
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => setDetailStopId(e.stopId)}
-                                          className="h-8 gap-1.5 rounded-md px-2.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                                          className="h-8 gap-1.5 rounded-[5px] px-2.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                                         >
                                           <Eye className="h-3.5 w-3.5" />
                                           Vis detaljer

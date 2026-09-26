@@ -350,9 +350,9 @@ export const EmployeeShell = ({
 
         <div className={cn("mx-3 mt-3 rounded-[5px] border border-border bg-card shadow-sm", collapsed ? "px-2 py-2" : "p-3")}>
           <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}>
-            <Avatar className="h-9 w-9 shrink-0 rounded-[5px] border border-border bg-background">
+            <Avatar className="h-9 w-9 shrink-0 rounded-lg border border-border bg-background">
               {activeBusiness?.logo_url ? <AvatarImage src={activeBusiness.logo_url} alt={activeBusinessName} className="object-contain p-0.5" /> : null}
-              <AvatarFallback className="rounded-[5px] bg-secondary text-xs font-bold text-foreground">{businessInitials}</AvatarFallback>
+              <AvatarFallback className="rounded-lg bg-secondary text-xs font-bold text-foreground">{businessInitials}</AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="min-w-0 flex-1">
@@ -447,7 +447,7 @@ export const EmployeeShell = ({
                     <button type="button" onClick={() => navigate(item.href)} onTouchStart={() => prefetchTab(item.value)} className={cn("relative flex min-h-[58px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors", active ? "text-accent" : "text-muted-foreground hover:text-foreground")} aria-current={active ? "page" : undefined}>
                       <span
                       className={cn(
-                          "flex h-7 w-12 items-center justify-center rounded-[5px] transition-colors",
+                          "flex h-7 w-12 items-center justify-center rounded-lg transition-colors",
                           active ? "bg-accent/10 text-accent" : "bg-transparent",
                         )}
                       >
