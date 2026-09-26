@@ -2,7 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -24,7 +24,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle, ListOrdered,
+  Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -46,6 +46,7 @@ import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
+import { useRouteLivePositions, type RouteLivePosition } from "@/hooks/useRouteLivePositions";
 
 const readableTokenOn = (color?: string | null) => {
   const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
@@ -96,6 +97,22 @@ export const RouteStopsPanel = ({
   const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
+  const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
+  const firstSeenAtStopRef = useRef(new Map<string, string>());
+
+  useEffect(() => {
+    if (!route?.id) {
+      firstSeenAtStopRef.current.clear();
+      return;
+    }
+    livePositions.forEach((position) => {
+      if (!position.current_stop_id) return;
+      const key = `${position.current_stop_id}:${position.employee_id}`;
+      if (!firstSeenAtStopRef.current.has(key)) {
+        firstSeenAtStopRef.current.set(key, position.recorded_at);
+      }
+    });
+  }, [livePositions, route?.id]);
 
   // Lokal sorteret liste — opdateres når DB-data ændrer sig
   const [items, setItems] = useState<RouteStop[]>([]);
@@ -263,6 +280,8 @@ export const RouteStopsPanel = ({
                         index={idx + 1}
                         color={route.color}
                         employees={employees}
+                        livePositions={livePositions.filter((position) => position.current_stop_id === stop.id)}
+                        firstSeenAtStop={firstSeenAtStopRef.current}
                         isProjection={isProjection}
                         onSetAssignees={(ids, lead) =>
                           setAssignees.mutate({ stop_id: stop.id, employee_ids: ids, lead_id: lead })
@@ -320,6 +339,8 @@ type RowProps = {
   index: number;
   color: string;
   employees: EmpAvatar[];
+  livePositions: RouteLivePosition[];
+  firstSeenAtStop: Map<string, string>;
   isProjection?: boolean;
   onSetAssignees: (ids: string[], lead: string | null) => void;
   onSelect: () => void;
@@ -327,7 +348,7 @@ type RowProps = {
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, onSetAssignees, onSelect, onRemove, isProjection = false,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, isProjection = false,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
@@ -346,6 +367,7 @@ const SortableStopRow = ({
   const assigneeEmps = assigneeIds
     .map((id) => employees.find((e) => e.id === id))
     .filter(Boolean) as EmpAvatar[];
+  const hasLivePresence = livePositions.length > 0;
 
   return (
     <li
@@ -355,7 +377,7 @@ const SortableStopRow = ({
         CARD_BASE,
         isDragging
           ? "z-20 border-dashed border-accent/60 bg-secondary/40 opacity-60 shadow-none ring-0"
-          : cn(CARD_BORDER, CARD_HOVER),
+          : cn(CARD_BORDER, CARD_HOVER, hasLivePresence && "border-success/45 bg-success/[0.035] ring-1 ring-success/15"),
       )}
     >
       {/* Tynd accent-stribe i venstre kant i rutens farve — binder kortet visuelt til kalender-pillen */}
@@ -493,6 +515,12 @@ const SortableStopRow = ({
           </div>
         </button>
 
+        {/* Live-status ligger uden for det klikbare stopindhold, så triggeren
+            er gyldig på både mus, tastatur og touch. */}
+        {hasLivePresence && (
+          <LiveStopPresence stopId={stop.id} positions={livePositions} employees={employees} firstSeenAtStop={firstSeenAtStop} />
+        )}
+
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
         <div className="flex shrink-0 items-stretch self-stretch border-l border-border/60 bg-secondary/25">
           <AssigneeToggle
@@ -520,6 +548,77 @@ const SortableStopRow = ({
     </li>
   );
 };
+
+const LiveStopPresence = ({
+  stopId,
+  positions,
+  employees,
+  firstSeenAtStop,
+}: {
+  stopId: string;
+  positions: RouteLivePosition[];
+  employees: EmpAvatar[];
+  firstSeenAtStop: Map<string, string>;
+}) => (
+  <Popover>
+    <PopoverTrigger asChild>
+      <button
+        type="button"
+        className="group/live flex w-9 shrink-0 items-center justify-center border-l border-success/20 bg-success/[0.07] text-success transition-colors hover:bg-success/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-success"
+        aria-label={`${positions.length} ${positions.length === 1 ? "medarbejder er" : "medarbejdere er"} ved aftalen`}
+        title="Se hvem der er ved aftalen"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden>
+          <span className="absolute h-4 w-4 animate-ping rounded-full bg-success/25 motion-reduce:animate-none" />
+          <span className="relative h-2.5 w-2.5 rounded-full border-2 border-card bg-success shadow-sm" />
+        </span>
+      </button>
+    </PopoverTrigger>
+    <PopoverContent className="w-64 p-2.5" align="end" sideOffset={6} onClick={(event) => event.stopPropagation()}>
+      <div className="mb-2 flex items-center gap-2 border-b border-border pb-2">
+        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-success/10 text-success">
+          <Radio className="h-3.5 w-3.5" />
+        </span>
+        <div>
+          <p className="text-xs font-semibold text-foreground">Ved denne aftale nu</p>
+          <p className="text-[10px] text-muted-foreground">Live-position fra aktiv rutekørsel</p>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        {positions.map((position) => {
+          const employee = employees.find((item) => item.id === position.employee_id);
+          const name = employee?.name || "Medarbejder";
+          let arrivalLabel = "Netop registreret";
+          try {
+            const firstSeen = firstSeenAtStop.get(`${stopId}:${position.employee_id}`) || position.recorded_at;
+            arrivalLabel = `Ankom cirka kl. ${format(parseISO(firstSeen), "HH.mm", { locale: da })}`;
+          } catch {
+            // Behold en robust fallback hvis en ældre position mangler gyldigt tidspunkt.
+          }
+          return (
+            <div key={position.employee_id} className="flex items-center gap-2 rounded-md bg-secondary/45 px-2 py-1.5">
+              {employee?.avatar_url ? (
+                <img src={employee.avatar_url} alt={name} className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-border" />
+              ) : (
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ring-1 ring-border"
+                  style={{ background: employee?.color || "hsl(var(--muted))", color: readableTokenOn(employee?.color) }}
+                >
+                  {name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()}
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-foreground">{name}</p>
+                <p className="text-[10px] text-muted-foreground">{arrivalLabel}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </PopoverContent>
+  </Popover>
+);
 
 /* ─── Inline assignee picker — popover med checkbox-liste + lead-knap. ─── */
 const AssigneeToggle = ({

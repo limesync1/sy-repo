@@ -105,3 +105,10 @@
 - [x] Ensret navigation, sidehoveder, kort, kontroller og tilstande.
 - [x] Ensret modaler, sidevinduer, faner og mobilnavigation.
 - [x] Kontrollér centrale sider ved 393, 768, 1280 og 1440 px i lys og mørk visning.
+
+## Bestilling, rutestatus, live-position og forside
+- [x] Vis adresseforslag over de efterfølgende sektioner i bestillingsvinduer.
+- [x] Vis ikke projicerede ruter som kørt ud fra basisrutens dato.
+- [x] Markér aftalen med live-medarbejdere og vis navn, billede og cirka ankomsttid.
+- [x] Forbedr kontrast og layout i virksomhedssektionen på forsiden.
+- [x] Kontrollér de berørte visninger ved 393, 768 og 1280 px i lys og mørk visning.
