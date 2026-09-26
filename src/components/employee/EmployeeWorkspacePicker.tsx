@@ -54,7 +54,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
       </header>
 
       <main className="mx-auto grid w-full max-w-6xl flex-1 content-start items-start gap-4 px-3 py-4 sm:px-6 sm:py-8 lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-6 lg:py-10">
-        <section className="overflow-hidden rounded-[6px] border border-border bg-card shadow-sm lg:sticky lg:top-20">
+        <section className="overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:sticky lg:top-20">
           <div className="border-b border-border bg-secondary/45 p-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-foreground text-background">
               <BriefcaseBusiness className="h-4 w-4" />
@@ -73,9 +73,9 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           </div>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-[6px] border border-border bg-card shadow-sm">
+        <section className="min-w-0 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm">
           <div className="border-b border-border px-4 py-4 sm:px-5">
-            <h2 className="text-base font-semibold text-foreground">Dine arbejdspladser</h2>
+            <h2 className="text-base font-semibold text-foreground tracking-tight">Dine arbejdspladser</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Du kan altid skifte igen fra profilmenuen.</p>
           </div>
           <ul className="divide-y divide-border">
@@ -96,17 +96,17 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                     pending === emp.business_id && "opacity-70",
                   )}
                 >
-                  <Avatar className="h-10 w-10 shrink-0 rounded-[4px] ring-1 ring-border">
+                  <Avatar className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-border">
                     {biz?.logo_url ? (
-                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-[4px] object-cover" />
+                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-lg object-cover" />
                     ) : null}
-                    <AvatarFallback className="rounded-[4px] bg-secondary text-sm font-bold text-foreground">
+                    <AvatarFallback className="rounded-lg bg-secondary text-sm font-bold text-foreground">
                       {initialsOf(name)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+                    <p className="truncate text-sm font-semibold text-foreground tracking-tight">{name}</p>
                     <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
                       {biz?.city ? (
                         <>
@@ -126,7 +126,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   </div>
 
                   {active ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-[4px] bg-accent/10 px-2 py-1 text-[11px] font-semibold text-accent">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-[5px] bg-accent/10 px-2 py-1 text-[11px] font-semibold text-accent">
                       <Check className="h-3 w-3" strokeWidth={3} /> Aktiv
                     </span>
                   ) : (

@@ -297,7 +297,7 @@ const EmployeeApp = () => {
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
       <PageTransition transitionKey={date} className="employee-day mx-auto w-full max-w-6xl space-y-3 sm:space-y-4">
-        <section className="flex flex-col gap-3 rounded-[6px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <section className="flex flex-col gap-3 rounded-[5px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase text-accent">Min dag</p>
             <h2 className="mt-0.5 truncate text-xl font-semibold capitalize text-foreground">
@@ -422,14 +422,14 @@ const EmployeeApp = () => {
             <Card className={cn("overflow-hidden rounded-[5px] border-l-[3px] border-l-accent shadow-sm", toneClasses)}>
               <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-4">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px]", iconWrap)} aria-hidden>
+                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px]", iconWrap)} aria-hidden>
                     <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
                     </p>
-                    <p className="mt-0.5 text-sm sm:text-base font-semibold text-foreground">
+                    <p className="mt-0.5 text-sm sm:text-base font-semibold text-foreground tracking-tight">
                       {suggestion.title}
                     </p>
                     <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground tabular-nums">

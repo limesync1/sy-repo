@@ -29,7 +29,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, ma
     <div className="flex min-h-0 flex-col bg-card">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">Notifikationer</p>
+          <p className="text-sm font-semibold text-foreground tracking-tight">Notifikationer</p>
           <p className="text-[11px] text-muted-foreground">{unread ? `${unread} ulæste beskeder` : "Alt er læst"}</p>
         </div>
         {unread > 0 && (
@@ -41,7 +41,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, ma
       <div className={cn("min-h-0 overflow-y-auto overscroll-contain p-1.5", compact ? "max-h-[min(28rem,calc(100vh-7rem))]" : "max-h-[68dvh]") }>
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center px-4 py-10 text-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-muted-foreground"><Bell className="h-5 w-5" /></span>
+            <span className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-secondary text-muted-foreground"><Bell className="h-5 w-5" /></span>
             <p className="mt-3 text-sm font-medium text-foreground">Ingen beskeder endnu</p>
             <p className="mt-1 text-xs text-muted-foreground">Nye beskeder om ruter og aftaler vises her.</p>
           </div>
@@ -65,7 +65,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, ma
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground">
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">
                     {isStop ? `Aftale · ${item.route_stops?.customer_name}` : `Rute · ${item.routes?.name || "Planlagt rute"}`}
                   </span>
                   {!item.read_at && <span className="h-2 w-2 shrink-0 rounded-full bg-destructive" aria-label="Ulæst" />}

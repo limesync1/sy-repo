@@ -46,7 +46,7 @@ export const RouteReceiptDocument = ({
     <article
       className={cn(
         "receipt-document overflow-hidden border border-border bg-card text-foreground shadow-sm",
-        preview ? "rounded-[6px]" : "mx-auto w-full max-w-[210mm] rounded-[6px] print:max-w-none print:rounded-none print:border-0 print:shadow-none",
+        preview ? "rounded-[5px]" : "mx-auto w-full max-w-[210mm] rounded-[5px] print:max-w-none print:rounded-none print:border-0 print:shadow-none",
       )}
     >
       <div className="h-1 bg-accent print:bg-foreground" />
