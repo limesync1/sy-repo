@@ -224,7 +224,7 @@ const EmployeeStats = () => {
 
         {isLoading || !s ? (
           <>
-            <Card className="overflow-hidden rounded-[5px] border-border shadow-sm">
+            <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
               <div className="flex flex-col gap-3 border-l-4 border-l-primary p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-12 w-12 rounded-[5px] sm:h-14 sm:w-14" />

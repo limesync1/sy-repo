@@ -18,12 +18,12 @@ import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
 import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import AdminShortcutsHelp from "@/components/platform-admin/AdminShortcutsHelp";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
 import { useAdminBadges } from "@/components/platform-admin/lib/useAdminBadges";
 import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
-  SidebarCollapseToggle,
 } from "@/components/shared/sidebar/SidebarParts";
 import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
@@ -188,6 +188,11 @@ const PlatformAdmin = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [sidebarOpen]);
 
+  useEffect(() => {
+    document.body.classList.add("service-panel-open");
+    return () => document.body.classList.remove("service-panel-open");
+  }, []);
+
   // "?" → åbn shortcut-hjælp (ignoreres mens man skriver i input).
   useEffect(() => {
     const isTyping = (el: EventTarget | null) => {
@@ -222,7 +227,7 @@ const PlatformAdmin = () => {
   const currentGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.value === tab))?.label;
   return (
     <AdminFiltersProvider>
-      <div className="admin-shell flex min-h-dvh bg-secondary/50">
+      <div className="admin-shell service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
         <SEO title="Platform Admin · Serviceydere" description="Administrér virksomheder, brugere og ordrer på Serviceydere." noIndex />
 
         {sidebarOpen && (
@@ -232,7 +237,7 @@ const PlatformAdmin = () => {
         {/* Sidebar — samme look som virksomhedspanelet */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0",
+            "service-panel-sidebar fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0",
             collapsed ? "lg:w-[68px]" : "lg:w-[216px] xl:w-[248px]",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
           )}
@@ -243,7 +248,10 @@ const PlatformAdmin = () => {
               {collapsed ? (
                 <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-lg object-contain" width={64} height={64} decoding="async" loading="lazy" />
               ) : (
-                <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-9 w-auto" width={1920} height={539} decoding="async" loading="lazy" />
+                <>
+                  <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-9 w-auto dark:hidden" width={1920} height={539} decoding="async" loading="lazy" />
+                  <img src="/serviceydere-logo.webp" alt="Serviceydere" className="hidden h-9 w-auto dark:block" width={1920} height={539} decoding="async" loading="lazy" />
+                </>
               )}
             </Link>
             <button
@@ -253,6 +261,20 @@ const PlatformAdmin = () => {
             >
               <X className="h-5 w-5" />
             </button>
+          </div>
+
+          <div className={cn("mx-3 mt-3 rounded-[5px] border border-border bg-card shadow-sm", collapsed ? "px-2 py-2" : "p-3")}>
+            <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-foreground text-background">
+                <Shield className="h-4 w-4" />
+              </span>
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">Platformadministration</p>
+                  <p className="truncate text-[11px] text-muted-foreground">Serviceydere drift</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <nav className={cn("flex-1 space-y-1 overflow-y-auto pb-2 pt-1", collapsed ? "px-2" : "px-3")}>
@@ -282,14 +304,11 @@ const PlatformAdmin = () => {
           <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
             <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={collapsed} />
             <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
-            <div className="pt-1">
-              <SidebarCollapseToggle collapsed={collapsed} onToggle={toggle} />
-            </div>
           </div>
         </aside>
 
         <div className="flex flex-1 flex-col min-w-0">
-          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 px-4 sm:px-6">
+          <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
               className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
@@ -297,6 +316,20 @@ const PlatformAdmin = () => {
             >
               <Menu className="h-5 w-5" />
             </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={toggle}
+                  className="hidden rounded-[4px] p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:inline-flex"
+                  aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
+                  aria-pressed={collapsed}
+                >
+                  {collapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={8} className="z-[80] whitespace-nowrap">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</TooltipContent>
+            </Tooltip>
             {/* Breadcrumb: group → current tab. Giver kontekst på tværs af 13 faner. */}
             <div className="flex min-w-0 items-center gap-1.5 text-sm">
               {currentGroup && (
@@ -305,7 +338,7 @@ const PlatformAdmin = () => {
                   <span className="hidden text-muted-foreground/50 sm:inline" aria-hidden="true">/</span>
                 </>
               )}
-              <h1 className="truncate font-semibold text-foreground">{current?.label}</h1>
+              <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{current?.label}</h1>
             </div>
 
             {/* Cmd+K søgning — hurtig adgang til virksomheder og faner */}
@@ -332,13 +365,19 @@ const PlatformAdmin = () => {
             </button>
 
             {current?.hasRange && (
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="hidden min-w-0 items-center gap-2 md:flex">
                 <RangePicker />
               </div>
             )}
           </header>
 
-          <main className="min-w-0 flex-1 p-3 pb-[calc(env(safe-area-inset-bottom)+72px)] sm:p-4 sm:pb-6 xl:p-6">
+          {current?.hasRange && (
+            <div className="border-b border-border bg-card px-3 py-2 md:hidden">
+              <RangePicker />
+            </div>
+          )}
+
+          <main className="service-panel-content min-w-0 flex-1 overflow-x-hidden px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6">
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>

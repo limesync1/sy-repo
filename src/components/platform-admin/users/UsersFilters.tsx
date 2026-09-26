@@ -32,8 +32,8 @@ export default function UsersFilters({ q, setQ, roleFilter, setRoleFilter, activ
           const active = activityFilter === c.v;
           const count = counts[c.key] ?? 0;
           const toneCls = active
-            ? c.tone === "success" ? "bg-emerald-600 text-white border-emerald-600"
-            : c.tone === "warning" ? "bg-amber-600 text-white border-amber-600"
+            ? c.tone === "success" ? "bg-success text-success-foreground border-success"
+            : c.tone === "warning" ? "bg-warning text-warning-foreground border-warning"
             : c.tone === "danger"  ? "bg-destructive text-destructive-foreground border-destructive"
             : "bg-foreground text-background border-foreground"
             : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground";

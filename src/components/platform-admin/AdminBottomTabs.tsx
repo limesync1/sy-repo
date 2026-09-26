@@ -40,7 +40,7 @@ export default function AdminBottomTabs({
     : false;
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 flex h-[60px] items-stretch border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 pb-[env(safe-area-inset-bottom)] sm:hidden"
+      className="service-panel-bottomnav fixed inset-x-0 bottom-0 z-40 flex min-h-[58px] items-stretch border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       aria-label="Admin hurtignavigation"
     >
       {ITEMS.map((item) => {
@@ -51,19 +51,16 @@ export default function AdminBottomTabs({
             key={item.value}
             onClick={() => onSelectTab(item.value)}
             className={cn(
-              "relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
-              active ? "text-foreground" : "text-muted-foreground active:text-foreground",
+              "relative flex min-h-[58px] flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+              active ? "text-accent" : "text-muted-foreground hover:text-foreground active:text-foreground",
             )}
             aria-current={active ? "page" : undefined}
             aria-label={badge?.count ? `${item.label} (${badge.count} nye)` : item.label}
           >
-            {active && (
-              <span aria-hidden="true" className="absolute top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-foreground" />
-            )}
             <span
               className={cn(
-                "relative flex h-7 w-12 items-center justify-center rounded-full transition-colors",
-                active ? "bg-secondary" : "bg-transparent",
+                "relative flex h-7 w-12 items-center justify-center rounded-[5px] transition-colors",
+                active ? "bg-accent/10 text-accent" : "bg-transparent",
               )}
             >
               <item.icon className="h-[18px] w-[18px]" />
@@ -85,18 +82,15 @@ export default function AdminBottomTabs({
       <button
         onClick={onOpenMore}
         className={cn(
-          "relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
-          inMore ? "text-foreground" : "text-muted-foreground active:text-foreground",
+          "relative flex min-h-[58px] flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+          inMore ? "text-accent" : "text-muted-foreground hover:text-foreground active:text-foreground",
         )}
         aria-label="Vis flere faner"
       >
-        {inMore && (
-          <span aria-hidden="true" className="absolute top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-foreground" />
-        )}
         <span
           className={cn(
-            "relative flex h-7 w-12 items-center justify-center rounded-full transition-colors",
-            inMore ? "bg-secondary" : "bg-transparent",
+            "relative flex h-7 w-12 items-center justify-center rounded-[5px] transition-colors",
+            inMore ? "bg-accent/10 text-accent" : "bg-transparent",
           )}
         >
           <MoreHorizontal className="h-[18px] w-[18px]" />

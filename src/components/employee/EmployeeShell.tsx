@@ -447,7 +447,7 @@ export const EmployeeShell = ({
                     <button type="button" onClick={() => navigate(item.href)} onTouchStart={() => prefetchTab(item.value)} className={cn("relative flex min-h-[58px] w-full flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors", active ? "text-accent" : "text-muted-foreground hover:text-foreground")} aria-current={active ? "page" : undefined}>
                       <span
                       className={cn(
-                          "flex h-7 w-12 items-center justify-center rounded-lg transition-colors",
+                          "flex h-7 w-12 items-center justify-center rounded-[5px] transition-colors",
                           active ? "bg-accent/10 text-accent" : "bg-transparent",
                         )}
                       >
