@@ -111,4 +111,4 @@
 - [x] Vis ikke projicerede ruter som kørt ud fra basisrutens dato.
 - [x] Markér aftalen med live-medarbejdere og vis navn, billede og cirka ankomsttid.
 - [x] Forbedr kontrast og layout i virksomhedssektionen på forsiden.
-- [ ] Kontrollér de berørte visninger ved 393, 768 og 1280 px i lys og mørk visning.
+- [x] Kontrollér de berørte visninger ved 393, 768 og 1280 px i lys og mørk visning.
