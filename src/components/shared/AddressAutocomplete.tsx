@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Loader2, MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,7 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
   const [dirty, setDirty] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<number | null>(null);
+  const listboxId = useId();
 
   // Visuel status: grøn når verificeret, rød når der er tekst men ingen valid adresse valgt.
   const hasInput = query.trim().length > 0;
@@ -68,7 +69,11 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        wrapRef.current &&
+        !wrapRef.current.contains(target)
+      ) setOpen(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -133,7 +138,7 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
   };
 
   return (
-    <div ref={wrapRef} className={cn("relative", className)}>
+    <div ref={wrapRef} className={cn("relative", open && "z-[1000]", className)}>
       <div className="relative">
         <Input
           value={query}
@@ -147,6 +152,11 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
             invalid && "border-destructive focus-visible:ring-destructive/30",
           )}
           autoComplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open && suggestions.length > 0}
+          aria-controls={listboxId}
+          aria-activedescendant={activeIdx >= 0 ? `${listboxId}-${activeIdx}` : undefined}
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -157,16 +167,16 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
       </div>
 
       {open && suggestions.length > 0 && (
-        <div className="absolute left-0 top-full z-[100] mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-lg">
-          <ul className="max-h-72 overflow-y-auto py-1 text-sm">
+        <div className="absolute left-0 top-full z-[1000] mt-1 w-full overflow-hidden rounded-md border border-border bg-popover shadow-xl ring-1 ring-foreground/5">
+          <ul id={listboxId} role="listbox" className="max-h-72 overflow-y-auto py-1 text-sm">
             {suggestions.map((s, i) => (
-              <li key={(s.data.id || s.tekst) + i}>
+              <li id={`${listboxId}-${i}`} role="option" aria-selected={activeIdx === i} key={(s.data.id || s.tekst) + i}>
                 <button
                   type="button"
-                  onMouseDown={(e) => { e.preventDefault(); pick(s); }}
+                  onPointerDown={(e) => { e.preventDefault(); pick(s); }}
                   onMouseEnter={() => setActiveIdx(i)}
                   className={cn(
-                    "flex w-full items-start gap-2 px-3 py-2 text-left transition-colors",
+                    "flex min-h-11 w-full items-start gap-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                     activeIdx === i ? "bg-accent/10" : "hover:bg-accent/5"
                   )}
                 >

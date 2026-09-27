@@ -302,7 +302,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
-      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
@@ -335,7 +335,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           <div className="flex min-h-[260px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : activeServices.length === 0 ? (
           <ActiveServiceRequired />
-        ) : <div className="planner-overlay-body flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
+        ) : <div className="planner-overlay-body min-h-0 flex-1 overflow-x-visible overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
           {/* Kunde */}
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;

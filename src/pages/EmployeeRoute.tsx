@@ -628,6 +628,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   );
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
+  // Knyt kun live-positionen til et stop, når medarbejderen faktisk er ved
+  // adressen. Det forhindrer, at næste aftale markeres grøn under hele køreturen.
+  const liveStopId = useMemo(() => {
+    if (!filtered) return null;
+    const accuracyAllowance = Math.min(Math.max(filtered.accuracyM, 0), 40);
+    const arrivalRadiusM = 55 + accuracyAllowance;
+    let nearest: { id: string; distanceM: number } | null = null;
+    for (const stop of sortedStops) {
+      if (stop.status === "completed" || stop.latitude == null || stop.longitude == null) continue;
+      const distanceM = haversineMeters(
+        filtered.pos[0],
+        filtered.pos[1],
+        Number(stop.latitude),
+        Number(stop.longitude),
+      );
+      if (!nearest || distanceM < nearest.distanceM) nearest = { id: stop.id, distanceM };
+    }
+    return nearest && nearest.distanceM <= arrivalRadiusM ? nearest.id : null;
+  }, [filtered, sortedStops]);
   const routeNotifications = employeeNotifications.filter((item) => item.route_id === routeId && !item.read_at);
 
   useEffect(() => {
@@ -642,13 +661,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         _heading: filtered.heading ?? undefined,
         _accuracy_m: filtered.accuracyM ?? undefined,
         _speed_mps: filtered.speedMps ?? undefined,
-        _current_stop_id: nextStop?.id ?? undefined,
+        _current_stop_id: liveStopId ?? undefined,
       });
     };
     void pushPosition();
     const timer = window.setInterval(pushPosition, 25_000);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, nextStop?.id, filtered?.pos[0], filtered?.pos[1]]);
+  }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, liveStopId, filtered?.pos[0], filtered?.pos[1]]);
 
   useEffect(() => {
     return () => { void supabase.rpc("clear_route_position", { _route_id: routeId }); };
