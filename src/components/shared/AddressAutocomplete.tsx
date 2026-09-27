@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { Loader2, MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -48,12 +49,15 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(!!(value.latitude && value.longitude));
   const [activeIdx, setActiveIdx] = useState(-1);
+  const [menuPosition, setMenuPosition] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   // "dirty" markerer om brugeren har skrevet i feltet siden mount/seed.
   // Vi viser kun den røde "ikke-verificeret" tilstand efter brugerinput,
   // så pre-udfyldte adresser fra databasen ikke fejlagtigt markeres som ugyldige.
   const [dirty, setDirty] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<number | null>(null);
+  const listboxId = useId();
 
   // Visuel status: grøn når verificeret, rød når der er tekst men ingen valid adresse valgt.
   const hasInput = query.trim().length > 0;
@@ -68,11 +72,45 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        wrapRef.current &&
+        !wrapRef.current.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) setOpen(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setMenuPosition(null);
+      return;
+    }
+    const positionMenu = () => {
+      const rect = wrapRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const gap = 6;
+      const availableBelow = window.innerHeight - rect.bottom - gap;
+      const availableAbove = rect.top - gap;
+      const openAbove = availableBelow < 220 && availableAbove > availableBelow;
+      const maxHeight = Math.max(144, Math.min(288, openAbove ? availableAbove : availableBelow));
+      setMenuPosition({
+        left: rect.left,
+        top: openAbove ? Math.max(gap, rect.top - maxHeight - gap) : rect.bottom + gap,
+        width: rect.width,
+        maxHeight,
+      });
+    };
+    positionMenu();
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
+    return () => {
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
+    };
+  }, [open, suggestions.length]);
 
   const search = (q: string) => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
@@ -147,6 +185,11 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
             invalid && "border-destructive focus-visible:ring-destructive/30",
           )}
           autoComplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open && suggestions.length > 0}
+          aria-controls={listboxId}
+          aria-activedescendant={activeIdx >= 0 ? `${listboxId}-${activeIdx}` : undefined}
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -156,17 +199,21 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
         </span>
       </div>
 
-      {open && suggestions.length > 0 && (
-        <div className="absolute left-0 top-full z-[100] mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-lg">
-          <ul className="max-h-72 overflow-y-auto py-1 text-sm">
+      {open && suggestions.length > 0 && menuPosition && typeof document !== "undefined" && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed z-[1000] overflow-hidden rounded-md border border-border bg-popover shadow-xl ring-1 ring-foreground/5"
+          style={{ left: menuPosition.left, top: menuPosition.top, width: menuPosition.width }}
+        >
+          <ul id={listboxId} role="listbox" className="overflow-y-auto py-1 text-sm" style={{ maxHeight: menuPosition.maxHeight }}>
             {suggestions.map((s, i) => (
-              <li key={(s.data.id || s.tekst) + i}>
+              <li id={`${listboxId}-${i}`} role="option" aria-selected={activeIdx === i} key={(s.data.id || s.tekst) + i}>
                 <button
                   type="button"
-                  onMouseDown={(e) => { e.preventDefault(); pick(s); }}
+                  onPointerDown={(e) => { e.preventDefault(); pick(s); }}
                   onMouseEnter={() => setActiveIdx(i)}
                   className={cn(
-                    "flex w-full items-start gap-2 px-3 py-2 text-left transition-colors",
+                    "flex min-h-11 w-full items-start gap-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                     activeIdx === i ? "bg-accent/10" : "hover:bg-accent/5"
                   )}
                 >
@@ -184,7 +231,8 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
               </li>
             ))}
           </ul>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {(value.zip_code || value.city) && (
