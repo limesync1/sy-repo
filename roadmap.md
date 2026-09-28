@@ -112,3 +112,19 @@
 - [x] Markér aftalen med live-medarbejdere og vis navn, billede og cirka ankomsttid.
 - [x] Forbedr kontrast og layout i virksomhedssektionen på forsiden.
 - [x] Kontrollér de berørte visninger ved 393, 768 og 1280 px i lys og mørk visning.
+
+## Samlet medarbejder-, rute- og kvalitetsløft
+- [ ] Fjern timekapacitet og gør tidlig udførelse øjeblikkelig og robust.
+- [ ] Ret medarbejderadgang til Livechat og arbejdspladsskift uden gamle data.
+- [ ] Redesign arbejdspladsvælger, Min dag, Statistik og medarbejdernavigation i fælles panelsystem.
+- [ ] Genbyg rutekørsel i liste- og kortvisning med tydeligt valg og automatisk, rolig optimering.
+- [ ] Registrér faktisk tid pr. aftale fra ankomst/start til udført og vis den forståeligt.
+- [ ] Tilføj fortryd udført i virksomhedspanelet med automatisk genåbning af færdig rute.
+- [ ] Redesign og udvid notifikationer med sletning og aftalespecifikke beskeder.
+- [ ] Åbn aftaledetaljer direkte fra virksomhedsforsiden og vis alle relevante detaljer uden skjulte sektioner.
+- [ ] Forbedr omsætning/andel, kundeoprettelse, adresseforslag, logoer og formulartekster responsivt.
+- [ ] Ensret aftale/stop-ordvalg og stavningen E-conomic på hele platformen.
+- [ ] Skift kundeserviceidentitet mellem robot og William ved menneskelig overtagelse.
+- [ ] Tilføj personlig William-sektion på forsiden og fjern hvide kanter i Trygt valg.
+- [ ] Gennemgå og ensret skeletons på offentlige sider og alle tre paneler.
+- [ ] Verificér centrale flows, lys/mørk og 393/768/1280/1440 px uden overlap.
