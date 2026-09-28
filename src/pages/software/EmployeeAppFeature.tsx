@@ -14,10 +14,10 @@ const Page = defineSoftwarePage({
     "Medarbejderen åbner sin egen visning, ser hvor turen går hen, tjekker ind og ud på hvert stop og noterer det, kontoret skal vide.",
   breadcrumbLabel: "Medarbejder-app",
   answer:
-    "Medarbejder-appen i Serviceydere er den mobile visning, hvor hver medarbejder ser sin egen rute for dagen. Stoppene vises i rækkefølge med adresse, kunde, opgave og forventet ankomsttid. Medarbejderen tjekker ind og ud på hvert stop, kan tilføje noter og billeder, og planlæggeren ser status i realtid uden at skulle ringe rundt.",
+    "Medarbejder-appen i Serviceydere er den mobile visning, hvor hver medarbejder ser sin egen rute for dagen. Stoppene vises i rækkefølge med adresse, kunde og aftale. Medarbejderen kan registrere den faktiske tid ved hvert stop, tilføje noter og billeder, og planlæggeren ser status i realtid uden at skulle ringe rundt.",
   facts: [
     "Kører i browseren på medarbejderens egen telefon — ingen app-installation.",
-    "Dagens stop i rækkefølge med adresse, opgave og ankomsttid.",
+    "Dagens stop i rækkefølge med adresse og aftale.",
     "Tjek ind og ud giver reelle tider frem for gæt.",
     "Noter og billeder pr. stop havner direkte på kundens sag.",
     "Navigation til næste adresse med ét tryk.",
@@ -28,21 +28,21 @@ const Page = defineSoftwarePage({
       heading: "Hvad medarbejderen ser",
       list: [
         "En liste med dagens stop i den rækkefølge, de skal køres.",
-        "Detaljer pr. stop: adresse, kontaktperson, aftalt opgave, varighed og særlige forhold som nøgle eller alarmkode.",
+        "Detaljer pr. stop: adresse, kontaktperson, aftalte ydelser og særlige forhold som nøgle eller alarmkode.",
         "Knap til navigation, så adressen åbnes i telefonens kortapp.",
         "Tjek ind når arbejdet starter og tjek ud når det er færdigt.",
-        "Mulighed for at markere en opgave som ikke udført med en årsag.",
+        "Mulighed for at markere en aftale som ikke udført med en årsag.",
       ],
     },
     {
       heading: "Hvad kontoret får ud af det",
       paragraphs: [
-        "Når stoppene tjekkes af, bliver planen til virkelighed. Det giver et grundlag for fakturering, for at vurdere om en aftale er sat til for kort tid, og for at svare kunden præcist på hvornår der var nogen forbi.",
+        "Når stoppene tjekkes af, bliver planen til virkelighed. Det giver et grundlag for fakturering og dokumentation af, hvornår besøget blev udført.",
       ],
       list: [
         "Faktiske start- og sluttider pr. stop.",
         "Statistik pr. medarbejder på udført arbejde.",
-        "Systemet lærer af de faktiske varigheder og kan foreslå mere realistiske tider.",
+        "Den faktiske tid registreres præcist i timer, minutter og sekunder.",
         <>Grundlag for <Link to="/software/fakturering-og-regnskab">fakturering</Link> uden dobbelt indtastning.</>,
       ],
     },

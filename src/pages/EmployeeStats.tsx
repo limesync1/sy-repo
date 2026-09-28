@@ -411,13 +411,13 @@ const EmployeeStats = () => {
                                           {e.serviceName && (
                                             <p className="text-xs text-muted-foreground">{e.serviceName}</p>
                                           )}
-                                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                                            {e.completedAt && (
-                                              <span className="inline-flex items-center gap-1 tabular-nums">
-                                                <Clock className="h-3 w-3" />
-                                                Færdig {format(new Date(e.completedAt), "HH:mm", { locale: da })}
-                                              </span>
-                                            )}
+                                           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                                             {e.completedAt && (
+                                               <span className="inline-flex items-center gap-1">
+                                                 <CheckCircle2 className="h-3 w-3" />
+                                                 Udført
+                                               </span>
+                                             )}
                                             {e.address && (
                                               <span className="inline-flex min-w-0 max-w-full items-start gap-1">
                                                 <MapPin className="mt-0.5 h-3 w-3 shrink-0" />

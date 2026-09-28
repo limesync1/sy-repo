@@ -1,6 +1,5 @@
-// Dag-detaljepanel — viser én dag som en lodret tidslinje med stop,
-// huller mellem stop og estimeret køretid. Tænkt som en hurtig "tjek
-// dagen"-visning der åbnes fra kalenderen.
+// Dag-detaljepanel — viser én dag som en ordnet liste med stop.
+// Tænkt som en hurtig "tjek dagen"-visning der åbnes fra kalenderen.
 import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";

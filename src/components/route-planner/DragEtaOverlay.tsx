@@ -1,5 +1,5 @@
-// Floating ETA-chip der følger musen under drag og fortæller hvad slip
-// vil koste: ekstra køretid, ny kapacitets-% og en kort severity-besked
+// Floating feedback-chip der følger musen under drag og viser ny
+// kapacitets-% og en kort severity-besked
 // (grøn/gul/rød) — så brugeren ikke behøver slippe for at få feedback.
 //
 // Læser data fra drag-validation-context (allerede populeret af RoutePlanner
