@@ -2330,7 +2330,7 @@ const AftaleTab = ({
                             placeholder={
                               responseType === "accepted" ? "Tak for din aftale! Vi glæder os til at hjælpe dig."
                               : responseType === "adjusted" ? "Vi vil gerne foreslå en tilpasning af aftalen..."
-                              : "Vi kan desværre ikke udføre denne opgave fordi..."
+                              : "Vi kan desværre ikke udføre denne aftale fordi..."
                             }
                             rows={responseType === "accepted" ? 2 : 3} className="text-sm" />
                         </div>

@@ -291,7 +291,7 @@ const EmployeeApp = () => {
     <EmployeeShell activeTab="today" title="Min dag">
       <SEO
         title="Min dag – Medarbejder | Serviceydere"
-        description="Se dagens ruter, stop og opgaver som medarbejder på Serviceydere."
+        description="Se dagens ruter, stop og aftaler som medarbejder på Serviceydere."
         noIndex
       />
       {/* PageTransition fader indholdet ind når brugeren skifter dag,

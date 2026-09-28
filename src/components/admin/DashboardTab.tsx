@@ -312,7 +312,7 @@ const DashboardTab = ({
     if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første bestillinger.";
     if (revTrend.dir === "up" && stats.revenue7 > 0) return `Omsætningen er vokset ${revTrend.pct}% i denne uge — momentum er på jeres side.`;
     if (revTrend.dir === "down" && stats.revenuePrev7 > 0) return `Omsætningen er ${revTrend.pct}% under sidste uge — overvej at dele profilen eller justere priserne.`;
-    if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede opgaver uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
+    if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede aftaler uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
     if (averageRating >= 4.5 && reviewsCount >= 3) return `${averageRating.toFixed(1)}★ over ${reviewsCount} anmeldelser — stærk profil. Vis den frem.`;
     return "Hold svartid lav og profilen opdateret — det er de to ting der flytter mest på konverteringen.";
   }, [servicesCount, pendingOrders, ordersCount, completeness.pct, revTrend, stats.revenue7, stats.revenuePrev7, reviewsCount, averageRating]);

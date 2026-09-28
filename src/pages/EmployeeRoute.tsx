@@ -931,6 +931,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       lastRerouteAtRef.current = now;
       offRouteStreakRef.current = 0;
       setIsRerouting(true);
+      // Opdatér også resten af stoprækkefølgen diskret, når bilen reelt har
+      // forladt den beregnede vej. Det aktive stop bevares tæt på adressen.
+      void reoptRef.current?.({ silent: true, excludeId: distanceToNextM != null && distanceToNextM < 200 ? nextStop.id : undefined });
       // Tving en ny origin — det invaliderer legWaypoints og udløser ny fetch.
       stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
       // Drop cache for directions så vi ikke får et stalt geometri tilbage.
@@ -1349,7 +1352,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     }
     setPendingStopId(s.id);
     try {
-      // Stop tidsregistrering for den loggede medarbejder på denne opgave
+      // Stop tidsregistrering for den loggede medarbejder på denne aftale
       try {
         if (meEmp?.id) {
           await endStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });

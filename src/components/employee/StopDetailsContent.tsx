@@ -69,10 +69,14 @@ export const StopDetailsContent = ({
   , [timeEntries, myEmployeeId]);
 
   const isWorking = !!(myEntry && !myEntry.ended_at);
-  const totalDuration = useMemo(() => {
+  const totalDurationSeconds = useMemo(() => {
     const entries = timeEntries.filter(e => e.employee_id === myEmployeeId && e.ended_at);
-    return entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0);
+    return entries.reduce((seconds, entry) => {
+      if (!entry.ended_at) return seconds;
+      return seconds + Math.max(0, Math.floor((new Date(entry.ended_at).getTime() - new Date(entry.started_at).getTime()) / 1000));
+    }, 0);
   }, [timeEntries, myEmployeeId]);
+  const durationLabel = `${String(Math.floor(totalDurationSeconds / 3600)).padStart(2, "0")}:${String(Math.floor((totalDurationSeconds % 3600) / 60)).padStart(2, "0")}:${String(totalDurationSeconds % 60).padStart(2, "0")}`;
 
   const handleStartWork = async () => {
     if (!myEmployeeId) return;
@@ -331,11 +335,11 @@ export const StopDetailsContent = ({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 sm:py-4 space-y-3">
-        {/* Opgaver */}
+        {/* Faktisk registreret arbejdstid */}
         <Section
           icon={<Clock className="h-3.5 w-3.5" />}
           title="Tidsregistrering"
-          hint={isWorking ? "I gang" : totalDuration > 0 ? `${totalDuration} min` : undefined}
+          hint={isWorking ? "I gang" : totalDurationSeconds > 0 ? durationLabel : undefined}
         >
           <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -344,9 +348,9 @@ export const StopDetailsContent = ({
                   <div className="h-2 w-2 rounded-full bg-feature-cool" />
                   Arbejder nu...
                 </div>
-              ) : totalDuration > 0 ? (
+              ) : totalDurationSeconds > 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Samlet tid: <span className="font-semibold text-foreground">{totalDuration} minutter</span>
+                  Faktisk tid: <span className="font-semibold tabular-nums text-foreground">{durationLabel}</span>
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">Ingen tidsregistrering endnu</p>
@@ -376,6 +380,7 @@ export const StopDetailsContent = ({
           </div>
         </Section>
 
+        <Section
           icon={<Package className="h-3.5 w-3.5" />}
           title="Bestilte ydelser"
           hint={tasks.length > 0 ? `${tasks.length} ${tasks.length === 1 ? "ydelse" : "ydelser"}` : undefined}

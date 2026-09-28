@@ -230,7 +230,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             <SectionCard
               title="Grundopsætningen er på plads"
               icon={<CheckCircle2 />}
-              description="Medarbejderne kan logge ind og se deres opgaver. Næste niveau:"
+              description="Medarbejderne kan logge ind og se deres aftaler. Næste niveau:"
               className="border-accent/30"
             >
               <div className="grid gap-2 sm:grid-cols-3">

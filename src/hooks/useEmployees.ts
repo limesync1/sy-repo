@@ -85,7 +85,17 @@ export const useUpdateEmployee = () => {
       if (error) throw error;
       return { id };
     },
-    onSuccess: (_, vars) => {
+    onMutate: async (vars) => {
+      const key = ["employees", vars.business_id];
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<Employee[]>(key);
+      qc.setQueryData<Employee[]>(key, (old = []) => old.map((employee) => employee.id === vars.id ? { ...employee, ...vars } : employee));
+      return { key, previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(context.key, context.previous);
+    },
+    onSettled: (_, __, vars) => {
       qc.invalidateQueries({ queryKey: ["employees", vars.business_id] });
     },
   });

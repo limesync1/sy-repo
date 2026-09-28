@@ -245,7 +245,18 @@ export const useUpdateBusiness = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-business"] }),
+    onMutate: async ({ id, ...updates }) => {
+      await qc.cancelQueries({ queryKey: ["my-business"] });
+      const previous = qc.getQueriesData({ queryKey: ["my-business"] });
+      qc.setQueriesData({ queryKey: ["my-business"] }, (old: any) =>
+        old?.id === id ? { ...old, ...updates } : old,
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      context?.previous.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["my-business"] }),
   });
 };
 

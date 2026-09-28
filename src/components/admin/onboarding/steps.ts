@@ -22,8 +22,8 @@ export type OnboardingFocus = "routes" | "jobs" | "both";
 
 export const FOCUS_OPTIONS: { value: OnboardingFocus; title: string; body: string }[] = [
   { value: "routes", title: "Faste aftaler og ruter", body: "Tilbagevendende besøg som planlægges på ruter." },
-  { value: "jobs", title: "Enkeltopgaver og tilbud", body: "Opgaver ad gangen — uden fast ruteplan." },
-  { value: "both", title: "Begge dele", body: "Både faste aftaler og løse opgaver." },
+  { value: "jobs", title: "Enkeltaftaler og tilbud", body: "Aftaler ad gangen — uden fast ruteplan." },
+  { value: "both", title: "Begge dele", body: "Både faste og enkeltstående aftaler." },
 ];
 
 export type StepRequirement = {
@@ -87,7 +87,7 @@ export const CORE_STEPS: OnboardingStep[] = [
     title: "Opret medarbejdere",
     short: "Hver medarbejder får eget login til medarbejder-appen.",
     body:
-      "Tilføj jeres team under Medarbejdere. De ser deres egne ruter, opgaver og kundeoplysninger i appen.",
+      "Tilføj jeres team under Medarbejdere. De ser deres egne ruter, aftaler og kundeoplysninger i appen.",
     tip: "Er I solo? Opret jer selv — så kan I se flowet fra medarbejderens side.",
     tab: () => "employees",
     action: (c) => (c.employeesCount > 0 ? null : "new"),
