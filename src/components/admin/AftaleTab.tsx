@@ -759,6 +759,7 @@ const AftaleTab = ({
   businessName,
   routePlanningEnabled = false,
   autoOpenCreate = false,
+  initialOrderId = null,
 }: {
   businessId: string;
   businessName: string;
@@ -768,6 +769,8 @@ const AftaleTab = ({
   routePlanningEnabled?: boolean;
   /** Åbner "Opret bestilling" med det samme (deep link fra onboarding-guiden). */
   autoOpenCreate?: boolean;
+  /** Åbn denne aftale direkte, fx fra virksomhedsforsiden. */
+  initialOrderId?: string | null;
 }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
@@ -796,6 +799,11 @@ const AftaleTab = ({
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   // Kommende-aftaler-strip: kollapset som standard for ikke at stjæle plads.
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!initialOrderId || !orders?.some((order) => order.id === initialOrderId)) return;
+    setExpandedOrder(initialOrderId);
+  }, [initialOrderId, orders]);
 
   useEffect(() => {
     if (!autoOpenCreate || !services) return;

@@ -277,7 +277,7 @@ const EmployeeStats = () => {
                       {formatKr(s.commission)}
                     </p>
                     <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-muted-foreground">
-                      Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført opgave" : "udførte opgaver"}
+                      Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført aftale" : "udførte aftaler"}
                     </p>
                   </div>
                 </div>
@@ -300,7 +300,7 @@ const EmployeeStats = () => {
             <div className="grid grid-cols-2 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:grid-cols-5">
               {[
                 { label: "Ruter", value: s.routesCount, icon: RouteIcon },
-                { label: "Opgaver", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
+                { label: "Aftaler", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
                 { label: "Arbejdsdage", value: s.workdaysCount, icon: CalendarIcon },
                  { label: "Arbejdstid", value: formatWorkTime(s.workSeconds), icon: Clock },
                 { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: MapPin },
@@ -357,7 +357,7 @@ const EmployeeStats = () => {
                                   {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
                                 </p>
                                 <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
-                                  {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
+                                  {d.stops} {d.stops === 1 ? "aftale" : "aftaler"}
                                 </p>
                               </div>
                               <div className="hidden sm:block">

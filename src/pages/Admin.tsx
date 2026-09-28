@@ -256,9 +256,12 @@ const AdminDashboard = () => {
   // Deep link fra onboarding-guiden: fx "åbn Services og gå direkte i
   // Opret service". Nulstilles når fanen skifter igen.
   const [pendingAction, setPendingAction] = useState<{ tab: string; action: string } | null>(null);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   const handleTabChange = (tab: AdminTabKey, action?: string | null) => {
-    setPendingAction(action ? { tab, action } : null);
+    const isOrderId = tab === "orders" && !!action && action !== "new";
+    setPendingOrderId(isOrderId ? action : null);
+    setPendingAction(action && !isOrderId ? { tab, action } : null);
     if (tab === "routes") { navigate("/virksomhed/ruter"); return; }
     setActiveTab(tab);
     if (typeof window !== "undefined") {
@@ -288,7 +291,7 @@ const AdminDashboard = () => {
       pendingAction?.tab === tab && pendingAction.action === "new";
     switch (effectiveTab) {
       case "getting-started": return <GettingStartedTab business={business} onNavigate={(t, a) => handleTabChange(t as AdminTabKey, a)} />;
-      case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
+      case "dashboard": return <DashboardWrapper business={business} onNavigate={(t, id) => handleTabChange(t as AdminTabKey, id)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} autoOpenCreate={openCreate("services")} />;
       case "orders": return (
         <AftaleTab
@@ -296,6 +299,7 @@ const AdminDashboard = () => {
           businessName={business.name}
           routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled}
           autoOpenCreate={openCreate("orders")}
+          initialOrderId={pendingOrderId}
         />
       );
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
@@ -356,7 +360,7 @@ const AdminDashboard = () => {
 };
 
 /* ─── Dashboard Wrapper ─── */
-const DashboardWrapper = ({ business, onNavigate }: { business: any; onNavigate: (tab: string) => void }) => {
+const DashboardWrapper = ({ business, onNavigate }: { business: any; onNavigate: (tab: string, itemId?: string) => void }) => {
   const { data: orders, isLoading: loadingOrders } = useOrders(business.id);
   const { data: services, isLoading: loadingServices } = useServices(business.id);
   const { data: reviews, isLoading: loadingReviews } = useReviews(business.id);

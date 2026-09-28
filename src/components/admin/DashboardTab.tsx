@@ -39,7 +39,7 @@ interface Props {
   recentOrders: any[];
   reviews?: any[];
   services?: any[];
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, itemId?: string) => void;
 }
 
 const fmtKr = (n: number) => formatPrice(n);
@@ -1178,7 +1178,7 @@ const OrdersListSection = ({
             <button
               key={order.id}
               type="button"
-              onClick={() => onNavigate?.("orders")}
+              onClick={() => onNavigate?.("orders", order.id)}
               className="grid w-full min-w-0 gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">

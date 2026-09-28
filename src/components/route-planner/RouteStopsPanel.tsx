@@ -23,7 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
+  GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2, Undo2,
   Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import {
-  useReorderStops, useDeleteStop, useSetStopAssignees,
+  useReorderStops, useDeleteStop, useSetStopAssignees, useUndoCompletedRouteStop,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { useQueryClient } from "@tanstack/react-query";
@@ -96,6 +96,7 @@ export const RouteStopsPanel = ({
   const deleteStop = useDeleteStop();
   const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
+  const undoCompleted = useUndoCompletedRouteStop();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
   const firstSeenAtStopRef = useRef(new Map<string, string>());
@@ -288,6 +289,8 @@ export const RouteStopsPanel = ({
                         }
                         onSelect={() => onSelectStop(stop)}
                         onRemove={() => setConfirmDelete(stop)}
+                        onUndoCompleted={() => undoCompleted.mutate(stop.id)}
+                        undoPending={undoCompleted.isPending}
                       />
                     ))}
                   </ol>
@@ -345,10 +348,12 @@ type RowProps = {
   onSetAssignees: (ids: string[], lead: string | null) => void;
   onSelect: () => void;
   onRemove: () => void;
+  onUndoCompleted: () => void;
+  undoPending: boolean;
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, isProjection = false,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, isProjection = false,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
@@ -491,13 +496,16 @@ const SortableStopRow = ({
               ) : null;
             })()}
             {stop.status === "completed" && (
-              <Badge
-                variant="outline"
-                className="h-5 text-[11px] px-2 gap-1 border-emerald-300 text-emerald-700 bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-300 dark:bg-emerald-500/10 font-medium"
-              >
-                <Check className="h-3 w-3" />
-                Færdig
-              </Badge>
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium border-success/35 bg-success/10 text-success">
+                  <Check className="h-3 w-3" /> Færdig
+                </Badge>
+                {!isProjection && (
+                  <Button type="button" variant="ghost" size="sm" className="h-6 gap-1 px-1.5 text-[11px]" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }}>
+                    <Undo2 className="h-3 w-3" /> Fortryd
+                  </Button>
+                )}
+              </span>
             )}
             {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
               <Badge
