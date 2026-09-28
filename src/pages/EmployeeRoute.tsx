@@ -1093,6 +1093,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     void reoptRef.current({ silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speedOpp.worth, speedOpp.savedMin, speedOpp.fixesViolations, routeStarted, runMode, pageVisible]);
+  /* Spørg om kørselsmåde med det samme, før kortet vises — så man ikke
+     lander i kortvisningen, hvis man vil bruge tjeklisten. */
+  const askedModeRef = useRef(false);
+  useEffect(() => {
+    if (askedModeRef.current || routeStarted || allDone || sortedStops.length === 0) return;
+    askedModeRef.current = true;
+    if (!routeDateLocked) setModeDialogOpen(true);
+  }, [routeStarted, allDone, sortedStops.length, routeDateLocked]);
   const todayLabel = useMemo(() => formatDayDate(new Date()), []);
 
   /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
@@ -1933,8 +1941,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Før start: kompakt kørselsdock med ét klart næste trin ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2 sm:p-4">
-            <section className="route-drive-dock mx-auto max-w-2xl overflow-hidden rounded-md border border-background/15 bg-foreground text-background shadow-xl">
+          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:inset-x-auto lg:right-4 lg:bottom-[60px] lg:w-[26rem] lg:p-0">
+            <section className="route-drive-dock mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border border-background/15 bg-foreground text-background shadow-xl">
               <div className="flex items-center justify-between gap-3 border-b border-background/15 px-3.5 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-semibold uppercase text-background/65">{todayLabel}</p>
@@ -1999,8 +2007,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="pointer-events-none absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:bottom-[60px] sm:p-4 lg:left-auto lg:right-3 lg:w-[30rem] lg:p-0">
-            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-2xl overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
+          <div className="pointer-events-none absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:inset-x-auto lg:right-4 lg:bottom-[60px] lg:w-[26rem] lg:p-0">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
                 {sortedStops.map((s, i) => (
@@ -2100,7 +2108,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                      className={`gap-1.5 h-11 rounded-md text-[13px] font-semibold transition-colors ${
                       isAtNextStop
                         ? "bg-success hover:bg-success/90 text-success-foreground shadow-sm"
-                        : "bg-foreground text-background hover:bg-foreground/90"
+                        : "bg-warning text-warning-foreground hover:bg-warning/90"
                     }`}
                     disabled={updateStatus.isPending || routeDateLocked}
                   >
@@ -2109,7 +2117,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     ) : (
                       <CheckCircle2 className="h-4 w-4" />
                     )}
-                    {isAtNextStop ? "Markér udført" : "Markér udført"}
+                    {isAtNextStop ? "Markér som udført" : "Markér udført nu"}
                   </Button>
                   <Button
                     onClick={() => handleNavigate(nextStop)}
@@ -2202,8 +2210,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:left-auto lg:w-[28rem]">
-            <Card className="mx-auto max-w-md overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
+          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:inset-x-auto lg:right-4 lg:bottom-[60px] lg:w-[26rem] lg:p-0">
+            <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
               <div className="space-y-3 p-3.5 text-center sm:p-4">
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-success/10 text-success">
                   <CheckCircle2 className="h-5 w-5" />
