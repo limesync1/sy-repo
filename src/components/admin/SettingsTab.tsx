@@ -1219,7 +1219,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
-            description="Vælg de brancher I arbejder med — og hak de konkrete typer opgaver af, I tager. Vi bruger dette til at vise jer for de rigtige kunder, når de søger."
+            description="Vælg de brancher I arbejder med — og markér de konkrete typer aftaler, I tager. Vi bruger dette til at vise jer for de rigtige kunder, når de søger."
           >
             <div className="space-y-5">
               <div>
@@ -1235,9 +1235,9 @@ const SettingsTab = ({ business }: { business: any }) => {
 
               {selectedCategories.length > 0 && (
                 <div className="border-t border-border pt-4">
-                  <FieldLabel required>Hvilke konkrete opgaver tager I?</FieldLabel>
+                  <FieldLabel required>Hvilke konkrete aftaler tager I?</FieldLabel>
                   <p className="-mt-1 mb-3 text-xs text-muted-foreground">
-                    Hak de opgavetyper af, I rent faktisk udfører. Dem I fjerner her, vises hverken til kunder eller foreslås, når I opretter nye services.
+                    Markér de aftaletyper, I rent faktisk udfører. Dem I fjerner her, vises hverken til kunder eller foreslås, når I opretter nye services.
                   </p>
                   <SubcategoryPicker
                     selectedIndustries={selectedCategories}

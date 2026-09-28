@@ -206,7 +206,7 @@ export const SuggestRouteDialog = ({
             title={<DialogTitle className="text-base">Find den bedste rute til {job.customer_name || "aftalen"}</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vi viser de ruter {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst — kort vej, plads til opgaven og en medarbejder der kender ydelsen. Vælg én herunder.
+                Vi viser de ruter {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst — kort vej, plads til aftalen og en medarbejder der kender ydelsen. Vælg én herunder.
               </DialogDescription>
             }
           />
@@ -434,7 +434,7 @@ const SuggestionCard = ({
             )}
             {s.has_skill ? (
               <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <Wrench className="h-3 w-3" /> Kan opgaven
+                <Wrench className="h-3 w-3" /> Kan aftalen
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1 border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-300">

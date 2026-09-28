@@ -65,7 +65,7 @@ export const RoutePrintPreviewSheet = ({ open, onOpenChange, routeId }: Props) =
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               <PreviewOption icon={<StickyNote />} label="Noter" checked={showNotes} onChange={setShowNotes} />
               <PreviewOption icon={<Contact />} label="Kontakt" checked={showContact} onChange={setShowContact} />
-              <PreviewOption icon={<FileText />} label="Opgaver" checked={showTasks} onChange={setShowTasks} />
+              <PreviewOption icon={<FileText />} label="Aftaler" checked={showTasks} onChange={setShowTasks} />
               <PreviewOption icon={<AlignJustify />} label="Kompakt" checked={compact} onChange={setCompact} />
             </div>
           </section>

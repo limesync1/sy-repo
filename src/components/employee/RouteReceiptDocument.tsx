@@ -119,7 +119,7 @@ export const RouteReceiptDocument = ({
                       </div>
                       {showTasks && task && (
                         <div className="mt-2 border-l-2 border-accent bg-secondary/30 px-2.5 py-1.5 text-xs">
-                          <p className="text-[9px] font-semibold uppercase text-muted-foreground">Opgave</p>
+                          <p className="text-[9px] font-semibold uppercase text-muted-foreground">Aftale</p>
                           <p className="mt-0.5 break-words">{task}</p>
                         </div>
                       )}

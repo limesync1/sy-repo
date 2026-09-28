@@ -56,7 +56,7 @@ const EmployeeRoutePrint = () => {
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-1.5 px-3 py-2.5 sm:grid-cols-4 sm:px-5">
           <PrintOption icon={<StickyNote />} label="Noter" active={showNotes} onClick={() => updateOption("notes", showNotes ? "0" : "1")} />
           <PrintOption icon={<Contact />} label="Kontakt" active={showContact} onClick={() => updateOption("contact", showContact ? "0" : "1")} />
-          <PrintOption icon={<FileText />} label="Opgaver" active={showTasks} onClick={() => updateOption("tasks", showTasks ? "0" : "1")} />
+          <PrintOption icon={<FileText />} label="Aftaler" active={showTasks} onClick={() => updateOption("tasks", showTasks ? "0" : "1")} />
           <PrintOption icon={<AlignJustify />} label="Kompakt" active={compact} onClick={() => updateOption("density", compact ? "standard" : "compact")} />
         </div>
       </section>

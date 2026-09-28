@@ -70,7 +70,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       if (!stop?.route_id) return null;
       const { data, error } = await supabase.from("routes").select("*").eq("id", stop.route_id).maybeSingle();
       if (error) throw error;
-      return data as Route | null;
+      return data as unknown as Route | null;
     },
   });
   const activeEmployees = useMemo(

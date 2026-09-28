@@ -1428,7 +1428,7 @@ const ServiceForm = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { value: "fast_pris", label: "Specifik pris", desc: "Kunden betaler én specifik pris for hele servicen", icon: "💰" },
-              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
+              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. registreret time på aftalen", icon: "⏱️" },
               { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
             ].map((opt) => (
               <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}

@@ -181,7 +181,7 @@ export const StopDetailsContent = ({
         });
       }
       return {
-        name: it.service_name || svc.name || "Opgave",
+        name: it.service_name || svc.name || "Aftale",
         quantity: it.quantity ?? 1,
         unit: svc.unit,
         description: svc.description,
@@ -430,7 +430,7 @@ export const StopDetailsContent = ({
             </div>
           ) : (
             <div className="rounded-lg border border-dashed bg-secondary/20 p-3 text-center">
-              <p className="text-[12px] text-muted-foreground">Ingen detaljer på denne opgave</p>
+              <p className="text-[12px] text-muted-foreground">Ingen detaljer på denne aftale</p>
             </div>
           )}
         </Section>
