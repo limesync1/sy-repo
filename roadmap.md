@@ -135,3 +135,9 @@
 - [x] Bevar afsluttet faktisk tidsforbrug med sekundpræcision.
 - [x] Fjern afhængighed af skjulte planlagte starttider i medarbejderens ruterækkefølge.
 - [x] Ret forældede produkttekster om planlagte ankomsttider og servicevarighed.
+
+## Stabil rutekørsel og korrekt genåbning
+- [x] Fjern alle aktive afhængigheder af den gamle `routes.completed_at`-kolonne.
+- [x] Vis kørselsvalget før kort, GPS og kortdata monteres.
+- [x] Tilpas kortets topbjælke, beskeder, næste stop og stopliste til mobil, tablet og bred computer.
+- [x] Kontrollér tjekliste og kortguide indlogget ved 393, 768, 1440 og 2889 px.

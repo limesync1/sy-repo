@@ -73,9 +73,9 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                   <span className="mt-0.5 block text-[13px] leading-5 text-muted-foreground">
                     {o.body}
                   </span>
-                  <span className="mt-1.5 flex items-center gap-1 text-[11.5px] font-medium text-muted-foreground">
-                    <BatteryCharging className="h-3.5 w-3.5 shrink-0" />
-                    {o.note}
+                  <span className="mt-1.5 flex items-start gap-1.5 text-[11.5px] font-medium leading-4 text-muted-foreground">
+                    <BatteryCharging className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span>{o.note}</span>
                   </span>
                 </span>
               </button>
