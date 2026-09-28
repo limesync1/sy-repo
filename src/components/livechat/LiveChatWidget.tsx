@@ -1215,8 +1215,8 @@ const LiveChatWidget = () => {
                   {aiThinking && !escalated && (
                     <div className="flex items-end gap-2 animate-in fade-in duration-200">
                       <div className="w-9 flex-shrink-0">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
-                          <img src={supportRobot.url} alt="Serviceydere kundeservice" className="h-9 w-9 rounded-2xl object-contain p-0.5" />
+                        <span className="flex h-9 w-9 items-center justify-center overflow-visible">
+                          <img src={supportRobot.url} alt="Serviceydere kundeservice" className="h-8 w-8 object-contain" />
                         </span>
                       </div>
                       <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
