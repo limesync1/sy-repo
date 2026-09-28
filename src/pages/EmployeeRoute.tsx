@@ -544,8 +544,28 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
    * sig mere end 25 m. Når fanen er skjult (telefonen i lommen) skipper vi
    * helt, så hverken kort eller animationer arbejder i baggrunden. */
   const lastFixRef = useRef<{ t: number; lat: number; lng: number } | null>(null);
+  // Tjeklisten har intet kort, men virksomheden skal stadig kunne se, hvilken
+  // aftale medarbejderen er ved. Vi henter derfor et enkelt, strømbesparende
+  // fix hvert 30. sekund i stedet for kontinuerlig GPS.
   useEffect(() => {
-    // Tjeklisten har intet kort og skal ikke spore positionen overhovedet.
+    if (runMode !== "list" || !pageVisible || !routeStarted || !navigator.geolocation) return;
+    const poll = () => navigator.geolocation.getCurrentPosition(
+      (pos) => setRawFix({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: typeof pos.coords.accuracy === "number" ? pos.coords.accuracy : 50,
+        heading: null,
+        speed: null,
+        t: pos.timestamp ?? Date.now(),
+      }),
+      () => {},
+      { enableHighAccuracy: false, maximumAge: 20_000, timeout: 15_000 },
+    );
+    poll();
+    const timer = window.setInterval(poll, 30_000);
+    return () => window.clearInterval(timer);
+  }, [runMode, pageVisible, routeStarted, geoPermission]);
+  useEffect(() => {
     if (runMode === "list") return;
     // Skærmen slukket / app i baggrunden → ingen GPS overhovedet.
     // Watcheren nedlægges helt (ikke bare ignoreres), så radioen får ro
@@ -654,7 +674,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     let cancelled = false;
     const pushPosition = async () => {
       if (cancelled) return;
-      await supabase.rpc("report_route_position", {
+      const { error } = await supabase.rpc("report_route_position", {
         _route_id: routeId,
         _latitude: filtered.pos[0],
         _longitude: filtered.pos[1],
@@ -663,6 +683,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         _speed_mps: filtered.speedMps ?? undefined,
         _current_stop_id: liveStopId ?? undefined,
       });
+      if (error) console.warn("[live-position] kunne ikke sendes", error.message);
     };
     void pushPosition();
     const timer = window.setInterval(pushPosition, 25_000);
