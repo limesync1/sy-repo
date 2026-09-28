@@ -11,6 +11,7 @@ import Categories from "@/components/landing/Categories";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
 const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
 const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
+const FounderNote       = lazy(() => import("@/components/landing/FounderNote"));
 const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
 const CTABand           = lazy(() => import("@/components/landing/CTABand"));
 const Footer            = lazy(() => import("@/components/landing/Footer"));
@@ -110,7 +111,8 @@ const Index = () => {
           <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
           <Reveal><Testimonials /></Reveal>
-          <Reveal><WhyUs /></Reveal>
+          <Reveal><FounderNote /></Reveal>
+          <div className="bg-ocean"><Reveal><WhyUs /></Reveal></div>
           <Reveal><ForBusinesses /></Reveal>
 
           <Reveal className="bg-ocean">
