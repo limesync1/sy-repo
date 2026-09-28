@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { Skeleton } from "@/components/ui/skeleton";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import BetaNotice from "@/components/BetaNotice";
@@ -190,11 +191,43 @@ const queryClient = new QueryClient({
   },
 });
 
-const PageFallback = () => (
-  // Tom fallback undgår "flash of loading text" ved lynhurtige chunk-loads.
-  // Browseren viser stadig forrige route via Suspense indtil næste er klar.
-  <div className="min-h-screen bg-background" aria-hidden />
-);
+const PageFallback = () => {
+  // Vises først efter 180 ms, så lynhurtige skift ikke blinker. Derefter en
+  // rolig skeleton der matcher sidetypen (panel vs. offentlig side).
+  const [show, setShow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setShow(true), 180); return () => clearTimeout(t); }, []);
+  const path = typeof window !== "undefined" ? window.location.pathname : "/";
+  const isPanel = /^\/(virksomhed|medarbejder|admin)(\/|$)/.test(path);
+  if (!show) return <div className="min-h-screen bg-background" aria-hidden />;
+  if (isPanel) {
+    return (
+      <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
+        <div className="hidden w-60 shrink-0 border-r border-border bg-muted/40 p-4 lg:block">
+          <Skeleton className="h-8 w-32" />
+          <div className="mt-6 space-y-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
+        </div>
+        <div className="flex-1 p-4 sm:p-6">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="mt-2 h-3.5 w-64 max-w-full" />
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
+          <Skeleton className="mt-4 h-64 w-full" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
+      <div className="flex h-16 items-center justify-between border-b border-border px-4 sm:px-8">
+        <Skeleton className="h-8 w-36" /><Skeleton className="h-9 w-28 rounded-full" />
+      </div>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-8">
+        <Skeleton className="h-10 w-2/3 max-w-xl" />
+        <Skeleton className="mt-4 h-4 w-1/2 max-w-md" />
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40" />)}</div>
+      </div>
+    </div>
+  );
+};
 
 /** Forwarmer de mest sandsynlige næste-sider (Find services, Få tilbud,
  *  Bliv udbyder) i browser-idle, så et klik fra forsiden føles instant. */
