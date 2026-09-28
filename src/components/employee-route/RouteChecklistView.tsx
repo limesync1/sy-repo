@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowDown,
@@ -14,12 +14,16 @@ import {
   Loader2,
   BellRing,
   Play,
+  Clock3,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
+import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -47,6 +51,15 @@ type Props = {
   reordering?: boolean;
   notification?: { title: string; message: string } | null;
   onMarkNotificationRead?: () => void;
+  audioEnabled: boolean;
+  onToggleAudio: () => void;
+};
+
+const formatElapsed = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const rest = seconds % 60;
+  return [hours, minutes, rest].map((value) => String(value).padStart(2, "0")).join(":");
 };
 
 export const RouteChecklistView = ({
@@ -64,19 +77,44 @@ export const RouteChecklistView = ({
   reordering = false,
   notification = null,
   onMarkNotificationRead,
+  audioEnabled,
+  onToggleAudio,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
   const employeeId = useMyEmployeeId();
   const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
   const startStopTime = useStartStopTime();
+  const [now, setNow] = useState(() => Date.now());
   const completed = useMemo(() => stops.filter((s) => s.status === "completed"), [stops]);
   const remaining = useMemo(() => stops.filter((s) => s.status !== "completed"), [stops]);
   const next = remaining[0];
   const nextIsStarted = !!next && timeEntries.some((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at);
+  const activeEntry = next
+    ? timeEntries.find((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at)
+    : undefined;
+  const elapsedSeconds = activeEntry
+    ? Math.max(0, Math.floor((now - new Date(activeEntry.started_at).getTime()) / 1000))
+    : 0;
   const allDone = stops.length > 0 && remaining.length === 0;
   const progress = stops.length > 0 ? (completed.length / stops.length) * 100 : 0;
 
   const addressOf = (s: RouteStop) => s.full_address || s.address || null;
+
+  useEffect(() => {
+    if (!activeEntry) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [activeEntry?.id]);
+
+  const startNext = async () => {
+    if (!employeeId || !next) return;
+    unlockAudio();
+    await startStopTime.mutateAsync({ stop_id: next.id, employee_id: employeeId });
+    if (audioEnabled) {
+      playStartChime();
+      speak(`Tidsregistrering startet for ${next.customer_name || "aftalen"}`);
+    }
+  };
 
   return (
     <div className="employee-route-run flex min-h-dvh flex-col bg-secondary/35">
@@ -101,7 +139,10 @@ export const RouteChecklistView = ({
             onClick={onSwitchToGuide}
           >
             <Navigation2 className="h-4 w-4" />
-            Vis kort
+            Kørselsguide
+          </Button>
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}>
+            {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
         <div className="h-1 w-full bg-secondary" aria-hidden>
@@ -160,6 +201,12 @@ export const RouteChecklistView = ({
                   </span>
                 </div>
                 <div className="p-3 sm:p-4">
+                {activeEntry && (
+                  <div className="mb-3 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-3 py-2 text-success">
+                    <span className="flex items-center gap-2 text-xs font-semibold"><span className="h-2 w-2 animate-pulse rounded-full bg-success" />Aftalen er startet</span>
+                    <span className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums"><Clock3 className="h-4 w-4" />{formatElapsed(elapsedSeconds)}</span>
+                  </div>
+                )}
                 <h2 className="text-[18px] font-semibold leading-tight text-foreground">
                   {next.customer_name || "Stop"}
                 </h2>
@@ -181,7 +228,7 @@ export const RouteChecklistView = ({
                       type="button"
                       className="min-h-11 w-full gap-2 bg-warning font-semibold text-warning-foreground hover:bg-warning/90"
                       disabled={!employeeId || locked || startStopTime.isPending}
-                      onClick={() => employeeId && startStopTime.mutate({ stop_id: next.id, employee_id: employeeId })}
+                       onClick={() => void startNext()}
                     >
                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                       Start aftale
@@ -332,7 +379,7 @@ export const RouteChecklistView = ({
                       onClick={() => onUndo(s)}
                     >
                       <Undo2 className="h-3.5 w-3.5" />
-                      Fortryd
+                       Fortryd udførsel
                     </Button>
                   </li>
                 ))}

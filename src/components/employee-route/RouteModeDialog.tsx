@@ -1,4 +1,4 @@
-import { ListChecks, Navigation2, BatteryCharging } from "lucide-react";
+import { ListChecks, Navigation2, BatteryCharging, ArrowRight, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { RouteRunMode } from "./RouteRunMode";
 
 type Props = {
@@ -41,35 +42,40 @@ const options: Array<{
 export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay max-w-[calc(100vw-1rem)] rounded-[6px] p-4 sm:max-w-[440px] sm:p-5">
-        <DialogHeader className="text-left">
-          <DialogTitle className="text-lg font-semibold leading-tight">
+      <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md p-0 sm:max-w-[500px]">
+        <DialogHeader className="border-b border-border bg-secondary/30 px-4 py-4 text-left sm:px-5">
+          <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-foreground shadow-sm">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <DialogTitle className="text-xl font-semibold leading-tight">
             Hvordan vil du køre ruten?
           </DialogTitle>
-          <DialogDescription className="text-[13.5px] leading-6">
-            Du kan skifte undervejs — valget ændrer ikke noget i planen.
+          <DialogDescription className="text-[13px] leading-5">
+            Vælg den visning, der passer til turen. Du kan altid skifte senere.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-1 grid gap-2">
+        <div className="grid gap-2.5 p-3 sm:p-4">
           {options.map((o) => {
             const Icon = o.icon;
             return (
-              <button
+              <Button
                 key={o.mode}
                 type="button"
+                variant="outline"
                 onClick={() => onChoose(o.mode, false)}
                 className={cn(
-                  "group flex w-full items-start gap-3 rounded-[5px] border border-border bg-card p-3 text-left transition-all",
-                  "min-h-[70px] active:scale-[0.99] hover:border-accent/40 hover:bg-secondary/40 hover:shadow-sm",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  "group h-auto min-h-[104px] w-full items-start justify-start gap-3 rounded-md border-border bg-card p-3.5 text-left whitespace-normal shadow-none transition-colors",
+                  "hover:border-foreground/25 hover:bg-secondary/45 focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
-                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] bg-secondary text-foreground">
+                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-foreground text-background">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold text-foreground">{o.title}</span>
+                  <span className="flex items-center justify-between gap-2 text-[15px] font-semibold text-foreground">
+                    {o.title}<ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </span>
                   <span className="mt-0.5 block text-[13px] leading-5 text-muted-foreground">
                     {o.body}
                   </span>
@@ -78,7 +84,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                     <span>{o.note}</span>
                   </span>
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>

@@ -254,7 +254,7 @@ export const MoveProjectedOccurrenceDialog = ({
               </div>
             </div>
           )}
-          <AlertDialogCancel disabled={loading || submitting}>Fortryd</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading || submitting}>Annullér</AlertDialogCancel>
           <Button
             onClick={async () => {
               setSubmitError(null);

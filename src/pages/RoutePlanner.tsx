@@ -2309,6 +2309,12 @@ const Planner = () => {
   // mest brugte callbacks (select stop / create route) skal være stabile.
   const handleCalendarSelectRoute = async (r: any) => {
     setSelectedStopId(null);
+    if (activeEditingRoute?.id === r.id) {
+      setEditingRoute(null);
+      setEditingRoutePreview(null);
+      setEditingProjectedContext(null);
+      return;
+    }
     if (r.isVirtual) {
       await openProjectedRoute(r);
       return;
@@ -4286,9 +4292,9 @@ const Planner = () => {
                       I dag
                     </Button>
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                      <TabsList className="h-8">
-                        <TabsTrigger value="month" className="h-6 text-[11px] font-semibold px-2.5 rounded-md">Måned</TabsTrigger>
-                        <TabsTrigger value="week" className="h-6 text-[11px] font-semibold px-2.5 rounded-md">Uge</TabsTrigger>
+                      <TabsList className="h-9 rounded-md border border-border bg-secondary/50 p-1 shadow-inner">
+                        <TabsTrigger value="month" className="h-7 min-w-[72px] rounded-[4px] px-3 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-7 min-w-[72px] rounded-[4px] px-3 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     <Popover>
@@ -4505,9 +4511,9 @@ const Planner = () => {
 
                   <div className="grid grid-cols-[1fr_auto_auto] items-center gap-1.5">
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                      <TabsList className="grid h-8 w-full grid-cols-2 rounded-[4px]">
-                        <TabsTrigger value="month" className="h-7 rounded-[3px] text-xs">Måned</TabsTrigger>
-                        <TabsTrigger value="week" className="h-7 rounded-[3px] text-xs">Uge</TabsTrigger>
+                      <TabsList className="grid h-10 w-full grid-cols-2 rounded-md border border-border bg-secondary/50 p-1">
+                        <TabsTrigger value="month" className="h-8 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-8 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     <Sheet>
