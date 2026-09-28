@@ -58,14 +58,12 @@ const paymentMeta = (
   orderStatus?: string | null,
   paymentStatus?: string | null,
   invoiceStatus?: string | null,
+  isPast?: boolean,
 ) => {
-  // Aftale endnu ikke udført → vis blot "Planlagt".
   if (orderStatus !== "completed") {
     if (orderStatus === "pending") return { label: "Afventer godkendelse", className: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground" };
-    return { label: "Planlagt", className: "border-border bg-secondary/50 text-muted-foreground" };
+    return { label: isPast ? "Ikke udført" : "Planlagt", className: "border-border bg-secondary/50 text-muted-foreground" };
   }
-  // Aftale udført → spejl regnskabsprogrammets betalingsstatus.
-  if (paymentStatus === "paid") return { label: "Betalt", className: "border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground" };
   if (paymentStatus === "overdue") return { label: "Forfalden", className: "border-destructive/40 bg-destructive/10 text-destructive" };
   if (paymentStatus === "unpaid") return { label: "Afventer betaling", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
   if (invoiceStatus === "booked" || invoiceStatus === "draft") return { label: "Faktureret", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
@@ -318,7 +316,7 @@ const EmployeeApp = () => {
               </span>
               {!!workday?.started_at && (
                 <span className="rounded-[4px] border border-border bg-secondary/50 px-2 py-1 font-semibold tabular-nums text-foreground" aria-label="Faktisk registreret arbejdstid">
-                  {formatWorkDuration(actualWorkSeconds)}
+                  {formatWorkDuration(actualWorkSeconds, dayStarted && isCurrentDay)}
                 </span>
               )}
             </div>
@@ -740,7 +738,7 @@ const EmployeeApp = () => {
                     <div className="divide-y divide-border">
                       {myStops.slice(0, 3).map((s, i) => {
                         const isNext = s.id === firstPendingId;
-                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
+                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status, !isCurrentDay && !isFutureDay);
                         return (
                           <button
                             key={s.id}
