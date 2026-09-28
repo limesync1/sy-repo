@@ -37,10 +37,9 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
-const formatWorkDuration = (seconds: number, showSeconds = true) => {
+const formatWorkDuration = (seconds: number) => {
   const safe = Math.max(0, Math.floor(seconds));
-  const parts = [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60)];
-  if (showSeconds) parts.push(safe % 60);
+  const parts = [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60), safe % 60];
   return parts
     .map((value) => String(value).padStart(2, "0"))
     .join(" : ");
@@ -316,7 +315,7 @@ const EmployeeApp = () => {
               </span>
               {!!workday?.started_at && (
                 <span className="rounded-[4px] border border-border bg-secondary/50 px-2 py-1 font-semibold tabular-nums text-foreground" aria-label="Faktisk registreret arbejdstid">
-                  {formatWorkDuration(actualWorkSeconds, dayStarted && isCurrentDay)}
+                  {formatWorkDuration(actualWorkSeconds)}
                 </span>
               )}
             </div>

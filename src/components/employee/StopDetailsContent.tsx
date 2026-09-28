@@ -79,9 +79,7 @@ export const StopDetailsContent = ({
   const h = Math.floor(totalDurationSeconds / 3600);
   const m = Math.floor((totalDurationSeconds % 3600) / 60);
   const s = totalDurationSeconds % 60;
-  const durationLabel = readOnly 
-    ? `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
-    : `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const durationLabel = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
   const handleStartWork = async () => {
     if (!myEmployeeId) return;
