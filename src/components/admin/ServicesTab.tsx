@@ -491,7 +491,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   const accountName = provider && accountId
     ? (accountingMeta?.incomeAccounts[accountId] ?? accountId)
     : null;
-  const providerLabel = provider === "economic" ? "e-conomic" : provider === "dinero" ? "Dinero" : null;
+  const providerLabel = provider === "economic" ? "E-conomic" : provider === "dinero" ? "Dinero" : null;
 
   return (
     <Card className={`surface-admin rounded-lg border-border/80 shadow-sm overflow-hidden transition-colors ${!isActive ? "opacity-70" : "hover:border-foreground/20"}`}>

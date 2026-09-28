@@ -39,7 +39,7 @@ const Page = defineSoftwarePage({
         "Integrationen slås til under Indstillinger → Ekstra funktioner, hvor du forbinder E-conomic eller Dinero. Inden den første rigtige bogføring kan du køre en testkørsel, der viser præcis hvad der ville blive sendt afsted — og hvilke konti det rammer.",
       ],
       list: [
-        "e-conomic og Dinero er de to understøttede regnskabsprogrammer.",
+        "E-conomic og Dinero er de to understøttede regnskabsprogrammer.",
         "Løbende sundhedstjek af forbindelsen, så en udløbet adgang opdages hurtigt.",
         "Log over hvad der er sendt, så du kan afstemme uden at gætte.",
       ],
@@ -60,7 +60,7 @@ const Page = defineSoftwarePage({
   faq: [
     {
       q: "Hvilke regnskabsprogrammer understøttes?",
-      a: "e-conomic og Dinero. Begge forbindes under Indstillinger, og bestillinger og fakturaer kan derefter bogføres automatisk.",
+      a: "E-conomic og Dinero. Begge forbindes under Indstillinger, og bestillinger og fakturaer kan derefter bogføres automatisk.",
     },
     {
       q: "Kan jeg teste bogføringen, før den er live?",

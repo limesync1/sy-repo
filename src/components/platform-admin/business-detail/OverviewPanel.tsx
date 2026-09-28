@@ -13,7 +13,7 @@ const fmtDateTime = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleString("da-DK", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
 
 const PROVIDER_LABELS: Record<string, string> = {
-  economic: "e-conomic",
+  economic: "E-conomic",
   billy: "Billy",
   dinero: "Dinero",
   zenegy: "Zenegy",

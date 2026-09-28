@@ -713,7 +713,7 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
       "Forbind E-conomic eller Dinero, så bestillinger og fakturaer kan sendes videre automatisk. Tilvalg mod betaling.",
     example: "Når et stop markeres udført, ender fakturaen i E-conomic uden manuel indtastning.",
     steps: ["Åbn fanen “Regnskab”.", "Vælg E-conomic eller Dinero og forbind.", "Test forbindelsen, og gem."],
-    keywords: ["e-conomic", "dinero", "bogføring", "integration", "faktura"],
+    keywords: ["E-conomic", "dinero", "bogføring", "integration", "faktura"],
   },
   {
     id: "accounting-status",
