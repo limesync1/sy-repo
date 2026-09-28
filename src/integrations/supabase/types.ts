@@ -5662,6 +5662,10 @@ export type Database = {
         Args: { _business_id?: string; _key: string; _kind: string }
         Returns: boolean
       }
+      undo_completed_route_stop: {
+        Args: { _stop_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       agreement_billing_model: "per_visit" | "monthly_consolidated"

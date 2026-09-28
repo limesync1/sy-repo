@@ -113,7 +113,7 @@ const ForBusinesses = () => {
                   {[
                     "Egen virksomhedsprofil med søgesynlighed på Google",
                     "Bookingkalender og ruteplanlægning til medarbejdere",
-                    "Automatisk fakturering med e-conomic & Dinero",
+                    "Automatisk fakturering med E-conomic & Dinero",
                   ].map((t) => (
                     <li key={t} className="flex items-center gap-2.5">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/12 ring-1 ring-accent/20">

@@ -386,6 +386,39 @@ export const useEndStopTime = () => {
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke afslutte tidsregistrering" }),
   });
+export const useResetStopTime = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      stop_id, employee_id,
+    }: { stop_id: string; employee_id: string }) => {
+      // Find the most recent entry for this stop/employee
+      const { data: latest } = await supabase
+        .from("stop_time_entries")
+        .select("id")
+        .eq("stop_id", stop_id)
+        .eq("employee_id", employee_id)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!latest) return null;
+
+      const { data, error } = await supabase
+        .from("stop_time_entries")
+        .update({ ended_at: null })
+        .eq("id", latest.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as StopTimeEntry;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
+    },
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fortryde tidsregistrering" }),
+  });
+};
 };
 
 /* ─── Arbejdsdage (Start dag / Stop dag) ─── */

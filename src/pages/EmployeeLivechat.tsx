@@ -8,8 +8,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import EmployeeShell from "@/components/employee/EmployeeShell";
 import BusinessLiveChatTab from "@/components/admin/BusinessLiveChatTab";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const EmployeeLivechat = () => {
@@ -28,29 +26,12 @@ const EmployeeLivechat = () => {
   }, [employee, isLoading, navigate]);
 
   const businessId = employee?.business_id;
-  const { data: business } = useQuery({
-    queryKey: ["business-name-livechat", businessId],
-    enabled: !!businessId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("businesses")
-        .select("name, settings")
-        .eq("id", businessId!)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  // Bloker også hvis virksomheden selv har slået livechat fra
-  useEffect(() => {
-    if (!business) return;
-    if (!(business.settings as any)?.livechat_enabled) navigate("/medarbejder");
-  }, [business, navigate]);
+  const businessName = employee?.business?.name;
 
   return (
     <EmployeeShell activeTab={"livechat" as any} title="Livechat">
-      {businessId && business?.name ? (
-        <BusinessLiveChatTab businessId={businessId} businessName={business.name} />
+      {businessId && businessName ? (
+        <BusinessLiveChatTab businessId={businessId} businessName={businessName} />
       ) : (
         <ListCardSkeleton rows={5} />
       )}

@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getEmployeeWorkspace, setEmployeeWorkspace } from "@/lib/employee-workspace";
 import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
-import { useEmployeeRouteNotifications, useMarkAllRouteNotificationsRead, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
+import { useDeleteAllRouteNotifications, useDeleteRouteNotification, useEmployeeRouteNotifications, useMarkAllRouteNotificationsRead, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
 import { RoleSwitchFooterItem, SidebarFooterItem, SidebarGroupLabel, SidebarNavButton } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -94,6 +94,8 @@ export const EmployeeShell = ({
   const { data: routeNotifications = [] } = useEmployeeRouteNotifications();
   const markNotificationRead = useMarkRouteNotificationRead();
   const markAllNotificationsRead = useMarkAllRouteNotificationsRead();
+  const deleteNotification = useDeleteRouteNotification();
+  const deleteAllNotifications = useDeleteAllRouteNotifications();
   const unreadNotifications = routeNotifications.filter((item) => !item.read_at);
   const isMobile = useIsMobile();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -160,27 +162,10 @@ export const EmployeeShell = ({
     };
   }, []);
 
-  // Hent virksomhedens egen livechat-indstilling — medarbejderen må kun se
-  // livechat-fanen hvis BÅDE virksomheden har funktionen aktiveret OG
-  // medarbejderen har fået adgang individuelt.
-  const { data: businessLivechatEnabled } = useQuery({
-    queryKey: ["business-livechat-enabled", employee?.business_id],
-    enabled: !!employee?.business_id,
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("businesses")
-        .select("settings")
-        .eq("id", employee!.business_id)
-        .maybeSingle();
-      return !!(data?.settings as any)?.livechat_enabled;
-    },
-  });
-
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (!n.requiresEmployeeFlag) return true;
     if (n.requiresEmployeeFlag === "livechat_enabled") {
-      return !!(employee as any)?.livechat_enabled && !!businessLivechatEnabled;
+      return !!(employee as any)?.livechat_enabled;
     }
     return !!(employee as any)?.[n.requiresEmployeeFlag];
   });
@@ -222,13 +207,12 @@ export const EmployeeShell = ({
       <EmployeeWorkspacePicker
         employees={myEmployeeRecords!}
         currentBusinessId={workspaceId}
-        onSelected={(id, remember) => {
+        onSelected={async (id, remember) => {
           setRememberChoice(remember);
+          await queryClient.cancelQueries();
+          queryClient.clear();
           setWorkspaceId(id);
           setPickerOpen(false);
-          // Alle medarbejder-data (ruter, stop, statistik) hænger på den
-          // valgte virksomhed — ryd cachen så intet vises på tværs.
-          queryClient.clear();
         }}
       />
     );
@@ -236,11 +220,6 @@ export const EmployeeShell = ({
 
   const openNotification = (item: EmployeeRouteNotification) => {
     if (!item.read_at) markNotificationRead.mutate(item.id);
-    const targetRouteId = item.route_id || item.route_stops?.route_id;
-    if (!targetRouteId) return;
-    setNotificationsOpen(false);
-    const stopQuery = item.route_stop_id ? `?stop=${encodeURIComponent(item.route_stop_id)}` : "";
-    navigate(`/medarbejder/rute/${targetRouteId}${stopQuery}`);
   };
 
   const notificationContent = (
@@ -248,6 +227,8 @@ export const EmployeeShell = ({
       notifications={routeNotifications as EmployeeRouteNotification[]}
       onOpen={openNotification}
       onMarkAllRead={() => markAllNotificationsRead.mutate()}
+      onDelete={(id) => deleteNotification.mutate(id)}
+      onDeleteAll={() => deleteAllNotifications.mutate()}
       markingAll={markAllNotificationsRead.isPending}
       compact={!isMobile}
     />

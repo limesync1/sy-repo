@@ -4,6 +4,9 @@
 // SheetHeaderBlock + Section byggeklodser som virksomhedspanelets
 // StopDetailSheet, så medarbejder- og virksomhedspanel har 100% ens
 // visuelt sprog når man åbner detaljer for en aftale.
+import { Clock, Play, Pause } from "lucide-react";
+import { useMyEmployeeId } from "@/hooks/useMyEmployee";
+import { useStopTimeEntries, useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
 import { useMemo, useState } from "react";
 import {
   CheckCircle2, ClipboardList, Loader2, MapPin, MessageSquare,
@@ -55,6 +58,37 @@ export const StopDetailsContent = ({
 }: Props) => {
   const { data: order, isLoading: loadingOrder } = useOrderForStop(stop.order_id);
   const { data: meEmployee } = useMyEmployee();
+  const myEmployeeId = useMyEmployeeId();
+  const { data: timeEntries = [] } = useStopTimeEntries([stop.id]);
+  const startStopTime = useStartStopTime();
+  const endStopTime = useEndStopTime();
+
+  const myEntry = useMemo(() => 
+    timeEntries.find(e => e.employee_id === myEmployeeId && !e.ended_at) ||
+    timeEntries.filter(e => e.employee_id === myEmployeeId).sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())[0]
+  , [timeEntries, myEmployeeId]);
+
+  const isWorking = !!(myEntry && !myEntry.ended_at);
+  const totalDuration = useMemo(() => {
+    const entries = timeEntries.filter(e => e.employee_id === myEmployeeId && e.ended_at);
+    return entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0);
+  }, [timeEntries, myEmployeeId]);
+
+  const handleStartWork = async () => {
+    if (!myEmployeeId) return;
+    try {
+      await startStopTime.mutateAsync({ stop_id: stop.id, employee_id: myEmployeeId });
+      toast.success("Tidsregistrering startet");
+    } catch (err) {}
+  };
+
+  const handleEndWork = async () => {
+    if (!myEmployeeId) return;
+    try {
+      await endStopTime.mutateAsync({ stop_id: stop.id, employee_id: myEmployeeId });
+      toast.success("Tidsregistrering afsluttet");
+    } catch (err) {}
+  };
   const isDone = stop.status === "completed";
 
   // Lås "Markér udført" indtil rutens dato er aktuel.
@@ -299,6 +333,49 @@ export const StopDetailsContent = ({
       <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 sm:py-4 space-y-3">
         {/* Opgaver */}
         <Section
+          icon={<Clock className="h-3.5 w-3.5" />}
+          title="Tidsregistrering"
+          hint={isWorking ? "I gang" : totalDuration > 0 ? `${totalDuration} min` : undefined}
+        >
+          <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              {isWorking ? (
+                <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
+                  <div className="h-2 w-2 rounded-full bg-feature-cool" />
+                  Arbejder nu...
+                </div>
+              ) : totalDuration > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Samlet tid: <span className="font-semibold text-foreground">{totalDuration} minutter</span>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Ingen tidsregistrering endnu</p>
+              )}
+              {myEntry?.started_at && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {isWorking ? "Startet kl. " : "Seneste start kl. "} 
+                  {new Date(myEntry.started_at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              )}
+            </div>
+            {!isDone && (
+              <Button
+                size="sm"
+                variant={isWorking ? "outline" : "default"}
+                className="h-9 gap-2 shrink-0"
+                onClick={isWorking ? handleEndWork : handleStartWork}
+                disabled={startStopTime.isPending || endStopTime.isPending}
+              >
+                {isWorking ? (
+                  <> <Pause className="h-3.5 w-3.5" /> Stop </>
+                ) : (
+                  <> <Play className="h-3.5 w-3.5" /> Start </>
+                )}
+              </Button>
+            )}
+          </div>
+        </Section>
+
           icon={<Package className="h-3.5 w-3.5" />}
           title="Bestilte ydelser"
           hint={tasks.length > 0 ? `${tasks.length} ${tasks.length === 1 ? "ydelse" : "ydelser"}` : undefined}
