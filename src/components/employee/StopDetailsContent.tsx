@@ -436,15 +436,14 @@ export const StopDetailsContent = ({
         </Section>
 
         {customerNote && customerNote.trim() && (
-          <CollapsibleSection
+          <Section
             icon={<MessageSquare className="h-3.5 w-3.5" />}
             title="Besked fra kunden"
-            defaultOpen={false}
           >
             <div className="rounded-lg border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
               <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
             </div>
-          </CollapsibleSection>
+          </Section>
         )}
 
         {orderTotal > 0 && (
