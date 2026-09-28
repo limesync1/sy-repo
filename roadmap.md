@@ -127,4 +127,4 @@
 - [x] Skift kundeserviceidentitet mellem robot og William ved menneskelig overtagelse.
 - [x] Tilføj personlig William-sektion på forsiden og fjern hvide kanter i Trygt valg.
 - [x] Gennemgå og ensret skeletons på offentlige sider og alle tre paneler.
-- [ ] Verificér centrale flows, lys/mørk og 393/768/1280/1440 px uden overlap.
+- [x] Verificér centrale flows, lys/mørk og 393/768/1280/1440 px uden overlap.
