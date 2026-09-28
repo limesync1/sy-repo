@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { stripPrices } from "@/lib/employee-display";
 import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
-  unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
+  unlockAudio, playArrivalChime, playStartChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
 } from "@/lib/employee-audio";
 import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
@@ -419,10 +419,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [modeDialogOpen, setModeDialogOpen] = useState(true);
   const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [followMode, setFollowMode] = useState(true);
-  // Stop-detaljer sheet kan veksle mellem kompakt (~45 % af skærm) og fuld
-  // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
-  // på drag-bar'en eller chevron'en skifter højde.
-  const [sheetExpanded, setSheetExpanded] = useState(false);
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
@@ -1458,6 +1454,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onMarkNotificationRead={routeNotifications.length > 0
           ? () => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))
           : undefined}
+        audioEnabled={audioEnabled}
+        onToggleAudio={() => {
+          unlockAudio();
+          setAudioEnabled((value) => !value);
+          if (!audioEnabled) playStartChime();
+        }}
       />
     );
   }
@@ -2198,36 +2200,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onOpenChange={(o) => {
           if (!o) {
             setSelectedId(null);
-            setSheetExpanded(false);
           }
         }}
       >
-        {/*
-          To-trins bottom-sheet: kompakt (~45 vh, default) eller fuld (~85 vh).
-          Drag-bar'en øverst er klikbar — ét tryk skifter mellem størrelserne.
-          Sådan kan medarbejderen altid hurtigt gøre detaljer mindre uden at
-          lukke dem helt.
-        */}
         <SheetContent
           side="bottom"
-          className={`p-0 rounded-t-lg flex flex-col transition-[max-height,height] duration-300 ease-out ${
-            sheetExpanded ? "max-h-[82dvh] h-[82dvh]" : "max-h-[42dvh] h-[42dvh]"
-          }`}
+          className="h-dvh max-h-dvh p-0 flex flex-col rounded-none sm:h-[92dvh] sm:max-h-[92dvh] sm:rounded-t-md lg:bottom-4 lg:left-auto lg:right-4 lg:h-[calc(100dvh-2rem)] lg:max-h-[calc(100dvh-2rem)] lg:w-[30rem] lg:rounded-md"
         >
-          {/* Drag-handle bar — tap for at skifte højde, tryk-og-træk på mobile
-              er allerede dækket af bottom-sheet's swipe-luk gesture. */}
-          <button
-            type="button"
-            onClick={() => setSheetExpanded((v) => !v)}
-            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            aria-label={sheetExpanded ? "Gør detaljer mindre" : "Gør detaljer større"}
-            aria-expanded={sheetExpanded}
-          >
-            <span className="h-1.5 w-12 rounded-full bg-muted-foreground/50" aria-hidden />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium mt-0.5">
-              {sheetExpanded ? "Tryk for at gøre mindre" : "Tryk for at udvide"}
-            </span>
-          </button>
           <div className="flex-1 overflow-y-auto">
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);

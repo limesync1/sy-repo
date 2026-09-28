@@ -58,6 +58,13 @@ export const playSuccessChime = () => {
   playTone(1318, 200, 0.16, "sine", 100);  // E6
 };
 
+/** Rolig bekræftelse når faktisk tidsregistrering starter. */
+export const playStartChime = () => {
+  if (!unlocked) return;
+  playTone(659, 110, 0.13, "sine", 0);
+  playTone(880, 170, 0.14, "sine", 90);
+};
+
 /** Glad fanfare — bruges når dagens sidste stop er klaret. */
 export const playCompleteFanfare = () => {
   if (!unlocked) return;

@@ -502,7 +502,7 @@ const SortableStopRow = ({
                 </Badge>
                 {!isProjection && (
                   <Button type="button" variant="ghost" size="sm" className="h-6 gap-1 px-1.5 text-[11px]" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }}>
-                    <Undo2 className="h-3 w-3" /> Fortryd
+                    <Undo2 className="h-3 w-3" /> Fortryd udførsel
                   </Button>
                 )}
               </span>

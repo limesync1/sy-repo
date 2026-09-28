@@ -549,7 +549,7 @@ export const AdminShell = ({
                 <img
                   src={supportPortrait.url}
                   alt="Serviceydere kundeservice"
-                  className="h-6 w-6 rounded-full bg-background object-contain p-0.5"
+                  className="h-6 w-6 object-contain"
                 />
                 <span className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>

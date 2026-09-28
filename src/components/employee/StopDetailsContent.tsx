@@ -7,7 +7,7 @@
 import { Clock, Play, Pause } from "lucide-react";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { useStopTimeEntries, useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
@@ -62,6 +62,7 @@ export const StopDetailsContent = ({
   const { data: timeEntries = [] } = useStopTimeEntries([stop.id]);
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
+  const [now, setNow] = useState(() => Date.now());
 
   const myEntry = useMemo(() => 
     timeEntries.find(e => e.employee_id === myEmployeeId && !e.ended_at) ||
@@ -69,6 +70,11 @@ export const StopDetailsContent = ({
   , [timeEntries, myEmployeeId]);
 
   const isWorking = !!(myEntry && !myEntry.ended_at);
+  useEffect(() => {
+    if (!isWorking) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [isWorking, myEntry?.id]);
   const totalDurationSeconds = useMemo(() => {
     const entries = timeEntries.filter(e => e.employee_id === myEmployeeId && e.ended_at);
     return entries.reduce((seconds, entry) => {
@@ -79,7 +85,13 @@ export const StopDetailsContent = ({
   const h = Math.floor(totalDurationSeconds / 3600);
   const m = Math.floor((totalDurationSeconds % 3600) / 60);
   const s = totalDurationSeconds % 60;
-  const durationLabel = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const activeSeconds = isWorking && myEntry
+    ? Math.max(0, Math.floor((now - new Date(myEntry.started_at).getTime()) / 1000))
+    : 0;
+  const shownSeconds = totalDurationSeconds + activeSeconds;
+  const durationLabel = [Math.floor(shownSeconds / 3600), Math.floor((shownSeconds % 3600) / 60), shownSeconds % 60]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
 
   const handleStartWork = async () => {
     if (!myEmployeeId) return;
@@ -351,7 +363,8 @@ export const StopDetailsContent = ({
                 {!readOnly && isWorking ? (
                   <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
                     <div className="h-2 w-2 rounded-full bg-feature-cool" />
-                    Tidsregistrering aktiv
+                    <span>Tidsregistrering aktiv</span>
+                    <span className="font-mono font-semibold tabular-nums text-foreground">{durationLabel}</span>
                   </div>
                 ) : totalDurationSeconds > 0 ? (
                   <p className="text-sm text-muted-foreground">
