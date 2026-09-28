@@ -373,6 +373,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const updateStatus = useUpdateStopStatus();
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
+  const resetStopTime = useResetStopTime();
   const optimizeLive = useOptimizeRouteFromPosition();
   const autoOptimizeRef = useRef(false);
   const navigate = useNavigate();
@@ -1395,6 +1396,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleUndo = async (s: RouteStop) => {
     const resetTime = useResetStopTime();
     try {
+      if (meEmp?.id) {
+        await resetStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
+      }
       await updateStatus.mutateAsync({ id: s.id, status: "pending" });
       toast.success("Markering fortrudt");
     } catch {

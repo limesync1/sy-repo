@@ -13,6 +13,9 @@ import {
   Undo2,
   Loader2,
   BellRing,
+import { useMyEmployeeId } from "@/hooks/useMyEmployee";
+import { useStopTimeEntries, useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
+import { Clock, Play, Pause } from "lucide-react";
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -64,6 +67,20 @@ export const RouteChecklistView = ({
   onMarkNotificationRead,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
+  const myEmployeeId = useMyEmployeeId();
+  const stopIds = useMemo(() => stops.map(s => s.id), [stops]);
+  const { data: allTimeEntries = [] } = useStopTimeEntries(stopIds);
+  const startStopTime = useStartStopTime();
+  const endStopTime = useEndStopTime();
+
+  const getStopDuration = (stopId: string) => {
+    const entries = allTimeEntries.filter(e => e.stop_id === stopId && e.employee_id === myEmployeeId && e.ended_at);
+    return entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0);
+  };
+
+  const isWorkingOn = (stopId: string) => {
+    return allTimeEntries.some(e => e.stop_id === stopId && e.employee_id === myEmployeeId && !e.ended_at);
+  };
 
   const completed = useMemo(() => stops.filter((s) => s.status === "completed"), [stops]);
   const remaining = useMemo(() => stops.filter((s) => s.status !== "completed"), [stops]);
