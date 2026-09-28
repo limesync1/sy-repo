@@ -2309,7 +2309,12 @@ const Planner = () => {
   // mest brugte callbacks (select stop / create route) skal være stabile.
   const handleCalendarSelectRoute = async (r: any) => {
     setSelectedStopId(null);
-    if (activeEditingRoute?.id === r.id) {
+    const selectedBaseId = r.isVirtual
+      ? (r.baseRouteId || (typeof r.id === "string" ? r.id.split(":")[1] : null))
+      : r.id;
+    const sameProjectedDate = !r.isVirtual
+      || editingProjectedContext?.projectedDate === String(r.route_date || "").slice(0, 10);
+    if (activeEditingRoute?.id === selectedBaseId && sameProjectedDate) {
       setEditingRoute(null);
       setEditingRoutePreview(null);
       setEditingProjectedContext(null);
@@ -3027,14 +3032,14 @@ const Planner = () => {
             )}
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList className="h-7 p-[2px] rounded-md bg-secondary/60 border border-border/60">
+              <TabsList className="h-9 rounded-md border border-border bg-secondary/50 p-1 shadow-inner">
                 <TabsTrigger
                   value="month"
-                  className="text-[11px] font-semibold h-[22px] px-3 rounded-[5px] tabular-nums data-[state=active]:bg-background data-[state=active]:shadow-[0_1px_2px_hsl(var(--foreground)/0.06)] data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-colors"
+                  className="h-7 min-w-[72px] rounded-[4px] px-3 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >Måned</TabsTrigger>
                 <TabsTrigger
                   value="week"
-                  className="text-[11px] font-semibold h-[22px] px-3 rounded-[5px] tabular-nums data-[state=active]:bg-background data-[state=active]:shadow-[0_1px_2px_hsl(var(--foreground)/0.06)] data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-colors"
+                  className="h-7 min-w-[72px] rounded-[4px] px-3 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >Uge</TabsTrigger>
               </TabsList>
             </Tabs>

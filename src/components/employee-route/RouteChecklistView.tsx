@@ -141,7 +141,7 @@ export const RouteChecklistView = ({
             <Navigation2 className="h-4 w-4" />
             Kørselsguide
           </Button>
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}>
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"} aria-pressed={!audioEnabled}>
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
@@ -366,7 +366,7 @@ export const RouteChecklistView = ({
                 {completed.map((s) => (
                   <li
                     key={s.id}
-                     className="flex items-center gap-3 rounded-md border border-border bg-card/70 px-3 py-2.5"
+                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-border bg-card/70 px-2.5 py-2.5 sm:gap-3 sm:px-3"
                   >
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                     <span className="min-w-0 flex-1 truncate text-[13.5px] text-muted-foreground line-through">
@@ -375,11 +375,13 @@ export const RouteChecklistView = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 shrink-0 gap-1 border-destructive/30 px-2 text-[12px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="h-8 w-8 shrink-0 border-destructive/30 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive sm:w-auto sm:gap-1.5 sm:px-2.5"
                       onClick={() => onUndo(s)}
+                      aria-label="Fortryd udførsel"
+                      title="Fortryd udførsel"
                     >
                       <Undo2 className="h-3.5 w-3.5" />
-                       Fortryd udførsel
+                      <span className="hidden sm:inline">Fortryd udførsel</span>
                     </Button>
                   </li>
                 ))}

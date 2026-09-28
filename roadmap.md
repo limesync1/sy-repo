@@ -145,3 +145,8 @@
 - [x] Forbedr ruteplanlæggerens topkontroller, rutetoggle og fortryd-tekster
 - [x] Fjern baggrund bag kundeserviceikonet i panelheaderen
 - [x] Verificér flows på mobil og computer
+
+## Afsluttende forbedring af rutekørsel
+- [x] Gør “Fortryd udførsel” kompakt i stoplister og detaljer.
+- [x] Vis den automatiske sekundtæller direkte i både tjekliste og kørselsguide.
+- [x] Kontrollér kørselsvalg, lyd, fuldhøj mobilvisning, plannervalg og kundeserviceikon igen.
