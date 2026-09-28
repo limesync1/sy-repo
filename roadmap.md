@@ -125,6 +125,6 @@
 - [x] Forbedr omsætning/andel, kundeoprettelse, adresseforslag, logoer og formulartekster responsivt.
 - [x] Ensret aftale/stop-ordvalg og stavningen E-conomic på hele platformen.
 - [x] Skift kundeserviceidentitet mellem robot og William ved menneskelig overtagelse.
-- [ ] Tilføj personlig William-sektion på forsiden og fjern hvide kanter i Trygt valg.
-- [ ] Gennemgå og ensret skeletons på offentlige sider og alle tre paneler.
+- [x] Tilføj personlig William-sektion på forsiden og fjern hvide kanter i Trygt valg.
+- [x] Gennemgå og ensret skeletons på offentlige sider og alle tre paneler.
 - [ ] Verificér centrale flows, lys/mørk og 393/768/1280/1440 px uden overlap.

@@ -141,10 +141,10 @@ const TabFallback = ({ tab }: { tab: string }) => {
         <div className="space-y-6 animate-fade-in">
           <PageHeaderSkeleton />
           {/* Match AccountingTab's interne loading: hero-banner + 4 udbyder-kort */}
-          <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 h-[140px] animate-pulse" />
+          <div className="rounded-2xl border border-border/80 bg-muted/40 p-6 sm:p-8 h-[140px] animate-pulse" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-[180px] rounded-2xl border border-border/80 bg-card animate-pulse" />
+              <div key={i} className="h-[180px] rounded-2xl border border-border/80 bg-muted/40 animate-pulse" />
             ))}
           </div>
         </div>
@@ -156,13 +156,13 @@ const TabFallback = ({ tab }: { tab: string }) => {
         <div className="space-y-6 animate-fade-in">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-secondary/70 animate-pulse" />
+              <div className="h-12 w-12 rounded-full bg-muted/70 animate-pulse" />
               <div className="space-y-2">
-                <div className="h-7 w-44 rounded bg-secondary/70 animate-pulse" />
-                <div className="h-3.5 w-64 rounded bg-secondary/70 animate-pulse" />
+                <div className="h-7 w-44 rounded bg-muted/70 animate-pulse" />
+                <div className="h-3.5 w-64 rounded bg-muted/70 animate-pulse" />
               </div>
             </div>
-            <div className="h-8 w-32 rounded-full bg-secondary/70 animate-pulse" />
+            <div className="h-8 w-32 rounded-full bg-muted/70 animate-pulse" />
           </div>
           <FormSkeleton fields={5} />
         </div>

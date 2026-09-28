@@ -293,10 +293,10 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
       {/* Hold PageHeader-pladsen så vi ikke får et hop fra chunk-fallback → data-load. */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <div className="h-7 w-44 rounded bg-secondary/70 animate-pulse" />
-          <div className="h-3.5 w-60 rounded bg-secondary/70 animate-pulse" />
+          <div className="h-7 w-44 rounded bg-muted/70 animate-pulse" />
+          <div className="h-3.5 w-60 rounded bg-muted/70 animate-pulse" />
         </div>
-        <div className="h-10 w-full rounded-xl bg-secondary/70 animate-pulse sm:w-40" />
+        <div className="h-10 w-full rounded-xl bg-muted/70 animate-pulse sm:w-40" />
       </div>
       <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
       <ListCardSkeleton rows={5} />
