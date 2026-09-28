@@ -111,8 +111,8 @@ const Index = () => {
           <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
           <Reveal><Testimonials /></Reveal>
-          <Reveal><FounderNote /></Reveal>
           <div className="bg-ocean"><Reveal><WhyUs /></Reveal></div>
+          <Reveal><FounderNote /></Reveal>
           <Reveal><ForBusinesses /></Reveal>
 
           <Reveal className="bg-ocean">
