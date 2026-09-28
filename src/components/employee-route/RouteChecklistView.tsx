@@ -82,7 +82,7 @@ export const RouteChecklistView = ({
     <div className="employee-route-run flex min-h-dvh flex-col bg-secondary/35">
       {/* Header */}
       <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card text-foreground shadow-sm">
-        <div className="mx-auto flex h-14 w-full max-w-4xl items-center gap-2 px-2 sm:px-5">
+        <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-2 px-2 sm:px-5">
           <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-md">
             <Link to="/medarbejder" aria-label="Tilbage til dagens ruter">
               <ArrowLeft className="h-5 w-5" />
@@ -97,11 +97,11 @@ export const RouteChecklistView = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-10 shrink-0 gap-1.5 border border-border bg-background px-2.5 text-[12.5px] text-foreground hover:bg-secondary"
+            className="h-10 shrink-0 gap-1.5 border border-beige-foreground/15 bg-beige px-3 text-[12.5px] font-semibold text-beige-foreground hover:bg-beige/80"
             onClick={onSwitchToGuide}
           >
             <Navigation2 className="h-4 w-4" />
-            Kort
+            Vis kort
           </Button>
         </div>
         <div className="h-1 w-full bg-secondary" aria-hidden>
@@ -114,7 +114,7 @@ export const RouteChecklistView = ({
 
       {notification && (
         <div className="border-b border-destructive/25 bg-destructive/5 px-3 py-2.5">
-          <div className="mx-auto flex max-w-4xl items-start gap-2.5">
+          <div className="mx-auto flex max-w-2xl items-start gap-2.5">
             <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[10px] font-semibold uppercase text-destructive">{notification.title}</p>
@@ -127,7 +127,7 @@ export const RouteChecklistView = ({
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
         {allDone ? (
           <section className="rounded-md border border-border bg-card p-6 text-center">
             <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-md bg-success/10 text-success">
@@ -179,8 +179,7 @@ export const RouteChecklistView = ({
                   {!nextIsStarted && (
                     <Button
                       type="button"
-                      variant="outline"
-                      className="min-h-11 w-full gap-2"
+                      className="min-h-11 w-full gap-2 bg-warning font-semibold text-warning-foreground hover:bg-warning/90"
                       disabled={!employeeId || locked || startStopTime.isPending}
                       onClick={() => employeeId && startStopTime.mutate({ stop_id: next.id, employee_id: employeeId })}
                     >
@@ -189,7 +188,7 @@ export const RouteChecklistView = ({
                     </Button>
                   )}
                   <Button
-                    className="h-13 min-h-[52px] w-full gap-2 text-[15px] font-semibold"
+                    className="h-13 min-h-[52px] w-full gap-2 bg-success text-[15px] font-semibold text-success-foreground hover:bg-success/90"
                     disabled={locked || pendingId === next.id}
                     onClick={() => onComplete(next)}
                   >
@@ -327,9 +326,9 @@ export const RouteChecklistView = ({
                       {s.customer_name || "Stop"}
                     </span>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="h-8 shrink-0 gap-1 px-2 text-[12px]"
+                      className="h-8 shrink-0 gap-1 border-destructive/30 px-2 text-[12px] text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => onUndo(s)}
                     >
                       <Undo2 className="h-3.5 w-3.5" />

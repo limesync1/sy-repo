@@ -45,6 +45,10 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        beige: {
+          DEFAULT: "hsl(var(--beige))",
+          foreground: "hsl(var(--beige-foreground))",
+        },
         info: {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
