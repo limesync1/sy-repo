@@ -141,3 +141,7 @@
 - [x] Vis kørselsvalget før kort, GPS og kortdata monteres.
 - [x] Tilpas kortets topbjælke, beskeder, næste stop og stopliste til mobil, tablet og bred computer.
 - [x] Kontrollér tjekliste og kortguide indlogget ved 393, 768, 1440 og 2889 px.
+- [ ] Forbedr rutekørslens tidsmåling, mobilvisning, lyd og kørselsvalg
+- [ ] Forbedr ruteplanlæggerens topkontroller, rutetoggle og fortryd-tekster
+- [ ] Fjern baggrund bag kundeserviceikonet i panelheaderen
+- [ ] Verificér flows på mobil og computer
