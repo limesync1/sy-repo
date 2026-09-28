@@ -805,7 +805,7 @@ const LiveChatWidget = () => {
             <img
               src={escalated ? supportPortrait.url : supportRobot.url}
               alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"}
-              className={cn("h-8 w-8 rounded-full", escalated ? "object-cover ring-2 ring-background/20" : "object-contain")}
+              className={cn("h-8 w-8", escalated ? "rounded-full object-cover ring-2 ring-background/20" : "object-contain")}
             />
             <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
