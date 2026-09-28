@@ -307,11 +307,6 @@ export const RouteChecklistView = ({
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                     <span className="min-w-0 flex-1 truncate text-[13.5px] text-muted-foreground line-through">
                       {s.customer_name || "Stop"}
-                    {getStopDuration(s.id) > 0 && (
-                      <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
-                        ({getStopDuration(s.id)} min)
-                      </span>
-                    )}
                     </span>
                     <Button
                       variant="ghost"

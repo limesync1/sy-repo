@@ -807,7 +807,7 @@ const FinanceOverviewCard = ({
   sparkline: number[];
   onOpenRevenue: () => void;
   onOpenOrders: () => void;
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, itemId?: string) => void;
 }) => {
   const [period, setPeriod] = useState<"p7" | "p30">("p7");
   const p = finance[period];
