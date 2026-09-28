@@ -20,11 +20,12 @@ export const imageSrc = (
   url?: string | null,
   width = 800,
   quality = 75,
+  resize: "cover" | "contain" = "cover",
 ): string | undefined => {
   if (!url) return undefined;
   if (!isTransformableImage(url)) return url;
   const [base] = url.split("?");
-  return `${base.replace(OBJECT_SEGMENT, RENDER_SEGMENT)}?width=${width}&quality=${quality}&resize=cover`;
+  return `${base.replace(OBJECT_SEGMENT, RENDER_SEGMENT)}?width=${width}&quality=${quality}&resize=${resize}`;
 };
 
 /** srcSet med flere bredder, så browseren henter den mindste der er skarp nok. */

@@ -711,7 +711,7 @@ const RequestQuote = () => {
                       {match.business.logo_url && match.business.cover_image_url && (
                         <div className="absolute bottom-1.5 left-1.5 flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-1 shadow-md">
                           <img
-                            src={imageSrc(match.business.logo_url, 96, 82)}
+                            src={imageSrc(match.business.logo_url, 96, 82, "contain")}
                             alt=""
                             className="h-full w-full object-contain"
                             width={36}

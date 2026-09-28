@@ -573,7 +573,7 @@ const CartSheet = () => {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="mb-1.5 block text-sm font-medium text-foreground">Firmanavn</label>
-                        <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Udfyldes automatisk efter CVR-opslag" className="h-11 rounded-lg text-base sm:text-sm" />
+                        <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hentes via CVR" className="h-11 rounded-lg text-base sm:text-sm" />
                         {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
                       </div>
                       <div>
