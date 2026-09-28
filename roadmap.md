@@ -128,3 +128,8 @@
 - [x] Tilføj personlig William-sektion på forsiden og fjern hvide kanter i Trygt valg.
 - [x] Gennemgå og ensret skeletons på offentlige sider og alle tre paneler.
 - [x] Verificér centrale flows, lys/mørk og 393/768/1280/1440 px uden overlap.
+
+## Tidsvisning i ruteplanlægger og medarbejderstatistik
+- [x] Fjern rutetid fra rutekort i ugevisningen.
+- [x] Skjul aktiv arbejdsstatus og starttid i medarbejderens statistikdetaljer.
+- [x] Bevar afsluttet faktisk tidsforbrug med sekundpræcision.
