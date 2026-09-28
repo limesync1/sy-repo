@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { stripPrices } from "@/lib/employee-display";
 import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
-  unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
+  unlockAudio, playArrivalChime, playStartChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
 } from "@/lib/employee-audio";
 import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
