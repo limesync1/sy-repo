@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition, useReorderStops } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime, useResetStopTime, useOptimizeRouteFromPosition, useReorderStops } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -1393,6 +1393,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleUndo = async (s: RouteStop) => {
+    const resetTime = useResetStopTime();
     try {
       await updateStatus.mutateAsync({ id: s.id, status: "pending" });
       toast.success("Markering fortrudt");
