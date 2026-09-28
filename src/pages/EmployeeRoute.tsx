@@ -391,7 +391,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       const { data } = await supabase
         .from("businesses")
         .select("allow_early_completion_default")
-        .eq("id", meEmp!.business_id!)
+        .eq("id", meEmp?.business_id ?? "")
         .maybeSingle();
       return !!(data as any)?.allow_early_completion_default;
     },
@@ -416,7 +416,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Tjekliste eller kørselsguide. Valget spørges første gang man starter en
   // rute og huskes derefter pr. enhed — men kan altid skiftes undervejs.
   const [runMode, setRunMode] = useState<RouteRunMode>(() => readRunMode() ?? "guide");
-  const [modeDialogOpen, setModeDialogOpen] = useState(false);
+  const [modeDialogOpen, setModeDialogOpen] = useState(true);
   const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [followMode, setFollowMode] = useState(true);
   // Stop-detaljer sheet kan veksle mellem kompakt (~45 % af skærm) og fuld
@@ -1093,14 +1093,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     void reoptRef.current({ silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speedOpp.worth, speedOpp.savedMin, speedOpp.fixesViolations, routeStarted, runMode, pageVisible]);
-  /* Spørg om kørselsmåde med det samme, før kortet vises — så man ikke
-     lander i kortvisningen, hvis man vil bruge tjeklisten. */
-  const askedModeRef = useRef(false);
-  useEffect(() => {
-    if (askedModeRef.current || routeStarted || allDone || sortedStops.length === 0) return;
-    askedModeRef.current = true;
-    if (!routeDateLocked) setModeDialogOpen(true);
-  }, [routeStarted, allDone, sortedStops.length, routeDateLocked]);
   const todayLabel = useMemo(() => formatDayDate(new Date()), []);
 
   /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
@@ -1437,14 +1429,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => void reoptimizeFromHere({ silent: true }), 1500);
   };
 
-  const handleStartRoute = () => {
-    if (routeDateLocked) {
-      toast.error("Ruten kan først startes på selve dagen");
-      return;
-    }
-    setModeDialogOpen(true);
-  };
-
   /* ── Tjekliste-tilstand: den simple visning uden kort og GPS ── */
   if (routeStarted && runMode === "list") {
     return (
@@ -1478,18 +1462,43 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     );
   }
 
+  /* Kortet må ikke monteres, før medarbejderen aktivt har valgt
+     kørselsform. Det undgår både kort-flash, unødige flisekald og GPS-arbejde,
+     når medarbejderen i stedet vil bruge den strømbesparende tjekliste. */
+  if (!routeStarted && !allDone) {
+    return (
+      <div className="employee-route-run fixed inset-0 flex min-h-dvh items-center justify-center overflow-hidden bg-secondary/35 px-3 py-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="w-full max-w-md rounded-md border border-border bg-card p-4 text-center shadow-sm">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">{todayLabel}</p>
+          <h1 className="mt-1 truncate text-lg font-semibold text-foreground">{route.name || "Dagens rute"}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{remainingStops.length} stop klar</p>
+          {routeDateLocked && (
+            <div className="mt-4 rounded-md border border-warning/35 bg-warning/10 px-3 py-3 text-sm text-warning-foreground">
+              Ruten kan først startes på selve dagen.
+            </div>
+          )}
+          <Button variant="outline" className="mt-4 h-11 w-full" onClick={onBack}>Tilbage til Min dag</Button>
+        </div>
+        {!routeDateLocked && (
+          <RouteModeDialog
+            open={modeDialogOpen}
+            onOpenChange={(open) => {
+              setModeDialogOpen(open);
+              if (!open) onBack();
+            }}
+            onChoose={(mode, remember) => {
+              writeRunMode(mode, remember);
+              setModeDialogOpen(false);
+              beginRoute(mode);
+            }}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="employee-route-run fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* Valg af kørselstilstand — spørges første gang man starter en rute */}
-      <RouteModeDialog
-        open={modeDialogOpen}
-        onOpenChange={setModeDialogOpen}
-        onChoose={(mode, remember) => {
-          writeRunMode(mode, remember);
-          setModeDialogOpen(false);
-          beginRoute(mode);
-        }}
-      />
       {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
           synlig før rute starter eller ved færdig.  Lyd-knappen findes
           som floating control under kørsel — ingen dubletter her. ─── */}
@@ -1769,8 +1778,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Aktiv kørselsbjælke: alle primære kontroller samlet ét sted ─── */}
         {routeStarted && !allDone && (
           <>
-            <div className="absolute left-2 right-2 top-2 z-[1002] sm:left-4 sm:right-4 sm:top-4">
-              <div className="mx-auto flex h-14 max-w-3xl items-center gap-2 rounded-md border border-border/80 bg-foreground px-2 text-background shadow-xl">
+            <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
+              <div className="flex h-14 w-full items-center gap-2 rounded-md border border-border/80 bg-foreground px-2 text-background shadow-xl">
                 <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background">
                   <Link to="/medarbejder" aria-label="Tilbage">
                     <ArrowLeft className="h-5 w-5" />
@@ -1809,7 +1818,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Næste manøvre — placeret under den faste kørselsbjælke */}
             {showManeuverBanner && maneuver && nextStop && (
-              <div className="absolute left-2 right-2 top-[72px] z-[1000] pointer-events-none sm:left-1/2 sm:right-auto sm:w-[30rem] sm:-translate-x-1/2 sm:top-[84px]">
+              <div className="absolute left-2 right-[4.25rem] top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] z-[1000] pointer-events-none sm:left-4 sm:right-[5rem] lg:left-auto lg:right-4 lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
                 <Card className="overflow-hidden rounded-md border-border bg-card/97 shadow-xl pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
                     <div className="flex w-[76px] shrink-0 flex-col items-center justify-center bg-accent px-1 py-3 text-accent-foreground">
@@ -1888,7 +1897,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 chip: "hsl(38 100% 90%)",
               };
               return (
-                <div className={`absolute ${showManeuverBanner ? "top-[200px]" : "top-[68px]"} left-3 right-[68px] z-[1000] pointer-events-none`}>
+                <div className={`absolute ${showManeuverBanner ? "top-[12.5rem]" : "top-[4.75rem]"} left-2 right-[4.25rem] z-[1000] pointer-events-none sm:left-4 sm:right-[5rem] lg:left-auto lg:right-4 lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]`}>
                   <div
                     className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
                     style={{ background: tone.bg, borderColor: tone.border }}
@@ -1939,75 +1948,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </>
         )}
 
-        {/* ─── Før start: kompakt kørselsdock med ét klart næste trin ─── */}
-        {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:inset-x-auto lg:right-4 lg:bottom-[60px] lg:w-[26rem] lg:p-0">
-            <section className="route-drive-dock mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border border-background/15 bg-foreground text-background shadow-xl">
-              <div className="flex items-center justify-between gap-3 border-b border-background/15 px-3.5 py-2.5">
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-semibold uppercase text-background/65">{todayLabel}</p>
-                  <p className="truncate text-sm font-semibold">{route.name || "Dagens rute"}</p>
-                </div>
-                {remainingStops.length > 1 && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    className="h-8 shrink-0 gap-1.5 rounded-md px-2.5 text-xs"
-                    disabled={optimizeLive.isPending}
-                    onClick={() => void reoptimizeFromHere()}
-                  >
-                    {optimizeLive.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-                    {optimizeLive.isPending ? "Optimerer" : "Optimér"}
-                  </Button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch">
-                <div className="min-w-0 px-3.5 py-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-sm font-bold text-accent-foreground">
-                      {nextStopIdx + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-semibold uppercase text-background/60">Første stop</p>
-                      <p className="truncate text-[15px] font-semibold leading-tight">{nextStop.customer_name || "Stop"}</p>
-                    </div>
-                  </div>
-                  {(nextStop.full_address || nextStop.address) && (
-                    <p className="mt-2 flex items-center gap-1.5 truncate text-xs text-background/70">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      {nextStop.full_address || nextStop.address}
-                    </p>
-                  )}
-                </div>
-                <div className="min-w-[104px] border-l border-background/15 text-right">
-                  <div className="flex h-full flex-col justify-center px-3 py-2">
-                    <p className="text-[9px] font-semibold uppercase text-background/55">Distance</p>
-                    <p className="text-sm font-semibold tabular-nums">
-                      {route.total_distance_km != null && route.total_distance_km > 0 ? `${route.total_distance_km.toFixed(1)} km` : "—"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-background/15 p-2.5">
-                <Button
-                  onClick={handleStartRoute}
-                  size="lg"
-                  disabled={routeDateLocked}
-                  className="h-12 w-full gap-2 rounded-md bg-accent text-sm font-semibold text-accent-foreground shadow-none hover:bg-accent/90"
-                >
-                  <Navigation className="h-5 w-5" /> {routeDateLocked ? "Låst til rutedagen" : `Start rute · ${remainingStops.length} stop`}
-                </Button>
-              </div>
-            </section>
-          </div>
-        )}
-
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="pointer-events-none absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:inset-x-auto lg:right-4 lg:bottom-[60px] lg:w-[26rem] lg:p-0">
+          <div className="pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
@@ -2210,7 +2153,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:p-4 lg:inset-x-auto lg:right-4 lg:bottom-[60px] lg:w-[26rem] lg:p-0">
+          <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
               <div className="space-y-3 p-3.5 text-center sm:p-4">
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-success/10 text-success">
@@ -2268,7 +2211,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <SheetContent
           side="bottom"
           className={`p-0 rounded-t-lg flex flex-col transition-[max-height,height] duration-300 ease-out ${
-            sheetExpanded ? "max-h-[82vh] h-[82vh]" : "max-h-[42vh] h-[42vh]"
+            sheetExpanded ? "max-h-[82dvh] h-[82dvh]" : "max-h-[42dvh] h-[42dvh]"
           }`}
         >
           {/* Drag-handle bar — tap for at skifte højde, tryk-og-træk på mobile
@@ -2410,7 +2353,7 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl rounded-t-md border-x border-t border-border bg-card shadow-xl transition-transform duration-300 ease-out lg:max-w-2xl"
+        className="pointer-events-auto mx-auto w-full max-w-3xl rounded-t-md border-x border-t border-border bg-card shadow-xl transition-transform duration-300 ease-out md:mr-4 md:max-w-[24rem] lg:max-w-[26rem] xl:max-w-[28rem] 2xl:max-w-[30rem]"
         style={{
           transform: open ? "translateY(0)" : "translateY(calc(100% - 52px))",
           maxHeight: "min(68dvh, 42rem)",
