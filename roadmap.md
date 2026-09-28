@@ -147,6 +147,6 @@
 - [x] Verificér flows på mobil og computer
 
 ## Afsluttende forbedring af rutekørsel
-- [ ] Gør “Fortryd udførsel” kompakt i stoplister og detaljer.
-- [ ] Vis den automatiske sekundtæller direkte i både tjekliste og kørselsguide.
-- [ ] Kontrollér kørselsvalg, lyd, fuldhøj mobilvisning, plannervalg og kundeserviceikon igen.
+- [x] Gør “Fortryd udførsel” kompakt i stoplister og detaljer.
+- [x] Vis den automatiske sekundtæller direkte i både tjekliste og kørselsguide.
+- [x] Kontrollér kørselsvalg, lyd, fuldhøj mobilvisning, plannervalg og kundeserviceikon igen.
