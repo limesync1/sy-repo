@@ -330,12 +330,10 @@ const EmployeeApp = () => {
             planneren. Kontekst-bevidst: starter dagen, fortsætter ruten,
             afslutter dagen, eller printer kvitteringer. */}
         {!routesLoading && !stopsLoading && isCurrentDay && (() => {
-          // Find næste pending stop på tværs af alle ruter (først ruten
-          // der allerede er i gang, ellers den med tidligst start).
+          // Find næste ikke-udførte stop på tværs af dagens ruter.
           const sortedRoutes = [...routes].sort((a, b) => {
-            const at = a.planned_start_time || "99:99";
-            const bt = b.planned_start_time || "99:99";
-            return at.localeCompare(bt);
+            const created = (a.created_at || "").localeCompare(b.created_at || "");
+            return created || (a.name || "").localeCompare(b.name || "", "da");
           });
           let nextStop: RouteStop | null = null;
           let nextRoute: typeof routes[number] | null = null;
@@ -512,14 +510,12 @@ const EmployeeApp = () => {
         {(() => {
           // ─── Sekventiel låsning ──────────────────────────────────────────
           // Medarbejderen skal kun kunne starte ÉN rute ad gangen i dag.
-          // Vi sorterer dagens ruter efter planlagt starttid og finder den
-          // tidligste rute der ikke er færdig — alle senere ikke-færdige
+          // Vi bruger ruternes stabile oprettelsesrækkefølge og finder den
+          // første rute der ikke er færdig — alle senere ikke-færdige
           // ruter rendes som "låst" (CTA disabled + lås-badge).
           const ord = [...routes].sort((a, b) => {
-            const at = a.planned_start_time || "99:99";
-            const bt = b.planned_start_time || "99:99";
-            if (at !== bt) return at < bt ? -1 : 1;
-            return (a.created_at || "").localeCompare(b.created_at || "");
+            const created = (a.created_at || "").localeCompare(b.created_at || "");
+            return created || (a.name || "").localeCompare(b.name || "", "da");
           });
           const firstActiveId = ord.find((r) => {
             const rs = stopsByRoute.get(r.id) || [];
@@ -534,10 +530,8 @@ const EmployeeApp = () => {
           // Beregn om ruten er låst (en tidligere rute mangler stadig stop).
           // Vi rebygger samme orden her for at tjekke uden prop-drilling.
           const sortedAll = [...routes].sort((a, b) => {
-            const at = a.planned_start_time || "99:99";
-            const bt = b.planned_start_time || "99:99";
-            if (at !== bt) return at < bt ? -1 : 1;
-            return (a.created_at || "").localeCompare(b.created_at || "");
+            const created = (a.created_at || "").localeCompare(b.created_at || "");
+            return created || (a.name || "").localeCompare(b.name || "", "da");
           });
           const firstActiveId = sortedAll.find((rt) => {
             const rs = stopsByRoute.get(rt.id) || [];

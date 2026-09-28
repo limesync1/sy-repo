@@ -22,7 +22,7 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const PARTS = [
   { icon: Route, title: "Ruteplanlægger", href: "/software/ruteplanlaegger",
-    body: "Ugens ruter med drag & drop, kørselstid, faste aftaler, sygemelding i tre trin og konfliktadvarsler." },
+    body: "Ugens ruter med drag & drop, stopbaseret kapacitet, faste aftaler, sygemelding og konfliktadvarsler." },
   { icon: Smartphone, title: "Medarbejder-app", href: "/software/medarbejder-app",
     body: "Medarbejderen ser dagens rute på telefonen, starter dagen og markerer stop udført." },
   { icon: CalendarCheck, title: "Booking og tilbud", href: "/software/booking-og-tilbud",

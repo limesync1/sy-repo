@@ -5,7 +5,7 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/ruteplanlaegger",
   metaTitle: "Ruteplanlægger til servicevirksomheder | Serviceydere",
   metaDescription:
-    "Planlæg dagens og ugens ruter med drag & drop, faste aftaler, kørselstid, ETA og konfliktadvarsler. Ruteplanlægning til rengøring, have, håndværk og service.",
+    "Planlæg dagens og ugens ruter med drag & drop, faste aftaler, stopbaseret kapacitet og konfliktadvarsler. Ruteplanlægning til rengøring, have, håndværk og service.",
   keywords:
     "ruteplanlægger, ruteplanlægning, planlægning af serviceruter, kørselsplanlægning, faste aftaler, rengøringsruter, serviceruter software",
   heroEyebrow: "Ruteplanlægger",
