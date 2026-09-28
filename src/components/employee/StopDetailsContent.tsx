@@ -345,7 +345,7 @@ export const StopDetailsContent = ({
           >
             <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                {isWorking ? (
+                {!readOnly && isWorking ? (
                   <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
                     <div className="h-2 w-2 rounded-full bg-feature-cool" />
                     Tidsregistrering aktiv

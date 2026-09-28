@@ -37,9 +37,11 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
-const formatWorkDuration = (seconds: number) => {
+const formatWorkDuration = (seconds: number, showSeconds = true) => {
   const safe = Math.max(0, Math.floor(seconds));
-  return [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60), safe % 60]
+  const parts = [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60)];
+  if (showSeconds) parts.push(safe % 60);
+  return parts
     .map((value) => String(value).padStart(2, "0"))
     .join(" : ");
 };
