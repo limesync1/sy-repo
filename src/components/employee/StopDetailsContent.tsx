@@ -333,7 +333,6 @@ export const StopDetailsContent = ({
       <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 sm:py-4 space-y-3">
         {/* Opgaver */}
         <Section
-        <Section
           icon={<Clock className="h-3.5 w-3.5" />}
           title="Tidsregistrering"
           hint={isWorking ? "I gang" : totalDuration > 0 ? `${totalDuration} min` : undefined}

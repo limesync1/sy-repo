@@ -53,8 +53,8 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-5xl flex-1 content-start items-start gap-4 px-3 py-4 sm:px-6 sm:py-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-4">
-        <section className="service-panel-card overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:sticky lg:top-20">
+      <main className="mx-auto grid w-full max-w-4xl flex-1 content-start items-start gap-3 px-3 py-4 sm:px-6 sm:py-8 md:grid-cols-[200px_minmax(0,1fr)]">
+        <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm md:sticky md:top-20">
           <div className="border-b border-border bg-secondary/45 p-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-foreground text-background">
               <BriefcaseBusiness className="h-4 w-4" />
@@ -73,7 +73,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           </div>
         </section>
 
-        <section className="service-panel-card min-w-0 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm">
+        <section className="service-panel-card min-w-0 overflow-hidden rounded-md border border-border bg-card shadow-sm">
           <div className="border-b border-border px-4 py-4 sm:px-5">
             <h2 className="text-base font-semibold text-foreground tracking-tight">Dine arbejdspladser</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Du kan altid skifte igen fra profilmenuen.</p>
@@ -96,9 +96,9 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                     pending === emp.business_id && "opacity-70",
                   )}
                 >
-                  <Avatar className="h-10 w-10 shrink-0 rounded-[5px] ring-1 ring-border">
+                  <Avatar className="h-11 w-11 shrink-0 rounded-md bg-card ring-1 ring-border">
                     {biz?.logo_url ? (
-                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-[5px] object-cover" />
+                      <AvatarImage src={biz.logo_url} alt={name} className="rounded-md bg-card object-contain p-1" />
                     ) : null}
                     <AvatarFallback className="rounded-[5px] bg-secondary text-sm font-bold text-foreground">
                       {initialsOf(name)}

@@ -70,7 +70,7 @@ const WhyUs = () => {
           {benefits.map((b, i) => (
             <li
               key={b.title}
-              className="group relative flex h-full flex-col rounded-xl border border-ocean-foreground/12 bg-ocean-foreground/[0.05] p-5 transition-colors hover:border-ocean-foreground/25 hover:bg-ocean-foreground/[0.08]"
+              className="group relative flex h-full flex-col rounded-lg bg-ocean-foreground/[0.06] p-5 transition-colors hover:bg-ocean-foreground/[0.1]"
             >
               <div className="flex items-center justify-between">
                 <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-ocean-foreground/10 text-ocean-foreground transition-colors group-hover:bg-ocean-foreground/15">

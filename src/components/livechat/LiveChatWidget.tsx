@@ -15,7 +15,8 @@ import ChatInboxList from "./ChatInboxList";
 import BusinessRecommendationCard from "./BusinessRecommendationCard";
 import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
-import supportPortrait from "@/assets/serviceydere-support.jpg.asset.json";
+import supportPortrait from "@/assets/william-ross-jepsen.jpg.asset.json";
+import supportRobot from "@/assets/kundeservice-ikon.png.asset.json";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1059,6 +1060,7 @@ const LiveChatWidget = () => {
                       );
                     }
                     const mine = m.sender_type === "visitor";
+                    const isAi = m.metadata?.kind === "ai";
                     const prev = messages[i - 1];
                     const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system || prev.sender_name !== m.sender_name);
                     let lastVisitorIdx = -1;
@@ -1072,7 +1074,7 @@ const LiveChatWidget = () => {
                           <div className="w-9 flex-shrink-0">
                             {showAvatar && (
                               <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
-                                <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-9 w-9 rounded-2xl object-cover" />
+                                <img src={isAi ? supportRobot.url : supportPortrait.url} alt={isAi ? "Serviceydere kundeservice" : "William Ross Jepsen"} className={cn("h-9 w-9 rounded-xl", isAi ? "object-contain p-0.5" : "object-cover")} />
                               </span>
                             )}
                           </div>
@@ -1080,8 +1082,8 @@ const LiveChatWidget = () => {
                         <div className={`flex min-w-0 max-w-[calc(100%-2.75rem)] flex-col sm:max-w-[86%] ${mine ? "items-end" : "items-start"}`}>
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
-                              <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
-                              {m.metadata?.kind === "ai" && (
+                              <span className="text-foreground/80">{isAi ? "Serviceydere kundeservice" : "William Ross Jepsen"}</span>
+                              {isAi && (
                                 <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-accent">
                                   <Bot className="h-2.5 w-2.5" /> AI
                                 </span>

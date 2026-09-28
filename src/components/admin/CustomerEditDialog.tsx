@@ -340,7 +340,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             {type === "business" && (
               <div className="rounded-lg border bg-card p-3 space-y-3">
                 <div>
-                  <FieldLabel optional>CVR (slå op for at auto-udfylde)</FieldLabel>
+                  <FieldLabel optional>CVR</FieldLabel>
                   <CvrLookupField
                     value={cvr}
                     onChange={setCvr}
@@ -359,10 +359,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                       }
                     }}
                   />
+                  <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Slå virksomheden op for at udfylde navn og adresse automatisk.</p>
                 </div>
                 <div>
                   <FieldLabel required>Firmanavn</FieldLabel>
-                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hansen ApS" className="h-9" />
+                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-9" />
                 </div>
                 <div>
                   <FieldLabel optional>Kontaktperson</FieldLabel>
@@ -389,7 +390,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </div>
             </div>
 
-            <div className="rounded-lg border bg-card p-3 space-y-2 sm:border-0 sm:bg-transparent sm:p-0">
+            <div className="relative z-20 space-y-2 rounded-lg border bg-card p-3 sm:border-0 sm:bg-transparent sm:p-0">
               <FieldLabel optional>Adresse</FieldLabel>
               <AddressAutocomplete
                 value={{ address, zip_code: zipCode, city, latitude, longitude }}

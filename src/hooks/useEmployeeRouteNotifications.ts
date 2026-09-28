@@ -51,3 +51,45 @@ export const useMarkAllRouteNotificationsRead = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["employee-route-notifications"] }),
   });
 };
+
+export const useDeleteRouteNotification = () => {
+  const { data: employee } = useMyEmployee();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!employee?.id) return;
+      const { error } = await supabase
+        .from("employee_route_notifications")
+        .delete()
+        .eq("id", id)
+        .eq("employee_id", employee.id);
+      if (error) throw error;
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["employee-route-notifications", employee?.id] });
+      const key = ["employee-route-notifications", employee?.id];
+      const previous = qc.getQueryData<any[]>(key);
+      qc.setQueryData<any[]>(key, (old = []) => old.filter((item) => item.id !== id));
+      return { key, previous };
+    },
+    onError: (_error, _id, context) => context?.previous && qc.setQueryData(context.key, context.previous),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["employee-route-notifications"] }),
+  });
+};
+
+export const useDeleteAllRouteNotifications = () => {
+  const { data: employee } = useMyEmployee();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!employee?.id) return;
+      const { error } = await supabase
+        .from("employee_route_notifications")
+        .delete()
+        .eq("employee_id", employee.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.setQueryData(["employee-route-notifications", employee?.id], []),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["employee-route-notifications"] }),
+  });
+};

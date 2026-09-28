@@ -629,9 +629,6 @@ const EmployeeRow = ({
   );
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
-  const [editMaxHours, setEditMaxHours] = useState<string>(
-    (employee as any).max_hours_per_day != null ? String((employee as any).max_hours_per_day) : "",
-  );
   const [editMaxKm, setEditMaxKm] = useState<string>(
     (employee as any).max_km_per_day != null ? String((employee as any).max_km_per_day) : "",
   );
@@ -1239,13 +1236,7 @@ const EmployeeRow = ({
               <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Daglig kapacitet
               </h4>
-              <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-3 gap-3">
-                <div>
-                  <FieldLabel optional>Maks. timer</FieldLabel>
-                  <Input type="number" inputMode="decimal" min={0} step="0.5"
-                    value={editMaxHours} onChange={(e) => setEditMaxHours(e.target.value)}
-                    className="h-10" placeholder="fx 8" />
-                </div>
+              <div className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2">
                 <div>
                   <FieldLabel optional>Maks. km</FieldLabel>
                   <Input type="number" inputMode="decimal" min={0}
@@ -1258,7 +1249,7 @@ const EmployeeRow = ({
                     value={editMaxStops} onChange={(e) => setEditMaxStops(e.target.value)}
                     className="h-10" placeholder="fx 12" />
                 </div>
-                <p className="col-span-3 text-[11px] text-muted-foreground leading-snug">
+                <p className="text-[11px] leading-snug text-muted-foreground sm:col-span-2">
                   Lad felter være tomme for "ubegrænset". Ruteplanlæggeren advarer når en dag overskrider disse værdier.
                 </p>
               </div>
@@ -1327,7 +1318,6 @@ const EmployeeRow = ({
                     commission_pct: pctNum,
                     livechat_enabled: editLivechat,
                     employee_number: editEmployeeNumber.trim() || null,
-                    max_hours_per_day: editMaxHours.trim() === "" ? null : Number(editMaxHours.replace(",", ".")),
                     max_km_per_day: editMaxKm.trim() === "" ? null : Number(editMaxKm.replace(",", ".")),
                     max_stops_per_day: editMaxStops.trim() === "" ? null : parseInt(editMaxStops, 10),
                   } as any,
