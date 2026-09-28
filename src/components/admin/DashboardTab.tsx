@@ -1553,7 +1553,7 @@ export default DashboardTab;
 /** DashboardSkeleton — vises mens overblikkets data hentes første gang. */
 export const DashboardSkeleton = () => {
   const Shimmer = ({ className }: { className?: string }) => (
-    <div className={cn("animate-pulse rounded-md bg-secondary/70", className)} />
+    <div className={cn("animate-pulse rounded-md bg-muted/70", className)} />
   );
   return (
     <div className="space-y-5" aria-busy="true" aria-live="polite">
@@ -1594,7 +1594,7 @@ export const DashboardSkeleton = () => {
                     {Array.from({ length: 14 }).map((_, j) => (
                       <div
                         key={j}
-                        className="w-1.5 animate-pulse rounded-sm bg-secondary/70"
+                        className="w-1.5 animate-pulse rounded-sm bg-muted/70"
                         style={{ height: `${20 + ((j * 13) % 70)}%` }}
                       />
                     ))}
