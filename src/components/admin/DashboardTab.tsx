@@ -980,7 +980,7 @@ const OrdersListSection = ({
   setOrderSearch: (v: string) => void;
   orderSort: "newest" | "oldest" | "amount_desc" | "amount_asc" | "status";
   setOrderSort: (v: any) => void;
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, itemId?: string) => void;
   copyLink: () => void;
   hasShareUrl: boolean;
   statusLabels: Record<string, string>;
