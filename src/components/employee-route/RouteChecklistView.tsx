@@ -141,7 +141,7 @@ export const RouteChecklistView = ({
             <Navigation2 className="h-4 w-4" />
             Kørselsguide
           </Button>
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}>
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"} aria-pressed={!audioEnabled}>
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>

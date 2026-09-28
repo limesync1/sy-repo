@@ -1568,6 +1568,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
               onClick={() => setAudioEnabled((v) => !v)}
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+              aria-pressed={!audioEnabled}
             >
               {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
