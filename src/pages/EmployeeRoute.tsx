@@ -1093,6 +1093,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     void reoptRef.current({ silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speedOpp.worth, speedOpp.savedMin, speedOpp.fixesViolations, routeStarted, runMode, pageVisible]);
+  /* Spørg om kørselsmåde med det samme, før kortet vises — så man ikke
+     lander i kortvisningen, hvis man vil bruge tjeklisten. */
+  const askedModeRef = useRef(false);
+  useEffect(() => {
+    if (askedModeRef.current || routeStarted || allDone || sortedStops.length === 0) return;
+    askedModeRef.current = true;
+    if (!routeDateLocked) setModeDialogOpen(true);
+  }, [routeStarted, allDone, sortedStops.length, routeDateLocked]);
   const todayLabel = useMemo(() => formatDayDate(new Date()), []);
 
   /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
