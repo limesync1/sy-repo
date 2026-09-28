@@ -11,7 +11,7 @@ type Props = {
 
 const ChatAvatar = ({ chat }: { chat: RegisteredChat }) => {
   if (chat.scope === "platform") {
-    return <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-11 w-11 rounded-full bg-muted object-contain p-0.5" />;
+    return <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-9 w-9 shrink-0 object-contain" />;
   }
 
   return (
