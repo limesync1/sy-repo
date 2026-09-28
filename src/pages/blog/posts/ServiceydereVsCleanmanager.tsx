@@ -30,7 +30,7 @@ const Post = defineBlogPost({
     { heading: "Hvad du bør spørge om, uanset valg", list: [
       "Kan systemet håndtere jeres faktiske intervaller — også de skæve?",
       "Hvor let er det at flytte et helt hold til en anden dag?",
-      "Bogfører det direkte i jeres regnskabsprogram? (Serviceydere understøtter e-conomic og Dinero.)",
+      "Bogfører det direkte i jeres regnskabsprogram? (Serviceydere understøtter E-conomic og Dinero.)",
       "Hvad sker der med jeres data, hvis I skifter igen?",
     ]},
     { heading: "Læs også", list: [

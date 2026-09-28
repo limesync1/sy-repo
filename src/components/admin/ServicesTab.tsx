@@ -1850,7 +1850,7 @@ const ServiceForm = ({
             <div>
               <h4 className="text-sm font-semibold text-foreground">Regnskabsfelter</h4>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Bruges når denne service synkroniseres til dit regnskabsprogram (e-conomic, Dinero).
+                Bruges når denne service synkroniseres til dit regnskabsprogram (E-conomic, Dinero).
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

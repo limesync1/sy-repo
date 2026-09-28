@@ -26,7 +26,7 @@ const Post = defineBlogPost({
       "Brancheuafhængigt: tilføjer I algebehandling, solcellevask eller rengøring, er det bare en ny service — ikke et nyt system.",
       <>Markedsplads: I får en profilside på Serviceydere.dk, hvor kunder selv finder og booker jer. Se <a href="/software/booking-og-tilbud">booking og tilbud</a>.</>,
       <><a href="/software/medarbejder-app">Medarbejder-app</a> med dagens rute, tjek ind og ud, noter og billeder.</>,
-      "Bogføring sker via integration til e-conomic eller Dinero frem for i selve programmet.",
+      "Bogføring sker via integration til E-conomic eller Dinero frem for i selve programmet.",
     ]},
     { heading: "Prisen afhænger af, hvor mange I er", paragraphs: [
       "Regnestykket vender forskelligt alt efter størrelse, og det skal man vide inden man vælger. Serviceydere koster 289 kr./md. plus 59 kr. pr. medarbejderlogin. SkvizBiz' fulde version koster 399 kr./md. med gratis logins.",

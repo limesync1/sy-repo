@@ -23,7 +23,7 @@ const Post = defineBlogPost({
     { heading: "Hvad du får med Serviceydere", list: [
       <><a href="/software/ruteplanlaegger">Visuel ruteplanlægger</a> med drag & drop og beregnede ankomsttider.</>,
       <><a href="/software/medarbejder-app">Medarbejder-app</a> med tjek ind og ud, så planen bliver til dokumenterede fakta.</>,
-      <><a href="/software/fakturering-og-regnskab">Fakturering</a> på grundlag af udført arbejde med bogføring i e-conomic eller Dinero.</>,
+      <><a href="/software/fakturering-og-regnskab">Fakturering</a> på grundlag af udført arbejde med bogføring i E-conomic eller Dinero.</>,
       "En markedsplads der giver nye opgaver oveni.",
     ]},
     { heading: "Læs også", list: [

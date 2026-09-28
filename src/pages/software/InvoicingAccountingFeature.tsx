@@ -3,21 +3,21 @@ import { defineSoftwarePage } from "./defineSoftwarePage";
 
 const Page = defineSoftwarePage({
   canonicalPath: "/software/fakturering-og-regnskab",
-  metaTitle: "Fakturering og regnskab med e-conomic og Dinero | Serviceydere",
+  metaTitle: "Fakturering og regnskab med E-conomic og Dinero | Serviceydere",
   metaDescription:
-    "Fakturér udført arbejde direkte fra ruten og send det automatisk videre til e-conomic eller Dinero. Ingen dobbelt indtastning, ingen glemte opgaver.",
+    "Fakturér udført arbejde direkte fra ruten og send det automatisk videre til E-conomic eller Dinero. Ingen dobbelt indtastning, ingen glemte opgaver.",
   keywords:
-    "fakturering servicevirksomhed, e-conomic integration, dinero integration, automatisk bogføring, fakturering rengøringsfirma, abonnementsfakturering",
+    "fakturering servicevirksomhed, E-conomic integration, dinero integration, automatisk bogføring, fakturering rengøringsfirma, abonnementsfakturering",
   heroEyebrow: "Fakturering og regnskab",
   heroTitle: "Udført arbejde bliver til en faktura",
   heroSubtitle:
-    "Det, medarbejderen tjekker ud, er også det, der faktureres. Og bogføringen sker automatisk i e-conomic eller Dinero.",
+    "Det, medarbejderen tjekker ud, er også det, der faktureres. Og bogføringen sker automatisk i E-conomic eller Dinero.",
   breadcrumbLabel: "Fakturering og regnskab",
   answer:
-    "Fakturering i Serviceydere tager udgangspunkt i det arbejde, der faktisk er udført på ruten. Når et stop er tjekket ud, ligger kunde, service, tid og pris klar, så fakturaen kan dannes uden at nogen taster dagen ind igen. Er regnskabsintegrationen slået til, sendes bestillinger og fakturaer automatisk videre til e-conomic eller Dinero.",
+    "Fakturering i Serviceydere tager udgangspunkt i det arbejde, der faktisk er udført på ruten. Når et stop er tjekket ud, ligger kunde, service, tid og pris klar, så fakturaen kan dannes uden at nogen taster dagen ind igen. Er regnskabsintegrationen slået til, sendes bestillinger og fakturaer automatisk videre til E-conomic eller Dinero.",
   facts: [
     "Fakturagrundlaget kommer fra ruten — ikke fra en huskeseddel.",
-    "Automatisk bogføring i e-conomic og Dinero.",
+    "Automatisk bogføring i E-conomic og Dinero.",
     "Faste aftaler faktureres løbende i den aftalte kadence.",
     "Testkørsel før første rigtige bogføring, så kontoplanen passer.",
     "Overblik over hvad der er udført, faktureret og bogført.",
@@ -36,7 +36,7 @@ const Page = defineSoftwarePage({
     {
       heading: "Regnskabsintegration",
       paragraphs: [
-        "Integrationen slås til under Indstillinger → Ekstra funktioner, hvor du forbinder e-conomic eller Dinero. Inden den første rigtige bogføring kan du køre en testkørsel, der viser præcis hvad der ville blive sendt afsted — og hvilke konti det rammer.",
+        "Integrationen slås til under Indstillinger → Ekstra funktioner, hvor du forbinder E-conomic eller Dinero. Inden den første rigtige bogføring kan du køre en testkørsel, der viser præcis hvad der ville blive sendt afsted — og hvilke konti det rammer.",
       ],
       list: [
         "e-conomic og Dinero er de to understøttede regnskabsprogrammer.",

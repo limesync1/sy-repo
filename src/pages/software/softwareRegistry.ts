@@ -55,7 +55,7 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
   {
     href: "/software/fakturering-og-regnskab",
     label: "Fakturering og regnskab",
-    blurb: "Fakturer udført arbejde og send det automatisk videre til e-conomic eller Dinero.",
+    blurb: "Fakturer udført arbejde og send det automatisk videre til E-conomic eller Dinero.",
     priority: "0.8",
     group: "product",
   },

@@ -707,12 +707,12 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
   // ───────────────────────── Regnskab og betaling ─────────────────────────
   {
     id: "accounting-connect",
-    title: "Regnskabsintegration til e-conomic og Dinero",
+    title: "Regnskabsintegration til E-conomic og Dinero",
     area: "Regnskab og betaling",
     summary:
-      "Forbind e-conomic eller Dinero, så bestillinger og fakturaer kan sendes videre automatisk. Tilvalg mod betaling.",
-    example: "Når et stop markeres udført, ender fakturaen i e-conomic uden manuel indtastning.",
-    steps: ["Åbn fanen “Regnskab”.", "Vælg e-conomic eller Dinero og forbind.", "Test forbindelsen, og gem."],
+      "Forbind E-conomic eller Dinero, så bestillinger og fakturaer kan sendes videre automatisk. Tilvalg mod betaling.",
+    example: "Når et stop markeres udført, ender fakturaen i E-conomic uden manuel indtastning.",
+    steps: ["Åbn fanen “Regnskab”.", "Vælg E-conomic eller Dinero og forbind.", "Test forbindelsen, og gem."],
     keywords: ["e-conomic", "dinero", "bogføring", "integration", "faktura"],
   },
   {

@@ -28,7 +28,7 @@ const PARTS = [
   { icon: CalendarCheck, title: "Booking og tilbud", href: "/software/booking-og-tilbud",
     body: "Online booking fra jeres profilside plus leads fra markedspladsen — samlet ét sted." },
   { icon: Receipt, title: "Fakturering og regnskab", href: "/software/fakturering-og-regnskab",
-    body: "Fakturér udført arbejde og send det videre til e-conomic eller Dinero." },
+    body: "Fakturér udført arbejde og send det videre til E-conomic eller Dinero." },
   { icon: Users, title: "Kunder og medarbejdere", href: "/software/funktioner",
     body: "Kundekartotek med kontaktpersoner og dokumenter, medarbejderlogin, kompetencer og provision." },
   { icon: Building2, title: "Brancher", href: "/software/brancher",
@@ -46,7 +46,7 @@ const PRICE_POINTS = [
   { label: "Prøveperiode", value: "14 dage", note: "Gratis, uden betalingskort" },
   { label: "Basis", value: "289 kr./md.", note: "Ekskl. moms — ruteplanlægning inkluderet" },
   { label: "Ekstra login", value: "59 kr./md.", note: "Pr. medarbejder med eget login" },
-  { label: "Regnskab", value: "269 kr./md.", note: "Tilvalg: e-conomic eller Dinero" },
+  { label: "Regnskab", value: "269 kr./md.", note: "Tilvalg: E-conomic eller Dinero" },
 ];
 
 

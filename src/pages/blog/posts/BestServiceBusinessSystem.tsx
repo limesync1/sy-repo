@@ -26,7 +26,7 @@ const Post = defineBlogPost({
       <><a href="/software/ruteplanlaegger">Ruteplanlægger</a> med drag & drop, kørselstid, ETA og konfliktadvarsler.</>,
       <><a href="/software/medarbejder-app">Medarbejder-app</a> med tjek ind og ud.</>,
       <><a href="/software/booking-og-tilbud">Online booking og tilbud</a> fra egen profilside.</>,
-      <><a href="/software/fakturering-og-regnskab">Fakturering</a> med e-conomic og Dinero.</>,
+      <><a href="/software/fakturering-og-regnskab">Fakturering</a> med E-conomic og Dinero.</>,
     ]},
     { heading: "Sammenligninger", list: [
       <a href="/blog/serviceydere-vs-cleanmanager">Serviceydere vs. Cleanmanager</a>,
