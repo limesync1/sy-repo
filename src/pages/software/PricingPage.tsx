@@ -111,7 +111,7 @@ const PricingPage = () => {
 
   const lines: { label: string; note: string; price: string }[] = [
     { label: "Basis", note: "Kundekartotek, aftaler, booking, profilside og markedsplads", price: `${kr(p.base_price_dkk)} kr./md.` },
-    { label: "Ruteplanlægger", note: "Drag & drop, kørselstid, ETA og konfliktadvarsler", price: p.price_route_planning_dkk === 0 ? "Inkluderet" : `${kr(p.price_route_planning_dkk)} kr./md.` },
+    { label: "Ruteplanlægger", note: "Drag & drop, stopbaseret kapacitet og konfliktadvarsler", price: p.price_route_planning_dkk === 0 ? "Inkluderet" : `${kr(p.price_route_planning_dkk)} kr./md.` },
     { label: "Medarbejderlogin", note: "Pr. medarbejder med adgang til app, rute og tjek ind/ud", price: `${kr(p.price_per_employee_login_dkk)} kr./md.` },
     { label: "Regnskabsintegration", note: "Automatisk bogføring i E-conomic eller Dinero", price: `${kr(p.price_accounting_integration_dkk)} kr./md.` },
     { label: "Dataimport", note: "Vores support flytter jeres kunder fra regneark eller et andet system", price: `${kr(p.price_data_import_dkk)} kr. engangs` },
@@ -166,7 +166,7 @@ const PricingPage = () => {
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">Det følger med i basisprisen</h2>
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            "Ruteplanlægger med drag & drop og beregnet kørselstid",
+            "Ruteplanlægger med drag & drop og optimeret stoprækkefølge",
             "Faste aftaler med automatisk fremskrivning",
             "Kundekartotek med historik og adgangsforhold",
             "Profilside på markedspladsen med online booking",

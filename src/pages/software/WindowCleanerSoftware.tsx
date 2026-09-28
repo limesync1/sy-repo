@@ -13,10 +13,10 @@ const WindowCleanerSoftware = defineSoftwarePage({
     "Faste intervaller, ruter der hænger sammen, og nye kunder fra markedspladsen — i samme system.",
   breadcrumbLabel: "Vinduespudsere",
   answer:
-    "Serviceydere er et driftssystem til vinduespudsere: faste kunder med egne intervaller, ruter planlagt med drag & drop og beregnet kørselstid, medarbejder-app med tjek ind og ud, og fakturering med bogføring i E-conomic eller Dinero. Til forskel fra de programmer der udelukkende er lavet til vinduespudsning, følger der en markedsplads med, hvor private og virksomheder selv finder jer — og systemet kan følge med, hvis I senere tilføjer rengøring, algebehandling eller solcellevask.",
+    "Serviceydere er et driftssystem til vinduespudsere: faste kunder med egne intervaller, ruter planlagt med drag & drop og optimeret rækkefølge, medarbejder-app med registrering af faktisk tid og fakturering med bogføring i E-conomic eller Dinero. Til forskel fra de programmer der udelukkende er lavet til vinduespudsning, følger der en markedsplads med, hvor private og virksomheder selv finder jer — og systemet kan følge med, hvis I senere tilføjer rengøring, algebehandling eller solcellevask.",
   facts: [
     "Intervaller pr. kunde: 4, 6, 8, 12 uger eller helt egne",
-    "Kørselstid og ankomsttid beregnes mens du planlægger",
+    "Afstand og stoprækkefølge beregnes mens du planlægger",
     "Advarsler ved dobbeltbooking, ferie og helligdage",
     "Priser pr. stk., pr. m², pr. time eller fast pris",
     "Nye kunder fra markedspladsen Serviceydere.dk",
@@ -27,7 +27,7 @@ const WindowCleanerSoftware = defineSoftwarePage({
       heading: "Det svære ved vinduespudsning er rækkefølgen",
       paragraphs: [
         "En vinduespudser har sjældent problemer med at finde arbejdet — udfordringen er at få dagen til at hænge sammen. Tyve til fyrre adresser med hver deres interval skal lande i en rækkefølge, hvor kørslen ikke æder timerne. Det er præcis den opgave, ruteplanlæggeren er bygget til.",
-        "Når en kunde flyttes, regner systemet konsekvensen ud med det samme: hvad det gør ved ankomsttiderne resten af dagen, og om nogen nu er dobbeltbooket. Du behøver ikke selv holde styr på det i hovedet.",
+        "Når en kunde flyttes, opdaterer systemet rækkefølge, afstand, stopkapacitet og konflikter med det samme. Du behøver ikke selv holde styr på det i hovedet.",
       ],
     },
     {

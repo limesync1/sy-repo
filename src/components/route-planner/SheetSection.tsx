@@ -66,15 +66,7 @@ export const SheetHeaderBlock = ({
 
 /* ───────── Section ─────────
    Boxed kort med ikon + uppercase titel + valgfri hint i højre side. */
-export const Section = ({
-  icon,
-  title,
-  hint,
-  required,
-  children,
-  className,
-  tone,
-}: {
+export const Section = React.forwardRef<HTMLDivElement, {
   icon: React.ReactNode;
   title: string;
   hint?: React.ReactNode;
@@ -87,10 +79,19 @@ export const Section = ({
    * havde svært ved at se hvor man først skulle kigge.
    */
   tone?: "primary" | "accent" | "amber" | "emerald" | "sky" | "muted";
-}) => (
+}>(function Section({
+  icon,
+  title,
+  hint,
+  required,
+  children,
+  className,
+  tone,
+}, ref) {
+  return (
   // Matcher kunde-detalje-sheetet (rounded-xl border-border bg-card, h4 uppercase
   // tracking-wider) så de to paneler ser ud som ét designsystem.
-  <div className={cn("relative rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]", className)}>
+  <div ref={ref} className={cn("relative rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]", className)}>
     <div className="flex min-h-9 items-center gap-2 rounded-t-[calc(0.375rem-1px)] border-b border-border bg-secondary/35 px-3 py-2">
       <span
         className={cn(
@@ -115,7 +116,8 @@ export const Section = ({
       {children}
     </div>
   </div>
-);
+  );
+});
 
 /* ───────── CollapsibleSection ─────────
    Samme look som <Section>, men hele headeren er en knap der folder

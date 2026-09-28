@@ -76,7 +76,10 @@ export const StopDetailsContent = ({
       return seconds + Math.max(0, Math.floor((new Date(entry.ended_at).getTime() - new Date(entry.started_at).getTime()) / 1000));
     }, 0);
   }, [timeEntries, myEmployeeId]);
-  const durationLabel = `${String(Math.floor(totalDurationSeconds / 3600)).padStart(2, "0")}:${String(Math.floor((totalDurationSeconds % 3600) / 60)).padStart(2, "0")}:${String(totalDurationSeconds % 60).padStart(2, "0")}`;
+  const h = Math.floor(totalDurationSeconds / 3600);
+  const m = Math.floor((totalDurationSeconds % 3600) / 60);
+  const s = totalDurationSeconds % 60;
+  const durationLabel = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
   const handleStartWork = async () => {
     if (!myEmployeeId) return;
@@ -345,7 +348,7 @@ export const StopDetailsContent = ({
           >
             <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                {isWorking ? (
+                {!readOnly && isWorking ? (
                   <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
                     <div className="h-2 w-2 rounded-full bg-feature-cool" />
                     Tidsregistrering aktiv
@@ -357,7 +360,7 @@ export const StopDetailsContent = ({
                 ) : (
                   <p className="text-sm text-muted-foreground">Ingen tidsregistrering endnu</p>
                 )}
-                {!readOnly && myEntry?.started_at && (
+                {!readOnly && !isDone && myEntry?.started_at && (
                   <p className="text-[10px] text-muted-foreground mt-0.5">
                     {isWorking ? "Startet kl. " : "Seneste start kl. "}
                     {new Date(myEntry.started_at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
@@ -372,7 +375,7 @@ export const StopDetailsContent = ({
                   onClick={isWorking ? handleEndWork : handleStartWork}
                   disabled={startStopTime.isPending || endStopTime.isPending}
                 >
-                  {isWorking ? (
+                  {!readOnly && isWorking ? (
                     <> <Pause className="h-3.5 w-3.5" /> Stop </>
                   ) : (
                     <> <Play className="h-3.5 w-3.5" /> Start </>

@@ -24,7 +24,7 @@ const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] =
       { keys: ["A"], label: "Auto-fordel aftaler uden rute" },
       { keys: ["O"], label: "Optimér åben rute" },
       { keys: ["P"], label: "Print dagens ruter" },
-      { keys: ["D"], label: "Vis dag som tidslinje" },
+      { keys: ["D"], label: "Vis dagsoversigt" },
       { keys: ["⌘", "Z"], label: "Fortryd" },
       { keys: ["⌘", "⇧", "Z"], label: "Gentag" },
       { keys: ["?"], label: "Vis denne hjælp" },

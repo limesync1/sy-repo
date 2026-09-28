@@ -22,7 +22,7 @@ import { STOPS_PER_EMPLOYEE_DAY } from "./lib/stop-capacity";
 
 /**
  * PlanningPanel — kompakt højrepanel for ruteplanlæggeren, åbnes via en knap
- * i topbaren. Viser planlagt omsætning, planlagt kørselstid pr. ugedag,
+ * i topbaren. Viser planlagt omsætning, stopbaseret kapacitet pr. ugedag,
  * medarbejder-filter og en collapsible forklaringer-sektion (legend).
  *
  * Bruger udelukkende data som RoutePlanner allerede har hentet — ingen nye
@@ -239,7 +239,7 @@ export const PlanningPanel = ({
             </dl>
           </section>
 
-          {/* Planlagt kørsel */}
+          {/* Stopbaseret kapacitet */}
            {stats.loadPerDay.length > 0 && (
             <section>
                <SectionLabel icon={<BarChart3 className="h-3.5 w-3.5" />}>

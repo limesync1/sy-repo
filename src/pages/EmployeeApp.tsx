@@ -39,7 +39,8 @@ const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
 const formatWorkDuration = (seconds: number) => {
   const safe = Math.max(0, Math.floor(seconds));
-  return [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60), safe % 60]
+  const parts = [Math.floor(safe / 3600), Math.floor((safe % 3600) / 60), safe % 60];
+  return parts
     .map((value) => String(value).padStart(2, "0"))
     .join(" : ");
 };
@@ -56,14 +57,12 @@ const paymentMeta = (
   orderStatus?: string | null,
   paymentStatus?: string | null,
   invoiceStatus?: string | null,
+  isPast?: boolean,
 ) => {
-  // Aftale endnu ikke udført → vis blot "Planlagt".
   if (orderStatus !== "completed") {
     if (orderStatus === "pending") return { label: "Afventer godkendelse", className: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground" };
-    return { label: "Planlagt", className: "border-border bg-secondary/50 text-muted-foreground" };
+    return { label: isPast ? "Ikke udført" : "Planlagt", className: "border-border bg-secondary/50 text-muted-foreground" };
   }
-  // Aftale udført → spejl regnskabsprogrammets betalingsstatus.
-  if (paymentStatus === "paid") return { label: "Betalt", className: "border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground" };
   if (paymentStatus === "overdue") return { label: "Forfalden", className: "border-destructive/40 bg-destructive/10 text-destructive" };
   if (paymentStatus === "unpaid") return { label: "Afventer betaling", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
   if (invoiceStatus === "booked" || invoiceStatus === "draft") return { label: "Faktureret", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
@@ -330,12 +329,10 @@ const EmployeeApp = () => {
             planneren. Kontekst-bevidst: starter dagen, fortsætter ruten,
             afslutter dagen, eller printer kvitteringer. */}
         {!routesLoading && !stopsLoading && isCurrentDay && (() => {
-          // Find næste pending stop på tværs af alle ruter (først ruten
-          // der allerede er i gang, ellers den med tidligst start).
+          // Find næste ikke-udførte stop på tværs af dagens ruter.
           const sortedRoutes = [...routes].sort((a, b) => {
-            const at = a.planned_start_time || "99:99";
-            const bt = b.planned_start_time || "99:99";
-            return at.localeCompare(bt);
+            const created = (a.created_at || "").localeCompare(b.created_at || "");
+            return created || (a.name || "").localeCompare(b.name || "", "da");
           });
           let nextStop: RouteStop | null = null;
           let nextRoute: typeof routes[number] | null = null;
@@ -512,14 +509,12 @@ const EmployeeApp = () => {
         {(() => {
           // ─── Sekventiel låsning ──────────────────────────────────────────
           // Medarbejderen skal kun kunne starte ÉN rute ad gangen i dag.
-          // Vi sorterer dagens ruter efter planlagt starttid og finder den
-          // tidligste rute der ikke er færdig — alle senere ikke-færdige
+          // Vi bruger ruternes stabile oprettelsesrækkefølge og finder den
+          // første rute der ikke er færdig — alle senere ikke-færdige
           // ruter rendes som "låst" (CTA disabled + lås-badge).
           const ord = [...routes].sort((a, b) => {
-            const at = a.planned_start_time || "99:99";
-            const bt = b.planned_start_time || "99:99";
-            if (at !== bt) return at < bt ? -1 : 1;
-            return (a.created_at || "").localeCompare(b.created_at || "");
+            const created = (a.created_at || "").localeCompare(b.created_at || "");
+            return created || (a.name || "").localeCompare(b.name || "", "da");
           });
           const firstActiveId = ord.find((r) => {
             const rs = stopsByRoute.get(r.id) || [];
@@ -534,10 +529,8 @@ const EmployeeApp = () => {
           // Beregn om ruten er låst (en tidligere rute mangler stadig stop).
           // Vi rebygger samme orden her for at tjekke uden prop-drilling.
           const sortedAll = [...routes].sort((a, b) => {
-            const at = a.planned_start_time || "99:99";
-            const bt = b.planned_start_time || "99:99";
-            if (at !== bt) return at < bt ? -1 : 1;
-            return (a.created_at || "").localeCompare(b.created_at || "");
+            const created = (a.created_at || "").localeCompare(b.created_at || "");
+            return created || (a.name || "").localeCompare(b.name || "", "da");
           });
           const firstActiveId = sortedAll.find((rt) => {
             const rs = stopsByRoute.get(rt.id) || [];
@@ -744,7 +737,7 @@ const EmployeeApp = () => {
                     <div className="divide-y divide-border">
                       {myStops.slice(0, 3).map((s, i) => {
                         const isNext = s.id === firstPendingId;
-                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
+                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status, !isCurrentDay && !isFutureDay);
                         return (
                           <button
                             key={s.id}

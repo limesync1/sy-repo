@@ -5,20 +5,20 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/ruteplanlaegger",
   metaTitle: "Ruteplanlægger til servicevirksomheder | Serviceydere",
   metaDescription:
-    "Planlæg dagens og ugens ruter med drag & drop, faste aftaler, kørselstid, ETA og konfliktadvarsler. Ruteplanlægning til rengøring, have, håndværk og service.",
+    "Planlæg dagens og ugens ruter med drag & drop, faste aftaler, stopbaseret kapacitet og konfliktadvarsler. Ruteplanlægning til rengøring, have, håndværk og service.",
   keywords:
     "ruteplanlægger, ruteplanlægning, planlægning af serviceruter, kørselsplanlægning, faste aftaler, rengøringsruter, serviceruter software",
   heroEyebrow: "Ruteplanlægger",
   heroTitle: "Planlæg ugen på skærmen — ikke i hovedet",
   heroSubtitle:
-    "Træk opgaver ind på den rigtige medarbejder og det rigtige tidspunkt. Systemet regner kørselstid, ankomsttider og konflikter ud, mens du planlægger.",
+    "Træk aftaler ind på den rigtige dag og medarbejder. Systemet hjælper med rækkefølge, afstand, kapacitet og konflikter.",
   breadcrumbLabel: "Ruteplanlægger",
   answer:
-    "Ruteplanlæggeren i Serviceydere er et visuelt planlægningsværktøj, hvor du fordeler opgaver på medarbejdere og dage ved at trække dem på plads. Den håndterer både engangsopgaver og gentagne aftaler, beregner kørselstid og forventede ankomsttider mellem stop, og advarer med det samme hvis to opgaver overlapper, en medarbejder er optaget, eller dagen ikke kan nås.",
+    "Ruteplanlæggeren i Serviceydere er et visuelt planlægningsværktøj, hvor du fordeler aftaler på medarbejdere og dage ved at trække dem på plads. Den håndterer både enkeltstående og gentagne aftaler, optimerer rækkefølgen mellem stop og advarer ved fravær og andre konflikter.",
   facts: [
     "Drag & drop mellem medarbejdere, dage og rækkefølge.",
     "Gentagne aftaler: ugentlig, hver 14. dag, månedlig eller eget interval.",
-    "Kørselstid og ETA mellem stop beregnes løbende.",
+    "Afstand og stoprækkefølge beregnes løbende.",
     "Konfliktadvarsler ved overlap, ferie, helligdage og lukkedage.",
     "Ruteoptimering foreslår en kortere rækkefølge på dagen.",
     "Ændringer kan gælde ét stop eller hele serien.",
@@ -33,8 +33,8 @@ const Page = defineSoftwarePage({
       ],
       list: [
         "Planlægning: træk aftaler ind på ruter, panel med aftaler uden rute (søgning og filtre), auto-fordeling med forhåndsvisning, masse-handlinger på flere aftaler, opret bestilling direkte i planlæggeren, opret og redigér ruter.",
-        "Kalender: uge-, måneds- og agendavisning, dagen som tidslinje, valgfri tæthed og mørk tilstand.",
-        "Kort og kørsel: ruter tegnet med nummererede stop, løbende beregning af kørselstid og ankomsttider, ruteoptimering og “find næste ledige tid”.",
+        "Kalender: uge-, måneds- og agendavisning, dagsoversigt, valgfri tæthed og mørk tilstand.",
+        "Kort og kørsel: ruter tegnet med nummererede stop, afstande, ruteoptimering og forslag til næste ledige dag.",
         "Faste aftaler: intervaller fra ugentlig til frit valgt, valg mellem ét besøg og hele serien, pauser i en periode uden at slette serien.",
         "Medarbejdere og fravær: sygemelding i tre trin med forslag til afløser, ferie, fridage og danske helligdage, dagsvisning med en kolonne pr. medarbejder.",
         "Kvalitet og kontrol: konfliktadvarsler, forhåndsvisning før større ændringer gemmes, fortryd og gentag, historik på hver rute og diagnostik af skæve data.",
@@ -44,8 +44,8 @@ const Page = defineSoftwarePage({
     {
       heading: "Sådan fungerer planlægningen",
       list: [
-        "Uoverførte opgaver ligger i en liste ved siden af kalenderen. Du trækker dem ind på den dag og den medarbejder, de skal udføres af.",
-        "Når et stop lander, opdateres ankomsttiderne for resten af dagen automatisk, så du kan se hvad ændringen koster.",
+        "Aftaler uden rute ligger i en liste ved siden af kalenderen. Du trækker dem ind på den dag og den medarbejder, de skal udføres af.",
+        "Når et stop flyttes, opdateres rækkefølge, afstand og dagens stopkapacitet med det samme.",
         "Flytter du et stop i en fast aftale, bliver du spurgt om det gælder denne gang eller hele serien.",
         "Konflikter vises direkte i kalenderen — dobbeltbooking, for lidt tid mellem to adresser, fravær eller helligdag.",
         "Fortryd-funktion på handlinger, så en fejltrækning ikke bliver dyr.",
@@ -54,7 +54,7 @@ const Page = defineSoftwarePage({
     {
       heading: "Faste aftaler og gentagelser",
       paragraphs: [
-        "Størstedelen af arbejdet i en servicevirksomhed er tilbagevendende. Derfor er gentagne aftaler ikke en tilføjelse, men fundamentet: du opretter aftalen én gang med interval og varighed, og systemet fremskriver kommende besøg automatisk.",
+        "Størstedelen af arbejdet i en servicevirksomhed er tilbagevendende. Derfor er gentagne aftaler ikke en tilføjelse, men fundamentet: du opretter aftalen én gang med et interval, og systemet fremskriver kommende besøg automatisk.",
       ],
       list: [
         "Standardintervaller (uge, 14. dag, måned, kvartal) og frit definerede intervaller.",
@@ -64,9 +64,9 @@ const Page = defineSoftwarePage({
       ],
     },
     {
-      heading: "Kørselstid, ETA og optimering",
+      heading: "Afstand, rækkefølge og optimering",
       paragraphs: [
-        "Adresser geokodes, og kørselstiden mellem stop bruges til at beregne, hvornår medarbejderen realistisk er fremme. Du kan justere med egne køretidsregler, hvis systemets estimat ikke passer til jeres område eller køretøj.",
+        "Adresser placeres på kortet, så stoppene kan sættes i en logisk rækkefølge med kortere samlet kørsel.",
         "Ruteoptimering foreslår en rækkefølge med mindre kørsel på dagen. Forslaget vises, før det anvendes — du beslutter selv.",
       ],
     },
@@ -86,7 +86,7 @@ const Page = defineSoftwarePage({
   faq: [
     {
       q: "Hvad er en ruteplanlægger?",
-      a: "En ruteplanlægger er et værktøj, der fordeler opgaver på medarbejdere og tidspunkter og tager højde for kørsel mellem adresserne. I Serviceydere gøres det visuelt med drag & drop, og systemet beregner kørselstid, ankomsttider og konflikter, mens du planlægger.",
+      a: "En ruteplanlægger er et værktøj, der fordeler aftaler på medarbejdere og dage og tager højde for kørsel mellem adresserne. I Serviceydere gøres det visuelt med drag & drop, stopbaseret kapacitet og konfliktadvarsler.",
     },
     {
       q: "Kan den håndtere faste, gentagne kunder?",
@@ -115,7 +115,7 @@ const Page = defineSoftwarePage({
   ],
   cta: {
     heading: "Prøv planlægningen med din egen uge",
-    body: "Læg dine faste kunder ind og se hele ugen fordelt på medarbejdere med realistiske ankomsttider.",
+    body: "Læg dine faste kunder ind og se hele ugen fordelt på medarbejdere i en overskuelig rækkefølge.",
   },
 });
 export default Page;

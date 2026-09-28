@@ -133,3 +133,5 @@
 - [x] Fjern rutetid fra rutekort i ugevisningen.
 - [x] Skjul aktiv arbejdsstatus og starttid i medarbejderens statistikdetaljer.
 - [x] Bevar afsluttet faktisk tidsforbrug med sekundpræcision.
+- [x] Fjern afhængighed af skjulte planlagte starttider i medarbejderens ruterækkefølge.
+- [x] Ret forældede produkttekster om planlagte ankomsttider og servicevarighed.
