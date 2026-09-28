@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
-  Package, Send,
+  Package, Send, Undo2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,11 +50,12 @@ type Props = {
   onComplete?: () => void;
   onUndo?: () => void;
   isPending?: boolean;
+  pendingTimeLabel?: string;
 };
 
 export const StopDetailsContent = ({
   stop, index, route, readOnly = false,
-  noteDraft = "", onNoteChange, onComplete, onUndo, isPending,
+  noteDraft = "", onNoteChange, onComplete, onUndo, isPending, pendingTimeLabel,
 }: Props) => {
   const { data: order, isLoading: loadingOrder } = useOrderForStop(stop.order_id);
   const { data: meEmployee } = useMyEmployee();
@@ -371,7 +372,7 @@ export const StopDetailsContent = ({
                     Faktisk tid: <span className="font-semibold tabular-nums text-foreground">{durationLabel}</span>
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Ingen tidsregistrering endnu</p>
+                  <p className="text-sm text-muted-foreground">{pendingTimeLabel || "Ingen tidsregistrering endnu"}</p>
                 )}
                 {!readOnly && !isDone && myEntry?.started_at && (
                   <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -579,8 +580,9 @@ export const StopDetailsContent = ({
                 </Button>
               )}
               {!readOnly && (
-                <Button onClick={onUndo} variant="outline" className="w-full h-11 rounded-lg">
-                  Fortryd udført
+                <Button onClick={onUndo} variant="outline" className="h-11 w-full gap-2 rounded-lg sm:w-auto sm:min-w-40">
+                  <Undo2 className="h-4 w-4" />
+                  Fortryd udførsel
                 </Button>
               )}
             </div>

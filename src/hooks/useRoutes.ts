@@ -354,7 +354,11 @@ export const useStartStopTime = () => {
       if (error) throw error;
       return data as StopTimeEntry;
     },
-    onSuccess: () => {
+    onSuccess: (entry) => {
+      qc.setQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] }, (current) => {
+        if (!current || current.some((item) => item.id === entry.id)) return current;
+        return [...current, entry];
+      });
       qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" }),
