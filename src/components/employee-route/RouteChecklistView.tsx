@@ -13,10 +13,12 @@ import {
   Undo2,
   Loader2,
   BellRing,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { RouteStop } from "@/hooks/useRoutes";
+import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
+import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 
 /**
@@ -64,9 +66,13 @@ export const RouteChecklistView = ({
   onMarkNotificationRead,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
+  const employeeId = useMyEmployeeId();
+  const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
+  const startStopTime = useStartStopTime();
   const completed = useMemo(() => stops.filter((s) => s.status === "completed"), [stops]);
   const remaining = useMemo(() => stops.filter((s) => s.status !== "completed"), [stops]);
   const next = remaining[0];
+  const nextIsStarted = !!next && timeEntries.some((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at);
   const allDone = stops.length > 0 && remaining.length === 0;
   const progress = stops.length > 0 ? (completed.length / stops.length) * 100 : 0;
 
@@ -170,6 +176,18 @@ export const RouteChecklistView = ({
                 )}
 
                 <div className="mt-3 grid gap-2">
+                  {!nextIsStarted && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="min-h-11 w-full gap-2"
+                      disabled={!employeeId || locked || startStopTime.isPending}
+                      onClick={() => employeeId && startStopTime.mutate({ stop_id: next.id, employee_id: employeeId })}
+                    >
+                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                      Start aftale
+                    </Button>
+                  )}
                   <Button
                     className="h-13 min-h-[52px] w-full gap-2 text-[15px] font-semibold"
                     disabled={locked || pendingId === next.id}
@@ -180,7 +198,7 @@ export const RouteChecklistView = ({
                     ) : (
                       <Check className="h-5 w-5" strokeWidth={3} />
                     )}
-                    Markér som udført
+                    {nextIsStarted ? "Aftale udført" : "Markér som udført"}
                   </Button>
                   <div className="grid grid-cols-2 gap-2">
                     <Button

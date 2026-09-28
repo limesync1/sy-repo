@@ -802,6 +802,8 @@ const AftaleTab = ({
 
   useEffect(() => {
     if (!initialOrderId || !orders?.some((order) => order.id === initialOrderId)) return;
+    setFilter("all");
+    setSearch("");
     setExpandedOrder(initialOrderId);
   }, [initialOrderId, orders]);
 
