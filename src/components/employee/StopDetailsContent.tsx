@@ -23,7 +23,7 @@ import { useOrderForStop } from "@/hooks/useRoutes";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
-import { SheetHeaderBlock, Section, CollapsibleSection } from "@/components/route-planner/SheetSection";
+import { SheetHeaderBlock, Section } from "@/components/route-planner/SheetSection";
 import { INTERVAL_LABELS } from "@/types/service";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -436,23 +436,21 @@ export const StopDetailsContent = ({
         </Section>
 
         {customerNote && customerNote.trim() && (
-          <CollapsibleSection
+          <Section
             icon={<MessageSquare className="h-3.5 w-3.5" />}
             title="Besked fra kunden"
-            defaultOpen={false}
           >
             <div className="rounded-lg border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
               <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
             </div>
-          </CollapsibleSection>
+          </Section>
         )}
 
         {orderTotal > 0 && (
-          <CollapsibleSection
+          <Section
             icon={<Wallet className="h-3.5 w-3.5" />}
             title="Beløb"
             hint={myCommissionPct > 0 ? formatKrUtil(myShare) : formatKrUtil(orderTotal)}
-            defaultOpen={false}
           >
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-sm">
@@ -468,15 +466,14 @@ export const StopDetailsContent = ({
                 </div>
               )}
             </div>
-          </CollapsibleSection>
+          </Section>
         )}
 
         {route && (
-          <CollapsibleSection
+          <Section
             icon={<RouteIcon className="h-3.5 w-3.5" />}
             title="Rute-info"
             hint={route.name || undefined}
-            defaultOpen={false}
           >
             <div className="flex items-center gap-2.5">
               <span
@@ -500,15 +497,14 @@ export const StopDetailsContent = ({
                 <Users className="h-3 w-3" /> Delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"}
               </p>
             )}
-          </CollapsibleSection>
+          </Section>
         )}
 
         {!readOnly && (
-          <CollapsibleSection
+          <Section
             icon={<ClipboardList className="h-3.5 w-3.5" />}
             title="Din note"
             hint={noteDraft?.trim() ? "udfyldt" : "synlig for virksomheden"}
-            defaultOpen={!!noteDraft?.trim()}
           >
             <Textarea
               placeholder="Tilføj en note om besøget…"
@@ -517,19 +513,18 @@ export const StopDetailsContent = ({
               rows={3}
               className="resize-none rounded-md"
             />
-          </CollapsibleSection>
+          </Section>
         )}
 
         {readOnly && stop.notes && stop.notes.trim() && (
-          <CollapsibleSection
+          <Section
             icon={<ClipboardList className="h-3.5 w-3.5" />}
             title="Note fra besøget"
-            defaultOpen={false}
           >
             <div className="rounded-lg border bg-card p-3">
               <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{stop.notes}</p>
             </div>
-          </CollapsibleSection>
+          </Section>
         )}
       </div>
 

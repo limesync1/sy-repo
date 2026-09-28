@@ -803,9 +803,9 @@ const LiveChatWidget = () => {
         >
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
-              src={supportPortrait.url}
-              alt="Serviceydere kundeservice"
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-background/20"
+              src={escalated ? supportPortrait.url : supportRobot.url}
+              alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"}
+              className={cn("h-8 w-8 rounded-full ring-2 ring-background/20", escalated ? "object-cover" : "bg-background object-contain p-0.5")}
             />
             <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
@@ -858,10 +858,10 @@ const LiveChatWidget = () => {
               <div className="relative flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
-                    <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-10 w-10 rounded-2xl object-cover" />
+                    <img src={escalated ? supportPortrait.url : supportRobot.url} alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"} className={cn("h-10 w-10 rounded-2xl", escalated ? "object-cover" : "object-contain p-0.5")} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold leading-tight">Kundeservice</p>
+                    <p className="truncate text-[14px] font-semibold leading-tight">{escalated ? "William Ross Jepsen" : "Kundeservice"}</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
                       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
                       <span className="truncate">{closed ? "Samtalen er afsluttet" : escalated ? "En medarbejder er koblet på" : "AI-assistent svarer med det samme"}</span>
@@ -1216,7 +1216,7 @@ const LiveChatWidget = () => {
                     <div className="flex items-end gap-2 animate-in fade-in duration-200">
                       <div className="w-9 flex-shrink-0">
                         <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
-                          <img src={supportPortrait.url} alt="Serviceydere kundeservice" className="h-9 w-9 rounded-2xl object-cover" />
+                          <img src={supportRobot.url} alt="Serviceydere kundeservice" className="h-9 w-9 rounded-2xl object-contain p-0.5" />
                         </span>
                       </div>
                       <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">

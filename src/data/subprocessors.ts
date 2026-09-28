@@ -59,7 +59,7 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     location: "Danmark",
   },
   {
-    name: "e-conomic (Visma)",
+    name: "E-conomic (Visma)",
     purpose: "Overførsel af fakturagrundlag, når virksomheden selv har tilsluttet regnskabsintegrationen.",
     data: "Kundenavn, adresse, e-mail, CVR og fakturalinjer.",
     location: "EU",

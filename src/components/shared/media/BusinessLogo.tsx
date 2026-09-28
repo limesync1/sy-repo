@@ -33,7 +33,7 @@ const BusinessLogo = ({ url, name, size = 48, rounded = "xl", className }: Props
     >
       {url ? (
         <img
-          src={imageSrc(url, Math.max(96, size * 2), 82)}
+          src={imageSrc(url, Math.max(96, size * 2), 82, "contain")}
           alt={`Logo for ${name}`}
           width={size}
           height={size}

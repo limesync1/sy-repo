@@ -25,7 +25,7 @@ export const BILLING_OPTIONS: { value: BillingPeriod; label: string; months: num
 ];
 
 export const FEATURES: { key: FeatureKey; icon: typeof Calculator; title: string; free: boolean; description: string }[] = [
-  { key: "accounting_integration", icon: Calculator, free: false, title: "Regnskabsintegration", description: "e-conomic / Dinero — auto-fakturering." },
+  { key: "accounting_integration", icon: Calculator, free: false, title: "Regnskabsintegration", description: "E-conomic / Dinero — auto-fakturering." },
   { key: "leads", icon: Inbox, free: true, title: "Leads (Indhent 3 tilbud)", description: "Modtag kundehenvendelser." },
   { key: "livechat", icon: MessageCircle, free: true, title: "Livechat på virksomhedssiden", description: "Lad besøgende skrive direkte." },
 ];

@@ -52,7 +52,7 @@ const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; descriptio
     key: "accounting_integration",
     icon: Calculator,
     title: "Regnskabsintegration",
-    description: "Send automatisk fakturaer til e-conomic eller Dinero, så du slipper for dobbelt indtastning. Kan slås til/fra når som helst.",
+    description: "Send automatisk fakturaer til E-conomic eller Dinero, så du slipper for dobbelt indtastning. Kan slås til/fra når som helst.",
   },
   {
     key: "leads",

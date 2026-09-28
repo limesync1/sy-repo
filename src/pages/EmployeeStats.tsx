@@ -346,7 +346,7 @@ const EmployeeStats = () => {
                       const max = Math.max(...s.perDay.map((x) => x.stops), 1);
                       const pct = (d.stops / max) * 100;
                       return (
-                        <Collapsible key={d.date} defaultOpen={s.perDay.length <= 3}>
+                        <Collapsible key={d.date} defaultOpen>
                           <CollapsibleTrigger asChild>
                             <button
                               type="button"

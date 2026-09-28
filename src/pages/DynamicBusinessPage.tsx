@@ -250,7 +250,7 @@ const DynamicBusinessContent = () => {
               <div className="flex h-20 min-w-[5rem] max-w-[16rem] items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card px-3 shadow-xl md:h-24 md:max-w-[20rem] md:px-4">
                 {business.logo_url ? (
                   <img
-                    src={imageSrc(business.logo_url, 512, 85)}
+                    src={imageSrc(business.logo_url, 512, 85, "contain")}
                     alt={`${business.name} logo${business.city ? ` – ${business.city}` : ""}`}
                     className="h-full w-auto max-w-full object-contain py-2"
                     loading="eager"

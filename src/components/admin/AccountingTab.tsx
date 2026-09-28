@@ -70,30 +70,30 @@ interface ProviderDef {
 const PROVIDERS: ProviderDef[] = [
   {
     value: "economic",
-    label: "e-conomic",
+    label: "E-conomic",
     logo: economicLogo,
     tagline: "",
-    description: "Klik her for at integrere din virksomhed med e-conomic som dit regnskabsprogram.",
+    description: "Klik her for at integrere din virksomhed med E-conomic som dit regnskabsprogram.",
     helpUrl: "https://www.e-conomic.com/developer",
-    helpUrlLabel: "Åbn e-conomic udviklerside",
+    helpUrlLabel: "Åbn E-conomic udviklerside",
     fields: [
       { key: "api_secret", label: "Hemmelig kode (App Secret Token)", type: "password",
-        help: "Den hemmelige kode du får i e-conomic, når du opretter din egen lille forbindelse (kaldes 'App Secret Token').", placeholder: "Indsæt koden her" },
+        help: "Den hemmelige kode du får i E-conomic, når du opretter din egen lille forbindelse (kaldes 'App Secret Token').", placeholder: "Indsæt koden her" },
       { key: "api_token", label: "Adgangsnøgle til din aftale (Grant Token)", type: "password",
-        help: "Den nøgle du får, når du installerer forbindelsen på din e-conomic-aftale (kaldes 'Agreement Grant Token').", placeholder: "Indsæt nøglen her" },
+        help: "Den nøgle du får, når du installerer forbindelsen på din E-conomic-aftale (kaldes 'Agreement Grant Token').", placeholder: "Indsæt nøglen her" },
     ],
     setupSteps: [
-      "Åbn e-conomics udviklerside via linket nedenfor og log ind med din almindelige e-conomic-bruger.",
+      "Åbn E-conomics udviklerside via linket nedenfor og log ind med din almindelige E-conomic-bruger.",
       "Klik 'Create new app' og kald den fx 'Serviceydere'. Sæt flueben ved Customers, Products og Sales Orders.",
       "Du får nu en hemmelig kode ('App Secret Token') — kopiér den og indsæt i feltet herunder.",
-      "Tryk 'Install on agreement' øverst og vælg din e-conomic-aftale.",
+      "Tryk 'Install on agreement' øverst og vælg din E-conomic-aftale.",
       "Du får nu en adgangsnøgle ('Agreement Grant Token') — kopiér den ind i feltet herunder.",
       "Tryk 'Test forbindelse' — så tjekker vi at alt virker, før vi gemmer.",
     ],
     note: {
       tone: "info",
       title: "Hvorfor skal jeg selv oprette forbindelsen?",
-      body: "e-conomic kræver at hver forbindelse oprettes inde i din egen aftale. Det er gratis, tager ca. 2 minutter, og du sparer e-conomics månedlige app-gebyr.",
+      body: "E-conomic kræver at hver forbindelse oprettes inde i din egen aftale. Det er gratis, tager ca. 2 minutter, og du sparer E-conomics månedlige app-gebyr.",
     },
   },
   {
@@ -328,7 +328,7 @@ function SuccessCard({ name }: { name: string }) {
 }
 
 /**
- * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
+ * EconomicConnectCard — guidet OAuth-lignende flow for E-conomic.
  */
 const EconomicConnectCard = React.forwardRef<
   HTMLDivElement,
@@ -341,20 +341,20 @@ const EconomicConnectCard = React.forwardRef<
 >(({ onConnect, connecting, waiting, connectResult }, ref) => {
   return (
     <div ref={ref}>
-      <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik forbindelse — tager under 30 sekunder">
+      <ConnectCardShell logo={economicLogo} name="E-conomic" tagline="Ét-klik forbindelse — tager under 30 sekunder">
         <div className="space-y-5">
           <Button onClick={onConnect} disabled={connecting} size="lg" className="w-full">
             {connecting
               ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               : <ExternalLink className="mr-2 h-5 w-5" />}
-            {connecting ? "Forbinder…" : "Forbind e-conomic"}
+            {connecting ? "Forbinder…" : "Forbind E-conomic"}
           </Button>
 
           {waiting && !connectResult?.ok && (
             <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
               <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
               <div className="min-w-0">
-                <div className="font-medium">Venter på godkendelse i e-conomic…</div>
+                <div className="font-medium">Venter på godkendelse i E-conomic…</div>
                 <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din aftale og tryk "Tildel adgang".</div>
               </div>
             </div>
@@ -375,7 +375,7 @@ const EconomicConnectCard = React.forwardRef<
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            🔒 Du kan altid tilbagekalde adgangen i e-conomic under <strong>Indstillinger → Integrationer → Apps</strong>.
+            🔒 Du kan altid tilbagekalde adgangen i E-conomic under <strong>Indstillinger → Integrationer → Apps</strong>.
           </p>
         </div>
       </ConnectCardShell>
@@ -919,7 +919,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   /**
-   * Dinero OAuth — spejler e-conomic-flowet. Aktiveres automatisk når
+   * Dinero OAuth — spejler E-conomic-flowet. Aktiveres automatisk når
    * `accounting-dinero-callback` returnerer `enabled: true` (dvs. når
    * server-secrets DINERO_CLIENT_ID/SECRET/REDIRECT_URL er sat).
    * Indtil da forbliver knappen skjult og brugeren ser Smart Paste-flowet.
@@ -986,7 +986,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   /**
    * E-conomic-flow:
-   *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
+   *  1) Brugeren trykker "Forbind E-conomic" — vi henter Installations URL'en
    *     fra serveren og åbner den i et nyt vindue.
    *  2) E-conomic redirecter brugeren tilbage til /virksomhed?economicToken=XXX
    *     i samme vindue eller forældervinduet.
@@ -1007,11 +1007,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (popup) {
       try {
         popup.document.write(
-          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til e-conomic…</title>` +
+          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til E-conomic…</title>` +
           `<style>body{font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
           `.box{text-align:center}.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#22d3ee;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}` +
           `@keyframes s{to{transform:rotate(360deg)}}</style></head>` +
-          `<body><div class="box"><div class="spinner"></div><div>Sender dig til e-conomic…</div></div></body></html>`
+          `<body><div class="box"><div class="spinner"></div><div>Sender dig til E-conomic…</div></div></body></html>`
         );
       } catch { /* cross-origin write kan fejle, ignorér */ }
     }
@@ -1025,8 +1025,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const url = (data as any)?.install_url;
-      if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
-      // Naviger den allerede-åbnede popup til e-conomic.
+      if (!url) throw new Error("Kunne ikke hente E-conomic install-URL");
+      // Naviger den allerede-åbnede popup til E-conomic.
       if (popup && !popup.closed) {
         popup.location.href = url;
       } else {
@@ -1043,7 +1043,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (runId !== setupRunRef.current) return;
       if (popup && !popup.closed) popup.close();
       sessionStorage.removeItem("economic_pending_business_id");
-      const msg = e?.message ?? "Kunne ikke åbne e-conomic";
+      const msg = e?.message ?? "Kunne ikke åbne E-conomic";
       setTestResult({ ok: false, message: msg });
       toast.error(msg);
       setEconomicConnecting(false);
@@ -1052,7 +1052,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   // Opfang ?economicToken=… (eller ?token=…) når brugeren kommer tilbage fra
-  // e-conomic. Hvis vi er i popup-vinduet (window.opener findes), sender vi
+  // E-conomic. Hvis vi er i popup-vinduet (window.opener findes), sender vi
   // tokenet videre til hovedvinduet via postMessage og lukker os selv. Hvis
   // vi ER hovedvinduet (popup'en blev blokeret og vi faldt tilbage til
   // same-tab redirect), håndterer vi det selv.
@@ -1117,7 +1117,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         // Spring direkte til oversigten med aktiv integration — ingen unødigt step 3.
         setMode("overview");
       } catch (e: any) {
-        const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
+        const msg = e?.message ?? "Kunne ikke gemme E-conomic-forbindelsen";
         setTestResult({ ok: false, message: msg });
         toast.error(msg);
       } finally {
@@ -1127,7 +1127,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
 
-  // Lyt efter postMessage fra popup-vinduet (e-conomic-redirect lander dér,
+  // Lyt efter postMessage fra popup-vinduet (E-conomic-redirect lander dér,
   // og popup'en sender tokenet videre hertil før den lukker).
   useEffect(() => {
     const onMessage = async (ev: MessageEvent) => {
@@ -1161,7 +1161,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         await load();
         setMode("overview");
       } catch (e: any) {
-        const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
+        const msg = e?.message ?? "Kunne ikke gemme E-conomic-forbindelsen";
         setTestResult({ ok: false, message: msg });
         toast.error(msg);
       } finally {
@@ -2317,9 +2317,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       "Indsæt dem her sammen med dit Dinero-nummer, og tryk 'Forbind Dinero'.",
                     ]
                   : [
-                      "Vi åbner e-conomic i et nyt vindue.",
+                      "Vi åbner E-conomic i et nyt vindue.",
                       "Du logger ind og vælger den aftale du vil forbinde Serviceydere med.",
-                      "Du trykker 'Tildel adgang' i e-conomic.",
+                      "Du trykker 'Tildel adgang' i E-conomic.",
                       "Du sendes automatisk tilbage hertil, og vi gør resten.",
                     ]
                 ).map((s, i) => (

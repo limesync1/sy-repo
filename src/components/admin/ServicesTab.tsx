@@ -491,7 +491,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   const accountName = provider && accountId
     ? (accountingMeta?.incomeAccounts[accountId] ?? accountId)
     : null;
-  const providerLabel = provider === "economic" ? "e-conomic" : provider === "dinero" ? "Dinero" : null;
+  const providerLabel = provider === "economic" ? "E-conomic" : provider === "dinero" ? "Dinero" : null;
 
   return (
     <Card className={`surface-admin rounded-lg border-border/80 shadow-sm overflow-hidden transition-colors ${!isActive ? "opacity-70" : "hover:border-foreground/20"}`}>
@@ -1850,7 +1850,7 @@ const ServiceForm = ({
             <div>
               <h4 className="text-sm font-semibold text-foreground">Regnskabsfelter</h4>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Bruges når denne service synkroniseres til dit regnskabsprogram (e-conomic, Dinero).
+                Bruges når denne service synkroniseres til dit regnskabsprogram (E-conomic, Dinero).
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

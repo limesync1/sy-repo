@@ -246,7 +246,7 @@ const ForBusinesses = () => {
               <Upload className="h-4 w-4 shrink-0" />
               Skal vi flytte jeres nuværende kunder og aftaler ind? Send listen — vi lægger dem ind gratis.
             </span>
-            <span>Regnskabsintegration til e-conomic eller Dinero: +{kr(p.price_accounting_integration_dkk)} kr/md.</span>
+            <span>Regnskabsintegration til E-conomic eller Dinero: +{kr(p.price_accounting_integration_dkk)} kr/md.</span>
           </div>
         </div>
       </div>

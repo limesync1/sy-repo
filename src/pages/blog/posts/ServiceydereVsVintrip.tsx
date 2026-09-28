@@ -24,7 +24,7 @@ const Post = defineBlogPost({
       <>Markedsplads: forespørgsler og bookinger fra kunder i jeres område, se <a href="/software/booking-og-tilbud">booking og tilbud</a>.</>,
       "Flere brancher i samme virksomhed uden at skifte system.",
       "Frit definerbare prisenheder, så prisberegneren regner som I regner.",
-      <>Regnskabsintegration til e-conomic og Dinero, se <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a>.</>,
+      <>Regnskabsintegration til E-conomic og Dinero, se <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a>.</>,
       <>Åbne priser på <a href="/software/priser">/software/priser</a>.</>,
     ]},
     { heading: "Læs også", list: [

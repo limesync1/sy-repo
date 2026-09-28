@@ -27,7 +27,7 @@ export const BRAND_FEATURE_LIST = [
   "Gentagne aftaler og faste kunder",
   "Medarbejder-app med tjek ind og ud",
   "Online booking og tilbudsstyring",
-  "Fakturering med e-conomic og Dinero",
+  "Fakturering med E-conomic og Dinero",
   "Kundekartotek og livechat",
   "Profilside på markedspladsen Serviceydere.dk",
 ];

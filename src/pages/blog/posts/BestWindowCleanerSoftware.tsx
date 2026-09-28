@@ -25,7 +25,7 @@ const Post = defineBlogPost({
       "Åbenhed om pris: kan du regne på det uden at booke et møde?",
     ]},
     { heading: "Serviceydere", paragraphs: [
-      "Driftssystem og markedsplads i ét. Visuel ruteplanlægger med drag & drop, kørselstid og ETA, faste aftaler med automatisk fremskrivning, medarbejder-app med tjek ind og ud, online booking, prisberegner med frit definerbare enheder og integration til e-conomic og Dinero.",
+      "Driftssystem og markedsplads i ét. Visuel ruteplanlægger med drag & drop, kørselstid og ETA, faste aftaler med automatisk fremskrivning, medarbejder-app med tjek ind og ud, online booking, prisberegner med frit definerbare enheder og integration til E-conomic og Dinero.",
       "289 kr./md. med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 2.269 kr. i opstart, 14 dages prøveperiode. Svag side: bogføringen sker via integration frem for i selve programmet, og ved mange medarbejdere koster login-priserne.",
     ], list: [
       <a href="/software/vinduespudser">Serviceydere til vinduespudsere</a>,

@@ -4,7 +4,7 @@ const HandymanSoftware = defineSoftwarePage({
   canonicalPath: "/software/haandvaerker",
   metaTitle: "System til håndværkere — opgaver, timer og fakturering | Serviceydere",
   metaDescription:
-    "Håndværkersystem med opgavestyring, timer, medarbejder-app, online tilbud og fakturering i e-conomic eller Dinero — med kørslen tænkt ind i dagen. Fra 289 kr./md.",
+    "Håndværkersystem med opgavestyring, timer, medarbejder-app, online tilbud og fakturering i E-conomic eller Dinero — med kørslen tænkt ind i dagen. Fra 289 kr./md.",
   keywords:
     "system til håndværkere, håndværkerprogram, ordrestyring håndværker, app til håndværkere, tilbud og fakturering håndværk",
   heroEyebrow: "Til håndværkere",
@@ -13,12 +13,12 @@ const HandymanSoftware = defineSoftwarePage({
     "Opgaver, timer og fakturering — med kørslen mellem adresserne tænkt ind i dagen.",
   breadcrumbLabel: "Håndværkere",
   answer:
-    "Serviceydere samler opgaver, planlægning, timeregistrering og fakturering for håndværksvirksomheder med kørende medarbejdere. Tilbud sendes fra systemet, opgaven bliver til et stop på en rute, medarbejderen registrerer sin tid på adressen, og faktureringen bogføres i e-conomic eller Dinero. Markedspladsen giver samtidig forespørgsler fra kunder i jeres område.",
+    "Serviceydere samler opgaver, planlægning, timeregistrering og fakturering for håndværksvirksomheder med kørende medarbejdere. Tilbud sendes fra systemet, opgaven bliver til et stop på en rute, medarbejderen registrerer sin tid på adressen, og faktureringen bogføres i E-conomic eller Dinero. Markedspladsen giver samtidig forespørgsler fra kunder i jeres område.",
   facts: [
     "Tilbud, opgave, udførelse og faktura i én kæde",
     "Servicebesøg og længere opgaver i samme kalender",
     "Timeregistrering fra medarbejderens telefon",
-    "Bogføring i e-conomic og Dinero",
+    "Bogføring i E-conomic og Dinero",
     "Forespørgsler fra markedspladsen Serviceydere.dk",
     "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
@@ -55,7 +55,7 @@ const HandymanSoftware = defineSoftwarePage({
     { q: "Kan jeg sende tilbud fra systemet?", a: "Ja. Tilbud kan sendes til kunden og godkendes online, hvorefter opgaven kan planlægges direkte." },
     { q: "Registrerer medarbejderne timer selv?", a: "Ja. De tjekker ind og ud på opgaven i appen, og tiden følger med over i faktureringen." },
     { q: "Kan systemet håndtere længere opgaver over flere dage?", a: "Ja. Både engangsopgaver, flerdagesopgaver og faste serviceaftaler ligger i samme kalender." },
-    { q: "Er der integration til regnskab?", a: "Ja, til e-conomic og Dinero. Det koster 269 kr./md. som tilvalg." },
+    { q: "Er der integration til regnskab?", a: "Ja, til E-conomic og Dinero. Det koster 269 kr./md. som tilvalg." },
     { q: "Hvad hvis vi laver flere fag?", a: "Systemet er brancheuafhængigt, så en virksomhed kan dække både håndværk, service og fx haveopgaver uden at skifte system." },
   ],
   cta: {

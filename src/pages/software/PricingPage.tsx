@@ -113,7 +113,7 @@ const PricingPage = () => {
     { label: "Basis", note: "Kundekartotek, aftaler, booking, profilside og markedsplads", price: `${kr(p.base_price_dkk)} kr./md.` },
     { label: "Ruteplanlægger", note: "Drag & drop, kørselstid, ETA og konfliktadvarsler", price: p.price_route_planning_dkk === 0 ? "Inkluderet" : `${kr(p.price_route_planning_dkk)} kr./md.` },
     { label: "Medarbejderlogin", note: "Pr. medarbejder med adgang til app, rute og tjek ind/ud", price: `${kr(p.price_per_employee_login_dkk)} kr./md.` },
-    { label: "Regnskabsintegration", note: "Automatisk bogføring i e-conomic eller Dinero", price: `${kr(p.price_accounting_integration_dkk)} kr./md.` },
+    { label: "Regnskabsintegration", note: "Automatisk bogføring i E-conomic eller Dinero", price: `${kr(p.price_accounting_integration_dkk)} kr./md.` },
     { label: "Dataimport", note: "Vores support flytter jeres kunder fra regneark eller et andet system", price: `${kr(p.price_data_import_dkk)} kr. engangs` },
     { label: "Opstart", note: "Opsætning af virksomhed, services og priser", price: `${kr(p.startup_fee_dkk)} kr. engangs` },
   ];

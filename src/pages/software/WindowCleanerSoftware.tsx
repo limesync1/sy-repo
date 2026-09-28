@@ -13,7 +13,7 @@ const WindowCleanerSoftware = defineSoftwarePage({
     "Faste intervaller, ruter der hænger sammen, og nye kunder fra markedspladsen — i samme system.",
   breadcrumbLabel: "Vinduespudsere",
   answer:
-    "Serviceydere er et driftssystem til vinduespudsere: faste kunder med egne intervaller, ruter planlagt med drag & drop og beregnet kørselstid, medarbejder-app med tjek ind og ud, og fakturering med bogføring i e-conomic eller Dinero. Til forskel fra de programmer der udelukkende er lavet til vinduespudsning, følger der en markedsplads med, hvor private og virksomheder selv finder jer — og systemet kan følge med, hvis I senere tilføjer rengøring, algebehandling eller solcellevask.",
+    "Serviceydere er et driftssystem til vinduespudsere: faste kunder med egne intervaller, ruter planlagt med drag & drop og beregnet kørselstid, medarbejder-app med tjek ind og ud, og fakturering med bogføring i E-conomic eller Dinero. Til forskel fra de programmer der udelukkende er lavet til vinduespudsning, følger der en markedsplads med, hvor private og virksomheder selv finder jer — og systemet kan følge med, hvis I senere tilføjer rengøring, algebehandling eller solcellevask.",
   facts: [
     "Intervaller pr. kunde: 4, 6, 8, 12 uger eller helt egne",
     "Kørselstid og ankomsttid beregnes mens du planlægger",

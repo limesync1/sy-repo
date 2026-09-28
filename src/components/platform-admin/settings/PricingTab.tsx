@@ -92,7 +92,7 @@ export default function PricingTab({ s, set, errors }: Props) {
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <NumField label="Basispris / md" v={s.base_price_dkk} on={(v) => set("base_price_dkk", v)} hint="Dækker panel, ruteplanlægning og bestillinger" error={errors.base_price_dkk} />
-          <NumField label="Regnskabsintegration / md" v={s.price_accounting_integration_dkk} on={(v) => set("price_accounting_integration_dkk", v)} hint="Add-on (Dinero / e-conomic)" error={errors.price_accounting_integration_dkk} />
+          <NumField label="Regnskabsintegration / md" v={s.price_accounting_integration_dkk} on={(v) => set("price_accounting_integration_dkk", v)} hint="Add-on (Dinero / E-conomic)" error={errors.price_accounting_integration_dkk} />
           <NumField label="Per ekstra medarbejderlogin / md" v={s.price_per_employee_login_dkk} on={(v) => set("price_per_employee_login_dkk", v)} hint="Tillægges når kunden har flere logins end pakken inkluderer" error={errors.price_per_employee_login_dkk} />
           <NumField label="Opstartspris (engangsbeløb)" v={s.startup_fee_dkk} on={(v) => set("startup_fee_dkk", v)} hint="Tillægges 1. faktura efter prøve" error={errors.startup_fee_dkk} />
           <NumField label="Dataimport (engangsbeløb)" v={s.price_data_import_dkk} on={(v) => set("price_data_import_dkk", v)} hint="Manuel migrering af eksisterende data" error={errors.price_data_import_dkk} />

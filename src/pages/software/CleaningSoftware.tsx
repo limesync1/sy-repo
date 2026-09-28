@@ -4,7 +4,7 @@ const CleaningSoftware = defineSoftwarePage({
   canonicalPath: "/software/rengoering",
   metaTitle: "System til rengøringsfirmaer — planlægning, timer og fakturering | Serviceydere",
   metaDescription:
-    "Rengøringssystem med faste aftaler, nøglestyring, medarbejder-app med tjek ind og ud, timer der kan faktureres og bogføring i e-conomic eller Dinero. Fra 289 kr./md.",
+    "Rengøringssystem med faste aftaler, nøglestyring, medarbejder-app med tjek ind og ud, timer der kan faktureres og bogføring i E-conomic eller Dinero. Fra 289 kr./md.",
   keywords:
     "system til rengøringsfirma, rengøringsprogram, planlægning rengøring, software rengøringsvirksomhed, timeregistrering rengøring",
   heroEyebrow: "Til rengøringsfirmaer",
@@ -13,13 +13,13 @@ const CleaningSoftware = defineSoftwarePage({
     "Faste aftaler, nøgler og adgangsforhold, timer der kan faktureres — og nye kunder oveni.",
   breadcrumbLabel: "Rengøring",
   answer:
-    "Serviceydere samler driften i et rengøringsfirma: faste aftaler med egne intervaller, planlægning af hvem der kører hvorhen, medarbejder-app hvor der tjekkes ind og ud på adressen, og fakturering på grundlag af det udførte arbejde med bogføring i e-conomic eller Dinero. Oveni ligger en markedsplads, hvor private og virksomheder finder og booker jer direkte.",
+    "Serviceydere samler driften i et rengøringsfirma: faste aftaler med egne intervaller, planlægning af hvem der kører hvorhen, medarbejder-app hvor der tjekkes ind og ud på adressen, og fakturering på grundlag af det udførte arbejde med bogføring i E-conomic eller Dinero. Oveni ligger en markedsplads, hvor private og virksomheder finder og booker jer direkte.",
   facts: [
     "Privat- og erhvervsrengøring i samme system",
     "Nøgler, koder og alarmoplysninger på kunden",
     "Tjek ind og ud giver dokumenterede timer",
     "Pris pr. time, pr. m² eller fast månedspris",
-    "Bogføring i e-conomic og Dinero",
+    "Bogføring i E-conomic og Dinero",
     "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
   sections: [
