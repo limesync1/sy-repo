@@ -118,13 +118,13 @@
 - [x] Ret medarbejderadgang til Livechat og arbejdspladsskift uden gamle data.
 - [x] Redesign arbejdspladsvælger, Min dag, Statistik og medarbejdernavigation i fælles panelsystem.
 - [x] Genbyg rutekørsel i liste- og kortvisning med tydeligt valg og automatisk, rolig optimering.
-- [ ] Registrér faktisk tid pr. aftale fra ankomst/start til udført og vis den forståeligt.
-- [ ] Tilføj fortryd udført i virksomhedspanelet med automatisk genåbning af færdig rute.
+- [x] Registrér faktisk tid pr. aftale fra ankomst/start til udført og vis den forståeligt.
+- [x] Tilføj fortryd udført i virksomhedspanelet med automatisk genåbning af færdig rute.
 - [x] Redesign og udvid notifikationer med sletning og aftalespecifikke beskeder.
-- [ ] Åbn aftaledetaljer direkte fra virksomhedsforsiden og vis alle relevante detaljer uden skjulte sektioner.
-- [ ] Forbedr omsætning/andel, kundeoprettelse, adresseforslag, logoer og formulartekster responsivt.
-- [ ] Ensret aftale/stop-ordvalg og stavningen E-conomic på hele platformen.
-- [ ] Skift kundeserviceidentitet mellem robot og William ved menneskelig overtagelse.
+- [x] Åbn aftaledetaljer direkte fra virksomhedsforsiden og vis alle relevante detaljer uden skjulte sektioner.
+- [x] Forbedr omsætning/andel, kundeoprettelse, adresseforslag, logoer og formulartekster responsivt.
+- [x] Ensret aftale/stop-ordvalg og stavningen E-conomic på hele platformen.
+- [x] Skift kundeserviceidentitet mellem robot og William ved menneskelig overtagelse.
 - [ ] Tilføj personlig William-sektion på forsiden og fjern hvide kanter i Trygt valg.
 - [ ] Gennemgå og ensret skeletons på offentlige sider og alle tre paneler.
 - [ ] Verificér centrale flows, lys/mørk og 393/768/1280/1440 px uden overlap.

@@ -368,7 +368,7 @@ const EconomicConnectCard = React.forwardRef<
             }`}>
               {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
               <div className="min-w-0">
-                <div className="font-medium">{connectResult.ok ? "e-conomic er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
+                <div className="font-medium">{connectResult.ok ? "E-conomic er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
                 {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
               </div>
             </div>
@@ -1110,9 +1110,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         const companyName = (data as any)?.company_name;
         setTestResult({
           ok: true,
-          message: companyName ? `Forbundet til ${companyName}` : "e-conomic er forbundet og klar.",
+          message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
         });
-        toast.success("e-conomic er nu forbundet!");
+        toast.success("E-conomic er nu forbundet!");
         await load();
         // Spring direkte til oversigten med aktiv integration — ingen unødigt step 3.
         setMode("overview");
@@ -1153,9 +1153,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         const companyName = (resp as any)?.company_name;
         setTestResult({
           ok: true,
-          message: companyName ? `Forbundet til ${companyName}` : "e-conomic er forbundet og klar.",
+          message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
         });
-        toast.success("e-conomic er nu forbundet!");
+        toast.success("E-conomic er nu forbundet!");
         // Naviger med react-router så Admin.tsx faktisk viser regnskabs-fanen.
         navigate("/virksomhed?tab=accounting", { replace: true });
         await load();
