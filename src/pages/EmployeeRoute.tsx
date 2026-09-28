@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useStartStopTime, useEndStopTime, useResetStopTime, useOptimizeRouteFromPosition, useReorderStops } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime, useResetStopTime, useOptimizeRouteFromPosition, useReorderStops, useStopTimeEntries } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -645,6 +645,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   );
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
+  const { data: nextStopTimeEntries = [] } = useStopTimeEntries(nextStop ? [nextStop.id] : []);
+  const activeNextStopEntry = nextStopTimeEntries.find(
+    (entry) => entry.stop_id === nextStop?.id && entry.employee_id === meEmp?.id && !entry.ended_at,
+  );
+  const [timerNow, setTimerNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!activeNextStopEntry) return;
+    setTimerNow(Date.now());
+    const timer = window.setInterval(() => setTimerNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [activeNextStopEntry?.id]);
+  const activeNextStopSeconds = activeNextStopEntry
+    ? Math.max(0, Math.floor((timerNow - new Date(activeNextStopEntry.started_at).getTime()) / 1000))
+    : null;
+  const activeNextStopLabel = activeNextStopSeconds == null
+    ? null
+    : [Math.floor(activeNextStopSeconds / 3600), Math.floor((activeNextStopSeconds % 3600) / 60), activeNextStopSeconds % 60]
+        .map((value) => String(value).padStart(2, "0"))
+        .join(":");
   // Knyt kun live-positionen til et stop, når medarbejderen faktisk er ved
   // adressen. Det forhindrer, at næste aftale markeres grøn under hele køreturen.
   const liveStopId = useMemo(() => {
@@ -2006,6 +2025,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </p>
                   )}
                 </div>
+                {activeNextStopLabel && (
+                  <Badge variant="outline" className="h-7 shrink-0 gap-1.5 border-success/30 bg-success/10 px-2 font-mono text-[11px] font-semibold tabular-nums text-success">
+                    <Clock className="h-3.5 w-3.5" /> {activeNextStopLabel}
+                  </Badge>
+                )}
                 {isAtNextStop ? (
                   <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-success/15 text-success">
                     <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500" />
@@ -2228,6 +2252,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 onComplete={() => handleComplete(s)}
                 onUndo={() => handleUndo(s)}
                 isPending={updateStatus.isPending}
+                pendingTimeLabel="Starter automatisk, når du ankommer"
               />
             );
           })()}
