@@ -33,7 +33,7 @@ type Channel = "email" | "sms";
 type Scope = "customer" | "agreement";
 
 const EVENTS: { key: EventKey; label: string; help: string; Icon: typeof Bell }[] = [
-  { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når opgaven er udført.", Icon: CheckCircle2 },
+  { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når aftalen er udført.", Icon: CheckCircle2 },
 ];
 
 type Row = {

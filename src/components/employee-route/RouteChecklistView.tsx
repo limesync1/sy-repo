@@ -13,13 +13,12 @@ import {
   Undo2,
   Loader2,
   BellRing,
-import { useMyEmployeeId } from "@/hooks/useMyEmployee";
-import { useStopTimeEntries, useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
-import { Clock, Play, Pause } from "lucide-react";
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { RouteStop } from "@/hooks/useRoutes";
+import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
+import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 
 /**
@@ -67,24 +66,13 @@ export const RouteChecklistView = ({
   onMarkNotificationRead,
 }: Props) => {
   const [showDone, setShowDone] = useState(false);
-  const myEmployeeId = useMyEmployeeId();
-  const stopIds = useMemo(() => stops.map(s => s.id), [stops]);
-  const { data: allTimeEntries = [] } = useStopTimeEntries(stopIds);
+  const employeeId = useMyEmployeeId();
+  const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
   const startStopTime = useStartStopTime();
-  const endStopTime = useEndStopTime();
-
-  const getStopDuration = (stopId: string) => {
-    const entries = allTimeEntries.filter(e => e.stop_id === stopId && e.employee_id === myEmployeeId && e.ended_at);
-    return entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0);
-  };
-
-  const isWorkingOn = (stopId: string) => {
-    return allTimeEntries.some(e => e.stop_id === stopId && e.employee_id === myEmployeeId && !e.ended_at);
-  };
-
   const completed = useMemo(() => stops.filter((s) => s.status === "completed"), [stops]);
   const remaining = useMemo(() => stops.filter((s) => s.status !== "completed"), [stops]);
   const next = remaining[0];
+  const nextIsStarted = !!next && timeEntries.some((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at);
   const allDone = stops.length > 0 && remaining.length === 0;
   const progress = stops.length > 0 ? (completed.length / stops.length) * 100 : 0;
 
@@ -188,36 +176,21 @@ export const RouteChecklistView = ({
                 )}
 
                 <div className="mt-3 grid gap-2">
+                  {!nextIsStarted && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="min-h-11 w-full gap-2"
+                      disabled={!employeeId || locked || startStopTime.isPending}
+                      onClick={() => employeeId && startStopTime.mutate({ stop_id: next.id, employee_id: employeeId })}
+                    >
+                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                      Start aftale
+                    </Button>
+                  )}
                   <Button
                     className="h-13 min-h-[52px] w-full gap-2 text-[15px] font-semibold"
                     disabled={locked || pendingId === next.id}
-                  <div className="mb-3 rounded-[4px] border border-border bg-secondary/30 p-2.5 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Clock className={cn("h-4 w-4", isWorkingOn(next.id) ? "text-feature-cool animate-pulse" : "text-muted-foreground")} />
-                      <div className="min-w-0">
-                        <p className="text-[12px] font-medium leading-none">
-                          {isWorkingOn(next.id) ? "Tid i gang..." : getStopDuration(next.id) > 0 ? `${getStopDuration(next.id)} min registreret` : "Ingen tid registreret"}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 gap-1.5 px-2.5 text-[11px]"
-                      disabled={startStopTime.isPending || endStopTime.isPending}
-                      onClick={() => {
-                        if (isWorkingOn(next.id)) {
-                          endStopTime.mutate({ stop_id: next.id, employee_id: myEmployeeId! });
-                        } else {
-                          startStopTime.mutate({ stop_id: next.id, employee_id: myEmployeeId! });
-                        }
-                      }}
-                    >
-                      {isWorkingOn(next.id) ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                      {isWorkingOn(next.id) ? "Stop tid" : "Start tid"}
-                    </Button>
-                  </div>
-
                     onClick={() => onComplete(next)}
                   >
                     {pendingId === next.id ? (
@@ -225,7 +198,7 @@ export const RouteChecklistView = ({
                     ) : (
                       <Check className="h-5 w-5" strokeWidth={3} />
                     )}
-                    Markér som udført
+                    {nextIsStarted ? "Aftale udført" : "Markér som udført"}
                   </Button>
                   <div className="grid grid-cols-2 gap-2">
                     <Button
@@ -281,11 +254,6 @@ export const RouteChecklistView = ({
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[14px] font-medium text-foreground">
                             {s.customer_name || "Stop"}
-                    {getStopDuration(s.id) > 0 && (
-                      <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
-                        ({getStopDuration(s.id)} min)
-                      </span>
-                    )}
                           </p>
                           {addressOf(s) && (
                             <p className="truncate text-[12px] text-muted-foreground">{addressOf(s)}</p>
@@ -357,11 +325,6 @@ export const RouteChecklistView = ({
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                     <span className="min-w-0 flex-1 truncate text-[13.5px] text-muted-foreground line-through">
                       {s.customer_name || "Stop"}
-                    {getStopDuration(s.id) > 0 && (
-                      <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
-                        ({getStopDuration(s.id)} min)
-                      </span>
-                    )}
                     </span>
                     <Button
                       variant="ghost"

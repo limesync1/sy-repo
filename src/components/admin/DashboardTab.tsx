@@ -39,7 +39,7 @@ interface Props {
   recentOrders: any[];
   reviews?: any[];
   services?: any[];
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, itemId?: string) => void;
 }
 
 const fmtKr = (n: number) => formatPrice(n);
@@ -312,7 +312,7 @@ const DashboardTab = ({
     if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første bestillinger.";
     if (revTrend.dir === "up" && stats.revenue7 > 0) return `Omsætningen er vokset ${revTrend.pct}% i denne uge — momentum er på jeres side.`;
     if (revTrend.dir === "down" && stats.revenuePrev7 > 0) return `Omsætningen er ${revTrend.pct}% under sidste uge — overvej at dele profilen eller justere priserne.`;
-    if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede opgaver uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
+    if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede aftaler uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
     if (averageRating >= 4.5 && reviewsCount >= 3) return `${averageRating.toFixed(1)}★ over ${reviewsCount} anmeldelser — stærk profil. Vis den frem.`;
     return "Hold svartid lav og profilen opdateret — det er de to ting der flytter mest på konverteringen.";
   }, [servicesCount, pendingOrders, ordersCount, completeness.pct, revTrend, stats.revenue7, stats.revenuePrev7, reviewsCount, averageRating]);
@@ -807,7 +807,7 @@ const FinanceOverviewCard = ({
   sparkline: number[];
   onOpenRevenue: () => void;
   onOpenOrders: () => void;
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, itemId?: string) => void;
 }) => {
   const [period, setPeriod] = useState<"p7" | "p30">("p7");
   const p = finance[period];
@@ -980,7 +980,7 @@ const OrdersListSection = ({
   setOrderSearch: (v: string) => void;
   orderSort: "newest" | "oldest" | "amount_desc" | "amount_asc" | "status";
   setOrderSort: (v: any) => void;
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, itemId?: string) => void;
   copyLink: () => void;
   hasShareUrl: boolean;
   statusLabels: Record<string, string>;
@@ -1178,7 +1178,7 @@ const OrdersListSection = ({
             <button
               key={order.id}
               type="button"
-              onClick={() => onNavigate?.("orders")}
+              onClick={() => onNavigate?.("orders", order.id)}
               className="grid w-full min-w-0 gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">

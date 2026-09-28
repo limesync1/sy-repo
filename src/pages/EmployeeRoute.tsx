@@ -931,6 +931,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       lastRerouteAtRef.current = now;
       offRouteStreakRef.current = 0;
       setIsRerouting(true);
+      // Opdatér også resten af stoprækkefølgen diskret, når bilen reelt har
+      // forladt den beregnede vej. Det aktive stop bevares tæt på adressen.
+      void reoptRef.current?.({ silent: true, excludeId: distanceToNextM != null && distanceToNextM < 200 ? nextStop.id : undefined });
       // Tving en ny origin — det invaliderer legWaypoints og udløser ny fetch.
       stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
       // Drop cache for directions så vi ikke får et stalt geometri tilbage.
@@ -1074,11 +1077,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [remainingStops, flexOrigin?.[0], flexOrigin?.[1], clockTick],
   );
-  const [optimizeHintDismissed, setOptimizeHintDismissed] = useState<string | null>(null);
-  const oppSignature = speedOpp.suggestedIds.join("|");
-  const showOptimizeHint =
-    speedOpp.worth && !optimizeLive.isPending && optimizeHintDismissed !== oppSignature;
-
   const reorderStops = useReorderStops();
   const reoptRef = useRef<((o?: { silent?: boolean; excludeId?: string }) => Promise<void>) | null>(null);
   const lastAutoOptRef = useRef(0);
@@ -1354,7 +1352,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     }
     setPendingStopId(s.id);
     try {
-      // Stop tidsregistrering for den loggede medarbejder på denne opgave
+      // Stop tidsregistrering for den loggede medarbejder på denne aftale
       try {
         if (meEmp?.id) {
           await endStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
@@ -1394,7 +1392,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleUndo = async (s: RouteStop) => {
-    const resetTime = useResetStopTime();
     try {
       if (meEmp?.id) {
         await resetStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
@@ -1435,11 +1432,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleStartRoute = () => {
     if (routeDateLocked) {
       toast.error("Ruten kan først startes på selve dagen");
-      return;
-    }
-    const remembered = readRunMode();
-    if (remembered) {
-      beginRoute(remembered);
       return;
     }
     setModeDialogOpen(true);
@@ -1764,42 +1756,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── "Ruten kan køres hurtigere" — vises kun når der reelt er
              minutter at hente i en anden rækkefølge. ─── */}
-        {routeStarted && !allDone && showOptimizeHint && (
-          <div className="absolute left-3 right-[68px] bottom-[62px] z-[1001] rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
-            <div className="flex items-start gap-2.5">
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                <Zap className="h-4 w-4 text-foreground" strokeWidth={2.4} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">Resten af ruten kan køres hurtigere</p>
-                <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
-                  {`En kortere rækkefølge kan spare ca. ${speedOpp.savedKm.toFixed(1)} km.`}
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="h-9 flex-1"
-                    disabled={optimizeLive.isPending}
-                    onClick={() => void reoptimizeFromHere()}
-                  >
-                    {optimizeLive.isPending ? "Optimerer…" : "Optimér"}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="h-9"
-                    onClick={() => setOptimizeHintDismissed(oppSignature)}
-                  >
-                    Ikke nu
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
 
 
         {/* ─── Aktiv kørselsbjælke: alle primære kontroller samlet ét sted ─── */}

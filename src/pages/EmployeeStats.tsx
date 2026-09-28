@@ -83,7 +83,7 @@ const formatWorkTime = (seconds: number) => {
   const h = Math.floor(safe / 3600);
   const m = Math.floor((safe % 3600) / 60);
   const s = safe % 60;
-  return `${String(h).padStart(2, "0")} : ${String(m).padStart(2, "0")} : ${String(s).padStart(2, "0")}`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 
 const PAYMENT_LABEL: Record<string, string> = {
@@ -277,7 +277,7 @@ const EmployeeStats = () => {
                       {formatKr(s.commission)}
                     </p>
                     <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-muted-foreground">
-                      Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført opgave" : "udførte opgaver"}
+                      Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført aftale" : "udførte aftaler"}
                     </p>
                   </div>
                 </div>
@@ -300,7 +300,7 @@ const EmployeeStats = () => {
             <div className="grid grid-cols-2 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:grid-cols-5">
               {[
                 { label: "Ruter", value: s.routesCount, icon: RouteIcon },
-                { label: "Opgaver", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
+                { label: "Aftaler", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
                 { label: "Arbejdsdage", value: s.workdaysCount, icon: CalendarIcon },
                  { label: "Arbejdstid", value: formatWorkTime(s.workSeconds), icon: Clock },
                 { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: MapPin },
@@ -357,7 +357,7 @@ const EmployeeStats = () => {
                                   {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
                                 </p>
                                 <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
-                                  {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
+                                  {d.stops} {d.stops === 1 ? "aftale" : "aftaler"}
                                 </p>
                               </div>
                               <div className="hidden sm:block">
@@ -373,7 +373,7 @@ const EmployeeStats = () => {
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground">min indtjening</p>
+                                  <p className="text-[10px] text-muted-foreground">Min andel ekskl. moms</p>
                                 </div>
                                 <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
                               </div>
@@ -396,7 +396,7 @@ const EmployeeStats = () => {
                                         <div className="min-w-0 space-y-1.5">
                                           <div className="flex flex-wrap items-center gap-2">
                                             <p className="truncate text-sm font-semibold text-foreground tracking-tight">
-                                              {e.customerName || "Opgave"}
+                                              {e.customerName || "Aftale"}
                                             </p>
                                             <Badge
                                               variant="outline"
@@ -440,13 +440,13 @@ const EmployeeStats = () => {
                                         </div>
                                         <div className="flex items-center justify-between gap-4 rounded-[5px] bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
-                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
+                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total inkl. moms</p>
                                             <p className="text-xs font-medium tabular-nums text-muted-foreground">
                                               {formatKr(e.orderAmount)}
                                             </p>
                                           </div>
                                           <div className="text-right">
-                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
+                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel ekskl. moms</p>
                                             <p className="text-sm font-bold tabular-nums text-foreground">
                                               {formatKr(e.share)}
                                             </p>

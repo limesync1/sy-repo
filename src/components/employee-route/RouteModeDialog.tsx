@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ListChecks, Navigation2, BatteryCharging } from "lucide-react";
 import {
   Dialog,
@@ -7,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { RouteRunMode } from "./RouteRunMode";
 
@@ -41,8 +39,6 @@ const options: Array<{
 ];
 
 export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
-  const [remember, setRemember] = useState(true);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="planner-overlay max-w-[calc(100vw-1rem)] rounded-[6px] p-4 sm:max-w-[440px] sm:p-5">
@@ -62,7 +58,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
               <button
                 key={o.mode}
                 type="button"
-                onClick={() => onChoose(o.mode, remember)}
+                onClick={() => onChoose(o.mode, false)}
                 className={cn(
                   "group flex w-full items-start gap-3 rounded-[5px] border border-border bg-card p-3 text-left transition-all",
                   "min-h-[70px] active:scale-[0.99] hover:border-accent/40 hover:bg-secondary/40 hover:shadow-sm",
@@ -87,14 +83,6 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
           })}
         </div>
 
-        <label className="mt-1 flex cursor-pointer items-center gap-2.5 rounded-[4px] border border-border bg-secondary/40 px-3 py-2.5">
-          <Checkbox
-            checked={remember}
-            onCheckedChange={(v) => setRemember(v === true)}
-            aria-label="Husk mit valg"
-          />
-          <span className="text-[13px] text-foreground">Husk mit valg til næste rute</span>
-        </label>
       </DialogContent>
     </Dialog>
   );

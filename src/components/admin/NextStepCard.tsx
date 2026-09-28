@@ -63,16 +63,16 @@ function computeStep(order: Order, hasAccountingIntegration: boolean): Step | nu
   if (s === "confirmed") {
     return {
       title: "Start arbejdet",
-      description: "Aftalen er bekræftet. Markér som 'I gang' når du er på vej eller starter opgaven.",
+      description: "Aftalen er bekræftet. Markér som 'I gang', når du er på vej eller starter aftalen.",
       icon: Play, tone: "info",
     };
   }
   if (s === "in_progress") {
     return {
-      title: hasAccountingIntegration ? "Afslut og fakturér" : "Afslut opgaven",
+      title: hasAccountingIntegration ? "Afslut og fakturér" : "Afslut aftalen",
       description: hasAccountingIntegration
-        ? "Markér som udført når opgaven er færdig — fakturaen sendes automatisk til regnskabsprogrammet."
-        : "Markér som udført når opgaven er færdig.",
+        ? "Markér aftalen som udført — fakturaen sendes automatisk til regnskabsprogrammet."
+        : "Markér aftalen som udført.",
       icon: CheckCircle2, tone: "success",
     };
   }

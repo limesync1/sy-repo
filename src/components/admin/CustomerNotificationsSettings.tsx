@@ -33,8 +33,8 @@ const EVENTS: {
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
-    shortLabel: "Sendes når opgaven er færdig",
-    help: "En kvittering til kunden når besøget er udført. Sendes automatisk så snart medarbejderen markerer opgaven som færdig.",
+    shortLabel: "Sendes når aftalen er færdig",
+    help: "En kvittering til kunden når besøget er udført. Sendes automatisk så snart medarbejderen markerer aftalen som færdig.",
     Icon: CheckCircle2,
     defaults: {
       subject: "Vi har udført {{service}}",

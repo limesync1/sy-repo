@@ -386,6 +386,8 @@ export const useEndStopTime = () => {
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke afslutte tidsregistrering" }),
   });
+};
+
 export const useResetStopTime = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -418,7 +420,6 @@ export const useResetStopTime = () => {
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fortryde tidsregistrering" }),
   });
-};
 };
 
 /* ─── Arbejdsdage (Start dag / Stop dag) ─── */
@@ -1570,6 +1571,19 @@ export const useUpdateStopStatus = () => {
     },
     onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere stop" }),
+  });
+};
+
+/** Fortryd ét udført stop og genåbn automatisk ruten, hvis den var afsluttet. */
+export const useUndoCompletedRouteStop = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (stopId: string) => {
+      const { error } = await supabase.rpc("undo_completed_route_stop", { _stop_id: stopId });
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fortryde udførelse" }),
   });
 };
 

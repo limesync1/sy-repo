@@ -863,7 +863,7 @@ const EmployeeRow = ({
                 </span>
               )}
               <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
-                {formatKr(earning?.earnings ?? 0)} · {rangeLabel}
+                {formatKr(earning?.earnings ?? 0)} ekskl. moms · {rangeLabel}
               </span>
             </div>
           </div>
