@@ -335,50 +335,53 @@ export const StopDetailsContent = ({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 sm:py-4 space-y-3">
-        {/* Faktisk registreret arbejdstid */}
-        <Section
-          icon={<Clock className="h-3.5 w-3.5" />}
-          title="Tidsregistrering"
-          hint={isWorking ? "I gang" : totalDurationSeconds > 0 ? durationLabel : undefined}
-        >
-          <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              {isWorking ? (
-                <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
-                  <div className="h-2 w-2 rounded-full bg-feature-cool" />
-                  Arbejder nu...
-                </div>
-              ) : totalDurationSeconds > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Faktisk tid: <span className="font-semibold tabular-nums text-foreground">{durationLabel}</span>
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">Ingen tidsregistrering endnu</p>
-              )}
-              {myEntry?.started_at && (
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {isWorking ? "Startet kl. " : "Seneste start kl. "} 
-                  {new Date(myEntry.started_at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
-                </p>
+        {/* Statistik viser kun afsluttet faktisk tidsforbrug. Aktiv status og
+            starttid hører alene til medarbejderens aktive rutekørsel. */}
+        {(!readOnly || (!isWorking && totalDurationSeconds > 0)) && (
+          <Section
+            icon={<Clock className="h-3.5 w-3.5" />}
+            title={readOnly ? "Faktisk tidsforbrug" : "Tidsregistrering"}
+            hint={!readOnly && isWorking ? "I gang" : totalDurationSeconds > 0 ? durationLabel : undefined}
+          >
+            <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                {isWorking ? (
+                  <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
+                    <div className="h-2 w-2 rounded-full bg-feature-cool" />
+                    Tidsregistrering aktiv
+                  </div>
+                ) : totalDurationSeconds > 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Faktisk tid: <span className="font-semibold tabular-nums text-foreground">{durationLabel}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Ingen tidsregistrering endnu</p>
+                )}
+                {!readOnly && myEntry?.started_at && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {isWorking ? "Startet kl. " : "Seneste start kl. "}
+                    {new Date(myEntry.started_at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                )}
+              </div>
+              {!readOnly && !isDone && (
+                <Button
+                  size="sm"
+                  variant={isWorking ? "outline" : "default"}
+                  className="h-9 gap-2 shrink-0"
+                  onClick={isWorking ? handleEndWork : handleStartWork}
+                  disabled={startStopTime.isPending || endStopTime.isPending}
+                >
+                  {isWorking ? (
+                    <> <Pause className="h-3.5 w-3.5" /> Stop </>
+                  ) : (
+                    <> <Play className="h-3.5 w-3.5" /> Start </>
+                  )}
+                </Button>
               )}
             </div>
-            {!isDone && (
-              <Button
-                size="sm"
-                variant={isWorking ? "outline" : "default"}
-                className="h-9 gap-2 shrink-0"
-                onClick={isWorking ? handleEndWork : handleStartWork}
-                disabled={startStopTime.isPending || endStopTime.isPending}
-              >
-                {isWorking ? (
-                  <> <Pause className="h-3.5 w-3.5" /> Stop </>
-                ) : (
-                  <> <Play className="h-3.5 w-3.5" /> Start </>
-                )}
-              </Button>
-            )}
-          </div>
-        </Section>
+          </Section>
+        )}
 
         <Section
           icon={<Package className="h-3.5 w-3.5" />}

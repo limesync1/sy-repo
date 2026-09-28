@@ -12,7 +12,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2, ArrowRightLeft, CalendarArrowDown } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2, ArrowRightLeft, CalendarArrowDown } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -131,7 +131,6 @@ type Props = {
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
-const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
 // Vis altid med dansk tusind-separator + "kr" — så et tal på et rute-kort
 // aldrig kan misforstås som "antal" i stedet for "beløb".
 const fmtRouteKr = (n: number) =>
@@ -1316,7 +1315,6 @@ const RoutePillInner = ({
         : "past"
     : null;
   const isFutureProjected = projectedKind === "future";
-  const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   // Kapacitetsbjælken beregnes alene ud fra antal stop pr. medarbejder.
   const empCount = Math.max(route.attachedEmployees.length || route.attachedEmployeeCount || 0, 1);
@@ -1631,11 +1629,6 @@ const RoutePillInner = ({
               <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
                 <Wallet className="h-3 w-3 shrink-0" />
                 {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
-              </span>
-            )}
-            {travelMin > 0 && !compact && (
-              <span className="inline-flex items-center gap-0.5 shrink-0">
-                <Clock className="h-3 w-3" />{fmtRouteMin(travelMin)}
               </span>
             )}
           </div>
