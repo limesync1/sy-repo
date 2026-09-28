@@ -456,13 +456,13 @@ export const StopDetailsContent = ({
           >
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Aftalens beløb</span>
+                <span className="text-muted-foreground">Total inkl. moms</span>
                 <span className="font-semibold tabular-nums">{formatKrUtil(orderTotal)}</span>
               </div>
               {myCommissionPct > 0 && (
                 <div className="flex items-center justify-between border-t pt-1.5">
                   <span className="text-sm text-muted-foreground">
-                    Min andel{sharers > 1 ? ` (÷${sharers})` : ""}
+                    Min andel ekskl. moms{sharers > 1 ? ` (÷${sharers})` : ""}
                   </span>
                   <span className="text-base font-bold tabular-nums">{formatKrUtil(myShare)}</span>
                 </div>

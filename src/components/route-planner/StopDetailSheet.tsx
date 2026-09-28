@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, type RouteStop } from "@/hooks/useRoutes";
+import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, useStopTimeEntries, type RouteStop, type Route } from "@/hooks/useRoutes";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn, readableTextOn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { registerStopRestoreUndo } from "@/lib/stop-restore";
 import { format, parseISO, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { da } from "date-fns/locale";
@@ -32,6 +32,8 @@ import { Section, SheetFooterBar } from "./SheetSection";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 
 type Props = {
   stop: RouteStop | null;
@@ -60,10 +62,34 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const setAssignees = useSetStopAssignees();
   const { data: myBusiness } = useMyBusiness();
   const { data: allEmployees = [] } = useEmployees(myBusiness?.id);
+  const { data: timeEntries = [] } = useStopTimeEntries(stop?.id ? [stop.id] : []);
+  const { data: stopRoute } = useQuery({
+    queryKey: ["stop-route-for-message", stop?.route_id],
+    enabled: !!stop?.route_id,
+    queryFn: async () => {
+      if (!stop?.route_id) return null;
+      const { data, error } = await supabase.from("routes").select("*").eq("id", stop.route_id).maybeSingle();
+      if (error) throw error;
+      return data as Route | null;
+    },
+  });
   const activeEmployees = useMemo(
     () => (allEmployees as any[]).filter((e) => e.is_active),
     [allEmployees],
   );
+  const actualTimeByEmployee = useMemo(() => {
+    const seconds = new Map<string, number>();
+    timeEntries.forEach((entry) => {
+      if (!entry.ended_at) return;
+      const elapsed = Math.max(0, Math.floor((new Date(entry.ended_at).getTime() - new Date(entry.started_at).getTime()) / 1000));
+      seconds.set(entry.employee_id, (seconds.get(entry.employee_id) ?? 0) + elapsed);
+    });
+    return Array.from(seconds.entries()).map(([employeeId, totalSeconds]) => ({
+      employee: (allEmployees as any[]).find((employee) => employee.id === employeeId),
+      totalSeconds,
+    }));
+  }, [allEmployees, timeEntries]);
+  const formatActualTime = (seconds: number) => `${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -336,6 +362,23 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 </Section>
               )}
 
+              {actualTimeByEmployee.length > 0 && (
+                <Section icon={<Clock className="h-3.5 w-3.5" />} title="Faktisk arbejdstid" hint={formatActualTime(actualTimeByEmployee.reduce((sum, row) => sum + row.totalSeconds, 0))}>
+                  <div className="divide-y divide-border rounded-md border border-border bg-card">
+                    {actualTimeByEmployee.map(({ employee, totalSeconds }, index) => (
+                      <div key={employee?.id || index} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+                        <span className="min-w-0 truncate text-muted-foreground">{employee?.name || "Medarbejder"}</span>
+                        <span className="shrink-0 font-semibold tabular-nums text-foreground">{formatActualTime(totalSeconds)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
+              {!readOnly && stopRoute && (
+                <RouteCommunicationPanel route={stopRoute} stops={[stop]} employees={activeEmployees} stop={stop} />
+              )}
+
               {/* Customer */}
               <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
@@ -376,7 +419,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                           : Array.isArray(d.steps)
                             ? d.steps
                             : [];
-                        const hours: number | null = typeof d.hours === "number" ? d.hours : null;
                         const customNote: string | null = typeof d.note === "string" && d.note.trim() ? d.note : null;
                         const itemInterval = d.interval && d.interval !== "engangskøb" ? d.interval : null;
                         const itemDescription = typeof d.description === "string" ? d.description : null;
@@ -411,11 +453,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                       {INTERVAL_LABELS[itemInterval] || itemInterval}
                                     </Badge>
                                   )}
-                                  {hours !== null ? (
-                                    <span className="text-[11px] text-muted-foreground">
-                                      {hours} {hours === 1 ? "time" : "timer"} × {Math.round(Number(item.unit_price))} kr
-                                    </span>
-                                  ) : item.quantity > 1 && (
+                                  {item.quantity > 1 && (
                                     <span className="text-[11px] text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
                                   )}
                                 </div>

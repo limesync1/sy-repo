@@ -373,7 +373,7 @@ const EmployeeStats = () => {
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground">min indtjening</p>
+                                  <p className="text-[10px] text-muted-foreground">Min andel ekskl. moms</p>
                                 </div>
                                 <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
                               </div>
@@ -396,7 +396,7 @@ const EmployeeStats = () => {
                                         <div className="min-w-0 space-y-1.5">
                                           <div className="flex flex-wrap items-center gap-2">
                                             <p className="truncate text-sm font-semibold text-foreground tracking-tight">
-                                              {e.customerName || "Opgave"}
+                                              {e.customerName || "Aftale"}
                                             </p>
                                             <Badge
                                               variant="outline"
@@ -440,13 +440,13 @@ const EmployeeStats = () => {
                                         </div>
                                         <div className="flex items-center justify-between gap-4 rounded-[5px] bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
-                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
+                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total inkl. moms</p>
                                             <p className="text-xs font-medium tabular-nums text-muted-foreground">
                                               {formatKr(e.orderAmount)}
                                             </p>
                                           </div>
                                           <div className="text-right">
-                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
+                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel ekskl. moms</p>
                                             <p className="text-sm font-bold tabular-nums text-foreground">
                                               {formatKr(e.share)}
                                             </p>
