@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { canCompleteEarly, earlyCompletionReason, type EarlyCompletionMode } from "@/lib/early-completion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
+import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
@@ -158,6 +158,7 @@ const EmployeeApp = () => {
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
+  const routeDates = useMemo(() => new Set(routes.map((route) => route.route_date).filter(Boolean)), [routes]);
   const [workdayNow, setWorkdayNow] = useState(() => Date.now());
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
@@ -245,9 +246,10 @@ const EmployeeApp = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
+            <RouteAwareCalendar
               mode="single"
               selected={dateObj}
+              routeDates={routeDates}
               onSelect={(selected) => {
                 if (!selected) return;
                 setDate(format(selected, "yyyy-MM-dd"));

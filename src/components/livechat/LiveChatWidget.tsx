@@ -16,7 +16,6 @@ import BusinessRecommendationCard from "./BusinessRecommendationCard";
 import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import supportPortrait from "@/assets/william-ross-jepsen.jpg.asset.json";
 import supportRobot from "@/assets/kundeservice-ikon.png.asset.json";
 import {
