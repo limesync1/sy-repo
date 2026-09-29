@@ -8,7 +8,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
+import { RouteViewSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
+import { AdminTabFallback, tabFromUrl } from "@/components/admin/shared/AdminTabFallback";
 import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton";
 import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -219,6 +220,7 @@ const PageFallback = () => {
       </div>
     );
   }
+  if (/^\/virksomhed\/?$/.test(path)) return <ShellSkeleton><AdminTabFallback tab={tabFromUrl()} /></ShellSkeleton>;
   if (isPanel) {
     return (
       <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">

@@ -33,7 +33,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatKr } from "@/lib/commission";
-import { PageSkeleton } from "@/components/admin/shared/Skeletons";
+
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -133,7 +133,7 @@ const EmployeeStats = () => {
   if (loading) {
     return (
       <EmployeeShell activeTab="stats" title="Statistik">
-        <PageSkeleton statsCount={5} rows={4} />
+        <div className="space-y-4"><StatsSkeleton /></div>
       </EmployeeShell>
     );
   }
@@ -223,43 +223,7 @@ const EmployeeStats = () => {
         />
 
         {isLoading || !s ? (
-          <>
-            <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
-              <div className="flex flex-col gap-3 border-l-4 border-l-primary p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-12 w-12 rounded-[5px] sm:h-14 sm:w-14" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-8 w-40" />
-                    <Skeleton className="h-3 w-32" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
-                  <Skeleton className="h-10 w-full sm:w-24" />
-                  <Skeleton className="h-10 w-full sm:w-24" />
-                </div>
-              </div>
-            </Card>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-20 rounded-[5px]" />
-              ))}
-            </div>
-            <Card className="service-panel-card rounded-[5px] border-border shadow-sm">
-              <div className="space-y-2 p-5">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-3 py-2">
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                    <Skeleton className="h-2 flex-1" />
-                    <Skeleton className="h-8 w-20" />
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </>
+          <StatsSkeleton />
         ) : (
           <>
             {/* Hero: medarbejderens egen indtjening — fremhævet som det vigtigste tal */}
@@ -491,3 +455,45 @@ const EmployeeStats = () => {
 };
 
 export default EmployeeStats;
+
+function StatsSkeleton() {
+  return (
+    <>
+            <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
+              <div className="flex flex-col gap-3 border-l-4 border-l-primary p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-12 w-12 rounded-[5px] sm:h-14 sm:w-14" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-8 w-40" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+                  <Skeleton className="h-10 w-full sm:w-24" />
+                  <Skeleton className="h-10 w-full sm:w-24" />
+                </div>
+              </div>
+            </Card>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-20 rounded-[5px]" />
+              ))}
+            </div>
+            <Card className="service-panel-card rounded-[5px] border-border shadow-sm">
+              <div className="space-y-2 p-5">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3 py-2">
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-2 flex-1" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                ))}
+              </div>
+            </Card>
+    </>
+  );
+}
