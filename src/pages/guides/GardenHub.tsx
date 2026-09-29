@@ -89,6 +89,8 @@ export default defineGuidePage({
     { q: "Er haveservice BoligJob-fradragsberettiget?", a: "Ja — løbende haveservice falder under servicefradraget (12.300 kr./voksen). Anlæg af fx terrasse kan falde under håndværkerfradraget." },
     { q: "Hvornår skal jeg booke forårsopgaver?", a: "Marts-april. De bedste firmaer fyldes 3-4 uger frem i forårssæsonen." },
     { q: "Kan jeg kombinere have og snerydning?", a: "Ja — mange firmaer giver rabat på kombineret aftale. Særligt i Nordjylland, hvor vintersæsonen er lang." },
+    { q: "Hvad koster græsslåning af en almindelig have?", a: "For et parcelhus på 200–400 m² græs koster græsslåning typisk 245–595 kr. pr. besøg inkl. afklip. Med fast aftale falder prisen ofte 20–30%." },
+    { q: "Hvornår skal hækken klippes?", a: "Første klip i juni og andet i september-oktober. Hækklipning koster 23–55 kr. pr. løbende meter afhængig af højde og tilstand." },
   ],
   cta: {
     heading: "Find en havemand eller anlægsgartner",
