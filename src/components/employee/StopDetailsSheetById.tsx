@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StopDetailsContent } from "./StopDetailsContent";
 import type { RouteStop } from "@/hooks/useRoutes";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   open: boolean;

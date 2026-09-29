@@ -14,6 +14,7 @@ import {
   Receipt, CreditCard, CheckCircle2, Clock, XCircle, FileText, AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Afventer" },
