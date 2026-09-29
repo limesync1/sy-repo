@@ -4236,13 +4236,13 @@ const Planner = () => {
           );
 
           return (
-              <div className="planner-canvas flex-1 overflow-hidden p-2 lg:p-3" style={{ height: "calc(100vh - 56px)" }}>
+              <div className="planner-canvas flex-1 overflow-hidden p-2 2xl:p-3" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
               <div className="hidden h-full [@media(min-width:1100px)]:flex [@media(min-width:1100px)]:flex-col [@media(min-width:1100px)]:gap-2">
-                <div className="planner-toolbar shrink-0 rounded-md border border-border bg-card px-3 py-2.5 2xl:hidden">
+                <div className="planner-toolbar shrink-0 rounded-md border border-border bg-card px-2 py-1.5 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
                       variant="outline"
@@ -4463,7 +4463,7 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <div className="planner-board grid h-full min-h-0 grid-cols-[13rem_minmax(0,1fr)] [@media(min-width:1280px)]:grid-cols-[14.5rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background [@media(min-width:1440px)]:grid-cols-[18rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
+                    <div className="planner-board grid h-full min-h-0 grid-cols-[11.5rem_minmax(0,1fr)] [@media(min-width:1280px)]:grid-cols-[12.5rem_minmax(0,1fr)] overflow-hidden rounded-md border border-border bg-background [@media(min-width:1440px)]:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
                       <aside className="min-w-0 overflow-hidden border-r border-border bg-card">
                         {unassignedCard}
                       </aside>
