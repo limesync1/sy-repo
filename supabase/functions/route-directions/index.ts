@@ -10,6 +10,24 @@ const corsHeaders = {
 
 type LatLng = { lat: number; lng: number };
 
+/**
+ * Dansk trafikbuffer oven på OSRM's trafikfri tider (ingen API-nøgle).
+ * Basis 1.18, korte ture 1.25, myldretid hverdage 07–09 og 15–17:30 op til 1.35.
+ */
+function trafficMultiplier(at: Date, distanceKm: number): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Copenhagen", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(at);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const weekend = get("weekday") === "Sat" || get("weekday") === "Sun";
+  const minutes = Number(get("hour")) * 60 + Number(get("minute"));
+  const morningRush = minutes >= 7 * 60 && minutes < 9 * 60;
+  const eveningRush = minutes >= 15 * 60 && minutes < 17 * 60 + 30;
+  let m = distanceKm < 10 ? 1.25 : 1.18;
+  if (!weekend && (morningRush || eveningRush)) m = Math.max(m, distanceKm < 10 ? 1.35 : 1.32);
+  return m;
+}
+
 /** Nøglefri vejvisning med rigtig vejgeometri og manøvrer. */
 async function osrmDirections(coords: LatLng[]) {
   try {
@@ -43,16 +61,21 @@ async function osrmDirections(coords: LatLng[]) {
         };
       })
     );
+    const rawDuration = Number(route.duration ?? 0);
+    const distanceKm = Number(route.distance ?? 0) / 1000;
+    const departAt = new Date();
+    const multiplier = trafficMultiplier(departAt, distanceKm);
+    for (const s of steps) s.duration_s = Math.round(s.duration_s * multiplier);
     return {
       geometry: route.geometry,
       distance_m: Number(route.distance ?? 0),
-      duration_s: Number(route.duration ?? 0),
-      duration_raw_s: Number(route.duration ?? 0),
+      duration_s: Math.round(rawDuration * multiplier),
+      duration_raw_s: rawDuration,
       duration_typical_s: null,
-      traffic_multiplier: 1,
+      traffic_multiplier: multiplier,
       base_multiplier: 1,
       override_applied: null,
-      depart_at: new Date().toISOString(),
+      depart_at: departAt.toISOString(),
       depart_is_future: false,
       steps,
       provider: "osrm" as const,

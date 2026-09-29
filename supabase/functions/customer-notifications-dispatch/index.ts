@@ -86,6 +86,14 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Påmindelser med planlagt tidspunkt er udfaset — send dem aldrig.
+      if (job.event_type === "service_upcoming") {
+        await admin.from("customer_notification_queue").update({
+          status: "cancelled", last_error: "Påmindelse med tidspunkt er udfaset",
+        }).eq("id", job.id);
+        continue;
+      }
+
       // Tjek at virksomheden ikke har slået denne event-type fra
       const notifSettings = (biz.notification_settings as any) || {};
       const disabledKey = `customer_${job.event_type}_disabled`;

@@ -173,7 +173,8 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
               <li id={`${listboxId}-${i}`} role="option" aria-selected={activeIdx === i} key={(s.data.id || s.tekst) + i}>
                 <button
                   type="button"
-                  onPointerDown={(e) => { e.preventDefault(); pick(s); }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => pick(s)}
                   onMouseEnter={() => setActiveIdx(i)}
                   className={cn(
                     "flex min-h-11 w-full items-start gap-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
