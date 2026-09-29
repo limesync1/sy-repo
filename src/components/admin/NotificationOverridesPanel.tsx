@@ -186,8 +186,10 @@ export default function NotificationOverridesPanel(props: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> Henter…
+      <div className="space-y-2" aria-busy="true">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-14 w-full rounded-lg" />
+        ))}
       </div>
     );
   }

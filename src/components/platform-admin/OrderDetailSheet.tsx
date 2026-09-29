@@ -117,7 +117,16 @@ export default function OrderDetailSheet({ orderId, onClose }: Props) {
     <Sheet open={!!orderId} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         {isLoading || !order ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">Henter ordre…</div>
+          <div className="space-y-4 py-4" aria-busy="true">
+            <div className="space-y-2 border-b border-border pb-4">
+              <Skeleton className="h-6 w-56" />
+              <Skeleton className="h-3.5 w-40" />
+            </div>
+            <Skeleton className="h-28 w-full rounded-lg" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            ))}
+          </div>
         ) : (
           <>
             <SheetHeader className="space-y-2 border-b border-border pb-4">
