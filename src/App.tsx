@@ -198,7 +198,26 @@ const PageFallback = () => {
   useEffect(() => { const t = setTimeout(() => setShow(true), 180); return () => clearTimeout(t); }, []);
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   const isPanel = /^\/(virksomhed|medarbejder|admin)(\/|$)/.test(path);
+  const isPlanner = /^\/virksomhed\/ruter(\/|$)/.test(path);
+  const isEmployeeRoute = /^\/medarbejder\/rute\//.test(path);
   if (!show) return <div className="min-h-screen bg-background" aria-hidden />;
+  // Ruteplanlæggeren og medarbejderens rutekørsel har helt egne layouts —
+  // vis deres egne silhuetter så der ikke er hop når siden lander.
+  if (isPlanner) {
+    return (
+      <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
+        <div className="hidden w-60 shrink-0 border-r border-border bg-muted/40 p-4 lg:block">
+          <Skeleton className="h-8 w-32" />
+          <div className="mt-6 space-y-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
+        </div>
+        <div className="route-planner-workspace min-w-0 flex-1">
+          <div className="h-14 border-b border-border bg-card" />
+          <div className="h-[calc(100vh-3.5rem)]"><PlannerSkeleton /></div>
+        </div>
+      </div>
+    );
+  }
+  if (isEmployeeRoute) return <RouteViewSkeleton />;
   if (isPanel) {
     return (
       <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
