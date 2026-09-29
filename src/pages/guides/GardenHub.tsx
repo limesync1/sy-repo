@@ -4,10 +4,10 @@ import { GARDEN_CITIES } from "@/pages/cities/gardenCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/have",
-  metaTitle: "Have & haveservice 2026 — komplet guide til priser og firmaer | Serviceydere",
+  metaTitle: "Haveservice priser 2026: havemand fra 285 kr./t | Serviceydere",
   metaDescription:
-    "Alt om haveservice: priser, abonnement, hækklipning, anlæg af terrasse, snerydning og lokal hjælp i hele Danmark. Den ultimative haveguide for 2026.",
-  keywords: "haveservice guide 2026, havemand pris, anlægsgartner, hækklipning, græsslåning",
+    "Se hvad haveservice koster i 2026: græsslåning fra 245 kr., hækklipning fra 23 kr./m og havemand fra 285 kr./t. Sæsonplan, fradrag og 3 gratis tilbud.",
+  keywords: "haveservice priser, haveservice pris, haveservice guide 2026, havemand pris, anlægsgartner, hækklipning, græsslåning",
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
   heroSubtitle:
@@ -34,6 +34,18 @@ export default defineGuidePage({
     footnote: "Priser inkl. moms. BoligJob-fradrag reducerer reel udgift 26–37%.",
   },
   sections: [
+    { heading: "Haveservice gennem året — hvad skal laves hvornår?", list: [
+      <><strong>Forår (marts–maj):</strong> oprydning, første græsslåning, gødning og beskæring. Book 3–4 uger frem.</>,
+      <><strong>Sommer (juni–august):</strong> græsslåning hver 1–2 uge, lugning og første hækklipning i juni.</>,
+      <><strong>Efterår (september–november):</strong> anden hækklipning, løvopsamling og vinterklargøring.</>,
+      <><strong>Vinter (december–februar):</strong> snerydning og saltning, gerne som sæsonabonnement.</>,
+    ]},
+    { heading: "Hvad påvirker prisen på haveservice?", list: [
+      <>Havens størrelse og hvor tilgængelig den er for maskiner</>,
+      <>Frekvens — faste abonnementer er typisk 20–30% billigere pr. besøg</>,
+      <>Bortkørsel af haveaffald, som ofte afregnes separat</>,
+      <>Om opgaven kræver specialudstyr, fx til træfældning eller stubfræsning</>,
+    ]},
     { heading: "Prisguides og opgaver", list: [
       <a href="/priser/haveservice">Haveservice prisguide 2026</a>,
       <a href="/priser/anlaegsgartner">Anlægsgartner prisguide</a>,
