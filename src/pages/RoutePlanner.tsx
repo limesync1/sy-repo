@@ -2273,9 +2273,14 @@ const Planner = () => {
     todayStr,
   });
 
-  if (loadingBusiness) {
-    // Planner-specifik skeleton (sidebar + kalender-grid) — virker mere
-    // "rigtig" end den generiske ShellSkeleton fordi formen matcher.
+  const loadingInitialPlannerData = loadingBusiness || (
+    !!businessId && (loadingCalendar || loadingUnassigned)
+  );
+
+  if (loadingInitialPlannerData) {
+    // Behold præcis den samme helsides-silhuet gennem auth-, virksomheds-,
+    // kalender- og aftaleopslaget. Ellers når den færdige ramme at mounte med
+    // lokale kort-skeletons, hvilket opleves som to forskellige loadvisninger.
     return <PlannerPageSkeleton />;
   }
 

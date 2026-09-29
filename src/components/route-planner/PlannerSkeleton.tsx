@@ -124,7 +124,7 @@ export default function PlannerSkeleton() {
  *  kode-indlæsning, login-tjek og virksomhedsopslag, så der kun ses én). */
 export const PlannerPageSkeleton = () => (
   <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
-    <div className="hidden w-60 shrink-0 border-r border-border bg-muted/40 p-4 lg:block">
+    <div className="hidden w-[196px] shrink-0 border-r border-border bg-muted/40 p-4 lg:block 2xl:w-[248px]">
       <div className="h-8 w-32 animate-pulse rounded-md bg-muted" />
       <div className="mt-6 space-y-2">
         {Array.from({ length: 7 }).map((_, i) => (
