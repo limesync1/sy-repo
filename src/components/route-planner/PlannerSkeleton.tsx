@@ -8,7 +8,7 @@ export default function PlannerSkeleton() {
   return (
     <div className="planner-canvas flex h-full w-full flex-col gap-2 p-2 lg:p-3" aria-busy="true">
       {/* Topbar */}
-      <div className="planner-toolbar hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2.5 xl:flex 2xl:hidden">
+      <div className="planner-toolbar hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1.5 xl:flex 2xl:hidden">
         <Skeleton className="h-8 w-8 rounded-md" />
         <Skeleton className="h-8 w-40 rounded-md" />
         <Skeleton className="h-8 w-8 rounded-md" />
@@ -35,7 +35,7 @@ export default function PlannerSkeleton() {
       </div>
 
       {/* Arbejdsbord */}
-      <div className="planner-board grid min-h-0 flex-1 grid-cols-1 overflow-hidden rounded-lg border border-border bg-background xl:grid-cols-[14.5rem_minmax(0,1fr)] xl:[@media(min-width:1440px)]:grid-cols-[18rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
+      <div className="planner-board grid min-h-0 flex-1 grid-cols-1 overflow-hidden rounded-md border border-border bg-background xl:grid-cols-[12.5rem_minmax(0,1fr)] xl:[@media(min-width:1440px)]:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
         {/* Aftaler uden rute */}
         <aside className="hidden min-w-0 flex-col overflow-hidden border-r border-border bg-card xl:flex">
           <div className="planner-inbox-header space-y-3 border-b border-border px-4 pb-3 pt-4">

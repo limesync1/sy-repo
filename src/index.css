@@ -790,39 +790,101 @@
     box-shadow: inset 0 0 0 1px hsl(var(--accent) / 0.24);
   }
 
-  /* Små laptops (MacBook 11"/13", 1100–1439px): skalér hele arbejdsbordet
-     en anelse ned, så aftalepulje + 7-kolonners kalender kan være der uden
-     at noget klemmes eller wrapper grimt. Alt bevarer samme layout og
-     interaktion — kun målene bliver mindre. */
-  @media (min-width: 1100px) and (max-width: 1439px) {
+  /* Små laptops (MacBook 11"/13", 1100–1535px): tæt arbejdsvisning styret
+     af den reelle plads efter sidebaren. Funktionerne er de samme, mens
+     værktøjslinje, pool, kalender og rutekort bruger mindre plads. */
+  @media (min-width: 1100px) and (max-width: 1535px) {
     .route-planner-workspace {
-      --planner-week-col: 30px;
+      --planner-week-col: 26px;
+      font-size: 13px;
     }
 
     .route-planner-workspace .planner-canvas {
-      padding: 0.5rem;
+      padding: 0.375rem;
     }
 
     .route-planner-workspace .planner-toolbar {
+      padding: 0.3125rem 0.5rem;
+      border-radius: 0.375rem;
+    }
+
+    .route-planner-workspace .planner-toolbar button,
+    .route-planner-workspace .planner-toolbar [role="tab"],
+    .route-planner-workspace .planner-toolbar [role="combobox"] {
+      min-height: 1.75rem;
+      height: 1.75rem;
+      font-size: 0.6875rem;
+    }
+
+    .route-planner-workspace .planner-toolbar [role="tab"] {
+      min-width: 3.5rem;
       padding-left: 0.625rem;
       padding-right: 0.625rem;
-      padding-top: 0.375rem;
-      padding-bottom: 0.375rem;
+    }
+
+    .route-planner-workspace .planner-board {
+      border-radius: 0.375rem;
     }
 
     .route-planner-workspace [data-density-target="day"] {
-      padding: 0.25rem;
-      gap: 0.1875rem;
+      min-height: 72px;
+      padding: 0.1875rem;
+      gap: 0.125rem;
+    }
+
+    .route-planner-workspace [data-density-target="day"] > div:first-of-type {
+      margin-bottom: 0.125rem;
+    }
+
+    .route-planner-workspace [data-density-target="day"] .planner-card {
+      min-height: 56px;
+    }
+
+    .route-planner-workspace [data-density-target="day"] .planner-card > div:last-child {
+      min-height: 52px;
+      padding: 0.25rem 0.25rem 0.25rem 0.4375rem;
+    }
+
+    .route-planner-workspace [data-density-target="day"] .planner-card [title] {
+      font-size: 10px;
+      line-height: 1.12;
     }
 
     .route-planner-workspace .planner-inbox-header {
-      padding: 0.75rem 0.75rem 0.625rem;
+      padding: 0.625rem 0.5rem 0.5rem;
+      gap: 0.5rem;
+    }
+
+    .route-planner-workspace .planner-inbox-header h2 {
+      font-size: 0.75rem;
+    }
+
+    .route-planner-workspace .planner-inbox-header p,
+    .route-planner-workspace .planner-inbox-header input,
+    .route-planner-workspace .planner-inbox-header [role="combobox"] {
+      font-size: 0.6875rem;
+    }
+
+    .route-planner-workspace .planner-inbox-header input,
+    .route-planner-workspace .planner-inbox-header [role="combobox"] {
+      height: 1.75rem;
+    }
+
+    .route-planner-workspace .planner-inbox-header > div:first-of-type > span:first-of-type {
+      width: 1.75rem;
+      height: 1.75rem;
     }
 
     .route-planner-workspace [data-planner-weekcol-label] {
-      padding: 0.375rem 0.125rem;
+      padding: 0.25rem 0.0625rem;
+      font-size: 7px;
+      letter-spacing: 0;
+    }
+
+    .route-planner-workspace [data-planner-weekcol-label] ~ div {
+      padding: 0.3125rem 0.125rem;
       font-size: 8px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
   }
 
@@ -830,7 +892,7 @@
      ved at sænke minimumshøjden på dagcellerne. */
   @media (min-width: 1100px) and (max-height: 860px) {
     .route-planner-workspace [data-density-target="day"] {
-      min-height: 80px;
+      min-height: 68px;
     }
   }
 
