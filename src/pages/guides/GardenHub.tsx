@@ -7,7 +7,7 @@ export default defineGuidePage({
   metaTitle: "Haveservice priser 2026: havemand fra 285 kr./t | Serviceydere",
   metaDescription:
     "Se hvad haveservice koster i 2026: græsslåning fra 245 kr., hækklipning fra 23 kr./m og havemand fra 285 kr./t. Sæsonplan, fradrag og 3 gratis tilbud.",
-  keywords: "haveservice priser, haveservice pris, haveservice guide 2026, havemand pris, anlægsgartner, hækklipning, græsslåning",
+  keywords: "haveservice priser, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
   heroSubtitle:
@@ -45,6 +45,21 @@ export default defineGuidePage({
       <>Frekvens — faste abonnementer er typisk 20–30% billigere pr. besøg</>,
       <>Bortkørsel af haveaffald, som ofte afregnes separat</>,
       <>Om opgaven kræver specialudstyr, fx til træfældning eller stubfræsning</>,
+    ]},
+    { heading: "Sådan vælger du det rigtige havefirma", list: [
+      <>Tjek at firmaet er CVR-registreret og har ansvarsforsikring — det er dit sikkerhedsnet, hvis noget går galt.</>,
+      <>Få altid en skriftlig aftale med fast pris eller timepris, så du undgår overraskelser på fakturaen.</>,
+      <>Spørg om haveaffald er inkluderet i prisen, eller om bortkørsel afregnes separat.</>,
+      <>Sammenlign mindst 2–3 tilbud — priserne på samme opgave svinger ofte 30–50% mellem firmaer.</>,
+      <>Vælg gerne et lokalt firma — kortere kørsel betyder ofte lavere pris og hurtigere udrykning.</>,
+    ]},
+    { heading: "Hvad koster de enkelte haveopgaver?", list: [
+      <><strong>Græsslåning:</strong> 245–595 kr. pr. besøg for et almindeligt parcelhus — billigere med fast aftale.</>,
+      <><strong>Hækklipning:</strong> 23–55 kr. pr. løbende meter afhængig af hækkens højde og tilstand.</>,
+      <><strong>Beskæring af træer og buske:</strong> typisk 285–625 kr. i timen afhængig af sværhedsgrad.</>,
+      <><strong>Træfældning:</strong> 2.500–8.500 kr. for mindre træer — større træer kræver altid et besøg først.</>,
+      <><strong>Ny terrasse eller haveanlæg:</strong> 2.495–5.495 kr. pr. m² hos en anlægsgartner.</>,
+      <><strong>Snerydning:</strong> 2.495–4.500 kr. for et sæsonabonnement på en almindelig indkørsel.</>,
     ]},
     { heading: "Prisguides og opgaver", list: [
       <a href="/priser/haveservice">Haveservice prisguide 2026</a>,
