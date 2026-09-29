@@ -4463,7 +4463,7 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <div className="planner-board grid h-full min-h-0 grid-cols-[18rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background 2xl:grid-cols-[24rem_minmax(0,1fr)]">
+                    <div className="planner-board grid h-full min-h-0 grid-cols-[14.5rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background [@media(min-width:1440px)]:grid-cols-[18rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
                       <aside className="min-w-0 overflow-hidden border-r border-border bg-card">
                         {unassignedCard}
                       </aside>
