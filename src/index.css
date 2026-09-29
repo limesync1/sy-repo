@@ -818,6 +818,12 @@
     .route-planner-workspace .planner-inbox-header {
       padding: 0.75rem 0.75rem 0.625rem;
     }
+
+    .route-planner-workspace [data-planner-weekcol-label] {
+      padding: 0.375rem 0.125rem;
+      font-size: 8px;
+      letter-spacing: 0.04em;
+    }
   }
 
   /* Lave skærme (fx 1366×768 og 1280×800): giv kalenderen flere synlige uger
