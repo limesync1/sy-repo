@@ -9,7 +9,8 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
-import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
+import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton";
+import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import BetaNotice from "@/components/BetaNotice";
@@ -205,21 +206,19 @@ const PageFallback = () => {
   if (!show) return <div className="min-h-screen bg-background" aria-hidden />;
   // Ruteplanlæggeren og medarbejderens rutekørsel har helt egne layouts —
   // vis deres egne silhuetter så der ikke er hop når siden lander.
-  if (isPlanner) {
+  if (isPlanner) return <PlannerPageSkeleton />;
+  if (isEmployeeRoute) return <RouteViewSkeleton />;
+  if (/^\/medarbejder\/?$/.test(path)) {
     return (
       <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
         <div className="hidden w-60 shrink-0 border-r border-border bg-muted/40 p-4 lg:block">
           <Skeleton className="h-8 w-32" />
-          <div className="mt-6 space-y-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
+          <div className="mt-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
         </div>
-        <div className="route-planner-workspace min-w-0 flex-1">
-          <div className="h-14 border-b border-border bg-card" />
-          <div className="h-[calc(100vh-3.5rem)]"><PlannerSkeleton /></div>
-        </div>
+        <div className="flex-1 p-4 sm:p-6"><MinDagSkeleton /></div>
       </div>
     );
   }
-  if (isEmployeeRoute) return <RouteViewSkeleton />;
   if (isPanel) {
     return (
       <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
