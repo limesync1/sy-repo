@@ -4241,7 +4241,7 @@ const Planner = () => {
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
-              <div className="hidden h-full xl:flex xl:flex-col xl:gap-2">
+              <div className="hidden h-full [@media(min-width:1100px)]:flex [@media(min-width:1100px)]:flex-col [@media(min-width:1100px)]:gap-2">
                 <div className="planner-toolbar shrink-0 rounded-md border border-border bg-card px-3 py-2.5 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
@@ -4463,7 +4463,7 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <div className="planner-board grid h-full min-h-0 grid-cols-[18rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background 2xl:grid-cols-[24rem_minmax(0,1fr)]">
+                    <div className="planner-board grid h-full min-h-0 grid-cols-[13rem_minmax(0,1fr)] [@media(min-width:1280px)]:grid-cols-[14.5rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background [@media(min-width:1440px)]:grid-cols-[18rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
                       <aside className="min-w-0 overflow-hidden border-r border-border bg-card">
                         {unassignedCard}
                       </aside>
@@ -4477,7 +4477,7 @@ const Planner = () => {
               {/* Mobil/tablet/narrow desktop (<xl, <1280px): dedikeret toolbar + agenda-kalender fuld
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
-              <div className="flex h-full flex-col gap-2 xl:hidden">
+              <div className="flex h-full flex-col gap-2 [@media(min-width:1100px)]:hidden">
                 <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-lg border border-border bg-card p-2.5">
                   <div className="flex items-center gap-1.5">
                     <Button

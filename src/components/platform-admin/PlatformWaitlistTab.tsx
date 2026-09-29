@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { PageHeader, SectionCard, PrimaryButton, StatCard, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -156,8 +157,10 @@ export default function PlatformWaitlistTab() {
         description="Vises øverst på alle offentlige sider. Slå den fra, når I åbner for alle."
       >
         {loadingSettings ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Indlæser…
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-2/3 rounded-lg" />
           </div>
         ) : (
           <div className="space-y-4">

@@ -702,9 +702,12 @@ export const MonthWeekCalendar = ({
       {/* Weekday header */}
       <div
         className="grid border-b border-border/70 bg-card shrink-0"
-        style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
+        style={{ gridTemplateColumns: "var(--planner-week-col, 44px) repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/70 p-2 text-[9.5px] uppercase text-muted-foreground/45 font-semibold tracking-[0.16em] flex items-center justify-center bg-secondary/20">
+        <div
+          data-planner-weekcol-label
+          className="flex items-center justify-center overflow-hidden border-r border-border/70 bg-secondary/20 p-2 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45"
+        >
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -738,7 +741,7 @@ export const MonthWeekCalendar = ({
             <div
               key={wi}
               className="grid border-b border-border/70 last:border-b-0"
-              style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
+              style={{ gridTemplateColumns: "var(--planner-week-col, 44px) repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
               <div className="border-r border-border/70 bg-secondary/20 flex items-start justify-center pt-3 tabular-nums">

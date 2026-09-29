@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RouteReceiptDocument } from "@/components/employee/RouteReceiptDocument";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();
@@ -28,7 +29,21 @@ const EmployeeRoutePrint = () => {
   }, []);
 
   if (loading || isLoading) {
-    return <div className="flex min-h-screen items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Indlæser…</div>;
+    return (
+      <div className="min-h-screen bg-secondary/30" aria-busy="true" aria-label="Indlæser">
+        <div className="flex h-14 items-center gap-3 border-b border-border bg-background px-4">
+          <Skeleton className="h-9 w-9 rounded-lg" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="ml-auto h-9 w-28 rounded-lg" />
+        </div>
+        <div className="mx-auto w-full max-w-3xl space-y-3 p-4">
+          <Skeleton className="h-24 w-full rounded-xl" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
   }
   if (!user) return <Navigate to="/log-ind" replace />;
   if (!data) return <div className="p-8 text-center text-sm">Rute ikke fundet.</div>;

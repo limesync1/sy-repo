@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StopDetailsContent } from "./StopDetailsContent";
 import type { RouteStop } from "@/hooks/useRoutes";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   open: boolean;
@@ -86,8 +87,18 @@ export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
         }
       >
         {isLoading || !data ? (
-          <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Henter detaljer…
+          <div className="flex-1 space-y-4 overflow-hidden p-4" aria-busy="true">
+            <div className="flex items-start gap-3">
+              <Skeleton className="h-10 w-10 rounded-md" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-56 max-w-full" />
+              </div>
+            </div>
+            <Skeleton className="h-24 w-full rounded-lg" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            ))}
           </div>
         ) : (
           <StopDetailsContent
