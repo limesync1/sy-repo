@@ -500,6 +500,7 @@ const RequestQuote = () => {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Navn"
+                    aria-label="Dit navn"
                     autoComplete="name"
                     className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
@@ -508,6 +509,7 @@ const RequestQuote = () => {
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
                     placeholder="E-mail"
+                    aria-label="Din e-mailadresse"
                     autoComplete="email"
                     inputMode="email"
                     className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
@@ -520,6 +522,7 @@ const RequestQuote = () => {
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="Telefon (valgfrit)"
+                    aria-label="Dit telefonnummer (valgfrit)"
                     autoComplete="tel"
                     inputMode="tel"
                     autoFocus

@@ -14,7 +14,7 @@ const GardenPriceGuide = () => {
       "@context": "https://schema.org",
       "@type": "Article",
       headline: "Haveservice priser 2026 — timepris, abonnement og opgaver",
-      description: "Hvad koster haveservice? Se timepris, græsslåning, hækklipning og fast abonnement — og hvad du sparer med BoligJob-fradraget.",
+      description: "Hvad koster haveservice? Se lokale priser på gartner, græsslåning, hækklipning og abonnement — og få 3 gratis tilbud fra havefirmaer nær dig.",
       datePublished: "2026-06-20",
       dateModified: "2026-06-20",
       author: { "@type": "Organization", name: "Serviceydere" },
@@ -43,8 +43,8 @@ const GardenPriceGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Haveservice pris 2026 | Timepris, abonnement & opgaver"
-        description="Hvad koster en havemand? Se priser på græsslåning, hækklipning, fast abonnement og BoligJob-fradraget."
+        title="Haveservice priser 2026 — gartner & havemand fra 285 kr./t | Få 3 gratis tilbud"
+        description="Hvad koster haveservice? Se lokale priser: gartner fra 285 kr./t, græsslåning fra 275 kr., hækklipning fra 24 kr./m. Sammenlign gratis og få 3 tilbud fra havefirmaer nær dig."
         canonicalPath="/priser/haveservice"
         keywords="haveservice pris, havemand pris, græsslåning pris, hækklipning pris, havefirma pris, haveservice abonnement"
         ogType="article"
