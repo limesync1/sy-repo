@@ -133,7 +133,7 @@ import { BulkAddToRouteDialog, type BulkAddJobItem, type BulkAddRouteOption } fr
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
 import UnassignedFiltersPopover, { URGENCY_OPTIONS, type UrgencyKey } from "@/components/route-planner/UnassignedFiltersPopover";
 import UndoBar from "@/components/route-planner/UndoBar";
-import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
+import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle, { useDensity } from "@/components/route-planner/DensityToggle";
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
@@ -163,7 +163,7 @@ const toMin = (t: string | null | undefined): number | null => {
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
-  if (loading) return <ShellSkeleton />;
+  if (loading) return <PlannerPageSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
   return <Planner />;
 };
@@ -2276,7 +2276,7 @@ const Planner = () => {
   if (loadingBusiness) {
     // Planner-specifik skeleton (sidebar + kalender-grid) — virker mere
     // "rigtig" end den generiske ShellSkeleton fordi formen matcher.
-    return <PlannerSkeleton />;
+    return <PlannerPageSkeleton />;
   }
 
   if (!business) {
