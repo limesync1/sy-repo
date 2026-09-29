@@ -8,6 +8,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
+import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import BetaNotice from "@/components/BetaNotice";
