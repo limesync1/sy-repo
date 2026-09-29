@@ -61,6 +61,12 @@ export default defineGuidePage({
       <><strong>Ny terrasse eller haveanlæg:</strong> 2.495–5.495 kr. pr. m² hos en anlægsgartner.</>,
       <><strong>Snerydning:</strong> 2.495–4.500 kr. for et sæsonabonnement på en almindelig indkørsel.</>,
     ]},
+    { heading: "Haveservice i hele Danmark — lokale firmaer du kan stole på", list: [
+      <>Alle havefirmaer på Serviceydere er CVR-registrerede og gennemgået, før de får adgang til opgaver.</>,
+      <>Du kan læse ægte anmeldelser fra andre kunder, før du vælger — se bedømmelser direkte på firmaets profil.</>,
+      <>Vi dækker hele landet: København, Aarhus, Odense, Aalborg og hundredvis af mindre byer med lokale havemænd og anlægsgartnere.</>,
+      <>Få svar samme dag — de fleste firmaer svarer inden for få timer på hverdage.</>,
+    ]},
     { heading: "Prisguides og opgaver", list: [
       <a href="/priser/haveservice">Haveservice prisguide 2026</a>,
       <a href="/priser/anlaegsgartner">Anlægsgartner prisguide</a>,
