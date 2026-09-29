@@ -1362,3 +1362,31 @@ img[loading="lazy"].is-error {
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
 }
+
+/* Små laptops: tæt, responsiv visning af alle virksomheds- og medarbejdersider */
+@media (min-width: 1024px) and (max-width: 1535px) {
+  .service-panel-content { font-size: 13.5px; }
+  .service-panel-content :is(.p-6) { padding: 1rem; }
+  .service-panel-content :is(.p-5) { padding: 0.875rem; }
+  .service-panel-content :is(.gap-6) { gap: 1rem; }
+  .service-panel-content :is(.space-y-6) > * + * { margin-top: 1rem; }
+  .service-panel-content h1 { font-size: 1.25rem; line-height: 1.3; }
+  .service-panel-content h2 { font-size: 1rem; }
+  .service-panel-content :is(.text-3xl) { font-size: 1.5rem; }
+  .service-panel-content :is(.text-2xl) { font-size: 1.25rem; }
+  .service-panel-content :is(.text-lg) { font-size: 0.9375rem; }
+  .service-panel-content :is(.text-base) { font-size: 0.875rem; }
+  .service-panel-content :is(.text-sm) { font-size: 0.8125rem; }
+  .service-panel-content :is(.text-xs) { font-size: 0.6875rem; }
+  .service-panel-content :is(button, [role="combobox"], input:not([type="checkbox"]):not([type="radio"])):is(.h-10, .h-11) { height: 2.125rem; }
+  .service-panel-content :is(button, [role="combobox"], input:not([type="checkbox"]):not([type="radio"])).h-9 { height: 2rem; }
+  .service-panel-content :is(.h-10.w-10, .h-11.w-11, .h-12.w-12) { width: 2.25rem; height: 2.25rem; }
+  .service-panel-content :is(.h-5.w-5) { width: 1.125rem; height: 1.125rem; }
+  .service-panel-card { border-radius: 0.5rem; }
+  .service-panel-topbar { min-height: 3rem; }
+}
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .service-panel-content { font-size: 13px; }
+  .service-panel-content :is(.p-6, .p-5) { padding: 0.75rem; }
+  .service-panel-content :is(.text-3xl) { font-size: 1.375rem; }
+}
