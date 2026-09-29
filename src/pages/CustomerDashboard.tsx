@@ -124,11 +124,26 @@ const CustomerDashboard = () => {
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
   ).length;
 
+  // Vis panelets silhuet i stedet for en spinner — så lander øjet det
+  // rigtige sted med det samme og der er ingen hop når data kommer.
   if (loading) return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/50">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Indlæser dit panel...</p>
+    <div className="min-h-screen bg-secondary/50" aria-busy="true" aria-label="Indlæser">
+      <div className="h-16 border-b border-border bg-background" />
+      <div className="mx-auto w-full max-w-6xl space-y-5 px-4 py-6 sm:px-6">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-52" />
+          <Skeleton className="h-3.5 w-72 max-w-full" />
+        </div>
+        <div className="flex gap-2 overflow-hidden">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-9 w-28 shrink-0 rounded-full" />
+          ))}
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+          ))}
+        </div>
       </div>
     </div>
   );
