@@ -886,6 +886,52 @@
       font-size: 8px;
       letter-spacing: 0.05em;
     }
+
+    /* Aftalekort i puljen */
+    .route-planner-workspace .planner-job-card {
+      min-height: 60px;
+    }
+    .route-planner-workspace .planner-job-card > div:last-child > div:first-child {
+      padding: 0.3125rem 0.5rem 0.3125rem 2.125rem;
+      gap: 0.25rem;
+    }
+    .route-planner-workspace .planner-job-card h3 { font-size: 11.5px; }
+    .route-planner-workspace .planner-job-card p,
+    .route-planner-workspace .planner-job-card span { font-size: 10.5px; }
+    .route-planner-workspace .planner-job-card img { width: 1rem; height: 1rem; }
+    .route-planner-workspace .planner-job-card [role="checkbox"],
+    .route-planner-workspace .planner-job-card button.absolute {
+      width: 1.125rem; height: 1.125rem; top: 0.3125rem; left: 0.3125rem;
+    }
+    .route-planner-workspace .planner-job-card svg { width: 0.75rem; height: 0.75rem; }
+
+    /* Rutekort (alle visninger) */
+    .route-planner-workspace .planner-card { padding: 0.375rem 0.5rem; }
+    .route-planner-workspace .planner-card svg { width: 0.75rem; height: 0.75rem; }
+    .route-planner-workspace .planner-card img { max-width: 1rem; max-height: 1rem; }
+    .route-planner-workspace .planner-card .text-sm,
+    .route-planner-workspace .planner-card .text-\[13px\] { font-size: 11px; }
+    .route-planner-workspace .planner-card .text-xs,
+    .route-planner-workspace .planner-card .text-\[11px\] { font-size: 10px; }
+    .route-planner-workspace .planner-card button { min-height: 1.375rem; }
+
+    /* Små-elementer: badges, avatars, ikonknapper */
+    .route-planner-workspace .h-8.w-8,
+    .route-planner-workspace .h-9.w-9 { width: 1.75rem; height: 1.75rem; }
+    .route-planner-workspace .h-7.w-7 { width: 1.5rem; height: 1.5rem; }
+    .route-planner-workspace [class*="rounded-full"][class*="px-2"] {
+      padding-left: 0.375rem; padding-right: 0.375rem; font-size: 10px;
+    }
+  }
+
+  /* Endnu mindre laptops (≤1366px): endnu tættere */
+  @media (min-width: 1100px) and (max-width: 1366px) {
+    .route-planner-workspace { font-size: 12px; }
+    .route-planner-workspace .planner-job-card { min-height: 54px; }
+    .route-planner-workspace .planner-job-card h3 { font-size: 11px; }
+    .route-planner-workspace .planner-job-card p,
+    .route-planner-workspace .planner-job-card span { font-size: 10px; }
+    .route-planner-workspace [data-density-target="day"] .planner-card [title] { font-size: 9.5px; }
   }
 
   /* Lave skærme (fx 1366×768 og 1280×800): giv kalenderen flere synlige uger
