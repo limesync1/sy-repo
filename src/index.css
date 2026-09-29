@@ -1390,3 +1390,8 @@ img[loading="lazy"].is-error {
   .service-panel-content :is(.p-6, .p-5) { padding: 0.75rem; }
   .service-panel-content :is(.text-3xl) { font-size: 1.375rem; }
 }
+
+/* Skjul livechat-knappen på mobil mens cookie-banneret er åbent, så de ikke overlapper. */
+@media (max-width: 639px) {
+  body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0; pointer-events: none; }
+}
