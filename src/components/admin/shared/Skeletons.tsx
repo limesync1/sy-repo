@@ -1,3 +1,4 @@
+import type React from "react";
 // Skeletons — fælles loading-skeleton-komponenter for både virksomheds-
 // og medarbejderpanelet. Formålet er at give EN ENS loading-oplevelse
 // på tværs af alle sider: ingen hop, ingen spinner-blink, ingen tomme
@@ -178,7 +179,7 @@ export const PageSkeleton = ({
  * `useAuth().loading` stadig er sandt. Erstatter den fuldskærms-spinner
  * (LoadingScreen) der tidligere blinkede et tomt skærmbillede.
  */
-export const ShellSkeleton = () => (
+export const ShellSkeleton = ({ children }: { children?: React.ReactNode } = {}) => (
   <div className="flex min-h-screen bg-secondary/50">
     {/* Sidebar */}
     <aside className="hidden w-[248px] shrink-0 flex-col border-r border-border bg-background lg:flex">
@@ -205,7 +206,7 @@ export const ShellSkeleton = () => (
         <Skeleton className="h-5 w-40" />
       </header>
       <main className="flex-1 p-4 sm:p-6">
-        <PageSkeleton />
+        {children ?? <PageSkeleton />}
       </main>
     </div>
   </div>
