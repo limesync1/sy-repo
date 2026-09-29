@@ -61,6 +61,12 @@ export default defineGuidePage({
       <><strong>Ny terrasse eller haveanlæg:</strong> 2.495–5.495 kr. pr. m² hos en anlægsgartner.</>,
       <><strong>Snerydning:</strong> 2.495–4.500 kr. for et sæsonabonnement på en almindelig indkørsel.</>,
     ]},
+    { heading: "Haveservice i hele Danmark — lokale firmaer du kan stole på", list: [
+      <>Alle havefirmaer på Serviceydere er CVR-registrerede og gennemgået, før de får adgang til opgaver.</>,
+      <>Du kan læse ægte anmeldelser fra andre kunder, før du vælger — se bedømmelser direkte på firmaets profil.</>,
+      <>Vi dækker hele landet: København, Aarhus, Odense, Aalborg og hundredvis af mindre byer med lokale havemænd og anlægsgartnere.</>,
+      <>Få svar samme dag — de fleste firmaer svarer inden for få timer på hverdage.</>,
+    ]},
     { heading: "Prisguides og opgaver", list: [
       <a href="/priser/haveservice">Haveservice prisguide 2026</a>,
       <a href="/priser/anlaegsgartner">Anlægsgartner prisguide</a>,
@@ -83,6 +89,8 @@ export default defineGuidePage({
     { q: "Er haveservice BoligJob-fradragsberettiget?", a: "Ja — løbende haveservice falder under servicefradraget (12.300 kr./voksen). Anlæg af fx terrasse kan falde under håndværkerfradraget." },
     { q: "Hvornår skal jeg booke forårsopgaver?", a: "Marts-april. De bedste firmaer fyldes 3-4 uger frem i forårssæsonen." },
     { q: "Kan jeg kombinere have og snerydning?", a: "Ja — mange firmaer giver rabat på kombineret aftale. Særligt i Nordjylland, hvor vintersæsonen er lang." },
+    { q: "Hvad koster græsslåning af en almindelig have?", a: "For et parcelhus på 200–400 m² græs koster græsslåning typisk 245–595 kr. pr. besøg inkl. afklip. Med fast aftale falder prisen ofte 20–30%." },
+    { q: "Hvornår skal hækken klippes?", a: "Første klip i juni og andet i september-oktober. Hækklipning koster 23–55 kr. pr. løbende meter afhængig af højde og tilstand." },
   ],
   cta: {
     heading: "Find en havemand eller anlægsgartner",
