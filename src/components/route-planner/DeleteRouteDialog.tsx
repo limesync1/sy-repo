@@ -35,13 +35,13 @@ export function DeleteRouteDialog({ route, onOpenChange, onConfirm, pending }: P
     queryFn: async () => {
       const { data: stops, error } = await supabase
         .from("route_stops")
-        .select("id, agreement_id, subscription_id, order_id")
+        .select("id, agreement_occurrence_id, subscription_id, order_id")
         .eq("route_id", route!.id);
       if (error) throw error;
       const total = stops?.length || 0;
-      const agreements = stops?.filter((s: any) => s.agreement_id).length || 0;
-      const subs = stops?.filter((s: any) => s.subscription_id).length || 0;
-      const orders = stops?.filter((s: any) => s.order_id && !s.agreement_id && !s.subscription_id).length || 0;
+      const agreements = stops?.filter((s) => s.agreement_occurrence_id).length || 0;
+      const subs = stops?.filter((s) => s.subscription_id).length || 0;
+      const orders = stops?.filter((s) => s.order_id && !s.agreement_occurrence_id && !s.subscription_id).length || 0;
       return { total, agreements, subs, orders, linked: agreements + subs + orders };
     },
   });

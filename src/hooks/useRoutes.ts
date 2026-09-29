@@ -1442,14 +1442,7 @@ export const useSetStopAssignees = () => {
           .from("route_stop_assignees")
           .upsert(rows, { onConflict: "stop_id,employee_id", ignoreDuplicates: false });
         if (insErr) throw friendlyAssigneeError(insErr);
-        const newlyAssigned = employee_ids.filter((id) => !previousIds.has(id));
-        if (stopRow?.route_id && newlyAssigned.length > 0) {
-          void Promise.allSettled(newlyAssigned.map((employeeId) =>
-            supabase.functions.invoke("route-assignment-email", {
-              body: { routeId: stopRow.route_id, employeeId, requestId: crypto.randomUUID() },
-            }),
-          ));
-        }
+        // Ingen automatisk mail/afsendelse her — ruten sendes kun eksplicit.
         return { count: rows.length };
       });
     },
