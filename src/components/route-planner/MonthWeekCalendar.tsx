@@ -704,7 +704,10 @@ export const MonthWeekCalendar = ({
         className="grid border-b border-border/70 bg-card shrink-0"
         style={{ gridTemplateColumns: "var(--planner-week-col, 44px) repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/70 p-2 text-[9.5px] uppercase text-muted-foreground/45 font-semibold tracking-[0.16em] flex items-center justify-center bg-secondary/20">
+        <div
+          data-planner-weekcol-label
+          className="flex items-center justify-center overflow-hidden border-r border-border/70 bg-secondary/20 p-2 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45"
+        >
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
