@@ -237,6 +237,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
             <sm hvor pladsen er trang og lange tekster bliver klippet. */}
         <input
           type="text"
+          aria-label="Søg efter service eller by"
           placeholder="Søg service eller by…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
@@ -246,6 +247,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         />
         <input
           type="text"
+          aria-label="Søg efter service, virksomhed eller by"
           placeholder={placeholder ?? (nearLabel ? `Søg efter service nær ${nearLabel}…` : "Søg efter service, virksomhed eller by…")}
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
