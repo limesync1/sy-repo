@@ -223,7 +223,6 @@ const EmployeeStats = () => {
         />
 
         {isLoading || !s ? (
-        {isLoading || !s ? (
           <StatsSkeleton />
         ) : (
           <>
