@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RouteReceiptDocument } from "@/components/employee/RouteReceiptDocument";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CreditCard, Loader2, KeyRound, Tag, Sparkles } from "lucide-react";
 import { PageHeader, SectionCard, PrimaryButton } from "@/components/admin/shared/AdminUI";
+import { PageHeaderSkeleton, FormSkeleton } from "@/components/admin/shared/Skeletons";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SettingsSchema } from "./settings/shared";
 import PaymentTab from "./settings/PaymentTab";
