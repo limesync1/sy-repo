@@ -7,7 +7,7 @@ export default defineGuidePage({
   metaTitle: "Haveservice priser 2026: havemand fra 285 kr./t | Serviceydere",
   metaDescription:
     "Se hvad haveservice koster i 2026: græsslåning fra 245 kr., hækklipning fra 23 kr./m og havemand fra 285 kr./t. Sæsonplan, fradrag og 3 gratis tilbud.",
-  keywords: "haveservice priser, haveservice pris, haveservice guide 2026, havemand pris, anlægsgartner, hækklipning, græsslåning",
+  keywords: "haveservice priser, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
   heroSubtitle:
