@@ -45,7 +45,14 @@ const CookieConsent = () => {
     setVisible(false);
   };
 
-  if (!visible || isPanelRoute) return null;
+  const showing = visible && !isPanelRoute;
+  useEffect(() => {
+    if (showing) document.body.setAttribute("data-cookie-banner", "open");
+    else document.body.removeAttribute("data-cookie-banner");
+    return () => document.body.removeAttribute("data-cookie-banner");
+  }, [showing]);
+
+  if (!showing) return null;
 
   return (
     <div
