@@ -101,20 +101,30 @@ const Index = () => {
       />
       <SiteNav />
       <HeroSection />
-      {/* Hver sektion fader blødt ind når den scrolles i syne. Det giver
-          forsiden en rolig, sammenhængende rytme på alle enheder uden at
-          skubbe layout — IntersectionObserver er praktisk talt gratis.
-          Suspense-fallback er null fordi Reveal allerede holder pladsen
-          via dens egen min-height/transition. */}
-      <Suspense fallback={null}>
-        <main id="main">
-          <Reveal><Categories /></Reveal>
+      {/* Hver sektion fader blødt ind når den scrolles i syne, og har sin
+          EGEN Suspense med en pladsholder i samme højde. Så venter resten af
+          siden ikke på den langsomste sektion, og der er ingen hop. */}
+      <main id="main">
+        <Reveal><Categories /></Reveal>
+        <Suspense fallback={<SectionSkeleton cards={3} cardClassName="h-44" />}>
           <Reveal><HowItWorks /></Reveal>
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton cards={3} cardClassName="h-56" />}>
           <Reveal><Testimonials /></Reveal>
-          <div className="bg-ocean"><Reveal><WhyUs /></Reveal></div>
+        </Suspense>
+        <div className="bg-ocean">
+          <Suspense fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-40" dark />}>
+            <Reveal><WhyUs /></Reveal>
+          </Suspense>
+        </div>
+        <Suspense fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-64" />}>
           <Reveal><FounderNote /></Reveal>
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton cards={6} cardClassName="h-40" />}>
           <Reveal><ForBusinesses /></Reveal>
+        </Suspense>
 
+        <Suspense fallback={<SectionSkeleton cards={0} className="bg-ocean" dark />}>
           <Reveal className="bg-ocean">
             <CTABand
               eyebrow="Kom i gang"
@@ -124,7 +134,9 @@ const Index = () => {
               secondary={{ label: "Find services", to: "/virksomheder" }}
             />
           </Reveal>
-        </main>
+        </Suspense>
+      </main>
+      <Suspense fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-32" dark className="bg-ocean" />}>
         <Footer />
       </Suspense>
     </div>
