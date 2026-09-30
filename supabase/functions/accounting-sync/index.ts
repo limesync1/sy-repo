@@ -93,6 +93,10 @@ Deno.serve(async (req) => {
       return json({ ok: true, ...result });
     }
     if (mode === "push_order" && order_id) {
+      // The order must belong to the business whose integration we use.
+      const { data: ownOrder } = await admin.from("orders")
+        .select("id").eq("id", order_id).eq("business_id", business_id).maybeSingle();
+      if (!ownOrder) return json({ error: "Order not found" }, 404);
       await pushOrder(admin, integration, adapter, order_id);
       return json({ ok: true });
     }
