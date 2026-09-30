@@ -302,7 +302,7 @@
   }
 
   .service-panel-sidebar {
-    background: hsl(var(--secondary));
+    background: hsl(var(--card));
     box-shadow: 8px 0 24px -24px hsl(var(--foreground) / 0.38);
   }
 

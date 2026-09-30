@@ -1,175 +1,36 @@
-// AdminShell — delt sidebar + topbar shell der bruges af både Admin-panelet
-// (Overblik, Services, Aftaler, Kunder, Medarbejdere, Anmeldelser, Indstillinger)
-// OG Ruteplanlæggeren, så de har præcis samme visuelle sprog.
+// AdminShell — virksomhedspanelets ramme (Overblik, Services, Aftaler, Kunder,
+// Medarbejdere, Anmeldelser, Indstillinger) OG Ruteplanlæggeren.
 //
-// Brug:
-//   <AdminShell business={business} activeTab="routes" topbarRight={...} contentPadding={false}>
-//     <din side her />
-//   </AdminShell>
+// Al layout-logik ligger nu i PanelShell; her er kun det der er specifikt for
+// virksomhedspanelet: navigation, feature-flags, DPA-gate og topbar-handlinger.
+// Props er UÆNDREDE, så Admin.tsx og RoutePlanner ikke skal røres.
 //
-// Sidebar-items er definitive — det matcher NAV_ITEMS i Admin.tsx.
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import {
-  LogOut, LayoutDashboard, Wrench, Star,
-  Menu, X, ExternalLink, Sparkles, MessageCircle, Truck, Rocket, Briefcase,
-  PanelLeftClose, PanelLeftOpen, CalendarDays, Users, Route, ReceiptText, Settings,
-} from "lucide-react";
+// Navigationen defineres i ./adminNav (én sandhed for sidebar, drawer og bundnav).
+import { useNavigate } from "react-router-dom";
+import { useEffect, type ReactNode } from "react";
+import { ExternalLink, LogOut, Rocket, Truck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import {
-  SidebarNavButton, SidebarFooterItem, RoleSwitchFooterItem,
+  SidebarNavButton, SidebarFooterItem, RoleSwitchFooterItem, SidebarGroupLabel,
+  SidebarCollapsibleRow, SidebarWorkspaceRow, SidebarProgressCard, SidebarProfileMenu,
+  type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
-import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import PanelShell from "@/components/shared/sidebar/PanelShell";
+import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/PanelBottomNav";
 import supportIcon from "@/assets/kundeservice-ikon-2.svg";
-import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
+import {
+  ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminMobilePrimaryKeys, adminNeighbours,
+  findAdminNavItem, isAdminNavVisible, prefetchAdminTab,
+  type AdminFeatureFlags, type AdminNavItem, type AdminTabKey,
+} from "./adminNav";
 
-export type AdminTabKey =
-  | "getting-started" | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
-
-/**
- * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
- * til/fra i Indstillinger. Bevidst minimal — kun height + opacity.
- * Ingen rotation, blur, scale eller pulse: det forvirrede brugeren fordi
- * det signalerede "noget vigtigt skete" hver gang en menu blev hentet.
- */
-const AnimatedNavItem = ({
-  visible, isActive, item, onClick, onPrefetch, collapsed, badge,
-}: {
-  visible: boolean;
-  isActive: boolean;
-  item: NavItem;
-  onClick: () => void;
-  onPrefetch: () => void;
-  collapsed: boolean;
-  badge?: string | null;
-}) => {
-  const [shouldRender, setShouldRender] = useState(visible);
-  const [open, setOpen] = useState(visible);
-  const firstRender = useRef(true);
-
-  // Standard ease-out — samme tempo som resten af UI'et (popovers, dialoger).
-  const easing = "cubic-bezier(0.22, 1, 0.36, 1)";
-
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      setShouldRender(visible);
-      setOpen(visible);
-      return;
-    }
-    if (visible) {
-      setShouldRender(true);
-      // To frames forsinkelse så DOM'en når at montere i lukket tilstand,
-      // og transitionen kan køre fra start til mål.
-      let id2 = 0;
-      const id1 = requestAnimationFrame(() => {
-        id2 = requestAnimationFrame(() => {
-          setOpen(true);
-        });
-      });
-      return () => {
-        cancelAnimationFrame(id1);
-        if (id2) cancelAnimationFrame(id2);
-      };
-    } else {
-      setOpen(false);
-      const t = setTimeout(() => setShouldRender(false), 220);
-      return () => clearTimeout(t);
-    }
-  }, [visible]);
-
-  if (!shouldRender) return null;
-
-  return (
-    <div
-      style={{
-        transitionTimingFunction: easing,
-        transitionDuration: "200ms",
-        transitionProperty: "grid-template-rows, opacity, margin",
-      }}
-      className={cn(
-        "grid",
-        open
-          ? "grid-rows-[1fr] opacity-100 mt-1 first:mt-0"
-          : "grid-rows-[0fr] opacity-0 mt-0",
-      )}
-    >
-      <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
-        <SidebarNavButton
-          icon={item.icon}
-          label={item.label}
-          active={isActive}
-          collapsed={collapsed}
-          badge={badge}
-          onClick={onClick}
-          onMouseEnter={onPrefetch}
-          onFocus={onPrefetch}
-          onTouchStart={onPrefetch}
-        />
-      </div>
-    </div>
-  );
-};
-
-/**
- * Prefetch-funktioner for hver fane. Vi importerer dynamisk når brugeren
- * hover'er over en fane — så er bundle og data ofte klar inden klik, og
- * fane-skift føles øjeblikkeligt i stedet for at vise "Indlæser…".
- */
-const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
-  "getting-started": () => import("@/components/admin/onboarding/GettingStartedTab"),
-  dashboard: () => import("@/components/admin/DashboardTab"),
-  services:  () => import("@/components/admin/ServicesTab"),
-  orders:    () => import("@/components/admin/AftaleTab"),
-  customers: () => import("@/components/admin/CustomersTab"),
-  employees: () => import("@/components/admin/EmployeesTab"),
-  reviews:   () => import("@/components/admin/ReviewsTab"),
-  leads:     () => import("@/components/admin/LeadsTab"),
-  livechat:  () => import("@/components/admin/BusinessLiveChatTab"),
-  settings:  () => import("@/components/admin/SettingsTab"),
-  routes:    () => import("@/pages/RoutePlanner"),
-  accounting: () => import("@/components/admin/AccountingTab"),
-};
-const prefetched = new Set<AdminTabKey>();
-const prefetchTab = (key: AdminTabKey) => {
-  if (prefetched.has(key)) return;
-  prefetched.add(key);
-  TAB_PREFETCH[key]?.().catch(() => prefetched.delete(key));
-};
-
-type NavItem = {
-  value: AdminTabKey;
-  label: string;
-  icon: any;
-  href?: string;
-  requiresRoutePlanning?: boolean;
-  requiresLeads?: boolean;
-  requiresLivechat?: boolean;
-  requiresAccounting?: boolean;
-};
-
-const NAV_ITEMS: NavItem[] = [
-  { value: "getting-started", label: "Kom godt i gang", icon: Rocket },
-  { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
-  { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Aftaler", icon: CalendarDays },
-  { value: "leads", label: "Leads", icon: Sparkles, requiresLeads: true },
-  { value: "customers", label: "Kunder", icon: Users },
-  { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
-  { value: "employees", label: "Medarbejdere", icon: Briefcase, requiresRoutePlanning: true },
-  { value: "reviews", label: "Anmeldelser", icon: Star },
-  { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
-  { value: "accounting", label: "Regnskab", icon: ReceiptText, requiresAccounting: true },
-  { value: "settings", label: "Indstillinger", icon: Settings },
-];
+// Admin.tsx m.fl. importerer typen herfra — bevar den eksport.
+export type { AdminTabKey } from "./adminNav";
 
 type Business = {
   id?: string;
@@ -184,51 +45,48 @@ type AdminShellProps = {
   business: Business;
   /** Aktiv fane — fremhæves i sidebar. */
   activeTab: AdminTabKey;
-  /** Kaldes når en fane uden href klikkes (kun relevant for Admin.tsx der har intern tab-state). */
+  /** Kaldes når en fane uden href klikkes (Admin.tsx har intern tab-state). */
   onTabChange?: (tab: AdminTabKey) => void;
-  /** Tekst i topbar (hvis ikke sat → bruges label fra aktive nav-item). */
+  /** Tekst i topbar (hvis ikke sat → label fra aktivt nav-item). */
   title?: ReactNode;
   /** Indhold i højre side af topbar (knapper, dato-nav osv.). */
   topbarRight?: ReactNode;
-  /** Sat til false hvis siden selv styrer padding (fx ruteplanlægger der bruger fuld bredde). */
+  /** Sat til false hvis siden selv styrer padding (fx ruteplanlægger). */
   contentPadding?: boolean;
   /** Ekstra klasser på <main>. */
   contentClassName?: string;
-  /**
-   * Tillader at folde sidebaren sammen til en smal ikon-stribe på store
-   * skærme. Bruges af Ruter-siden, hvor kalenderen har brug for bredden.
-   * Valget huskes pr. bruger i localStorage.
-   */
+  /** Tillader at folde sidebaren sammen på store skærme. Huskes pr. bruger. */
   collapsible?: boolean;
-  /**
-   * Skjuler "Kundeservice"-knappen og virksomheds-ID'et i topbaren. Bruges af
-   * ruteplanlæggeren, hvor topbaren i forvejen er fyldt med daglige handlinger.
-   */
+  /** Skjuler "Kundeservice"-knappen og virksomheds-ID'et i topbaren. */
   hideTopbarUtilities?: boolean;
+  /**
+   * Animér sidebar-bredden. Default: true for almindelige sider, false når
+   * contentPadding=false (fuldbredde-sider som kalenderen, hvor en animeret
+   * bredde ville give re-layout hver frame).
+   */
+  animateLayout?: boolean;
   children: ReactNode;
 };
 
 export const AdminShell = ({
   business, activeTab, onTabChange, title, topbarRight,
   contentPadding = true, contentClassName, collapsible = true,
-  hideTopbarUtilities = false, children,
+  hideTopbarUtilities = false, animateLayout, children,
 }: AdminShellProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { data: plan } = useBusinessPlan(business.id);
-  void plan;
+
+  // Holder plan-data varm i cachen (bruges af faner senere).
+  useBusinessPlan(business.id);
+
   // Når databehandleraftalen mangler godkendelse, skjuler vi panelets
   // handlingsknapper i topbaren — kun accept-skærmen må være tilgængelig.
-  const { blocked: dpaBlocked, isLoading: dpaLoading } = useDpaBlocked(
-    business.id,
-    (business as any).owner_id === user?.id,
-  );
+  const isOwner = (business as any).owner_id === user?.id;
+  const { blocked: dpaBlocked, isLoading: dpaLoading } = useDpaBlocked(business.id, isOwner);
   const hideActions = dpaBlocked || dpaLoading;
-  // Genvej til medarbejder-appen: Vises kun når virksomheden har præcis
-  // én medarbejder OG den medarbejder er den indloggede ejer selv. Så kan
-  // ejeren med ét klik hoppe fra ruteplanlægning over i medarbejder-appen
-  // og udføre opgaverne uden at gå via det globale panel-switcher-menupunkt.
+
+  // Genvej til medarbejder-appen: kun når virksomheden har præcis én
+  // medarbejder OG det er den indloggede ejer selv.
   const { data: employees } = useEmployees(business.id);
   const { data: myEmployee } = useMyEmployee();
   const isSoloOwnerEmployee =
@@ -236,364 +94,242 @@ export const AdminShell = ({
     Array.isArray(employees) &&
     employees.length === 1 &&
     employees[0]?.id === myEmployee.id;
-  const { collapsed: collapsedPref, toggle: toggleCollapsed } = useSidebarCollapsed(
-    "sy.sidebar.collapsed.business",
-  );
-  // Sammenfoldning gælder kun fra lg og op — på mobil er sidebaren en drawer,
-  // hvor en ikon-stribe ikke giver mening.
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => setIsDesktop(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-  const collapsed = collapsible && collapsedPref && isDesktop;
 
-  useEffect(() => {
-    document.body.classList.add("service-panel-open");
-    return () => document.body.classList.remove("service-panel-open");
-  }, []);
+  const settings = (business.settings ?? {}) as any;
+  const flags: AdminFeatureFlags = {
+    routePlanning: !!settings.route_planning_enabled,
+    leads: !!settings.leads_enabled,
+    livechat: !!settings.livechat_enabled,
+    accounting: !!settings.accounting_integration_enabled,
+  };
 
-  // ESC lukker mobil-sidebar — letter tastatur-navigation.
-  useEffect(() => {
-    if (!sidebarOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSidebarOpen(false); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [sidebarOpen]);
+  // Onboarding styrer om "Kom godt i gang"-kortet vises. Forsvinder af sig selv
+  // når alt er grønt — men bliver stående så længe man står på fanen.
+  const onboarding = useOnboardingSignals(business);
+  const showGettingStarted = !onboarding.allDone || activeTab === "getting-started";
+  const gsDone = onboarding.counts ? onboarding.completedCount : 0;
+  const gsTotal = onboarding.counts ? onboarding.totalCount : 0;
+  const gsBadge = onboarding.counts && !onboarding.allDone ? `${gsDone}/${gsTotal}` : null;
 
-  // Idle-prefetch — kun den AKTUELLE fanes nabo-faner (dashboard + orders) i
-  // stedet for alle 8. Tidligere prefetch af AftaleTab (122KB) + SettingsTab
-  // (110KB) trak ~250KB ned ved hver mount og blokerede main-thread. Resten
-  // hentes on-hover via AnimatedNavItem's onPrefetch.
+  // Idle-prefetch i to bølger: nabo-faner hurtigt, resten langsomt. Efter ~5 s
+  // er alle chunks i memory, så Suspense aldrig viser fallback ved fane-skift.
   useEffect(() => {
-    // To-bølget prefetch: først nabo-fanerne (hurtigt), bagefter resten af
-    // panelets faner (slow idle). Det fjerner "fanen loader to gange"-følelsen
-    // — efter ~5s er alle chunks i memory, så Suspense aldrig viser fallback
-    // ved tab-skift. Internal data-fetch står stadig for den ene "rigtige"
-    // loading-state.
-    const neighbours: AdminTabKey[] =
-      activeTab === "dashboard" ? ["orders", "customers"]
-      : activeTab === "orders" ? ["dashboard", "customers"]
-      : ["dashboard", "orders"];
+    const neighbours = adminNeighbours(activeTab);
     const rest = (Object.keys(TAB_PREFETCH) as AdminTabKey[]).filter(
       (k) => k !== activeTab && !neighbours.includes(k),
     );
     const ric = (window as any).requestIdleCallback as
       | ((cb: () => void, opts?: { timeout: number }) => number)
       | undefined;
-    const triggerNear = () => neighbours.forEach((k) => prefetchTab(k));
-    const triggerRest = () => rest.forEach((k) => prefetchTab(k));
-    const id1 = ric ? ric(triggerNear, { timeout: 3000 }) : window.setTimeout(triggerNear, 2500);
-    const id2 = ric ? ric(triggerRest, { timeout: 8000 }) : window.setTimeout(triggerRest, 5000);
+    const cic = (window as any).cancelIdleCallback as ((id: number) => void) | undefined;
+    const near = () => neighbours.forEach(prefetchAdminTab);
+    const far = () => rest.forEach(prefetchAdminTab);
+    const id1 = ric ? ric(near, { timeout: 3000 }) : window.setTimeout(near, 2500);
+    const id2 = ric ? ric(far, { timeout: 8000 }) : window.setTimeout(far, 5000);
     return () => {
-      if (ric && (window as any).cancelIdleCallback) {
-        (window as any).cancelIdleCallback(id1);
-        (window as any).cancelIdleCallback(id2);
-      } else {
-        window.clearTimeout(id1 as number);
-        window.clearTimeout(id2 as number);
-      }
+      if (ric && cic) { cic(id1 as number); cic(id2 as number); }
+      else { window.clearTimeout(id1 as number); window.clearTimeout(id2 as number); }
     };
   }, [activeTab]);
 
-  const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
-  const leadsEnabled = !!(business.settings as any)?.leads_enabled;
-  const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
-  const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
-  // Onboarding-status styrer om "Kom godt i gang" vises i sidebaren, og
-  // hvilken badge den har (fx "3/6"). Forsvinder af sig selv når alt er grønt.
-  const onboarding = useOnboardingSignals(business);
-  const onboardingBadge = onboarding.counts && !onboarding.allDone
-    ? `${onboarding.completedCount}/${onboarding.totalCount}`
-    : null;
-  // Når opsætningen er 100 % færdig fjerner vi "Kom godt i gang" helt fra
-  // menuen — den har gjort sit arbejde. Den bliver dog stående så længe man
-  // faktisk står på fanen, så siden ikke virker "forsvundet" under fødderne.
-  const hideGettingStarted = onboarding.allDone && activeTab !== "getting-started";
-  const orderedNav = hideGettingStarted
-    ? NAV_ITEMS.filter((n) => n.value !== "getting-started")
-    : NAV_ITEMS;
-  const visibleNav = NAV_ITEMS.filter((n) => {
-    if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
-    if (n.requiresLeads && !leadsEnabled) return false;
-    if (n.requiresLivechat && !livechatEnabled) return false;
-    if (n.requiresAccounting && !accountingEnabled) return false;
-    return true;
-  });
-  const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
-
-  const handleNavClick = (item: NavItem) => {
-    setSidebarOpen(false);
-    if (item.href) {
-      navigate(item.href);
-      return;
-    }
-    // For tab-items uden href (intern Admin tab-state)
-    if (onTabChange) {
-      onTabChange(item.value);
-    } else {
-      // Hvis vi er på en anden side end /virksomhed (fx /virksomhed/ruter), så naviger hjem
-      // til admin-panelet og lad det vise den valgte fane via query/hash.
-      navigate(`/virksomhed?tab=${item.value}`);
-    }
+  const go = (item: AdminNavItem) => {
+    if (item.href) { navigate(item.href); return; }
+    if (onTabChange) { onTabChange(item.value); return; }
+    // På en anden side end /virksomhed (fx /virksomhed/ruter): naviger hjem.
+    navigate(`/virksomhed?tab=${item.value}`);
   };
 
-  return (
-    <div className="service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
-      {/* Mobil-overlay fader ind/ud i stedet for at poppe hårdt frem. */}
-      <div
-        aria-hidden={!sidebarOpen}
-        onClick={() => setSidebarOpen(false)}
-        className={cn(
-          "fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
-          sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      />
+  const currentNav = findAdminNavItem(activeTab);
+  const displayName =
+    (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
 
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "service-panel-sidebar fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:h-dvh lg:translate-x-0",
-          collapsed ? "lg:w-[68px]" : "lg:w-[196px] 2xl:w-[248px]",
-          sidebarOpen ? "translate-x-0 shadow-2xl lg:shadow-none" : "-translate-x-full shadow-none",
-        )}
-        aria-label="Hovednavigation"
-      >
+  /* ---------------- Mobil bundnavigation ---------------- */
+  const toBottomItem = (item: AdminNavItem): BottomNavItem => ({
+    key: item.value,
+    label: item.label,
+    icon: item.icon,
+    active: activeTab === item.value,
+    onSelect: () => go(item),
+    onPrefetch: () => prefetchAdminTab(item.value),
+    badge: item.value === "getting-started" ? gsBadge : null,
+  });
+  const primaryKeys = adminMobilePrimaryKeys(flags);
+  const primaryItems = primaryKeys
+    .map(findAdminNavItem)
+    .filter((i): i is AdminNavItem => !!i)
+    .map(toBottomItem);
+  const moreItems = ADMIN_NAV_ITEMS
+    .filter((i) => isAdminNavVisible(i, flags) && !primaryKeys.includes(i.value))
+    .filter((i) => i.value !== "getting-started" || showGettingStarted)
+    .map(toBottomItem);
 
-        <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center px-0" : "justify-between px-4")}>
-          <Link to="/" className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")} aria-label="Forside">
-            {collapsed ? (
-              // Sammenfoldet: kun ikonet — ordmærket ville blive skåret over.
-              <img
-                src="/serviceydere-ikon.webp"
-                alt="Serviceydere"
-                className="h-8 w-8 rounded-lg object-contain"
-                width={64}
-                height={64}
-                decoding="async"
-                loading="lazy"
-              />
-            ) : (
-            <>
-            <img
-              src="/serviceydere-logo-dark.webp"
-              alt="Serviceydere"
-              className={cn("w-auto dark:hidden", collapsed ? "h-8" : "h-9")}
-              width={1920}
-              height={539}
-              decoding="async"
-              fetchPriority="high"
-             loading="lazy"/>
-            {/* Mørk tilstand (kun ruteplanlæggeren): logo med hvid tekst så det
-                er synligt på den mørke baggrund. */}
-            <img
-              src="/serviceydere-logo.webp"
-              alt="Serviceydere"
-              className={cn("w-auto hidden dark:block", collapsed ? "h-8" : "h-9")}
-              width={1920}
-              height={539}
-              decoding="async"
-              loading="lazy"
-            />
-            </>
-            )}
-          </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
-            aria-label="Luk menu"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+  /* ---------------- Profil-menu (sidebar-bund) ---------------- */
+  const profileItems: ProfileMenuItem[] = [
+    { key: "public", icon: ExternalLink, label: "Se din side", href: `/v/${business.slug}` },
+    { key: "logout", icon: LogOut, label: "Log ud", onSelect: signOut, danger: true, separatorBefore: true },
+  ];
 
-        {/* Business info */}
-        <div
-          className={cn(
-            "mt-3 mb-3 shrink-0 rounded-[5px] border border-border bg-card shadow-sm",
-            collapsed ? "mx-2 px-2 py-2" : "mx-3 px-3 py-3",
-          )}
-          title={collapsed ? business.name : undefined}
+  /* ---------------- Topbar-indhold ---------------- */
+  const publicId = (business as any).public_id as string | undefined;
+  const topbarActions = (
+    <>
+      {topbarRight && !hideActions && (
+        <div className="hidden min-w-0 items-center gap-2 sm:flex">{topbarRight}</div>
+      )}
+      {!hideTopbarUtilities && publicId && (
+        <button
+          type="button"
+          title="Kopiér virksomheds-ID"
+          onClick={() => { navigator.clipboard?.writeText(publicId).catch(() => {}); }}
+          className="hidden h-9 shrink-0 items-center rounded-full bg-secondary/70 px-2.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground ring-1 ring-inset ring-border transition-colors hover:bg-secondary hover:text-foreground md:inline-flex"
         >
-          <div className={cn("flex items-center", collapsed ? "justify-center gap-0" : "gap-2")}>
-            {business.logo_url ? (
-              <img
-                src={business.logo_url}
-                alt=""
-                className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1"
-                width="36"
-                height="36"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground font-bold text-sm">
-                {business.name.charAt(0)}
-              </div>
-            )}
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
-                {business.categories && business.categories.length > 0 && (
-                  <p className="truncate text-xs text-muted-foreground">{(business.categories as string[]).join(", ")}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+          ID {publicId}
+        </button>
+      )}
+      {!hideTopbarUtilities && (
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
+          title="Kontakt Serviceydere kundeservice"
+          aria-label="Kontakt Serviceydere kundeservice"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 text-xs font-semibold text-background shadow-sm transition-[background-color,transform] hover:bg-foreground/90 active:scale-95 motion-reduce:transition-none sm:px-3"
+        >
+          <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">
+            <img src={supportIcon} alt="" className="h-6 w-6 object-contain" />
+            <span className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75 motion-reduce:animate-none" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground" />
+            </span>
+          </span>
+          <span className="hidden sm:inline">Kundeservice</span>
+        </button>
+      )}
+    </>
+  );
 
-        <nav className={cn("flex-1 pt-1 pb-2 overflow-y-auto", collapsed ? "px-2" : "px-3")}>
-          {orderedNav.map((item) => {
-            const visible =
-              !(item.requiresRoutePlanning && !routePlanningEnabled) &&
-              !(item.requiresLeads && !leadsEnabled) &&
-              !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled);
-            return (
-              <AnimatedNavItem
-                key={item.value}
-                visible={visible}
-                isActive={activeTab === item.value}
-                item={item}
-                badge={item.value === "getting-started" ? onboardingBadge : null}
-                onClick={() => handleNavClick(item)}
-                onPrefetch={() => prefetchTab(item.value)}
-                collapsed={collapsed}
+  return (
+    <PanelShell
+      storageKey="sy.sidebar.collapsed.business"
+      collapsible={collapsible}
+      animateLayout={animateLayout ?? contentPadding !== false}
+      title={title ?? currentNav?.label}
+      topbarRight={topbarActions}
+      topbarExtra={
+        topbarRight && !hideActions ? (
+          <div className="sticky top-14 z-20 border-b border-border/60 bg-card px-3 py-2 sm:hidden">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">{topbarRight}</div>
+          </div>
+        ) : null
+      }
+      contentPadding={contentPadding}
+      contentClassName={contentClassName}
+      sidebarTop={(ctx) => (
+        <SidebarWorkspaceRow
+          name={business.name}
+          subtitle={business.categories?.length ? (business.categories as string[]).join(", ") : null}
+          logoUrl={business.logo_url}
+          collapsed={ctx.collapsed}
+        />
+      )}
+      sidebarNav={(ctx) => (
+        <>
+          {showGettingStarted && (
+            <div className="pb-2">
+              <SidebarProgressCard
+                icon={Rocket}
+                label="Kom godt i gang"
+                done={gsDone}
+                total={gsTotal}
+                active={activeTab === "getting-started"}
+                collapsed={ctx.collapsed}
+                onClick={() => {
+                  const item = findAdminNavItem("getting-started");
+                  if (!item) return;
+                  ctx.closeDrawer();
+                  go(item);
+                }}
+                onMouseEnter={() => prefetchAdminTab("getting-started")}
+                onFocus={() => prefetchAdminTab("getting-started")}
+                onTouchStart={() => prefetchAdminTab("getting-started")}
               />
+            </div>
+          )}
+          {ADMIN_NAV_GROUPS.map((group, gi) => {
+            const items = ADMIN_NAV_ITEMS.filter((i) => i.group === group.key);
+            const anyVisible = items.some((i) => isAdminNavVisible(i, flags));
+            // Første gruppe behøver ingen skillelinje når sidebaren er collapsed.
+            const showLabel = !(gi === 0 && ctx.collapsed);
+            return (
+              <SidebarCollapsibleRow key={group.key} visible={anyVisible}>
+                <div>
+                  {showLabel && (
+                    <SidebarGroupLabel collapsed={ctx.collapsed} first={gi === 0 && !showGettingStarted}>
+                      {group.label}
+                    </SidebarGroupLabel>
+                  )}
+                  <div className="space-y-0.5">
+                    {items.map((item) => (
+                      <SidebarCollapsibleRow key={item.value} visible={isAdminNavVisible(item, flags)}>
+                        <SidebarNavButton
+                          icon={item.icon}
+                          label={item.label}
+                          active={activeTab === item.value}
+                          collapsed={ctx.collapsed}
+                          onClick={() => { ctx.closeDrawer(); go(item); }}
+                          onMouseEnter={() => prefetchAdminTab(item.value)}
+                          onFocus={() => prefetchAdminTab(item.value)}
+                          onTouchStart={() => prefetchAdminTab(item.value)}
+                        />
+                      </SidebarCollapsibleRow>
+                    ))}
+                  </div>
+                </div>
+              </SidebarCollapsibleRow>
             );
           })}
-        </nav>
-
-        <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
-          <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
+        </>
+      )}
+      sidebarFooter={(ctx) => (
+        <>
           {isSoloOwnerEmployee && (
             <RoleSwitchFooterItem
               icon={Truck}
               label="Skift til medarbejder"
-              onClick={() => navigate("/medarbejder")}
-              collapsed={collapsed}
+              onClick={() => { ctx.closeDrawer(); navigate("/medarbejder"); }}
+              collapsed={ctx.collapsed}
             />
           )}
-          <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
-        </div>
-      </aside>
-
-      {/* Main */}
-      <div
-        className={cn(
-          "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-          collapsed ? "lg:pl-[68px]" : "lg:pl-[196px] 2xl:pl-[248px]",
-        )}
-      >
-        <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden"
-            aria-label="Åbn menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          {collapsible && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={toggleCollapsed}
-                  className="hidden rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex"
-                  aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
-                  aria-pressed={collapsed}
-                >
-                  {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={8} className="z-[80] whitespace-nowrap">
-                {collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
-              </TooltipContent>
-            </Tooltip>
-          )}
-          <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground sm:text-lg">
-            {title ?? currentNav?.label}
-          </h1>
-          <div className="ml-auto flex shrink-0 items-center gap-2 min-w-0">
-            {topbarRight && !hideActions && (
-              <div className="hidden min-w-0 items-center gap-2 sm:flex">
-                {topbarRight}
-              </div>
-            )}
-            {!hideTopbarUtilities && (business as any).public_id && (
-              <button
-                type="button"
-                title="Kopiér virksomheds-ID"
-                onClick={() => {
-                  const id = (business as any).public_id as string;
-                  navigator.clipboard?.writeText(id).catch(() => {});
-                }}
-                className="hidden md:inline-flex h-9 shrink-0 items-center rounded-full bg-secondary px-2.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground ring-1 ring-inset ring-border transition-colors hover:bg-secondary/70 hover:text-foreground"
-              >
-                ID {(business as any).public_id}
-              </button>
-            )}
-            {!hideTopbarUtilities && (
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
-              title="Kontakt Serviceydere kundeservice"
-              aria-label="Kontakt Serviceydere kundeservice"
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 active:scale-95 sm:px-3"
-            >
-              <span className="relative flex h-6 w-6 items-center justify-center shrink-0">
-                <img
-                  src={supportIcon}
-                  alt="Serviceydere kundeservice"
-                  className="h-6 w-6 object-contain"
-                />
-                <span className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
-                </span>
-              </span>
-              <span className="hidden sm:inline">Kundeservice</span>
-            </button>
-            )}
-          </div>
-        </header>
-        {topbarRight && !hideActions && (
-          <div className="sm:hidden sticky top-14 z-20 border-b border-border bg-card px-3 py-2">
-            <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">
-              {topbarRight}
-            </div>
-          </div>
-        )}
-
-        <main
-          className={cn(
-            "service-panel-content flex-1 min-w-0 max-w-full overflow-x-hidden",
-            contentPadding
-              ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
-              : "pb-[calc(env(safe-area-inset-bottom)+6.75rem)] lg:pb-0",
-            contentClassName,
-          )}
-        >
-          <ImpersonationBanner />
-          <DPAGate businessId={business.id} isOwner={(business as any).owner_id === user?.id}>
-            {children}
-          </DPAGate>
-        </main>
-        <AdminBottomNav
-          activeTab={activeTab}
-          routePlanningEnabled={routePlanningEnabled}
-          onSelect={(key) => {
-            const item = NAV_ITEMS.find((n) => n.value === key);
-            if (item) handleNavClick(item);
-          }}
-          onOpenMenu={() => setSidebarOpen(true)}
+          <SidebarProfileMenu
+            name={displayName}
+            subtitle={user?.email && user.email !== displayName ? user.email : business.name}
+            collapsed={ctx.collapsed}
+            items={profileItems}
+            fallback="K"
+          />
+        </>
+      )}
+      bottomNav={
+        <PanelBottomNav
+          primary={primaryItems}
+          more={moreItems}
+          moreTitle="Mere"
+          moreFooter={
+            <>
+              <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={false} />
+              {isSoloOwnerEmployee && (
+                <RoleSwitchFooterItem icon={Truck} label="Skift til medarbejder" onClick={() => navigate("/medarbejder")} collapsed={false} />
+              )}
+              <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={false} danger />
+            </>
+          }
         />
-      </div>
-    </div>
+      }
+    >
+      <ImpersonationBanner />
+      <DPAGate businessId={business.id} isOwner={isOwner}>
+        {children}
+      </DPAGate>
+    </PanelShell>
   );
 };
 
@@ -601,17 +337,15 @@ export default AdminShell;
 
 /* ImpersonationBanner — vises kun når en platform-admin har indløst en
    5-cifret kode og browser-fanen kører i "log ind som virksomhed"-tilstand.
-   Klik på "Stop" fjerner sessionen og genindlæser panelet med admins egen
-   virksomhed (eller forsiden hvis admin ikke selv har en virksomhed). */
+   Klik på "Stop" fjerner sessionen og genindlæser panelet. */
 const ImpersonationBanner = () => {
   if (typeof window === "undefined") return null;
-  // Læses ved hvert render — sessionStorage er en ren synkron getter
   const id = (() => { try { return window.sessionStorage.getItem("sy.impersonate.business_id"); } catch { return null; } })();
   if (!id) return null;
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[5px] border border-warning/30 bg-warning/10 px-4 py-2.5 text-sm text-warning-foreground dark:text-warning">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-2.5 text-sm text-warning-foreground dark:text-warning">
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-warning" />
+        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-warning motion-reduce:animate-none" />
         <span><strong>Platform-admin</strong> · Du ser denne virksomheds panel via en impersonation-kode.</span>
       </div>
       <button

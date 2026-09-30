@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const SIDEBAR_STORAGE_KEYS = {
   business: "sy.sidebar.collapsed.business",
@@ -16,42 +16,71 @@ export const readSidebarCollapsed = (storageKey: string, defaultValue = false) =
   return defaultValue;
 };
 
+const parseStored = (value: string | null, defaultValue: boolean) =>
+  value === "1" ? true : value === "0" ? false : defaultValue;
+
 /**
  * Persisteret collapse-state for sidebar. Hver shell sender sin egen storageKey
  * (fx "sy.sidebar.collapsed.platform") så admin/virksomhed/medarbejder hver
  * husker deres egen præference uafhængigt.
  *
- * Indbygget genvejstast: tryk på `[` for at toggle (ignoreres når brugeren
- * skriver i input/textarea).
+ * - Genvejstast: tryk på `[` for at toggle (ignoreres i input/textarea/select
+ *   og contenteditable, og når en modifier-tast holdes nede).
+ * - Holdes i sync mellem browserfaner via `storage`-eventet.
+ * - Tastatur-listeneren registreres ÉN gang (state læses via ref), så den ikke
+ *   afmonteres/genmonteres ved hvert toggle.
  */
 export const useSidebarCollapsed = (storageKey: string, defaultValue = false) => {
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    return readSidebarCollapsed(storageKey, defaultValue);
-  });
+  const [collapsed, setCollapsedState] = useState<boolean>(() =>
+    readSidebarCollapsed(storageKey, defaultValue),
+  );
+  const ref = useRef(collapsed);
+  ref.current = collapsed;
 
-  const persist = useCallback((next: boolean) => {
-    setCollapsed(next);
+  const setCollapsed = useCallback((next: boolean) => {
+    ref.current = next;
+    setCollapsedState(next);
     if (typeof window !== "undefined") {
       try { window.localStorage.setItem(storageKey, next ? "1" : "0"); } catch { /* noop */ }
     }
   }, [storageKey]);
 
-  const toggle = useCallback(() => persist(!collapsed), [collapsed, persist]);
+  const toggle = useCallback(() => setCollapsed(!ref.current), [setCollapsed]);
 
+  // Skifter storageKey (sjældent) skal vi læse den nye værdi.
+  useEffect(() => {
+    const next = readSidebarCollapsed(storageKey, defaultValue);
+    ref.current = next;
+    setCollapsedState(next);
+  }, [storageKey, defaultValue]);
+
+  // Genvejstast `[`.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "[" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key !== "[" || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       const t = e.target as HTMLElement | null;
       const tag = t?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || (t && (t as any).isContentEditable)) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t?.isContentEditable) return;
       e.preventDefault();
-      persist(!collapsed);
+      setCollapsed(!ref.current);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [collapsed, persist]);
+  }, [setCollapsed]);
 
-  return { collapsed, setCollapsed: persist, toggle };
+  // Sync mellem browserfaner.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== storageKey) return;
+      const next = parseStored(e.newValue, defaultValue);
+      ref.current = next;
+      setCollapsedState(next);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [storageKey, defaultValue]);
+
+  return { collapsed, setCollapsed, toggle };
 };
 
 export default useSidebarCollapsed;
