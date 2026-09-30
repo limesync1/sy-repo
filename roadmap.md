@@ -156,3 +156,11 @@
 - [x] Gør “Fortryd udførsel” kompakt i stoplister og detaljer.
 - [x] Vis den automatiske sekundtæller direkte i både tjekliste og kørselsguide.
 - [x] Kontrollér kørselsvalg, lyd, fuldhøj mobilvisning, plannervalg og kundeserviceikon igen.
+
+## Dynamiske panel-skeletons og ensrettede ikoner
+- [x] Match loading-navigationens bredde med den gemte åbne eller sammenfoldede sidebar.
+- [x] Vis panelernes loading-shell fra første frame uden et tomt mellemtrin.
+- [x] Erstat kundeservicegrafikken med den nye transparente SVG i header og livechat.
+- [x] Opret ét fælles register for de 24 nye panelikoner.
+- [x] Brug matchende ikoner i navigation, handlinger, modaler, rutekalender og rutekørsel.
+- [x] Bevar Lucide til generiske kontroller uden et matchende specialikon.
