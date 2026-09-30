@@ -409,7 +409,7 @@ const EmployeeApp = () => {
 
           // Konsekvent med resten af medarbejderpanelet: ren bg-card +
           // border-border/80, status formidles kun via ikon-badge.
-          const toneClasses = "surface-admin border-border/80 bg-card";
+          const toneClasses = "service-panel-card border-border bg-card";
           const iconWrap =
             suggestion.tone === "primary"
               ? "bg-foreground text-background"
@@ -556,7 +556,7 @@ const EmployeeApp = () => {
             return (
               <Card
                 key={r.id}
-                className="surface-admin overflow-hidden rounded-[5px] border-border/80 opacity-95 shadow-sm"
+                className="service-panel-card overflow-hidden rounded-[5px] border-border opacity-95 shadow-sm"
                 aria-label={`Rute ${r.name || ""} er færdig`}
               >
                 <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
@@ -610,7 +610,7 @@ const EmployeeApp = () => {
           return (
             <Card
               key={r.id}
-              className="group surface-admin overflow-hidden rounded-[5px] border-border/80 shadow-sm transition-colors hover:border-accent/35"
+              className="group service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm transition-colors hover:border-accent/35"
             >
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}

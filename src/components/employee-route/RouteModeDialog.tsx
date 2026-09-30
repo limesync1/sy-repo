@@ -2,7 +2,9 @@ import { BatteryCharging, ArrowRight, CheckCircle2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,17 +44,17 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-[500px] overflow-hidden rounded-md p-0 sm:w-full">
-        <DialogHeader className="border-b border-border bg-secondary/25 px-4 py-4 text-left sm:px-5 sm:py-5">
+        <DialogHeader className="planner-overlay-header border-b border-border px-4 py-4 pr-12 text-left sm:px-5 sm:py-5 sm:pr-12">
           <div className="flex items-center gap-3 sm:gap-4">
             <BrandedIllustration name="chooseRouteMode" className="h-14 w-14 shrink-0 sm:h-[72px] sm:w-[72px]" alt="" />
             <div className="min-w-0">
-              <h2 className="text-left text-lg font-semibold leading-tight text-foreground">Hvordan vil du køre ruten?</h2>
-              <p className="mt-1 text-left text-[13px] leading-5 text-muted-foreground">Vælg den visning, der passer til turen. Du kan altid skifte senere.</p>
+              <DialogTitle className="text-left text-lg font-semibold leading-tight text-foreground">Hvordan vil du køre ruten?</DialogTitle>
+              <DialogDescription className="mt-1 text-left text-[13px] leading-5 text-muted-foreground">Vælg den visning, der passer til turen. Du kan altid skifte senere.</DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="grid max-h-[calc(100dvh-9rem)] gap-2.5 overflow-y-auto p-3 sm:p-4">
+        <div className="planner-overlay-body grid max-h-[calc(100dvh-9rem)] gap-2.5 overflow-y-auto p-3 sm:p-4">
           {options.map((o) => {
             return (
               <Button
