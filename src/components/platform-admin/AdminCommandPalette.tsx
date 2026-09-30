@@ -104,7 +104,7 @@ export default function AdminCommandPalette({ open, onOpenChange, onSelectTab, r
             {businesses.map((b) => (
               <CommandItem key={b.id} value={`biz-${b.id}-${b.name}`}
                 onSelect={() => close(() => { onSelectTab("businesses"); navigate(`/admin#biz-${b.id}`); })}>
-                <Building2 className="mr-2 h-4 w-4" />
+                <PanelIcons.Business className="mr-2 h-4 w-4" />
                 <span className="flex-1">{b.name}</span>
                 {b.city && <span className="text-xs text-muted-foreground">{b.city}</span>}
               </CommandItem>

@@ -1,4 +1,5 @@
-import { ListChecks, Navigation2, BatteryCharging, ArrowRight, Sparkles } from "lucide-react";
+import { BatteryCharging, ArrowRight, Sparkles } from "lucide-react";
+import type { ComponentType } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,7 @@ type Props = {
 
 const options: Array<{
   mode: RouteRunMode;
-  icon: typeof ListChecks;
+  icon: ComponentType<{ className?: string }>;
   title: string;
   body: string;
   note: string;
