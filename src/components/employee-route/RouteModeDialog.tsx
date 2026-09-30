@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { RouteRunMode } from "./RouteRunMode";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
-import { SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
 type Props = {
   open: boolean;
@@ -44,11 +43,13 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md p-0 sm:max-w-[500px]">
         <DialogHeader className="border-b border-border bg-card px-4 py-4 text-left sm:px-5">
-          <SheetHeaderBlock
-            icon={<BrandedIllustration name="chooseRouteMode" className="h-8 w-8" />}
-            title="Hvordan vil du køre ruten?"
-            description="Vælg den visning, der passer til turen. Du kan altid skifte senere."
-          />
+          <div className="flex items-center gap-4">
+            <BrandedIllustration name="chooseRouteMode" className="h-16 w-16 shrink-0 sm:h-[72px] sm:w-[72px]" alt="" />
+            <div className="min-w-0">
+              <h2 className="text-left text-lg font-semibold leading-tight text-foreground">Hvordan vil du køre ruten?</h2>
+              <p className="mt-1 text-left text-[13px] leading-5 text-muted-foreground">Vælg den visning, der passer til turen. Du kan altid skifte senere.</p>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="grid gap-2.5 p-3 sm:p-4">

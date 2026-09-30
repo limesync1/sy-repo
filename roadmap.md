@@ -171,7 +171,7 @@
 - [x] Ensret “Opret rute” med “Opret bestilling” og “Rediger rute” på mobil og computer.
 - [x] Redesign William-sektionen og brug de angivne illustrationer i de tre relevante forsidesektioner.
 - [x] Åbn kundeservicechatten fra “Skriv til mig” og “Få personlig hjælp”.
-- [ ] Kontrollér de berørte sider visuelt og teknisk uden at ændre navigationens eller små knappers ikoner.
+- [x] Kontrollér de berørte sider visuelt og teknisk uden at ændre navigationens eller små knappers ikoner.
 
 ## Korrekte kundeikoner og aftalepulje
 - [x] Erstat kundeserviceikonet med den senest vedhæftede SVG i alle fælles visninger.

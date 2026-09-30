@@ -97,6 +97,7 @@ import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -3555,8 +3556,8 @@ const Planner = () => {
                     <div className="planner-inbox-header relative px-4 pt-4 pb-3 border-b border-border space-y-3">
                     <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
                     <div className="flex items-start gap-3 pr-10 xl:pr-0">
-                       <span className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-accent/20 bg-accent/10 text-accent shrink-0">
-                        <Inbox className="h-[18px] w-[18px]" />
+                       <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center">
+                        <BrandedIllustration name="unassignedAppointments" className="h-full w-full" alt="" />
                       </span>
                       <div className="flex-1 min-w-0">
                         <h2 className="flex items-center gap-1 font-bold text-[15px] leading-tight text-foreground tracking-tight">

@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
 import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -58,6 +59,7 @@ interface ProviderDef {
   value: Provider;
   label: string;
   logo: string;
+  illustration?: BrandedIllustrationName;
   tagline: string;
   description: string;
   helpUrl: string;
@@ -72,6 +74,7 @@ const PROVIDERS: ProviderDef[] = [
     value: "economic",
     label: "E-conomic",
     logo: economicLogo,
+    illustration: "economicIntegration",
     tagline: "",
     description: "Klik her for at integrere din virksomhed med E-conomic som dit regnskabsprogram.",
     helpUrl: "https://www.e-conomic.com/developer",
@@ -100,6 +103,7 @@ const PROVIDERS: ProviderDef[] = [
     value: "dinero",
     label: "Dinero",
     logo: dineroLogo,
+    illustration: "dineroIntegration",
     tagline: "",
     description: "Klik her for at integrere din virksomhed med Dinero som dit regnskabsprogram.",
     helpUrl: "https://developer.dinero.dk/",
@@ -1511,8 +1515,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               onClick={() => startWizard(p.value)}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex h-24 items-center justify-center border-b border-border bg-gradient-to-b from-secondary/50 to-secondary/20 px-6">
-                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />
+              <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
+                {p.illustration ? <BrandedIllustration name={p.illustration} className="h-24 w-24" alt="" /> : <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />}
               </div>
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center justify-between gap-2">
@@ -2270,8 +2274,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       <Check className="h-2.5 w-2.5" /> Nuværende
                     </span>
                   )}
-                  <div className="flex h-24 items-center justify-center border-b border-border bg-gradient-to-b from-secondary/50 to-secondary/20 px-6">
-                    <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />
+                   <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
+                     {p.illustration ? <BrandedIllustration name={p.illustration} className="h-24 w-24" alt="" /> : <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />}
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-center justify-between gap-2">
