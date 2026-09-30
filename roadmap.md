@@ -1,5 +1,11 @@
 # Samlet panelredesign
 
+## Ensartede loading-visninger og nye panelikoner
+- [ ] Lad alle panel-loadingvisninger følge sidemenuens gemte åbne/sammenfoldede tilstand.
+- [ ] Erstat kundeserviceikonet i alle supportvisninger.
+- [ ] Saml og anvend de nye panelillustrationer på relevante menuer, handlinger, kort og vinduer.
+- [ ] Kontrollér mobil, lille computer og stor skærm uden størrelsesspring.
+
 - [x] Gendan den tidligere naturlige Inter/systemskrifttype overalt.
 - [x] Vis medarbejderfoto eller initialer i “Kontakt medarbejder”.
 - [x] Fjern den farvede venstrekant og ensret “Rediger rute”.
