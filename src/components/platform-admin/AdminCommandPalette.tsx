@@ -11,8 +11,8 @@ import {
 import {
   Star, MessageCircle, Globe,
   History, LayoutDashboard, Repeat, ExternalLink, HeartPulse, Mail,
+  Building2, Users, ShoppingCart, Settings,
 } from "lucide-react";
-import { PanelIcons } from "@/components/shared/PanelIcon";
 
 type Props = {
   open: boolean;
@@ -24,9 +24,9 @@ type Props = {
 
 const TABS = [
   { value: "overview", label: "Gå til Overblik", icon: LayoutDashboard },
-  { value: "businesses", label: "Gå til Virksomheder", icon: PanelIcons.Business },
-  { value: "users", label: "Gå til Brugere", icon: PanelIcons.Customers },
-  { value: "orders", label: "Gå til Ordrer", icon: PanelIcons.Appointments },
+  { value: "businesses", label: "Gå til Virksomheder", icon: Building2 },
+  { value: "users", label: "Gå til Brugere", icon: Users },
+  { value: "orders", label: "Gå til Ordrer", icon: ShoppingCart },
   { value: "subscriptions", label: "Gå til Abonnementer", icon: Repeat },
   { value: "reviews", label: "Gå til Anmeldelser", icon: Star },
   { value: "livechat", label: "Gå til Livechat", icon: MessageCircle },
@@ -34,7 +34,7 @@ const TABS = [
   { value: "audit", label: "Gå til Aktivitetslog", icon: History },
   { value: "health", label: "Gå til Sundhed", icon: HeartPulse },
   { value: "mails", label: "Gå til Mails", icon: Mail },
-  { value: "settings", label: "Gå til Platform-indstillinger", icon: PanelIcons.Settings },
+  { value: "settings", label: "Gå til Platform-indstillinger", icon: Settings },
 ];
 
 export default function AdminCommandPalette({ open, onOpenChange, onSelectTab, recentTabs }: Props) {
@@ -104,7 +104,7 @@ export default function AdminCommandPalette({ open, onOpenChange, onSelectTab, r
             {businesses.map((b) => (
               <CommandItem key={b.id} value={`biz-${b.id}-${b.name}`}
                 onSelect={() => close(() => { onSelectTab("businesses"); navigate(`/admin#biz-${b.id}`); })}>
-                <PanelIcons.Business className="mr-2 h-4 w-4" />
+                <Building2 className="mr-2 h-4 w-4" />
                 <span className="flex-1">{b.name}</span>
                 {b.city && <span className="text-xs text-muted-foreground">{b.city}</span>}
               </CommandItem>

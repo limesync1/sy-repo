@@ -47,7 +47,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { PanelIcon } from "@/components/shared/PanelIcon";
 
 export type CalendarRoute = Route & {
   stops: RouteStop[];
@@ -436,7 +435,7 @@ const DayOverviewSheet = ({
               className="w-full"
               onClick={() => onCreateRoute(date)}
             >
-              <PanelIcon name="addRoute" className="mr-2 h-4 w-4" /> Opret ny rute denne dag
+              <Plus className="mr-2 h-4 w-4" /> Opret ny rute denne dag
             </Button>
           </div>
         )}

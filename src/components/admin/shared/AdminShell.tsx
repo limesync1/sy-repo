@@ -12,8 +12,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, Star,
-  Menu, X, ExternalLink, Sparkles, MessageCircle, Truck, Rocket,
-  PanelLeftClose, PanelLeftOpen,
+  Menu, X, ExternalLink, Sparkles, MessageCircle, Truck, Rocket, Briefcase,
+  PanelLeftClose, PanelLeftOpen, CalendarDays, Users, Route, ReceiptText, Settings,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -27,7 +27,6 @@ import {
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import supportIcon from "@/assets/kundeservice-ikon.svg.asset.json";
-import { PanelIcons } from "@/components/shared/PanelIcon";
 import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 
@@ -161,15 +160,15 @@ const NAV_ITEMS: NavItem[] = [
   { value: "getting-started", label: "Kom godt i gang", icon: Rocket },
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Aftaler", icon: PanelIcons.Appointments },
+  { value: "orders", label: "Aftaler", icon: CalendarDays },
   { value: "leads", label: "Leads", icon: Sparkles, requiresLeads: true },
-  { value: "customers", label: "Kunder", icon: PanelIcons.Customers },
-  { value: "routes", label: "Ruter", icon: PanelIcons.Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
-  { value: "employees", label: "Medarbejdere", icon: PanelIcons.Employees, requiresRoutePlanning: true },
+  { value: "customers", label: "Kunder", icon: Users },
+  { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
+  { value: "employees", label: "Medarbejdere", icon: Briefcase, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
-  { value: "accounting", label: "Regnskab", icon: PanelIcons.Accounting, requiresAccounting: true },
-  { value: "settings", label: "Indstillinger", icon: PanelIcons.Settings },
+  { value: "accounting", label: "Regnskab", icon: ReceiptText, requiresAccounting: true },
+  { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
 type Business = {

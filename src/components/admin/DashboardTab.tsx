@@ -27,7 +27,6 @@ import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { PanelIcon, PanelIcons } from "@/components/shared/PanelIcon";
 
 interface Props {
   business: Business;
@@ -342,7 +341,7 @@ const DashboardTab = ({
     });
     if (servicesCount === 0) arr.push({
       key: "first-service", label: "Opret din første service",
-      meta: "Kunder kan ikke booke uden services", icon: PanelIcons.AddService, tab: "services", priority: 95, tone: "primary",
+      meta: "Kunder kan ikke booke uden services", icon: Briefcase, tab: "services", priority: 95, tone: "primary",
     });
     if (completeness.pct < 80) arr.push({
       key: "complete", label: "Fuldfør profil",
@@ -358,11 +357,11 @@ const DashboardTab = ({
     });
     if (shareUrl) arr.push({
       key: "share", label: copied ? "Link kopieret" : "Del din profil",
-      meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : PanelIcons.ShareProfile, onClick: copyLink, priority: 50, tone: "muted",
+      meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : Share2, onClick: copyLink, priority: 50, tone: "muted",
     });
-    arr.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: PanelIcons.AddService, tab: "services", priority: 30, tone: "muted" });
-    arr.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: PanelIcons.AddEmployee, tab: "employees", priority: 20, tone: "muted" });
-    arr.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: PanelIcons.Settings, tab: "settings", priority: 10, tone: "muted" });
+    arr.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, tab: "services", priority: 30, tone: "muted" });
+    arr.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
+    arr.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: SettingsIcon, tab: "settings", priority: 10, tone: "muted" });
     arr.sort((a, b) => b.priority - a.priority);
     return { actions: arr, primaryActions: arr.slice(0, 4) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1072,7 +1071,7 @@ const OrdersListSection = ({
             <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
                 <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
-                  <PanelIcon name="addService" className="mr-1.5 h-4 w-4" /> Tilføj din første service
+                  <Briefcase className="mr-1.5 h-4 w-4" /> Tilføj din første service
                 </Button>
               ) : completeness < 80 ? (
                 <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("settings")}>

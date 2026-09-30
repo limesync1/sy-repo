@@ -138,7 +138,6 @@ import DensityToggle, { useDensity } from "@/components/route-planner/DensityTog
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
-import { PanelIcon, PanelIcons } from "@/components/shared/PanelIcon";
 import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
@@ -3301,7 +3300,7 @@ const Planner = () => {
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Handlinger</DropdownMenuLabel>
                   <DropdownMenuItem onClick={requestCreateOrder} className="text-xs gap-2">
-                    <PanelIcon name="addOrder" className="h-4 w-4" /> Opret bestilling manuelt
+                    <ShoppingBag className="h-4 w-4" /> Opret bestilling manuelt
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
                     <Printer className="h-3.5 w-3.5" /> Print / PDF af dagen
@@ -3333,7 +3332,7 @@ const Planner = () => {
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
                   <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1.5 rounded-md font-semibold">
-                    <PanelIcon name="addRoute" className="h-4 w-4" />Opret rute
+                    <Plus className="h-4 w-4" />Opret rute
                   </Button>
                 </DialogTrigger>
                 <Tooltip>
@@ -3345,7 +3344,7 @@ const Planner = () => {
                       onClick={requestCreateOrder}
                       aria-label="Opret bestilling"
                     >
-                      <PanelIcon name="addOrder" className="h-4 w-4" />Opret bestilling
+                      <Plus className="h-4 w-4" />Opret bestilling
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
@@ -3354,7 +3353,6 @@ const Planner = () => {
                 <DialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden flex flex-col">
                   <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
-                      icon={<PanelIcons.AddRoute className="h-4 w-4" />}
                       accent={newRouteColor}
                       title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
                       description={
@@ -3420,7 +3418,7 @@ const Planner = () => {
                     </Section>
 
                     <Section
-                      icon={<PanelIcon name="routeStops" className="h-4 w-4" />}
+                      icon={<ListChecks className="h-4 w-4" />}
                       title="Aftaler på ruten"
                       hint={`${newRouteJobIds.length} valgt`}
                     >
@@ -3933,7 +3931,7 @@ const Planner = () => {
                               icon={<Inbox className="h-5 w-5" />}
                               title="Kom godt i gang"
                               description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
-                              action={{ label: "Opret bestilling", icon: <PanelIcon name="addOrder" className="h-4 w-4" />, onClick: requestCreateOrder }}
+                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                               compact
                             />
                           );
@@ -3943,7 +3941,7 @@ const Planner = () => {
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
                             description="Nye aftaler lander her, så snart de oprettes."
-                            action={{ label: "Opret bestilling", icon: <PanelIcon name="addOrder" className="h-4 w-4" />, onClick: requestCreateOrder }}
+                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                             compact
                           />
                         );
@@ -4455,12 +4453,12 @@ const Planner = () => {
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
-                        <PanelIcon name="addRoute" className="h-4 w-4" /> Opret rute
+                        <Plus className="h-4 w-4" /> Opret rute
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="icon" className="h-8 w-8 rounded-[4px]" aria-label="Ny bestilling" onClick={requestCreateOrder}>
-                            <PanelIcon name="addOrder" className="h-4 w-4" />
+                            <ShoppingBag className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">Opret ny bestilling manuelt</TooltipContent>
@@ -4643,11 +4641,11 @@ const Planner = () => {
 
                   <div className="grid grid-cols-2 gap-1.5">
                     <Button className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={() => setCreateOpen(true)}>
-                      <PanelIcon name="addRoute" className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                       Opret rute
                     </Button>
                     <Button variant="outline" className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={requestCreateOrder}>
-                      <PanelIcon name="addOrder" className="h-4 w-4" />
+                      <ShoppingBag className="h-4 w-4" />
                       Bestilling
                     </Button>
                   </div>
