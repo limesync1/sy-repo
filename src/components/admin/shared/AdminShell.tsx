@@ -26,7 +26,7 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import supportIcon from "@/assets/kundeservice-ikon.svg.asset.json";
+import supportIcon from "@/assets/kundeservice-ikon-2.svg.asset.json";
 import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 

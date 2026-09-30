@@ -40,8 +40,8 @@ import {
   type CustomerOrderSummary,
   type OrderForStatus,
 } from "@/components/shared/OrderStatusBadges";
-import { PanelIcon } from "@/components/shared/PanelIcon";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { CustomerIllustration, type CustomerIllustrationName } from "@/components/shared/CustomerIllustration";
 
 type Customer = {
   email: string;
@@ -797,18 +797,18 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <StatCard
           label="Kunder i alt"
           value={stats.total}
-          icon={<BrandedIllustration name="team" />}
+          icon={<CustomerIllustration name="customers" />}
           hint={stats.recurring > 0 ? `${stats.recurring} ${stats.recurring === 1 ? "fast" : "faste"}` : "Privat + erhverv"}
         />
         <StatCard
           label="Privatkunder"
           value={stats.privateCount}
-          icon={<BrandedIllustration name="activeEmployee" />}
+          icon={<CustomerIllustration name="private" />}
         />
         <StatCard
           label="Erhvervskunder"
           value={stats.businessCount}
-          icon={<BrandedIllustration name="servicesTotal" />}
+          icon={<CustomerIllustration name="business" />}
         />
         <StatCard
           label="Samlet omsætning"
@@ -920,7 +920,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <ListCardSkeleton rows={6} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<BrandedIllustration name="team" className="h-16 w-16" />}
+          icon={<CustomerIllustration name="customers" className="h-16 w-16" />}
           title={customers.length === 0 ? "Ingen kunder endnu" : "Ingen kunder matcher søgningen"}
           description={customers.length === 0 ? "Tilføj din første kunde, eller vent til der kommer bestillinger ind." : "Prøv et andet søgeord."}
           action={customers.length === 0 ? (
@@ -941,7 +941,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     aria-label="Vælg alle"
                   />
                 )}
-                 <BrandedIllustration name={typeFilter === "business" ? "servicesTotal" : typeFilter === "private" ? "activeEmployee" : "team"} className="h-10 w-10 shrink-0" />
+                  <CustomerIllustration name={typeFilter === "business" ? "business" : typeFilter === "private" ? "private" : "customers"} className="h-10 w-10 shrink-0" />
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">
                     {typeFilter === "private" ? "Private kunder" : typeFilter === "business" ? "Erhvervskunder" : "Alle kunder"}
@@ -965,6 +965,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               {paged.map((c) => {
                 const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
                 const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
+                const customerIllustration: CustomerIllustrationName = c.type === "business" ? "business" : c.type === "private" ? "private" : "customers";
                 const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
                 const metaParts: string[] = [];
                 if (c.last_order_at) metaParts.push(`Sidste aftale: ${fmtDate(c.last_order_at)}`);
@@ -1001,12 +1002,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                              className="h-6 w-6 rounded-full object-cover border border-border shrink-0"
                             loading="lazy" decoding="async"/>
                          ) : (
-                           <div className="h-6 w-6 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
-                            {c.type === "business"
-                              ? <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                              : <User className="h-3.5 w-3.5 text-muted-foreground" />}
-                          </div>
-                        )}
+                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary/50 p-0.5">
+                             <CustomerIllustration name={customerIllustration} className="h-full w-full" />
+                           </span>
+                         )}
                         <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
                         {typeLabel && (
                           <span

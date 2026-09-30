@@ -172,3 +172,10 @@
 - [x] Redesign William-sektionen og brug de angivne illustrationer i de tre relevante forsidesektioner.
 - [x] Åbn kundeservicechatten fra “Skriv til mig” og “Få personlig hjælp”.
 - [ ] Kontrollér de berørte sider visuelt og teknisk uden at ændre navigationens eller små knappers ikoner.
+
+## Korrekte kundeikoner og aftalepulje
+- [x] Erstat kundeserviceikonet med den senest vedhæftede SVG i alle fælles visninger.
+- [x] Brug de korrekte kunde-, privatkunde- og virksomhedsillustrationer på kundesiden.
+- [x] Vis kundeillustration efter kundetype i tabellens rækker uden profilbillede.
+- [x] Giv “Aftaler uden rute” mere brugbar bredde på mindre computerskærme.
+- [ ] Kontrollér kundesiden og ruteplanlæggeren på mobil, mindre computer og bred skærm.
