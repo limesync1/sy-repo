@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<path d="M230,500L760,240M230,500L760,760" fill="none" stroke="#a2a2a1" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/><clipPath id="k7"><circle cx="230" cy="500" r="160"/></clipPath><g clip-path="url(#k7)"><circle class="c7" cx="230" cy="500" r="160"/><circle class="c4" cx="198.0" cy="500" r="160"/></g><clipPath id="k8"><circle cx="770" cy="235" r="140"/></clipPath><g clip-path="url(#k8)"><circle class="c12" cx="770" cy="235" r="140"/><circle class="c8" cx="742.0" cy="235" r="140"/></g><clipPath id="k9"><circle cx="770" cy="765" r="140"/></clipPath><g clip-path="url(#k9)"><circle class="c5" cx="770" cy="765" r="140"/><circle class="c2" cx="742.0" cy="765" r="140"/></g>
+</svg>

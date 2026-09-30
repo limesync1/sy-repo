@@ -24,6 +24,7 @@ import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/us
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -230,7 +231,7 @@ export const RouteChecklistView = ({
                       disabled={!employeeId || locked || startStopTime.isPending}
                        onClick={() => void startNext()}
                     >
-                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-5 w-5" />}
+                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrandedIllustration name="startAppointment" className="h-8 w-8" />}
                       Start aftale
                     </Button>
                   )}
@@ -252,7 +253,7 @@ export const RouteChecklistView = ({
                       className="h-11 gap-2"
                       onClick={() => onNavigate(next)}
                     >
-                      <Navigation2 className="h-4 w-4" />
+                       <BrandedIllustration name="driveGoogleMaps" className="h-8 w-8" />
                       Kør dertil
                     </Button>
                     <Button

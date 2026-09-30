@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<rect class="c6" x="50" y="100" width="900" height="800" rx="60"/><path class="c8" d="M50,160a60,60 0 0 1 60-60H890a60,60 0 0 1 60,60V270H50Z"/><rect class="c10" x="110" y="168" width="200" height="36" rx="18"/><rect class="c10" x="400" y="168" width="150" height="36" rx="18"/><rect class="c10" x="700" y="168" width="150" height="36" rx="18"/><rect class="c3" x="110" y="380" width="220" height="36" rx="18"/><rect class="c1" x="400" y="380" width="160" height="36" rx="18"/><rect class="c8" x="700" y="428.0" width="40" height="42.0" rx="10"/><rect class="c4" x="760" y="393.0" width="40" height="77.0" rx="10"/><rect class="c2" x="820" y="414.0" width="40" height="56.0" rx="10"/><rect class="c11" x="90" y="500" width="820" height="12" rx="6"/><rect class="c3" x="110" y="560" width="180" height="36" rx="18"/><rect class="c1" x="400" y="560" width="200" height="36" rx="18"/><rect class="c8" x="700" y="580.0" width="40" height="70.0" rx="10"/><rect class="c4" x="760" y="601.0" width="40" height="49.0" rx="10"/><rect class="c2" x="820" y="566.0" width="40" height="84.0" rx="10"/><rect class="c11" x="90" y="680" width="820" height="12" rx="6"/><rect class="c3" x="110" y="740" width="250" height="36" rx="18"/><rect class="c1" x="400" y="740" width="130" height="36" rx="18"/><rect class="c8" x="700" y="774.0" width="40" height="56.0" rx="10"/><rect class="c4" x="760" y="746.0" width="40" height="84.0" rx="10"/><rect class="c2" x="820" y="788.0" width="40" height="42.0" rx="10"/>
+</svg>

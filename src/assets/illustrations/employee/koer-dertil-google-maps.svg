@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<clipPath id="mt"><rect x="50" y="50" width="900" height="900" rx="110"/></clipPath><g clip-path="url(#mt)"><rect class="c6" x="50" y="50" width="900" height="900" rx="0"/><rect class="c11" x="350" y="50" width="300" height="900" rx="0"/></g><g transform="rotate(45 500 500)"><path class="c8" d="M500.0,150.0 L770.0,810.0 L500.0,660.0 L230.0,810.0Z" stroke="#4ba9cf" stroke-width="56" stroke-linejoin="round"/><clipPath id="al"><rect x="0" y="0" width="500" height="1000"/></clipPath><g clip-path="url(#al)"><path class="c9" d="M500.0,150.0 L770.0,810.0 L500.0,660.0 L230.0,810.0Z" stroke="#63bae5" stroke-width="56" stroke-linejoin="round"/></g></g>
+</svg>

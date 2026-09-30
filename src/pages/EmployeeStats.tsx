@@ -33,6 +33,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatKr } from "@/lib/commission";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
@@ -231,7 +232,7 @@ const EmployeeStats = () => {
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] bg-primary/10 text-primary sm:h-12 sm:w-12">
-                    <Wallet className="h-5 w-5 sm:h-7 sm:w-7" />
+                     <BrandedIllustration name="earnings" className="h-full w-full" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -263,12 +264,12 @@ const EmployeeStats = () => {
             {/* Ét samlet, roligt nøgletalsoverblik i stedet for fem farvede kort. */}
             <div className="grid grid-cols-2 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:grid-cols-5">
               {[
-                { label: "Ruter", value: s.routesCount, icon: RouteIcon },
-                { label: "Aftaler", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
-                { label: "Arbejdsdage", value: s.workdaysCount, icon: CalendarIcon },
-                 { label: "Arbejdstid", value: formatWorkTime(s.workSeconds), icon: Clock },
-                { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: MapPin },
-              ].map(({ label, value, icon: Icon }, index) => (
+                 { label: "Ruter", value: s.routesCount, icon: "employeeRoutes" as BrandedIllustrationName },
+                 { label: "Aftaler", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: "employeeAppointments" as BrandedIllustrationName },
+                 { label: "Arbejdsdage", value: s.workdaysCount, icon: "workdays" as BrandedIllustrationName },
+                 { label: "Arbejdstid", value: formatWorkTime(s.workSeconds), icon: "worktime" as BrandedIllustrationName },
+                 { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: "dailyActivity" as BrandedIllustrationName },
+               ].map(({ label, value, icon }, index) => (
                 <div
                   key={label}
                   className={cn(
@@ -277,8 +278,8 @@ const EmployeeStats = () => {
                     index === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0",
                   )}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[5px] bg-secondary text-muted-foreground">
-                    <Icon className="h-4 w-4" />
+                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] bg-secondary p-1">
+                     <BrandedIllustration name={icon} className="h-full w-full" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
@@ -293,7 +294,7 @@ const EmployeeStats = () => {
               <CardContent className="p-0">
                 <div className="flex items-start gap-3 border-b border-border px-4 py-3 sm:px-5">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-secondary text-foreground">
-                    <ListChecks className="h-4 w-4" />
+                     <BrandedIllustration name="dailyActivityTable" className="h-full w-full" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-semibold text-foreground tracking-tight">Daglig aktivitet</h3>

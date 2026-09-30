@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<rect class="c6" x="50" y="100" width="900" height="800" rx="70"/><rect class="c11" x="110" y="290" width="780" height="26" rx="13"/><rect class="c11" x="110" y="490" width="780" height="26" rx="13"/><rect class="c11" x="110" y="690" width="780" height="26" rx="13"/><path d="M130,700L340,520L510,610L700,340L850,270" fill="none" stroke="#f05c24" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/><circle class="c3" cx="850" cy="270" r="58"/><circle class="c2" cx="850" cy="270" r="24"/>
+</svg>

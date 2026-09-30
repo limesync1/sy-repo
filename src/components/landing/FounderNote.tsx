@@ -1,31 +1,36 @@
-import { ArrowRight, Headset, Handshake, MapPin, Mail } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import portrait from "@/assets/william-ross-jepsen.jpg.asset.json";
+import { Button } from "@/components/ui/button";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 const reasons = [
   {
-    icon: MapPin,
+    icon: "localEasy" as BrandedIllustrationName,
     title: "Lokalt skal være let",
     text: "Det var alt for svært at finde en god, lokal serviceyder — og umuligt at se, hvem man kunne stole på.",
   },
   {
-    icon: Handshake,
+    icon: "fairBusinesses" as BrandedIllustrationName,
     title: "Fair for virksomhederne",
     text: "Dygtige små virksomheder drukner i dyre leads og tunge systemer. De fortjener ét simpelt værktøj.",
   },
   {
-    icon: Headset,
+    icon: "humanHelp" as BrandedIllustrationName,
     title: "Et menneske, når du har brug for det",
     text: "Skriver du til kundeservice og vil tale med et menneske, er det mig, der svarer — hver gang.",
   },
 ];
 
 /** Personlig sektion om grundlæggeren. Placeres lige over virksomhedssektionen. */
-const FounderNote = () => (
-  <section className="bg-accent/[0.06] py-12 sm:py-14 lg:py-16 2xl:py-24">
+const FounderNote = () => {
+  const openSupport = () => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"));
+
+  return (
+  <section className="border-y border-border/70 bg-secondary/55 py-12 sm:py-14 lg:py-16 2xl:py-24">
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+      <div className="grid overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="flex flex-col items-center justify-center border-b border-border bg-foreground/[0.035] p-6 text-center sm:p-8 lg:items-start lg:border-b-0 lg:border-r lg:p-10 lg:text-left">
           <div className="relative">
             <img
               src={portrait.url}
@@ -49,13 +54,14 @@ const FounderNote = () => (
             gerne vil gøre det nemt at få hjælp derhjemme og nemt at drive en servicevirksomhed.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2.5 lg:justify-start">
-            <a
-              href="mailto:kontakt@serviceydere.dk"
-              className="group inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5"
+            <Button
+              type="button"
+              onClick={openSupport}
+              className="group h-10 gap-2 rounded-lg px-4 text-sm font-semibold"
             >
-              <Mail className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4" />
               Skriv til mig
-            </a>
+            </Button>
             <SmartLink
               to="/om-os"
               className="group inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
@@ -66,13 +72,13 @@ const FounderNote = () => (
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-col justify-center p-5 sm:p-8 lg:p-10">
           <h3 className="text-sm font-semibold text-foreground">Derfor lavede jeg Serviceydere</h3>
           <ul className="mt-4 grid gap-3">
             {reasons.map((r) => (
-              <li key={r.title} className="flex gap-4 rounded-xl border border-border bg-card p-5 shadow-sm">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                  <r.icon className="h-5 w-5" />
+              <li key={r.title} className="flex gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:border-foreground/20 sm:p-5">
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-border bg-card p-1.5 sm:h-16 sm:w-16">
+                  <BrandedIllustration name={r.icon} className="h-full w-full" />
                 </span>
                 <div>
                   <p className="font-semibold text-foreground">{r.title}</p>
@@ -85,6 +91,7 @@ const FounderNote = () => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default FounderNote;

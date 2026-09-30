@@ -1,5 +1,4 @@
 import { BatteryCharging, ArrowRight, Sparkles } from "lucide-react";
-import type { ComponentType } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { RouteRunMode } from "./RouteRunMode";
-import { PanelIcons } from "@/components/shared/PanelIcon";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 type Props = {
   open: boolean;
@@ -20,21 +19,21 @@ type Props = {
 
 const options: Array<{
   mode: RouteRunMode;
-  icon: ComponentType<{ className?: string }>;
+  illustration: BrandedIllustrationName;
   title: string;
   body: string;
   note: string;
 }> = [
   {
     mode: "list",
-    icon: PanelIcons.RouteList,
+    illustration: "checklist",
     title: "Tjekliste",
     body: "Se stoppene i rækkefølge og tryk “Udført”, når du er færdig hvert sted.",
     note: "Bruger næsten ingen strøm — intet kort, ingen GPS.",
   },
   {
     mode: "guide",
-    icon: PanelIcons.RouteMap,
+    illustration: "drivingGuide",
     title: "Kørselsguide",
     body: "Kort med rutelinje, afstand til næste stop og talte drej undervejs.",
     note: "Bruger mere strøm — hold gerne telefonen i lader.",
@@ -47,7 +46,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
       <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md p-0 sm:max-w-[500px]">
         <DialogHeader className="border-b border-border bg-secondary/30 px-4 py-4 text-left sm:px-5">
           <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-foreground shadow-sm">
-            <Sparkles className="h-4 w-4" />
+            <BrandedIllustration name="chooseRouteMode" className="h-full w-full" />
           </div>
           <DialogTitle className="text-xl font-semibold leading-tight">
             Hvordan vil du køre ruten?
@@ -59,7 +58,6 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
 
         <div className="grid gap-2.5 p-3 sm:p-4">
           {options.map((o) => {
-            const Icon = o.icon;
             return (
               <Button
                 key={o.mode}
@@ -72,7 +70,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 )}
               >
                 <span className="mt-0.5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-secondary">
-                  <Icon className="h-8 w-8" />
+                  <BrandedIllustration name={o.illustration} className="h-full w-full" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2 text-[15px] font-semibold text-foreground">

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<rect class="c6" x="150" y="50" width="700" height="900" rx="90"/><clipPath id="k20"><rect x="190" y="90" width="620" height="420" rx="60"/></clipPath><g clip-path="url(#k20)"><rect class="c8" x="190" y="90" width="620" height="420"/><rect class="c9" x="190" y="90" width="70" height="420"/></g><path d="M400,440V360Q400,300 460,300H540" fill="none" stroke="#ffffff" stroke-width="62" stroke-linecap="round" stroke-linejoin="round"/><path class="c10" d="M560.0,220.0 L690.0,300.0 L560.0,380.0Z" stroke="#ffffff" stroke-width="30" stroke-linejoin="round"/><circle class="c4" cx="270" cy="620" r="42"/><circle class="c10" cx="270" cy="620" r="16"/><rect class="c3" x="350" y="586" width="380" height="40" rx="20"/><rect class="c1" x="350" y="644" width="260" height="30" rx="15"/><circle class="c4" cx="270" cy="800" r="42"/><circle class="c10" cx="270" cy="800" r="16"/><rect class="c3" x="350" y="766" width="380" height="40" rx="20"/><rect class="c1" x="350" y="824" width="260" height="30" rx="15"/>
+</svg>

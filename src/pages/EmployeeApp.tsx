@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -564,7 +565,7 @@ const EmployeeApp = () => {
                     style={{ background: color }}
                     aria-hidden
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-background" />
+                    <BrandedIllustration name="routeDone" className="h-full w-full" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold text-foreground">
@@ -623,7 +624,7 @@ const EmployeeApp = () => {
                   style={{ background: color }}
                   aria-hidden
                 >
-                  <RouteIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-background" />
+                   <BrandedIllustration name="routeReady" className="h-full w-full" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold text-foreground">

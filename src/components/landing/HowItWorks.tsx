@@ -1,22 +1,23 @@
-import { Search, BarChart3, CalendarCheck, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 /**
  * En enkel, sammenhængende proces frem for tre løsrevne salgskort.
  */
 const steps = [
   {
-    icon: Search,
+    icon: "searchService" as BrandedIllustrationName,
     title: "Søg efter en service",
     description: "Skriv hvad du har brug for — fx 'rengøring i Aarhus' eller 'flyttehjælp København'.",
   },
   {
-    icon: BarChart3,
+    icon: "compareProviders" as BrandedIllustrationName,
     title: "Sammenlign udbydere",
     description: "Se priser, anmeldelser og afstand side om side, så du kan vælge den rigtige.",
   },
   {
-    icon: CalendarCheck,
+    icon: "bookOrQuote" as BrandedIllustrationName,
     title: "Book eller hent tilbud",
     description: "Book direkte på virksomhedens profil — eller indhent op til 3 gratis tilbud.",
   },
@@ -47,8 +48,8 @@ const HowItWorks = () => {
                     {i + 1}
                   </span>
                   <h3 className="min-w-0 flex-1 text-[17px] font-semibold md:hidden">{step.title}</h3>
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-                    <step.icon className="h-5 w-5" aria-hidden="true" />
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-ocean-foreground/10 bg-ocean-foreground/[0.08] p-1.5 sm:h-16 sm:w-16">
+                    <BrandedIllustration name={step.icon} className="h-full w-full" />
                   </span>
                 </div>
                 <div className="mt-4 md:mt-6 2xl:mt-8">

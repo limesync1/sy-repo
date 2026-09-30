@@ -2,14 +2,12 @@ import SmartLink from "@/components/SmartLink";
 import { usePlatformPricing } from "@/hooks/useBusinessPlan";
 import {
   ArrowRight,
-  Users,
-  Route,
-  Calculator,
   Sparkles,
   LayoutDashboard,
   Check,
   Upload,
 } from "lucide-react";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 /**
   * Forretningsrettet sektion på forsiden. Et lyst, kontraststærkt overblik
@@ -33,22 +31,19 @@ const kr = (n: number) =>
 
 const features = [
   {
-    icon: Users,
+    icon: "localCustomers" as BrandedIllustrationName,
     title: "Flere kunder i dit område",
     text: "Bliv vist for private og virksomheder der søger efter præcis dine ydelser lokalt — uden at betale for klik.",
-    tone: "bg-accent/10 text-accent",
   },
   {
-    icon: Route,
+    icon: "routePlanning" as BrandedIllustrationName,
     title: "Ruteplanlægning inkluderet",
     text: "Planlæg dagens stop, optimer kørerækkefølgen og send ruten direkte til medarbejderens telefon. Inkluderet i basis — ikke et tilkøb.",
-    tone: "bg-warning/10 text-warning-foreground",
   },
   {
-    icon: Calculator,
+    icon: "priceCalculator" as BrandedIllustrationName,
     title: "Indbygget prisberegner",
     text: "Tilføj en prisberegner til dine ydelser, så kunden selv kan udfylde m², timer eller antal og se prisen før de booker.",
-    tone: "bg-primary/10 text-primary",
   },
 ];
 
@@ -162,8 +157,8 @@ const ForBusinesses = () => {
                 key={f.title}
                 className={`group flex gap-3.5 p-5 transition-colors hover:bg-background sm:p-6 ${index > 0 ? "border-t border-border md:border-l md:border-t-0" : ""}`}
               >
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${f.tone}`}>
-                  <f.icon className="h-5 w-5" />
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-border bg-background p-1.5 shadow-sm sm:h-16 sm:w-16">
+                  <BrandedIllustration name={f.icon} className="h-full w-full" />
                 </div>
                 <div>
                   <h3 className="text-[15px] font-semibold leading-tight text-foreground">{f.title}</h3>

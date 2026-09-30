@@ -655,9 +655,13 @@ const RequestQuote = () => {
               <Link to="/virksomheder" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30">
                 <Search className="h-4 w-4" /> Søg manuelt
               </Link>
-              <a href="mailto:kontakt@serviceydere.dk?subject=Hj%C3%A6lp%20med%20at%20finde%20udbyder" className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all hover:-translate-y-0.5">
+              <Button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
+                className="rounded-full"
+              >
                 Få personlig hjælp
-              </a>
+              </Button>
             </div>
             <div className="mx-auto mt-6 flex max-w-md flex-wrap items-center justify-center gap-1 text-[11px] text-muted-foreground">
               <span>Tip:</span>
