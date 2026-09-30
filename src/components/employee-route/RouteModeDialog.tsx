@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { RouteRunMode } from "./RouteRunMode";
+import { PanelIcons } from "@/components/shared/PanelIcon";
 
 type Props = {
   open: boolean;
@@ -25,14 +26,14 @@ const options: Array<{
 }> = [
   {
     mode: "list",
-    icon: ListChecks,
+    icon: PanelIcons.RouteList,
     title: "Tjekliste",
     body: "Se stoppene i rækkefølge og tryk “Udført”, når du er færdig hvert sted.",
     note: "Bruger næsten ingen strøm — intet kort, ingen GPS.",
   },
   {
     mode: "guide",
-    icon: Navigation2,
+    icon: PanelIcons.RouteMap,
     title: "Kørselsguide",
     body: "Kort med rutelinje, afstand til næste stop og talte drej undervejs.",
     note: "Bruger mere strøm — hold gerne telefonen i lader.",

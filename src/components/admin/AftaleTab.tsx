@@ -64,6 +64,7 @@ import OrderTimeline from "@/components/admin/OrderTimeline";
 import NextStepCard from "@/components/admin/NextStepCard";
 import { AccountingStatusRow, type OrderForStatus } from "@/components/shared/OrderStatusBadges";
 import AftaleStatsStrip from "@/components/admin/AftaleStatsStrip";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
@@ -1661,7 +1662,7 @@ const AftaleTab = ({
               }
               setCreateOrderOpen(true);
             }}
-            icon={<ShoppingCart />}
+            icon={<PanelIcon name="addOrder" className="h-5 w-5" />}
           >
             Opret bestilling
           </PrimaryButton>

@@ -138,6 +138,7 @@ import DensityToggle, { useDensity } from "@/components/route-planner/DensityTog
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
+import { PanelIcon, PanelIcons } from "@/components/shared/PanelIcon";
 import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
@@ -3300,7 +3301,7 @@ const Planner = () => {
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Handlinger</DropdownMenuLabel>
                   <DropdownMenuItem onClick={requestCreateOrder} className="text-xs gap-2">
-                    <ShoppingBag className="h-3.5 w-3.5" /> Opret bestilling manuelt
+                    <PanelIcon name="addOrder" className="h-4 w-4" /> Opret bestilling manuelt
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
                     <Printer className="h-3.5 w-3.5" /> Print / PDF af dagen
@@ -3332,7 +3333,7 @@ const Planner = () => {
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
                   <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1.5 rounded-md font-semibold">
-                    <Plus className="h-3.5 w-3.5" />Opret rute
+                    <PanelIcon name="addRoute" className="h-4 w-4" />Opret rute
                   </Button>
                 </DialogTrigger>
                 <Tooltip>
@@ -3344,7 +3345,7 @@ const Planner = () => {
                       onClick={requestCreateOrder}
                       aria-label="Opret bestilling"
                     >
-                      <ShoppingBag className="h-3.5 w-3.5" />Opret bestilling
+                      <PanelIcon name="addOrder" className="h-4 w-4" />Opret bestilling
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
@@ -3353,7 +3354,7 @@ const Planner = () => {
                 <DialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden flex flex-col">
                   <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
-                      icon={<RouteIcon className="h-4 w-4" />}
+                      icon={<PanelIcons.AddRoute className="h-4 w-4" />}
                       accent={newRouteColor}
                       title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
                       description={
