@@ -3,7 +3,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
-  LayoutDashboard, Star,
+  LayoutDashboard, Star, Building2, Users, ShoppingCart, Settings,
   LogOut, Menu, X, Repeat, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles, Rocket,
 } from "lucide-react";
 import SEO from "@/components/SEO";
@@ -26,7 +26,6 @@ import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
 } from "@/components/shared/sidebar/SidebarParts";
 import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
-import { PanelIcons } from "@/components/shared/PanelIcon";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -57,9 +56,9 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
     label: "Drift",
     items: [
       { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
-      { value: "businesses", label: "Virksomheder", icon: PanelIcons.Business },
-      { value: "users", label: "Brugere", icon: PanelIcons.Customers },
-      { value: "orders", label: "Ordrer", icon: PanelIcons.Appointments, hasRange: true },
+      { value: "businesses", label: "Virksomheder", icon: Building2 },
+      { value: "users", label: "Brugere", icon: Users },
+      { value: "orders", label: "Ordrer", icon: ShoppingCart, hasRange: true },
       { value: "subscriptions", label: "Abonnementer", icon: Repeat },
     ],
   },
@@ -77,7 +76,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "waitlist", label: "Venteliste", icon: Rocket },
       { value: "ai-quality", label: "AI-kvalitet", icon: Sparkles },
       { value: "security", label: "Sikkerhed", icon: Shield },
-      { value: "settings", label: "Platform", icon: PanelIcons.Settings },
+      { value: "settings", label: "Platform", icon: Settings },
     ],
   },
 ];

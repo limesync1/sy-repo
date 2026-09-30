@@ -1,7 +1,6 @@
-import { LayoutDashboard, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Building2, LayoutDashboard, MessageCircle, MoreHorizontal, ShoppingCart, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminBadgeMap } from "./lib/useAdminBadges";
-import { PanelIcons } from "@/components/shared/PanelIcon";
 
 /**
  * Mobil-only bottom-tab bar for de hyppigst brugte admin-faner.
@@ -13,9 +12,9 @@ import { PanelIcons } from "@/components/shared/PanelIcon";
  */
 const ITEMS = [
   { value: "overview", label: "Overblik", icon: LayoutDashboard },
-  { value: "businesses", label: "Virks.", icon: PanelIcons.Business },
-  { value: "users", label: "Brugere", icon: PanelIcons.Customers },
-  { value: "orders", label: "Ordrer", icon: PanelIcons.Appointments },
+  { value: "businesses", label: "Virks.", icon: Building2 },
+  { value: "users", label: "Brugere", icon: Users },
+  { value: "orders", label: "Ordrer", icon: ShoppingCart },
   { value: "livechat", label: "Chat", icon: MessageCircle },
 ];
 
