@@ -67,11 +67,13 @@ Deno.serve(async (req) => {
     }
 
     if (body.action === 'send') {
-      const recipient = String(body.recipientEmail || '').trim().toLowerCase()
+      // Test sends only go to the signed-in admin's own address, with the
+      // template's built-in preview data — never to arbitrary recipients.
+      const recipient = String(userData.user.email || '').trim().toLowerCase()
       if (!/^\S+@\S+\.\S+$/.test(recipient)) return new Response(JSON.stringify({ error: 'invalid_recipient' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       const result = await sendTemplateEmail(templateName, recipient, {
-        idempotencyKey: String(body.idempotencyKey || `admin-test-${templateName}-${crypto.randomUUID()}`),
-        templateData: body.templateData ?? entry.previewData ?? {},
+        idempotencyKey: `admin-test-${templateName}-${crypto.randomUUID()}`,
+        templateData: entry.previewData ?? {},
       })
       return new Response(JSON.stringify(result), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
