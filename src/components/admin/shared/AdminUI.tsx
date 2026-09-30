@@ -100,7 +100,7 @@ export const StatCard = ({
       <CardContent className="flex items-start gap-2.5 p-3">
         <div
           className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] [&_svg]:h-4 [&_svg]:w-4",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] p-1 sm:h-11 sm:w-11 [&_svg]:h-4 [&_svg]:w-4 [&_img]:h-full [&_img]:w-full",
             tones[tone],
           )}
         >
