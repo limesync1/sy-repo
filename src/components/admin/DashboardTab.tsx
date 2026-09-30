@@ -27,7 +27,7 @@ import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { PanelIcons } from "@/components/shared/PanelIcon";
+import { PanelIcon, PanelIcons } from "@/components/shared/PanelIcon";
 
 interface Props {
   business: Business;
@@ -1072,7 +1072,7 @@ const OrdersListSection = ({
             <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
                 <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
-                  <Briefcase className="mr-1.5 h-4 w-4" /> Tilføj din første service
+                  <PanelIcon name="addService" className="mr-1.5 h-4 w-4" /> Tilføj din første service
                 </Button>
               ) : completeness < 80 ? (
                 <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("settings")}>

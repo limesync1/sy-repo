@@ -2456,7 +2456,7 @@ const AftaleTab = ({
         </>
       ) : (
         <EmptyState
-          icon={<ShoppingCart />}
+          icon={<PanelIcon name="appointments" className="h-5 w-5" />}
           title={
             filter === "all" || filter === "active"
               ? "Ingen aftaler endnu"
@@ -2629,7 +2629,7 @@ const AftaleTab = ({
             </Section>
 
             <Section
-              icon={<ListChecks className="h-3.5 w-3.5" />}
+              icon={<PanelIcon name="routeStops" className="h-4 w-4" />}
               title="Aftaler på ruten"
               hint={`${newRouteJobIds.length} valgt`}
             >

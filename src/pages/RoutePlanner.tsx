@@ -3420,7 +3420,7 @@ const Planner = () => {
                     </Section>
 
                     <Section
-                      icon={<ListChecks className="h-3.5 w-3.5" />}
+                      icon={<PanelIcon name="routeStops" className="h-4 w-4" />}
                       title="Aftaler på ruten"
                       hint={`${newRouteJobIds.length} valgt`}
                     >

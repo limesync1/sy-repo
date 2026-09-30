@@ -253,7 +253,7 @@ export const RouteChecklistView = ({
                       className="h-11 gap-2"
                       onClick={() => onNavigate(next)}
                     >
-                      <Navigation2 className="h-4 w-4" />
+                      <PanelIcon name="routeMap" className="h-4 w-4" />
                       Kør dertil
                     </Button>
                     <Button
