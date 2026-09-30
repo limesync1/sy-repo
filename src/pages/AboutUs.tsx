@@ -5,6 +5,7 @@ import SmartLink from "@/components/SmartLink";
 import PageHero from "@/components/landing/PageHero";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { topCategories } from "@/lib/service-taxonomy";
+import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight, Sparkles, Lock, Search } from "lucide-react";
 
 const PRINCIPLES = [
@@ -54,7 +55,7 @@ const AboutUs = () => {
         contactType: "customer support",
         availableLanguage: ["Danish"],
       },
-      sameAs: [],
+      sameAs: OFFICIAL_PROFILE_URLS,
     },
     {
       "@context": "https://schema.org",
