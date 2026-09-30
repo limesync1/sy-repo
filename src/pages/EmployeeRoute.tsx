@@ -2184,7 +2184,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
               <div className="space-y-3 p-3.5 text-center sm:p-4">
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-success/10 text-success">
-                  <CheckCircle2 className="h-5 w-5" />
+                  <BrandedIllustration name="routeDone" className="h-full w-full" />
                 </div>
                 <div>
                   <p className="text-base font-semibold text-foreground">Rute færdig</p>
