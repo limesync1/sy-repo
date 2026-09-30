@@ -48,7 +48,7 @@ const HowItWorks = () => {
                     {i + 1}
                   </span>
                   <h3 className="min-w-0 flex-1 text-[17px] font-semibold md:hidden">{step.title}</h3>
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-ocean-foreground/10 bg-ocean-foreground/[0.08] p-1.5 sm:h-16 sm:w-16">
+                  <span className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
                     <BrandedIllustration name={step.icon} className="h-full w-full" />
                   </span>
                 </div>

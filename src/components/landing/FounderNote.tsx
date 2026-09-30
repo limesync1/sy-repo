@@ -77,7 +77,7 @@ const FounderNote = () => {
           <ul className="mt-4 grid gap-3">
             {reasons.map((r) => (
               <li key={r.title} className="flex gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:border-foreground/20 sm:p-5">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-border bg-card p-1.5 sm:h-16 sm:w-16">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
                   <BrandedIllustration name={r.icon} className="h-full w-full" />
                 </span>
                 <div>

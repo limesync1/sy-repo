@@ -359,7 +359,7 @@ export const StopDetailsContent = ({
             title={readOnly ? "Faktisk tidsforbrug" : "Tidsregistrering"}
             hint={!readOnly && isWorking ? "I gang" : totalDurationSeconds > 0 ? durationLabel : undefined}
           >
-            <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
+            <div className="rounded-md border bg-card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 {!readOnly && isWorking ? (
                   <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
@@ -406,11 +406,11 @@ export const StopDetailsContent = ({
           hint={tasks.length > 0 ? `${tasks.length} ${tasks.length === 1 ? "ydelse" : "ydelser"}` : undefined}
         >
           {loadingOrder && tasks.length === 0 && !fallbackSummary ? (
-            <div className="rounded-lg border bg-secondary/30 p-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="rounded-md border bg-secondary/30 p-3 flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Henter detaljer…
             </div>
           ) : tasks.length > 0 ? (
-            <div className="rounded-lg border divide-y bg-card">
+            <div className="rounded-md border divide-y bg-card">
               {tasks.map((t, i) => (
                 <div key={i} className="px-3 py-2.5">
                   <div className="flex items-start justify-between gap-2">
@@ -445,11 +445,11 @@ export const StopDetailsContent = ({
               ))}
             </div>
           ) : fallbackSummary ? (
-            <div className="rounded-lg border bg-card p-3">
+            <div className="rounded-md border bg-card p-3">
               <p className="text-sm leading-relaxed">{fallbackSummary}</p>
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed bg-secondary/20 p-3 text-center">
+            <div className="rounded-md border border-dashed bg-secondary/20 p-3 text-center">
               <p className="text-[12px] text-muted-foreground">Ingen detaljer på denne aftale</p>
             </div>
           )}
@@ -460,7 +460,7 @@ export const StopDetailsContent = ({
             icon={<MessageSquare className="h-3.5 w-3.5" />}
             title="Besked fra kunden"
           >
-            <div className="rounded-lg border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
+            <div className="rounded-md border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
               <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
             </div>
           </Section>
@@ -541,7 +541,7 @@ export const StopDetailsContent = ({
             icon={<ClipboardList className="h-3.5 w-3.5" />}
             title="Note fra besøget"
           >
-            <div className="rounded-lg border bg-card p-3">
+            <div className="rounded-md border bg-card p-3">
               <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{stop.notes}</p>
             </div>
           </Section>

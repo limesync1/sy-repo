@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import type { BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 export type Pricing = {
   base_price_dkk: number;
@@ -24,10 +25,10 @@ export const BILLING_OPTIONS: { value: BillingPeriod; label: string; months: num
   { value: "yearly", label: "Årlig (bedste pris)", months: 12 },
 ];
 
-export const FEATURES: { key: FeatureKey; icon: typeof Calculator; title: string; free: boolean; description: string }[] = [
-  { key: "accounting_integration", icon: Calculator, free: false, title: "Regnskabsintegration", description: "E-conomic / Dinero — auto-fakturering." },
-  { key: "leads", icon: Inbox, free: true, title: "Leads (Indhent 3 tilbud)", description: "Modtag kundehenvendelser." },
-  { key: "livechat", icon: MessageCircle, free: true, title: "Livechat på virksomhedssiden", description: "Lad besøgende skrive direkte." },
+export const FEATURES: { key: FeatureKey; icon: typeof Calculator; illustration: BrandedIllustrationName; title: string; free: boolean; description: string }[] = [
+  { key: "accounting_integration", icon: Calculator, illustration: "signupAccounting", free: false, title: "Regnskabsintegration", description: "E-conomic / Dinero — auto-fakturering." },
+  { key: "leads", icon: Inbox, illustration: "signupLeads", free: true, title: "Leads (Indhent 3 tilbud)", description: "Modtag kundehenvendelser." },
+  { key: "livechat", icon: MessageCircle, illustration: "signupLivechat", free: true, title: "Livechat på virksomhedssiden", description: "Lad besøgende skrive direkte." },
 ];
 
 export const formatDkk = (n: number) =>

@@ -24,7 +24,6 @@ import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/us
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -188,7 +187,7 @@ export const RouteChecklistView = ({
             {/* Næste stop — det eneste der fylder */}
             {next && (
               <section
-                className="overflow-hidden rounded-[5px] border border-border bg-card shadow-sm"
+                className="overflow-hidden rounded-md border border-border bg-card shadow-sm"
                 aria-label="Næste stop"
               >
                 <div className="flex items-center gap-2 border-b border-border bg-secondary/45 px-3 py-2 text-foreground">
@@ -229,9 +228,9 @@ export const RouteChecklistView = ({
                       type="button"
                       className="min-h-11 w-full gap-2 bg-warning font-semibold text-warning-foreground hover:bg-warning/90"
                       disabled={!employeeId || locked || startStopTime.isPending}
-                       onClick={() => void startNext()}
+                      onClick={() => void startNext()}
                     >
-                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrandedIllustration name="startAppointment" className="h-8 w-8" />}
+                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                       Start aftale
                     </Button>
                   )}
@@ -253,7 +252,7 @@ export const RouteChecklistView = ({
                       className="h-11 gap-2"
                       onClick={() => onNavigate(next)}
                     >
-                       <BrandedIllustration name="driveGoogleMaps" className="h-8 w-8" />
+                      <Navigation2 className="h-4 w-4" />
                       Kør dertil
                     </Button>
                     <Button
@@ -286,15 +285,15 @@ export const RouteChecklistView = ({
             )}
 
             {/* Resten af dagen */}
-             {remaining.length > 1 && (
-               <section className="mt-4">
+            {remaining.length > 1 && (
+              <section className="mt-4">
                 <h3 className="px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   Derefter ({remaining.length - 1})
                 </h3>
                 <ul className="mt-2 space-y-2">
                   {remaining.slice(1).map((s, i) => (
                     <li key={s.id}>
-                         <div className="flex min-h-14 items-center gap-2.5 rounded-[5px] border border-border bg-card px-2.5 py-2 shadow-sm transition-colors hover:border-accent/25 hover:bg-secondary/25">
+                        <div className="flex min-h-14 items-center gap-2.5 rounded-md border border-border bg-card px-2.5 py-2 shadow-sm transition-colors hover:border-accent/25 hover:bg-secondary/25">
                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-secondary text-[12px] font-semibold text-muted-foreground">
                           {completed.length + i + 2}
                         </span>
@@ -307,7 +306,7 @@ export const RouteChecklistView = ({
                           )}
                         </div>
                         {onMoveStop && (
-                           <div className="flex shrink-0 gap-1">
+                          <div className="flex shrink-0 gap-1">
                             <Button
                               variant="outline"
                               size="icon"
@@ -315,7 +314,7 @@ export const RouteChecklistView = ({
                               aria-label="Flyt stoppet tidligere på ruten"
                               disabled={reordering}
                               onClick={() => onMoveStop(s.id, -1)}
-                               className="h-10 w-10 rounded-[4px] text-muted-foreground hover:text-foreground"
+                              className="h-10 w-10 rounded-md text-muted-foreground hover:text-foreground"
                             >
                               <ArrowUp className="h-3.5 w-3.5" />
                             </Button>
@@ -326,7 +325,7 @@ export const RouteChecklistView = ({
                               aria-label="Flyt stoppet senere på ruten"
                               disabled={reordering || i >= remaining.length - 2}
                               onClick={() => onMoveStop(s.id, 1)}
-                               className="h-10 w-10 rounded-[4px] text-muted-foreground hover:text-foreground"
+                              className="h-10 w-10 rounded-md text-muted-foreground hover:text-foreground"
                             >
                               <ArrowDown className="h-3.5 w-3.5" />
                             </Button>

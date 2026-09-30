@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { BILLING_OPTIONS, FEATURES, Field, formatDkk } from "./shared";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 export default function Step2Plan(p: any) {
   return (
@@ -10,7 +11,7 @@ export default function Step2Plan(p: any) {
         <div>
           <Label className="text-xs uppercase tracking-wider text-muted-foreground">Funktioner</Label>
           <div className="mt-2 grid gap-2">
-            {FEATURES.map(({ key, icon: Icon, title, free, description }) => {
+            {FEATURES.map(({ key, illustration, title, free, description }) => {
               const active = p.features[key];
               return (
                 <button key={key} type="button"
@@ -19,9 +20,8 @@ export default function Step2Plan(p: any) {
                     "flex items-start gap-3 rounded-xl border p-3 text-left transition-all",
                     active ? "border-foreground bg-secondary" : "border-border bg-card hover:border-foreground/30"
                   )}>
-                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                    active ? "bg-foreground text-background" : "bg-secondary text-foreground")}>
-                    <Icon className="h-4 w-4" />
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center">
+                    <BrandedIllustration name={illustration} className="h-full w-full" alt="" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">

@@ -1,5 +1,6 @@
-import { BadgeCheck, Star, CircleDollarSign, ListFilter, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 /**
  * "Hvorfor Serviceydere" som redaktionel liste i stedet for fire ens kort:
@@ -7,25 +8,25 @@ import SmartLink from "@/components/SmartLink";
  */
 const benefits = [
   {
-    icon: CircleDollarSign,
+    icon: "freePrivate" as BrandedIllustrationName,
     title: "Gratis for private",
     description:
       "Det koster ikke noget at søge, sammenligne og kontakte udbydere — ingen abonnement, ingen gebyrer.",
   },
   {
-    icon: BadgeCheck,
+    icon: "checkedBusinesses" as BrandedIllustrationName,
     title: "Tjekkede virksomheder",
     description:
       "Alle virksomheder med Verificeret-stempel har et aktivt CVR og bekræftede kontaktoplysninger.",
   },
   {
-    icon: Star,
+    icon: "realReviews" as BrandedIllustrationName,
     title: "Anmeldelser fra rigtige opgaver",
     description:
       "Kun kunder med en bekræftet booking kan anmelde — så stjernerne afspejler virkelige erfaringer.",
   },
   {
-    icon: ListFilter,
+    icon: "compareQuickly" as BrandedIllustrationName,
     title: "Sammenlign på sekunder",
     description:
       "Se pris, område, specialer og rating side om side, så du hurtigt finder det rigtige match.",
@@ -73,8 +74,8 @@ const WhyUs = () => {
               className="group relative flex h-full flex-col rounded-lg bg-ocean-foreground/[0.06] p-5 transition-colors hover:bg-ocean-foreground/[0.1]"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-ocean-foreground/10 text-ocean-foreground transition-colors group-hover:bg-ocean-foreground/15">
-                  <b.icon className="h-5 w-5" />
+                <span className="flex h-16 w-16 items-center justify-center sm:h-[72px] sm:w-[72px]">
+                  <BrandedIllustration name={b.icon} className="h-full w-full" alt="" />
                 </span>
                 <span className="text-[11px] font-semibold tabular-nums text-ocean-foreground/40">
                   {String(i + 1).padStart(2, "0")}
