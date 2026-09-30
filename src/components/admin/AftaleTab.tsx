@@ -2575,8 +2575,8 @@ const AftaleTab = ({
 
       {/* Opret-rute dialog — samme design og felter som ruteplanlæggerens "Opret rute". */}
       <Dialog open={createRouteOpen} onOpenChange={setCreateRouteOpen}>
-        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
-          <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+        <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+          <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
             <SheetHeaderBlock
               accent={newRouteColor}
               title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
@@ -2588,7 +2588,7 @@ const AftaleTab = ({
             />
           </DialogHeader>
 
-          <div className="px-5 py-3 space-y-2.5 bg-secondary/20">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
             <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
               <div className="space-y-2.5">
                 <Field label="Navn (valgfrit)">
@@ -2706,11 +2706,11 @@ const AftaleTab = ({
           </div>
 
           <SheetFooterBar>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setCreateRouteOpen(false)} disabled={createRoute.isPending}>
+             <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:justify-end">
+               <Button variant="outline" className="w-full sm:w-auto" onClick={() => setCreateRouteOpen(false)} disabled={createRoute.isPending}>
                 Annullér
               </Button>
-              <Button onClick={handleConfirmCreateRoute} disabled={createRoute.isPending}>
+               <Button className="w-full sm:w-auto" onClick={handleConfirmCreateRoute} disabled={createRoute.isPending}>
                 {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
                 {!createRoute.isPending && <Plus className="mr-1.5 h-4 w-4" />}
                 Opret rute

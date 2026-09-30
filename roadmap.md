@@ -166,9 +166,9 @@
 - [x] Bevar Lucide i navigation, kompakte knapper og øvrige kontroller, hvor detaljerede illustrationer bliver utydelige.
 
 ## Nye illustrationer, kundeoversigt og ens rutevinduer
-- [ ] Tilføj de 40 vedhæftede illustrationer til forsiden samt virksomhed- og medarbejderpanelernes rummelige kort.
-- [ ] Giv hele kundesiden tydelige illustrationer i nøgletal, listeoverskrift og tomme tilstande.
-- [ ] Ensret “Opret rute” med “Opret bestilling” og “Rediger rute” på mobil og computer.
-- [ ] Redesign William-sektionen og brug de angivne illustrationer i de tre relevante forsidesektioner.
-- [ ] Åbn kundeservicechatten fra “Skriv til mig” og “Få personlig hjælp”.
+- [x] Tilføj de 40 vedhæftede illustrationer til forsiden samt virksomhed- og medarbejderpanelernes rummelige kort.
+- [x] Giv hele kundesiden tydelige illustrationer i nøgletal, listeoverskrift og tomme tilstande.
+- [x] Ensret “Opret rute” med “Opret bestilling” og “Rediger rute” på mobil og computer.
+- [x] Redesign William-sektionen og brug de angivne illustrationer i de tre relevante forsidesektioner.
+- [x] Åbn kundeservicechatten fra “Skriv til mig” og “Få personlig hjælp”.
 - [ ] Kontrollér de berørte sider visuelt og teknisk uden at ændre navigationens eller små knappers ikoner.

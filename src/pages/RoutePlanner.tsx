@@ -3350,7 +3350,7 @@ const Planner = () => {
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
                 </Tooltip>
                 {createOpen && (
-                <DialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden flex flex-col">
+                 <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
                   <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
                       accent={newRouteColor}
@@ -3363,7 +3363,7 @@ const Planner = () => {
                     />
                   </DialogHeader>
 
-                  <div className="planner-overlay-body px-3 sm:px-5 py-3 space-y-2.5 bg-secondary/20 overflow-y-auto">
+                   <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
                       <div className="space-y-2.5">
                         <Field label="Navn (valgfrit)">
@@ -3520,12 +3520,12 @@ const Planner = () => {
                   </div>
 
                   <SheetFooterBar>
-                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                      <Button variant="outline" className="sm:w-auto" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
+                     <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:justify-end">
+                       <Button variant="outline" className="w-full sm:w-auto" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
                         Annullér
                       </Button>
                       <Button
-                        className="sm:w-auto"
+                         className="w-full sm:w-auto"
                         onClick={handleCreateRoute}
                         disabled={createRoute.isPending || newRouteJobIds.length === 0}
                       >
