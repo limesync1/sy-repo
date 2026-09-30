@@ -17,7 +17,7 @@ import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import supportPortrait from "@/assets/william-ross-jepsen.jpg.asset.json";
-import supportRobot from "@/assets/kundeservice-ikon-2.svg.asset.json";
+import supportRobot from "@/assets/kundeservice-ikon-2.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -803,7 +803,7 @@ const LiveChatWidget = () => {
         >
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
-              src={escalated ? supportPortrait.url : supportRobot.url}
+              src={escalated ? supportPortrait.url : supportRobot}
               alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"}
               className={cn("h-8 w-8", escalated ? "rounded-full object-cover ring-2 ring-background/20" : "object-contain")}
             />
@@ -858,7 +858,7 @@ const LiveChatWidget = () => {
               <div className="relative flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center", escalated && "overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm")}>
-                    <img src={escalated ? supportPortrait.url : supportRobot.url} alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"} className={cn(escalated ? "h-10 w-10 rounded-2xl object-cover" : "h-9 w-9 object-contain")} />
+                    <img src={escalated ? supportPortrait.url : supportRobot} alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"} className={cn(escalated ? "h-10 w-10 rounded-2xl object-cover" : "h-9 w-9 object-contain")} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14px] font-semibold leading-tight">{escalated ? "William Ross Jepsen" : "Kundeservice"}</p>
@@ -1075,7 +1075,7 @@ const LiveChatWidget = () => {
                           <div className="w-9 flex-shrink-0">
                             {showAvatar && (
                               <span className={cn("flex h-9 w-9 items-center justify-center", !isAi && "overflow-hidden rounded-2xl border border-border bg-card")}>
-                                <img src={isAi ? supportRobot.url : supportPortrait.url} alt={isAi ? "Serviceydere kundeservice" : "William Ross Jepsen"} className={cn(isAi ? "h-8 w-8 object-contain" : "h-9 w-9 rounded-xl object-cover")} />
+                                <img src={isAi ? supportRobot : supportPortrait.url} alt={isAi ? "Serviceydere kundeservice" : "William Ross Jepsen"} className={cn(isAi ? "h-8 w-8 object-contain" : "h-9 w-9 rounded-xl object-cover")} />
                               </span>
                             )}
                           </div>
@@ -1216,7 +1216,7 @@ const LiveChatWidget = () => {
                     <div className="flex items-end gap-2 animate-in fade-in duration-200">
                       <div className="w-9 flex-shrink-0">
                         <span className="flex h-9 w-9 items-center justify-center overflow-visible">
-                          <img src={supportRobot.url} alt="Serviceydere kundeservice" className="h-8 w-8 object-contain" />
+                          <img src={supportRobot} alt="Serviceydere kundeservice" className="h-8 w-8 object-contain" />
                         </span>
                       </div>
                       <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">

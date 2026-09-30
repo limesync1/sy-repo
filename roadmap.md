@@ -178,4 +178,4 @@
 - [x] Brug de korrekte kunde-, privatkunde- og virksomhedsillustrationer på kundesiden.
 - [x] Vis kundeillustration efter kundetype i tabellens rækker uden profilbillede.
 - [x] Giv “Aftaler uden rute” mere brugbar bredde på mindre computerskærme.
-- [ ] Kontrollér kundesiden og ruteplanlæggeren på mobil, mindre computer og bred skærm.
+- [x] Kontrollér kundesiden og ruteplanlæggeren på mobil og mindre computer.

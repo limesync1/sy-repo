@@ -1,13 +1,13 @@
 import type { ImgHTMLAttributes } from "react";
-import customersAsset from "@/assets/customer-icons/kunder.svg.asset.json";
-import privateCustomerAsset from "@/assets/customer-icons/privat-kunde.svg.asset.json";
-import businessCustomerAsset from "@/assets/customer-icons/virksomhed.svg.asset.json";
+import customers from "@/assets/customer-icons/kunder.svg";
+import privateCustomer from "@/assets/customer-icons/privat-kunde.svg";
+import businessCustomer from "@/assets/customer-icons/virksomhed.svg";
 import { cn } from "@/lib/utils";
 
 const CUSTOMER_ILLUSTRATIONS = {
-  customers: customersAsset.url,
-  private: privateCustomerAsset.url,
-  business: businessCustomerAsset.url,
+  customers,
+  private: privateCustomer,
+  business: businessCustomer,
 } as const;
 
 export type CustomerIllustrationName = keyof typeof CUSTOMER_ILLUSTRATIONS;
