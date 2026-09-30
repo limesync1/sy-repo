@@ -3607,9 +3607,9 @@ const Planner = () => {
                       )}
                     </div>
                     {filteredUnassigned.length > 0 && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                          <SelectTrigger className="h-8 text-[11px] flex-1 bg-background gap-1.5 rounded-md border-border/70" aria-label="Sortering">
+                          <SelectTrigger className="h-8 min-w-[6rem] flex-[1_1_calc(50%-0.1875rem)] gap-1.5 rounded-md border-border/70 bg-background text-[11px]" aria-label="Sortering">
                             <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
@@ -3620,7 +3620,7 @@ const Planner = () => {
                           </SelectContent>
                         </Select>
                         <Select value={unassignedStatusFilter} onValueChange={(v) => setUnassignedStatusFilter(v as any)}>
-                          <SelectTrigger className="h-8 text-[11px] flex-1 bg-background gap-1.5 rounded-md border-border/70" aria-label="Filtrér">
+                          <SelectTrigger className="h-8 min-w-[6rem] flex-[1_1_calc(50%-0.1875rem)] gap-1.5 rounded-md border-border/70 bg-background text-[11px]" aria-label="Filtrér">
                             <Filter className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
@@ -4467,7 +4467,7 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <div className="planner-board grid h-full min-h-0 grid-cols-[11.5rem_minmax(0,1fr)] [@media(min-width:1280px)]:grid-cols-[12.5rem_minmax(0,1fr)] overflow-hidden rounded-md border border-border bg-background [@media(min-width:1440px)]:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
+                    <div className="planner-board grid h-full min-h-0 grid-cols-[17rem_minmax(0,1fr)] overflow-hidden rounded-md border border-border bg-background [@media(min-width:1280px)]:grid-cols-[18rem_minmax(0,1fr)] [@media(min-width:1440px)]:grid-cols-[19rem_minmax(0,1fr)] 2xl:grid-cols-[22rem_minmax(0,1fr)]">
                       <aside className="min-w-0 overflow-hidden border-r border-border bg-card">
                         {unassignedCard}
                       </aside>

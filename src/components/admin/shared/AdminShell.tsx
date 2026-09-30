@@ -26,7 +26,7 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import supportIcon from "@/assets/kundeservice-ikon.svg.asset.json";
+import supportIcon from "@/assets/kundeservice-ikon-2.svg";
 import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 
@@ -547,7 +547,7 @@ export const AdminShell = ({
             >
               <span className="relative flex h-6 w-6 items-center justify-center shrink-0">
                 <img
-                  src={supportIcon.url}
+                  src={supportIcon}
                   alt="Serviceydere kundeservice"
                   className="h-6 w-6 object-contain"
                 />
