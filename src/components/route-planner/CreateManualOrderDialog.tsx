@@ -29,7 +29,6 @@ import { NumberStepper } from "@/components/shared/NumberStepper";
 
 import { IndustryIcon } from "@/components/IndustryIcon";
 import ActiveServiceRequired from "./ActiveServiceRequired";
-import { PanelIcon } from "@/components/shared/PanelIcon";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
@@ -306,7 +305,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
-            icon={<PanelIcon name="addOrder" className="h-7 w-7" />}
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">

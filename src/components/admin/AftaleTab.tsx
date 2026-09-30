@@ -2578,7 +2578,6 @@ const AftaleTab = ({
         <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
           <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
             <SheetHeaderBlock
-              icon={<PanelIcon name="addRoute" className="h-7 w-7" />}
               accent={newRouteColor}
               title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
               description={

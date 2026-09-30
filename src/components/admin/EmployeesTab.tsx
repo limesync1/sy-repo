@@ -422,7 +422,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
         <DialogContent className="max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
-              <PanelIcon name="addEmployee" className="h-6 w-6" /> Ny medarbejder
+              Ny medarbejder
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
               Opret medarbejderen i et fokuseret modul — resten af panelet dæmpes imens.

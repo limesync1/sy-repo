@@ -138,7 +138,6 @@ import DensityToggle, { useDensity } from "@/components/route-planner/DensityTog
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
-import { PanelIcon } from "@/components/shared/PanelIcon";
 import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
@@ -3354,7 +3353,6 @@ const Planner = () => {
                 <DialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden flex flex-col">
                   <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
-                      icon={<PanelIcon name="addRoute" className="h-7 w-7" />}
                       accent={newRouteColor}
                       title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
                       description={
