@@ -3,6 +3,7 @@
 // - Mode "pull":  pull customers + products from accounting provider into Serviceydere
 // - Mode "push_order": force re-push of one order
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { makeAdapter, AccountingAdapter } from "../_shared/accounting/index.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
@@ -33,11 +34,7 @@ Deno.serve(async (req) => {
 
     // internal_mode må KUN honoreres når kalderen beviser at den er serveren
     // (cron-secret eller service-role key). Ellers kræves ejerskab.
-    const authHeader = req.headers.get("Authorization") || "";
-    const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
-    const isTrustedServerCaller =
-      (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
-      (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+    const isTrustedServerCaller = await isTrustedCronCaller(req);
     const allowInternal = internal_mode === true && isTrustedServerCaller;
 
     // If called externally (not internal cron), verify caller owns the business
@@ -96,6 +93,10 @@ Deno.serve(async (req) => {
       return json({ ok: true, ...result });
     }
     if (mode === "push_order" && order_id) {
+      // The order must belong to the business whose integration we use.
+      const { data: ownOrder } = await admin.from("orders")
+        .select("id").eq("id", order_id).eq("business_id", business_id).maybeSingle();
+      if (!ownOrder) return json({ error: "Order not found" }, 404);
       await pushOrder(admin, integration, adapter, order_id);
       return json({ ok: true });
     }
@@ -508,7 +509,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
         if (Object.keys(dbUpdate).length > 0) {
           const { error: upErr } = await admin.from(matched.table).update(dbUpdate).eq("id", matched.id);
           if (upErr) {
-            console.error("[pull] customer update failed", { id: matched.id, table: matched.table, error: upErr.message, dbUpdate });
+            console.error("[pull] customer update failed", { id: matched.id, table: matched.table, error: upErr.message, fields: Object.keys(dbUpdate) });
           } else {
             console.log("[pull] customer updated", { id: matched.id, table: matched.table, fields: Object.keys(dbUpdate) });
           }
@@ -545,7 +546,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           }).select("id").single();
           if (createErr) {
             console.error("[pull] business_customers insert failed", {
-              external_id: ec.external_id, name: ec.name, error: createErr.message,
+              external_id: ec.external_id, error: createErr.message,
             });
           }
           if (created) { createdId = created.id; createdTable = "business_customers"; }
@@ -558,7 +559,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           }).select("id").single();
           if (createErr) {
             console.error("[pull] private_customers insert failed", {
-              external_id: ec.external_id, name: ec.name, error: createErr.message,
+              external_id: ec.external_id, error: createErr.message,
             });
           }
           if (created) { createdId = created.id; createdTable = "private_customers"; }

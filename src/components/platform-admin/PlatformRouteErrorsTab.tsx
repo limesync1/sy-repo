@@ -6,6 +6,7 @@
  * i `before_data`. Vi grupperer pr. fejl-kode så support kan se hvilke
  * koder rammer flest brugere og hvad konteksten typisk er.
  */
+import { csvCell } from "@/components/platform-admin/lib/csv";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,10 +113,7 @@ export default function PlatformRouteErrorsTab() {
 
   const exportCsv = () => {
     const header = ["created_at", "code", "handler", "title", "message", "business_id", "route_id", "agreement_id", "actor_id"];
-    const esc = (v: any) => {
-      const s = v == null ? "" : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
+    const esc = (v: any) => csvCell(v, /[",\n]/);
     const lines = [header.join(",")];
     for (const r of filtered) {
       const { code, handler } = parseAction(r.action);

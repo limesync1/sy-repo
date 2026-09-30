@@ -1,3 +1,4 @@
+import { csvCell } from "@/components/platform-admin/lib/csv";
 import { cn } from "@/lib/utils";
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -46,10 +47,7 @@ export const DATE_RANGES: { value: string; label: string; days: number | null }[
 
 export function toCsv(rows: any[]): string {
   const header = ["created_at", "admin_email", "action", "target_type", "target_label", "details"];
-  const esc = (v: any) => {
-    const s = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+  const esc = (v: any) => csvCell(v, /[",\n]/);
   return [header.join(","), ...rows.map((r) => header.map((h) => esc(r[h])).join(","))].join("\n");
 }
 

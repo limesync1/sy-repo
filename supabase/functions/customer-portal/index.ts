@@ -1,6 +1,7 @@
 // customer-portal — opretter en Stripe Billing Portal-session så
 // virksomhedens ejer kan administrere kort, fakturaer og opsigelse.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { isTrustedUrl, trustedOrigin } from "../_shared/allowed-origins.ts";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
@@ -16,7 +17,7 @@ function parseBody(raw: any) {
   const returnUrl = String(raw.returnUrl || "");
   const environment = raw.environment === "live" ? "live" : raw.environment === "sandbox" ? "sandbox" : null;
   if (!UUID_RE.test(businessId)) throw new Error("Invalid businessId");
-  if (!/^https?:\/\//.test(returnUrl)) throw new Error("Invalid returnUrl");
+  if (!isTrustedUrl(returnUrl)) throw new Error("Invalid returnUrl");
   if (!environment) throw new Error("Invalid environment");
   return { businessId, returnUrl, environment } as const;
 }

@@ -1,0 +1,10 @@
+REVOKE ALL ON FUNCTION public._guard_business_plan_owner_changes() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._guard_untrusted_order_item() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._sync_untrusted_order_total() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._guard_untrusted_order_insert() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._guard_customer_subscription_insert() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public._is_trusted_writer() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public._is_trusted_writer() TO service_role;
+REVOKE ALL ON FUNCTION public.verify_cron_token(text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_create_impersonation_code(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_create_impersonation_code(uuid) TO authenticated;

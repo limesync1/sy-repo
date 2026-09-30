@@ -60,7 +60,7 @@ export function TemplatesView() {
         },
       });
       if (error || !data?.sent) throw error || new Error("Modtageren kan ikke kontaktes");
-      toast.success(`Test sendt til ${sendEmail.trim()}`);
+      toast.success("Test sendt til din egen admin-e-mail");
       setSendOpen(false);
       setSendEmail("");
     } catch (e: any) {
@@ -145,13 +145,13 @@ export function TemplatesView() {
           <DialogHeader>
             <DialogTitle>Send test-mail</DialogTitle>
             <DialogDescription>
-              Sender skabelonen <span className="font-mono">{selected}</span> med dens preview-data til en valgt modtager.
+              Sender skabelonen <span className="font-mono">{selected}</span> med dens preview-data til din egen admin-e-mail.
               Mailen tæller som en almindelig transactional-mail og logges i send-loggen.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">Modtager-email</label>
-            <Input type="email" value={sendEmail} onChange={(e) => setSendEmail(e.target.value)} placeholder="modtager@eksempel.dk" />
+            <Input type="email" value={sendEmail} readOnly />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSendOpen(false)} disabled={sending}>Annullér</Button>

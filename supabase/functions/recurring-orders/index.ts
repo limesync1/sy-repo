@@ -1,6 +1,7 @@
 // Daily cron: creates new pending orders for recurring agreements whose
 // next_service_date has been reached. Idempotent via uq_orders_parent_cycle.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,17 +14,14 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
-    const authHeader = req.headers.get("Authorization") || "";
+
     // Tillad kald fra:
     //  - pg_cron (kalder med projektets anon key — supabase verificerer JWT)
     //  - Eksternt cron med eksplicit CRON_SECRET
     //  - Intern service-role
     // Kun cron-secret eller service-role. Den offentlige anon key er IKKE
     // en gyldig legitimation — den ligger i klient-bundlen.
-    const ok =
-      (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
-      (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+    const ok = await isTrustedCronCaller(req);
     if (!ok) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },

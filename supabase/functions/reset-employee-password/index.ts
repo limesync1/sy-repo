@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { isTrustedUrl, trustedOrigin } from "../_shared/allowed-origins.ts";
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  const origin = req.headers.get('origin') || 'https://serviceydere.dk'
+  const origin = trustedOrigin(req)
   const redirectTo = `${origin}/log-ind`
 
   // Generate a recovery link via Supabase admin API

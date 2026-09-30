@@ -2,6 +2,7 @@
 // for et virksomhedsabonnement. Klienten åbner et iframe der renderer
 // `clientSecret` direkte i appen (ingen redirect).
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { isTrustedUrl, trustedOrigin } from "../_shared/allowed-origins.ts";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
@@ -26,7 +27,7 @@ function parseBody(raw: any) {
   if (!PRICE_RE.test(basePriceId)) throw new Error("Invalid basePriceId");
   if (addonPriceIds.some((s: string) => !PRICE_RE.test(s))) throw new Error("Invalid addonPriceIds");
   if (extraEmployeePriceId && !PRICE_RE.test(extraEmployeePriceId)) throw new Error("Invalid extraEmployeePriceId");
-  if (!/^https?:\/\//.test(returnUrl)) throw new Error("Invalid returnUrl");
+  if (!isTrustedUrl(returnUrl)) throw new Error("Invalid returnUrl");
   if (!environment) throw new Error("Invalid environment");
   return { businessId, basePriceId, addonPriceIds, extraEmployeeLogins, extraEmployeePriceId, returnUrl, environment } as const;
 }

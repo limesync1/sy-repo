@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { isTrustedUrl, trustedOrigin } from "../_shared/allowed-origins.ts";
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
 
 const corsHeaders = {
@@ -181,7 +182,7 @@ Deno.serve(async (req) => {
     .then(() => {}, () => {}) // ignore conflicts
 
   // Send welcome / credentials email
-  const origin = req.headers.get('origin') || 'https://serviceydere.dk'
+  const origin = trustedOrigin(req)
   const loginUrl = `${origin}/log-ind`
 
   let emailSent = false

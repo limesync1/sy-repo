@@ -61,14 +61,11 @@ export function SendLogView() {
     if (!confirm(`Send "${row.template_name}" igen til ${row.recipient_email}?`)) return;
     setResendingId(row.message_id);
     try {
-      const templateData = row.metadata?.templateData ?? row.metadata?.template_data ?? {};
       const { data, error } = await supabase.functions.invoke("admin-preview-template", {
         body: {
           action: "send",
           templateName: row.template_name,
-          recipientEmail: row.recipient_email,
-          idempotencyKey: `admin-resend-${row.message_id}-${Date.now()}`,
-          templateData,
+          resendMessageId: row.message_id,
         },
       });
       if (error || !data?.sent) throw error || new Error("Modtageren kan ikke kontaktes");

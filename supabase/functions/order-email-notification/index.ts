@@ -15,7 +15,19 @@ Deno.serve(async (req) => {
     const { data: order, error } = await admin.from('orders').select('*, businesses(id,name,phone,email,address,zip_code,city,owner_id), order_items(*)').eq('id', orderId).single()
     if (error || !order?.customer_email) return json({ error: 'order_not_found' }, 404)
 
-    if (kind !== 'confirmation') {
+    if (kind === 'confirmation') {
+      // Order confirmation is sent right after checkout. Only allow it for
+      // fresh orders, and — when the order belongs to an account — only for
+      // that signed-in customer. Prevents re-triggering mails for any order id.
+      const createdAt = new Date(order.created_at).getTime()
+      if (!Number.isFinite(createdAt) || Date.now() - createdAt > 15 * 60 * 1000) return json({ error: 'forbidden' }, 403)
+      if (order.customer_id) {
+        const auth = req.headers.get('Authorization') || ''
+        const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } })
+        const { data: { user } } = await userClient.auth.getUser()
+        if (!user || user.id !== order.customer_id) return json({ error: 'forbidden' }, 403)
+      }
+    } else {
       const auth = req.headers.get('Authorization') || ''
       const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } })
       const { data: { user } } = await userClient.auth.getUser()

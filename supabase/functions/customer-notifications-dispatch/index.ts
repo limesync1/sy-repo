@@ -3,6 +3,7 @@
 // and sends through the managed email API using the business's saved
 // template (or a sensible default) with placeholder substitution.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
 const corsHeaders = {
@@ -43,11 +44,7 @@ function render(tpl: string, vars: Record<string, string>): string {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   // Kun cron/serveren må dræne køen (den sender rigtige mails/SMS).
-  const authHeader = req.headers.get("Authorization") || "";
-  const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
-  const authorized =
-    (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
-    (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+  const authorized = await isTrustedCronCaller(req);
   if (!authorized) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -151,16 +148,23 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       const recipientForOverride = job.recipient_email ?? order.customer_email ?? null;
-      const { data: overrides } = await admin
+      // Two parameterised lookups instead of a raw .or() filter string, so a
+      // customer-controlled email can never inject PostgREST filter syntax.
+      const baseOv = () => admin
         .from("notification_overrides")
         .select("scope, enabled, subject, body, lead_time_minutes")
         .eq("business_id", job.business_id)
         .eq("event_type", job.event_type)
-        .eq("channel", channel)
-        .or([
-          sub?.id ? `and(scope.eq.agreement,subscription_id.eq.${sub.id})` : null,
-          recipientForOverride ? `and(scope.eq.customer,customer_email.eq.${recipientForOverride.toLowerCase()})` : null,
-        ].filter(Boolean).join(","));
+        .eq("channel", channel);
+      const overrides: any[] = [];
+      if (sub?.id) {
+        const { data } = await baseOv().eq("scope", "agreement").eq("subscription_id", sub.id);
+        if (data) overrides.push(...data);
+      }
+      if (recipientForOverride) {
+        const { data } = await baseOv().eq("scope", "customer").eq("customer_email", String(recipientForOverride).toLowerCase());
+        if (data) overrides.push(...data);
+      }
 
       const agreementOv = overrides?.find((o: any) => o.scope === "agreement") ?? null;
       const customerOv  = overrides?.find((o: any) => o.scope === "customer")  ?? null;
