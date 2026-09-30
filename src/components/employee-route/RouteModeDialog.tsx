@@ -1,5 +1,4 @@
 import { BatteryCharging, ArrowRight, Sparkles } from "lucide-react";
-import type { ComponentType } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { RouteRunMode } from "./RouteRunMode";
-import { PanelIcons } from "@/components/shared/PanelIcon";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 type Props = {
@@ -21,7 +19,6 @@ type Props = {
 
 const options: Array<{
   mode: RouteRunMode;
-  icon: ComponentType<{ className?: string }>;
   illustration: BrandedIllustrationName;
   title: string;
   body: string;
@@ -29,7 +26,6 @@ const options: Array<{
 }> = [
   {
     mode: "list",
-    icon: PanelIcons.RouteList,
     illustration: "checklist",
     title: "Tjekliste",
     body: "Se stoppene i rækkefølge og tryk “Udført”, når du er færdig hvert sted.",
@@ -37,7 +33,6 @@ const options: Array<{
   },
   {
     mode: "guide",
-    icon: PanelIcons.RouteMap,
     illustration: "drivingGuide",
     title: "Kørselsguide",
     body: "Kort med rutelinje, afstand til næste stop og talte drej undervejs.",
@@ -63,7 +58,6 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
 
         <div className="grid gap-2.5 p-3 sm:p-4">
           {options.map((o) => {
-            const Icon = o.icon;
             return (
               <Button
                 key={o.mode}

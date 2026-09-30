@@ -20,6 +20,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { stripPrices } from "@/lib/employee-display";
 import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
