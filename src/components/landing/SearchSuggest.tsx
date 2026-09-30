@@ -258,9 +258,10 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         <div className="pr-1.5 sm:pr-2">
           <Button
             onClick={() => submit()}
+            aria-label="Søg"
             className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition-all duration-200 hover:bg-accent/90 active:scale-[0.97] md:h-11 md:px-6"
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Søg</span>
           </Button>
         </div>
