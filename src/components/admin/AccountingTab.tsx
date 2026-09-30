@@ -59,7 +59,6 @@ interface ProviderDef {
   value: Provider;
   label: string;
   logo: string;
-  illustration?: BrandedIllustrationName;
   tagline: string;
   description: string;
   helpUrl: string;
@@ -74,7 +73,6 @@ const PROVIDERS: ProviderDef[] = [
     value: "economic",
     label: "E-conomic",
     logo: economicLogo,
-    illustration: "economicIntegration",
     tagline: "",
     description: "Klik her for at integrere din virksomhed med E-conomic som dit regnskabsprogram.",
     helpUrl: "https://www.e-conomic.com/developer",
@@ -103,7 +101,6 @@ const PROVIDERS: ProviderDef[] = [
     value: "dinero",
     label: "Dinero",
     logo: dineroLogo,
-    illustration: "dineroIntegration",
     tagline: "",
     description: "Klik her for at integrere din virksomhed med Dinero som dit regnskabsprogram.",
     helpUrl: "https://developer.dinero.dk/",
@@ -1490,8 +1487,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             er selve handlingen. */}
         <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/40 to-card p-6 sm:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
-              <Calculator className="h-6 w-6" />
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center">
+              <BrandedIllustration name="economicIntegration" className="h-full w-full" alt="" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg font-semibold text-foreground">Vælg dit regnskabsprogram</h3>
@@ -1516,7 +1513,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
-                {p.illustration ? <BrandedIllustration name={p.illustration} className="h-24 w-24" alt="" /> : <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />}
+                <img src={p.logo} alt={`${p.label} logo`} className="max-h-10 max-w-[150px] object-contain" />
               </div>
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center justify-between gap-2">
@@ -2275,7 +2272,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     </span>
                   )}
                    <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
-                     {p.illustration ? <BrandedIllustration name={p.illustration} className="h-24 w-24" alt="" /> : <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />}
+                     <img src={p.logo} alt={`${p.label} logo`} className="max-h-10 max-w-[150px] object-contain" />
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-center justify-between gap-2">

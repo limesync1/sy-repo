@@ -149,7 +149,7 @@ const EmployeeStats = () => {
   })();
 
   const rangePicker = (
-    <div className="w-full overflow-hidden rounded-[5px] border border-border bg-card shadow-sm sm:w-auto">
+    <div className="w-full overflow-hidden rounded-md border border-border bg-card shadow-sm sm:w-auto">
       <div className="flex gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
@@ -229,7 +229,7 @@ const EmployeeStats = () => {
         ) : (
           <>
             {/* Hero: medarbejderens egen indtjening — fremhævet som det vigtigste tal */}
-            <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
+             <Card className="service-panel-card overflow-hidden rounded-md border-border shadow-sm">
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-16 sm:w-16">
@@ -263,7 +263,7 @@ const EmployeeStats = () => {
             </Card>
 
             {/* Ét samlet, roligt nøgletalsoverblik i stedet for fem farvede kort. */}
-            <div className="grid grid-cols-2 overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:grid-cols-5">
+            <div className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-sm lg:grid-cols-5">
               {[
                  { label: "Ruter", value: s.routesCount, icon: "employeeRoutes" as BrandedIllustrationName },
                  { label: "Aftaler", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: "employeeAppointments" as BrandedIllustrationName },
@@ -417,10 +417,10 @@ const EmployeeStats = () => {
                                       <div className="mt-3 flex justify-end border-t border-border/50 pt-2">
                                         <Button
                                           type="button"
-                                          variant="ghost"
+                                           variant="outline"
                                           size="sm"
                                           onClick={() => setDetailStopId(e.stopId)}
-                                           className="h-9 gap-1.5 rounded-md border-border bg-card px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                                            className="h-9 gap-1.5 rounded-md border-border bg-card px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                                         >
                                           <Eye className="h-3.5 w-3.5" />
                                           Vis detaljer

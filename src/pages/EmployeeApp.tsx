@@ -560,12 +560,8 @@ const EmployeeApp = () => {
                 aria-label={`Rute ${r.name || ""} er færdig`}
               >
                 <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
-                  <span
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ring-border"
-                    style={{ background: color }}
-                    aria-hidden
-                  >
-                    <BrandedIllustration name="routeDone" className="h-10 w-10" />
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center" aria-hidden>
+                    <BrandedIllustration name="routeDone" className="h-full w-full" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold text-foreground">
@@ -619,12 +615,8 @@ const EmployeeApp = () => {
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}
               <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
-                <span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ring-border"
-                  style={{ background: color }}
-                  aria-hidden
-                >
-                   <BrandedIllustration name="routeReady" className="h-10 w-10" />
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center" aria-hidden>
+                   <BrandedIllustration name="routeReady" className="h-full w-full" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold text-foreground">

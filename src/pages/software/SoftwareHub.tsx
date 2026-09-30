@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ArrowRight, Check, Download } from "lucide-react";
+import { Search, ArrowRight, Check, Download, ShieldCheck } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
@@ -232,11 +232,10 @@ const SoftwareHub = () => {
           title="Hvad koster det"
           description="14 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjer I kort under Indstillinger."
         >
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             {/* Hovedprisen */}
-            <div className="relative isolate overflow-hidden rounded-[28px] bg-ocean p-7 text-ocean-foreground sm:p-9">
-              <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 -z-10 h-64 w-64 rounded-full bg-accent/25 blur-[110px]" />
-              <span className="inline-flex items-center gap-2 rounded-full bg-ocean-foreground/12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]">
+            <div className="relative isolate overflow-hidden bg-ocean p-6 text-ocean-foreground sm:p-8 lg:p-9">
+              <span className="inline-flex items-center gap-2 rounded-md border border-ocean-foreground/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]">
                 Basis
               </span>
               <p className="mt-5 flex items-end gap-2">
@@ -249,7 +248,9 @@ const SoftwareHub = () => {
               <ul className="mt-5 space-y-2 text-sm">
                 {["14 dages gratis prøve uden kort", "Ingen binding", "Dansk support på hverdage"].map((t) => (
                   <li key={t} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                      <Check className="h-3 w-3" aria-hidden />
+                    </span>
                     {t}
                   </li>
                 ))}
@@ -265,18 +266,29 @@ const SoftwareHub = () => {
             </div>
 
             {/* Tilvalg og vilkår */}
-            <dl className="grid content-start gap-3 sm:grid-cols-2">
+            <div className="flex flex-col justify-center bg-secondary/30 p-5 sm:p-7 lg:border-l lg:border-border">
+              <div className="mb-4 flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-card text-foreground ring-1 ring-border">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">En enkel og gennemskuelig pris</p>
+                  <p className="mt-0.5 text-xs leading-5 text-muted-foreground">Vælg kun de tilvalg og logins, virksomheden har brug for.</p>
+                </div>
+              </div>
+              <dl className="grid content-start overflow-hidden rounded-md border border-border bg-card sm:grid-cols-2">
               {PRICE_POINTS.map((p) => (
                 <div
                   key={p.label}
-                  className="rounded-[22px] bg-card p-5 ring-1 ring-border/70 transition-shadow duration-300 hover:shadow-[0_20px_40px_-30px_hsl(var(--foreground)/0.45)]"
+                  className="border-b border-border p-4 last:border-b-0 odd:sm:border-r [&:nth-last-child(-n+2)]:sm:border-b-0"
                 >
                   <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{p.label}</dt>
                   <dd className="mt-2 text-xl font-semibold tracking-tight text-foreground">{p.value}</dd>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">{p.note}</p>
                 </div>
               ))}
-            </dl>
+              </dl>
+            </div>
           </div>
         </SectionShell>
 
