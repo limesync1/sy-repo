@@ -4,6 +4,7 @@
 // og `locked_accounting_integration` i stedet for de aktuelle toggles.
 // Det forhindrer at virksomheder skruer ned dagen før fakturering.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -67,10 +68,7 @@ export function decideLock(plan: LockCandidate, now: Date): LockDecision {
 
 Deno.serve(async (req) => {
   try {
-    const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const authHeader = req.headers.get("Authorization") || "";
-    const ok = CRON_SECRET && (authHeader === `Bearer ${CRON_SECRET}` || authHeader === `Bearer ${SERVICE_KEY}`);
+    const ok = await isTrustedCronCaller(req);
     if (!ok) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { "Content-Type": "application/json" },

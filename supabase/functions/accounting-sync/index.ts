@@ -3,6 +3,7 @@
 // - Mode "pull":  pull customers + products from accounting provider into Serviceydere
 // - Mode "push_order": force re-push of one order
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { makeAdapter, AccountingAdapter } from "../_shared/accounting/index.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
@@ -33,11 +34,7 @@ Deno.serve(async (req) => {
 
     // internal_mode må KUN honoreres når kalderen beviser at den er serveren
     // (cron-secret eller service-role key). Ellers kræves ejerskab.
-    const authHeader = req.headers.get("Authorization") || "";
-    const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
-    const isTrustedServerCaller =
-      (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
-      (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+    const isTrustedServerCaller = await isTrustedCronCaller(req);
     const allowInternal = internal_mode === true && isTrustedServerCaller;
 
     // If called externally (not internal cron), verify caller owns the business

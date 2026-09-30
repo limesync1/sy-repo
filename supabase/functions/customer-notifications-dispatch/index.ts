@@ -3,6 +3,7 @@
 // and sends through the managed email API using the business's saved
 // template (or a sensible default) with placeholder substitution.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
 const corsHeaders = {
@@ -43,11 +44,7 @@ function render(tpl: string, vars: Record<string, string>): string {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   // Kun cron/serveren må dræne køen (den sender rigtige mails/SMS).
-  const authHeader = req.headers.get("Authorization") || "";
-  const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
-  const authorized =
-    (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
-    (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+  const authorized = await isTrustedCronCaller(req);
   if (!authorized) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
