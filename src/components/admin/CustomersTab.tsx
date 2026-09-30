@@ -40,7 +40,7 @@ import {
   type CustomerOrderSummary,
   type OrderForStatus,
 } from "@/components/shared/OrderStatusBadges";
-import { PanelIcon, PanelIcons } from "@/components/shared/PanelIcon";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 type Customer = {
   email: string;

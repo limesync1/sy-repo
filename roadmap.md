@@ -162,5 +162,5 @@
 - [x] Vis panelernes loading-shell fra første frame uden et tomt mellemtrin.
 - [x] Erstat kundeservicegrafikken med den nye transparente SVG i header og livechat.
 - [x] Opret ét fælles register for de 24 nye panelikoner.
-- [x] Brug matchende ikoner i navigation, handlinger, modaler, rutekalender og rutekørsel.
-- [x] Bevar Lucide til generiske kontroller uden et matchende specialikon.
+- [x] Brug de nye illustrationer i læsbare overskrifter, tabellabels, tomme visninger og større funktionsvalg.
+- [x] Bevar Lucide i navigation, kompakte knapper og øvrige kontroller, hvor detaljerede illustrationer bliver utydelige.

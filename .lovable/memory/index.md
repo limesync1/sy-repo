@@ -15,3 +15,4 @@ Businesses support multiple categories (categories text[]). Services have interv
 - [Email design](mem://design/emails-improved) — Renere email-layout med mørk header, lyse kort og tydelig CTA-struktur
 - [Route duplicate audit](mem://features/route-duplicates-audit) — Liste over alle kendte duplicate-veje for ruter/rutestop og nødvendige garantier
 - [Hover states](mem://design/hover-states) — Ghost/outline buttons + menu items hover use secondary (gray), never the saturated accent blue
+- [Panel illustrationer](mem://design/panel-illustrations) — Nye illustrationer bruges kun stort og meningsfuldt; navigation og små knapper beholder enkle standardikoner
