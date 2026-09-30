@@ -505,7 +505,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
         if (Object.keys(dbUpdate).length > 0) {
           const { error: upErr } = await admin.from(matched.table).update(dbUpdate).eq("id", matched.id);
           if (upErr) {
-            console.error("[pull] customer update failed", { id: matched.id, table: matched.table, error: upErr.message, dbUpdate });
+            console.error("[pull] customer update failed", { id: matched.id, table: matched.table, error: upErr.message, fields: Object.keys(dbUpdate) });
           } else {
             console.log("[pull] customer updated", { id: matched.id, table: matched.table, fields: Object.keys(dbUpdate) });
           }
@@ -542,7 +542,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           }).select("id").single();
           if (createErr) {
             console.error("[pull] business_customers insert failed", {
-              external_id: ec.external_id, name: ec.name, error: createErr.message,
+              external_id: ec.external_id, error: createErr.message,
             });
           }
           if (created) { createdId = created.id; createdTable = "business_customers"; }
@@ -555,7 +555,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           }).select("id").single();
           if (createErr) {
             console.error("[pull] private_customers insert failed", {
-              external_id: ec.external_id, name: ec.name, error: createErr.message,
+              external_id: ec.external_id, error: createErr.message,
             });
           }
           if (created) { createdId = created.id; createdTable = "private_customers"; }
