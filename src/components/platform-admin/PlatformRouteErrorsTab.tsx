@@ -6,6 +6,7 @@
  * i `before_data`. Vi grupperer pr. fejl-kode så support kan se hvilke
  * koder rammer flest brugere og hvad konteksten typisk er.
  */
+import { csvCell } from "@/components/platform-admin/lib/csv";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
