@@ -27,6 +27,8 @@ import {
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import supportPortrait from "@/assets/kundeservice-ikon.png.asset.json";
+import supportIcon from "@/assets/kundeservice-ikon.svg.asset.json";
+import { PanelIcons } from "@/components/shared/PanelIcon";
 import AdminBottomNav from "./AdminBottomNav";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 
@@ -160,15 +162,15 @@ const NAV_ITEMS: NavItem[] = [
   { value: "getting-started", label: "Kom godt i gang", icon: Rocket },
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "orders", label: "Aftaler", icon: PanelIcons.Appointments },
   { value: "leads", label: "Leads", icon: Sparkles, requiresLeads: true },
-  { value: "customers", label: "Kunder", icon: Contact },
-  { value: "routes", label: "Ruter", icon: RouteIcon, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
-  { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
+  { value: "customers", label: "Kunder", icon: PanelIcons.Customers },
+  { value: "routes", label: "Ruter", icon: PanelIcons.Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
+  { value: "employees", label: "Medarbejdere", icon: PanelIcons.Employees, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
-  { value: "accounting", label: "Regnskab", icon: Calculator, requiresAccounting: true },
-  { value: "settings", label: "Indstillinger", icon: Settings },
+  { value: "accounting", label: "Regnskab", icon: PanelIcons.Accounting, requiresAccounting: true },
+  { value: "settings", label: "Indstillinger", icon: PanelIcons.Settings },
 ];
 
 type Business = {
@@ -547,7 +549,7 @@ export const AdminShell = ({
             >
               <span className="relative flex h-6 w-6 items-center justify-center shrink-0">
                 <img
-                  src={supportPortrait.url}
+                  src={supportIcon.url}
                   alt="Serviceydere kundeservice"
                   className="h-6 w-6 object-contain"
                 />

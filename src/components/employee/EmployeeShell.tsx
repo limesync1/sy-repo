@@ -35,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmployeeNotifications, type EmployeeRouteNotification } from "@/components/employee/EmployeeNotifications";
+import { PanelIcons } from "@/components/shared/PanelIcon";
 
 
 
@@ -50,8 +51,8 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { value: "today", label: "Min dag", icon: CalendarIcon, href: "/medarbejder" },
-  { value: "stats", label: "Statistik", icon: BarChart3, href: "/medarbejder/statistik" },
+  { value: "today", label: "Min dag", icon: PanelIcons.RouteStops, href: "/medarbejder" },
+  { value: "stats", label: "Statistik", icon: PanelIcons.Revenue, href: "/medarbejder/statistik" },
   { value: "livechat", label: "Livechat", icon: MessageCircle, href: "/medarbejder/livechat", requiresEmployeeFlag: "livechat_enabled" },
 ];
 
@@ -371,7 +372,7 @@ export const EmployeeShell = ({
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
           {multiWorkspace && <SidebarFooterItem icon={Building2} label="Skift arbejdsplads" onClick={() => setPickerOpen(true)} collapsed={collapsed} />}
-          {(myBusiness || isSoloOwner) && <RoleSwitchFooterItem icon={Briefcase} label="Virksomhedspanel" onClick={() => navigate("/virksomhed")} collapsed={collapsed} />}
+          {(myBusiness || isSoloOwner) && <RoleSwitchFooterItem icon={PanelIcons.Business} label="Virksomhedspanel" onClick={() => navigate("/virksomhed")} collapsed={collapsed} />}
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
         </div>
       </aside>
