@@ -29,7 +29,6 @@ import {
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { PanelIcon } from "@/components/shared/PanelIcon";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import {
@@ -668,7 +667,7 @@ const AssigneeToggle = ({
           title="Tildel/fjern medarbejdere"
           onClick={(e) => e.stopPropagation()}
         >
-          <PanelIcon name="addEmployee" className="h-4 w-4" />
+          <UserPlus className="h-4 w-4" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-2" align="end" onClick={(e) => e.stopPropagation()}>

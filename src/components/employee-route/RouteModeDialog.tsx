@@ -71,8 +71,8 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                   "hover:border-foreground/25 hover:bg-secondary/45 focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
-                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-foreground text-background">
-                  <Icon className="h-5 w-5" />
+                <span className="mt-0.5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-secondary">
+                  <Icon className="h-8 w-8" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2 text-[15px] font-semibold text-foreground">
