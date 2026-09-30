@@ -1,18 +1,36 @@
 import SmartLink from "@/components/SmartLink";
 import { OFFICIAL_PROFILES } from "@/lib/social-links";
-import { Facebook, Instagram, Linkedin, Star, Youtube } from "lucide-react";
+import {
+  siFacebook,
+  siInstagram,
+  siLinkedin,
+  siTrustpilot,
+  siYoutube,
+  type SimpleIcon,
+} from "simple-icons";
 
 // Alle interne links i footeren bruger SmartLink, så hover/touch starter
 // chunk-prefetch og navigationen føles instant.
 const Link = SmartLink;
 
 const SOCIAL_ICONS = {
-  Trustpilot: Star,
-  LinkedIn: Linkedin,
-  YouTube: Youtube,
-  Facebook,
-  Instagram,
+  Trustpilot: siTrustpilot,
+  LinkedIn: siLinkedin,
+  YouTube: siYoutube,
+  Facebook: siFacebook,
+  Instagram: siInstagram,
 } as const;
+
+const BrandLogo = ({ icon }: { icon: SimpleIcon }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className="h-5 w-5 shrink-0 fill-current"
+    role="img"
+    aria-hidden="true"
+  >
+    <path d={icon.path} />
+  </svg>
+);
 
 const Footer = () => {
   return (
@@ -104,9 +122,10 @@ const Footer = () => {
                      rel="noopener noreferrer"
                      aria-label={`Serviceydere på ${label}`}
                      title={label}
-                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-background/15 text-background/70 transition-colors hover:border-background/35 hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
+                     className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-background/20 bg-background/5 px-3 text-background/85 transition-colors hover:border-background/40 hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
                    >
-                     <Icon className="h-4 w-4" aria-hidden="true" />
+                     <BrandLogo icon={Icon} />
+                     <span className="text-xs font-semibold">{label}</span>
                    </a>
                  );
                })}
