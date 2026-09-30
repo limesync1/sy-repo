@@ -198,10 +198,16 @@ const queryClient = new QueryClient({
 const PageFallback = () => {
   // Vises først efter 180 ms, så lynhurtige skift ikke blinker. Derefter en
   // rolig skeleton der matcher sidetypen (panel vs. offentlig side).
-  const [show, setShow] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setShow(true), 180); return () => clearTimeout(t); }, []);
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   const isPanel = /^\/(virksomhed|medarbejder|admin)(\/|$)/.test(path);
+  // Panelernes shell skal være synlig fra første frame. Ellers ses et tomt
+  // skærmbillede, og den gemte sidebarbredde kan ikke opleves som stabil.
+  const [show, setShow] = useState(isPanel);
+  useEffect(() => {
+    if (isPanel) { setShow(true); return; }
+    const t = setTimeout(() => setShow(true), 180);
+    return () => clearTimeout(t);
+  }, [isPanel]);
   const isPlanner = /^\/virksomhed\/ruter(\/|$)/.test(path);
   const isEmployeeRoute = /^\/medarbejder\/rute\//.test(path);
   if (!show) return <div className="min-h-screen bg-background" aria-hidden />;

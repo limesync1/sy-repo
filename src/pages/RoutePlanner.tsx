@@ -3933,7 +3933,7 @@ const Planner = () => {
                               icon={<Inbox className="h-5 w-5" />}
                               title="Kom godt i gang"
                               description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
-                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
+                              action={{ label: "Opret bestilling", icon: <PanelIcon name="addOrder" className="h-4 w-4" />, onClick: requestCreateOrder }}
                               compact
                             />
                           );
@@ -3943,7 +3943,7 @@ const Planner = () => {
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
                             description="Nye aftaler lander her, så snart de oprettes."
-                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
+                            action={{ label: "Opret bestilling", icon: <PanelIcon name="addOrder" className="h-4 w-4" />, onClick: requestCreateOrder }}
                             compact
                           />
                         );
@@ -4455,12 +4455,12 @@ const Planner = () => {
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
-                        <Plus className="h-3.5 w-3.5" /> Opret rute
+                        <PanelIcon name="addRoute" className="h-4 w-4" /> Opret rute
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="icon" className="h-8 w-8 rounded-[4px]" aria-label="Ny bestilling" onClick={requestCreateOrder}>
-                            <ShoppingBag className="h-3.5 w-3.5" />
+                            <PanelIcon name="addOrder" className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">Opret ny bestilling manuelt</TooltipContent>
@@ -4643,11 +4643,11 @@ const Planner = () => {
 
                   <div className="grid grid-cols-2 gap-1.5">
                     <Button className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={() => setCreateOpen(true)}>
-                      <Plus className="h-4 w-4" />
+                      <PanelIcon name="addRoute" className="h-4 w-4" />
                       Opret rute
                     </Button>
                     <Button variant="outline" className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={requestCreateOrder}>
-                      <ShoppingBag className="h-4 w-4" />
+                      <PanelIcon name="addOrder" className="h-4 w-4" />
                       Bestilling
                     </Button>
                   </div>

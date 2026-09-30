@@ -78,6 +78,7 @@ export const createPanelIcon = (name: PanelIconName): ComponentType<{ className?
 
 export const PanelIcons = {
   Appointments: createPanelIcon("appointments"),
+  ShareProfile: createPanelIcon("shareProfile"),
   Settings: createPanelIcon("settings"),
   Customers: createPanelIcon("customers"),
   AppointmentStarted: createPanelIcon("appointmentStarted"),
@@ -90,8 +91,10 @@ export const PanelIcons = {
   Business: createPanelIcon("business"),
   AddOrder: createPanelIcon("addOrder"),
   AddCustomer: createPanelIcon("addCustomer"),
+  AddPrivateCustomer: createPanelIcon("addPrivateCustomer"),
   AddEmployee: createPanelIcon("addEmployee"),
   AddRoute: createPanelIcon("addRoute"),
+  AddRouteStop: createPanelIcon("addRouteStop"),
   AddService: createPanelIcon("addService"),
   AddBusiness: createPanelIcon("addBusiness"),
   RouteMap: createPanelIcon("routeMap"),
