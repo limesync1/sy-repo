@@ -183,4 +183,4 @@
 ## Ensartet medarbejderpanel og nye sektionsikoner
 - [x] Ensret rutekort, rutevalg, tjekliste, Statistik og detaljevisning med virksomhedspanelets design.
 - [x] Tilføj de 29 nye illustrationer og brug dem i de navngivne, læsbare sektioner.
-- [ ] Kontrollér medarbejdersider og offentlige sektioner på mobil, mindre computer og bred skærm.
+- [x] Kontrollér medarbejdersider og offentlige sektioner på mobil, mindre computer og bred skærm.

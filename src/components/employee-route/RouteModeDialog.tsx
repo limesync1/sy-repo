@@ -41,7 +41,7 @@ const options: Array<{
 export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md p-0 sm:max-w-[500px]">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-[500px] overflow-hidden rounded-md p-0 sm:w-full">
         <DialogHeader className="border-b border-border bg-card px-4 py-4 text-left sm:px-5">
           <div className="flex items-center gap-4">
             <BrandedIllustration name="chooseRouteMode" className="h-16 w-16 shrink-0 sm:h-[72px] sm:w-[72px]" alt="" />
@@ -52,7 +52,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
           </div>
         </DialogHeader>
 
-        <div className="grid gap-2.5 p-3 sm:p-4">
+        <div className="grid max-h-[calc(100dvh-9rem)] gap-2.5 overflow-y-auto p-3 sm:p-4">
           {options.map((o) => {
             return (
               <Button
@@ -61,11 +61,11 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 variant="outline"
                 onClick={() => onChoose(o.mode, false)}
                 className={cn(
-                  "group h-auto min-h-[118px] w-full items-center justify-start gap-4 rounded-md border-border bg-card p-4 text-left whitespace-normal shadow-sm transition-colors",
+                  "group h-auto min-h-[112px] w-full min-w-0 items-center justify-start gap-3 rounded-md border-border bg-card p-3 text-left whitespace-normal shadow-sm transition-colors sm:gap-4 sm:p-4",
                   "hover:border-foreground/25 hover:bg-secondary/45 focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
-                <span className="inline-flex h-16 w-16 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px]">
+                <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px]">
                   <BrandedIllustration name={o.illustration} className="h-full w-full" />
                 </span>
                 <span className="min-w-0 flex-1">
