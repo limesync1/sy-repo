@@ -388,6 +388,7 @@ const RequestQuote = () => {
                     <Search className="h-4 w-4 text-muted-foreground" />
                     <input
                       autoFocus
+                      aria-label="Søg efter kategori"
                       value={categoryQuery}
                       onChange={(e) => setCategoryQuery(e.target.value)}
                       placeholder="Søg fx rengøring, vinduespudsning…"

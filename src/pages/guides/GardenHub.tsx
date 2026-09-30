@@ -4,10 +4,10 @@ import { GARDEN_CITIES } from "@/pages/cities/gardenCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/have",
-  metaTitle: "Haveservice 2026 — få 3 gratis tilbud fra lokale havemænd | Serviceydere",
+  metaTitle: "Haveservice priser 2026 — find havehjælp & få 3 gratis tilbud | Serviceydere",
   metaDescription:
-    "Sammenlign priser på haveservice og få 3 gratis tilbud fra topbedømte, lokale havefirmaer. Græsslåning fra 245 kr., hækklipning fra 23 kr./m, havemand fra 285 kr./t.",
-  keywords: "haveservice priser, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
+    "Find havehjælp nær dig: se haveservice priser (græsslåning fra 245 kr., havemand fra 285 kr./t.) og få 3 gratis tilbud fra topbedømte, lokale havefirmaer.",
+  keywords: "haveservice priser, find havehjælp, havehjælp pris, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
   heroSubtitle:
