@@ -24,6 +24,7 @@ import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/us
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -138,7 +139,7 @@ export const RouteChecklistView = ({
             className="h-10 shrink-0 gap-1.5 border border-beige-foreground/15 bg-beige px-3 text-[12.5px] font-semibold text-beige-foreground hover:bg-beige/80"
             onClick={onSwitchToGuide}
           >
-            <Navigation2 className="h-4 w-4" />
+            <PanelIcon name="routeMap" className="h-4 w-4" />
             Kørselsguide
           </Button>
           <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"} aria-pressed={!audioEnabled}>
@@ -230,7 +231,7 @@ export const RouteChecklistView = ({
                       disabled={!employeeId || locked || startStopTime.isPending}
                        onClick={() => void startNext()}
                     >
-                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PanelIcon name="appointmentStarted" className="h-5 w-5" />}
                       Start aftale
                     </Button>
                   )}
@@ -242,7 +243,7 @@ export const RouteChecklistView = ({
                     {pendingId === next.id ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Check className="h-5 w-5" strokeWidth={3} />
+                      <PanelIcon name="appointmentCompleted" className="h-6 w-6" />
                     )}
                     {nextIsStarted ? "Aftale udført" : "Markér som udført"}
                   </Button>
@@ -252,7 +253,7 @@ export const RouteChecklistView = ({
                       className="h-11 gap-2"
                       onClick={() => onNavigate(next)}
                     >
-                      <Navigation2 className="h-4 w-4" />
+                      <PanelIcon name="routeMap" className="h-4 w-4" />
                       Kør dertil
                     </Button>
                     <Button

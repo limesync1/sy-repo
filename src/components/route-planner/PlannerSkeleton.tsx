@@ -3,6 +3,8 @@
 // så der ikke er hop når data lander. Målene følger de samme breakpoints
 // som selve planlæggeren, inkl. den kompakte visning på små laptops.
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { readSidebarCollapsed, SIDEBAR_STORAGE_KEYS } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 export default function PlannerSkeleton() {
   return (
@@ -122,13 +124,19 @@ export default function PlannerSkeleton() {
 
 /** Én fælles helsides-silhuet for ruteplanlæggeren (bruges af både
  *  kode-indlæsning, login-tjek og virksomhedsopslag, så der kun ses én). */
-export const PlannerPageSkeleton = () => (
-  <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
-    <div className="hidden w-[196px] shrink-0 border-r border-border bg-muted/40 p-4 lg:block 2xl:w-[248px]">
-      <div className="h-8 w-32 animate-pulse rounded-md bg-muted" />
-      <div className="mt-6 space-y-2">
+export const PlannerPageSkeleton = () => {
+  const collapsed = readSidebarCollapsed(SIDEBAR_STORAGE_KEYS.business);
+  return (
+  <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser" data-sidebar-state={collapsed ? "collapsed" : "expanded"}>
+    <div className={cn("hidden shrink-0 border-r border-border bg-muted/40 lg:block", collapsed ? "w-[68px] p-2" : "w-[196px] p-4 2xl:w-[248px]")}>
+      <div className={cn("h-8 animate-pulse rounded-md bg-muted", collapsed ? "mx-auto w-8" : "w-32")} />
+      <div className={cn("mt-3 flex items-center rounded-md border border-border bg-card", collapsed ? "justify-center p-2" : "gap-2 p-3")}>
+        <Skeleton className="h-9 w-9 shrink-0 rounded-md" />
+        {!collapsed && <div className="flex-1 space-y-2"><Skeleton className="h-3 w-24" /><Skeleton className="h-3 w-16" /></div>}
+      </div>
+      <div className="mt-3 space-y-1">
         {Array.from({ length: 7 }).map((_, i) => (
-          <div key={i} className="h-8 w-full animate-pulse rounded-md bg-muted" />
+          <div key={i} className={cn("h-10 animate-pulse rounded-md bg-muted", collapsed ? "mx-auto w-10" : "w-full")} />
         ))}
       </div>
     </div>
@@ -137,4 +145,5 @@ export const PlannerPageSkeleton = () => (
       <div className="h-[calc(100vh-3.5rem)]"><PlannerSkeleton /></div>
     </div>
   </div>
-);
+  );
+};

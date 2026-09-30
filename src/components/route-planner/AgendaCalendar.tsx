@@ -17,6 +17,7 @@ import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { WeatherBadge } from "./WeatherBadge";
 import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 import EmptyState from "./EmptyState";
 import { memo, useMemo } from "react";
 import type { CalendarRoute } from "./MonthWeekCalendar";
@@ -278,7 +279,7 @@ const DayRowInner = ({
               aria-label="Opret rute denne dag"
               title="Opret rute"
             >
-              <Plus className="h-4 w-4" />
+              <PanelIcon name="addRoute" className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -343,7 +344,7 @@ const DayRowInner = ({
             onClick={() => onCreateRoute(dateStr)}
             className="flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-[11px] font-medium text-muted-foreground hover:border-accent/50 hover:bg-accent/[0.04] hover:text-foreground active:bg-accent/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <PanelIcon name="addRoute" className="h-4 w-4" />
             Opret rute
           </button>
         )}

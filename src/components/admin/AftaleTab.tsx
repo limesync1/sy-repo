@@ -64,6 +64,7 @@ import OrderTimeline from "@/components/admin/OrderTimeline";
 import NextStepCard from "@/components/admin/NextStepCard";
 import { AccountingStatusRow, type OrderForStatus } from "@/components/shared/OrderStatusBadges";
 import AftaleStatsStrip from "@/components/admin/AftaleStatsStrip";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
@@ -1661,7 +1662,7 @@ const AftaleTab = ({
               }
               setCreateOrderOpen(true);
             }}
-            icon={<ShoppingCart />}
+            icon={<PanelIcon name="addOrder" className="h-5 w-5" />}
           >
             Opret bestilling
           </PrimaryButton>
@@ -2455,7 +2456,7 @@ const AftaleTab = ({
         </>
       ) : (
         <EmptyState
-          icon={<ShoppingCart />}
+          icon={<PanelIcon name="appointments" className="h-5 w-5" />}
           title={
             filter === "all" || filter === "active"
               ? "Ingen aftaler endnu"
@@ -2577,7 +2578,7 @@ const AftaleTab = ({
         <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
           <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
             <SheetHeaderBlock
-              icon={<RouteIcon className="h-4 w-4" />}
+              icon={<PanelIcon name="addRoute" className="h-5 w-5" />}
               accent={newRouteColor}
               title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
               description={
@@ -2628,7 +2629,7 @@ const AftaleTab = ({
             </Section>
 
             <Section
-              icon={<ListChecks className="h-3.5 w-3.5" />}
+              icon={<PanelIcon name="routeStops" className="h-4 w-4" />}
               title="Aftaler på ruten"
               hint={`${newRouteJobIds.length} valgt`}
             >
@@ -2712,6 +2713,7 @@ const AftaleTab = ({
               </Button>
               <Button onClick={handleConfirmCreateRoute} disabled={createRoute.isPending}>
                 {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                {!createRoute.isPending && <PanelIcon name="addRoute" className="mr-1.5 h-4 w-4" />}
                 Opret rute
               </Button>
             </div>

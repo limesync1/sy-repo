@@ -10,6 +10,7 @@ import type React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { readSidebarCollapsed, SIDEBAR_STORAGE_KEYS } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 /* ─────────── PageHeader-skeleton ─────────── */
 /** Matcher `<PageHeader title=... description=... action=...>` */
@@ -179,23 +180,43 @@ export const PageSkeleton = ({
  * `useAuth().loading` stadig er sandt. Erstatter den fuldskærms-spinner
  * (LoadingScreen) der tidligere blinkede et tomt skærmbillede.
  */
-export const ShellSkeleton = ({ children }: { children?: React.ReactNode } = {}) => (
-  <div className="flex min-h-screen bg-secondary/50">
+type ShellSkeletonVariant = "business" | "employee" | "platform";
+
+const shellSidebarWidth = (variant: ShellSkeletonVariant, collapsed: boolean) => {
+  if (collapsed) return "w-[68px]";
+  if (variant === "business") return "w-[196px] 2xl:w-[248px]";
+  return "w-[216px] xl:w-[248px]";
+};
+
+export const ShellSkeleton = ({
+  children,
+  variant = "business",
+  navigationItems,
+}: {
+  children?: React.ReactNode;
+  variant?: ShellSkeletonVariant;
+  navigationItems?: number;
+} = {}) => {
+  const storageKey = SIDEBAR_STORAGE_KEYS[variant];
+  const collapsed = readSidebarCollapsed(storageKey);
+  const itemCount = navigationItems ?? (variant === "employee" ? 3 : variant === "platform" ? 12 : 8);
+
+  return (
+  <div className="flex min-h-screen bg-secondary/50" data-sidebar-state={collapsed ? "collapsed" : "expanded"}>
     {/* Sidebar */}
-    <aside className="hidden w-[248px] shrink-0 flex-col border-r border-border bg-background lg:flex">
-      <div className="flex h-14 items-center border-b border-border px-4">
-        <Skeleton className="h-7 w-32" />
+    <aside className={cn("hidden shrink-0 flex-col border-r border-border bg-background lg:flex", shellSidebarWidth(variant, collapsed))}>
+      <div className={cn("flex h-14 items-center border-b border-border", collapsed ? "justify-center px-2" : "px-4")}>
+        <Skeleton className={collapsed ? "h-8 w-8 rounded-lg" : "h-7 w-32"} />
       </div>
-      <div className="m-3 flex items-center gap-2 rounded-md border border-border bg-card p-3">
-        <Skeleton className="h-10 w-10 rounded-md" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-3 w-16" />
-        </div>
+      <div className={cn("m-3 flex items-center rounded-md border border-border bg-card", collapsed ? "justify-center p-2" : "gap-2 p-3")}>
+        <Skeleton className="h-9 w-9 shrink-0 rounded-md" />
+        {!collapsed && <div className="flex-1 space-y-2">
+          <Skeleton className="h-3 w-24" /><Skeleton className="h-3 w-16" />
+        </div>}
       </div>
-      <div className="space-y-1 px-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full rounded-md" />
+      <div className={cn("space-y-1", collapsed ? "px-2" : "px-3")}>
+        {Array.from({ length: itemCount }).map((_, i) => (
+          <Skeleton key={i} className={cn("h-10 rounded-md", collapsed ? "mx-auto w-10" : "w-full")} />
         ))}
       </div>
     </aside>
@@ -210,7 +231,8 @@ export const ShellSkeleton = ({ children }: { children?: React.ReactNode } = {})
       </main>
     </div>
   </div>
-);
+  );
+};
 
 export { Skeleton };
 

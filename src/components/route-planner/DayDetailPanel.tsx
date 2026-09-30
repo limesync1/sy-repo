@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
-import { getSubcategoryIcon } from "@/lib/category-icons";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import { SheetHeaderBlock } from "./SheetSection";
 
 export type DayStop = {
@@ -98,12 +98,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {s.serviceSummary && (
-                            <span
-                              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-secondary border border-border/70 text-[11px] leading-none"
-                              aria-hidden
-                            >
-                              {getSubcategoryIcon(s.serviceSummary)}
-                            </span>
+                            <IndustryIcon name={s.serviceSummary} className="h-5 w-5 shrink-0" alt="" />
                           )}
                           <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
                         </div>

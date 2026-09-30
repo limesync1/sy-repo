@@ -198,10 +198,16 @@ const queryClient = new QueryClient({
 const PageFallback = () => {
   // Vises først efter 180 ms, så lynhurtige skift ikke blinker. Derefter en
   // rolig skeleton der matcher sidetypen (panel vs. offentlig side).
-  const [show, setShow] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setShow(true), 180); return () => clearTimeout(t); }, []);
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   const isPanel = /^\/(virksomhed|medarbejder|admin)(\/|$)/.test(path);
+  // Panelernes shell skal være synlig fra første frame. Ellers ses et tomt
+  // skærmbillede, og den gemte sidebarbredde kan ikke opleves som stabil.
+  const [show, setShow] = useState(isPanel);
+  useEffect(() => {
+    if (isPanel) { setShow(true); return; }
+    const t = setTimeout(() => setShow(true), 180);
+    return () => clearTimeout(t);
+  }, [isPanel]);
   const isPlanner = /^\/virksomhed\/ruter(\/|$)/.test(path);
   const isEmployeeRoute = /^\/medarbejder\/rute\//.test(path);
   if (!show) return <div className="min-h-screen bg-background" aria-hidden />;
@@ -210,33 +216,10 @@ const PageFallback = () => {
   if (isPlanner) return <PlannerPageSkeleton />;
   if (isEmployeeRoute) return <RouteViewSkeleton />;
   if (/^\/medarbejder\/?$/.test(path)) {
-    return (
-      <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
-        <div className="hidden w-60 shrink-0 border-r border-border bg-muted/40 p-4 lg:block">
-          <Skeleton className="h-8 w-32" />
-          <div className="mt-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
-        </div>
-        <div className="flex-1 p-4 sm:p-6"><MinDagSkeleton /></div>
-      </div>
-    );
+    return <ShellSkeleton variant="employee" navigationItems={3}><MinDagSkeleton /></ShellSkeleton>;
   }
   if (/^\/virksomhed\/?$/.test(path)) return <ShellSkeleton><AdminTabFallback tab={tabFromUrl()} /></ShellSkeleton>;
-  if (isPanel) {
-    return (
-      <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
-        <div className="hidden w-60 shrink-0 border-r border-border bg-muted/40 p-4 lg:block">
-          <Skeleton className="h-8 w-32" />
-          <div className="mt-6 space-y-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
-        </div>
-        <div className="flex-1 p-4 sm:p-6">
-          <Skeleton className="h-6 w-44" />
-          <Skeleton className="mt-2 h-3.5 w-64 max-w-full" />
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
-          <Skeleton className="mt-4 h-64 w-full" />
-        </div>
-      </div>
-    );
-  }
+  if (isPanel) return <ShellSkeleton variant={path.startsWith("/medarbejder") ? "employee" : path.startsWith("/admin") ? "platform" : "business"} />;
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
       <div className="flex h-16 items-center justify-between border-b border-border px-4 sm:px-8">

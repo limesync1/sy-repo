@@ -1,5 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 
+export const SIDEBAR_STORAGE_KEYS = {
+  business: "sy.sidebar.collapsed.business",
+  employee: "sy.sidebar.collapsed.employee",
+  platform: "sy.sidebar.collapsed.platform",
+} as const;
+
+export const readSidebarCollapsed = (storageKey: string, defaultValue = false) => {
+  if (typeof window === "undefined") return defaultValue;
+  try {
+    const value = window.localStorage.getItem(storageKey);
+    if (value === "1") return true;
+    if (value === "0") return false;
+  } catch { /* noop */ }
+  return defaultValue;
+};
+
 /**
  * Persisteret collapse-state for sidebar. Hver shell sender sin egen storageKey
  * (fx "sy.sidebar.collapsed.platform") så admin/virksomhed/medarbejder hver
@@ -10,13 +26,7 @@ import { useCallback, useEffect, useState } from "react";
  */
 export const useSidebarCollapsed = (storageKey: string, defaultValue = false) => {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return defaultValue;
-    try {
-      const v = window.localStorage.getItem(storageKey);
-      if (v === "1") return true;
-      if (v === "0") return false;
-    } catch { /* noop */ }
-    return defaultValue;
+    return readSidebarCollapsed(storageKey, defaultValue);
   });
 
   const persist = useCallback((next: boolean) => {

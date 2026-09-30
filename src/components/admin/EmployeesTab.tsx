@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 interface Props {
   businessId: string;
@@ -231,7 +232,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
           <PrimaryButton
             data-tour="employees-create-button"
             onClick={() => setShowForm(true)}
-            icon={<UserPlus />}
+            icon={<PanelIcon name="addEmployee" className="h-5 w-5" />}
             disabled={atLoginsLimit}
             title={atLoginsLimit
               ? (loginsLimit === 0
@@ -421,7 +422,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
         <DialogContent className="max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
-              <UserPlus className="h-4 w-4" /> Ny medarbejder
+              <PanelIcon name="addEmployee" className="h-5 w-5" /> Ny medarbejder
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
               Opret medarbejderen i et fokuseret modul — resten af panelet dæmpes imens.
@@ -504,7 +505,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
               <Button variant="ghost" onClick={resetForm} className="h-9 text-sm">
                 Annuller
               </Button>
-              <PrimaryButton onClick={handleCreate} disabled={create.isPending} icon={<UserPlus />}>
+              <PrimaryButton onClick={handleCreate} disabled={create.isPending} icon={<PanelIcon name="addEmployee" className="h-5 w-5" />}>
                 {create.isPending ? "Opretter..." : "Opret medarbejder"}
               </PrimaryButton>
             </div>
@@ -517,11 +518,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
       {/* Liste — ét stort kort med header-bar og rækker adskilt af divide-y, ligesom Kunder. */}
       {!isLoading && all.length === 0 && !showForm ? (
         <EmptyState
-          icon={<UserPlus />}
+          icon={<PanelIcon name="addEmployee" className="h-5 w-5" />}
           title="Ingen medarbejdere endnu"
           description="Tilføj din første medarbejder — de modtager en email med login og adgang til ruteplanlæggeren. Det er en del af opsætningen under “Kom godt i gang”."
           action={
-            <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
+            <PrimaryButton onClick={() => setShowForm(true)} icon={<PanelIcon name="addEmployee" className="h-5 w-5" />}>
               Tilføj første medarbejder
             </PrimaryButton>
           }

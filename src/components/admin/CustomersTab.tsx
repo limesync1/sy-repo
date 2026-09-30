@@ -40,6 +40,7 @@ import {
   type CustomerOrderSummary,
   type OrderForStatus,
 } from "@/components/shared/OrderStatusBadges";
+import { PanelIcon, PanelIcons } from "@/components/shared/PanelIcon";
 
 type Customer = {
   email: string;
@@ -784,7 +785,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         title="Kunder"
         description="Overblik over private kunder, erhvervskunder og deres samlede omsætning."
         action={
-          <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
+          <PrimaryButton onClick={openCreateDialog} icon={<PanelIcon name="addCustomer" className="h-5 w-5" />}>
             Tilføj kunde
           </PrimaryButton>
         }
@@ -795,23 +796,23 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <StatCard
           label="Kunder i alt"
           value={stats.total}
-          icon={<Users />}
+          icon={<PanelIcons.Customers />}
           hint={stats.recurring > 0 ? `${stats.recurring} ${stats.recurring === 1 ? "fast" : "faste"}` : "Privat + erhverv"}
         />
         <StatCard
           label="Privatkunder"
           value={stats.privateCount}
-          icon={<User />}
+          icon={<PanelIcon name="privateCustomer" className="h-5 w-5" />}
         />
         <StatCard
           label="Erhvervskunder"
           value={stats.businessCount}
-          icon={<Building2 />}
+          icon={<PanelIcons.Business />}
         />
         <StatCard
           label="Samlet omsætning"
           value={new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(stats.totalRev)}
-          icon={<Wallet />}
+          icon={<PanelIcons.Revenue />}
           tone="emerald"
           hint="Ekskl. moms"
         />
@@ -922,7 +923,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           title={customers.length === 0 ? "Ingen kunder endnu" : "Ingen kunder matcher søgningen"}
           description={customers.length === 0 ? "Tilføj din første kunde, eller vent til der kommer bestillinger ind." : "Prøv et andet søgeord."}
           action={customers.length === 0 ? (
-            <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>Tilføj kunde</PrimaryButton>
+            <PrimaryButton onClick={openCreateDialog} icon={<PanelIcon name="addCustomer" className="h-5 w-5" />}>Tilføj kunde</PrimaryButton>
           ) : undefined}
         />
       ) : (

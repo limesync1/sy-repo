@@ -3,8 +3,8 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
-  LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles, Rocket,
+  LayoutDashboard, Star,
+  LogOut, Menu, X, Repeat, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles, Rocket,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
 } from "@/components/shared/sidebar/SidebarParts";
 import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
+import { PanelIcons } from "@/components/shared/PanelIcon";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -56,9 +57,9 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
     label: "Drift",
     items: [
       { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
-      { value: "businesses", label: "Virksomheder", icon: Building2 },
-      { value: "users", label: "Brugere", icon: Users },
-      { value: "orders", label: "Ordrer", icon: ShoppingCart, hasRange: true },
+      { value: "businesses", label: "Virksomheder", icon: PanelIcons.Business },
+      { value: "users", label: "Brugere", icon: PanelIcons.Customers },
+      { value: "orders", label: "Ordrer", icon: PanelIcons.Appointments, hasRange: true },
       { value: "subscriptions", label: "Abonnementer", icon: Repeat },
     ],
   },
@@ -76,7 +77,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "waitlist", label: "Venteliste", icon: Rocket },
       { value: "ai-quality", label: "AI-kvalitet", icon: Sparkles },
       { value: "security", label: "Sikkerhed", icon: Shield },
-      { value: "settings", label: "Platform", icon: Settings },
+      { value: "settings", label: "Platform", icon: PanelIcons.Settings },
     ],
   },
 ];
@@ -218,7 +219,7 @@ const PlatformAdmin = () => {
 
   if (loading || roleLoading) {
     // Vis layout-skeleton fra første millisekund — ingen blank skærm.
-    return <ShellSkeleton />;
+    return <ShellSkeleton variant="platform" navigationItems={12} />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;

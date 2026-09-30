@@ -16,7 +16,7 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getSubcategoryIcon } from "@/lib/category-icons";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import { SheetHeaderBlock } from "./SheetSection";
 import { ScopeOption } from "./ScopeOption";
 
@@ -104,12 +104,9 @@ export const MergeRoutesDialog = ({
                   </div>
                   <ul className="max-h-40 divide-y overflow-y-auto">
                     {sourceStops.map((s) => {
-                      const icon = getSubcategoryIcon(s.serviceSummary);
                       return (
                         <li key={s.id} className="flex items-center gap-2 px-2.5 py-1.5 text-[12px]">
-                          <span aria-hidden className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-secondary text-[12px] leading-none">
-                            {icon}
-                          </span>
+                          <IndustryIcon name={s.serviceSummary} className="h-5 w-5 shrink-0" alt="" />
                           <span className="min-w-0 flex-1 truncate font-medium text-foreground">
                             {s.customerName || "Aftale"}
                           </span>

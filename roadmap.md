@@ -1,5 +1,11 @@
 # Samlet panelredesign
 
+## Ensartede loading-visninger og nye panelikoner
+- [ ] Lad alle panel-loadingvisninger følge sidemenuens gemte åbne/sammenfoldede tilstand.
+- [ ] Erstat kundeserviceikonet i alle supportvisninger.
+- [ ] Saml og anvend de nye panelillustrationer på relevante menuer, handlinger, kort og vinduer.
+- [ ] Kontrollér mobil, lille computer og stor skærm uden størrelsesspring.
+
 - [x] Gendan den tidligere naturlige Inter/systemskrifttype overalt.
 - [x] Vis medarbejderfoto eller initialer i “Kontakt medarbejder”.
 - [x] Fjern den farvede venstrekant og ensret “Rediger rute”.
@@ -150,3 +156,11 @@
 - [x] Gør “Fortryd udførsel” kompakt i stoplister og detaljer.
 - [x] Vis den automatiske sekundtæller direkte i både tjekliste og kørselsguide.
 - [x] Kontrollér kørselsvalg, lyd, fuldhøj mobilvisning, plannervalg og kundeserviceikon igen.
+
+## Dynamiske panel-skeletons og ensrettede ikoner
+- [x] Match loading-navigationens bredde med den gemte åbne eller sammenfoldede sidebar.
+- [x] Vis panelernes loading-shell fra første frame uden et tomt mellemtrin.
+- [x] Erstat kundeservicegrafikken med den nye transparente SVG i header og livechat.
+- [x] Opret ét fælles register for de 24 nye panelikoner.
+- [x] Brug matchende ikoner i navigation, handlinger, modaler, rutekalender og rutekørsel.
+- [x] Bevar Lucide til generiske kontroller uden et matchende specialikon.
