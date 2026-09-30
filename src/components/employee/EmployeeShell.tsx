@@ -9,7 +9,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
+  LogOut, MessageCircle, Briefcase, Building2,
   Bell, Check, ChevronsUpDown, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 

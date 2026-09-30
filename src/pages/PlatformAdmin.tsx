@@ -3,8 +3,8 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
-  LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles, Rocket,
+  LayoutDashboard, Star,
+  LogOut, Menu, X, Repeat, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles, Rocket,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";

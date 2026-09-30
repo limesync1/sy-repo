@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Users, ShoppingCart, MessageCircle, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, MessageCircle, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminBadgeMap } from "./lib/useAdminBadges";
 import { PanelIcons } from "@/components/shared/PanelIcon";

@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 interface Props {
   businessId: string;
@@ -231,7 +232,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
           <PrimaryButton
             data-tour="employees-create-button"
             onClick={() => setShowForm(true)}
-            icon={<UserPlus />}
+            icon={<PanelIcon name="addEmployee" className="h-5 w-5" />}
             disabled={atLoginsLimit}
             title={atLoginsLimit
               ? (loginsLimit === 0

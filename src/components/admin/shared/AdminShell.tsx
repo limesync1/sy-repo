@@ -11,8 +11,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy, Truck, Rocket,
+  LogOut, LayoutDashboard, Wrench, Star,
+  Menu, X, ExternalLink, Sparkles, MessageCircle, Truck, Rocket,
   PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +26,6 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import supportPortrait from "@/assets/kundeservice-ikon.png.asset.json";
 import supportIcon from "@/assets/kundeservice-ikon.svg.asset.json";
 import { PanelIcons } from "@/components/shared/PanelIcon";
 import AdminBottomNav from "./AdminBottomNav";
