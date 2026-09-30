@@ -95,9 +95,9 @@ export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
                 <Skeleton className="h-3 w-56 max-w-full" />
               </div>
             </div>
-            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-md" />
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+              <Skeleton key={i} className="h-12 w-full rounded-md" />
             ))}
           </div>
         ) : (

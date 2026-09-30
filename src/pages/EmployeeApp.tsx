@@ -561,11 +561,11 @@ const EmployeeApp = () => {
               >
                 <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] border border-border"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ring-border"
                     style={{ background: color }}
                     aria-hidden
                   >
-                    <BrandedIllustration name="routeDone" className="h-full w-full" />
+                    <BrandedIllustration name="routeDone" className="h-10 w-10" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold text-foreground">
@@ -620,11 +620,11 @@ const EmployeeApp = () => {
                   rutekort, men med ét enkelt status-badge til højre. */}
               <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                 <span
-                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-[4px] border border-border shadow-sm"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ring-border"
                   style={{ background: color }}
                   aria-hidden
                 >
-                   <BrandedIllustration name="routeReady" className="h-full w-full" />
+                   <BrandedIllustration name="routeReady" className="h-10 w-10" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold text-foreground">

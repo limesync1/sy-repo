@@ -1,15 +1,14 @@
-import { BatteryCharging, ArrowRight, Sparkles } from "lucide-react";
+import { BatteryCharging, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { RouteRunMode } from "./RouteRunMode";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
 type Props = {
   open: boolean;
@@ -44,16 +43,12 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md p-0 sm:max-w-[500px]">
-        <DialogHeader className="border-b border-border bg-secondary/30 px-4 py-4 text-left sm:px-5">
-          <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-foreground shadow-sm">
-            <BrandedIllustration name="chooseRouteMode" className="h-full w-full" />
-          </div>
-          <DialogTitle className="text-xl font-semibold leading-tight">
-            Hvordan vil du køre ruten?
-          </DialogTitle>
-          <DialogDescription className="text-[13px] leading-5">
-            Vælg den visning, der passer til turen. Du kan altid skifte senere.
-          </DialogDescription>
+        <DialogHeader className="border-b border-border bg-card px-4 py-4 text-left sm:px-5">
+          <SheetHeaderBlock
+            icon={<BrandedIllustration name="chooseRouteMode" className="h-8 w-8" />}
+            title="Hvordan vil du køre ruten?"
+            description="Vælg den visning, der passer til turen. Du kan altid skifte senere."
+          />
         </DialogHeader>
 
         <div className="grid gap-2.5 p-3 sm:p-4">
@@ -65,11 +60,11 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 variant="outline"
                 onClick={() => onChoose(o.mode, false)}
                 className={cn(
-                  "group h-auto min-h-[104px] w-full items-start justify-start gap-3 rounded-md border-border bg-card p-3.5 text-left whitespace-normal shadow-none transition-colors",
+                  "group h-auto min-h-[118px] w-full items-center justify-start gap-4 rounded-md border-border bg-card p-4 text-left whitespace-normal shadow-sm transition-colors",
                   "hover:border-foreground/25 hover:bg-secondary/45 focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
-                <span className="mt-0.5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-secondary">
+                <span className="inline-flex h-16 w-16 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px]">
                   <BrandedIllustration name={o.illustration} className="h-full w-full" />
                 </span>
                 <span className="min-w-0 flex-1">
