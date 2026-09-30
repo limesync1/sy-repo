@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<rect class="c6" x="50" y="90" width="900" height="250" rx="125"/><circle class="c8" cx="190" cy="215" r="88"/><circle class="c11" cx="190" cy="215" r="46"/><path d="M252,277L292,317" fill="none" stroke="#4ba9cf" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/><rect class="c3" x="360" y="193" width="440" height="44" rx="22"/><clipPath id="k1"><rect x="50" y="430" width="270" height="300" rx="50"/></clipPath><g clip-path="url(#k1)"><rect class="c8" x="50" y="430" width="270" height="300"/><rect class="c9" x="50" y="430" width="60" height="300"/></g><path d="M115,590L185,520L255,590V645H115Z" fill="#fff" stroke="#fff" stroke-width="26" stroke-linejoin="round"/><rect class="c3" x="50" y="790" width="270" height="40" rx="20"/><rect class="c1" x="50" y="850" width="180" height="30" rx="15"/><clipPath id="k2"><rect x="365" y="430" width="270" height="300" rx="50"/></clipPath><g clip-path="url(#k2)"><rect class="c4" x="365" y="430" width="270" height="300"/><rect class="c7" x="575" y="430" width="60" height="300"/></g><path d="M500,505C500,505 430,585 430,605a70,70 0 0 0 140,0C570,585 500,505 500,505Z" fill="#fff"/><rect class="c3" x="365" y="790" width="270" height="40" rx="20"/><rect class="c1" x="365" y="850" width="180" height="30" rx="15"/><clipPath id="k3"><rect x="680" y="430" width="270" height="300" rx="50"/></clipPath><g clip-path="url(#k3)"><rect class="c2" x="680" y="430" width="270" height="300"/><rect class="c5" x="890" y="430" width="60" height="300"/></g><path d="M830,500L760,595H810L795,660L870,560H820Z" fill="#fff" stroke="#fff" stroke-width="20" stroke-linejoin="round"/><rect class="c3" x="680" y="790" width="270" height="40" rx="20"/><rect class="c1" x="680" y="850" width="180" height="30" rx="15"/>
+</svg>

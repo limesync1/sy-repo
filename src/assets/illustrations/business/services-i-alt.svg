@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<clipPath id="k11"><rect x="50" y="100" width="420" height="350" rx="60"/></clipPath><g clip-path="url(#k11)"><rect class="c8" x="50" y="100" width="420" height="350"/><rect class="c9" x="50" y="100" width="70" height="350"/></g><path d="M190,245L260,175L330,245V300H190Z" fill="#fff" stroke="#fff" stroke-width="30" stroke-linejoin="round"/><rect class="c10" x="140" y="350" width="240" height="32" rx="16"/><rect class="c11" x="180" y="400" width="160" height="20" rx="10"/><clipPath id="k12"><rect x="530" y="100" width="420" height="350" rx="60"/></clipPath><g clip-path="url(#k12)"><rect class="c4" x="530" y="100" width="420" height="350"/><rect class="c7" x="880" y="100" width="70" height="350"/></g><path d="M740,160C740,160 670,240 670,260a70,70 0 0 0 140,0C810,240 740,160 740,160Z" fill="#fff"/><rect class="c10" x="620" y="350" width="240" height="32" rx="16"/><rect class="c11" x="660" y="400" width="160" height="20" rx="10"/><clipPath id="k13"><rect x="50" y="550" width="420" height="350" rx="60"/></clipPath><g clip-path="url(#k13)"><rect class="c2" x="50" y="550" width="420" height="350"/><rect class="c5" x="400" y="550" width="70" height="350"/></g><path d="M275,605L205,700H255L240,765L315,665H265Z" fill="#fff" stroke="#fff" stroke-width="20" stroke-linejoin="round"/><rect class="c10" x="140" y="800" width="240" height="32" rx="16"/><rect class="c11" x="180" y="850" width="160" height="20" rx="10"/><clipPath id="k14"><rect x="530" y="550" width="420" height="350" rx="60"/></clipPath><g clip-path="url(#k14)"><rect class="c8" x="530" y="550" width="420" height="350"/><rect class="c9" x="530" y="550" width="70" height="350"/></g><path d="M670,695L740,625L810,695V750H670Z" fill="#fff" stroke="#fff" stroke-width="30" stroke-linejoin="round"/><rect class="c10" x="620" y="800" width="240" height="32" rx="16"/><rect class="c11" x="660" y="850" width="160" height="20" rx="10"/>
+</svg>

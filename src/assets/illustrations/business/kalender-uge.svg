@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<g transform="translate(0 0) scale(1)"><rect class="c6" x="50" y="130" width="900" height="820" rx="60"/><path class="c4" d="M50,190a60,60 0 0 1 60-60H890a60,60 0 0 1 60,60V320H50Z"/><rect class="c7" x="50" y="290" width="900" height="30" rx="0"/><rect class="c3" x="240" y="50" width="70" height="180" rx="35"/><rect class="c3" x="690" y="50" width="70" height="180" rx="35"/><rect class="c8" x="110" y="470" width="90" height="300" rx="24"/><rect class="c8" x="225" y="470" width="90" height="300" rx="24"/><rect class="c8" x="340" y="470" width="90" height="300" rx="24"/><rect class="c8" x="455" y="470" width="90" height="300" rx="24"/><rect class="c8" x="570" y="470" width="90" height="300" rx="24"/><rect class="c8" x="685" y="470" width="90" height="300" rx="24"/><rect class="c8" x="800" y="470" width="90" height="300" rx="24"/></g>
+</svg>

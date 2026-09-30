@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<path d="M170,790C430,790 330,600 540,600S740,560 740,400" fill="none" stroke="#4ba9cf" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/><circle class="c3" cx="170" cy="790" r="72"/><circle class="c2" cx="170" cy="790" r="30"/><circle class="c4" cx="374" cy="695" r="56"/><circle class="c10" cx="374" cy="695" r="22"/><g transform="translate(0.0 0.0) scale(1.0)"><path class="c4" d="M740,470C740,470 590,340 590,200a150,150 0 0 1 300,0C890,340 740,470 740,470Z"/><path class="c7" d="M740,50a150,150 0 0 1 150,150C890,340 740,470 740,470Z"/><circle class="c10" cx="740" cy="200" r="58"/></g>
+</svg>

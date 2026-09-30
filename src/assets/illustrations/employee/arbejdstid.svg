@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c7 { fill: #d45020; }
+      .c8 { fill: #4ba9cf; }
+      .c9 { fill: #63bae5; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .c12 { fill: #2596be; }
+    </style>
+  </defs>
+<clipPath id="k21"><circle cx="500" cy="500" r="440"/></clipPath><g clip-path="url(#k21)"><circle class="c12" cx="500" cy="500" r="440"/><circle class="c8" cx="447.2" cy="500" r="440"/></g><circle class="c10" cx="500" cy="500" r="340"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(0 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(30 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(60 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(90 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(120 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(150 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(180 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(210 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(240 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(270 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(300 500 500)"/><rect class="c6" x="487" y="190" width="26" height="70" rx="13" transform="rotate(330 500 500)"/><path d="M500,500V300" fill="none" stroke="#484f4d" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/><path d="M500,500L640,585" fill="none" stroke="#484f4d" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/><circle class="c4" cx="500" cy="500" r="48"/><circle class="c10" cx="500" cy="500" r="18"/>
+</svg>
