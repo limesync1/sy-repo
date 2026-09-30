@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
-  ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
+  ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck,
   Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
   Copy, FolderTree, KeyRound, FlaskConical,
 } from "lucide-react";
@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
 import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
-import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.

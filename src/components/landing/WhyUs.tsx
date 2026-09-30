@@ -74,7 +74,7 @@ const WhyUs = () => {
               className="group relative flex h-full flex-col rounded-lg bg-ocean-foreground/[0.06] p-5 transition-colors hover:bg-ocean-foreground/[0.1]"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-16 w-16 items-center justify-center sm:h-[72px] sm:w-[72px]">
+                <span className="flex h-16 w-16 items-center justify-center sm:h-20 sm:w-20">
                   <BrandedIllustration name={b.icon} className="h-full w-full" alt="" />
                 </span>
                 <span className="text-[11px] font-semibold tabular-nums text-ocean-foreground/40">

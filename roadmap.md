@@ -183,4 +183,6 @@
 ## Ensartet medarbejderpanel og nye sektionsikoner
 - [x] Ensret rutekort, rutevalg, tjekliste, Statistik og detaljevisning med virksomhedspanelets design.
 - [x] Tilføj de 29 nye illustrationer og brug dem i de navngivne, læsbare sektioner.
-- [x] Kontrollér medarbejdersider og offentlige sektioner på mobil, mindre computer og bred skærm.
+- [ ] Kontrollér medarbejdersider og offentlige sektioner på mobil, mindre computer og bred skærm.
+- [x] Bevar E-conomic- og Dinero-logoerne og brug kun regnskabsillustrationen i introduktionen.
+- [x] Tilføj de tre aftalte illustrationer på “Bliv udbyder” og forbedr prisafsnittet på “Systemet”.
