@@ -3607,9 +3607,9 @@ const Planner = () => {
                       )}
                     </div>
                     {filteredUnassigned.length > 0 && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                          <SelectTrigger className="h-8 text-[11px] flex-1 bg-background gap-1.5 rounded-md border-border/70" aria-label="Sortering">
+                          <SelectTrigger className="h-8 min-w-[6rem] flex-[1_1_calc(50%-0.1875rem)] gap-1.5 rounded-md border-border/70 bg-background text-[11px]" aria-label="Sortering">
                             <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
@@ -3620,7 +3620,7 @@ const Planner = () => {
                           </SelectContent>
                         </Select>
                         <Select value={unassignedStatusFilter} onValueChange={(v) => setUnassignedStatusFilter(v as any)}>
-                          <SelectTrigger className="h-8 text-[11px] flex-1 bg-background gap-1.5 rounded-md border-border/70" aria-label="Filtrér">
+                          <SelectTrigger className="h-8 min-w-[6rem] flex-[1_1_calc(50%-0.1875rem)] gap-1.5 rounded-md border-border/70 bg-background text-[11px]" aria-label="Filtrér">
                             <Filter className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
