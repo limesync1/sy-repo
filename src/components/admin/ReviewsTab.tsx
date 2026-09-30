@@ -5,6 +5,7 @@ import { PageHeader, EmptyState, SearchInput, StatCard } from "@/components/admi
 import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 interface Props {
   reviews: any[];
@@ -75,7 +76,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="I alt" value={reviews.length} icon={<BarChart3 />} />
+        <StatCard label="I alt" value={reviews.length} icon={<BrandedIllustration name="reviewCount" />} />
         <StatCard
           label="Gennemsnit"
           value={
@@ -91,10 +92,10 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
             </span>
           }
           hint={reviews.length > 0 ? `Baseret på ${reviews.length} anmeldelse${reviews.length === 1 ? "" : "r"}` : undefined}
-          icon={<Star />}
+          icon={<BrandedIllustration name="reviewAverage" />}
           tone="amber"
         />
-        <StatCard label="Verificerede" value={verifiedCount} hint="Markeret som ægte" icon={<ShieldCheck />} tone="ok" />
+        <StatCard label="Verificerede" value={verifiedCount} hint="Markeret som ægte" icon={<BrandedIllustration name="verifiedReviews" />} tone="ok" />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

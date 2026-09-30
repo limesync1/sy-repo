@@ -43,6 +43,7 @@ import {
   stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
@@ -361,9 +362,9 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
 
       <div data-tour="services-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Services i alt" value={services?.length || 0} icon={<Package />} />
-          <StatCard label="Aktive" value={activeServices} icon={<Check />} tone="ok" />
-          <StatCard label="Bestillinger" value={totalOrders} icon={<TrendingUp />} />
+          <StatCard label="Services i alt" value={services?.length || 0} icon={<BrandedIllustration name="servicesTotal" />} />
+          <StatCard label="Aktive" value={activeServices} icon={<BrandedIllustration name="activeServices" />} tone="ok" />
+          <StatCard label="Bestillinger" value={totalOrders} icon={<BrandedIllustration name="orders" />} />
         </div>
 
         {uniqueCategories.length > 1 && (

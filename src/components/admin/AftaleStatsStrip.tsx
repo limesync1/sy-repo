@@ -1,11 +1,11 @@
 import { formatPrice } from "@/lib/price-format";
 import { useMemo } from "react";
-import { Calendar, DollarSign, TrendingUp } from "lucide-react";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, isWithinInterval,
 } from "date-fns";
 import { da } from "date-fns/locale";
 import { StatCard } from "@/components/admin/shared/AdminUI";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**
  * AftaleStatsStrip — kompakt strip øverst på Aftaler-fanen, der viser
@@ -56,20 +56,20 @@ export const AftaleStatsStrip = ({ orders }: { orders: OrderLike[] }) => {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <StatCard
-        icon={<Calendar />}
+        icon={<BrandedIllustration name="calendarWeek" />}
         label="Planlagt denne uge"
         value={fmtKr(s.weekRevenue)}
         hint={`${s.weekCount} ${s.weekCount === 1 ? "aftale" : "aftaler"}`}
       />
       <StatCard
-        icon={<TrendingUp />}
+        icon={<BrandedIllustration name="calendarMonth" />}
         label="Planlagt denne måned"
         value={fmtKr(s.monthRevenue)}
         hint={`${s.monthCount} ${s.monthCount === 1 ? "aftale" : "aftaler"}`}
         tone="ok"
       />
       <StatCard
-        icon={<DollarSign />}
+        icon={<BrandedIllustration name="averageOrder" />}
         label="Snit pr. aftale (måned)"
         value={s.monthCount ? fmtKr(s.monthRevenue / s.monthCount) : "—"}
         hint="Ekskl. annullerede"

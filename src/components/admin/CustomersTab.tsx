@@ -41,6 +41,7 @@ import {
   type OrderForStatus,
 } from "@/components/shared/OrderStatusBadges";
 import { PanelIcon } from "@/components/shared/PanelIcon";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 type Customer = {
   email: string;
@@ -796,23 +797,23 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <StatCard
           label="Kunder i alt"
           value={stats.total}
-          icon={<Users />}
+          icon={<BrandedIllustration name="team" />}
           hint={stats.recurring > 0 ? `${stats.recurring} ${stats.recurring === 1 ? "fast" : "faste"}` : "Privat + erhverv"}
         />
         <StatCard
           label="Privatkunder"
           value={stats.privateCount}
-          icon={<User />}
+          icon={<BrandedIllustration name="activeEmployee" />}
         />
         <StatCard
           label="Erhvervskunder"
           value={stats.businessCount}
-          icon={<Building2 />}
+          icon={<BrandedIllustration name="servicesTotal" />}
         />
         <StatCard
           label="Samlet omsætning"
           value={new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(stats.totalRev)}
-          icon={<Wallet />}
+          icon={<BrandedIllustration name="revenue" />}
           tone="emerald"
           hint="Ekskl. moms"
         />
@@ -820,7 +821,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           <StatCard
             label="Forfalden betaling"
             value={stats.withOverdue}
-            icon={<AlertTriangle />}
+            icon={<BrandedIllustration name="orders" />}
             tone="danger"
             hint={`${stats.withOverdue === 1 ? "kunde" : "kunder"} mangler at betale`}
           />
@@ -919,7 +920,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <ListCardSkeleton rows={6} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<User />}
+          icon={<BrandedIllustration name="team" className="h-16 w-16" />}
           title={customers.length === 0 ? "Ingen kunder endnu" : "Ingen kunder matcher søgningen"}
           description={customers.length === 0 ? "Tilføj din første kunde, eller vent til der kommer bestillinger ind." : "Prøv et andet søgeord."}
           action={customers.length === 0 ? (
@@ -940,7 +941,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     aria-label="Vælg alle"
                   />
                 )}
-                <PanelIcon name="customers" className="h-8 w-8 shrink-0" />
+                 <BrandedIllustration name={typeFilter === "business" ? "servicesTotal" : typeFilter === "private" ? "activeEmployee" : "team"} className="h-10 w-10 shrink-0" />
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">
                     {typeFilter === "private" ? "Private kunder" : typeFilter === "business" ? "Erhvervskunder" : "Alle kunder"}
@@ -1232,10 +1233,10 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
 
   return (
     <Sheet open={!!email} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent hideCloseButton className="w-full sm:max-w-xl overflow-y-auto p-0">
+      <SheetContent hideCloseButton className="planner-overlay flex h-dvh w-full flex-col overflow-hidden p-0 sm:h-[92dvh] sm:max-w-xl sm:rounded-md">
         {customer && (
           <>
-            <SheetHeader className="sticky top-0 z-20 border-b border-border bg-background p-3 pr-12">
+            <SheetHeader className="planner-overlay-header sticky top-0 z-20 shrink-0 border-b border-border bg-background p-3 pr-12 sm:px-5 sm:py-4">
               <SheetClose className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
                 <CloseIcon className="h-4 w-4" />
                 <span className="sr-only">Luk</span>
@@ -1255,7 +1256,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
               </SheetTitle>
             </SheetHeader>
 
-            <div className="p-3 space-y-3">
+            <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 p-3 sm:p-5">
               <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1.5">
                 <a href={`mailto:${customer.email}`}
                   className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">

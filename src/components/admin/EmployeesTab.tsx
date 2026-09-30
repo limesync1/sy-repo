@@ -47,6 +47,7 @@ import {
 import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { PanelIcon } from "@/components/shared/PanelIcon";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 interface Props {
   businessId: string;
@@ -337,19 +338,19 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
           <StatCard
             label="Medarbejdere i alt"
             value={all.length}
-            icon={<Users />}
+            icon={<BrandedIllustration name="team" />}
             hint={`${activeEmployees.length} aktive`}
           />
           <StatCard
             label="Aktive"
             value={activeEmployees.length}
-            icon={<CheckCircle2 />}
+            icon={<BrandedIllustration name="activeEmployee" />}
             tone="ok"
           />
           <StatCard
             label="Afventer login"
             value={pendingCount}
-            icon={<KeyRound />}
+            icon={<BrandedIllustration name="pendingLogin" />}
             tone={pendingCount > 0 ? "warn" : "neutral"}
             hint={pendingCount === 0 ? "Alle er logget ind" : "Har endnu ikke aktiveret kontoen"}
           />
@@ -360,7 +361,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                 ? Array.from(earningsMap.values()).reduce((s, e) => s + e.earnings, 0)
                 : 0,
             )}
-            icon={<Wallet />}
+            icon={<BrandedIllustration name="payroll" />}
             tone="emerald"
             hint="Ekskl. moms"
           />

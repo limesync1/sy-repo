@@ -27,6 +27,7 @@ import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 interface Props {
   business: Business;
@@ -320,6 +321,7 @@ const DashboardTab = ({
   // ── Smart prioriteret handlingskø ───────────────────────────────────
   type Action = {
     key: string; label: string; meta: string; icon: React.ComponentType<{ className?: string }>;
+    illustration?: BrandedIllustrationName;
     tab?: string; onClick?: () => void; priority: number; badge?: string; tone: "primary" | "accent" | "muted";
   };
   const shareUrl = business.slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/v/${business.slug}` : "";
@@ -356,12 +358,12 @@ const DashboardTab = ({
       meta: "Kvittér og vis at I lytter", icon: MessageSquare, tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
     });
     if (shareUrl) arr.push({
-      key: "share", label: copied ? "Link kopieret" : "Del din profil",
+      key: "share", label: copied ? "Link kopieret" : "Del din profil", illustration: "shareProfile",
       meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : Share2, onClick: copyLink, priority: 50, tone: "muted",
     });
-    arr.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, tab: "services", priority: 30, tone: "muted" });
-    arr.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
-    arr.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: SettingsIcon, tab: "settings", priority: 10, tone: "muted" });
+    arr.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, illustration: "addService", tab: "services", priority: 30, tone: "muted" });
+    arr.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, illustration: "team", tab: "employees", priority: 20, tone: "muted" });
+    arr.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: SettingsIcon, illustration: "settings", tab: "settings", priority: 10, tone: "muted" });
     arr.sort((a, b) => b.priority - a.priority);
     return { actions: arr, primaryActions: arr.slice(0, 4) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -552,12 +554,12 @@ const DashboardTab = ({
                     )}
                   >
                     <div className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4 [&_svg]:w-4",
+                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg p-1 [&_svg]:h-4 [&_svg]:w-4",
                       a.tone === "primary" && "bg-background/15 text-background",
                       a.tone === "accent" && "bg-accent/15 text-accent",
                       a.tone === "muted" && "border border-border bg-secondary text-foreground",
                     )}>
-                      <a.icon />
+                       {a.illustration ? <BrandedIllustration name={a.illustration} className="h-full w-full" /> : <a.icon />}
                     </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <div className="flex min-w-0 items-center gap-2">
