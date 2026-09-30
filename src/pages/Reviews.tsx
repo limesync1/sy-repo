@@ -5,7 +5,8 @@ import SmartLink from "@/components/SmartLink";
 import PageHero from "@/components/landing/PageHero";
 import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 import { IndustryIcon } from "@/components/IndustryIcon";
-import { ShieldCheck, MessageSquare, BadgeCheck, Star, Mail, ArrowRight, Quote, Sparkles } from "lucide-react";
+import { ShieldCheck, MessageSquare, BadgeCheck, Star, ArrowRight, ArrowUpRight, Quote, Sparkles } from "lucide-react";
+import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 
 const PREVIEW_REVIEWS = [
   { category: "Rengøring", city: "Aarhus", initials: "—", placeholder: true },
@@ -15,6 +16,14 @@ const PREVIEW_REVIEWS = [
 
 const Reviews = () => {
   const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://serviceydere.dk/#organization",
+      name: "Serviceydere",
+      url: "https://serviceydere.dk/",
+      sameAs: OFFICIAL_PROFILE_URLS,
+    },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
@@ -49,10 +58,12 @@ const Reviews = () => {
                 Indhent 3 tilbud <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
               <a
-                href="mailto:kontakt@serviceydere.dk?subject=Min%20oplevelse%20med%20Serviceydere"
+                href="https://dk.trustpilot.com/review/serviceydere.dk"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
               >
-                <Mail className="h-4 w-4" /> Del din oplevelse
+                <Star className="h-4 w-4" /> Se os på Trustpilot <ArrowUpRight className="h-4 w-4" />
               </a>
             </>
           }

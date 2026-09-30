@@ -1,8 +1,18 @@
 import SmartLink from "@/components/SmartLink";
+import { OFFICIAL_PROFILES } from "@/lib/social-links";
+import { Facebook, Instagram, Linkedin, Star, Youtube } from "lucide-react";
 
 // Alle interne links i footeren bruger SmartLink, så hover/touch starter
 // chunk-prefetch og navigationen føles instant.
 const Link = SmartLink;
+
+const SOCIAL_ICONS = {
+  Trustpilot: Star,
+  LinkedIn: Linkedin,
+  YouTube: Youtube,
+  Facebook,
+  Instagram,
+} as const;
 
 const Footer = () => {
   return (
@@ -80,8 +90,28 @@ const Footer = () => {
           </div>
         </div>
 
-         <div className="mt-10 flex flex-col items-center justify-between gap-4 pt-6 text-xs text-background/55 md:flex-row">
-           <div>© {new Date().getFullYear()} Serviceydere</div>
+         <div className="mt-10 flex flex-col items-center justify-between gap-5 border-t border-background/10 pt-6 text-xs text-background/55 md:flex-row">
+           <div className="flex flex-col items-center gap-3 md:items-start">
+             <div>© {new Date().getFullYear()} Serviceydere</div>
+             <nav aria-label="Serviceydere på sociale medier" className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+               {OFFICIAL_PROFILES.map(({ label, href }) => {
+                 const Icon = SOCIAL_ICONS[label];
+                 return (
+                   <a
+                     key={label}
+                     href={href}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     aria-label={`Serviceydere på ${label}`}
+                     title={label}
+                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-background/15 text-background/70 transition-colors hover:border-background/35 hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
+                   >
+                     <Icon className="h-4 w-4" aria-hidden="true" />
+                   </a>
+                 );
+               })}
+             </nav>
+           </div>
            <img
             src="/serviceydere-logo.webp"
             alt="Serviceydere"

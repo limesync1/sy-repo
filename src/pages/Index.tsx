@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import Reveal from "@/components/landing/Reveal";
 import SiteNav from "@/components/SiteNav";
 import SectionSkeleton from "@/components/landing/SectionSkeleton";
+import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 // Hero + de to nærmeste below-fold sektioner indlæses ivrigt, så brugeren
 // ikke ser en kort Suspense-flash når de scroller (det føltes som om
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
@@ -46,6 +47,7 @@ const Index = () => {
         contactType: "customer support",
         availableLanguage: ["Danish"],
       },
+      sameAs: OFFICIAL_PROFILE_URLS,
     },
     {
       "@context": "https://schema.org",

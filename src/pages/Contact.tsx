@@ -5,6 +5,7 @@ import SmartLink from "@/components/SmartLink";
 import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 import PageHero from "@/components/landing/PageHero";
 import { Mail, MapPin, Clock, ArrowUpRight, ArrowRight, Sparkles } from "lucide-react";
+import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 
 const Contact = () => {
   const jsonLd = [
@@ -32,6 +33,7 @@ const Contact = () => {
           areaServed: "DK",
         },
       ],
+      sameAs: OFFICIAL_PROFILE_URLS,
     },
     {
       "@context": "https://schema.org",
