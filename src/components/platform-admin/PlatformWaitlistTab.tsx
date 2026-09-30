@@ -123,7 +123,7 @@ export default function PlatformWaitlistTab() {
     const rows = [["email", "type", "tilmeldt", "fået besked"], ...(signups ?? []).map((s) => [
       s.email, s.role_interest, s.created_at, s.notified_at ?? "",
     ])];
-    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = rows.map((r) => r.map((v) => `"${neutralizeCsvFormula(String(v)).replace(/"/g, '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;

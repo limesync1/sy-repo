@@ -1,13 +1,22 @@
+/** Prefix values that spreadsheets would treat as formulas (=, +, -, @, tab, CR). */
+export function neutralizeCsvFormula(s: string): string {
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+}
+
+/** Escape one CSV cell: formula-neutralised, then quoted when needed. */
+export function csvCell(v: any, separators = /[",\n;]/): string {
+  if (v === null || v === undefined) return "";
+  const raw = typeof v === "string" ? v : (v instanceof Date ? v.toISOString() : typeof v === "object" ? JSON.stringify(v) : String(v));
+  const s = neutralizeCsvFormula(raw);
+  if (separators.test(s) || s !== raw) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
 // Tiny CSV exporter (RFC4180-ish, Excel-friendly with BOM)
 export function exportCsv(filename: string, rows: Record<string, any>[], headers?: string[]) {
   if (!rows.length) return;
   const cols = headers ?? Object.keys(rows[0]);
-  const escape = (v: any) => {
-    if (v === null || v === undefined) return "";
-    const s = typeof v === "string" ? v : (v instanceof Date ? v.toISOString() : String(v));
-    if (/[",\n;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-    return s;
-  };
+  const escape = (v: any) => csvCell(v);
   const csv = [
     cols.join(";"),
     ...rows.map((r) => cols.map((c) => escape(r[c])).join(";")),

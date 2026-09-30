@@ -112,10 +112,7 @@ export default function PlatformRouteErrorsTab() {
 
   const exportCsv = () => {
     const header = ["created_at", "code", "handler", "title", "message", "business_id", "route_id", "agreement_id", "actor_id"];
-    const esc = (v: any) => {
-      const s = v == null ? "" : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
+    const esc = (v: any) => csvCell(v, /[",\n]/);
     const lines = [header.join(",")];
     for (const r of filtered) {
       const { code, handler } = parseAction(r.action);
