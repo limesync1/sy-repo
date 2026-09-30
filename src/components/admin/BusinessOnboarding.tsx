@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  Building2, Loader2, Check, Sparkles, Route, Users, Calculator,
+  Building2, Loader2, Check, Sparkles, Route, Users,
   UploadCloud, ShieldCheck, ArrowRight, Mail, Lock, Search,
-  Inbox, MessageCircle, Minus, Plus, Star, Zap, Clock,
+  Minus, Plus, Star, Zap, Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import SEO from "@/components/SEO";
 import PageHero from "@/components/landing/PageHero";
 import { translateAuthError } from "@/lib/auth-errors";
 import AnimatedNumber from "@/components/admin/AnimatedNumber";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * BusinessOnboarding — én side, ingen trin.
@@ -47,22 +48,22 @@ type Pricing = {
 type FeatureKey = "accounting_integration" | "leads" | "livechat";
 type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
-const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
+const FEATURES: { key: FeatureKey; illustration: BrandedIllustrationName; title: string; description: string }[] = [
   {
     key: "accounting_integration",
-    icon: Calculator,
+    illustration: "signupAccounting",
     title: "Regnskabsintegration",
     description: "Send automatisk fakturaer til E-conomic eller Dinero, så du slipper for dobbelt indtastning. Kan slås til/fra når som helst.",
   },
   {
     key: "leads",
-    icon: Inbox,
+    illustration: "signupLeads",
     title: "Leads (Indhent 3 tilbud)",
     description: "Modtag relevante kundehenvendelser direkte i dashboardet, når kunder beder om tilbud i dit område og din kategori.",
   },
   {
     key: "livechat",
-    icon: MessageCircle,
+    illustration: "signupLivechat",
     title: "Livechat på din virksomhedsside",
     description: "Lad besøgende skrive direkte til dig på din virksomhedsside. Du svarer fra virksomhedspanelet eller fra mobilen.",
   },
@@ -460,7 +461,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 </ul>
               </div>
               <div className="grid gap-3">
-                {FEATURES.map(({ key, icon: Icon, title, description }) => {
+                {FEATURES.map(({ key, illustration, title, description }) => {
                   const active = features[key];
                   const isFree = key === "leads" || key === "livechat";
                   const price = isFree
@@ -477,10 +478,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                            : "border-border bg-card hover:border-foreground/20"
                        }`}
                     >
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                        active ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"
-                      }`}>
-                        <Icon className="h-5 w-5" />
+                       <div className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px]">
+                         <BrandedIllustration name={illustration} className="h-full w-full" alt="" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline justify-between gap-3">

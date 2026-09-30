@@ -24,6 +24,7 @@ import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/us
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
+import { Section } from "@/components/route-planner/SheetSection";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -186,21 +187,13 @@ export const RouteChecklistView = ({
           <>
             {/* Næste stop — det eneste der fylder */}
             {next && (
-              <section
-                className="overflow-hidden rounded-md border border-border bg-card shadow-sm"
-                aria-label="Næste stop"
+              <Section
+                icon={<MapPin />}
+                title="Næste stop"
+                hint={`Stop ${completed.length + 1} af ${stops.length}`}
+                tone="accent"
+                className="service-panel-card overflow-hidden"
               >
-                <div className="flex items-center gap-2 border-b border-border bg-secondary/45 px-3 py-2 text-foreground">
-                  <span
-                    className="inline-flex h-6 w-6 items-center justify-center rounded-[4px] bg-accent text-[11px] font-bold text-accent-foreground"
-                  >
-                    {completed.length + 1}
-                  </span>
-                  <span className="text-[11px] font-semibold uppercase text-muted-foreground">
-                    Næste stop
-                  </span>
-                </div>
-                <div className="p-3 sm:p-4">
                 {activeEntry && (
                   <div className="mb-3 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-3 py-2 text-success">
                     <span className="flex items-center gap-2 text-xs font-semibold"><span className="h-2 w-2 animate-pulse rounded-full bg-success" />Aftalen er startet</span>
@@ -280,8 +273,7 @@ export const RouteChecklistView = ({
                     Ruten kan først udføres på selve dagen.
                   </p>
                 )}
-                </div>
-              </section>
+              </Section>
             )}
 
             {/* Resten af dagen */}
