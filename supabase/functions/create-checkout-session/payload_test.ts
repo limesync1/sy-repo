@@ -7,7 +7,7 @@ import { buildSessionPayload } from "./index.ts";
 
 const baseInput = {
   lineItems: [{ price: "price_base_123", quantity: 1 }],
-  returnUrl: "https://example.com/return",
+  returnUrl: "https://serviceydere.dk/return",
   customerId: null,
   customerEmail: "owner@example.com",
   metadata: { businessId: "biz1" },
