@@ -4677,6 +4677,7 @@ export type Database = {
         Args: { _agreement_id: string; _until_date: string }
         Returns: number
       }
+      _is_trusted_writer: { Args: never; Returns: boolean }
       _materialize_occurrence_on_route: {
         Args: { _occurrence_id: string; _route_id: string }
         Returns: undefined
@@ -5666,6 +5667,7 @@ export type Database = {
         Args: { _stop_id: string }
         Returns: undefined
       }
+      verify_cron_token: { Args: { _token: string }; Returns: boolean }
     }
     Enums: {
       agreement_billing_model: "per_visit" | "monthly_consolidated"
