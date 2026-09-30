@@ -34,6 +34,7 @@ import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatKr } from "@/lib/commission";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { Section } from "@/components/route-planner/SheetSection";
 
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
@@ -231,8 +232,8 @@ const EmployeeStats = () => {
             <Card className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] bg-primary/10 text-primary sm:h-12 sm:w-12">
-                     <BrandedIllustration name="earnings" className="h-full w-full" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-16 sm:w-16">
+                     <BrandedIllustration name="earnings" className="h-full w-full" alt="" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -278,8 +279,8 @@ const EmployeeStats = () => {
                     index === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0",
                   )}
                 >
-                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] bg-secondary p-1">
-                     <BrandedIllustration name={icon} className="h-full w-full" />
+                   <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                     <BrandedIllustration name={icon} className="h-full w-full" alt="" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
@@ -290,17 +291,12 @@ const EmployeeStats = () => {
             </div>
 
             {/* Daglig oversigt */}
-            <Card className="service-panel-card rounded-[5px] border-border shadow-sm">
-              <CardContent className="p-0">
-                <div className="flex items-start gap-3 border-b border-border px-4 py-3 sm:px-5">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-secondary text-foreground">
-                     <BrandedIllustration name="dailyActivityTable" className="h-full w-full" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-semibold text-foreground tracking-tight">Daglig aktivitet</h3>
-                    <p className="mt-0.5 text-xs text-muted-foreground">Aftaler og indtjening fordelt på dage.</p>
-                  </div>
-                </div>
+            <Section
+              className="service-panel-card"
+              icon={<ListChecks />}
+              title="Daglig aktivitet"
+              hint="Aftaler og indtjening fordelt på dage"
+            >
                 {s.perDay.length === 0 ? (
                   <div className="p-10 text-center text-sm text-muted-foreground">
                     Ingen aktivitet i denne periode.
@@ -441,8 +437,7 @@ const EmployeeStats = () => {
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </Section>
           </>
         )}
       </PageTransition>

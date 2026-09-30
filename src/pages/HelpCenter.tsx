@@ -1,10 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, MessageSquare, Building2, BookOpen, ArrowRight, Mail, Plus, X } from "lucide-react";
+import { Search, ArrowRight, Mail, Plus, X } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import SmartLink from "@/components/SmartLink";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -15,8 +16,7 @@ interface HelpTopic {
   description: string;
   to: string;
   label: string;
-  Icon: typeof Search;
-  tone: string;
+  illustration: BrandedIllustrationName;
 }
 
 const TOPICS: HelpTopic[] = [
@@ -25,32 +25,28 @@ const TOPICS: HelpTopic[] = [
     description: "Søg blandt verificerede virksomheder eller filtrer efter kategori, by og pris.",
     to: "/virksomheder",
     label: "Gå til søgning",
-    Icon: Search,
-    tone: "bg-feature-cool text-feature-cool-foreground",
+    illustration: "helpFindProvider",
   },
   {
     title: "Indhent 3 tilbud",
     description: "Beskriv opgaven én gang og modtag uforpligtende tilbud fra op til 3 udbydere.",
     to: "/tilbud",
     label: "Start tilbudsrunde",
-    Icon: MessageSquare,
-    tone: "bg-feature-warm text-feature-warm-foreground",
+    illustration: "helpQuotes",
   },
   {
     title: "Bliv udbyder",
     description: "Opret din virksomhedsside, modtag opgaver og kom på Serviceydere i dag.",
     to: "/opret-virksomhed",
     label: "Opret virksomhed",
-    Icon: Building2,
-    tone: "bg-feature-lilac text-feature-lilac-foreground",
+    illustration: "helpBecomeProvider",
   },
   {
     title: "Guides & priser",
     description: "Læs prisguides og find gennemsnitspriser for rengøring, flytning, håndværk og have.",
     to: "/guides",
     label: "Se guides",
-    Icon: BookOpen,
-    tone: "bg-accent-soft text-accent",
+    illustration: "helpGuides",
   },
 ];
 
@@ -200,11 +196,10 @@ const HelpCenter = () => {
                 <Link
                   key={t.to}
                   to={t.to}
-                  className={`group relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-[24px] border border-border/60 p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${t.tone}`}
+                  className="group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
                 >
-                  <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-                  <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-background/70 backdrop-blur">
-                    <t.Icon className="h-5 w-5" />
+                  <div className="relative flex h-20 w-20 items-center justify-center">
+                    <BrandedIllustration name={t.illustration} className="h-full w-full" alt="" />
                   </div>
                   <div className="relative mt-6">
                     <h3 className="text-[16px] font-semibold leading-tight tracking-tight">{t.title}</h3>

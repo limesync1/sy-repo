@@ -179,3 +179,8 @@
 - [x] Vis kundeillustration efter kundetype i tabellens rækker uden profilbillede.
 - [x] Giv “Aftaler uden rute” mere brugbar bredde på mindre computerskærme.
 - [x] Kontrollér kundesiden og ruteplanlæggeren på mobil og mindre computer.
+
+## Ensartet medarbejderpanel og nye sektionsikoner
+- [x] Ensret rutekort, rutevalg, tjekliste, Statistik og detaljevisning med virksomhedspanelets design.
+- [x] Tilføj de 29 nye illustrationer og brug dem i de navngivne, læsbare sektioner.
+- [ ] Kontrollér medarbejdersider og offentlige sektioner på mobil, mindre computer og bred skærm.

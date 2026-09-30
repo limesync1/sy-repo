@@ -1,9 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Search, ArrowRight, Route, Smartphone, CalendarCheck, Receipt,
-  Users, Building2, Check, Download,
-} from "lucide-react";
+import { Search, ArrowRight, Check, Download } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
@@ -11,6 +8,7 @@ import SectionShell from "@/components/landing/SectionShell";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { BRAND_DEFINITION, BRAND_FEATURE_LIST } from "@/lib/brand";
 import { PLANNER_GUIDE_PDF_PATH } from "@/data/routePlannerFeatures";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -21,17 +19,17 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
  */
 
 const PARTS = [
-  { icon: Route, title: "Ruteplanlægger", href: "/software/ruteplanlaegger",
+  { icon: "systemRoutePlanner" as BrandedIllustrationName, title: "Ruteplanlægger", href: "/software/ruteplanlaegger",
     body: "Ugens ruter med drag & drop, stopbaseret kapacitet, faste aftaler, sygemelding og konfliktadvarsler." },
-  { icon: Smartphone, title: "Medarbejder-app", href: "/software/medarbejder-app",
+  { icon: "systemEmployeeApp" as BrandedIllustrationName, title: "Medarbejder-app", href: "/software/medarbejder-app",
     body: "Medarbejderen ser dagens rute på telefonen, starter dagen og markerer stop udført." },
-  { icon: CalendarCheck, title: "Booking og tilbud", href: "/software/booking-og-tilbud",
+  { icon: "systemBooking" as BrandedIllustrationName, title: "Booking og tilbud", href: "/software/booking-og-tilbud",
     body: "Online booking fra jeres profilside plus leads fra markedspladsen — samlet ét sted." },
-  { icon: Receipt, title: "Fakturering og regnskab", href: "/software/fakturering-og-regnskab",
+  { icon: "systemAccounting" as BrandedIllustrationName, title: "Fakturering og regnskab", href: "/software/fakturering-og-regnskab",
     body: "Fakturér udført arbejde og send det videre til E-conomic eller Dinero." },
-  { icon: Users, title: "Kunder og medarbejdere", href: "/software/funktioner",
+  { icon: "systemPeople" as BrandedIllustrationName, title: "Kunder og medarbejdere", href: "/software/funktioner",
     body: "Kundekartotek med kontaktpersoner og dokumenter, medarbejderlogin, kompetencer og provision." },
-  { icon: Building2, title: "Brancher", href: "/software/brancher",
+  { icon: "systemIndustries" as BrandedIllustrationName, title: "Brancher", href: "/software/brancher",
     body: "Samme system til rengøring, vinduespudsning, have, håndværk, flytning og autoservice." },
 ];
 
@@ -189,15 +187,14 @@ const SoftwareHub = () => {
           description="Seks dele — klik på den, der er relevant for jer."
         >
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {PARTS.map(({ icon: Icon, title, body, href }, i) => (
+            {PARTS.map(({ icon, title, body, href }) => (
               <Link
                 key={title}
                 to={href}
-                style={{ ["--part" as string]: `${Math.round((i * 137.508 + 186) % 360)}` }}
-                className="group relative flex flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-[0_22px_45px_-32px_hsl(var(--foreground)/0.4)]"
+                className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-md"
               >
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[hsl(var(--part)_70%_94%)] text-[hsl(var(--part)_60%_30%)] dark:bg-[hsl(var(--part)_45%_16%)] dark:text-[hsl(var(--part)_70%_78%)]">
-                  <Icon className="h-5 w-5" aria-hidden />
+                <span className="inline-flex h-20 w-20 items-center justify-center">
+                  <BrandedIllustration name={icon} className="h-full w-full" alt="" />
                 </span>
                 <h3 className="mt-4 flex items-center gap-1.5 text-base font-semibold tracking-tight text-foreground">
                   {title}
