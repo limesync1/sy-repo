@@ -60,7 +60,7 @@ export function TemplatesView() {
         },
       });
       if (error || !data?.sent) throw error || new Error("Modtageren kan ikke kontaktes");
-      toast.success(`Test sendt til ${sendEmail.trim()}`);
+      toast.success("Test sendt til din egen admin-e-mail");
       setSendOpen(false);
       setSendEmail("");
     } catch (e: any) {
