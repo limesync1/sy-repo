@@ -14,7 +14,7 @@ export default defineGuidePage({
     "Fra græsslåning og hækklipning til store anlæg og snerydning — find pris, firma og guide til hver haveopgave.",
   breadcrumbLabel: "Have",
   ctaCategory: "Haveservice",
-  publishedAt: "2027-03-20",
+  publishedAt: "2026-03-20",
   quickFacts: [
     <>Havemand timepris: <strong>285–625 kr./t</strong> inkl. moms</>,
     <>Græsslåning fast pris: <strong>245–850 kr./besøg</strong></>,
