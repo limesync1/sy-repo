@@ -332,23 +332,18 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <PageHeader
           title="Leads"
           description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
           action={<LeadSettingsDialog businessId={businessId} />}
         />
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-2.5 sm:grid-cols-3">
           <StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="orders" />} />
           <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" />
           <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="calendarWeek" />} />
         </div>
-
-        <LeadSourceDashboard leads={allLeads} accounts={accounts} activeAccount={accountFilter}
-          onPickAccount={(k) => { setAccountFilter((cur) => cur === k ? "all" : k); setFilter("all"); }} />
-
-        <MetaLeadsSetup businessId={businessId} />
 
         {allLeads.length === 0 ? (
           <section aria-labelledby="lead-inbox-title" className="overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
@@ -380,14 +375,21 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye leads dukker op her, og du får en e-mail, når de kommer.</div>
               );
               return (
-                <div className="grid gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Næste skridt</p>
-                  {tasks.map((t) => (
-                    <div key={t.key + t.text} className={`flex flex-col gap-2 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${t.tone}`}>
-                      <p className="text-sm font-medium text-foreground">{t.text}</p>
-                      <Button size="sm" variant="outline" className="h-9 shrink-0 bg-card" onClick={() => { setFilter(t.key); if (t.sort) setSortBy(t.sort); }}>{t.cta}</Button>
-                    </div>
-                  ))}
+                <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-3 py-2.5 sm:flex-row sm:items-center">
+                  <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:pr-1">Næste skridt</p>
+                  <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-0.5 sm:pb-0">
+                    {tasks.map((t) => (
+                      <button
+                        key={t.key + t.text}
+                        type="button"
+                        onClick={() => { setFilter(t.key); if (t.sort) setSortBy(t.sort); }}
+                        className={`flex min-w-max flex-1 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground/20 ${t.tone}`}
+                      >
+                        <span className="text-xs font-medium text-foreground">{t.text}</span>
+                        <span className="text-xs font-semibold text-foreground">{t.cta}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               );
             })()}
@@ -721,6 +723,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             )}
           </>
         )}
+
+        <div className="grid gap-5 xl:grid-cols-2 xl:items-start">
+          <LeadSourceDashboard leads={allLeads} accounts={accounts} activeAccount={accountFilter}
+            onPickAccount={(k) => { setAccountFilter((cur) => cur === k ? "all" : k); setFilter("all"); }} />
+          <MetaLeadsSetup businessId={businessId} />
+        </div>
 
         <LeadDetailDialog
           lead={openLead}

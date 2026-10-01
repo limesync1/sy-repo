@@ -18,3 +18,5 @@
 - [x] Meta-overblik: leads pr. kilde og hvor mange der bliver kunder
 - [x] Felter i auto-svar: kundens navn, service, tidspunkt, by, pris, firmanavn
 - [x] Ensartet lead-vindue og tidsvælger som Åbningstider
+- [x] Bevar Leads-designet, men flyt indbakken op og gør næste skridt og Meta-sektioner mere kompakte
+- [x] Brug de vedhæftede ikoner ved Profil, Beskeder og Konto på Indstillinger
