@@ -157,7 +157,7 @@ const ForBusinesses = () => {
                 key={f.title}
                 className={`group flex gap-3.5 p-5 transition-colors hover:bg-background sm:p-6 ${index > 0 ? "border-t border-border md:border-l md:border-t-0" : ""}`}
               >
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+                <div className="icon-tile h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                   <BrandedIllustration name={f.icon} className="h-full w-full" />
                 </div>
                 <div>

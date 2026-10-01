@@ -42,13 +42,13 @@ const HowItWorks = () => {
 
         <ol className="mt-8 grid gap-3 sm:mt-9 md:grid-cols-3 2xl:mt-14">
             {steps.map((step, i) => (
-              <li key={step.title} className="rounded-lg border border-ocean-foreground/10 bg-ocean-foreground/[0.06] p-5 xl:p-6 2xl:p-7">
+              <li key={step.title} className="rounded-xl border border-ocean-foreground/10 bg-ocean-foreground/[0.06] shadow-premium-dark p-5 xl:p-6 2xl:p-7">
                 <div className="flex items-center gap-3 md:justify-between md:gap-4">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ocean-foreground/25 text-xs font-semibold tabular-nums text-ocean-foreground">
                     {i + 1}
                   </span>
                   <h3 className="min-w-0 flex-1 text-[17px] font-semibold md:hidden">{step.title}</h3>
-                  <span className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+                  <span className="icon-tile h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                     <BrandedIllustration name={step.icon} className="h-full w-full" />
                   </span>
                 </div>
