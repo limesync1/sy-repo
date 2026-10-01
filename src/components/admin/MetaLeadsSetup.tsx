@@ -211,7 +211,12 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
         </div>
       </div>
       {connected && <p className="border-t border-border/70 pt-3 text-xs text-muted-foreground">{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} formularer er valgt` : "Alle nuværende og nye formularer modtages automatisk"}{connection.last_synced_at ? ` · Opdateret ${new Date(connection.last_synced_at).toLocaleDateString("da-DK")}` : ""}</p>}
-      {connection?.last_error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{connection.last_error}</p>}
+      {connection?.last_error && (
+        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>Meta-forbindelsen skal opdateres. Tryk på knappen og forbind igen.</span>
+        </div>
+      )}
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
           <DialogHeader className="border-b border-border px-5 pb-5 pt-6 sm:px-7">
