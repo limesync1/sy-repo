@@ -13,6 +13,7 @@ export default {
       },
     },
     extend: {
+      opacity: { 12: "0.12" },
       screens: {
         xs: "420px",
       },
