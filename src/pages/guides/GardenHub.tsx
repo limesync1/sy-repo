@@ -6,7 +6,7 @@ export default defineGuidePage({
   canonicalPath: "/guides/have",
   metaTitle: "Haveservice priser 2026 — find havehjælp & få 3 gratis tilbud | Serviceydere",
   metaDescription:
-    "Find havehjælp nær dig: se haveservice priser (græsslåning fra 245 kr., havemand fra 285 kr./t.) og få 3 gratis tilbud fra topbedømte, lokale havefirmaer.",
+    "Find havehjælp nær dig: se haveservice priser (græsslåning fra 250 kr., havemand fra 400 kr./t.) og få 3 gratis tilbud fra topbedømte, lokale havefirmaer.",
   keywords: "haveservice priser, find havehjælp, havehjælp pris, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
@@ -16,7 +16,7 @@ export default defineGuidePage({
   ctaCategory: "Haveservice",
   publishedAt: "2026-03-20",
   quickFacts: [
-    <>Havemand timepris: <strong>285–625 kr./t</strong> inkl. moms</>,
+    <>Havemand timepris: <strong>400–700 kr./t</strong> inkl. moms</>,
     <>Græsslåning fast pris: <strong>245–850 kr./besøg</strong></>,
     <>Hækklipning: <strong>23–85 kr./lbm</strong></>,
     <>BoligJob-fradrag: ja, både service- og håndværkerdel</>,
@@ -26,7 +26,7 @@ export default defineGuidePage({
     rows: [
       { label: "Græsslåning parcelhus", price: "245–595 kr.", note: "Ugentligt/14-dags" },
       { label: "Hækklipning pr. lbm", price: "23–55 kr.", note: "2× årligt" },
-      { label: "Havemand timepris", price: "285–625 kr./t", note: "Efter behov" },
+      { label: "Havemand timepris", price: "400–700 kr./t", note: "Efter behov" },
       { label: "Træfældning (mindre)", price: "2.500–8.500 kr.", note: "Engangsopgave" },
       { label: "Anlægsgartner terrasse", price: "2.495–5.495 kr./m²", note: "Engangsopgave" },
       { label: "Snerydning sæsonabonnement", price: "2.495–4.500 kr.", note: "Vinter" },
@@ -56,7 +56,7 @@ export default defineGuidePage({
     { heading: "Hvad koster de enkelte haveopgaver?", list: [
       <><strong>Græsslåning:</strong> 245–595 kr. pr. besøg for et almindeligt parcelhus — billigere med fast aftale.</>,
       <><strong>Hækklipning:</strong> 23–55 kr. pr. løbende meter afhængig af hækkens højde og tilstand.</>,
-      <><strong>Beskæring af træer og buske:</strong> typisk 285–625 kr. i timen afhængig af sværhedsgrad.</>,
+      <><strong>Beskæring af træer og buske:</strong> typisk 400–700 kr. i timen afhængig af sværhedsgrad.</>,
       <><strong>Træfældning:</strong> 2.500–8.500 kr. for mindre træer — større træer kræver altid et besøg først.</>,
       <><strong>Ny terrasse eller haveanlæg:</strong> 2.495–5.495 kr. pr. m² hos en anlægsgartner.</>,
       <><strong>Snerydning:</strong> 2.495–4.500 kr. for et sæsonabonnement på en almindelig indkørsel.</>,
@@ -85,7 +85,7 @@ export default defineGuidePage({
     ]},
   ],
   faq: [
-    { q: "Hvad er gartner priser i 2026?", a: "En havemand/gartner koster typisk 285–625 kr. i timen inkl. moms. En anlægsgartner tager ofte 450–650 kr./t eller 2.495–5.495 kr. pr. m² for terrasse og belægning. Indhent 3 gratis tilbud for at sammenligne." },
+    { q: "Hvad er gartner priser i 2026?", a: "En havemand/gartner koster typisk 400–700 kr. i timen inkl. moms. En anlægsgartner tager ofte 600–900 kr./t eller 2.495–5.495 kr. pr. m² for terrasse og belægning. Indhent 3 gratis tilbud for at sammenligne." },
     { q: "Skal jeg vælge abonnement eller engangsbesøg?", a: "Abonnement (typisk 18–24 besøg/år) er 20–30% billigere pr. besøg og giver fast personale. Engangsbesøg er bedst til specifikke opgaver." },
     { q: "Er haveservice BoligJob-fradragsberettiget?", a: "Ja — løbende haveservice falder under servicefradraget (12.300 kr./voksen). Anlæg af fx terrasse kan falde under håndværkerfradraget." },
     { q: "Hvornår skal jeg booke forårsopgaver?", a: "Marts-april. De bedste firmaer fyldes 3-4 uger frem i forårssæsonen." },
