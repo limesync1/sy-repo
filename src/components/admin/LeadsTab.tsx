@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   MapPin, Mail, Phone, Loader2, Inbox, Search, Trophy, Filter,
   Clock, XCircle,
-  Calendar, StickyNote, Bell, BellRing, MessageSquare, Activity, TrendingUp, Timer, SlidersHorizontal,
+  Calendar, StickyNote, Bell, BellRing, MessageSquare, SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -23,6 +23,7 @@ import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDetailDialog";
 import MetaLeadsSetup from "@/components/admin/MetaLeadsSetup";
 import LeadSettingsDialog from "@/components/admin/LeadSettingsDialog";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string | null };
 
@@ -270,9 +271,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         />
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<Activity />} />
-          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<TrendingUp />} tone="ok" />
-          <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<Timer />} />
+          <StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} />
+          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="conversion" />} tone="ok" />
+          <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="responseTime" />} />
         </div>
 
         <MetaLeadsSetup businessId={businessId} />

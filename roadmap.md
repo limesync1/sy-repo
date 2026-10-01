@@ -11,3 +11,4 @@
 - [x] Send en app-email til relevante valgte medarbejdere ved nye leads
 - [x] Verificér funktionerne på mobil og desktop
 - [x] Brug serviceydere.dk som fast Meta-returadresse og forklar Meta-domænefejl konkret
+- [x] Forenkle Meta Lead Ads, forbedre kildevalg og ensrette Leads-statistik og indstillinger

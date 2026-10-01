@@ -37,6 +37,10 @@
     --beige-foreground: 30 30% 22%;
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
+    --meta-facebook: 214 89% 52%;
+    --meta-instagram-start: 39 100% 51%;
+    --meta-instagram-middle: 350 92% 59%;
+    --meta-instagram-end: 270 76% 48%;
     --border: 0 0% 87%;
     --input: 0 0% 87%;
     --ring: 0 0% 13%;
@@ -102,6 +106,10 @@
     --beige-foreground: 38 45% 88%;
     --info: 217 91% 65%;
     --info-foreground: 222 47% 11%;
+    --meta-facebook: 214 89% 62%;
+    --meta-instagram-start: 39 100% 58%;
+    --meta-instagram-middle: 350 92% 66%;
+    --meta-instagram-end: 270 76% 65%;
     --border: 217 22% 22%;
     --input: 217 22% 22%;
     --ring: 184 75% 50%;
@@ -122,6 +130,10 @@
     --ocean-foreground: 195 40% 92%;
   }
 }
+
+.meta-instagram-stop-start { stop-color: hsl(var(--meta-instagram-start)); }
+.meta-instagram-stop-middle { stop-color: hsl(var(--meta-instagram-middle)); }
+.meta-instagram-stop-end { stop-color: hsl(var(--meta-instagram-end)); }
 
 @layer base {
   * {
