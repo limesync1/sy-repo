@@ -176,22 +176,6 @@ export const EmployeeShell = ({
     return <ShellSkeleton variant="employee" navigationItems={3} />;
   }
 
-  if (needsWorkspaceChoice) {
-    return (
-      <EmployeeWorkspacePicker
-        employees={myEmployeeRecords ?? []}
-        currentBusinessId={workspaceId}
-        onSelected={async (id, remember) => {
-          setRememberChoice(remember);
-          await queryClient.cancelQueries();
-          queryClient.clear();
-          setWorkspaceId(id);
-          setPickerOpen(false);
-        }}
-      />
-    );
-  }
-
   const unreadCount = unreadNotifications.length;
 
   /* ---------------- Notifikationer ---------------- */
@@ -302,7 +286,7 @@ export const EmployeeShell = ({
     <PanelShell
       storageKey="sy.sidebar.collapsed.employee"
       workspaceClassName="employee-panel-workspace isolate"
-      title={title ?? currentNav?.label}
+      title={needsWorkspaceChoice ? "Vælg arbejdsplads" : (title ?? currentNav?.label)}
       subtitle={activeBusinessName}
       contentPadding={contentPadding}
       contentClassName={contentClassName}
@@ -382,7 +366,19 @@ export const EmployeeShell = ({
       )}
       bottomNav={visibleNav.length > 1 ? <PanelBottomNav primary={bottomItems} /> : undefined}
     >
-      {children}
+      {needsWorkspaceChoice ? (
+        <EmployeeWorkspacePicker
+        employees={myEmployeeRecords ?? []}
+        currentBusinessId={workspaceId}
+        onSelected={async (id, remember) => {
+          setRememberChoice(remember);
+          await queryClient.cancelQueries();
+          queryClient.clear();
+          setWorkspaceId(id);
+          setPickerOpen(false);
+        }}
+      />
+      ) : children}
     </PanelShell>
   );
 };
