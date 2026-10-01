@@ -9,6 +9,7 @@ import { useMyEmployee } from "@/hooks/useMyEmployee";
 import EmployeeShell from "@/components/employee/EmployeeShell";
 import BusinessLiveChatTab from "@/components/admin/BusinessLiveChatTab";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { EmployeePage } from "@/components/employee/EmployeePage";
 
 const EmployeeLivechat = () => {
   const navigate = useNavigate();
@@ -30,13 +31,13 @@ const EmployeeLivechat = () => {
 
   return (
     <EmployeeShell activeTab={"livechat" as any} title="Livechat">
-      <div className="mx-auto w-full max-w-6xl">
+      <EmployeePage>
         {businessId && businessName ? (
           <BusinessLiveChatTab businessId={businessId} businessName={businessName} />
         ) : (
           <ListCardSkeleton rows={5} />
         )}
-      </div>
+      </EmployeePage>
     </EmployeeShell>
   );
 };

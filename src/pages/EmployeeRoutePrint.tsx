@@ -36,7 +36,7 @@ const EmployeeRoutePrint = () => {
           <Skeleton className="h-4 w-40" />
           <Skeleton className="ml-auto h-9 w-28 rounded-lg" />
         </div>
-        <div className="mx-auto w-full max-w-3xl space-y-3 p-4">
+        <div className="mx-auto w-full max-w-6xl space-y-3 p-3 sm:p-6">
           <Skeleton className="h-24 w-full rounded-xl" />
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-16 w-full rounded-xl" />
@@ -53,7 +53,7 @@ const EmployeeRoutePrint = () => {
   return (
     <div className="receipt-print-root min-h-screen bg-secondary/30 print:bg-background">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur print:hidden">
-        <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2.5 sm:px-5">
+         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 sm:px-6">
           <Button asChild variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-[4px]">
             <Link to="/medarbejder" aria-label="Tilbage til Min dag"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
@@ -68,7 +68,7 @@ const EmployeeRoutePrint = () => {
       </header>
 
       <section className="border-b border-border bg-card print:hidden" aria-label="Vælg indhold i kvitteringen">
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-1.5 px-3 py-2.5 sm:grid-cols-4 sm:px-5">
+         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-1.5 px-3 py-2.5 sm:grid-cols-4 sm:px-6">
           <PrintOption icon={<StickyNote />} label="Noter" active={showNotes} onClick={() => updateOption("notes", showNotes ? "0" : "1")} />
           <PrintOption icon={<Contact />} label="Kontakt" active={showContact} onClick={() => updateOption("contact", showContact ? "0" : "1")} />
           <PrintOption icon={<FileText />} label="Aftaler" active={showTasks} onClick={() => updateOption("tasks", showTasks ? "0" : "1")} />
@@ -76,7 +76,7 @@ const EmployeeRoutePrint = () => {
         </div>
       </section>
 
-      <main className="mx-auto max-w-5xl p-2.5 sm:p-6 print:max-w-none print:p-0">
+       <main className="mx-auto max-w-6xl p-2.5 sm:p-6 print:max-w-none print:p-0">
         <RouteReceiptDocument data={data} showNotes={showNotes} showContact={showContact} showTasks={showTasks} compact={compact} />
       </main>
 

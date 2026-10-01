@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
-import { PageTransition } from "@/components/admin/shared/PageTransition";
+import { EmployeePage } from "@/components/employee/EmployeePage";
 import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
@@ -135,7 +135,7 @@ const EmployeeStats = () => {
   if (loading) {
     return (
       <EmployeeShell activeTab="stats" title="Statistik">
-        <div className="space-y-4"><StatsSkeleton /></div>
+        <EmployeePage><StatsSkeleton /></EmployeePage>
       </EmployeeShell>
     );
   }
@@ -213,7 +213,7 @@ const EmployeeStats = () => {
     <EmployeeShell activeTab="stats" title="Statistik">
       {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
           guidede frem for at "blinke" pludseligt. */}
-      <PageTransition transitionKey={`${range}|${from}|${to}`} className="mx-auto w-full max-w-6xl space-y-3 sm:space-y-5">
+      <EmployeePage transitionKey={`${range}|${from}|${to}`}>
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -440,7 +440,7 @@ const EmployeeStats = () => {
             </Section>
           </>
         )}
-      </PageTransition>
+      </EmployeePage>
       <StopDetailsSheetById
         open={!!detailStopId}
         onOpenChange={(open) => { if (!open) setDetailStopId(null); }}

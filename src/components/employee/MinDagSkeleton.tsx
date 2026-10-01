@@ -4,9 +4,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 /** Én fælles silhuet for "Min dag" — samme form under hele indlæsningen. */
 export function MinDagSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-2" aria-busy="true" aria-label="Indlæser">
+    <div className="grid gap-3 sm:gap-4 lg:grid-cols-2" aria-busy="true" aria-label="Indlæser">
       {[0, 1].map((i) => (
-        <Card key={i} className="overflow-hidden rounded-[5px] border-border/80 shadow-sm">
+        <Card key={i} className="service-panel-card overflow-hidden rounded-[5px] border-border shadow-sm">
           <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
             <Skeleton className="h-7 w-7 rounded-[4px]" />
             <div className="min-w-0 flex-1 space-y-2">
