@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Settings2, X, Loader2, Check, Plus } from "lucide-react";
+import { Settings2, X, Loader2, Check, Plus, Mail, Users, BriefcaseBusiness, MapPin, MessageSquare } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,46 +135,52 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2"><Settings2 className="h-4 w-4" />Indstillinger</Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Lead-indstillinger</DialogTitle>
+      <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
+        <DialogHeader className="border-b border-border px-5 pb-5 pt-6 sm:px-7">
+          <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-foreground"><Settings2 className="h-5 w-5" /></span>
+          <DialogTitle className="text-xl sm:text-2xl">Lead-indstillinger</DialogTitle>
           <DialogDescription>Styr hvilke leads du modtager, og hvem der får besked.</DialogDescription>
         </DialogHeader>
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>
         ) : (
-          <div className="space-y-5">
-            <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+          <div className="space-y-6 px-5 py-5 sm:px-7">
+            <section className="space-y-3">
+              <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /><h3 className="text-sm font-semibold text-foreground">Beskeder om nye leads</h3></div>
+              <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-4">
               <div>
                 <Label>E-mail ved ny lead</Label>
                 <p className="text-xs text-muted-foreground">Sendes til {ownerEmail || "virksomhedens e-mail"} når en ny lead kommer ind.</p>
               </div>
               <Switch checked={s.lead_emails} onCheckedChange={(v) => setS({ ...s, lead_emails: v })} />
-            </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Medarbejdere, der skal have nye leads</Label>
-              <p className="text-xs text-muted-foreground">Virksomhedens e-mail får altid besked. Vælg de medarbejdere, der også automatisk skal have leadets oplysninger på e-mail (maks. 5).</p>
+              <div className="space-y-2 rounded-md border border-border bg-card p-4">
+              <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" /><Label>Ekstra modtagere</Label></div>
+              <p className="text-xs text-muted-foreground">Vælg medarbejdere eller tilføj e-mails. Du kan vælge op til 5.</p>
               {staff.filter((m) => m.email !== ownerEmail).length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {staff.filter((m) => m.email !== ownerEmail).map((m) => {
                     const on = s.lead_recipients.includes(m.email);
                     return (
-                      <button key={m.email} type="button" aria-pressed={on}
+                      <Button key={m.email} type="button" aria-pressed={on} variant={on ? "default" : "outline"} size="sm"
                         onClick={() => setS({ ...s, lead_recipients: on ? s.lead_recipients.filter((x) => x !== m.email) : [...s.lead_recipients, m.email].slice(0, 5) })}
-                        className={`inline-flex min-h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${on ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:bg-secondary"}`}>
+                        className="h-9 gap-1.5 text-xs">
                         {on ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}{m.name}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
               )}
               <ChipInput values={s.lead_recipients} validate={emailOk} placeholder="anden@firma.dk"
                 onChange={(v) => setS({ ...s, lead_recipients: v.slice(0, 5) })} />
-            </div>
+              </div>
+            </section>
 
-            <div className="space-y-2">
-              <Label>Brancher du vil have leads fra</Label>
+            <section className="space-y-3">
+              <div className="flex items-center gap-2"><BriefcaseBusiness className="h-4 w-4 text-muted-foreground" /><h3 className="text-sm font-semibold text-foreground">Hvilke leads vil du modtage?</h3></div>
+              <div className="space-y-2 rounded-md border border-border bg-card p-4">
+              <Label>Brancher</Label>
               <p className="text-xs text-muted-foreground">
                 {ownCategories.length ? "Foreslået ud fra jeres egne services. Tryk for at slå til eller fra. Ingen valgt = alle jeres brancher." : "Opret services, så foreslår vi automatisk jeres brancher."}
               </p>
@@ -182,43 +188,44 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                 {[...new Set([...ownCategories, ...s.lead_categories])].map((c) => {
                   const on = s.lead_categories.length === 0 || s.lead_categories.includes(c);
                   return (
-                    <button key={c} type="button" aria-pressed={on}
+                    <Button key={c} type="button" aria-pressed={on} variant={on ? "default" : "outline"} size="sm"
                       onClick={() => {
                         const base = s.lead_categories.length === 0 ? [...ownCategories] : s.lead_categories;
                         const next = on ? base.filter((x) => x !== c) : [...base, c];
                         setS({ ...s, lead_categories: next.length === ownCategories.length && ownCategories.every((x) => next.includes(x)) ? [] : next });
                       }}
-                      className={`inline-flex min-h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:bg-secondary"}`}>
+                      className="h-9 gap-1.5 text-xs">
                       {on ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}{c}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
-            </div>
+              </div>
 
-            <div className="space-y-2">
+              <div className="space-y-3 rounded-md border border-border bg-card p-4">
               <div className="flex items-center justify-between">
-                <Label>Maks. afstand fra jeres adresse</Label>
+                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /><Label>Maks. afstand</Label></div>
                 <span className="text-sm font-semibold tabular-nums">{s.lead_max_km ? `${s.lead_max_km} km` : "Hele landet"}</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
                 {DISTANCE_PRESETS.map((p) => (
-                  <button key={p.label} type="button" onClick={() => setS({ ...s, lead_max_km: p.km })}
-                    className={`min-h-11 rounded-md border px-2 py-1.5 text-left text-xs transition-colors ${s.lead_max_km === p.km ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:bg-secondary"}`}>
+                  <Button key={p.label} type="button" variant={s.lead_max_km === p.km ? "default" : "outline"} onClick={() => setS({ ...s, lead_max_km: p.km })}
+                    className="h-auto min-h-11 justify-start px-2 py-1.5 text-left text-xs">
                     <span className="block font-semibold">{p.label}</span>
                     <span className="block opacity-75">{p.hint}</span>
-                  </button>
+                  </Button>
                 ))}
               </div>
               <Slider min={5} max={200} step={5} value={[s.lead_max_km ?? 200]}
                 onValueChange={([v]) => setS({ ...s, lead_max_km: v >= 200 ? null : v })} aria-label="Maks. afstand i km" />
-            </div>
+              </div>
+            </section>
 
-            <div className="space-y-3 rounded-md border border-border p-3">
+            <section className="space-y-3 rounded-md border border-border bg-card p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Label>Hold kunden automatisk opdateret</Label>
-                  <p className="text-xs text-muted-foreground">Kunden får straks en personlig e-mail med den valgte tekst samt forespørgslens kategori, prisestimat og aktuelle status. Senere statusændringer sendes fra leadet.</p>
+                  <div className="flex items-center gap-2"><MessageSquare className="h-4 w-4 text-muted-foreground" /><Label>Automatisk svar til kunden</Label></div>
+                  <p className="mt-1 text-xs text-muted-foreground">Send din valgte besked med det samme, når et nyt lead kommer ind.</p>
                 </div>
                 <Switch checked={s.lead_auto_reply} onCheckedChange={(v) => setS({ ...s, lead_auto_reply: v })} />
               </div>
@@ -239,10 +246,10 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                   </div>
                 </>
               )}
-            </div>
+            </section>
           </div>
         )}
-        <DialogFooter>
+        <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
           <Button variant="outline" onClick={() => setOpen(false)}>Annuller</Button>
           <Button onClick={save} disabled={saving || loading}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Gem</Button>
         </DialogFooter>

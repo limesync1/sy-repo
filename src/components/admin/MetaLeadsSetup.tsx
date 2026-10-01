@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, ArrowRight, Building2, Check, CheckCircle2, ExternalLink, Facebook, FileText, Loader2, RefreshCw, Settings2, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Check, ExternalLink, FileText, Loader2, RefreshCw, Settings2, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,8 +11,10 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { FacebookBrandIcon, InstagramBrandIcon } from "@/components/shared/MetaBrandIcons";
+import workplaceIcon from "@/assets/panel-illustrations/vaelg-arbejdsplads.svg.asset.json";
 
-type MetaPage = { id: string; name: string; instagramName: string | null; forms: Array<{ id: string; name: string; status?: string }> };
+type MetaPage = { id: string; name: string; pictureUrl: string | null; instagramName: string | null; forms: Array<{ id: string; name: string; status?: string }> };
 
 type MetaConnection = {
   status: "disconnected" | "pending" | "connected" | "expired" | "error";
@@ -177,23 +179,28 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
 
   const selectedPage = pages.find((page) => page.id === pageId);
   const selectedForms = selectedPage?.forms.filter((form) => formIds.includes(form.id)) ?? [];
-  const primaryLabel = connected ? "Administrér forbindelse" : connection?.status === "pending" ? "Vælg side og formularer" : "Forbind Meta-konto";
+  const primaryLabel = connected ? "Redigér forbindelse" : connection?.status === "pending" ? "Vælg dine kilder" : "Forbind Meta";
 
   return (
     <SectionCard
-      title="Meta Lead Ads"
-      icon={<Facebook />}
-      description="Få nye henvendelser fra Facebook og Instagram direkte ind i din leadindbakke."
+      title="Meta Lead Ads og måling"
+      icon={<FacebookBrandIcon />}
+      description={connected ? "Nye leads fra dine valgte Meta-kilder lander automatisk i indbakken." : "Forbind Facebook og Instagram, så nye annonce-leads lander direkte i indbakken."}
       className="overflow-hidden border-border/80 shadow-premium"
       action={<Badge variant={connected ? "default" : "secondary"} className="gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-primary-foreground" : "bg-muted-foreground"}`} />{statusLabel[connection?.status ?? "disconnected"]}</Badge>}
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-        <div className="grid gap-0 sm:grid-cols-3">
-          <SetupStep number="1" label="Forbind konto" detail={connection ? "Konto godkendt" : "Log sikkert ind hos Meta"} done={!!connection} active={!connection} />
-          <SetupStep number="2" label="Vælg side" detail={connection?.page_name || "Facebook-side og formularer"} done={connected} active={connection?.status === "pending"} />
-          <SetupStep number="3" label="Modtag leads" detail={connected ? "Automatisk import er aktiv" : "Leads lander i indbakken"} done={connected} active={false} last />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex -space-x-1.5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card shadow-sm"><FacebookBrandIcon className="h-6 w-6" /></span>
+            <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card shadow-sm"><InstagramBrandIcon className="h-6 w-6" /></span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">{connected ? connection.page_name : connection?.status === "pending" ? "Kontoen er forbundet" : "Facebook og Instagram"}</p>
+            <p className="truncate text-xs text-muted-foreground">{connected ? (connection.instagram_account_name ? `Facebook · Instagram @${connection.instagram_account_name}` : "Facebook · tilføj Instagram via Meta") : connection?.status === "pending" ? "Vælg nu side, Instagram og formularer" : "Ét login forbinder dine Meta Lead Ads"}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           <Button type="button" variant="ghost" size="icon" onClick={() => refetch()} disabled={isFetching} aria-label="Opdatér Meta-status" title="Opdatér Meta-status">
             <RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           </Button>
@@ -203,24 +210,17 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
           </Button>
         </div>
       </div>
-      {connected && (
-        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border/70 pt-4 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5"><Facebook className="h-3.5 w-3.5" />{connection.page_name}</span>
-          {connection.instagram_account_name && <span>Instagram: @{connection.instagram_account_name}</span>}
-          <span>{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} valgte formularer` : "Alle formularer"}</span>
-          {connection.last_synced_at && <span>Senest synkroniseret {new Date(connection.last_synced_at).toLocaleString("da-DK")}</span>}
-        </div>
-      )}
+      {connected && <p className="border-t border-border/70 pt-3 text-xs text-muted-foreground">{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} formularer er valgt` : "Alle nuværende og nye formularer modtages automatisk"}{connection.last_synced_at ? ` · Opdateret ${new Date(connection.last_synced_at).toLocaleDateString("da-DK")}` : ""}</p>}
       {connection?.last_error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{connection.last_error}</p>}
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
           <DialogHeader className="border-b border-border px-5 pb-5 pt-6 sm:px-7">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary"><Facebook className="h-4 w-4" /></span>
-              Meta Lead Ads
+            <div className="mb-2 flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card"><FacebookBrandIcon className="h-5 w-5" /></span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card"><InstagramBrandIcon className="h-5 w-5" /></span>
             </div>
             <DialogTitle className="text-xl sm:text-2xl">Vælg hvor leads kommer fra</DialogTitle>
-            <DialogDescription className="max-w-xl">Vælg den Facebook-side og de formularer, som skal sende nye kundehenvendelser til Serviceydere.</DialogDescription>
+            <DialogDescription className="max-w-xl">Vælg virksomhedens Meta-side. En tilknyttet Instagram-konto og dens Lead Ads følger automatisk med.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 px-5 py-5 sm:px-7">
             {pages.length === 0 ? (
@@ -228,19 +228,24 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
             ) : (
               <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                 <div className="space-y-3">
-                  <div><p className="text-sm font-semibold text-foreground">1. Vælg Facebook-side</p><p className="text-xs text-muted-foreground">Siden skal tilhøre den virksomhed, der modtager leads.</p></div>
+                  <div><p className="text-sm font-semibold text-foreground">Virksomhed på Meta</p><p className="text-xs text-muted-foreground">Vælg siden, som annoncerne tilhører.</p></div>
                   <RadioGroup value={pageId} onValueChange={(value) => { setPageId(value); setFormIds([]); }} className="space-y-2">
                 {pages.map((page) => (
                   <Label key={page.id} htmlFor={`meta-page-${page.id}`} className={`flex cursor-pointer items-center gap-3 rounded-md border p-3.5 transition-colors ${pageId === page.id ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-secondary/40"}`}>
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${pageId === page.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}><Building2 className="h-5 w-5" /></span>
-                    <span className="min-w-0 flex-1"><span className="block truncate font-semibold text-foreground">{page.name}</span><span className="block truncate text-xs text-muted-foreground">{page.instagramName ? `Instagram: @${page.instagramName}` : "Facebook-side"}</span></span>
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card">
+                      <img src={page.pictureUrl || workplaceIcon.url} alt="" className="h-full w-full object-contain p-1" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-foreground">{page.name}</span>
+                      <span className="mt-1 flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><FacebookBrandIcon className="h-3.5 w-3.5" /><span>Facebook</span>{page.instagramName && <><span>·</span><InstagramBrandIcon className="h-3.5 w-3.5" /><span className="truncate">@{page.instagramName}</span></>}</span>
+                    </span>
                     <RadioGroupItem id={`meta-page-${page.id}`} value={page.id} />
                   </Label>
                 ))}
                   </RadioGroup>
                 </div>
                 <div className="space-y-3">
-                  <div><p className="text-sm font-semibold text-foreground">2. Vælg formularer</p><p className="text-xs text-muted-foreground">Lad alle være fravalgt for automatisk at modtage fra alle formularer.</p></div>
+                  <div><p className="text-sm font-semibold text-foreground">Leadformularer</p><p className="text-xs text-muted-foreground">Vælg bestemte formularer, eller lad feltet være tomt for at modtage fra alle.</p></div>
                   {!selectedPage ? (
                     <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">Vælg først en Facebook-side</div>
                   ) : selectedPage.forms.length === 0 ? (
@@ -263,13 +268,13 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
             {selectedPage && (
               <div className="flex items-start gap-3 rounded-md bg-secondary/50 px-4 py-3">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                <div className="text-xs"><p className="font-semibold text-foreground">Klar til automatisk import</p><p className="mt-0.5 text-muted-foreground">Nye leads fra <span className="font-medium text-foreground">{selectedPage.name}</span> og {selectedForms.length ? `${selectedForms.length} valgte formular${selectedForms.length === 1 ? "" : "er"}` : "alle nuværende og fremtidige formularer"} oprettes i leadindbakken.</p></div>
+                <div className="text-xs"><p className="font-semibold text-foreground">Klar til at modtage leads</p><p className="mt-0.5 text-muted-foreground">{selectedPage.name}{selectedPage.instagramName ? ` og Instagram @${selectedPage.instagramName}` : ""} sender fra {selectedForms.length ? `${selectedForms.length} valgte formular${selectedForms.length === 1 ? "" : "er"}` : "alle formularer"}.</p></div>
               </div>
             )}
           </div>
           <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
             <Button variant="outline" onClick={() => setSetupOpen(false)}>Annuller</Button>
-            <Button onClick={saveConnection} disabled={!pageId || saving} className="gap-2">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Aktivér automatisk import</Button>
+            <Button onClick={saveConnection} disabled={!pageId || saving} className="gap-2">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Gem leadkilder</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -290,15 +295,5 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
     </SectionCard>
   );
 };
-
-const SetupStep = ({ number, label, detail, done, active, last = false }: { number: string; label: string; detail: string; done: boolean; active: boolean; last?: boolean }) => (
-  <div className="relative flex gap-3 pb-4 last:pb-0 sm:pb-0 sm:pr-7">
-    {!last && <span className="absolute bottom-0 left-4 top-9 w-px bg-border sm:bottom-auto sm:left-9 sm:right-1 sm:top-4 sm:h-px sm:w-auto" />}
-    <span className={`relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold ${done ? "bg-success text-success-foreground" : active ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
-      {done ? <CheckCircle2 className="h-4 w-4" /> : number}
-    </span>
-    <div className="min-w-0 pt-0.5"><p className="text-sm font-semibold text-foreground">{label}</p><p className="mt-0.5 truncate text-xs text-muted-foreground">{detail}</p></div>
-  </div>
-);
 
 export default MetaLeadsSetup;
