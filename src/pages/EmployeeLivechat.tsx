@@ -30,11 +30,13 @@ const EmployeeLivechat = () => {
 
   return (
     <EmployeeShell activeTab={"livechat" as any} title="Livechat">
-      {businessId && businessName ? (
-        <BusinessLiveChatTab businessId={businessId} businessName={businessName} />
-      ) : (
-        <ListCardSkeleton rows={5} />
-      )}
+      <div className="mx-auto w-full max-w-6xl">
+        {businessId && businessName ? (
+          <BusinessLiveChatTab businessId={businessId} businessName={businessName} />
+        ) : (
+          <ListCardSkeleton rows={5} />
+        )}
+      </div>
     </EmployeeShell>
   );
 };

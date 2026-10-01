@@ -434,6 +434,7 @@ export type EmployeeWorkday = {
   started_at: string;
   ended_at: string | null;
   duration_minutes: number | null;
+  accumulated_seconds: number;
 };
 
 /** Hent dagens åbne arbejdsdag for den loggede medarbejder. */
@@ -470,30 +471,48 @@ export const useStartWorkday = () => {
       if (!user.user) throw new Error("Ikke logget ind");
       if (!employeeId) throw new Error("Du er ikke registreret som medarbejder");
 
+      const { data: existing, error: readError } = await supabase
+        .from("employee_workdays")
+        .select("*")
+        .eq("employee_id", employeeId)
+        .eq("workday_date", date)
+        .maybeSingle();
+      if (readError) throw readError;
+
+      const now = new Date().toISOString();
+      const previousSeconds = existing?.ended_at
+        ? Math.max(0, Math.floor((new Date(existing.ended_at).getTime() - new Date(existing.started_at).getTime()) / 1000))
+        : 0;
+      const accumulatedSeconds = Math.max(0, Number(existing?.accumulated_seconds || 0)) + previousSeconds;
+
       const { data, error } = await supabase
         .from("employee_workdays")
         .upsert(
           {
             employee_id: employeeId,
             workday_date: date,
-            started_at: new Date().toISOString(),
+            started_at: now,
             ended_at: null,
+            accumulated_seconds: accumulatedSeconds,
           },
           { onConflict: "employee_id,workday_date" },
         )
         .select("*")
         .single();
       if (error) throw error;
-      return data as EmployeeWorkday;
+      return { workday: data as EmployeeWorkday, restarted: Boolean(existing?.ended_at) };
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["my-workday"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
       // Tydelig bekræftelse med præcist tidsstempel — så medarbejderen
       // altid ved hvad der er registreret.
-      const startedAt = data?.started_at ? new Date(data.started_at) : new Date();
+      const startedAt = data.workday?.started_at ? new Date(data.workday.started_at) : new Date();
        const time = startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      toast.success("Arbejdsdag startet", {
-        description: `Tidsregistrering begyndte kl. ${time}.`,
+      toast.success(data.restarted ? "Arbejdsdag genstartet" : "Arbejdsdag startet", {
+        description: data.restarted
+          ? `Ny aktiv periode begyndte kl. ${time}. Tidligere registreringer er bevaret.`
+          : `Tidsregistrering begyndte kl. ${time}.`,
       });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte arbejdsdag" }),
@@ -524,7 +543,9 @@ export const useEndWorkday = () => {
       const endedAt = data?.ended_at ? new Date(data.ended_at) : new Date();
       const startedAt = data?.started_at ? new Date(data.started_at) : null;
        const endTime = endedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-       const durationSec = startedAt ? Math.max(0, Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000)) : null;
+       const durationSec = startedAt
+         ? Math.max(0, Number(data?.accumulated_seconds || 0)) + Math.max(0, Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000))
+         : null;
       const startTime = startedAt
          ? startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
         : null;

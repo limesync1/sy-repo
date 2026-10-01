@@ -35,6 +35,7 @@ import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -211,9 +212,9 @@ const EmployeeApp = () => {
     const timer = window.setInterval(() => setWorkdayNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [dayStarted, workday?.started_at]);
-  const actualWorkSeconds = workday?.started_at
+  const actualWorkSeconds = Math.max(0, Number(workday?.accumulated_seconds || 0)) + (workday?.started_at
     ? Math.max(0, Math.floor(((workday.ended_at ? new Date(workday.ended_at).getTime() : workdayNow) - new Date(workday.started_at).getTime()) / 1000))
-    : 0;
+    : 0);
 
   // Date navigator — kompakt, klar visuel struktur:
   //  [‹]  [📅 dato (popover)]  [›]   [Gå til i dag?]
@@ -299,13 +300,10 @@ const EmployeeApp = () => {
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
       <PageTransition transitionKey={date} className="employee-day mx-auto w-full max-w-6xl space-y-3 sm:space-y-4">
-        <section className="flex flex-col gap-3 rounded-[5px] border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase text-accent">Min dag</p>
-            <h2 className="mt-0.5 truncate text-xl font-semibold capitalize text-foreground">
-              {format(dateObj, "EEEE d. MMMM", { locale: da })}
-            </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <PageHeader
+          title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
+          description={(
+            <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">{completedStops}/{totalStops} stop</span>
               <span aria-hidden>·</span>
               <span>{routes.length === 1 ? "1 rute" : `${routes.length} ruter`}</span>
@@ -319,10 +317,10 @@ const EmployeeApp = () => {
                   {formatWorkDuration(actualWorkSeconds)}
                 </span>
               )}
-            </div>
-          </div>
-          <div className="w-full sm:w-auto">{dateNav}</div>
-        </section>
+            </span>
+          )}
+          action={dateNav}
+        />
 
         {/* ─────────── Smart "Næste skridt" forslag ───────────
             Foreslår medarbejderen den mest logiske handling lige nu —
@@ -383,24 +381,21 @@ const EmployeeApp = () => {
               description: "Stop dagen, når du er færdig — så registreres din arbejdsdag korrekt.",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
-          } else if (dayEnded && routes.length > 0) {
-            // Hvis der er kommet nye, ikke-udførte stop ind på en rute efter
-            // medarbejderen har afsluttet dagen → tilbyd at genoptage dagen,
-            // så ruten ikke bliver "låst" med pending besøg.
+          } else if (dayEnded) {
             const pendingAfterEnd = totalStops > 0 && completedStops < totalStops;
             if (pendingAfterEnd) {
               suggestion = {
                 tone: "primary",
                 title: "Nye stop er kommet til ruten",
                 description: `Der er ${totalStops - completedStops} stop tilbage. Genoptag arbejdsdagen for at fortsætte tidsregistreringen.`,
-                cta: { label: "Genoptag dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
+                cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             } else {
               suggestion = {
-              tone: "calm",
-              title: "Dagen er afsluttet",
-              description: "Du kan udskrive en kvittering for dagens ruter til arkivet.",
-              cta: { label: "Vis kvittering", icon: Eye, onClick: () => setPreviewRouteId(sortedRoutes[0].id) },
+                tone: "calm",
+                title: "Dagen er afsluttet",
+                description: "Genstart dagen, hvis du skal arbejde videre. Udførte aftaler og registreret tid bevares.",
+                cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             }
           }
@@ -440,6 +435,7 @@ const EmployeeApp = () => {
                 <Button
                   asChild={!!Cta.to}
                   onClick={Cta.onClick}
+                  disabled={startDay.isPending || endDay.isPending}
                   size="lg"
                   className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-[4px] bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
