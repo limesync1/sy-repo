@@ -128,7 +128,7 @@ export const RouteChecklistView = ({
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[15px] font-semibold leading-tight text-foreground">{routeName}</h1>
             <p className="text-xs tabular-nums text-muted-foreground">
-              {completed.length} af {stops.length} stops udført
+              {completed.length} af {stops.length} stop udført
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
@@ -257,6 +257,8 @@ export const RouteChecklistView = ({
                       )}
                     </div>
                     {!nextIsStarted && (
+                      <details className="group rounded-md text-center">
+                      <summary className="cursor-pointer list-none py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Flere muligheder</summary>
                       <Button
                         variant="ghost"
                         className="h-10 w-full gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -266,6 +268,7 @@ export const RouteChecklistView = ({
                         {pendingId === next.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                         Markér som udført uden tidsregistrering
                       </Button>
+                      </details>
                     )}
                   </div>
                   {locked && (

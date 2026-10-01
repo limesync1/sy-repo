@@ -1816,7 +1816,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <div className="min-w-0 flex-1 border-l border-border pl-3">
                   <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{route.name || "Dagens rute"}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-[10px] font-medium text-muted-foreground">
-                    <span className="tabular-nums">{completedCount} af {sortedStops.length} stops udført</span>
+                    <span className="tabular-nums">{completedCount} af {sortedStops.length} stop udført</span>
                   </p>
                 </div>
                 <Button
@@ -2113,16 +2113,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </Button>
                   )}
                   <Button
-                    onClick={() => handleNavigate(nextStop)}
+                    onClick={async () => {
+                      if (activeNextStopEntry || isAtNextStop) { handleNavigate(nextStop); return; }
+                      if (!meEmp?.id) return;
+                      try { await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: meEmp.id }); buzz(22); toast.success("Aftale startet"); }
+                      catch { toast.error("Aftalen kunne ikke startes", { description: "Tjek din forbindelse og prøv igen." }); }
+                    }}
                     variant="outline"
                     size="sm"
-                    aria-label="Åbn i Maps"
-                    className="h-11 w-11 p-0 rounded-md border-border hover:bg-secondary"
+                    disabled={!activeNextStopEntry && !isAtNextStop && (routeDateLocked || startStopTime.isPending)}
+                    aria-label={activeNextStopEntry || isAtNextStop ? "Åbn i Maps" : "Jeg er fremme – start aftale"}
+                    title={activeNextStopEntry || isAtNextStop ? "Åbn i Maps" : "Jeg er fremme – start aftale"}
+                    className="h-12 w-12 p-0 rounded-md border-border hover:bg-secondary"
                   >
-                    <Navigation className="h-4 w-4" />
+                    {activeNextStopEntry || isAtNextStop ? <Navigation className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
                   {nextStop.customer_phone ? (
-                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 p-0 rounded-md border-border hover:bg-secondary">
+                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-12 w-12 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
                         <Phone className="h-4 w-4" />
                       </a>

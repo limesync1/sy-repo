@@ -477,7 +477,7 @@ const SortableStopRow = ({
           )}
 
           {/* Konsistent badge-række — alle h-5, samme padding og tekststørrelse. */}
-          <div className="hidden items-center gap-1.5 flex-wrap pt-0.5 sm:flex">
+          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
             <IntervalBadge interval={stop.agreement_interval} size="sm" />
             {(() => {
               const label = formatCycleLabel({
