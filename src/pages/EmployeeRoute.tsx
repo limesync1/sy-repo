@@ -45,7 +45,7 @@ import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components
 import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
-import { ArrowUp, ArrowDown, Zap } from "lucide-react";
+import { ArrowUp, ArrowDown, Zap, Play } from "lucide-react";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({

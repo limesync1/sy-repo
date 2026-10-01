@@ -783,7 +783,7 @@ const EmployeeApp = () => {
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
-                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute</>
+                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute · stop {Math.min(done + 1, total)} af {total}</>
                         ) : (
                           <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
                         )}
