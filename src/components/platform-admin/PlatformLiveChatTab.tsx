@@ -16,6 +16,7 @@ import {
   type Conversation, type Message, type Filter, type SortMode,
   CANNED_KEY, DEFAULT_CATEGORIES,
 } from "./livechat/shared";
+import LiveChatStats from "@/components/livechat/LiveChatStats";
 
 const DEFAULT_CANNED: CannedResponse[] = [
   { id: "greeting", title: "Velkomst", category: "Velkomst", body: "Hej {name} 👋\n\nTusind tak for din henvendelse! Hvordan kan jeg hjælpe dig?" },
@@ -55,6 +56,7 @@ const PlatformLiveChatTab = () => {
   const [snoozes, setSnoozes] = useState<Record<string, string>>(() => getActiveSnoozes());
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Array<{ rating: string }>>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,6 +99,12 @@ const PlatformLiveChatTab = () => {
       if (data?.display_name) setAdminName(data.display_name);
     });
   }, [user]);
+
+  useEffect(() => {
+    supabase.from("chat_message_feedback").select("rating").limit(1000).then(({ data }) => {
+      if (data) setFeedback(data as Array<{ rating: string }>);
+    });
+  }, []);
 
   // Conversation list with realtime + sound on new visitor message
   useEffect(() => {
@@ -465,7 +473,9 @@ const PlatformLiveChatTab = () => {
     messages[messages.length - 1].sender_type === "visitor";
 
   return (
-    <div className="grid h-[calc(100vh-9rem)] grid-cols-1 gap-3 lg:grid-cols-[340px_1fr_300px]">
+    <div className="space-y-4">
+      <LiveChatStats conversations={conversations} feedback={feedback} />
+      <div className="grid h-[calc(100vh-16rem)] min-h-[34rem] grid-cols-1 gap-3 lg:grid-cols-[340px_1fr_300px]">
       <InboxList
         searchRef={searchRef}
         search={search} onSearch={setSearch}
@@ -576,6 +586,7 @@ const PlatformLiveChatTab = () => {
           activeVisitorFirstName={active ? (active.visitor_name.split(" ")[0] || active.visitor_name) : null}
         />
       )}
+      </div>
     </div>
   );
 };

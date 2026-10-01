@@ -1003,10 +1003,10 @@ const ServiceForm = ({
 
   const totalSteps = 4;
   const FORM_STEPS = [
-    { num: 1, label: "Kategori", color: "bg-blue-500" },
-    { num: 2, label: "Detaljer", color: "bg-violet-500" },
-    { num: 3, label: "Pris", color: "bg-emerald-500" },
-    { num: 4, label: "Interval", color: "bg-cyan-500" },
+    { num: 1, label: "Kategori" },
+    { num: 2, label: "Detaljer" },
+    { num: 3, label: "Pris" },
+    { num: 4, label: "Interval" },
   ];
 
   const blankStep = (sortOrder: number) => ({
@@ -1428,9 +1428,9 @@ const ServiceForm = ({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { value: "fast_pris", label: "Specifik pris", desc: "Kunden betaler én specifik pris for hele servicen", icon: "💰" },
-              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. registreret time på aftalen", icon: "⏱️" },
-              { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
+              { value: "fast_pris", label: "Specifik pris", desc: "Kunden betaler én specifik pris for hele servicen", illustration: "fixedPrice" as const },
+              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. registreret time på aftalen", illustration: "hourlyPrice" as const },
+              { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", illustration: "calculator" as const },
             ].map((opt) => (
               <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
                 className={`rounded-xl border p-5 text-left transition-colors ${
@@ -1438,7 +1438,7 @@ const ServiceForm = ({
                     ? "border-border bg-secondary"
                     : "border-border bg-card hover:bg-secondary"
                 }`}>
-                <span className="text-2xl">{opt.icon}</span>
+                <BrandedIllustration name={opt.illustration} className="h-12 w-12" />
                 <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
                 <span className="mt-1 block text-sm text-muted-foreground leading-snug">{opt.desc}</span>
               </button>
@@ -1487,8 +1487,8 @@ const ServiceForm = ({
                     disabled={aiTemplateLoading || !name.trim()}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-foreground/40 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                      {aiTemplateLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary p-1">
+                      {aiTemplateLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrandedIllustration name="aiCalculator" className="h-full w-full" />}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground">
@@ -1504,8 +1504,8 @@ const ServiceForm = ({
                     onClick={startFromScratch}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-foreground/40 hover:shadow-sm"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                      <Plus className="h-4 w-4" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary p-1">
+                      <BrandedIllustration name="buildFromScratch" className="h-full w-full" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground">Byg fra bunden</p>
@@ -1604,7 +1604,7 @@ const ServiceForm = ({
                     </span>
                   </span>
                 </div>
-                <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 rounded-lg">
+                <Button variant="secondary" size="sm" onClick={addStep} className="gap-1.5 rounded-lg border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20">
                   <Plus className="h-3.5 w-3.5" /> Tilføj trin
                 </Button>
               </div>

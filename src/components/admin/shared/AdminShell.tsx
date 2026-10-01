@@ -106,7 +106,7 @@ export const AdminShell = ({
   // Onboarding styrer om "Kom godt i gang"-kortet vises. Forsvinder af sig selv
   // når alt er grønt — men bliver stående så længe man står på fanen.
   const onboarding = useOnboardingSignals(business);
-  const showGettingStarted = !onboarding.allDone || activeTab === "getting-started";
+  const showGettingStarted = !!onboarding.counts && (!onboarding.allDone || activeTab === "getting-started");
   const gsDone = onboarding.counts ? onboarding.completedCount : 0;
   const gsTotal = onboarding.counts ? onboarding.totalCount : 0;
   const gsBadge = onboarding.counts && !onboarding.allDone ? `${gsDone}/${gsTotal}` : null;
