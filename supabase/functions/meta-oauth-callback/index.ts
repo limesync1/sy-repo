@@ -2,6 +2,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { encryptMetaToken, verifyMetaState } from "../_shared/meta-crypto.ts";
 
+const META_REDIRECT_URI = "https://serviceydere.dk/meta/callback";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const requestUrl = new URL(req.url);
@@ -23,9 +25,8 @@ Deno.serve(async (req) => {
 
   const verified = await verifyMetaState(state, stateSecret);
   if (!verified) return Response.redirect(`${appUrl}&meta=invalid-state`, 302);
-  const redirectUri = `${url}/functions/v1/meta-oauth-callback`;
   const tokenUrl = new URL("https://graph.facebook.com/v23.0/oauth/access_token");
-  tokenUrl.search = new URLSearchParams({ client_id: appId, client_secret: appSecret, redirect_uri: redirectUri, code }).toString();
+  tokenUrl.search = new URLSearchParams({ client_id: appId, client_secret: appSecret, redirect_uri: META_REDIRECT_URI, code }).toString();
   const tokenResponse = await fetch(tokenUrl);
   if (!tokenResponse.ok) return Response.redirect(`${appUrl}&meta=token-error`, 302);
   const tokenData = await tokenResponse.json();

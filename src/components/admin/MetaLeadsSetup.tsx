@@ -68,6 +68,22 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
     return { title: "Meta svarede ikke som forventet", text: message || "Der skete en uventet fejl.", steps: ["Prøv igen om et par minutter", "Kontakt support, hvis det fortsætter"] };
   };
 
+  const metaResultProblem = (result: string) => {
+    if (result === "configuration-error") return {
+      title: "Meta mangler opsætning",
+      text: "Serviceyderes Meta-app mangler en nødvendig indstilling.",
+      steps: ["Tilføj serviceydere.dk under Appdomæner i Meta", "Tilføj https://serviceydere.dk/meta/callback som gyldig OAuth-omdirigeringsadresse", "Prøv derefter igen"],
+    };
+    if (result === "token-error") return {
+      title: "Meta afviste forbindelsen",
+      text: "Den godkendte returadresse matcher sandsynligvis ikke opsætningen i Meta.",
+      steps: ["Kontrollér at https://serviceydere.dk/meta/callback står præcist sådan i Meta", "Kontrollér at appen er aktiv", "Prøv at forbinde igen"],
+    };
+    if (result === "invalid-state") return { title: "Forbindelsen er udløbet", text: "Sikkerhedstjekket kunne ikke godkendes.", steps: ["Gå tilbage til Leads", "Start Meta-forbindelsen igen"] };
+    if (result === "save-error") return { title: "Forbindelsen kunne ikke gemmes", text: "Meta godkendte forbindelsen, men den kunne ikke gemmes.", steps: ["Prøv igen", "Kontakt support, hvis det fortsætter"] };
+    return { title: "Meta-forbindelsen fejlede", text: "Din eksisterende leadmodtagelse er ikke påvirket.", steps: ["Prøv at forbinde igen", "Kontrollér at du godkender alle de viste adgange"] };
+  };
+
   const startSetup = async () => {
     setStarting(true);
     try {
@@ -155,7 +171,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       return;
     }
     if (result === "cancelled") setProblem({ title: "Forbindelsen blev afbrudt", text: "Der blev ikke ændret noget.", steps: ["Tryk på Forbind Meta, når du er klar"] });
-    else setProblem({ title: "Meta-forbindelsen fejlede", text: `Fejlkode: ${result}. Din eksisterende leadmodtagelse er ikke påvirket.`, steps: ["Prøv at forbinde igen", "Kontrollér at du godkender alle de viste adgange"] });
+    else setProblem(metaResultProblem(result));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -184,8 +200,9 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
         </div>
       </div>
       {!connected && (
-        <div className="rounded-md border border-border bg-secondary/20 px-3 py-2.5 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">Sådan virker det:</span> Log ind hos Meta, vælg virksomhedens Facebook-side og aktivér import. Derefter kommer nye formularleads automatisk ind på Leads-siden, hvor jeres normale beskeder og automatik fortsætter.
+        <div className="space-y-2 rounded-md border border-border bg-secondary/20 px-3 py-2.5 text-xs text-muted-foreground">
+          <p><span className="font-semibold text-foreground">Sådan virker det:</span> Log ind hos Meta, vælg virksomhedens Facebook-side og aktivér import. Derefter kommer nye formularleads automatisk ind på Leads-siden.</p>
+          <p>Hvis Meta viser “domænet er ikke inkluderet”, skal appens administrator tilføje <span className="font-semibold text-foreground">serviceydere.dk</span> under Appdomæner og <span className="font-semibold text-foreground">https://serviceydere.dk/meta/callback</span> som gyldig OAuth-omdirigeringsadresse.</p>
         </div>
       )}
       {connection?.last_error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{connection.last_error}</p>}
