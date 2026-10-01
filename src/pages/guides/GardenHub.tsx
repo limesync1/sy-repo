@@ -17,15 +17,15 @@ export default defineGuidePage({
   publishedAt: "2026-03-20",
   quickFacts: [
     <>Havemand timepris: <strong>400–700 kr./t</strong> inkl. moms</>,
-    <>Græsslåning fast pris: <strong>245–850 kr./besøg</strong></>,
-    <>Hækklipning: <strong>23–85 kr./lbm</strong></>,
+    <>Græsslåning fast pris: <strong>250–900 kr./besøg</strong></>,
+    <>Hækklipning: <strong>45–150 kr./lbm</strong></>,
     <>BoligJob-fradrag: ja, både service- og håndværkerdel</>,
   ],
   priceTable: {
     headers: { label: "Opgave", price: "Typisk pris", note: "Frekvens" },
     rows: [
-      { label: "Græsslåning parcelhus", price: "245–595 kr.", note: "Ugentligt/14-dags" },
-      { label: "Hækklipning pr. lbm", price: "23–55 kr.", note: "2× årligt" },
+      { label: "Græsslåning parcelhus", price: "250–900 kr.", note: "Ugentligt/14-dags" },
+      { label: "Hækklipning pr. lbm", price: "45–90 kr.", note: "2× årligt" },
       { label: "Havemand timepris", price: "400–700 kr./t", note: "Efter behov" },
       { label: "Træfældning (mindre)", price: "2.500–8.500 kr.", note: "Engangsopgave" },
       { label: "Anlægsgartner terrasse", price: "2.495–5.495 kr./m²", note: "Engangsopgave" },
@@ -54,8 +54,8 @@ export default defineGuidePage({
       <>Vælg gerne et lokalt firma — kortere kørsel betyder ofte lavere pris og hurtigere udrykning.</>,
     ]},
     { heading: "Hvad koster de enkelte haveopgaver?", list: [
-      <><strong>Græsslåning:</strong> 245–595 kr. pr. besøg for et almindeligt parcelhus — billigere med fast aftale.</>,
-      <><strong>Hækklipning:</strong> 23–55 kr. pr. løbende meter afhængig af hækkens højde og tilstand.</>,
+      <><strong>Græsslåning:</strong> 250–900 kr. pr. besøg for et almindeligt parcelhus — billigere med fast aftale.</>,
+      <><strong>Hækklipning:</strong> 45–90 kr. pr. løbende meter afhængig af hækkens højde og tilstand.</>,
       <><strong>Beskæring af træer og buske:</strong> typisk 400–700 kr. i timen afhængig af sværhedsgrad.</>,
       <><strong>Træfældning:</strong> 2.500–8.500 kr. for mindre træer — større træer kræver altid et besøg først.</>,
       <><strong>Ny terrasse eller haveanlæg:</strong> 2.495–5.495 kr. pr. m² hos en anlægsgartner.</>,
@@ -90,8 +90,8 @@ export default defineGuidePage({
     { q: "Er haveservice BoligJob-fradragsberettiget?", a: "Ja — løbende haveservice falder under servicefradraget (12.300 kr./voksen). Anlæg af fx terrasse kan falde under håndværkerfradraget." },
     { q: "Hvornår skal jeg booke forårsopgaver?", a: "Marts-april. De bedste firmaer fyldes 3-4 uger frem i forårssæsonen." },
     { q: "Kan jeg kombinere have og snerydning?", a: "Ja — mange firmaer giver rabat på kombineret aftale. Særligt i Nordjylland, hvor vintersæsonen er lang." },
-    { q: "Hvad koster græsslåning af en almindelig have?", a: "For et parcelhus på 200–400 m² græs koster græsslåning typisk 245–595 kr. pr. besøg inkl. afklip. Med fast aftale falder prisen ofte 20–30%." },
-    { q: "Hvornår skal hækken klippes?", a: "Første klip i juni og andet i september-oktober. Hækklipning koster 23–55 kr. pr. løbende meter afhængig af højde og tilstand." },
+    { q: "Hvad koster græsslåning af en almindelig have?", a: "For et parcelhus på 200–400 m² græs koster græsslåning typisk 250–900 kr. pr. besøg inkl. afklip. Med fast aftale falder prisen ofte 20–30%." },
+    { q: "Hvornår skal hækken klippes?", a: "Første klip i juni og andet i september-oktober. Hækklipning koster 45–90 kr. pr. løbende meter afhængig af højde og tilstand." },
   ],
   cta: {
     heading: "Find en havemand eller anlægsgartner",
