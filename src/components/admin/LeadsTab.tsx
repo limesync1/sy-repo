@@ -24,6 +24,7 @@ import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDe
 import MetaLeadsSetup from "@/components/admin/MetaLeadsSetup";
 import LeadSettingsDialog from "@/components/admin/LeadSettingsDialog";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { LeadSourceDashboard } from "@/components/admin/LeadSourceDashboard";
 
 type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string | null };
 
@@ -488,6 +489,19 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     <SelectItem value="instagram">Instagram</SelectItem>
                   </SelectContent>
                 </Select>
+                {accounts.length > 0 && (
+                  <Select value={accountFilter} onValueChange={setAccountFilter}>
+                    <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[190px]">
+                      <SelectValue placeholder="Alle sider og konti" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Alle sider og konti</SelectItem>
+                      {accounts.map((a) => (
+                        <SelectItem key={a.key} value={a.key}>{a.source === "instagram" ? "Instagram" : "Facebook"} · {a.label} ({a.total})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                     <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[180px]">
