@@ -2076,24 +2076,42 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
               {collapsed && (
-                <div className="grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
-                  <Button
-                    onClick={() => handleComplete(nextStop)}
-                    size="sm"
-                     className={`gap-1.5 h-11 rounded-md text-[13px] font-semibold transition-colors ${
-                      isAtNextStop
-                        ? "bg-success hover:bg-success/90 text-success-foreground shadow-sm"
-                        : "bg-foreground text-background hover:bg-foreground/90"
-                    }`}
-                    disabled={updateStatus.isPending || routeDateLocked}
-                  >
-                    {updateStatus.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="h-4 w-4" />
-                    )}
-                    {isAtNextStop ? "Aftale udført" : "Markér som udført"}
-                  </Button>
+                <div className="grid grid-cols-[minmax(0,1fr)_48px_48px] gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
+                  {activeNextStopEntry ? (
+                    <Button
+                      onClick={() => handleComplete(nextStop)}
+                      className="h-12 gap-2 rounded-md bg-success text-sm font-semibold text-success-foreground shadow-sm hover:bg-success/90"
+                      disabled={updateStatus.isPending || routeDateLocked}
+                    >
+                      {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      Afslut aftale
+                    </Button>
+                  ) : isAtNextStop ? (
+                    <Button
+                      onClick={async () => {
+                        if (!meEmp?.id) return;
+                        try {
+                          await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: meEmp.id });
+                          buzz(22);
+                        } catch {
+                          toast.error("Aftalen kunne ikke startes", { description: "Tjek din forbindelse og prøv igen." });
+                        }
+                      }}
+                      className="h-12 gap-2 rounded-md text-sm font-semibold"
+                      disabled={startStopTime.isPending || routeDateLocked || !meEmp?.id}
+                    >
+                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                      Start aftale
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleNavigate(nextStop)}
+                      className="h-12 gap-2 rounded-md text-sm font-semibold"
+                    >
+                      <Navigation className="h-4 w-4" />
+                      Navigér hertil
+                    </Button>
+                  )}
                   <Button
                     onClick={() => handleNavigate(nextStop)}
                     variant="outline"
