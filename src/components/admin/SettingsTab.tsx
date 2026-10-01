@@ -29,6 +29,9 @@ import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import profileGroupIcon from "@/assets/settings-icons/profil.svg.asset.json";
+import messagesGroupIcon from "@/assets/settings-icons/beskeder.svg.asset.json";
+import accountGroupIcon from "@/assets/settings-icons/konto.svg.asset.json";
 
 /**
  * Lille selvopdaterende komponent — tikker hvert minut og holder
@@ -209,7 +212,7 @@ const GroupHeader = ({
   hint?: string;
 }) => (
   <div className="mt-2 flex items-center gap-3 first:mt-0">
-    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background shadow-sm [&_svg]:h-4 [&_svg]:w-4">
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground shadow-sm [&_svg]:h-4 [&_svg]:w-4">
       {icon}
     </div>
     <div className="min-w-0">
@@ -218,6 +221,10 @@ const GroupHeader = ({
     </div>
     <div className="ml-2 h-px flex-1 bg-gradient-to-r from-border to-transparent" />
   </div>
+);
+
+const SettingsGroupIcon = ({ src }: { src: string }) => (
+  <img src={src} alt="" aria-hidden="true" className="h-9 w-9 shrink-0 object-contain" />
 );
 
 /* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød).
@@ -1181,7 +1188,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-5">
         {/* ── Gruppe: Profil ── */}
-        <GroupHeader icon={<Building2 />} title="Profil" hint="Hvordan I præsenterer jer for kunderne" />
+        <GroupHeader icon={<SettingsGroupIcon src={profileGroupIcon.url} />} title="Profil" hint="Hvordan I præsenterer jer for kunderne" />
 
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1560,7 +1567,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* ── Gruppe: Beskeder ── */}
-        <GroupHeader icon={<Bell />} title="Beskeder" hint="Hvad I og jeres kunder modtager besked om" />
+        <GroupHeader icon={<SettingsGroupIcon src={messagesGroupIcon.url} />} title="Beskeder" hint="Hvad I og jeres kunder modtager besked om" />
 
         {/* Notifikationer */}
         <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1627,7 +1634,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* ── Gruppe: Konto ── */}
-        <GroupHeader icon={<CreditCard />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
+        <GroupHeader icon={<SettingsGroupIcon src={accountGroupIcon.url} />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
 
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
