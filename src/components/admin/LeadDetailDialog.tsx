@@ -472,19 +472,21 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-h-[92dvh] max-w-3xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-5 pb-5 pt-6 text-left sm:px-7">
+          <DialogTitle className="flex flex-wrap items-center gap-2 text-xl sm:text-2xl">
             {qr?.customer_name || "Anonym kunde"}
             <Badge variant="outline" className="gap-1 rounded-md pointer-events-none">
               <Sparkles className="h-3 w-3" /> {lead.match_score}/100
             </Badge>
           </DialogTitle>
           <DialogDescription>
-            {qr?.category} · {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: da })}
+            {qr?.category} · {sourceLabelFor(qr)} · {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: da })}
+            {lead.customer_id && <span className="ml-1 font-medium text-foreground">· Oprettet som kunde</span>}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="space-y-4 px-5 py-5 sm:px-7">
         {/* Customer info */}
         <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm">
           {qr?.description && <p className="whitespace-pre-wrap text-foreground/90">{qr.description}</p>}
