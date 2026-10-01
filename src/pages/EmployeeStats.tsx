@@ -33,6 +33,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatKr } from "@/lib/commission";
+import { StatIconTile } from "@/components/admin/shared/AdminUI";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { Section } from "@/components/route-planner/SheetSection";
 
@@ -232,9 +233,9 @@ const EmployeeStats = () => {
              <Card className="service-panel-card overflow-hidden rounded-md border-border shadow-sm">
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-16 sm:w-16">
-                     <BrandedIllustration name="earnings" className="h-full w-full" alt="" />
-                  </div>
+                  <StatIconTile size="lg">
+                     <BrandedIllustration name="earnings" alt="" />
+                  </StatIconTile>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Min indtjening
@@ -279,9 +280,9 @@ const EmployeeStats = () => {
                     index === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0",
                   )}
                 >
-                   <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                     <BrandedIllustration name={icon} className="h-full w-full" alt="" />
-                  </div>
+                   <StatIconTile>
+                     <BrandedIllustration name={icon} alt="" />
+                  </StatIconTile>
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
                     <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-foreground">{value}</p>

@@ -942,9 +942,9 @@ const FinanceOverviewCard = ({
         className="group flex w-full items-center justify-between gap-3 border-t border-border bg-accent/[0.05] px-4 py-3 text-left transition-colors hover:bg-accent/[0.10] sm:px-5"
       >
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
-            <BrandedIllustration name="payout" className="h-9 w-9" />
-          </div>
+          <StatIconTile>
+            <BrandedIllustration name="payout" />
+          </StatIconTile>
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Til udbetaling · {periodLabel}
