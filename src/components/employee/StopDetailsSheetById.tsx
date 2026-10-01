@@ -47,9 +47,9 @@ const useStopWithRoute = (stopId: string | null) => {
       // Find stoppets index på ruten (1-baseret nummerering matches resten af appen)
       const { data: siblings } = await supabase
         .from("route_stops")
-        .select("id, sort_order")
+        .select("id, sequence")
         .eq("route_id", (stop as any).route_id)
-        .order("sort_order", { ascending: true });
+        .order("sequence", { ascending: true });
       const idx = (siblings || []).findIndex((s: any) => s.id === stopId);
 
       const enriched = {
