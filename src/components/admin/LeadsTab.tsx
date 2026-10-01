@@ -286,6 +286,28 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
           />
         ) : (
           <>
+            {(() => {
+              const waiting = enriched.filter((l) => l.status === "new" && Date.now() - new Date(l.created_at).getTime() > 3600000);
+              const tasks = [
+                waiting.length > 0 && { key: "new", text: `${waiting.length} ny${waiting.length > 1 ? "e" : ""} lead${waiting.length > 1 ? "s" : ""} har ventet over 1 time på svar`, cta: "Svar nu", tone: "border-destructive/30 bg-destructive/5" },
+                (counts.dueFollowUps || 0) > 0 && { key: "followup", text: `${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""} skal laves i dag`, cta: "Se opfølgninger", tone: "border-warning/30 bg-warning/5" },
+                (counts.hot || 0) > 0 && { key: "active", text: `${counts.hot} varm${counts.hot > 1 ? "e" : ""} lead${counts.hot > 1 ? "s" : ""} med høj chance for at blive til en aftale`, cta: "Vis", tone: "border-success/30 bg-success/5", sort: "smart" },
+              ].filter(Boolean) as { key: string; text: string; cta: string; tone: string; sort?: string }[];
+              if (!tasks.length) return (
+                <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye leads dukker op her, og du får en e-mail, når de kommer.</div>
+              );
+              return (
+                <div className="grid gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Næste skridt</p>
+                  {tasks.map((t) => (
+                    <div key={t.key + t.text} className={`flex flex-col gap-2 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${t.tone}`}>
+                      <p className="text-sm font-medium text-foreground">{t.text}</p>
+                      <Button size="sm" variant="outline" className="h-9 shrink-0 bg-card" onClick={() => { setFilter(t.key); if (t.sort) setSortBy(t.sort); }}>{t.cta}</Button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
             {/* Toolbar */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative flex-1">
