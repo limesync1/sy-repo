@@ -208,5 +208,5 @@
 - [x] Lead-indstillinger: foreslåede brancher, medarbejdere, afstandsvalg, auto-svar med skabeloner og forhåndsvisning
 - [x] Forbind Meta: forklarende fejlvindue
 - [ ] Fuldt redesign af kort-bundpanel og tjekliste i samme layout
-- [ ] Leads-pipeline, prioritet, påmindelser og svartids-nøgletal
+- [x] Leads: "Næste skridt"-liste (pipeline, prioritet, opfølgning og svartid fandtes allerede)
 - [ ] Forenklet mobil-ruteplanlægger (faner, flyt-menu)
