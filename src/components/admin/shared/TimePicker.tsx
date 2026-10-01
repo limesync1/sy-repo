@@ -15,7 +15,7 @@ export const TimePicker = ({ value, onChange, label, placeholder = "Vælg tid" }
 }) => {
   const [open, setOpen] = useState(false);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -28,7 +28,8 @@ export const TimePicker = ({ value, onChange, label, placeholder = "Vælg tid" }
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[112px] p-1">
         <div
-          className="max-h-64 overflow-y-auto"
+          className="max-h-64 overflow-y-auto overscroll-contain"
+          onWheel={(e) => e.stopPropagation()}
           ref={(el) => { if (el && open) el.querySelector<HTMLElement>("[data-active='true']")?.scrollIntoView({ block: "center" }); }}
         >
           {SLOTS.map((t) => (

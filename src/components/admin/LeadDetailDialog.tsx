@@ -395,13 +395,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
     }
   };
 
-  // Auto-generér første udkast når dialogen åbnes hvis intet findes endnu
-  useEffect(() => {
-    if (open && lead && !lead.ai_draft && !generating && lead.quote_request?.description) {
-      generateDraft(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, lead?.id]);
+  // Udkast genereres kun når brugeren trykker "Skriv forslag" — aldrig automatisk.
 
   if (!lead) return null;
   const qr = lead.quote_request;
@@ -532,7 +526,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
               <p className="text-foreground font-semibold mb-1 flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-accent" /> Sådan virker det
               </p>
-              Vælg en tone, og få automatisk skrevet et personligt svar baseret på kundens forespørgsel. Du kan altid redigere teksten, før du sender den som mail eller kopierer den.
+              Vælg en tone, og tryk "Skriv forslag" for at få et personligt svar baseret på kundens forespørgsel. Du kan altid redigere teksten, før du sender den som mail eller kopierer den.
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Select value={tone} onValueChange={setTone}>
@@ -576,7 +570,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
               <Textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="Klik 'Generer udkast' for at lade AI skrive et personligt svar baseret på kundens forespørgsel — eller skriv dit eget."
+                placeholder="Tryk 'Skriv forslag' for at lade AI skrive et personligt svar baseret på kundens forespørgsel — eller skriv dit eget her."
                 className="min-h-[220px] resize-y text-sm"
               />
             )}
