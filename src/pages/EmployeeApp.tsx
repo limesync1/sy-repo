@@ -368,6 +368,7 @@ const EmployeeApp = () => {
               tone: "primary",
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
               description: nextStop.full_address || nextStop.address || "",
+              illustration: "dayInProgress",
               cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
           } else if (dayStarted && allRoutesDone && !dayEnded) {
@@ -375,6 +376,7 @@ const EmployeeApp = () => {
               tone: "calm",
               title: "Alle stop er færdige — godt arbejde!",
               description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",
+              illustration: "dayInProgress",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayStarted && !dayEnded && routes.length === 0) {
@@ -383,6 +385,7 @@ const EmployeeApp = () => {
               tone: "calm",
               title: "Din arbejdsdag er i gang",
               description: "Stop dagen, når du er færdig — så registreres din arbejdsdag korrekt.",
+              illustration: "dayInProgress",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayEnded) {
@@ -392,6 +395,7 @@ const EmployeeApp = () => {
                 tone: "primary",
                 title: "Nye stop er kommet til ruten",
                 description: `Der er ${totalStops - completedStops} stop tilbage. Genoptag arbejdsdagen for at fortsætte tidsregistreringen.`,
+                illustration: "restartDay",
                 cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             } else {
@@ -399,6 +403,7 @@ const EmployeeApp = () => {
                 tone: "calm",
                 title: "Dagen er afsluttet",
                 description: "Genstart dagen, hvis du skal arbejde videre. Udførte aftaler og registreret tid bevares.",
+                illustration: "dayEnded",
                 cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             }
