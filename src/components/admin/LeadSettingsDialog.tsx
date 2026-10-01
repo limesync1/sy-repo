@@ -235,7 +235,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                   <div className="rounded-md bg-secondary/50 p-3 text-xs">
                     <p className="mb-1 font-semibold text-foreground">Sådan ser kunden den</p>
                     <p className="text-muted-foreground">Fra: {businessName || "Jeres virksomhed"}</p>
-                    <p className="mt-2 whitespace-pre-line text-foreground">Hej Kunde,\n\n{s.lead_auto_reply_text}\n\nVenlig hilsen\n{businessName || "Jeres virksomhed"}</p>
+                    <p className="mt-2 whitespace-pre-line text-foreground">{`Hej Kunde,\n\n${s.lead_auto_reply_text}\n\nVenlig hilsen\n${businessName || "Jeres virksomhed"}`}</p>
                   </div>
                 </>
               )}
