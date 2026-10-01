@@ -199,3 +199,14 @@
 - [x] Anvend samme panelstil på Min dag, Statistik og Livechat.
 - [x] Ensret skærmvisningen af rute og print uden at ændre funktionalitet.
 - [x] Kontrollér mobil, lille laptop og desktop.
+
+## Rutekørsel, Min dag, planlægger og Leads (okt. 2026)
+- [x] Én tilstandsstyret hovedknap i kortvisning (Navigér → Start aftale → Afslut aftale)
+- [x] Min dag: ingen modstridende Start/Fortsæt-knapper
+- [x] Synlig "Fortryd udført" i ruteplanlæggeren på mobil
+- [x] Regnskab-ikon indlæses med det samme
+- [x] Lead-indstillinger: foreslåede brancher, medarbejdere, afstandsvalg, auto-svar med skabeloner og forhåndsvisning
+- [x] Forbind Meta: forklarende fejlvindue
+- [ ] Fuldt redesign af kort-bundpanel og tjekliste i samme layout
+- [ ] Leads-pipeline, prioritet, påmindelser og svartids-nøgletal
+- [ ] Forenklet mobil-ruteplanlægger (faner, flyt-menu)

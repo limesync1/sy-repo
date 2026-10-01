@@ -369,7 +369,9 @@ const EmployeeApp = () => {
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
               description: nextStop.full_address || nextStop.address || "",
               illustration: "dayInProgress",
-              cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
+              cta: (stopsByRoute.get(nextRoute.id) || []).some((s) => s.status === "completed")
+                ? { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` }
+                : { label: "Start rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
           } else if (dayStarted && allRoutesDone && !dayEnded) {
             suggestion = {
@@ -783,7 +785,7 @@ const EmployeeApp = () => {
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
-                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute</>
+                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute · stop {Math.min(done + 1, total)} af {total}</>
                         ) : (
                           <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
                         )}

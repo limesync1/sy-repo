@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, ExternalLink, RefreshCw, Settings2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, RefreshCw, Settings2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,16 +44,49 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
   });
 
   const connected = connection?.status === "connected";
+  const [problem, setProblem] = useState<{ title: string; text: string; steps: string[] } | null>(null);
+  const [starting, setStarting] = useState(false);
+
+  const explain = (status: number | null, message?: string) => {
+    if (status === 401) return { title: "Du er logget ud", text: "Din session er udløbet.", steps: ["Log ind igen", "Tryk på Forbind Meta igen"] };
+    if (status === 403) return { title: "Ingen adgang", text: "Kun virksomhedens ejer kan forbinde Meta.", steps: ["Bed ejeren af virksomheden om at forbinde Meta"] };
+    if (status === 400) return { title: "Virksomheden blev ikke fundet", text: "Vi kunne ikke se hvilken virksomhed, der skal forbindes.", steps: ["Genindlæs siden og prøv igen"] };
+    if (status === null) return { title: "Ingen forbindelse", text: "Vi kunne ikke nå serveren.", steps: ["Tjek din internetforbindelse", "Prøv igen om lidt"] };
+    return { title: "Meta svarede ikke som forventet", text: message || "Der skete en uventet fejl.", steps: ["Prøv igen om et par minutter", "Kontakt support, hvis det fortsætter"] };
+  };
+
   const startSetup = async () => {
+    setStarting(true);
     try {
       const { data, error } = await supabase.functions.invoke("meta-oauth-start", { body: { businessId } });
+      if (data?.configured === false) {
+        setProblem({
+          title: "Meta er ikke klar endnu",
+          text: "Forbindelsen til Facebook og Instagram er ikke aktiveret på Serviceydere endnu. Det er ikke en fejl hos dig.",
+          steps: ["Dine leads fra Serviceydere virker som normalt", "Du får besked, når Meta kan forbindes"],
+        });
+        return;
+      }
       if (error || !data?.url) {
-        toast.error(data?.error || "Meta-forbindelsen kunne ikke startes. Prøv igen senere.");
+        let status: number | null = null;
+        let message: string | undefined = data?.error;
+        const ctx = (error as { context?: Response } | null)?.context;
+        if (ctx && typeof ctx.status === "number") {
+          status = ctx.status;
+          try { message = (await ctx.clone().json())?.error ?? message; } catch { /* ignore */ }
+          if (status === 503) {
+            setProblem({ title: "Meta er ikke klar endnu", text: "Forbindelsen til Facebook og Instagram er ikke aktiveret endnu.", steps: ["Prøv igen senere"] });
+            return;
+          }
+        } else if (error) status = null; else status = 500;
+        setProblem(explain(status, message));
         return;
       }
       window.location.assign(data.url);
     } catch {
-      toast.error("Meta-forbindelsen kunne ikke startes. Prøv igen senere.");
+      setProblem(explain(null));
+    } finally {
+      setStarting(false);
     }
   };
 
@@ -72,12 +107,26 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
           <Button type="button" variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-1.5">
             <RefreshCw className={isFetching ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} /> Opdatér
           </Button>
-          <Button type="button" size="sm" onClick={startSetup} className="gap-1.5">
-            <ExternalLink className="h-3.5 w-3.5" /> {connected ? "Administrér Meta" : "Forbind Meta"}
+          <Button type="button" size="sm" onClick={startSetup} disabled={starting} className="gap-1.5">
+            {starting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />} {connected ? "Administrér Meta" : "Forbind Meta"}
           </Button>
         </div>
       </div>
       {connection?.last_error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{connection.last_error}</p>}
+      <Dialog open={!!problem} onOpenChange={(o) => !o && setProblem(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><AlertCircle className="h-5 w-5 text-warning" />{problem?.title}</DialogTitle>
+            <DialogDescription>{problem?.text}</DialogDescription>
+          </DialogHeader>
+          {problem && (
+            <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground">
+              {problem.steps.map((s) => <li key={s}>{s}</li>)}
+            </ol>
+          )}
+          <DialogFooter><Button onClick={() => setProblem(null)}>Forstået</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SectionCard>
   );
 };
