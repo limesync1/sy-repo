@@ -165,3 +165,25 @@ writeFileSync(resolve("public/sitemap-index.xml"), indexXml);
 console.log(
   `sitemaps written — pages:${pagesUrls.length} blog:${blogUrls.length} guides:${guidesUrls.length} cities:${citiesUrls.length} (legacy sitemap.xml:${allUrls.length})`,
 );
+// ── Statisk <head> pr. rute ─────────────────────────────────────────────
+// Skriver titel/beskrivelse pr. offentlig rute til en JSON-fil, som
+// vite-pluginet "seo-prerender-head" bruger til at lave dist/<rute>/index.html
+// med egen title, description, canonical og og:* — så crawlere der ikke
+// kører JavaScript ikke ser forsidens metadata på alle sider.
+const cityMeta = (base: string, label: string, list: { slug: string; name: string; region: string }[]) =>
+  list.map((c) => ({
+    path: `/${base}/${c.slug}`,
+    title: `${label} i ${c.name} – Priser & tilbud 2026 | Serviceydere`,
+    description: `Find og book verificerede firmaer til ${label.toLowerCase()} i ${c.name} og ${c.region}. Se lokale priser for 2026 og få op til 3 gratis tilbud.`,
+  }));
+const routeMeta = [
+  ...BLOG_POSTS.map((p) => ({ path: `/blog/${p.slug}`, title: `${p.title} | Serviceydere`, description: p.description })),
+  ...GUIDES.map((g) => ({ path: g.href, title: `${g.title} | Serviceydere`, description: g.desc })),
+  ...SOFTWARE_PAGES.map((s) => ({ path: s.href, title: `${s.label} | Serviceydere`, description: s.blurb })),
+  ...cityMeta("rengoering", "Rengøring", CITIES),
+  ...cityMeta("flyttehjaelp", "Flyttehjælp", MOVING_CITIES),
+  ...cityMeta("haandvaerker", "Håndværker", HANDYMAN_CITIES),
+  ...cityMeta("haveservice", "Haveservice", GARDEN_CITIES),
+];
+writeFileSync(resolve("scripts/.seo-routes.json"), JSON.stringify(routeMeta));
+console.log(`seo route meta written (${routeMeta.length})`);
