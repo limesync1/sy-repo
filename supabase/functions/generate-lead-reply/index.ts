@@ -111,45 +111,63 @@ ${urgent ? "\nSIGNAL: Kunden virker til at have travlt." : ""}
 
 Generér emnelinje + e-mailtekst nu.`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        // Lead-svar er korte tekster — lite-modellen er hurtigere og billigere.
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "generate_lead_email",
-            description: "Generér emnelinje og brødtekst til lead-svaret",
-            parameters: {
-              type: "object",
-              properties: {
-                subject: { type: "string", description: "Kort konkret dansk emnelinje" },
-                body: { type: "string", description: "Selve e-mailens brødtekst, dansk, naturlig" },
-              },
-              required: ["subject", "body"],
-              additionalProperties: false,
-            },
-          },
-        }],
-        tool_choice: { type: "function", function: { name: "generate_lead_email" } },
-      }),
+    const fallbackDraft = () => ({
+      subject: `Tilbud på ${qr.category} fra ${business.name}`,
+      draft: `Hej ${qr.customer_name},\n\nTak for din forespørgsel om ${String(qr.category).toLowerCase()}${qr.city ? ` i ${qr.city}` : ""}. Vi har læst din beskrivelse og vil meget gerne hjælpe dig.\n\nFor at kunne give dig et præcist tilbud vil vi foreslå en kort snak eller en besigtigelse. Svar gerne på denne mail eller ring til os, så finder vi et tidspunkt der passer dig.\n\nMed venlig hilsen\n${business.name}`,
     });
+
+    // Afbryd AI-kaldet efter 25 sek., så funktionen aldrig hænger til platformens 150 sek. grænse.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25_000);
+    let aiResp: Response;
+    try {
+      aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          tools: [{
+            type: "function",
+            function: {
+              name: "generate_lead_email",
+              description: "Generér emnelinje og brødtekst til lead-svaret",
+              parameters: {
+                type: "object",
+                properties: {
+                  subject: { type: "string", description: "Kort konkret dansk emnelinje" },
+                  body: { type: "string", description: "Selve e-mailens brødtekst, dansk, naturlig" },
+                },
+                required: ["subject", "body"],
+                additionalProperties: false,
+              },
+            },
+          }],
+          tool_choice: { type: "function", function: { name: "generate_lead_email" } },
+        }),
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      console.error("AI gateway timeout/network:", e);
+      const fb = fallbackDraft();
+      return json(200, { ...fb, tone, fallback: true });
+    }
+    clearTimeout(timer);
 
     if (aiResp.status === 429) return json(429, { error: "Rate limit — prøv igen om lidt" });
     if (aiResp.status === 402) return json(402, { error: "AI-kreditter opbrugt" });
     if (!aiResp.ok) {
       const t = await aiResp.text();
       console.error("AI gateway error:", aiResp.status, t);
-      return json(500, { error: "AI fejlede" });
+      const fb = fallbackDraft();
+      return json(200, { ...fb, tone, fallback: true });
     }
 
     const aiJson = await aiResp.json();

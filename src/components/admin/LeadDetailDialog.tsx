@@ -387,7 +387,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
       setDraft(d);
       if (s) setSubject(s);
       onChange({ ...lead, ai_draft: d, ai_draft_generated_at: new Date().toISOString() });
-      if (!silent) toast.success("AI-udkast klar");
+      if (!silent) toast.success((data as any)?.fallback ? "AI svarede ikke — standardudkast indsat" : "AI-udkast klar");
     } catch (e: any) {
       if (!silent) toast.error(e?.message || "Kunne ikke generere udkast");
     } finally {
