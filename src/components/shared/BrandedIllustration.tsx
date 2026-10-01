@@ -78,6 +78,10 @@ import responseTimeAsset from "@/assets/panel-illustrations/svartid.svg.asset.js
 import payoutAsset from "@/assets/panel-illustrations/til-udbetaling.svg.asset.json";
 import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.json";
 import unansweredMessagesAsset from "@/assets/panel-illustrations/ubesvarede-beskeder.svg.asset.json";
+import startDayIllustration from "@/assets/panel-illustrations/start-dagen.svg.asset.json";
+import dayInProgressIllustration from "@/assets/panel-illustrations/arbejdsdag-i-gang.svg.asset.json";
+import dayEndedIllustration from "@/assets/panel-illustrations/dagen-afsluttet.svg.asset.json";
+import restartDayIllustration from "@/assets/panel-illustrations/genopstart-dagen.svg.asset.json";
 
 export const BRANDED_ILLUSTRATIONS = {
   searchService: searchServiceAsset,
@@ -152,6 +156,10 @@ export const BRANDED_ILLUSTRATIONS = {
   payout: payoutAsset.url,
   hourlyPrice: hourlyPriceAsset.url,
   unansweredMessages: unansweredMessagesAsset.url,
+  startDay: startDayIllustration.url,
+  dayInProgress: dayInProgressIllustration.url,
+  dayEnded: dayEndedIllustration.url,
+  restartDay: restartDayIllustration.url,
 } as const;
 
 export type BrandedIllustrationName = keyof typeof BRANDED_ILLUSTRATIONS;

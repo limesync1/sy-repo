@@ -17,7 +17,7 @@ import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewS
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
+  Users, User as UserIcon, Info, CalendarCheck, ArrowRight, Eye, Lock as LockIcon,
   Unlock as UnlockIcon,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday } from "date-fns";
@@ -34,7 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -348,6 +348,7 @@ const EmployeeApp = () => {
             tone: "primary" | "calm" | "warm";
             title: string;
             description: string;
+            illustration: BrandedIllustrationName;
             cta: { label: string; icon: any; onClick?: () => void; to?: string };
           };
           let suggestion: Suggestion | null = null;
@@ -359,6 +360,7 @@ const EmployeeApp = () => {
               description: totalStops > 0
                 ? `Du har ${totalStops} stop planlagt. Start tidsregistreringen før første besøg.`
                 : "Start tidsregistreringen — så er din arbejdstid registreret korrekt.",
+              illustration: "startDay",
               cta: { label: "Start dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
             };
           } else if (dayStarted && nextStop && nextRoute) {
@@ -366,6 +368,7 @@ const EmployeeApp = () => {
               tone: "primary",
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
               description: nextStop.full_address || nextStop.address || "",
+              illustration: "dayInProgress",
               cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
           } else if (dayStarted && allRoutesDone && !dayEnded) {
@@ -373,6 +376,7 @@ const EmployeeApp = () => {
               tone: "calm",
               title: "Alle stop er færdige — godt arbejde!",
               description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",
+              illustration: "dayInProgress",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayStarted && !dayEnded && routes.length === 0) {
@@ -381,6 +385,7 @@ const EmployeeApp = () => {
               tone: "calm",
               title: "Din arbejdsdag er i gang",
               description: "Stop dagen, når du er færdig — så registreres din arbejdsdag korrekt.",
+              illustration: "dayInProgress",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayEnded) {
@@ -390,6 +395,7 @@ const EmployeeApp = () => {
                 tone: "primary",
                 title: "Nye stop er kommet til ruten",
                 description: `Der er ${totalStops - completedStops} stop tilbage. Genoptag arbejdsdagen for at fortsætte tidsregistreringen.`,
+                illustration: "restartDay",
                 cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             } else {
@@ -397,6 +403,7 @@ const EmployeeApp = () => {
                 tone: "calm",
                 title: "Dagen er afsluttet",
                 description: "Genstart dagen, hvis du skal arbejde videre. Udførte aftaler og registreret tid bevares.",
+                illustration: "dayEnded",
                 cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             }
@@ -405,23 +412,18 @@ const EmployeeApp = () => {
           if (!suggestion) return null;
 
           // Konsekvent med resten af medarbejderpanelet: ren bg-card +
-          // border-border/80, status formidles kun via ikon-badge.
+          // border-border/80, status formidles via det dag-tilhørende ikon.
           const toneClasses = "service-panel-card border-border bg-card";
-          const iconWrap =
-            suggestion.tone === "primary"
-              ? "bg-foreground text-background"
-              : suggestion.tone === "calm"
-                ? "bg-secondary text-foreground"
-                : "bg-secondary text-foreground";
 
           const Cta = suggestion.cta;
           return (
             <Card className={cn("overflow-hidden rounded-[5px] border-l-[3px] border-l-accent shadow-sm", toneClasses)}>
               <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-4">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px]", iconWrap)} aria-hidden>
-                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
+                  <BrandedIllustration
+                    name={suggestion.illustration}
+                    className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
+                  />
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
