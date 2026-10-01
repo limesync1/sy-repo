@@ -67,3 +67,11 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.generate-route-name]
     verify_jwt = false
+  [functions.meta-oauth-start]
+    verify_jwt = false
+  [functions.meta-oauth-callback]
+    verify_jwt = false
+  [functions.meta-webhook]
+    verify_jwt = false
+  [functions.meta-connection]
+    verify_jwt = false
