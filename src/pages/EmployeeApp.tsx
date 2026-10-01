@@ -348,6 +348,7 @@ const EmployeeApp = () => {
             tone: "primary" | "calm" | "warm";
             title: string;
             description: string;
+            illustration: BrandedIllustrationName;
             cta: { label: string; icon: any; onClick?: () => void; to?: string };
           };
           let suggestion: Suggestion | null = null;
@@ -359,6 +360,7 @@ const EmployeeApp = () => {
               description: totalStops > 0
                 ? `Du har ${totalStops} stop planlagt. Start tidsregistreringen før første besøg.`
                 : "Start tidsregistreringen — så er din arbejdstid registreret korrekt.",
+              illustration: "startDay",
               cta: { label: "Start dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
             };
           } else if (dayStarted && nextStop && nextRoute) {
