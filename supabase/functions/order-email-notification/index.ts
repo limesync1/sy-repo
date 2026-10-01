@@ -7,7 +7,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   try {
-    const { orderId, kind } = await req.json()
+    const { orderId, kind, customerEmail } = await req.json()
     if (!orderId || !['confirmation', 'manual-confirmed', 'status-update'].includes(kind)) return json({ error: 'invalid_request' }, 400)
     const url = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -26,6 +26,11 @@ Deno.serve(async (req) => {
         const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } })
         const { data: { user } } = await userClient.auth.getUser()
         if (!user || user.id !== order.customer_id) return json({ error: 'forbidden' }, 403)
+      } else {
+        // Guest checkout: caller must prove knowledge of the order's e-mail,
+        // and the idempotency key below guarantees at most one confirmation.
+        const supplied = typeof customerEmail === 'string' ? customerEmail.trim().toLowerCase() : ''
+        if (!supplied || supplied !== String(order.customer_email).trim().toLowerCase()) return json({ error: 'forbidden' }, 403)
       }
     } else {
       const auth = req.headers.get('Authorization') || ''

@@ -104,7 +104,8 @@ Deno.serve(async (req) => {
   }
 
   // Send welcome email with credentials (fire-and-forget)
-  const origin = req.headers.get('origin') || 'https://serviceydere.dk'
+  // Never trust the request Origin for links in e-mails — always use our own domain.
+  const origin = 'https://serviceydere.dk'
   sendTemplateEmail('customer-welcome', email, {
     idempotencyKey: `customer-welcome-${created.user.id}`,
     templateData: {
