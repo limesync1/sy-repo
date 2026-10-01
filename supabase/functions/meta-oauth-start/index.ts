@@ -16,7 +16,9 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const appId = Deno.env.get("META_APP_ID");
   const stateSecret = Deno.env.get("META_OAUTH_STATE_SECRET");
-  if (!url || !anonKey || !appId || !stateSecret) return json({ error: "Meta er ikke konfigureret endnu" }, 503);
+  if (!url || !anonKey || !appId || !stateSecret) {
+    return json({ configured: false, error: "Meta-forbindelsen er ikke sat op endnu. Meta App-oplysningerne mangler." });
+  }
 
   const auth = await requireAuthenticatedUser(req, url, anonKey);
   if (!("userClient" in auth)) return json({ error: auth.error }, auth.status);

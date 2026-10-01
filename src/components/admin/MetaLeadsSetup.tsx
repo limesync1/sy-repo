@@ -43,12 +43,16 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
 
   const connected = connection?.status === "connected";
   const startSetup = async () => {
-    const { data, error } = await supabase.functions.invoke("meta-oauth-start", { body: { businessId } });
-    if (error || !data?.url) {
-      toast.error(data?.error || "Meta-forbindelsen er ikke konfigureret endnu");
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke("meta-oauth-start", { body: { businessId } });
+      if (error || !data?.url) {
+        toast.error(data?.error || "Meta-forbindelsen kunne ikke startes. Prøv igen senere.");
+        return;
+      }
+      window.location.assign(data.url);
+    } catch {
+      toast.error("Meta-forbindelsen kunne ikke startes. Prøv igen senere.");
     }
-    window.location.assign(data.url);
   };
 
   return (
