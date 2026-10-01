@@ -76,8 +76,8 @@ const FounderNote = () => {
           <h3 className="text-sm font-semibold text-foreground">Derfor lavede jeg Serviceydere</h3>
           <ul className="mt-4 grid gap-3">
             {reasons.map((r) => (
-              <li key={r.title} className="flex gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:border-foreground/20 sm:p-5">
-                <span className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+              <li key={r.title} className="flex gap-4 rounded-xl border border-border bg-background p-4 shadow-premium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium-lg sm:p-5">
+                <span className="icon-tile h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                   <BrandedIllustration name={r.icon} className="h-full w-full" />
                 </span>
                 <div>

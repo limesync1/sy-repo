@@ -103,6 +103,16 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        sm: "0 1px 2px hsl(var(--foreground) / 0.05), 0 1px 3px -1px hsl(var(--foreground) / 0.06)",
+        DEFAULT: "0 1px 2px hsl(var(--foreground) / 0.05), 0 4px 10px -4px hsl(var(--foreground) / 0.08)",
+        md: "0 2px 4px -1px hsl(var(--foreground) / 0.05), 0 10px 24px -10px hsl(var(--foreground) / 0.14)",
+        lg: "0 4px 8px -2px hsl(var(--foreground) / 0.05), 0 20px 40px -18px hsl(var(--foreground) / 0.2)",
+        xl: "0 8px 16px -6px hsl(var(--foreground) / 0.07), 0 32px 64px -28px hsl(var(--foreground) / 0.28)",
+        premium: "0 1px 2px hsl(var(--foreground) / 0.04), 0 12px 32px -16px hsl(var(--foreground) / 0.16)",
+        "premium-lg": "0 2px 6px hsl(var(--foreground) / 0.05), 0 24px 56px -24px hsl(var(--foreground) / 0.26)",
+        "premium-dark": "inset 0 1px 0 hsl(0 0% 100% / 0.06), 0 18px 40px -22px hsl(222 60% 2% / 0.7)",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

@@ -89,7 +89,7 @@ const ForBusinesses = () => {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-premium-lg">
           <article className="p-5 sm:p-7 2xl:p-9">
             <div className="grid gap-7 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
               <div className="max-w-xl">
@@ -157,7 +157,7 @@ const ForBusinesses = () => {
                 key={f.title}
                 className={`group flex gap-3.5 p-5 transition-colors hover:bg-background sm:p-6 ${index > 0 ? "border-t border-border md:border-l md:border-t-0" : ""}`}
               >
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+                <div className="icon-tile h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                   <BrandedIllustration name={f.icon} className="h-full w-full" />
                 </div>
                 <div>

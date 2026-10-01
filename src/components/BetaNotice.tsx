@@ -229,45 +229,6 @@ const BetaNotice = () => {
 
   return (
     <>
-      <aside
-        role="region"
-        aria-label="Besked om testfase"
-        className="w-full border-b border-border bg-secondary/70 text-foreground"
-      >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-4 py-2 text-center sm:px-6 lg:px-8">
-          <p className="text-[13.5px] leading-6">
-            <span className="font-semibold">{title}</span>{" "}
-            <span className="text-muted-foreground">{body}</span>
-          </p>
-
-          {done ? (
-            <span className="inline-flex items-center gap-1.5 text-[13px] font-medium">
-              <CheckCircle2 className="h-4 w-4 text-beta-accent" />
-              Du står på listen
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setJustSignedUp(false);
-                setOpen(true);
-              }}
-              className="group inline-flex items-center gap-1 rounded-md bg-foreground px-3.5 py-1.5 text-[12.5px] font-semibold text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Få besked når vi åbner
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </button>
-          )}
-        </div>
-      </aside>
-
-      {/* Dialog fra stribens knap */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={dialogClass} onOpenAutoFocus={focusEmail}>
-          {dialogHeader}
-          <div className="p-6 sm:p-8">{justSignedUp ? confirmation : signupForm}</div>
-        </DialogContent>
-      </Dialog>
 
       {/* Popup ved første besøg i sessionen */}
       {(!done || justSignedUp) && (
