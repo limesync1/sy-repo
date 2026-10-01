@@ -9,4 +9,4 @@
 - [x] Udskift kundeservice-ikonet med den vedhæftede fil
 - [x] Forbedr Leads-siden med automatiske kundesvar om aftale, pris og status
 - [x] Send en app-email til relevante valgte medarbejdere ved nye leads
-- [ ] Verificér funktionerne på mobil og desktop
+- [x] Verificér funktionerne på mobil og desktop
