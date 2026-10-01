@@ -23,7 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import { useNavigate, useLocation } from "react-router-dom";
-import { EmptyState } from "@/components/admin/shared/AdminUI";
+import { EmptyState, StatIconTile } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
