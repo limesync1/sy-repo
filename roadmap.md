@@ -193,3 +193,9 @@
 - [x] Kontrollér medarbejdersider og offentlige sektioner på mobil, mindre computer og bred skærm.
 - [x] Bevar E-conomic- og Dinero-logoerne og brug kun regnskabsillustrationen i introduktionen.
 - [x] Tilføj de tre aftalte illustrationer på “Bliv udbyder” og forbedr prisafsnittet på “Systemet”.
+
+## Ensret medarbejdersider med virksomhedspanelet
+- [x] Saml bredde, mellemrum og loading i fælles medarbejder-sidecontainer.
+- [x] Anvend samme panelstil på Min dag, Statistik og Livechat.
+- [x] Ensret skærmvisningen af rute og print uden at ændre funktionalitet.
+- [x] Kontrollér mobil, lille laptop og desktop.

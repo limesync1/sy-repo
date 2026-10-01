@@ -27,7 +27,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import SEO from "@/components/SEO";
-import { PageTransition } from "@/components/admin/shared/PageTransition";
+import { EmployeePage } from "@/components/employee/EmployeePage";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -186,7 +186,9 @@ const EmployeeApp = () => {
     // spinner-skærm. Layoutet føles "fyldt" med det samme.
     return (
       <EmployeeShell activeTab="today" title="Min dag">
-        <MinDagSkeleton />
+        <EmployeePage>
+          <MinDagSkeleton />
+        </EmployeePage>
       </EmployeeShell>
     );
   }
@@ -299,7 +301,7 @@ const EmployeeApp = () => {
       />
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date} className="employee-day mx-auto w-full max-w-6xl space-y-3 sm:space-y-4">
+      <EmployeePage transitionKey={date} className="employee-day sm:space-y-4">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={(
@@ -805,7 +807,7 @@ const EmployeeApp = () => {
           );
         })}
         </div>
-      </PageTransition>
+      </EmployeePage>
 
       {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
           og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
