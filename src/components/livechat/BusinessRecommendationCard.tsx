@@ -1,7 +1,9 @@
 import { formatPrice as formatDkk } from "@/lib/price-format";
 import { Link } from "react-router-dom";
 import { BadgeCheck, MapPin, ArrowRight, Building2 } from "lucide-react";
-import supportPortrait from "@/assets/kundeservice-ikon-2.svg";
+import supportPortraitAsset from "@/assets/kundeservice-ikon.svg.asset.json";
+
+const supportPortrait = supportPortraitAsset.url;
 
 interface RecommendationMetadata {
   kind: string;

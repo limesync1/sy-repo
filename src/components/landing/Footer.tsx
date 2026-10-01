@@ -107,6 +107,7 @@ const Footer = () => {
               <li><Link to="/cookies" className="transition-colors hover:text-background">Cookies</Link></li>
               <li><Link to="/databehandleraftale" className="transition-colors hover:text-background">Databehandleraftale</Link></li>
               <li><Link to="/underdatabehandlere" className="transition-colors hover:text-background">Underdatabehandlere</Link></li>
+              <li><Link to="/slet-data" className="transition-colors hover:text-background">Slet data</Link></li>
             </ul>
           </div>
         </div>

@@ -38,6 +38,7 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/cookies", changefreq: "yearly", priority: "0.3" },
   { path: "/privatlivspolitik", changefreq: "yearly", priority: "0.3" },
   { path: "/vilkaar", changefreq: "yearly", priority: "0.3" },
+  { path: "/slet-data", changefreq: "yearly", priority: "0.3" },
 ];
 
 // Auto-genereret fra de centrale data-kilder. Tilføj et opslag/guide/by
@@ -186,6 +187,7 @@ const STATIC_META = [
   { path: "/cookies", title: "Cookiepolitik | Serviceydere", description: "Sådan bruger Serviceydere cookies, og hvordan du ændrer dine valg." },
   { path: "/privatlivspolitik", title: "Privatlivspolitik | Serviceydere", description: "Sådan behandler Serviceydere dine personoplysninger, og hvilke rettigheder du har." },
   { path: "/vilkaar", title: "Vilkår og betingelser | Serviceydere", description: "Vilkår for brug af Serviceydere for kunder og virksomheder." },
+  { path: "/slet-data", title: "Slet data og tilbagekald samtykke | Serviceydere", description: "Slet cookievalg, anmod om sletning af konto og personoplysninger eller fjern virksomhedsdata hos Serviceydere." },
 ];
 const routeMeta = [
   ...STATIC_META,

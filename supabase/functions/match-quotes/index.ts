@@ -425,7 +425,14 @@ ${bizSummaries}`,
               : [];
             const recipients = [...new Set([recipient, ...extra])];
             if (notif.lead_auto_reply === true && customerEmail) {
-              const body = String(notif.lead_auto_reply_text || "Tak for din forespørgsel! Vi vender tilbage hurtigst muligt.").slice(0, 1000);
+              const intro = String(notif.lead_auto_reply_text || "Tak for din forespørgsel! Vi vender tilbage hurtigst muligt.").slice(0, 1000);
+              const details = [
+                `Forespørgsel: ${category || "Service"}`,
+                m.estimated_price ? `Vejledende pris: ${m.estimated_price}` : null,
+                "Status: Modtaget — vi gennemgår nu din forespørgsel.",
+                "En aftale er først bekræftet, når du og virksomheden har aftalt den direkte.",
+              ].filter(Boolean).join("\n");
+              const body = `Hej ${customerName || "der"},\n\n${intro}\n\n${details}\n\nVenlig hilsen\n${biz.name}`;
               sendTemplateEmail("customer-notification", customerEmail, {
                 idempotencyKey: `lead-autoreply-${qr.id}-${biz.id}`,
                 templateData: { subject: `Tak for din forespørgsel — ${biz.name}`, body, businessName: biz.name },
