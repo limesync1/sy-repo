@@ -425,7 +425,16 @@ ${bizSummaries}`,
               : [];
             const recipients = [...new Set([recipient, ...extra])];
             if (notif.lead_auto_reply === true && customerEmail) {
-              const intro = String(notif.lead_auto_reply_text || "Tak for din forespørgsel! Vi vender tilbage hurtigst muligt.").slice(0, 1000);
+              const vars: Record<string, string> = {
+                "{{kundens_navn}}": customerName || "der",
+                "{{service}}": category || "din opgave",
+                "{{tidspunkt}}": new Date().toLocaleString("da-DK", { timeZone: "Europe/Copenhagen", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+                "{{by}}": userCity || "dit område",
+                "{{pris}}": m.estimated_price || "efter aftale",
+                "{{firmanavn}}": biz.name,
+              };
+              const intro = Object.entries(vars).reduce((t, [k, v]) => t.split(k).join(v),
+                String(notif.lead_auto_reply_text || "Tak for din forespørgsel! Vi vender tilbage hurtigst muligt.").slice(0, 1000));
               const details = [
                 `Forespørgsel: ${category || "Service"}`,
                 m.estimated_price ? `Vejledende pris: ${m.estimated_price}` : null,

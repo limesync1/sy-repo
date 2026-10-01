@@ -46,15 +46,16 @@ Deno.serve(async (req) => {
   for (const change of changes) {
     if (change?.field !== "leadgen" || !change?.value?.leadgen_id || !change?.value?.page_id) continue;
     const { data: connection } = await admin.from("meta_connections")
-      .select("business_id, access_token_ciphertext, access_token_iv, selected_form_ids")
+      .select("business_id, access_token_ciphertext, access_token_iv, selected_form_ids, page_name, instagram_account_id, instagram_account_name")
       .eq("page_id", String(change.value.page_id)).eq("lead_ads_enabled", true).maybeSingle();
     if (!connection?.access_token_ciphertext || !connection?.access_token_iv) continue;
     const selectedFormIds = Array.isArray(connection.selected_form_ids) ? connection.selected_form_ids : [];
     if (selectedFormIds.length > 0 && change?.value?.form_id && !selectedFormIds.includes(String(change.value.form_id))) continue;
     const token = await decryptMetaToken(connection.access_token_ciphertext, connection.access_token_iv, encryptionSecret);
-    const leadResponse = await fetch(`https://graph.facebook.com/v23.0/${encodeURIComponent(change.value.leadgen_id)}?fields=id,created_time,field_data,form_id,ad_id,adgroup_id,campaign_id&access_token=${encodeURIComponent(token)}`);
+    const leadResponse = await fetch(`https://graph.facebook.com/v23.0/${encodeURIComponent(change.value.leadgen_id)}?fields=id,created_time,field_data,form_id,ad_id,adgroup_id,campaign_id,platform&access_token=${encodeURIComponent(token)}`);
     if (!leadResponse.ok) continue;
     const lead = await leadResponse.json();
+    const isInstagram = String(lead.platform || "").toLowerCase().startsWith("ig") || String(lead.platform || "").toLowerCase() === "instagram";
     const fields = new Map((lead.field_data || []).map((field: any) => [String(field.name), String(field.values?.[0] || "")]));
     const fullName = fields.get("full_name") || [fields.get("first_name"), fields.get("last_name")].filter(Boolean).join(" ") || "Meta lead";
     const description = fields.get("message") || fields.get("job_description") || fields.get("custom_question") || "Lead indsendt via Meta Lead Ads";
@@ -68,12 +69,18 @@ Deno.serve(async (req) => {
       zip_code: fields.get("zip_code") || fields.get("post_code") || null,
       share_contact: true,
       terms_accepted_at: lead.created_time || new Date().toISOString(),
-      source: "facebook",
+      source: isInstagram ? "instagram" : "facebook",
       source_channel: "lead_ads",
       external_lead_id: String(lead.id),
       external_form_id: lead.form_id ? String(lead.form_id) : null,
       external_campaign_id: lead.campaign_id ? String(lead.campaign_id) : null,
-      source_metadata: { ad_id: lead.ad_id || null, adgroup_id: lead.adgroup_id || null },
+      source_metadata: {
+        ad_id: lead.ad_id || null, adgroup_id: lead.adgroup_id || null,
+        platform: lead.platform || null,
+        page_id: String(change.value.page_id), page_name: connection.page_name || null,
+        instagram_id: isInstagram ? connection.instagram_account_id || null : null,
+        instagram_name: isInstagram ? connection.instagram_account_name || null : null,
+      },
     }, { onConflict: "source,external_lead_id" }).select("id").single();
     if (request?.id) {
       await admin.from("quote_request_matches").upsert({
