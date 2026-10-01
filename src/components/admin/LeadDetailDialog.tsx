@@ -395,13 +395,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
     }
   };
 
-  // Auto-generér første udkast når dialogen åbnes hvis intet findes endnu
-  useEffect(() => {
-    if (open && lead && !lead.ai_draft && !generating && lead.quote_request?.description) {
-      generateDraft(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, lead?.id]);
+  // Udkast genereres kun når brugeren trykker "Skriv forslag" — aldrig automatisk.
 
   if (!lead) return null;
   const qr = lead.quote_request;
