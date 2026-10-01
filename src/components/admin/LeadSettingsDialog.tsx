@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Settings2, X, Loader2, Check, Plus, Mail, Users, BriefcaseBusiness, MapPin, MessageSquare } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -90,6 +90,7 @@ function ChipInput({ values, onChange, placeholder, validate }: {
 
 export function LeadSettingsDialog({ businessId }: { businessId: string }) {
   const [open, setOpen] = useState(false);
+  const replyRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
