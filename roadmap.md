@@ -195,7 +195,7 @@
 - [x] Tilføj de tre aftalte illustrationer på “Bliv udbyder” og forbedr prisafsnittet på “Systemet”.
 
 ## Ensret medarbejdersider med virksomhedspanelet
-- [ ] Saml bredde, mellemrum og loading i fælles medarbejder-sidecontainer.
-- [ ] Anvend samme panelstil på Min dag, Statistik og Livechat.
-- [ ] Ensret skærmvisningen af rute og print uden at ændre funktionalitet.
+- [x] Saml bredde, mellemrum og loading i fælles medarbejder-sidecontainer.
+- [x] Anvend samme panelstil på Min dag, Statistik og Livechat.
+- [x] Ensret skærmvisningen af rute og print uden at ændre funktionalitet.
 - [ ] Kontrollér mobil, lille laptop og desktop.
