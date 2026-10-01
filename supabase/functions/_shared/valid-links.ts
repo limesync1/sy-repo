@@ -38,6 +38,7 @@ export const VALID_PATHS: string[] = [
   "/cookies",
   "/databehandleraftale",
   "/underdatabehandlere",
+  "/slet-data",
 ];
 
 /** Dynamiske sektioner hvor undersider findes (fx /priser/rengoering). */

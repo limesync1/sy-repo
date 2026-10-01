@@ -1,6 +1,8 @@
 import { MessageCircle, Trash2 } from "lucide-react";
 import { platformKey, type RegisteredChat } from "./chatRegistry";
-import supportPortrait from "@/assets/kundeservice-ikon-2.svg";
+import supportPortraitAsset from "@/assets/kundeservice-ikon.svg.asset.json";
+
+const supportPortrait = supportPortraitAsset.url;
 
 type Props = {
   chats: RegisteredChat[];

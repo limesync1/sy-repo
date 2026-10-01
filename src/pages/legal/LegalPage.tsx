@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  Search, Link2, Printer, ArrowUp, X, FileText, ShieldCheck, Cookie, FileSignature, Building2, ChevronRight,
+  Search, Link2, Printer, ArrowUp, X, FileText, ShieldCheck, Cookie, FileSignature, Building2, ChevronRight, Trash2,
 } from "lucide-react";
 
 /** Delt layout for de juridiske sider (/privatlivspolitik, /vilkaar,
@@ -34,6 +34,7 @@ const DOCS = [
   { to: "/cookies", label: "Cookies", icon: Cookie },
   { to: "/databehandleraftale", label: "Databehandleraftale", icon: FileSignature },
   { to: "/underdatabehandlere", label: "Underdatabehandlere", icon: Building2 },
+  { to: "/slet-data", label: "Slet data", icon: Trash2 },
 ];
 
 /** Trækker ren tekst ud af et React-træ, så vi kan søge i afsnittene. */

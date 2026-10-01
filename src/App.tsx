@@ -97,6 +97,7 @@ const Terms                  = lazyRoute("terms", () => import("./pages/legal/Te
 const Cookies                = lazyRoute("cookies", () => import("./pages/legal/Cookies"));
 const DataProcessingAgreement = lazyRoute("dpa", () => import("./pages/legal/DataProcessingAgreement"));
 const SubProcessors          = lazyRoute("subprocessors", () => import("./pages/legal/SubProcessors"));
+const DeleteData             = lazyRoute("delete-data", () => import("./pages/legal/DeleteData"));
 const CleaningPriceGuide     = lazyRoute("/priser/rengoering", () => import("./pages/guides/CleaningPriceGuide"));
 const MovingPriceGuide       = lazyRoute("/priser/flyttehjaelp", () => import("./pages/guides/MovingPriceGuide"));
 const LaminateCleaningGuide  = lazyRoute("/guides/rengoering-af-laminatgulv", () => import("./pages/guides/LaminateCleaningGuide"));
@@ -374,6 +375,7 @@ const App = () => (
               <Route path="/cookies" element={<Cookies />} />
               <Route path="/databehandleraftale" element={<DataProcessingAgreement />} />
               <Route path="/underdatabehandlere" element={<SubProcessors />} />
+              <Route path="/slet-data" element={<DeleteData />} />
 
               {/* ── Prisguides (SEO landing pages) ── */}
               <Route path="/priser/rengoering" element={<CleaningPriceGuide />} />

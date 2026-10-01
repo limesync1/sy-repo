@@ -153,8 +153,8 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
             </div>
 
             <div className="space-y-2">
-              <Label>Ekstra modtagere</Label>
-              <p className="text-xs text-muted-foreground">Virksomhedens e-mail får altid besked. Vælg medarbejdere med ét tryk, eller skriv en e-mail (maks. 5).</p>
+              <Label>Medarbejdere, der skal have nye leads</Label>
+              <p className="text-xs text-muted-foreground">Virksomhedens e-mail får altid besked. Vælg de medarbejdere, der også automatisk skal have leadets oplysninger på e-mail (maks. 5).</p>
               {staff.filter((m) => m.email !== ownerEmail).length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {staff.filter((m) => m.email !== ownerEmail).map((m) => {
@@ -217,8 +217,8 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
             <div className="space-y-3 rounded-md border border-border p-3">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Label>Send automatisk tak-besked til kunden</Label>
-                  <p className="text-xs text-muted-foreground">Når en kunde sender en forespørgsel, får de straks en e-mail fra jer, så de ved, at I har set den. Det øger chancen for at vinde opgaven.</p>
+                  <Label>Hold kunden automatisk opdateret</Label>
+                  <p className="text-xs text-muted-foreground">Kunden får straks en personlig e-mail med den valgte tekst samt forespørgslens kategori, prisestimat og aktuelle status. Senere statusændringer sendes fra leadet.</p>
                 </div>
                 <Switch checked={s.lead_auto_reply} onCheckedChange={(v) => setS({ ...s, lead_auto_reply: v })} />
               </div>
@@ -235,7 +235,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                   <div className="rounded-md bg-secondary/50 p-3 text-xs">
                     <p className="mb-1 font-semibold text-foreground">Sådan ser kunden den</p>
                     <p className="text-muted-foreground">Fra: {businessName || "Jeres virksomhed"}</p>
-                    <p className="mt-2 whitespace-pre-line text-foreground">{`Hej Kunde,\n\n${s.lead_auto_reply_text}\n\nVenlig hilsen\n${businessName || "Jeres virksomhed"}`}</p>
+                    <p className="mt-2 whitespace-pre-line text-foreground">{`Hej Kunde,\n\n${s.lead_auto_reply_text}\n\nForespørgsel: Eksempel på jeres service\nPris: Vises automatisk, når et estimat findes\nStatus: Modtaget\n\nVenlig hilsen\n${businessName || "Jeres virksomhed"}`}</p>
                   </div>
                 </>
               )}
