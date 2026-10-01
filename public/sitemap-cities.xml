@@ -171,6 +171,16 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/flyttehjaelp/frederiksberg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/flyttehjaelp/holstebro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/haandvaerker/koebenhavn</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -231,6 +241,31 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/haandvaerker/frederiksberg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/naestved</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/helsingoer</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/hilleroed</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/slagelse</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/haveservice/koebenhavn</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -282,6 +317,26 @@
   </url>
   <url>
     <loc>https://serviceydere.dk/haveservice/frederiksberg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haveservice/herning</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haveservice/roskilde</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haveservice/naestved</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haveservice/helsingoer</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
