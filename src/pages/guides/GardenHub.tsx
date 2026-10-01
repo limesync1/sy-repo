@@ -85,6 +85,7 @@ export default defineGuidePage({
     ]},
   ],
   faq: [
+    { q: "Hvad er gartner priser i 2026?", a: "En havemand/gartner koster typisk 285–625 kr. i timen inkl. moms. En anlægsgartner tager ofte 450–650 kr./t eller 2.495–5.495 kr. pr. m² for terrasse og belægning. Indhent 3 gratis tilbud for at sammenligne." },
     { q: "Skal jeg vælge abonnement eller engangsbesøg?", a: "Abonnement (typisk 18–24 besøg/år) er 20–30% billigere pr. besøg og giver fast personale. Engangsbesøg er bedst til specifikke opgaver." },
     { q: "Er haveservice BoligJob-fradragsberettiget?", a: "Ja — løbende haveservice falder under servicefradraget (12.300 kr./voksen). Anlæg af fx terrasse kan falde under håndværkerfradraget." },
     { q: "Hvornår skal jeg booke forårsopgaver?", a: "Marts-april. De bedste firmaer fyldes 3-4 uger frem i forårssæsonen." },
