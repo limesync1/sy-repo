@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  MapPin, Mail, Phone, Loader2, Inbox, Search, TrendingUp, Trophy, Filter,
+  MapPin, Mail, Phone, Loader2, Inbox, Search, Trophy, Filter,
   Clock, XCircle,
   Calendar, StickyNote, Bell, BellRing, MessageSquare,
 } from "lucide-react";

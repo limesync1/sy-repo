@@ -1,17 +1,17 @@
 # Samlet panelredesign
 
 ## Premium paneler, Leads og stabil navigation
-- [ ] Ensret premium-flader og navigation på virksomhed, medarbejder og platformadmin.
-- [ ] Stabiliser session, funktionsflag og medarbejdernavigation uden blinkende punkter.
-- [ ] Saml Serviceydere- og Meta-leads med sikker forbindelse, kilder og måling.
-- [ ] Tilføj Livechat-nøgletal, udbetalingsikon og fem illustrationer i Ny service.
-- [ ] Verificér flows og layouts på mobil, mindre laptop og stor skærm.
+- [x] Ensret premium-flader og navigation på virksomhed, medarbejder og platformadmin.
+- [x] Stabiliser session, funktionsflag og medarbejdernavigation uden blinkende punkter.
+- [ ] Saml Serviceydere- og Meta-leads med sikker forbindelse, kilder og måling. Blokeret af Meta-appoplysninger.
+- [x] Tilføj Livechat-nøgletal, udbetalingsikon og fem illustrationer i Ny service.
+- [x] Verificér flows og layouts på mobil, mindre laptop og stor skærm.
 
 ## Ensartede loading-visninger og nye panelikoner
-- [ ] Lad alle panel-loadingvisninger følge sidemenuens gemte åbne/sammenfoldede tilstand.
-- [ ] Erstat kundeserviceikonet i alle supportvisninger.
-- [ ] Saml og anvend de nye panelillustrationer på relevante menuer, handlinger, kort og vinduer.
-- [ ] Kontrollér mobil, lille computer og stor skærm uden størrelsesspring.
+- [x] Lad alle panel-loadingvisninger følge sidemenuens gemte åbne/sammenfoldede tilstand.
+- [x] Erstat kundeserviceikonet i alle supportvisninger.
+- [x] Saml og anvend de nye panelillustrationer på relevante menuer, handlinger, kort og vinduer.
+- [x] Kontrollér mobil, lille computer og stor skærm uden størrelsesspring.
 
 - [x] Gendan den tidligere naturlige Inter/systemskrifttype overalt.
 - [x] Vis medarbejderfoto eller initialer i “Kontakt medarbejder”.
