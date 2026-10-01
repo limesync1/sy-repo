@@ -77,16 +77,19 @@ export const StatCard = ({
   hint?: React.ReactNode;
   tone?: "neutral" | "accent" | "emerald" | "amber" | "blue" | "violet" | "danger" | "warn" | "ok";
 }) => {
-  const tones: Record<string, string> = {
-    neutral: "bg-secondary text-foreground",
-    accent: "bg-accent/10 text-accent",
-    emerald: "bg-feature-cool text-feature-cool-foreground",
-    amber: "bg-feature-warm text-feature-warm-foreground",
-    blue: "bg-accent/10 text-accent",
-    violet: "bg-feature-lilac text-feature-lilac-foreground",
-    danger: "bg-destructive/10 text-destructive",
-    warn: "bg-warning/12 text-warning-foreground dark:text-warning",
-    ok: "bg-success/12 text-success",
+  // Ikonfladen er ens på alle kort (samme størrelse, samme baggrund), så
+  // nøgletal aldrig ser rodede ud. Status vises kun som en svag ring + farvet
+  // Lucide-ikon — illustrationer beholder deres egne farver.
+  const iconTone: Record<string, string> = {
+    neutral: "text-foreground",
+    accent: "text-accent",
+    emerald: "text-feature-cool-foreground",
+    amber: "text-feature-warm-foreground",
+    blue: "text-accent",
+    violet: "text-feature-lilac-foreground",
+    danger: "text-destructive",
+    warn: "text-warning-foreground dark:text-warning",
+    ok: "text-success",
   };
   const ring =
     tone === "danger" ? "ring-1 ring-destructive/30"
@@ -94,16 +97,9 @@ export const StatCard = ({
     : tone === "ok" ? "ring-1 ring-success/30"
     : "";
   return (
-    // Diskret hover: kun border bliver lidt mørkere. Ingen lift/rotation som
-    // ellers fik nøgletals-kortene til at "danse" tilfældigt.
     <Card className={cn("service-panel-card rounded-[5px] border-border shadow-sm transition-colors duration-150 ease-out hover:border-accent/35", ring)}>
       <CardContent className="flex items-start gap-2.5 p-3">
-        <div
-          className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] p-1 sm:h-11 sm:w-11 [&_svg]:h-4 [&_svg]:w-4 [&_img]:h-full [&_img]:w-full",
-            tones[tone],
-          )}
-        >
+        <StatIconTile className={iconTone[tone]}>
           {icon}
         </div>
         <div className="min-w-0 flex-1">

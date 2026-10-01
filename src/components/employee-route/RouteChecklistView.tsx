@@ -6,7 +6,6 @@ import {
   ArrowUp,
   Check,
   CheckCircle2,
-  ChevronDown,
   MapPin,
   Navigation2,
   Phone,
@@ -14,9 +13,10 @@ import {
   Loader2,
   BellRing,
   Play,
-  Clock3,
   Volume2,
   VolumeX,
+  Map as MapIcon,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,22 +24,20 @@ import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/us
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
 import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
-import { Section } from "@/components/route-planner/SheetSection";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
  *
- * Ingen kort, ingen løbende GPS og ingen talte manøvrer — bare stoppene i
- * rækkefølge med én tydelig handling: "Udført". Det er både markant enklere
- * at bruge på en telefon og stort set gratis strømmæssigt, fordi der ikke
- * kører hverken kort-rendering eller positionssporing i baggrunden.
+ * Ingen kort og ingen løbende GPS. Ét tydeligt "nu"-kort med én primær
+ * handling ad gangen (Start aftale → Aftale udført) og en samlet tidslinje
+ * over hele dagen. På computer står nu-kortet til venstre og tidslinjen til
+ * højre; på mobil står de under hinanden.
  */
 
 type Props = {
   routeName: string;
   themeColor: string;
   stops: RouteStop[];
-  /** Stop-id der lige nu gemmes — bruges til at vise spinner på knappen. */
   pendingId: string | null;
   locked: boolean;
   onComplete: (stop: RouteStop) => void;
@@ -47,7 +45,6 @@ type Props = {
   onNavigate: (stop: RouteStop) => void;
   onSwitchToGuide: () => void;
   onFinish: () => void;
-  /** Flyt et stop op/ned i rækkefølgen mens man kører. */
   onMoveStop?: (stopId: string, dir: -1 | 1) => void;
   reordering?: boolean;
   notification?: { title: string; message: string } | null;
@@ -65,7 +62,6 @@ const formatElapsed = (seconds: number) => {
 
 export const RouteChecklistView = ({
   routeName,
-  themeColor,
   stops,
   pendingId,
   locked,
@@ -81,7 +77,6 @@ export const RouteChecklistView = ({
   audioEnabled,
   onToggleAudio,
 }: Props) => {
-  const [showDone, setShowDone] = useState(false);
   const employeeId = useMyEmployeeId();
   const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
   const startStopTime = useStartStopTime();
@@ -89,15 +84,16 @@ export const RouteChecklistView = ({
   const completed = useMemo(() => stops.filter((s) => s.status === "completed"), [stops]);
   const remaining = useMemo(() => stops.filter((s) => s.status !== "completed"), [stops]);
   const next = remaining[0];
-  const nextIsStarted = !!next && timeEntries.some((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at);
   const activeEntry = next
     ? timeEntries.find((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at)
     : undefined;
+  const nextIsStarted = !!activeEntry;
   const elapsedSeconds = activeEntry
     ? Math.max(0, Math.floor((now - new Date(activeEntry.started_at).getTime()) / 1000))
     : 0;
   const allDone = stops.length > 0 && remaining.length === 0;
   const progress = stops.length > 0 ? (completed.length / stops.length) * 100 : 0;
+  const nextNumber = next ? stops.findIndex((s) => s.id === next.id) + 1 : 0;
 
   const addressOf = (s: RouteStop) => s.full_address || s.address || null;
 
@@ -117,270 +113,247 @@ export const RouteChecklistView = ({
     }
   };
 
+  const remainingIds = remaining.map((s) => s.id);
+
   return (
-    <div className="employee-route-run flex min-h-dvh flex-col bg-secondary/35">
-      {/* Header */}
-      <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card text-foreground shadow-sm">
-        <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-2 px-2 sm:px-5">
-          <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-md">
+    <div className="employee-route-run flex min-h-dvh flex-col bg-secondary/40">
+      {/* Topbjælke */}
+      <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+        <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-1.5 px-2 sm:gap-2 sm:px-5">
+          <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0">
             <Link to="/medarbejder" aria-label="Tilbage til dagens ruter">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[15px] font-bold text-foreground">{routeName}</h1>
-            <p className="text-[11.5px] tabular-nums text-muted-foreground">
-              {completed.length} af {stops.length} klaret
+            <h1 className="truncate text-[15px] font-semibold leading-tight text-foreground">{routeName}</h1>
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {completed.length} af {stops.length} stops udført
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-10 shrink-0 gap-1.5 border border-beige-foreground/15 bg-beige px-3 text-[12.5px] font-semibold text-beige-foreground hover:bg-beige/80"
-            onClick={onSwitchToGuide}
-          >
-            <Navigation2 className="h-4 w-4" />
-            Kørselsguide
+          <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
+            <MapIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Kortvisning</span>
           </Button>
           <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"} aria-pressed={!audioEnabled}>
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
         <div className="h-1 w-full bg-secondary" aria-hidden>
-          <div
-            className="h-full transition-all duration-500 ease-out bg-accent"
-            style={{ width: `${progress}%`, background: themeColor }}
-          />
+          <div className="h-full bg-accent transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
         </div>
       </header>
 
-      {notification && (
-        <div className="border-b border-destructive/25 bg-destructive/5 px-3 py-2.5">
-          <div className="mx-auto flex max-w-2xl items-start gap-2.5">
-            <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
+        {notification && (
+          <div className="mb-3 flex items-start gap-3 rounded-md border border-destructive/25 bg-card p-3 shadow-sm">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+              <BellRing className="h-4 w-4" />
+            </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[10px] font-semibold uppercase text-destructive">{notification.title}</p>
-              <p className="mt-0.5 text-xs font-medium leading-relaxed text-foreground">{notification.message}</p>
+              <p className="truncate text-xs font-semibold text-destructive">{notification.title}</p>
+              <p className="mt-0.5 text-sm leading-snug text-foreground">{notification.message}</p>
             </div>
             {onMarkNotificationRead && (
-              <Button variant="outline" size="sm" className="h-8 shrink-0 text-xs" onClick={onMarkNotificationRead}>Markér som læst</Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onMarkNotificationRead} aria-label="Markér som læst">
+                <X className="h-4 w-4" />
+              </Button>
             )}
           </div>
-        </div>
-      )}
+        )}
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
-        {allDone ? (
-          <section className="rounded-md border border-border bg-card p-6 text-center">
-            <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-md bg-success/10 text-success">
-              <CheckCircle2 className="h-6 w-6" />
-            </span>
-            <h2 className="mt-3 text-xl font-bold text-foreground">Ruten er kørt færdig</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Du klarede alle {stops.length} stop. Godt gået.
-            </p>
-            <Button className="mt-5 h-12 w-full text-[15px]" onClick={onFinish}>
-              Tilbage til dagens ruter
-            </Button>
-          </section>
-        ) : (
-          <>
-            {/* Næste stop — det eneste der fylder */}
-            {next && (
-              <Section
-                icon={<MapPin />}
-                title="Næste stop"
-                hint={`Stop ${completed.length + 1} af ${stops.length}`}
-                tone="accent"
-                className="service-panel-card overflow-hidden"
-              >
-                {activeEntry && (
-                  <div className="mb-3 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-3 py-2 text-success">
-                    <span className="flex items-center gap-2 text-xs font-semibold"><span className="h-2 w-2 animate-pulse rounded-full bg-success" />Aftalen er startet</span>
-                    <span className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums"><Clock3 className="h-4 w-4" />{formatElapsed(elapsedSeconds)}</span>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+          {/* Nu-kort */}
+          <div className="lg:sticky lg:top-[4.75rem]">
+            {allDone ? (
+              <section className="service-panel-card rounded-md border border-border bg-card p-6 text-center shadow-sm">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
+                  <CheckCircle2 className="h-7 w-7" />
+                </span>
+                <h2 className="mt-4 text-xl font-semibold text-foreground">Ruten er kørt færdig</h2>
+                <p className="mt-1.5 text-sm text-muted-foreground">Alle {stops.length} stops er udført. Godt arbejde.</p>
+                <Button className="mt-6 h-12 w-full text-[15px]" onClick={onFinish}>Tilbage til dagens ruter</Button>
+              </section>
+            ) : next ? (
+              <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm">
+                <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {nextIsStarted ? "I gang nu" : "Næste stop"}
+                  </span>
+                  <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold tabular-nums text-foreground">
+                    Stop {nextNumber} af {stops.length}
+                  </span>
+                </div>
+
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-foreground text-base font-bold tabular-nums text-background">
+                      {nextNumber}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-xl font-semibold leading-tight text-foreground">{next.customer_name || "Stop"}</h2>
+                      {addressOf(next) && (
+                        <p className="mt-1 flex items-start gap-1.5 text-sm leading-snug text-muted-foreground">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                          <span>{addressOf(next)}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
-                )}
-                <h2 className="text-[18px] font-semibold leading-tight text-foreground">
-                  {next.customer_name || "Stop"}
-                </h2>
-                {addressOf(next) && (
-                  <p className="mt-1 flex items-start gap-1.5 text-[13.5px] leading-6 text-muted-foreground">
-                    <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                    {addressOf(next)}
-                  </p>
-                )}
-                {next.service_summary && stripPrices(next.service_summary) && (
-                  <p className="mt-2 rounded-[4px] bg-secondary/60 px-3 py-2 text-[13px] leading-5 text-foreground">
-                    {stripPrices(next.service_summary)}
-                  </p>
-                )}
 
-                <div className="mt-3 grid gap-2">
-                  {!nextIsStarted && (
-                    <Button
-                      type="button"
-                      className="min-h-11 w-full gap-2 bg-warning font-semibold text-warning-foreground hover:bg-warning/90"
-                      disabled={!employeeId || locked || startStopTime.isPending}
-                      onClick={() => void startNext()}
-                    >
-                      {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                      Start aftale
-                    </Button>
+                  {next.service_summary && stripPrices(next.service_summary) && (
+                    <p className="mt-3 rounded-md bg-secondary/70 px-3 py-2.5 text-sm leading-snug text-foreground">
+                      {stripPrices(next.service_summary)}
+                    </p>
                   )}
-                  <Button
-                    className="h-13 min-h-[52px] w-full gap-2 bg-success text-[15px] font-semibold text-success-foreground hover:bg-success/90"
-                    disabled={locked || pendingId === next.id}
-                    onClick={() => onComplete(next)}
-                  >
-                    {pendingId === next.id ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+
+                  {nextIsStarted && (
+                    <div className="mt-4 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-4 py-3">
+                      <span className="flex items-center gap-2 text-sm font-medium text-success">
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
+                        Tid registreres
+                      </span>
+                      <span className="font-mono text-2xl font-semibold tabular-nums text-foreground">{formatElapsed(elapsedSeconds)}</span>
+                    </div>
+                  )}
+
+                  <div className="mt-4 grid gap-2">
+                    {nextIsStarted ? (
+                      <Button
+                        className="h-14 w-full gap-2 bg-success text-base font-semibold text-success-foreground hover:bg-success/90"
+                        disabled={locked || pendingId === next.id}
+                        onClick={() => onComplete(next)}
+                      >
+                        {pendingId === next.id ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                        Aftale udført
+                      </Button>
                     ) : (
-                      <CheckCircle2 className="h-6 w-6" />
+                      <Button
+                        className="h-14 w-full gap-2 text-base font-semibold"
+                        disabled={!employeeId || locked || startStopTime.isPending}
+                        onClick={() => void startNext()}
+                      >
+                        {startStopTime.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
+                        Start aftale
+                      </Button>
                     )}
-                    {nextIsStarted ? "Aftale udført" : "Markér som udført"}
-                  </Button>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      className="h-11 gap-2"
-                      onClick={() => onNavigate(next)}
-                    >
-                      <Navigation2 className="h-4 w-4" />
-                      Kør dertil
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-11 gap-2"
-                      disabled={!next.customer_phone}
-                      asChild={!!next.customer_phone}
-                    >
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="h-11 gap-2" onClick={() => onNavigate(next)}>
+                        <Navigation2 className="h-4 w-4" />
+                        Kør dertil
+                      </Button>
                       {next.customer_phone ? (
-                        <a href={`tel:${next.customer_phone}`}>
-                          <Phone className="h-4 w-4" />
-                          Ring
-                        </a>
+                        <Button variant="outline" className="h-11 gap-2" asChild>
+                          <a href={`tel:${next.customer_phone}`}>
+                            <Phone className="h-4 w-4" />
+                            Ring
+                          </a>
+                        </Button>
                       ) : (
-                        <span>
+                        <Button variant="outline" className="h-11 gap-2" disabled>
                           <Phone className="h-4 w-4" />
                           Intet nr.
-                        </span>
+                        </Button>
                       )}
-                    </Button>
+                    </div>
+                    {!nextIsStarted && (
+                      <Button
+                        variant="ghost"
+                        className="h-10 w-full gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                        disabled={locked || pendingId === next.id}
+                        onClick={() => onComplete(next)}
+                      >
+                        {pendingId === next.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        Markér som udført uden tidsregistrering
+                      </Button>
+                    )}
                   </div>
+                  {locked && (
+                    <p className="mt-2 text-center text-xs text-muted-foreground">Ruten kan først udføres på selve dagen.</p>
+                  )}
                 </div>
-                {locked && (
-                  <p className="mt-2 text-center text-[12px] text-muted-foreground">
-                    Ruten kan først udføres på selve dagen.
-                  </p>
-                )}
-              </Section>
-            )}
-
-            {/* Resten af dagen */}
-            {remaining.length > 1 && (
-              <section className="mt-4">
-                <h3 className="px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  Derefter ({remaining.length - 1})
-                </h3>
-                <ul className="mt-2 space-y-2">
-                  {remaining.slice(1).map((s, i) => (
-                    <li key={s.id}>
-                        <div className="flex min-h-14 items-center gap-2.5 rounded-md border border-border bg-card px-2.5 py-2 shadow-sm transition-colors hover:border-accent/25 hover:bg-secondary/25">
-                         <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-secondary text-[12px] font-semibold text-muted-foreground">
-                          {completed.length + i + 2}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-medium text-foreground">
-                            {s.customer_name || "Stop"}
-                          </p>
-                          {addressOf(s) && (
-                            <p className="truncate text-[12px] text-muted-foreground">{addressOf(s)}</p>
-                          )}
-                        </div>
-                        {onMoveStop && (
-                          <div className="flex shrink-0 gap-1">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              type="button"
-                              aria-label="Flyt stoppet tidligere på ruten"
-                              disabled={reordering}
-                              onClick={() => onMoveStop(s.id, -1)}
-                              className="h-10 w-10 rounded-md text-muted-foreground hover:text-foreground"
-                            >
-                              <ArrowUp className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              type="button"
-                              aria-label="Flyt stoppet senere på ruten"
-                              disabled={reordering || i >= remaining.length - 2}
-                              onClick={() => onMoveStop(s.id, 1)}
-                              className="h-10 w-10 rounded-md text-muted-foreground hover:text-foreground"
-                            >
-                              <ArrowDown className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
               </section>
-            )}
-          </>
-        )}
+            ) : null}
+          </div>
 
-        {/* Udførte stop */}
-        {completed.length > 0 && (
-          <section className="mt-5">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setShowDone((v) => !v)}
-              aria-expanded={showDone}
-              className="h-auto w-full justify-between rounded-md bg-card px-3 py-3 text-left"
-            >
-              <span className="flex items-center gap-2 text-[13.5px] font-medium text-foreground">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                {completed.length} udført
-              </span>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform",
-                  showDone && "rotate-180",
-                )}
-              />
-            </Button>
-            {showDone && (
-              <ul className="mt-2 space-y-2">
-                {completed.map((s) => (
-                  <li
-                    key={s.id}
-                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-border bg-card/70 px-2.5 py-2.5 sm:gap-3 sm:px-3"
-                  >
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                    <span className="min-w-0 flex-1 truncate text-[13.5px] text-muted-foreground line-through">
-                      {s.customer_name || "Stop"}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 shrink-0 border-destructive/30 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive sm:w-auto sm:gap-1.5 sm:px-2.5"
-                      onClick={() => onUndo(s)}
-                      aria-label="Fortryd udførsel"
-                      title="Fortryd udførsel"
-                    >
-                      <Undo2 className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Fortryd udførsel</span>
-                    </Button>
+          {/* Tidslinje over hele dagen */}
+          <section className="service-panel-card rounded-md border border-border bg-card shadow-sm">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <h3 className="text-sm font-semibold text-foreground">Dagens stops</h3>
+              <span className="text-xs tabular-nums text-muted-foreground">{remaining.length} tilbage</span>
+            </div>
+            <ol className="relative px-2 py-2">
+              {stops.map((s, i) => {
+                const done = s.status === "completed";
+                const current = next?.id === s.id;
+                const remIdx = remainingIds.indexOf(s.id);
+                const canMove = !!onMoveStop && !done && !current;
+                return (
+                  <li key={s.id} className="relative">
+                    {i < stops.length - 1 && (
+                      <span className="absolute left-[1.6rem] top-10 bottom-0 w-px bg-border" aria-hidden />
+                    )}
+                    <div className={cn("relative flex items-center gap-3 rounded-md px-2 py-2", current && "bg-accent/[0.07]")}>
+                      <span
+                        className={cn(
+                          "relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums",
+                          done && "border-success bg-success text-success-foreground",
+                          current && "border-foreground bg-foreground text-background",
+                          !done && !current && "border-border bg-card text-muted-foreground",
+                        )}
+                      >
+                        {done ? <Check className="h-4 w-4" /> : i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className={cn("truncate text-sm font-medium", done ? "text-muted-foreground line-through" : "text-foreground")}>
+                          {s.customer_name || "Stop"}
+                        </p>
+                        {addressOf(s) && <p className="truncate text-xs text-muted-foreground">{addressOf(s)}</p>}
+                      </div>
+                      {done && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 shrink-0 gap-1.5 px-2 text-muted-foreground hover:text-destructive"
+                          onClick={() => onUndo(s)}
+                          aria-label="Fortryd udførsel"
+                        >
+                          <Undo2 className="h-4 w-4" />
+                          <span className="hidden sm:inline">Fortryd</span>
+                        </Button>
+                      )}
+                      {current && <span className="shrink-0 text-xs font-semibold text-accent">Nu</span>}
+                      {canMove && (
+                        <div className="flex shrink-0 gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Flyt stoppet tidligere"
+                            disabled={reordering || remIdx <= 1}
+                            onClick={() => onMoveStop!(s.id, -1)}
+                            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Flyt stoppet senere"
+                            disabled={reordering || remIdx >= remaining.length - 1}
+                            onClick={() => onMoveStop!(s.id, 1)}
+                            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </li>
-                ))}
-              </ul>
-            )}
+                );
+              })}
+            </ol>
           </section>
-        )}
+        </div>
       </main>
     </div>
   );
