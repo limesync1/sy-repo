@@ -344,6 +344,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
           <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="calendarWeek" />} />
         </div>
 
+        <LeadSourceDashboard leads={allLeads} accounts={accounts} activeAccount={accountFilter}
+          onPickAccount={(k) => { setAccountFilter((cur) => cur === k ? "all" : k); setFilter("all"); }} />
+
         <MetaLeadsSetup businessId={businessId} />
 
         {allLeads.length === 0 ? (
