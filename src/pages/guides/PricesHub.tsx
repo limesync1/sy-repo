@@ -11,7 +11,7 @@ export default defineGuidePage({
   heroSubtitle:
     "Alle vores prisguides samlet ét sted. Find realistiske 2026-priser for rengøring, flytning, håndværk, have og alle andre serviceydelser.",
   breadcrumbLabel: "Priser 2026",
-  publishedAt: "2027-03-20",
+  publishedAt: "2026-07-27",
   quickFacts: [
     <>Dækning: <strong>50+ prisguides</strong> for alle hovedfag</>,
     <>Opdateret: <strong>2026-priser</strong> inkl. moms og fradrag</>,

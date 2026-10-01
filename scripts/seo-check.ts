@@ -105,7 +105,7 @@ if (!indexXml) {
 
 const seen = new Map<string, string>();
 readdirSync(PUBLIC)
-  .filter((f) => f.startsWith("sitemap") && f.endsWith(".xml") && f !== "sitemap-index.xml")
+  .filter((f) => f.startsWith("sitemap-") && f.endsWith(".xml") && f !== "sitemap-index.xml")
   .forEach((file) => {
     const xml = read(join(PUBLIC, file))!;
     if (!/<urlset[\s>]/.test(xml) && !/<sitemapindex[\s>]/.test(xml))

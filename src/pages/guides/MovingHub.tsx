@@ -14,7 +14,7 @@ export default defineGuidePage({
     "Fra pris og tjekliste til firmavalg og opbevaring — alt du behøver vide før, under og efter flytningen, samlet ét sted.",
   breadcrumbLabel: "Flytning",
   ctaCategory: "Flyttehjælp",
-  publishedAt: "2027-03-20",
+  publishedAt: "2026-07-27",
   quickFacts: [
     <>Lejlighedsflytning 1-2 vær.: <strong>1.850–5.500 kr.</strong></>,
     <>Villaflytning 4-5 vær.: <strong>7.000–28.000 kr.</strong></>,
