@@ -2587,6 +2587,121 @@ export type Database = {
           },
         ]
       }
+      meta_connections: {
+        Row: {
+          business_id: string
+          conversions_api_enabled: boolean
+          created_at: string
+          id: string
+          instagram_account_id: string | null
+          instagram_account_name: string | null
+          last_error: string | null
+          last_event_at: string | null
+          last_synced_at: string | null
+          lead_ads_enabled: boolean
+          page_id: string | null
+          page_name: string | null
+          pixel_id: string | null
+          selected_form_ids: string[]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          conversions_api_enabled?: boolean
+          created_at?: string
+          id?: string
+          instagram_account_id?: string | null
+          instagram_account_name?: string | null
+          last_error?: string | null
+          last_event_at?: string | null
+          last_synced_at?: string | null
+          lead_ads_enabled?: boolean
+          page_id?: string | null
+          page_name?: string | null
+          pixel_id?: string | null
+          selected_form_ids?: string[]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          conversions_api_enabled?: boolean
+          created_at?: string
+          id?: string
+          instagram_account_id?: string | null
+          instagram_account_name?: string | null
+          last_error?: string | null
+          last_event_at?: string | null
+          last_synced_at?: string | null
+          lead_ads_enabled?: boolean
+          page_id?: string | null
+          page_name?: string | null
+          pixel_id?: string | null
+          selected_form_ids?: string[]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_connections_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_conversion_events: {
+        Row: {
+          business_id: string
+          consent_granted: boolean
+          created_at: string
+          error_message: string | null
+          event_id: string
+          event_name: string
+          event_source_url: string | null
+          id: string
+          occurred_at: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          business_id: string
+          consent_granted?: boolean
+          created_at?: string
+          error_message?: string | null
+          event_id: string
+          event_name: string
+          event_source_url?: string | null
+          id?: string
+          occurred_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          business_id?: string
+          consent_granted?: boolean
+          created_at?: string
+          error_message?: string | null
+          event_id?: string
+          event_name?: string
+          event_source_url?: string | null
+          id?: string
+          occurred_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_conversion_events_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_overrides: {
         Row: {
           body: string | null
@@ -3219,9 +3334,15 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           description: string
+          external_campaign_id: string | null
+          external_form_id: string | null
+          external_lead_id: string | null
           id: string
           radius_km: number | null
           share_contact: boolean
+          source: string
+          source_channel: string | null
+          source_metadata: Json
           status: string
           terms_accepted_at: string | null
           updated_at: string
@@ -3235,9 +3356,15 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           description: string
+          external_campaign_id?: string | null
+          external_form_id?: string | null
+          external_lead_id?: string | null
           id?: string
           radius_km?: number | null
           share_contact?: boolean
+          source?: string
+          source_channel?: string | null
+          source_metadata?: Json
           status?: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -3251,9 +3378,15 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           description?: string
+          external_campaign_id?: string | null
+          external_form_id?: string | null
+          external_lead_id?: string | null
           id?: string
           radius_km?: number | null
           share_contact?: boolean
+          source?: string
+          source_channel?: string | null
+          source_metadata?: Json
           status?: string
           terms_accepted_at?: string | null
           updated_at?: string
