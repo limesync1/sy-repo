@@ -58,7 +58,7 @@ export const GUIDES: GuideMeta[] = [
   { href: "/guides/rengoering", title: "Rengøring 2026 — komplet guide", desc: "Master-hub for alt om rengøring: priser, typer, firmavalg, fradrag og lokal hjælp i 20+ byer.", category: "Rengøring", tag: "How-to", priority: "0.95", updatedAt: "2027-03-20" },
   { href: "/guides/flytning", title: "Flytning 2026 — komplet guide", desc: "Master-hub for flytning: priser, tjekliste, firmavalg og lokal flyttehjælp i hele Danmark.", category: "Flyttehjælp", tag: "How-to", priority: "0.95", updatedAt: "2027-03-20" },
   { href: "/guides/haandvaerker", title: "Håndværker 2026 — komplet guide", desc: "Master-hub for alt håndværk: priser pr. fag, renoveringer, fradrag og lokal hjælp i 20+ byer.", category: "Håndværker", tag: "How-to", priority: "0.95", updatedAt: "2027-03-20" },
-  { href: "/guides/have", title: "Have & haveservice 2026 — komplet guide", desc: "Master-hub for haveservice: priser, abonnement, anlæg og snerydning i hele Danmark.", category: "Haveservice", tag: "How-to", priority: "0.9", updatedAt: "2027-03-20" },
+  { href: "/guides/have", title: "Haveservice priser 2026 — find havehjælp & få 3 gratis tilbud", desc: "Find havehjælp nær dig: se haveservice priser (græsslåning fra 245 kr., havemand fra 285 kr./t.) og få 3 gratis tilbud fra topbedømte, lokale havefirmaer.", category: "Haveservice", tag: "How-to", priority: "0.9", updatedAt: "2026-10-01" },
   { href: "/guides/priser-2026", title: "Priser 2026 — master prisindeks", desc: "Komplet oversigt over alle serviceydelser i Danmark i 2026 — 50+ prisguides samlet ét sted.", category: "Økonomi", tag: "Prisguide", priority: "0.95", updatedAt: "2027-03-20" },
 ];
 
