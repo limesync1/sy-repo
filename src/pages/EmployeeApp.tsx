@@ -412,23 +412,18 @@ const EmployeeApp = () => {
           if (!suggestion) return null;
 
           // Konsekvent med resten af medarbejderpanelet: ren bg-card +
-          // border-border/80, status formidles kun via ikon-badge.
+          // border-border/80, status formidles via det dag-tilhørende ikon.
           const toneClasses = "service-panel-card border-border bg-card";
-          const iconWrap =
-            suggestion.tone === "primary"
-              ? "bg-foreground text-background"
-              : suggestion.tone === "calm"
-                ? "bg-secondary text-foreground"
-                : "bg-secondary text-foreground";
 
           const Cta = suggestion.cta;
           return (
             <Card className={cn("overflow-hidden rounded-[5px] border-l-[3px] border-l-accent shadow-sm", toneClasses)}>
               <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-4">
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px]", iconWrap)} aria-hidden>
-                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
+                  <BrandedIllustration
+                    name={suggestion.illustration}
+                    className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
+                  />
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
