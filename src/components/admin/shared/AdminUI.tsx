@@ -60,6 +60,30 @@ export const PrimaryButton = React.forwardRef<
 ));
 PrimaryButton.displayName = "PrimaryButton";
 
+/* ───────── StatIconTile ─────────
+   Den ene fælles ikonflade til nøgletal på begge paneler: fast størrelse,
+   altid samme baggrund og illustrationer i fast størrelse indeni. */
+export const StatIconTile = ({
+  children,
+  className,
+  size = "md",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  size?: "md" | "lg";
+}) => (
+  <div
+    className={cn(
+      "flex shrink-0 items-center justify-center rounded-md border border-border/70 bg-secondary",
+      size === "lg" ? "h-14 w-14 sm:h-16 sm:w-16 [&_img]:h-10 [&_img]:w-10 sm:[&_img]:h-11 sm:[&_img]:w-11" : "h-11 w-11 [&_img]:h-8 [&_img]:w-8",
+      "[&_img]:object-contain [&_svg]:h-5 [&_svg]:w-5",
+      className,
+    )}
+  >
+    {children}
+  </div>
+);
+
 /* ───────── StatCard ─────────
    Standard nøgletal-kort med ikon-badge. Brug i Overblik, Kunder osv.
    Status-toner (danger/warn/ok) tilføjer en svag ring så sundheds- og
@@ -101,7 +125,7 @@ export const StatCard = ({
       <CardContent className="flex items-start gap-2.5 p-3">
         <StatIconTile className={iconTone[tone]}>
           {icon}
-        </div>
+        </StatIconTile>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">{label}</p>
           <p className="mt-0.5 break-words text-lg font-bold leading-tight tracking-normal tabular-nums text-foreground sm:text-xl">
