@@ -10,3 +10,4 @@
 - [x] Forbedr Leads-siden med automatiske kundesvar om aftale, pris og status
 - [x] Send en app-email til relevante valgte medarbejdere ved nye leads
 - [x] Verificér funktionerne på mobil og desktop
+- [x] Brug serviceydere.dk som fast Meta-returadresse og forklar Meta-domænefejl konkret

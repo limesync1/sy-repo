@@ -3,6 +3,8 @@ import { z } from "npm:zod@3.23.8";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
 import { createMetaState } from "../_shared/meta-crypto.ts";
 
+const META_REDIRECT_URI = "https://serviceydere.dk/meta/callback";
+
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -34,10 +36,9 @@ Deno.serve(async (req) => {
   if (!business) return json({ error: "Ingen adgang" }, 403);
 
   const state = await createMetaState(parsed.data.businessId, auth.userId, stateSecret);
-  const redirectUri = `${url}/functions/v1/meta-oauth-callback`;
   const params = new URLSearchParams({
     client_id: appId,
-    redirect_uri: redirectUri,
+    redirect_uri: META_REDIRECT_URI,
     state,
     response_type: "code",
     scope: "pages_show_list,pages_read_engagement,leads_retrieval,ads_management,business_management",
