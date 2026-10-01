@@ -198,4 +198,4 @@
 - [x] Saml bredde, mellemrum og loading i fælles medarbejder-sidecontainer.
 - [x] Anvend samme panelstil på Min dag, Statistik og Livechat.
 - [x] Ensret skærmvisningen af rute og print uden at ændre funktionalitet.
-- [ ] Kontrollér mobil, lille laptop og desktop.
+- [x] Kontrollér mobil, lille laptop og desktop.
