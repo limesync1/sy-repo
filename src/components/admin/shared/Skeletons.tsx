@@ -184,8 +184,8 @@ type ShellSkeletonVariant = "business" | "employee" | "platform";
 
 const shellSidebarWidth = (variant: ShellSkeletonVariant, collapsed: boolean) => {
   if (collapsed) return "w-[68px]";
-  if (variant === "business") return "w-[196px] 2xl:w-[248px]";
-  return "w-[216px] xl:w-[248px]";
+  if (variant === "business" || variant === "employee") return "w-[224px] 2xl:w-[248px]";
+  return "w-[224px] 2xl:w-[248px]";
 };
 
 export const ShellSkeleton = ({

@@ -337,7 +337,7 @@
   .service-panel-content [data-panel-card] {
     border-color: hsl(var(--border));
     background: hsl(var(--planner-surface-raised));
-    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.05);
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.045), 0 12px 30px -24px hsl(var(--foreground) / 0.22);
   }
 
   .service-panel-workspace button,
@@ -428,7 +428,7 @@
   .service-panel-content .service-panel-card {
     border-color: hsl(var(--border));
     background: hsl(var(--planner-surface-raised));
-    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.045), 0 12px 30px -24px hsl(var(--foreground) / 0.22);
   }
 
   .service-panel-content > * {
