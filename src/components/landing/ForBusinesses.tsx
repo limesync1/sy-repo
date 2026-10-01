@@ -89,7 +89,7 @@ const ForBusinesses = () => {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-premium-lg">
           <article className="p-5 sm:p-7 2xl:p-9">
             <div className="grid gap-7 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
               <div className="max-w-xl">

@@ -27,7 +27,7 @@ const CategoryCard = ({
   <Link
     key={cat.key}
     to={`/search?category=${encodeURIComponent(cat.key)}`}
-    className={`group relative flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-4 text-foreground transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-md 2xl:p-5 ${className ?? ""}`}
+    className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-4 text-foreground shadow-premium transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-premium-lg 2xl:p-5 ${className ?? ""}`}
   >
     <div className="relative flex items-start justify-between">
       <span className="flex h-16 w-16 items-center justify-center">
