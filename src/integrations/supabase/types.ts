@@ -3266,6 +3266,7 @@ export type Database = {
           business_id: string
           business_note: string | null
           created_at: string
+          customer_id: string | null
           distance_km: number | null
           estimated_price: string | null
           follow_up_at: string | null
@@ -3286,6 +3287,7 @@ export type Database = {
           business_id: string
           business_note?: string | null
           created_at?: string
+          customer_id?: string | null
           distance_km?: number | null
           estimated_price?: string | null
           follow_up_at?: string | null
@@ -3306,6 +3308,7 @@ export type Database = {
           business_id?: string
           business_note?: string | null
           created_at?: string
+          customer_id?: string | null
           distance_km?: number | null
           estimated_price?: string | null
           follow_up_at?: string | null
@@ -3326,6 +3329,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_request_matches_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "private_customers"
             referencedColumns: ["id"]
           },
           {

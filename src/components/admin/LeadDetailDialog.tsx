@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format, isSameDay, addDays, addHours, isBefore, startOfDay } from "date-fns";
 import { da } from "date-fns/locale";
 import { InlineTextSkeleton } from "@/components/admin/shared/Skeletons";
+import { TimePicker } from "@/components/admin/shared/TimePicker";
 
 export type LeadDetailLead = {
   id: string;
@@ -33,6 +34,7 @@ export type LeadDetailLead = {
   ai_draft_generated_at: string | null;
   follow_up_at: string | null;
   created_at: string;
+  customer_id?: string | null;
   quote_request: {
     id: string;
     customer_name: string;
@@ -48,7 +50,15 @@ export type LeadDetailLead = {
     source_channel?: string | null;
     external_form_id?: string | null;
     external_campaign_id?: string | null;
+    source_metadata?: Record<string, any> | null;
   } | null;
+};
+
+const sourceLabelFor = (qr: LeadDetailLead["quote_request"]) => {
+  const s = qr?.source || "serviceydere";
+  const base = s === "facebook" ? "Facebook" : s === "instagram" ? "Instagram" : "Serviceydere";
+  const page = qr?.source_metadata?.instagram_name && s === "instagram" ? `@${qr.source_metadata.instagram_name}` : qr?.source_metadata?.page_name;
+  return page ? `${base} · ${page}` : base;
 };
 
 type Props = {
@@ -307,18 +317,18 @@ const FollowUpEditor = ({
             );
           })}
 
-          {/* Manuel finjustering — for præcise tider udenfor slots. */}
-          <div className="flex items-center gap-2 border-t border-border pt-3">
-            <Moon className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground">Andet tidspunkt:</span>
-            <Input
-              type="time"
+          {/* Præcist tidspunkt — samme tidsvælger som Åbningstider. */}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2">
+            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Moon className="h-3.5 w-3.5 text-muted-foreground" /> Andet tidspunkt
+            </span>
+            <TimePicker
+              label="Vælg præcist tidspunkt"
               value={selectedDate ? format(selectedDate, "HH:mm") : ""}
-              onChange={(e) => {
-                const [h, m] = e.target.value.split(":").map(Number);
+              onChange={(v) => {
+                const [h, m] = v.split(":").map(Number);
                 if (!isNaN(h) && !isNaN(m)) setTime(h, m);
               }}
-              className="h-8 w-[110px] text-xs"
             />
           </div>
         </div>
@@ -471,19 +481,21 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-h-[92dvh] max-w-3xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-5 pb-5 pt-6 text-left sm:px-7">
+          <DialogTitle className="flex flex-wrap items-center gap-2 text-xl sm:text-2xl">
             {qr?.customer_name || "Anonym kunde"}
             <Badge variant="outline" className="gap-1 rounded-md pointer-events-none">
               <Sparkles className="h-3 w-3" /> {lead.match_score}/100
             </Badge>
           </DialogTitle>
           <DialogDescription>
-            {qr?.category} · {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: da })}
+            {qr?.category} · {sourceLabelFor(qr)} · {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: da })}
+            {lead.customer_id && <span className="ml-1 font-medium text-foreground">· Oprettet som kunde</span>}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="space-y-4 px-5 py-5 sm:px-7">
         {/* Customer info */}
         <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm">
           {qr?.description && <p className="whitespace-pre-wrap text-foreground/90">{qr.description}</p>}
@@ -607,17 +619,18 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
             />
           </TabsContent>
         </Tabs>
+        </div>
 
         {/* Status actions */}
-        <div className="flex flex-wrap gap-2 border-t border-border pt-3">
-          {lead.status !== "won" && (
-            <Button size="sm" variant="outline" onClick={() => updateStatus("won")} className="gap-1.5">
-              <Trophy className="h-4 w-4" /> Marker som vundet
-            </Button>
-          )}
+        <div className="flex flex-wrap justify-end gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
           {lead.status !== "declined" && (
             <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
               <XCircle className="h-4 w-4" /> Afvis lead
+            </Button>
+          )}
+          {lead.status !== "won" && (
+            <Button size="sm" onClick={() => updateStatus("won")} className="gap-1.5">
+              <Trophy className="h-4 w-4" /> Marker som vundet
             </Button>
           )}
         </div>

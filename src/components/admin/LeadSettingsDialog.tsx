@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Settings2, X, Loader2, Check, Plus, Mail, Users, BriefcaseBusiness, MapPin, MessageSquare } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -35,9 +35,22 @@ const DISTANCE_PRESETS = [
 
 const REPLY_TEMPLATES = [
   { label: "Kort", text: DEFAULT_REPLY },
-  { label: "Med tidsramme", text: "Tak for din forespørgsel! Vi har modtaget den og sender dig et tilbud inden for 24 timer på hverdage." },
-  { label: "Personlig", text: "Tak fordi du kontaktede os. Vi kigger på din opgave i dag og ringer dig op, hvis vi har spørgsmål, inden vi sender et tilbud." },
+  { label: "Med tidsramme", text: "Tak for din forespørgsel om {{service}}! Vi har modtaget den {{tidspunkt}} og sender dig et tilbud inden for 24 timer på hverdage." },
+  { label: "Personlig", text: "Tak fordi du kontaktede {{firmanavn}} om {{service}} i {{by}}. Vi kigger på din opgave i dag og ringer dig op, hvis vi har spørgsmål, inden vi sender et tilbud." },
 ];
+
+/** Felter der udfyldes automatisk — samme navne som i kunde-notifikationerne. */
+const REPLY_VARIABLES = [
+  { token: "{{kundens_navn}}", label: "Kundens navn", example: "Mette Hansen" },
+  { token: "{{service}}", label: "Service", example: "Vinduespudsning" },
+  { token: "{{tidspunkt}}", label: "Tidspunkt", example: "2. okt. kl. 09:30" },
+  { token: "{{by}}", label: "By", example: "Odense C" },
+  { token: "{{pris}}", label: "Vejledende pris", example: "ca. 450 kr." },
+  { token: "{{firmanavn}}", label: "Firmanavn", example: "Jeres virksomhed" },
+];
+
+const fillReplyPreview = (text: string, businessName?: string) =>
+  REPLY_VARIABLES.reduce((t, v) => t.split(v.token).join(v.token === "{{firmanavn}}" ? (businessName || v.example) : v.example), text);
 
 const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -77,6 +90,7 @@ function ChipInput({ values, onChange, placeholder, validate }: {
 
 export function LeadSettingsDialog({ businessId }: { businessId: string }) {
   const [open, setOpen] = useState(false);
+  const replyRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
@@ -237,12 +251,31 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                         onClick={() => setS({ ...s, lead_auto_reply_text: tpl.text })}>{tpl.label}</Button>
                     ))}
                   </div>
-                  <Textarea rows={4} maxLength={1000} value={s.lead_auto_reply_text}
+                  <div>
+                    <p className="mb-1.5 text-xs text-muted-foreground">Indsæt felter, der automatisk udfyldes for hver kunde:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {REPLY_VARIABLES.map((v) => (
+                        <button key={v.token} type="button" title={`Eksempel: ${v.example}`}
+                          onClick={() => {
+                            const el = replyRef.current;
+                            const text = s.lead_auto_reply_text;
+                            const pos = el ? el.selectionStart : text.length;
+                            const next = (text.slice(0, pos) + v.token + text.slice(pos)).slice(0, 1000);
+                            setS({ ...s, lead_auto_reply_text: next });
+                            requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(pos + v.token.length, pos + v.token.length); });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary">
+                          <Plus className="h-3 w-3 text-muted-foreground" />{v.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Textarea ref={replyRef} rows={5} maxLength={1000} value={s.lead_auto_reply_text}
                     onChange={(e) => setS({ ...s, lead_auto_reply_text: e.target.value })} />
                   <div className="rounded-md bg-secondary/50 p-3 text-xs">
                     <p className="mb-1 font-semibold text-foreground">Sådan ser kunden den</p>
                     <p className="text-muted-foreground">Fra: {businessName || "Jeres virksomhed"}</p>
-                    <p className="mt-2 whitespace-pre-line text-foreground">{`Hej Kunde,\n\n${s.lead_auto_reply_text}\n\nForespørgsel: Eksempel på jeres service\nPris: Vises automatisk, når et estimat findes\nStatus: Modtaget\n\nVenlig hilsen\n${businessName || "Jeres virksomhed"}`}</p>
+                    <p className="mt-2 whitespace-pre-line text-foreground">{`Hej Mette Hansen,\n\n${fillReplyPreview(s.lead_auto_reply_text, businessName)}\n\nForespørgsel: Vinduespudsning\nStatus: Modtaget\n\nVenlig hilsen\n${businessName || "Jeres virksomhed"}`}</p>
                   </div>
                 </>
               )}

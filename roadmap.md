@@ -12,3 +12,9 @@
 - [x] Verificér funktionerne på mobil og desktop
 - [x] Brug serviceydere.dk som fast Meta-returadresse og forklar Meta-domænefejl konkret
 - [x] Forenkle Meta Lead Ads, forbedre kildevalg og ensrette Leads-statistik og indstillinger
+- [x] Test-leads fra Facebook og Instagram i DK Renfyns indbakke
+- [x] Egen indbakke pr. Facebook-side og Instagram-konto
+- [x] Nye leads opretter automatisk en kunde med kontakt, dato og kilde
+- [x] Meta-overblik: leads pr. kilde og hvor mange der bliver kunder
+- [x] Felter i auto-svar: kundens navn, service, tidspunkt, by, pris, firmanavn
+- [x] Ensartet lead-vindue og tidsvælger som Åbningstider

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public._lead_auto_create_customer() FROM PUBLIC, anon, authenticated;

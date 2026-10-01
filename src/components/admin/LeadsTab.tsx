@@ -24,6 +24,7 @@ import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDe
 import MetaLeadsSetup from "@/components/admin/MetaLeadsSetup";
 import LeadSettingsDialog from "@/components/admin/LeadSettingsDialog";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { LeadSourceDashboard } from "@/components/admin/LeadSourceDashboard";
 
 type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string | null };
 
@@ -63,6 +64,18 @@ const computePriority = (l: Lead): { priority: Priority; score: number; signals:
   return { priority, score, signals };
 };
 
+/** Hver forbundet Facebook-side og Instagram-konto får sin egen indbakke-nøgle. */
+const leadAccount = (l: Lead): { key: string; label: string; source: string } | null => {
+  const qr = l.quote_request;
+  const source = qr?.source || "serviceydere";
+  if (source !== "facebook" && source !== "instagram") return null;
+  const md = (qr?.source_metadata || {}) as Record<string, any>;
+  if (source === "instagram") {
+    const ig = md.instagram_name || md.page_name || "Instagram";
+    return { key: `instagram:${md.instagram_id || md.page_id || ig}`, label: md.instagram_name ? `@${md.instagram_name}` : ig, source };
+  }
+  return { key: `facebook:${md.page_id || md.page_name || "side"}`, label: md.page_name || "Facebook-side", source };
+};
 
 const LeadsTab = ({ businessId }: { businessId: string }) => {
   const qc = useQueryClient();
@@ -72,7 +85,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quote_request_matches")
-        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at, source, source_channel, external_form_id, external_campaign_id)")
+        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, customer_id, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at, source, source_channel, external_form_id, external_campaign_id, source_metadata)")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -108,6 +121,20 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [accountFilter, setAccountFilter] = useState<string>("all");
+  const accounts = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; source: string; total: number; customers: number; won: number }>();
+    for (const l of leads || []) {
+      const a = leadAccount(l);
+      if (!a) continue;
+      const cur = map.get(a.key) || { ...a, total: 0, customers: 0, won: 0 };
+      cur.total += 1;
+      if (l.customer_id) cur.customers += 1;
+      if (l.status === "won") cur.won += 1;
+      map.set(a.key, cur);
+    }
+    return [...map.values()].sort((x, y) => y.total - x.total);
+  }, [leads]);
   const [sortBy, setSortBy] = useState<string>("smart");
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -231,6 +258,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       } else if (filter !== "active" && filter !== "all" && l.status !== filter) return false;
       if (categoryFilter !== "all" && l.quote_request?.category !== categoryFilter) return false;
       if (sourceFilter !== "all" && (l.quote_request?.source || "serviceydere") !== sourceFilter) return false;
+      if (accountFilter !== "all" && leadAccount(l)?.key !== accountFilter) return false;
       if (priorityFilter !== "all" && l._p.priority !== priorityFilter) return false;
       if (!q) return true;
       const qr = l.quote_request;
@@ -255,12 +283,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     else if (sortBy === "oldest") list = list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     else if (sortBy === "match") list = list.sort((a, b) => b.match_score - a.match_score);
     return list;
-  }, [enriched, filter, categoryFilter, sourceFilter, priorityFilter, search, sortBy]);
+  }, [enriched, filter, categoryFilter, sourceFilter, accountFilter, priorityFilter, search, sortBy]);
 
   // Paginering — adaptiv sidestørrelse.
   const pageSize = useAdaptivePageSize(25);
   const [page, setPage] = useState(0);
-  useEffect(() => { setPage(0); }, [filter, categoryFilter, sourceFilter, priorityFilter, search, sortBy]);
+  useEffect(() => { setPage(0); }, [filter, categoryFilter, sourceFilter, accountFilter, priorityFilter, search, sortBy]);
   const pagedVisible = useMemo(
     () => visible.slice(page * pageSize, (page + 1) * pageSize),
     [visible, page, pageSize],
@@ -316,6 +344,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
           <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" />
           <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="calendarWeek" />} />
         </div>
+
+        <LeadSourceDashboard leads={allLeads} accounts={accounts} activeAccount={accountFilter}
+          onPickAccount={(k) => { setAccountFilter((cur) => cur === k ? "all" : k); setFilter("all"); }} />
 
         <MetaLeadsSetup businessId={businessId} />
 
@@ -458,6 +489,19 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     <SelectItem value="instagram">Instagram</SelectItem>
                   </SelectContent>
                 </Select>
+                {accounts.length > 0 && (
+                  <Select value={accountFilter} onValueChange={setAccountFilter}>
+                    <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[190px]">
+                      <SelectValue placeholder="Alle sider og konti" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Alle sider og konti</SelectItem>
+                      {accounts.map((a) => (
+                        <SelectItem key={a.key} value={a.key}>{a.source === "instagram" ? "Instagram" : "Facebook"} · {a.label} ({a.total})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                     <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[180px]">
@@ -518,7 +562,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     const isDue = !!l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined";
                     const isSelected = selected.has(l.id);
                     const source = qr?.source || "serviceydere";
-                    const sourceLabel = source === "facebook" ? "Facebook" : source === "instagram" ? "Instagram" : "Serviceydere";
+                    const baseSource = source === "facebook" ? "Facebook" : source === "instagram" ? "Instagram" : "Serviceydere";
+                    const acct = leadAccount(l);
+                    const sourceLabel = acct ? `${baseSource} · ${acct.label}` : baseSource;
 
                     return (
                       <Card
