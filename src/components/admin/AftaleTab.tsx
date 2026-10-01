@@ -801,8 +801,12 @@ const AftaleTab = ({
   // Kommende-aftaler-strip: kollapset som standard for ikke at stjæle plads.
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
 
+  const appliedInitialOrderRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!initialOrderId || !orders?.some((order) => order.id === initialOrderId)) return;
+    if (!initialOrderId) { appliedInitialOrderRef.current = null; return; }
+    if (appliedInitialOrderRef.current === initialOrderId) return;
+    if (!orders?.some((order) => order.id === initialOrderId)) return;
+    appliedInitialOrderRef.current = initialOrderId;
     setFilter("all");
     setSearch("");
     setExpandedOrder(initialOrderId);
