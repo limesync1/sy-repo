@@ -17,7 +17,7 @@ import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewS
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
+  Users, User as UserIcon, Info, CalendarCheck, ArrowRight, Eye, Lock as LockIcon,
   Unlock as UnlockIcon,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday } from "date-fns";
@@ -34,7 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
