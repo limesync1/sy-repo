@@ -94,6 +94,35 @@ export const GARDEN_CITIES: CityGardenContent[] = [
     localFactor: "Begrænset adgang til ejendomme og bortskaffelse af haveaffald gennem trapper øger prisen pr. m². Mange firmaer kombinerer haveservice med vinduespudsning.",
     popularTasks: ["Gårdhave-pleje", "Hækklipning", "Altanpleje og potter", "Bortskaffelse af haveaffald", "Vintervedligehold"],
   },
+
+  {
+    slug: "herning", name: "Herning", region: "Midtjylland", postalRange: "7400–7430",
+    hourlyLow: 285, hourlyHigh: 450, lawnLow: 245, lawnHigh: 560, hedgeLow: 23, hedgeHigh: 52,
+    intro: "Herning har mange nyere parcelhuskvarterer i Lind, Gullestrup og Tjørring med store, flade græsplæner — ideelle til faste græsklip-aftaler. Firmaerne dækker typisk også Ikast, Sunds og Aulum.",
+    localFactor: "Den lette, sandede midtjyske jord dræner hurtigt, så græsset gror langsommere midt på sommeren, men ukrudt i fliser er et fast emne. Afstandene er korte, og de fleste firmaer tager ikke kørselstillæg inden for kommunen.",
+    popularTasks: ["Græsklip hver 14. dag", "Ukrudtsbekæmpelse i fliser", "Hækklipning", "Forårsklargøring", "Bortkørsel af haveaffald"],
+  },
+  {
+    slug: "roskilde", name: "Roskilde", region: "Sjælland", postalRange: "4000–4040",
+    hourlyLow: 365, hourlyHigh: 545, lawnLow: 320, lawnHigh: 690, hedgeLow: 30, hedgeHigh: 66,
+    intro: "Roskilde kombinerer ældre villahaver i Sankt Jørgensbjerg med store parcelhusgrunde i Himmelev, Svogerslev og Viby. Mange husejere pendler til København og vælger derfor fast haveservice frem for weekendarbejde.",
+    localFactor: "Priserne ligger tæt på hovedstadsniveau, men lavere end i København, fordi parkering og adgang er nemmere. Ældre haver med store træer kræver ofte besigtigelse, før firmaet giver fast pris på beskæring.",
+    popularTasks: ["Græsslåning på abonnement", "Hækklipning 2× årligt", "Beskæring af frugttræer", "Lugning af bede", "Efterårsoprydning"],
+  },
+  {
+    slug: "naestved", name: "Næstved", region: "Sjælland", postalRange: "4700",
+    hourlyLow: 295, hourlyHigh: 465, lawnLow: 255, lawnHigh: 580, hedgeLow: 24, hedgeHigh: 54,
+    intro: "Næstved er Sydsjællands største by med mange parcelhuse i Kalbyris, Rønnebæk og Herlufmagle. Haveservice bestilles især som sæsonpakker fra april til oktober.",
+    localFactor: "Lerholdig jord giver kraftig græsvækst i forsommeren, så ugentlig klipning i maj–juni er almindeligt. Firmaerne dækker ofte også Fensmark, Glumsø og Vordingborg.",
+    popularTasks: ["Ugentlig græsklip i højsæson", "Hækklipning", "Kantklipning af bede", "Fældning af mindre træer", "Snerydning"],
+  },
+  {
+    slug: "helsingoer", name: "Helsingør", region: "Hovedstaden", postalRange: "3000",
+    hourlyLow: 375, hourlyHigh: 565, lawnLow: 330, lawnHigh: 720, hedgeLow: 32, hedgeHigh: 70,
+    intro: "Helsingør og Nordkysten har mange store villahaver og sommerhusgrunde i Hornbæk, Espergærde og Snekkersten. Efterspørgslen topper i foråret, når haverne skal klargøres til sæsonen.",
+    localFactor: "Kystnære grunde med sandjord og salt vind kræver robust beplantning og oftere tilbageklipning. Sommerhusejere bestiller typisk faste besøg, mens de ikke selv er der — husk at aftale adgang.",
+    popularTasks: ["Haveservice til sommerhus", "Hækklipning", "Græsslåning", "Beskæring af fyr og buske", "Forårsklargøring"],
+  },
 ];
 
 export const findGardenCity = (slug?: string) =>
