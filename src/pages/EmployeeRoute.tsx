@@ -1585,8 +1585,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </header>
       )}
       {routeNotifications.length > 0 && (
-        <div className="relative z-30 border-b border-destructive/25 bg-destructive/5 px-3 py-2">
-          <div className="mx-auto flex max-w-3xl items-start gap-2">
+        <div className={cn(
+          "z-[1003]",
+          routeStarted && !allDone
+            ? "absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]"
+            : "relative border-b border-destructive/25 bg-destructive/5 px-3 py-2",
+        )}>
+          <div className={cn("mx-auto flex max-w-3xl items-start gap-2", routeStarted && !allDone && "rounded-md border border-destructive/25 bg-card/95 p-2.5 shadow-lg backdrop-blur-md")}>
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[10px] font-semibold uppercase text-destructive">
@@ -1802,25 +1807,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && (
           <>
             <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-              <div className="flex h-14 w-full items-center gap-2 rounded-md border border-border/80 bg-foreground px-2 text-background shadow-xl">
-                <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background">
+              <div className="flex h-14 w-full items-center gap-1.5 rounded-md border border-border bg-card/95 px-1.5 text-foreground shadow-lg backdrop-blur-md">
+                <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                   <Link to="/medarbejder" aria-label="Tilbage">
                     <ArrowLeft className="h-5 w-5" />
                   </Link>
                 </Button>
-                <div className="min-w-0 flex-1 border-l border-background/15 pl-3">
-                  <p className="truncate text-[13px] font-semibold leading-tight text-background">{route.name || "Dagens rute"}</p>
-                  <p className="mt-0.5 flex items-center gap-2 text-[10px] font-medium text-background/65">
-                    <span>{completedCount}/{sortedStops.length} stop</span>
+                <div className="min-w-0 flex-1 border-l border-border pl-3">
+                  <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{route.name || "Dagens rute"}</p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[10px] font-medium text-muted-foreground">
+                    <span className="tabular-nums">{completedCount} af {sortedStops.length} stops udført</span>
                   </p>
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className={cn("h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background", listOpen && "bg-background/15")}
+                  className={cn("h-10 w-10 shrink-0", listOpen && "bg-secondary")}
                   onClick={() => setListOpen((value) => !value)}
-                  aria-label="Vis alle stop"
+                  aria-label="Vis alle stops"
                   aria-pressed={listOpen}
                 >
                   <List className="h-5 w-5" />
@@ -1829,7 +1834,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 shrink-0 text-background hover:bg-background/10 hover:text-background"
+                  className="h-10 w-10 shrink-0"
                   onClick={() => setAudioEnabled((value) => !value)}
                   aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
                   aria-pressed={!audioEnabled}
@@ -2001,8 +2006,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                   className="flex h-10 w-10 items-center justify-center rounded-md text-background text-base font-bold shrink-0"
-                  style={{ background: themeColor }}
+                   className="flex h-11 w-11 items-center justify-center rounded-md bg-foreground text-background text-base font-bold tabular-nums shrink-0"
                 >
                   {nextStopIdx + 1}
                 </span>
@@ -2079,7 +2083,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                      className={`gap-1.5 h-11 rounded-md text-[13px] font-semibold transition-colors ${
                       isAtNextStop
                         ? "bg-success hover:bg-success/90 text-success-foreground shadow-sm"
-                        : "bg-warning text-warning-foreground hover:bg-warning/90"
+                        : "bg-foreground text-background hover:bg-foreground/90"
                     }`}
                     disabled={updateStatus.isPending || routeDateLocked}
                   >
@@ -2088,7 +2092,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     ) : (
                       <CheckCircle2 className="h-4 w-4" />
                     )}
-                    {isAtNextStop ? "Markér som udført" : "Markér udført nu"}
+                    {isAtNextStop ? "Aftale udført" : "Markér som udført"}
                   </Button>
                   <Button
                     onClick={() => handleNavigate(nextStop)}
