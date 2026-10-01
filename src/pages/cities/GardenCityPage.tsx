@@ -43,7 +43,7 @@ const GardenCityPage = () => {
       "@context": "https://schema.org", "@type": "FAQPage",
       mainEntity: [
         { "@type": "Question", name: `Hvad koster haveservice i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `Haveservice i ${city.name} koster typisk ${city.hourlyLow}–${city.hourlyHigh} kr. i timen. Græsslåning ${city.lawnLow}–${city.lawnHigh} kr. pr. besøg og hækklipning ${city.hedgeLow}–${city.hedgeHigh} kr. pr. lbm.` } },
-        { "@type": "Question", name: `Kan jeg få fradrag på haveservice?`, acceptedAnswer: { "@type": "Answer", text: `Ja — haveservice er omfattet af BoligJob-ordningens serviceydelser. Du kan i 2026 trække op til 11.900 kr. fra pr. person på arbejdsløn ved elektronisk betaling.` } },
+        { "@type": "Question", name: `Kan jeg få fradrag på haveservice?`, acceptedAnswer: { "@type": "Answer", text: `Ja — haveservice er omfattet af BoligJob-ordningens serviceydelser. Du kan i 2026 trække op til 18.300 kr. fra pr. person på arbejdsløn ved elektronisk betaling.` } },
         { "@type": "Question", name: `Er fast aftale billigere end engangsbesøg?`, acceptedAnswer: { "@type": "Answer", text: `Ja — abonnement (typisk 14-dages besøg) er ofte 15–25% billigere pr. besøg end engangsbestilling, fordi firmaet kan optimere ruter og udstyr.` } },
       ],
     },

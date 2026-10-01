@@ -2,12 +2,14 @@
 // virksomheder. Brugeren vælger hvilket medarbejderpanel der skal åbnes, og
 // kan bede os huske valget fremover.
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Check, Building2, MapPin, ArrowRight, BriefcaseBusiness } from "lucide-react";
+import { Check, Building2, MapPin, ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { setEmployeeWorkspace } from "@/lib/employee-workspace";
+import { EmployeePage } from "@/components/employee/EmployeePage";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
+import pickerIcon from "@/assets/panel-illustrations/vaelg-arbejdsplads.svg.asset.json";
 import type { EmployeeWithBusiness } from "@/hooks/useMyEmployee";
 
 const initialsOf = (name: string) =>
@@ -37,38 +39,21 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
   };
 
   return (
-    <div className="service-panel-workspace employee-panel-workspace flex min-h-dvh flex-col bg-secondary/50">
-      <header className="service-panel-topbar border-b border-border bg-card">
-        <div className="flex h-14 items-center px-4 sm:px-6">
-          <Link to="/" aria-label="Forside" className="flex items-center">
-            <img
-              src="/serviceydere-logo-dark.webp"
-              alt="Serviceydere"
-              className="h-8 w-auto"
-              width={1920}
-              height={539}
-              decoding="async"
-            />
-          </Link>
-        </div>
-      </header>
-
-      <main className="mx-auto grid w-full max-w-6xl flex-1 content-start items-start gap-3 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(240px,0.34fr)_minmax(0,1fr)]">
+    <EmployeePage>
+      <PageHeader
+        title="Vælg arbejdsplads"
+        description={`Du har adgang til ${employees.length} virksomheder. Vælg hvor du arbejder i dag — du kan altid skifte igen.`}
+      />
+      <div className="grid gap-3 sm:gap-5 lg:grid-cols-[minmax(240px,0.32fr)_minmax(0,1fr)] items-start">
         <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm">
-          <div className="border-b border-border bg-secondary/45 p-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-foreground text-background">
-              <BriefcaseBusiness className="h-4 w-4" />
-            </div>
-            <p className="mt-4 text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>
-            <h1 className="mt-1 text-xl font-semibold leading-tight text-foreground">Vælg arbejdsplads</h1>
-          </div>
-          <div className="p-4">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Du har adgang til {employees.length} virksomheder. Vælg hvor du arbejder i dag.
-            </p>
-            <div className="mt-4 flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
-              <Building2 className="h-4 w-4 shrink-0" />
-              <span>{employees.length} arbejdspladser tilgængelige</span>
+          <div className="flex items-center gap-4 p-4 lg:flex-col lg:items-start">
+            <img src={pickerIcon.url} alt="" aria-hidden="true" className="h-20 w-20 shrink-0 object-contain lg:h-32 lg:w-32" />
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Dit panel viser kun aftaler, ruter og statistik for den valgte arbejdsplads.</p>
+              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <Building2 className="h-4 w-4 shrink-0" />{employees.length} arbejdspladser tilgængelige
+              </p>
             </div>
           </div>
         </section>
@@ -146,8 +131,8 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           <span className="text-sm leading-5 text-foreground">Husk mit valg på denne enhed</span>
         </label>
         </section>
-      </main>
-    </div>
+      </div>
+    </EmployeePage>
   );
 };
 

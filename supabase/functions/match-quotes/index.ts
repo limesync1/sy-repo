@@ -333,7 +333,22 @@ ${bizSummaries}`,
 
     // ── Persist quote_request + matches and dispatch lead emails ──
     let quoteRequestId: string | null = null;
-    if (persist && enrichedMatches.length > 0 && customerEmail) {
+    // Respektér virksomhedernes lead-indstillinger (brancher + maks. afstand).
+    let leadMatches: any[] = enrichedMatches;
+    if (persist && enrichedMatches.length > 0) {
+      const ids = enrichedMatches.map((m: any) => m.business.id);
+      const { data: prefs } = await supabase.from("businesses").select("id, notification_settings").in("id", ids);
+      const byId = new Map((prefs || []).map((b: any) => [b.id, (b.notification_settings || {}) as any]));
+      const cat = String(category || "").toLowerCase();
+      leadMatches = enrichedMatches.filter((m: any) => {
+        const ns = byId.get(m.business.id) || {};
+        const cats: string[] = Array.isArray(ns.lead_categories) ? ns.lead_categories : [];
+        if (cats.length && cat && !cats.some((c) => cat.includes(String(c).toLowerCase()) || String(c).toLowerCase().includes(cat))) return false;
+        if (typeof ns.lead_max_km === "number" && typeof m.distance_km === "number" && m.distance_km > ns.lead_max_km) return false;
+        return true;
+      });
+    }
+    if (persist && leadMatches.length > 0 && customerEmail) {
       try {
         const { data: qr, error: qrErr } = await supabase
           .from("quote_requests")
@@ -357,7 +372,7 @@ ${bizSummaries}`,
         } else {
           quoteRequestId = qr.id;
 
-          const matchRows = enrichedMatches.map((m: any) => ({
+          const matchRows = leadMatches.map((m: any) => ({
             quote_request_id: qr.id,
             business_id: m.business.id,
             match_score: Math.max(0, Math.min(100, Math.round(Number(m.match_score) || 0))),
@@ -381,7 +396,7 @@ ${bizSummaries}`,
 
           // Fire-and-forget email per matched business owner
           // We need owner email — fetch businesses with their notification settings + owner profile
-          const bizIds = enrichedMatches.map((m: any) => m.business.id);
+          const bizIds = leadMatches.map((m: any) => m.business.id);
           const { data: bizDetails } = await supabase
             .from("businesses")
             .select("id, name, email, owner_id, notification_settings")
@@ -395,7 +410,7 @@ ${bizSummaries}`,
           const profileByOwner = new Map((profiles || []).map((p: any) => [p.user_id, p.display_name]));
 
           // Run in parallel, ignore errors so the response isn't blocked
-          await Promise.allSettled(enrichedMatches.map(async (m: any) => {
+          await Promise.allSettled(leadMatches.map(async (m: any) => {
             // Only send mails for newly inserted matches — never re-mail on retries
             if (!newlyInserted.has(m.business.id)) return;
             const biz = (bizDetails || []).find((b: any) => b.id === m.business.id);
@@ -405,8 +420,20 @@ ${bizSummaries}`,
             const notif = (biz?.notification_settings as any) || {};
             if (notif.lead_emails === false) return;
 
-            await sendTemplateEmail("new-lead", recipient, {
-              idempotencyKey: `new-lead-${qr.id}-${biz.id}`,
+            const extra: string[] = Array.isArray(notif.lead_recipients)
+              ? notif.lead_recipients.filter((e: unknown) => typeof e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)).slice(0, 5)
+              : [];
+            const recipients = [...new Set([recipient, ...extra])];
+            if (notif.lead_auto_reply === true && customerEmail) {
+              const body = String(notif.lead_auto_reply_text || "Tak for din forespørgsel! Vi vender tilbage hurtigst muligt.").slice(0, 1000);
+              sendTemplateEmail("customer-notification", customerEmail, {
+                idempotencyKey: `lead-autoreply-${qr.id}-${biz.id}`,
+                templateData: { subject: `Tak for din forespørgsel — ${biz.name}`, body, businessName: biz.name },
+                replyTo: recipient,
+              }).catch((e) => console.error("lead auto-reply failed:", biz.id, e));
+            }
+            for (const to of recipients) await sendTemplateEmail("new-lead", to, {
+              idempotencyKey: `new-lead-${qr.id}-${biz.id}-${to}`,
               templateData: {
                   businessName: biz.name,
                   ownerName: profileByOwner.get(biz.owner_id) || null,

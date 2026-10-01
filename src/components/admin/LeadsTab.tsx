@@ -23,6 +23,7 @@ import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDetailDialog";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import MetaLeadsSetup from "@/components/admin/MetaLeadsSetup";
+import LeadSettingsDialog from "@/components/admin/LeadSettingsDialog";
 
 type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string | null };
 
@@ -266,6 +267,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         <PageHeader
           title="Leads"
           description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
+          action={<LeadSettingsDialog businessId={businessId} />}
         />
 
         <div className="grid gap-3 sm:grid-cols-3">
