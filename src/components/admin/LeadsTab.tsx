@@ -562,7 +562,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     const isDue = !!l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined";
                     const isSelected = selected.has(l.id);
                     const source = qr?.source || "serviceydere";
-                    const sourceLabel = source === "facebook" ? "Facebook" : source === "instagram" ? "Instagram" : "Serviceydere";
+                    const baseSource = source === "facebook" ? "Facebook" : source === "instagram" ? "Instagram" : "Serviceydere";
+                    const acct = leadAccount(l);
+                    const sourceLabel = acct ? `${baseSource} · ${acct.label}` : baseSource;
 
                     return (
                       <Card
