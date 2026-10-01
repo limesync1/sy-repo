@@ -424,7 +424,7 @@ const EmployeeStats = () => {
                                             className="h-9 gap-1.5 rounded-md border-border bg-card px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                                         >
                                           <Eye className="h-3.5 w-3.5" />
-                                          Vis detaljer
+                                          Aftalens oplysninger
                                         </Button>
                                       </div>
                                     </li>

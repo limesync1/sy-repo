@@ -46,9 +46,11 @@ Deno.serve(async (req) => {
   for (const change of changes) {
     if (change?.field !== "leadgen" || !change?.value?.leadgen_id || !change?.value?.page_id) continue;
     const { data: connection } = await admin.from("meta_connections")
-      .select("business_id, access_token_ciphertext, access_token_iv")
+      .select("business_id, access_token_ciphertext, access_token_iv, selected_form_ids")
       .eq("page_id", String(change.value.page_id)).eq("lead_ads_enabled", true).maybeSingle();
     if (!connection?.access_token_ciphertext || !connection?.access_token_iv) continue;
+    const selectedFormIds = Array.isArray(connection.selected_form_ids) ? connection.selected_form_ids : [];
+    if (selectedFormIds.length > 0 && change?.value?.form_id && !selectedFormIds.includes(String(change.value.form_id))) continue;
     const token = await decryptMetaToken(connection.access_token_ciphertext, connection.access_token_iv, encryptionSecret);
     const leadResponse = await fetch(`https://graph.facebook.com/v23.0/${encodeURIComponent(change.value.leadgen_id)}?fields=id,created_time,field_data,form_id,ad_id,adgroup_id,campaign_id&access_token=${encodeURIComponent(token)}`);
     if (!leadResponse.ok) continue;

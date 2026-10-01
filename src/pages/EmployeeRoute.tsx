@@ -5,7 +5,6 @@ import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, typ
 import { useStartStopTime, useEndStopTime, useResetStopTime, useOptimizeRouteFromPosition, useReorderStops, useStopTimeEntries } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -36,6 +35,7 @@ import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
+import { StopDetailsSheetShell } from "@/components/employee/StopDetailsSheetShell";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
 import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
@@ -2200,7 +2200,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     size="sm"
                     className="w-full gap-1.5 h-10 rounded-md text-xs font-semibold border-border hover:bg-secondary transition-colors"
                   >
-                    <Info className="h-3.5 w-3.5" /> Se alle detaljer
+                    <Info className="h-3.5 w-3.5" /> Aftalens oplysninger
                   </Button>
                 </div>
               )}
@@ -2250,7 +2250,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       </div>
 
       {/* ─── Stop detail sheet ─── */}
-      <Sheet
+      <StopDetailsSheetShell
         open={!!selectedId}
         onOpenChange={(o) => {
           if (!o) {
@@ -2258,11 +2258,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           }
         }}
       >
-        <SheetContent
-          side="bottom"
-          className="h-dvh max-h-dvh p-0 flex flex-col rounded-none sm:h-[92dvh] sm:max-h-[92dvh] sm:rounded-t-md lg:bottom-4 lg:left-auto lg:right-4 lg:h-[calc(100dvh-2rem)] lg:max-h-[calc(100dvh-2rem)] lg:w-[30rem] lg:rounded-md"
-        >
-          <div className="flex-1 overflow-y-auto">
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);
             if (!s) return null;
@@ -2287,9 +2282,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               />
             );
           })()}
-          </div>
-        </SheetContent>
-      </Sheet>
+      </StopDetailsSheetShell>
 
       {/* ─── Persistent collapsible bottom stop-list ─── */}
       <StopListPanel

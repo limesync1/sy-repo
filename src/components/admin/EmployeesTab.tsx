@@ -929,13 +929,20 @@ const EmployeeRow = ({
 
         {/* Handlinger — samme stil som kunder-rækken */}
         <div className="flex items-center justify-end gap-1 shrink-0">
-          <Tooltip><TooltipTrigger asChild><button
+          <Tooltip><TooltipTrigger asChild><Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setTasksOpen(true)}
-            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-label={`Se aftaler for ${employee.name}`}
           >
             <ListChecks className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>Se aftaler</TooltipContent></Tooltip>
-          <Tooltip><TooltipTrigger asChild><button
+          </Button></TooltipTrigger><TooltipContent>Se medarbejderens aftaler</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => {
               setEditName(employee.name || "");
               setEditEmail(employee.email || "");
@@ -946,20 +953,24 @@ const EmployeeRow = ({
               setEditEmployeeNumber((employee as any).employee_number || "");
               setEditOpen(true);
             }}
-            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-label={`Rediger ${employee.name}`}
           >
             <Pencil className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>Rediger oplysninger</TooltipContent></Tooltip>
+          </Button></TooltipTrigger><TooltipContent>Rediger medarbejder</TooltipContent></Tooltip>
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <button
-                    className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Flere handlinger"
                   >
                     <MoreHorizontal className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent>Flere handlinger</TooltipContent>
