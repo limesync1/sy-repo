@@ -176,7 +176,20 @@ const cityMeta = (base: string, label: string, list: { slug: string; name: strin
     title: `${label} i ${c.name} – Priser & tilbud 2026 | Serviceydere`,
     description: `Find og book verificerede firmaer til ${label.toLowerCase()} i ${c.name} og ${c.region}. Se lokale priser for 2026 og få op til 3 gratis tilbud.`,
   }));
+const STATIC_META = [
+  { path: "/virksomheder", title: "Find serviceydere nær dig – sammenlign og book | Serviceydere", description: "Se verificerede firmaer til rengøring, håndværk, flytning, haveservice og meget mere. Sammenlign anmeldelser og priser, og book direkte." },
+  { path: "/tilbud", title: "Få 3 gratis tilbud fra lokale firmaer | Serviceydere", description: "Beskriv din opgave én gang og få op til 3 gratis, uforpligtende tilbud fra verificerede lokale serviceydere." },
+  { path: "/opret-virksomhed", title: "Opret din servicevirksomhed – få nye kunder | Serviceydere", description: "Bliv udbyder på Serviceydere: få nye kunder, ruteplanlægning, medarbejder-app og fakturering i ét system. 14 dages gratis prøve." },
+  { path: "/hjaelp", title: "Hjælp og ofte stillede spørgsmål | Serviceydere", description: "Svar på spørgsmål om bestilling, betaling, tilbud og brug af Serviceydere for kunder og virksomheder." },
+  { path: "/guides", title: "Prisguides og guides til services 2026 | Serviceydere", description: "Prisguides for rengøring, håndværker, flytning, have og mere – med vejledende priser for 2026 og råd til at vælge det rigtige firma." },
+  { path: "/blog", title: "Blog – råd om rengøring, håndværk, flytning og have | Serviceydere", description: "Artikler med konkrete priser, tjeklister og råd til husejere, lejere og servicevirksomheder." },
+  { path: "/cookies", title: "Cookiepolitik | Serviceydere", description: "Sådan bruger Serviceydere cookies, og hvordan du ændrer dine valg." },
+  { path: "/privatlivspolitik", title: "Privatlivspolitik | Serviceydere", description: "Sådan behandler Serviceydere dine personoplysninger, og hvilke rettigheder du har." },
+  { path: "/vilkaar", title: "Vilkår og betingelser | Serviceydere", description: "Vilkår for brug af Serviceydere for kunder og virksomheder." },
+];
 const routeMeta = [
+  ...STATIC_META,
+  ...BLOG_CATEGORIES.map((c) => ({ path: `/blog/kategori/${c.slug}`, title: `${c.name} – artikler og guides | Serviceydere`, description: `Alle artikler om ${c.name.toLowerCase()}: priser, tjeklister og råd fra Serviceydere.` })),
   ...BLOG_POSTS.map((p) => ({ path: `/blog/${p.slug}`, title: `${p.title} | Serviceydere`, description: p.description })),
   ...GUIDES.map((g) => ({ path: g.href, title: `${g.title} | Serviceydere`, description: g.desc })),
   ...SOFTWARE_PAGES.map((s) => ({ path: s.href, title: `${s.label} | Serviceydere`, description: s.blurb })),
