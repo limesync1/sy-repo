@@ -14,7 +14,7 @@ export default defineGuidePage({
     "Alt du behøver vide om rengøring — fra realistiske priser og firmavalg til BoligJob-fradrag og lokal hjælp i alle de største byer.",
   breadcrumbLabel: "Rengøring",
   ctaCategory: "Rengøring",
-  publishedAt: "2027-03-20",
+  publishedAt: "2026-07-27",
   quickFacts: [
     <>Timepris privat rengøring: <strong>225–450 kr./t</strong> inkl. moms</>,
     <>Fast besøg 75 m² hver 14. dag: <strong>485–950 kr.</strong></>,

@@ -14,7 +14,7 @@ export default defineGuidePage({
     "Find den rette håndværker til opgaven. Realistiske priser, sammenligning af fag, fradrag og lokal hjælp i hele landet.",
   breadcrumbLabel: "Håndværker",
   ctaCategory: "Håndværker",
-  publishedAt: "2027-03-20",
+  publishedAt: "2026-07-27",
   quickFacts: [
     <>Almindelig håndværker timepris: <strong>365–750 kr./t</strong></>,
     <>Håndværkerfradrag 2026: op til <strong>8.600 kr./voksen</strong></>,
