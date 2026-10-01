@@ -2589,6 +2589,8 @@ export type Database = {
       }
       meta_connections: {
         Row: {
+          access_token_ciphertext: string | null
+          access_token_iv: string | null
           business_id: string
           conversions_api_enabled: boolean
           created_at: string
@@ -2604,9 +2606,12 @@ export type Database = {
           pixel_id: string | null
           selected_form_ids: string[]
           status: string
+          token_expires_at: string | null
           updated_at: string
         }
         Insert: {
+          access_token_ciphertext?: string | null
+          access_token_iv?: string | null
           business_id: string
           conversions_api_enabled?: boolean
           created_at?: string
@@ -2622,9 +2627,12 @@ export type Database = {
           pixel_id?: string | null
           selected_form_ids?: string[]
           status?: string
+          token_expires_at?: string | null
           updated_at?: string
         }
         Update: {
+          access_token_ciphertext?: string | null
+          access_token_iv?: string | null
           business_id?: string
           conversions_api_enabled?: boolean
           created_at?: string
@@ -2640,6 +2648,7 @@ export type Database = {
           pixel_id?: string | null
           selected_form_ids?: string[]
           status?: string
+          token_expires_at?: string | null
           updated_at?: string
         }
         Relationships: [
