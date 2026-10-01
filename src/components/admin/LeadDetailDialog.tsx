@@ -34,6 +34,7 @@ export type LeadDetailLead = {
   ai_draft_generated_at: string | null;
   follow_up_at: string | null;
   created_at: string;
+  customer_id?: string | null;
   quote_request: {
     id: string;
     customer_name: string;
@@ -49,7 +50,15 @@ export type LeadDetailLead = {
     source_channel?: string | null;
     external_form_id?: string | null;
     external_campaign_id?: string | null;
+    source_metadata?: Record<string, any> | null;
   } | null;
+};
+
+const sourceLabelFor = (qr: LeadDetailLead["quote_request"]) => {
+  const s = qr?.source || "serviceydere";
+  const base = s === "facebook" ? "Facebook" : s === "instagram" ? "Instagram" : "Serviceydere";
+  const page = qr?.source_metadata?.instagram_name && s === "instagram" ? `@${qr.source_metadata.instagram_name}` : qr?.source_metadata?.page_name;
+  return page ? `${base} · ${page}` : base;
 };
 
 type Props = {
@@ -610,17 +619,18 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
             />
           </TabsContent>
         </Tabs>
+        </div>
 
         {/* Status actions */}
-        <div className="flex flex-wrap gap-2 border-t border-border pt-3">
-          {lead.status !== "won" && (
-            <Button size="sm" variant="outline" onClick={() => updateStatus("won")} className="gap-1.5">
-              <Trophy className="h-4 w-4" /> Marker som vundet
-            </Button>
-          )}
+        <div className="flex flex-wrap justify-end gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
           {lead.status !== "declined" && (
             <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
               <XCircle className="h-4 w-4" /> Afvis lead
+            </Button>
+          )}
+          {lead.status !== "won" && (
+            <Button size="sm" onClick={() => updateStatus("won")} className="gap-1.5">
+              <Trophy className="h-4 w-4" /> Marker som vundet
             </Button>
           )}
         </div>
