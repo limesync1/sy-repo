@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getIndustryIconAsset } from "@/lib/industry-icons";
 
@@ -17,6 +19,12 @@ interface IndustryIconProps {
  */
 export function IndustryIcon({ category, subcategory, name, className, alt }: IndustryIconProps) {
   const src = getIndustryIconAsset(category, subcategory, name);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+
+  if (failed) {
+    return <Wrench aria-hidden="true" className={cn("inline-block text-foreground", className)} />;
+  }
   return (
     <img
       src={src}
@@ -26,6 +34,7 @@ export function IndustryIcon({ category, subcategory, name, className, alt }: In
           "Ikon for branche")
       }
       draggable={false}
+      onError={() => setFailed(true)}
       className={cn("inline-block select-none object-contain", className)}
     />
   );

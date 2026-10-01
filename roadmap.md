@@ -5,7 +5,7 @@
 - [x] Stabiliser session, funktionsflag og medarbejdernavigation uden blinkende punkter.
 - [ ] Saml Serviceydere- og Meta-leads med sikker forbindelse, kilder og måling. Blokeret af Meta-appoplysninger.
 - [x] Tilføj Livechat-nøgletal, udbetalingsikon og fem illustrationer i Ny service.
-- [ ] Verificér flows og layouts på mobil, mindre laptop og stor skærm.
+- [x] Verificér flows og layouts på mobil, mindre laptop og stor skærm.
 
 ## Ensartede loading-visninger og nye panelikoner
 - [x] Lad alle panel-loadingvisninger følge sidemenuens gemte åbne/sammenfoldede tilstand.
