@@ -271,9 +271,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         />
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} />
-          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="conversion" />} tone="ok" />
-          <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="responseTime" />} />
+          <StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="orders" />} />
+          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" />
+          <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="calendarWeek" />} />
         </div>
 
         <MetaLeadsSetup businessId={businessId} />
