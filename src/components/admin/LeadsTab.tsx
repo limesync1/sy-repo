@@ -67,7 +67,7 @@ const computePriority = (l: Lead): { priority: Priority; score: number; signals:
 const LeadsTab = ({ businessId }: { businessId: string }) => {
   const qc = useQueryClient();
   const leadsKey = ["leads", businessId] as const;
-  const { data: leads, isLoading: loading } = useQuery({
+  const { data: leads, isLoading: loading, error: leadsError, refetch: refetchLeads, isFetching: fetchingLeads } = useQuery({
     queryKey: leadsKey,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,13 +75,31 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at, source, source_channel, external_form_id, external_campaign_id)")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
       if (error) throw error;
-      return (data as any) as Lead[];
+      return ((data as any) as Lead[]).filter((l) => l.quote_request);
     },
     enabled: !!businessId,
     staleTime: 30_000,
+    retry: 2,
+    retryDelay: (n) => Math.min(1000 * 2 ** n, 5000),
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
   });
+
+  // Nye leads vises automatisk, så snart de ankommer.
+  useEffect(() => {
+    if (!businessId) return;
+    const channel = supabase
+      .channel(`leads-${businessId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "quote_request_matches", filter: `business_id=eq.${businessId}` }, () => {
+        qc.invalidateQueries({ queryKey: leadsKey });
+        toast.success("Nyt lead modtaget");
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
   const setLeads = (updater: (prev: Lead[] | null) => Lead[] | null) => {
     qc.setQueryData<Lead[]>(leadsKey, (prev) => updater(prev ?? null) ?? []);
   };
@@ -106,9 +124,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     if (toFetch.length === 0) return;
     let cancelled = false;
     (async () => {
-      // Ét batched RPC i stedet for ét pr. lead (N+1 → 1).
       const ids = Array.from(new Set(toFetch.map((l) => l.quote_request!.id)));
-      const { data } = await (supabase as any).rpc("get_quote_request_contacts", {
+      const { data, error } = await (supabase as any).rpc("get_quote_request_contacts", {
         p_ids: ids,
       });
       if (cancelled) return;
@@ -116,47 +133,56 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       for (const row of (data || []) as any[]) {
         byId.set(row.quote_request_id, row);
       }
+      // Ved fejl markeres kontakt som null, så vi ikke prøver i en uendelig løkke.
       setLeads((prev) =>
         (prev ?? []).map((l) => {
           const qr = l.quote_request;
-          if (!qr) return l;
+          if (!qr || !ids.includes(qr.id)) return l;
           const row = byId.get(qr.id);
-          if (!row) return l;
           return {
             ...l,
             quote_request: {
               ...qr,
-              customer_email: (row as any).customer_email ?? null,
-              customer_phone: (row as any).customer_phone ?? null,
+              customer_email: row?.customer_email ?? null,
+              customer_phone: row?.customer_phone ?? null,
             },
           } as Lead;
         })
       );
+      if (error) toast.error("Kontaktoplysninger kunne ikke hentes lige nu");
     })();
     return () => { cancelled = true; };
   }, [leads]);
 
-  const updateStatus = async (id: string, status: string) => {
+  // Optimistisk opdatering med automatisk tilbagerulning ved fejl.
+  const applyStatus = async (ids: string[], status: string) => {
+    const snapshot = qc.getQueryData<Lead[]>(leadsKey);
+    setLeads((prev) => prev?.map((l) => ids.includes(l.id) ? { ...l, status } : l) ?? null);
     const { error } = await supabase
       .from("quote_request_matches")
       .update({ status, responded_at: new Date().toISOString() })
-      .eq("id", id);
-    if (error) { toast.error("Kunne ikke opdatere"); return; }
-    setLeads((prev) => prev?.map((l) => l.id === id ? { ...l, status } : l) ?? null);
-    toast.success("Lead opdateret");
+      .in("id", ids);
+    if (error) {
+      qc.setQueryData(leadsKey, snapshot);
+      toast.error("Kunne ikke opdatere – ændringen er fortrudt", {
+        action: { label: "Prøv igen", onClick: () => applyStatus(ids, status) },
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    if (await applyStatus([id], status)) toast.success("Lead opdateret");
   };
 
   const bulkUpdate = async (status: string) => {
     if (selected.size === 0) return;
     const ids = Array.from(selected);
-    const { error } = await supabase
-      .from("quote_request_matches")
-      .update({ status, responded_at: new Date().toISOString() })
-      .in("id", ids);
-    if (error) { toast.error("Kunne ikke opdatere"); return; }
-    setLeads((prev) => prev?.map((l) => ids.includes(l.id) ? { ...l, status } : l) ?? null);
-    setSelected(new Set());
-    toast.success(`${ids.length} leads opdateret`);
+    if (await applyStatus(ids, status)) {
+      setSelected(new Set());
+      toast.success(`${ids.length} leads opdateret`);
+    }
   };
 
   const allLeads = leads || [];
@@ -259,6 +285,21 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
   if (loading) {
     return <PageSkeleton statsCount={3} rows={5} />;
+  }
+
+  if (leadsError && !leads) {
+    return (
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+          <XCircle className="h-8 w-8 text-destructive" />
+          <p className="text-sm font-semibold text-foreground">Kunne ikke hente dine leads</p>
+          <p className="max-w-md text-xs text-muted-foreground">Tjek din internetforbindelse og prøv igen. Dine leads er ikke gået tabt.</p>
+          <Button variant="outline" size="sm" onClick={() => refetchLeads()} disabled={fetchingLeads}>
+            {fetchingLeads ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}Prøv igen
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
