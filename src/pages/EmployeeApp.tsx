@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
+import { StopDetailsSheetShell } from "@/components/employee/StopDetailsSheetShell";
 import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
@@ -815,15 +815,7 @@ const EmployeeApp = () => {
 
       {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
           og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
-      <Sheet open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
-        <SheetContent
-          side={isCompact ? "bottom" : "right"}
-          className={
-            isCompact
-              ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
-              : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
-          }
-        >
+      <StopDetailsSheetShell open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
           {detailsStop && (
             <StopDetailsContent
               stop={detailsStop.stop}
@@ -842,8 +834,7 @@ const EmployeeApp = () => {
               readOnly
             />
           )}
-        </SheetContent>
-      </Sheet>
+      </StopDetailsSheetShell>
 
       {/* Print-forhåndsvisning — vis indholdet af kvitteringen før print */}
       <RoutePrintPreviewSheet

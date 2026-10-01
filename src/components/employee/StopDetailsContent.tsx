@@ -286,7 +286,7 @@ export const StopDetailsContent = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-secondary/20">
+    <div className="flex h-full min-h-0 flex-col bg-secondary/20">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
       <div className="planner-overlay-header shrink-0 border-b border-border px-4 pb-3 pt-3 pr-14 sm:px-5 sm:pr-14">
         <SheetHeaderBlock
@@ -350,7 +350,7 @@ export const StopDetailsContent = ({
         )}
       </div>
 
-      <div className="planner-overlay-body flex-1 overflow-y-auto space-y-4 p-4 sm:space-y-5 sm:p-5">
+      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-4 p-4 sm:space-y-5 sm:p-5">
         {/* Statistik viser kun afsluttet faktisk tidsforbrug. Aktiv status og
             starttid hører alene til medarbejderens aktive rutekørsel. */}
         {(!readOnly || (!isWorking && totalDurationSeconds > 0)) && (

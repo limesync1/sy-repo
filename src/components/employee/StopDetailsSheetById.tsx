@@ -4,13 +4,10 @@
 // "kun vis adresse + ordre-id"-flowet, så medarbejderen ser præcis det samme
 // detaljepanel som på sin "min dag"/rutekørsel — bare uden markér-udført.
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { StopDetailsContent } from "./StopDetailsContent";
 import type { RouteStop } from "@/hooks/useRoutes";
-import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StopDetailsSheetShell } from "./StopDetailsSheetShell";
 
 type Props = {
   open: boolean;
@@ -72,35 +69,10 @@ const useStopWithRoute = (stopId: string | null) => {
 
 export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
   const { data, isLoading } = useStopWithRoute(stopId);
-  const isCompact = useIsBelowBreakpoint(1024);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      {/* Bottom-sheet på mobil (native, tommel-venlig) — højre-side
-          på desktop som matcher virksomhedspanelets StopDetailSheet. */}
-      <SheetContent
-        side={isCompact ? "bottom" : "right"}
-        className={
-          isCompact
-            ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
-            : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
-        }
-      >
-        {isLoading || !data ? (
-          <div className="flex-1 space-y-4 overflow-hidden p-4" aria-busy="true">
-            <div className="flex items-start gap-3">
-              <Skeleton className="h-10 w-10 rounded-md" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-56 max-w-full" />
-              </div>
-            </div>
-            <Skeleton className="h-24 w-full rounded-md" />
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-md" />
-            ))}
-          </div>
-        ) : (
+    <StopDetailsSheetShell open={open} onOpenChange={onOpenChange} loading={isLoading || !data}>
+        {data && (
           <StopDetailsContent
             stop={data.stop}
             index={data.index}
@@ -109,8 +81,7 @@ export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
             readOnly
           />
         )}
-      </SheetContent>
-    </Sheet>
+    </StopDetailsSheetShell>
   );
 };
 
