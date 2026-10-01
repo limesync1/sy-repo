@@ -27,8 +27,8 @@ import realReviewsAsset from "@/assets/section-icons/opret-virksomhed/anmeldelse
 import compareQuicklyAsset from "@/assets/section-icons/opret-virksomhed/sammenlign-paa-sekunder.svg";
 
 import unassignedAppointmentsAsset from "@/assets/section-icons/virksomhed-ruter/aftaler-uden-rute.svg";
-import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg";
-import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg";
+import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
+import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
 import helpFindProviderAsset from "@/assets/section-icons/hjaelp/find-en-serviceudbyder.svg";
 import helpQuotesAsset from "@/assets/section-icons/hjaelp/indhent-3-tilbud.svg";
 import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.svg";
@@ -174,6 +174,8 @@ export const BrandedIllustration = ({ name, className, alt = "", ...props }: Pro
     alt={alt}
     aria-hidden={alt ? undefined : true}
     draggable={false}
+    loading="eager"
+    decoding="sync"
     className={cn("inline-block shrink-0 select-none object-contain", className)}
     {...props}
   />
