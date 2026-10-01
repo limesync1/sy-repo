@@ -1,5 +1,5 @@
 import { formatPrice } from "@/lib/price-format";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
