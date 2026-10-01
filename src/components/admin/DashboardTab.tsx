@@ -13,7 +13,7 @@ import {
   ArrowRight, AlertCircle, ChevronRight, Sparkles,
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
-  Zap, Target, Settings as SettingsIcon, Users,
+  Zap, Target, Settings as SettingsIcon,
   Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
   HelpCircle, Wallet, FileText, AlertTriangle, ReceiptText,
 } from "lucide-react";

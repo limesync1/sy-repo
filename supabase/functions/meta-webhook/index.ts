@@ -7,6 +7,17 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
   headers: { ...corsHeaders, "Content-Type": "application/json" },
 });
 
+const verifySignature = async (rawBody: string, signature: string | null, secret: string) => {
+  if (!signature?.startsWith("sha256=")) return false;
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"],
+  );
+  const expected = signature.slice(7);
+  if (!/^[0-9a-f]{64}$/i.test(expected)) return false;
+  const bytes = Uint8Array.from(expected.match(/.{2}/g) || [], (hex) => Number.parseInt(hex, 16));
+  return crypto.subtle.verify("HMAC", key, bytes, new TextEncoder().encode(rawBody));
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const requestUrl = new URL(req.url);
@@ -22,9 +33,14 @@ Deno.serve(async (req) => {
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const encryptionSecret = Deno.env.get("META_TOKEN_ENCRYPTION_KEY");
-  if (!url || !serviceKey || !encryptionSecret) return json({ error: "Not configured" }, 503);
+  const appSecret = Deno.env.get("META_APP_SECRET");
+  if (!url || !serviceKey || !encryptionSecret || !appSecret) return json({ error: "Not configured" }, 503);
   const admin = createClient(url, serviceKey);
-  const payload = await req.json().catch(() => ({}));
+  const rawBody = await req.text();
+  if (!await verifySignature(rawBody, req.headers.get("x-hub-signature-256"), appSecret)) {
+    return json({ error: "Invalid signature" }, 401);
+  }
+  const payload = JSON.parse(rawBody || "{}");
   const changes = Array.isArray(payload?.entry) ? payload.entry.flatMap((entry: any) => entry?.changes || []) : [];
 
   for (const change of changes) {
@@ -40,7 +56,7 @@ Deno.serve(async (req) => {
     const fields = new Map((lead.field_data || []).map((field: any) => [String(field.name), String(field.values?.[0] || "")]));
     const fullName = fields.get("full_name") || [fields.get("first_name"), fields.get("last_name")].filter(Boolean).join(" ") || "Meta lead";
     const description = fields.get("message") || fields.get("job_description") || fields.get("custom_question") || "Lead indsendt via Meta Lead Ads";
-    await admin.from("quote_requests").upsert({
+    const { data: request } = await admin.from("quote_requests").upsert({
       customer_name: fullName,
       customer_email: fields.get("email") || null,
       customer_phone: fields.get("phone_number") || null,
@@ -56,7 +72,16 @@ Deno.serve(async (req) => {
       external_form_id: lead.form_id ? String(lead.form_id) : null,
       external_campaign_id: lead.campaign_id ? String(lead.campaign_id) : null,
       source_metadata: { ad_id: lead.ad_id || null, adgroup_id: lead.adgroup_id || null },
-    }, { onConflict: "source,external_lead_id" });
+    }, { onConflict: "source,external_lead_id" }).select("id").single();
+    if (request?.id) {
+      await admin.from("quote_request_matches").upsert({
+        quote_request_id: request.id,
+        business_id: connection.business_id,
+        match_score: 100,
+        reason: "Lead modtaget fra virksomhedens egen Meta-formular",
+        status: "new",
+      }, { onConflict: "quote_request_id,business_id" });
+    }
     await admin.from("meta_connections").update({ last_synced_at: new Date().toISOString(), last_event_at: new Date().toISOString() })
       .eq("business_id", connection.business_id);
   }

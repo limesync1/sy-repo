@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SectionCard } from "@/components/admin/shared/AdminUI";
+import { toast } from "sonner";
 
 type MetaConnection = {
   status: "disconnected" | "pending" | "connected" | "expired" | "error";
@@ -43,7 +44,10 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
   const connected = connection?.status === "connected";
   const startSetup = async () => {
     const { data, error } = await supabase.functions.invoke("meta-oauth-start", { body: { businessId } });
-    if (error || !data?.url) return;
+    if (error || !data?.url) {
+      toast.error(data?.error || "Meta-forbindelsen er ikke konfigureret endnu");
+      return;
+    }
     window.location.assign(data.url);
   };
 
