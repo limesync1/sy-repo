@@ -212,7 +212,7 @@ const GroupHeader = ({
   hint?: string;
 }) => (
   <div className="mt-2 flex items-center gap-3 first:mt-0">
-    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background shadow-sm [&_svg]:h-4 [&_svg]:w-4">
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground shadow-sm [&_svg]:h-4 [&_svg]:w-4">
       {icon}
     </div>
     <div className="min-w-0">
