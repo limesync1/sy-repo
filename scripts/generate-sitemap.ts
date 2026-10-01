@@ -154,7 +154,7 @@ writeFileSync(resolve("public/sitemap.xml"), buildUrlset(allUrls));
 const indexXml = [
   `<?xml version="1.0" encoding="UTF-8"?>`,
   `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-  ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml"].map(
+  ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml", "sitemap-businesses.xml"].map(
     (name) =>
       `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
   ),
@@ -198,5 +198,36 @@ const routeMeta = [
   ...cityMeta("haandvaerker", "Håndværker", HANDYMAN_CITIES),
   ...cityMeta("haveservice", "Haveservice", GARDEN_CITIES),
 ];
+// Virksomhedssider (/v/:slug) — hentes ved build, så hver virksomhed får egen
+// statisk title/description/canonical og egen sitemap. Fejl må ikke stoppe build.
+const SB_URL = "https://gkectsellkpltrxvusot.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrZWN0c2VsbGtwbHRyeHZ1c290Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkxMDYsImV4cCI6MjA5MTU5NTEwNn0.VxLbs00qkZXCiNa468aHEC9FJhoY3Gyik0D8dKBdq_c";
+try {
+  const res = await fetch(`${SB_URL}/rest/v1/businesses?select=slug,name,city,category,description,updated_at&is_active=eq.true&limit=5000`, {
+    headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (res.ok) {
+    const rows: { slug: string; name: string; city?: string | null; category?: string | null; description?: string | null; updated_at?: string | null }[] = await res.json();
+    const valid = rows.filter((b) => b.slug && /^[a-z0-9-]+$/i.test(b.slug) && b.name);
+    for (const b of valid) {
+      const where = b.city ? ` i ${b.city}` : "";
+      const cat = b.category ? ` – ${b.category}` : "";
+      const desc = (b.description || "").replace(/\s+/g, " ").trim();
+      routeMeta.push({
+        path: `/v/${b.slug}`,
+        title: `${b.name}${where}${cat} | Book online`.slice(0, 70),
+        description: (desc || `Book ${b.name}${where} online. Se priser, anmeldelser og åbningstider på Serviceydere.`).slice(0, 158),
+      });
+    }
+    writeFileSync(resolve("public/sitemap-businesses.xml"), buildUrlset(valid.map((b) => ({
+      path: `/v/${b.slug}`, changefreq: "weekly", priority: "0.8",
+      ...(b.updated_at ? { lastmod: b.updated_at.slice(0, 10) } : {}),
+    }))));
+    console.log(`business seo pages: ${valid.length}`);
+  }
+} catch (e) {
+  console.warn("business seo fetch skipped:", (e as Error).message);
+}
 writeFileSync(resolve("scripts/.seo-routes.json"), JSON.stringify(routeMeta));
 console.log(`seo route meta written (${routeMeta.length})`);
