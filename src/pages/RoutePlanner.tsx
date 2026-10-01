@@ -3937,10 +3937,17 @@ const Planner = () => {
                             />
                           );
                         }
+                        if (isCompactRouteLayout) {
+                          return (
+                            <p className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+                              <Inbox className="h-4 w-4 shrink-0" /> Alle aftaler er planlagt.
+                            </p>
+                          );
+                        }
                         return (
                           <EmptyState
                             icon={<Inbox className="h-5 w-5" />}
-                            title="Alle aftaler er planlagt 🎉"
+                            title="Alle aftaler er planlagt"
                             description="Nye aftaler lander her, så snart de oprettes."
                             action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                             compact
@@ -4653,7 +4660,7 @@ const Planner = () => {
 
                 </div>
                 <div className="planner-mobile-board min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-background">
-                  <section className="min-h-[22rem] border-b border-border" aria-label="Aftaler uden rute">
+                  <section className={cn("border-b border-border", unassigned.length > 0 && "min-h-[22rem]")} aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
                   <section className="min-h-[32rem]" aria-label="Rutekalender">
@@ -4993,7 +5000,13 @@ const Planner = () => {
           // Stops for den aktive rute. Når sheet'et er åbnet via en projiceret
           // forekomst, filtrerer vi til kun de aftaler der reelt rammer den
           // dato (matcher mod projected-rutens sourceKeys). Ellers vises alle.
-          const projectionActive = !!(
+          // En rute med rigtige, udførte stops vises altid som den faktiske
+          // rute — så "Fortryd udført" er tilgængelig, også på mobil.
+          const realStopsForActive = activeEditingRoute
+            ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id)
+            : [];
+          const hasRealCompleted = realStopsForActive.some((s: any) => s.status === "completed");
+          const projectionActive = !hasRealCompleted && !!(
             editingProjectedContext
             && activeEditingRoute
             && (

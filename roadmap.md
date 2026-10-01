@@ -207,6 +207,6 @@
 - [x] Regnskab-ikon indlæses med det samme
 - [x] Lead-indstillinger: foreslåede brancher, medarbejdere, afstandsvalg, auto-svar med skabeloner og forhåndsvisning
 - [x] Forbind Meta: forklarende fejlvindue
-- [ ] Fuldt redesign af kort-bundpanel og tjekliste i samme layout
+- [x] Kort og tjekliste: samme trinvise knapper, ekstra muligheder skjult
 - [x] Leads: "Næste skridt"-liste (pipeline, prioritet, opfølgning og svartid fandtes allerede)
-- [ ] Forenklet mobil-ruteplanlægger (faner, flyt-menu)
+- [x] Mobil-ruteplanlægger: status og Fortryd udført synlig, kompakt tom boks
