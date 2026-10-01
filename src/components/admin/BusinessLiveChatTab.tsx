@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import LiveChatStats from "@/components/livechat/LiveChatStats";
 
 type Conversation = {
   id: string;
@@ -453,6 +454,8 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
         title="Livechat"
         description={`Samtaler startet fra din virksomhedsside${totalUnread > 0 ? ` · ${totalUnread} ulæst${totalUnread === 1 ? "" : "e"}` : ""}.`}
       />
+
+      <LiveChatStats conversations={conversations} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Conversation list */}

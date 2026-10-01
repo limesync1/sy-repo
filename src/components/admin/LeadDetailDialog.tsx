@@ -44,6 +44,10 @@ export type LeadDetailLead = {
     zip_code: string | null;
     share_contact: boolean;
     created_at: string;
+    source?: string;
+    source_channel?: string | null;
+    external_form_id?: string | null;
+    external_campaign_id?: string | null;
   } | null;
 };
 

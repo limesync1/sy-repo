@@ -66,6 +66,18 @@ import employeeAppointments from "@/assets/illustrations/employee/aftaler.svg";
 import workdays from "@/assets/illustrations/employee/arbejdsdage.svg";
 import worktime from "@/assets/illustrations/employee/arbejdstid.svg";
 import dailyActivityTable from "@/assets/illustrations/employee/daglig-aktivitet-tabel.svg";
+import activeLeadsAsset from "@/assets/panel-illustrations/aktive-leads.svg.asset.json";
+import activeConversationsAsset from "@/assets/panel-illustrations/aktive-samtaler.svg.asset.json";
+import buildFromScratchAsset from "@/assets/panel-illustrations/byg-fra-bunden.svg.asset.json";
+import conversionAsset from "@/assets/panel-illustrations/konvertering.svg.asset.json";
+import customerSatisfactionAsset from "@/assets/panel-illustrations/kundetilfredshed.svg.asset.json";
+import aiCalculatorAsset from "@/assets/panel-illustrations/lad-ai-bygge-prisberegneren.svg.asset.json";
+import calculatorAsset from "@/assets/panel-illustrations/prisberegner.svg.asset.json";
+import fixedPriceAsset from "@/assets/panel-illustrations/specifik-pris.svg.asset.json";
+import responseTimeAsset from "@/assets/panel-illustrations/svartid.svg.asset.json";
+import payoutAsset from "@/assets/panel-illustrations/til-udbetaling.svg.asset.json";
+import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.json";
+import unansweredMessagesAsset from "@/assets/panel-illustrations/ubesvarede-beskeder.svg.asset.json";
 
 export const BRANDED_ILLUSTRATIONS = {
   searchService: searchServiceAsset,
@@ -128,6 +140,18 @@ export const BRANDED_ILLUSTRATIONS = {
   workdays: workdays,
   worktime: worktime,
   dailyActivityTable: dailyActivityTable,
+  activeLeads: activeLeadsAsset.url,
+  activeConversations: activeConversationsAsset.url,
+  buildFromScratch: buildFromScratchAsset.url,
+  conversion: conversionAsset.url,
+  customerSatisfaction: customerSatisfactionAsset.url,
+  aiCalculator: aiCalculatorAsset.url,
+  calculator: calculatorAsset.url,
+  fixedPrice: fixedPriceAsset.url,
+  responseTime: responseTimeAsset.url,
+  payout: payoutAsset.url,
+  hourlyPrice: hourlyPriceAsset.url,
+  unansweredMessages: unansweredMessagesAsset.url,
 } as const;
 
 export type BrandedIllustrationName = keyof typeof BRANDED_ILLUSTRATIONS;

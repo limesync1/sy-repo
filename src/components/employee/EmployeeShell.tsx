@@ -41,6 +41,7 @@ import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmployeeNotifications, type EmployeeRouteNotification } from "@/components/employee/EmployeeNotifications";
+import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
@@ -91,8 +92,8 @@ export const EmployeeShell = ({
   contentPadding = true, contentClassName, children,
 }: EmployeeShellProps) => {
   const { user, signOut } = useAuth();
-  const { data: employee } = useMyEmployee();
-  const { data: myEmployeeRecords } = useMyEmployees();
+  const { data: employee, isLoading: employeeLoading } = useMyEmployee();
+  const { data: myEmployeeRecords, isLoading: employeesLoading } = useMyEmployees();
   const queryClient = useQueryClient();
   const { data: routeNotifications = [] } = useEmployeeRouteNotifications();
   const markNotificationRead = useMarkRouteNotificationRead();
@@ -170,6 +171,10 @@ export const EmployeeShell = ({
   // Aktiv virksomhed — panelets data hentes udelukkende for denne.
   const activeBusiness = employee?.business ?? null;
   const activeBusinessName = activeBusiness?.name || "Virksomhed";
+
+  if (employeeLoading || employeesLoading) {
+    return <ShellSkeleton variant="employee" navigationItems={3} />;
+  }
 
   if (needsWorkspaceChoice) {
     return (

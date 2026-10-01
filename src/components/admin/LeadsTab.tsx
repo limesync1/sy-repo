@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   MapPin, Mail, Phone, Loader2, Inbox, Search, TrendingUp, Trophy, Filter,
-  Clock, XCircle, Target,
+  Clock, XCircle,
   Calendar, StickyNote, Bell, BellRing, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,6 +21,8 @@ import { da } from "date-fns/locale";
 import { PageHeader, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDetailDialog";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import MetaLeadsSetup from "@/components/admin/MetaLeadsSetup";
 
 type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string | null };
 
@@ -69,7 +71,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quote_request_matches")
-        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at)")
+        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at, source, source_channel, external_form_id, external_campaign_id)")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(100);
@@ -86,21 +88,10 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
   const [filter, setFilter] = useState<string>("active");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("smart");
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  // Auto-mark "new" leads as "viewed"
-  useEffect(() => {
-    if (!leads) return;
-    const newIds = leads.filter((l) => l.status === "new").map((l) => l.id);
-    if (newIds.length === 0) return;
-    supabase
-      .from("quote_request_matches")
-      .update({ status: "viewed", viewed_at: new Date().toISOString() })
-      .in("id", newIds)
-      .then(({ error }) => { if (error) console.error(error); });
-  }, [leads]);
 
   // Fetch customer contact details (email/phone) via secure RPC for leads
   // where the customer agreed to share contact. Direct table access to
@@ -212,6 +203,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         if (l.status === "won" || l.status === "declined") return false;
       } else if (filter !== "active" && filter !== "all" && l.status !== filter) return false;
       if (categoryFilter !== "all" && l.quote_request?.category !== categoryFilter) return false;
+      if (sourceFilter !== "all" && (l.quote_request?.source || "serviceydere") !== sourceFilter) return false;
       if (priorityFilter !== "all" && l._p.priority !== priorityFilter) return false;
       if (!q) return true;
       const qr = l.quote_request;
@@ -236,12 +228,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     else if (sortBy === "oldest") list = list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     else if (sortBy === "match") list = list.sort((a, b) => b.match_score - a.match_score);
     return list;
-  }, [enriched, filter, categoryFilter, priorityFilter, search, sortBy]);
+  }, [enriched, filter, categoryFilter, sourceFilter, priorityFilter, search, sortBy]);
 
   // Paginering — adaptiv sidestørrelse.
   const pageSize = useAdaptivePageSize(25);
   const [page, setPage] = useState(0);
-  useEffect(() => { setPage(0); }, [filter, categoryFilter, priorityFilter, search, sortBy]);
+  useEffect(() => { setPage(0); }, [filter, categoryFilter, sourceFilter, priorityFilter, search, sortBy]);
   const pagedVisible = useMemo(
     () => visible.slice(page * pageSize, (page + 1) * pageSize),
     [visible, page, pageSize],
@@ -277,10 +269,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         />
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Aktive leads" value={counts.active || 0} icon={<Target />} />
-          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% kontaktet`} icon={<TrendingUp />} tone="ok" />
-          <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)}m` : `${convStats.avgRespHours.toFixed(1)}t`) : "—"} hint="Hurtigere = flere aftaler" icon={<Clock />} />
+          <StatCard label="Aktive leads" value={counts.active || 0} icon={<BrandedIllustration name="activeLeads" />} />
+          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% kontaktet`} icon={<BrandedIllustration name="conversion" />} tone="ok" />
+          <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtigere svar giver flere aftaler" icon={<BrandedIllustration name="responseTime" />} />
         </div>
+
+        <MetaLeadsSetup businessId={businessId} />
 
         {allLeads.length === 0 ? (
           <EmptyState
@@ -369,6 +363,17 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               })()}
 
               <div className="ml-auto flex flex-wrap items-center gap-2">
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                  <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[170px]">
+                    <SelectValue placeholder="Alle kilder" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle kilder</SelectItem>
+                    <SelectItem value="serviceydere">Serviceydere</SelectItem>
+                    <SelectItem value="facebook">Facebook</SelectItem>
+                    <SelectItem value="instagram">Instagram</SelectItem>
+                  </SelectContent>
+                </Select>
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                     <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[180px]">
@@ -428,6 +433,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     const share = qr?.share_contact !== false;
                     const isDue = !!l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined";
                     const isSelected = selected.has(l.id);
+                    const source = qr?.source || "serviceydere";
+                    const sourceLabel = source === "facebook" ? "Facebook" : source === "instagram" ? "Instagram" : "Serviceydere";
 
                     return (
                       <Card
@@ -466,6 +473,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                   <h3 className="text-sm font-semibold text-foreground">{qr?.customer_name || "Anonym kunde"}</h3>
                                   <Badge className={`${status.className} border rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5`}>{status.label}</Badge>
                                   {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5">{qr.category}</Badge>}
+                                  <Badge variant="outline" className="rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5">{sourceLabel}</Badge>
                                   {l.follow_up_at && !isDue && (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
