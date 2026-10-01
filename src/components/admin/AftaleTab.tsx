@@ -1,5 +1,5 @@
 import { formatPrice } from "@/lib/price-format";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
@@ -801,8 +801,12 @@ const AftaleTab = ({
   // Kommende-aftaler-strip: kollapset som standard for ikke at stjæle plads.
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
 
+  const appliedInitialOrderRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!initialOrderId || !orders?.some((order) => order.id === initialOrderId)) return;
+    if (!initialOrderId) { appliedInitialOrderRef.current = null; return; }
+    if (appliedInitialOrderRef.current === initialOrderId) return;
+    if (!orders?.some((order) => order.id === initialOrderId)) return;
+    appliedInitialOrderRef.current = initialOrderId;
     setFilter("all");
     setSearch("");
     setExpandedOrder(initialOrderId);
