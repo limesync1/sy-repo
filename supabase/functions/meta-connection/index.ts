@@ -54,6 +54,13 @@ Deno.serve(async (req) => {
 
   try {
     const accounts = await graph("me/accounts?fields=id,name,access_token,instagram_business_account{id,username}", userToken);
+    // Once connected, the encrypted token is intentionally replaced by the
+    // selected Page token. It cannot list sibling pages, but it can still
+    // administer the selected page and its forms without a new OAuth round.
+    if (!Array.isArray(accounts.data) || accounts.data.length === 0) {
+      const currentPage = await graph("me?fields=id,name,access_token,instagram_business_account{id,username}", userToken);
+      accounts.data = [{ ...currentPage, access_token: currentPage.access_token || userToken }];
+    }
     const pages = await Promise.all((accounts.data || []).map(async (page: any) => {
       let forms: Array<{ id: string; name: string; status?: string }> = [];
       try {

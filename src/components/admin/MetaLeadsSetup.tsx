@@ -183,6 +183,11 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
           </Button>
         </div>
       </div>
+      {!connected && (
+        <div className="rounded-md border border-border bg-secondary/20 px-3 py-2.5 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">Sådan virker det:</span> Log ind hos Meta, vælg virksomhedens Facebook-side og aktivér import. Derefter kommer nye formularleads automatisk ind på Leads-siden, hvor jeres normale beskeder og automatik fortsætter.
+        </div>
+      )}
       {connection?.last_error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{connection.last_error}</p>}
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
