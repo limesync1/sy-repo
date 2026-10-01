@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, ExternalLink, Facebook, Loader2, RefreshCw, Settings2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Building2, Check, CheckCircle2, ExternalLink, Facebook, FileText, Loader2, RefreshCw, Settings2, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -176,71 +176,100 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
   }, []);
 
   const selectedPage = pages.find((page) => page.id === pageId);
+  const selectedForms = selectedPage?.forms.filter((form) => formIds.includes(form.id)) ?? [];
+  const primaryLabel = connected ? "Administrér forbindelse" : connection?.status === "pending" ? "Vælg side og formularer" : "Forbind Meta-konto";
 
   return (
     <SectionCard
-      title="Meta Lead Ads og måling"
-      icon={<Settings2 />}
-      description="Saml leads fra Facebook og Instagram her, og mål indsendte leads og bookinger med samtykke."
-      className="overflow-hidden shadow-premium"
-      action={<Badge variant={connected ? "default" : "secondary"}>{statusLabel[connection?.status ?? "disconnected"]}</Badge>}
+      title="Meta Lead Ads"
+      icon={<Facebook />}
+      description="Få nye henvendelser fra Facebook og Instagram direkte ind i din leadindbakke."
+      className="overflow-hidden border-border/80 shadow-premium"
+      action={<Badge variant={connected ? "default" : "secondary"} className="gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-primary-foreground" : "bg-muted-foreground"}`} />{statusLabel[connection?.status ?? "disconnected"]}</Badge>}
     >
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-        <div className="grid gap-2 text-xs sm:grid-cols-2">
-          <MetaCapability label="Lead Ads" active={!!connection?.lead_ads_enabled} detail={connection?.page_name || "Vælg Facebook-side og formularer"} />
-          <MetaCapability label="Pixel og Conversions API" active={!!connection?.conversions_api_enabled} detail={connection?.pixel_id ? `Pixel ${connection.pixel_id}` : "Mål leads og bookinger med samtykke"} />
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="grid gap-0 sm:grid-cols-3">
+          <SetupStep number="1" label="Forbind konto" detail={connection ? "Konto godkendt" : "Log sikkert ind hos Meta"} done={!!connection} active={!connection} />
+          <SetupStep number="2" label="Vælg side" detail={connection?.page_name || "Facebook-side og formularer"} done={connected} active={connection?.status === "pending"} />
+          <SetupStep number="3" label="Modtag leads" detail={connected ? "Automatisk import er aktiv" : "Leads lander i indbakken"} done={connected} active={false} last />
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-1.5">
-            <RefreshCw className={isFetching ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} /> Opdatér
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="ghost" size="icon" onClick={() => refetch()} disabled={isFetching} aria-label="Opdatér Meta-status" title="Opdatér Meta-status">
+            <RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           </Button>
-          <Button type="button" size="sm" onClick={connection?.status === "pending" || connected ? loadPages : startSetup} disabled={starting || loadingPages} className="gap-1.5">
-            {starting || loadingPages ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : connected ? <Settings2 className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />} {connected ? "Administrér" : connection?.status === "pending" ? "Vælg Facebook-side" : "Forbind Meta"}
+          <Button type="button" onClick={connection?.status === "pending" || connected ? loadPages : startSetup} disabled={starting || loadingPages} className="min-w-[190px] gap-2">
+            {starting || loadingPages ? <Loader2 className="h-4 w-4 animate-spin" /> : connected ? <Settings2 className="h-4 w-4" /> : connection?.status === "pending" ? <ArrowRight className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+            {primaryLabel}
           </Button>
         </div>
       </div>
-      {!connected && (
-        <div className="space-y-2 rounded-md border border-border bg-secondary/20 px-3 py-2.5 text-xs text-muted-foreground">
-          <p><span className="font-semibold text-foreground">Sådan virker det:</span> Log ind hos Meta, vælg virksomhedens Facebook-side og aktivér import. Derefter kommer nye formularleads automatisk ind på Leads-siden.</p>
-          <p>Hvis Meta viser “domænet er ikke inkluderet”, skal appens administrator tilføje <span className="font-semibold text-foreground">serviceydere.dk</span> under Appdomæner og <span className="font-semibold text-foreground">https://serviceydere.dk/meta/callback</span> som gyldig OAuth-omdirigeringsadresse.</p>
+      {connected && (
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border/70 pt-4 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5"><Facebook className="h-3.5 w-3.5" />{connection.page_name}</span>
+          {connection.instagram_account_name && <span>Instagram: @{connection.instagram_account_name}</span>}
+          <span>{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} valgte formularer` : "Alle formularer"}</span>
+          {connection.last_synced_at && <span>Senest synkroniseret {new Date(connection.last_synced_at).toLocaleString("da-DK")}</span>}
         </div>
       )}
       {connection?.last_error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{connection.last_error}</p>}
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Facebook className="h-5 w-5" /> Vælg hvor leads kommer fra</DialogTitle>
-            <DialogDescription>Vælg siden én gang. Nye Lead Ads bliver derefter oprettet automatisk som leads i Serviceydere.</DialogDescription>
+        <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
+          <DialogHeader className="border-b border-border px-5 pb-5 pt-6 sm:px-7">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary"><Facebook className="h-4 w-4" /></span>
+              Meta Lead Ads
+            </div>
+            <DialogTitle className="text-xl sm:text-2xl">Vælg hvor leads kommer fra</DialogTitle>
+            <DialogDescription className="max-w-xl">Vælg den Facebook-side og de formularer, som skal sende nye kundehenvendelser til Serviceydere.</DialogDescription>
           </DialogHeader>
-          {pages.length === 0 ? (
-            <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">Ingen Facebook-sider blev fundet. Du skal være administrator på mindst én side.</div>
-          ) : (
-            <div className="space-y-4">
-              <RadioGroup value={pageId} onValueChange={(value) => { setPageId(value); setFormIds([]); }} className="space-y-2">
+          <div className="space-y-6 px-5 py-5 sm:px-7">
+            {pages.length === 0 ? (
+              <div className="flex items-start gap-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>Ingen Facebook-sider blev fundet. Kontrollér, at du er administrator på mindst én side.</span></div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <div className="space-y-3">
+                  <div><p className="text-sm font-semibold text-foreground">1. Vælg Facebook-side</p><p className="text-xs text-muted-foreground">Siden skal tilhøre den virksomhed, der modtager leads.</p></div>
+                  <RadioGroup value={pageId} onValueChange={(value) => { setPageId(value); setFormIds([]); }} className="space-y-2">
                 {pages.map((page) => (
-                  <Label key={page.id} htmlFor={`meta-page-${page.id}`} className="flex cursor-pointer items-center gap-3 rounded-md border bg-card p-3 hover:bg-secondary/40">
+                  <Label key={page.id} htmlFor={`meta-page-${page.id}`} className={`flex cursor-pointer items-center gap-3 rounded-md border p-3.5 transition-colors ${pageId === page.id ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-secondary/40"}`}>
+                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${pageId === page.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}><Building2 className="h-5 w-5" /></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate font-semibold text-foreground">{page.name}</span><span className="block truncate text-xs text-muted-foreground">{page.instagramName ? `Instagram: @${page.instagramName}` : "Facebook-side"}</span></span>
                     <RadioGroupItem id={`meta-page-${page.id}`} value={page.id} />
-                    <span className="min-w-0"><span className="block font-semibold">{page.name}</span>{page.instagramName && <span className="block text-xs text-muted-foreground">Instagram: @{page.instagramName}</span>}</span>
                   </Label>
                 ))}
-              </RadioGroup>
-              {selectedPage && (
-                <div className="rounded-md border bg-secondary/20 p-3">
-                  <p className="text-sm font-semibold">Formularer</p>
-                  <p className="mb-3 text-xs text-muted-foreground">Ingen valgte betyder alle nuværende og fremtidige formularer.</p>
-                  {selectedPage.forms.length === 0 ? <p className="text-xs text-muted-foreground">Ingen formularer fundet endnu.</p> : selectedPage.forms.map((form) => (
-                    <Label key={form.id} className="flex cursor-pointer items-center gap-2 py-2 text-sm">
-                      <Checkbox checked={formIds.includes(form.id)} onCheckedChange={(checked) => setFormIds((current) => checked ? [...current, form.id] : current.filter((id) => id !== form.id))} />
-                      <span>{form.name}</span>
-                    </Label>
-                  ))}
+                  </RadioGroup>
                 </div>
-              )}
-            </div>
-          )}
-          <DialogFooter className="gap-2 sm:gap-0">
+                <div className="space-y-3">
+                  <div><p className="text-sm font-semibold text-foreground">2. Vælg formularer</p><p className="text-xs text-muted-foreground">Lad alle være fravalgt for automatisk at modtage fra alle formularer.</p></div>
+                  {!selectedPage ? (
+                    <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">Vælg først en Facebook-side</div>
+                  ) : selectedPage.forms.length === 0 ? (
+                    <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed px-4 text-center text-sm text-muted-foreground">Ingen formularer fundet. Nye formularer bliver automatisk inkluderet.</div>
+                  ) : (
+                    <div className="divide-y divide-border rounded-md border border-border">
+                      {selectedPage.forms.map((form) => (
+                        <Label key={form.id} className="flex cursor-pointer items-center gap-3 px-3 py-3 text-sm hover:bg-secondary/30">
+                          <Checkbox checked={formIds.includes(form.id)} onCheckedChange={(checked) => setFormIds((current) => checked ? [...current, form.id] : current.filter((id) => id !== form.id))} />
+                          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate font-medium text-foreground">{form.name}</span>
+                          {form.status && <Badge variant="outline" className="text-[10px]">{form.status}</Badge>}
+                        </Label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {selectedPage && (
+              <div className="flex items-start gap-3 rounded-md bg-secondary/50 px-4 py-3">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                <div className="text-xs"><p className="font-semibold text-foreground">Klar til automatisk import</p><p className="mt-0.5 text-muted-foreground">Nye leads fra <span className="font-medium text-foreground">{selectedPage.name}</span> og {selectedForms.length ? `${selectedForms.length} valgte formular${selectedForms.length === 1 ? "" : "er"}` : "alle nuværende og fremtidige formularer"} oprettes i leadindbakken.</p></div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
             <Button variant="outline" onClick={() => setSetupOpen(false)}>Annuller</Button>
-            <Button onClick={saveConnection} disabled={!pageId || saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Aktivér automatisk import</Button>
+            <Button onClick={saveConnection} disabled={!pageId || saving} className="gap-2">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Aktivér automatisk import</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -262,10 +291,13 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
   );
 };
 
-const MetaCapability = ({ label, active, detail }: { label: string; active: boolean; detail: string }) => (
-  <div className="flex items-start gap-2.5 rounded-md border border-border bg-card px-3 py-2.5">
-    <CheckCircle2 className={active ? "mt-0.5 h-4 w-4 shrink-0 text-success" : "mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"} />
-    <div className="min-w-0"><p className="font-semibold text-foreground">{label}</p><p className="mt-0.5 truncate text-muted-foreground">{detail}</p></div>
+const SetupStep = ({ number, label, detail, done, active, last = false }: { number: string; label: string; detail: string; done: boolean; active: boolean; last?: boolean }) => (
+  <div className="relative flex gap-3 pb-4 last:pb-0 sm:pb-0 sm:pr-7">
+    {!last && <span className="absolute bottom-0 left-4 top-9 w-px bg-border sm:bottom-auto sm:left-9 sm:right-1 sm:top-4 sm:h-px sm:w-auto" />}
+    <span className={`relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold ${done ? "bg-success text-success-foreground" : active ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
+      {done ? <CheckCircle2 className="h-4 w-4" /> : number}
+    </span>
+    <div className="min-w-0 pt-0.5"><p className="text-sm font-semibold text-foreground">{label}</p><p className="mt-0.5 truncate text-xs text-muted-foreground">{detail}</p></div>
   </div>
 );
 

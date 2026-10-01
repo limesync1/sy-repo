@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   MapPin, Mail, Phone, Loader2, Inbox, Search, Trophy, Filter,
   Clock, XCircle,
-  Calendar, StickyNote, Bell, BellRing, MessageSquare,
+  Calendar, StickyNote, Bell, BellRing, MessageSquare, Activity, TrendingUp, Timer, SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -21,7 +21,6 @@ import { da } from "date-fns/locale";
 import { PageHeader, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDetailDialog";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import MetaLeadsSetup from "@/components/admin/MetaLeadsSetup";
 import LeadSettingsDialog from "@/components/admin/LeadSettingsDialog";
 
@@ -263,7 +262,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-5">
+      <div className="space-y-6">
         <PageHeader
           title="Leads"
           description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
@@ -271,19 +270,30 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         />
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Aktive leads" value={counts.active || 0} icon={<BrandedIllustration name="activeLeads" />} />
-          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% kontaktet`} icon={<BrandedIllustration name="conversion" />} tone="ok" />
-          <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtigere svar giver flere aftaler" icon={<BrandedIllustration name="responseTime" />} />
+          <StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<Activity />} />
+          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<TrendingUp />} tone="ok" />
+          <StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<Timer />} />
         </div>
 
         <MetaLeadsSetup businessId={businessId} />
 
         {allLeads.length === 0 ? (
-          <EmptyState
-            icon={<Inbox />}
-            title="Ingen leads endnu"
-            description="Når en kunde bruger 'Indhent 3 tilbud' og vores AI matcher jer, vises forespørgslen her."
-          />
+          <section aria-labelledby="lead-inbox-title" className="overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
+            <div className="flex flex-col gap-3 border-b border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div>
+                <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 id="lead-inbox-title" className="text-base font-semibold text-foreground">Leadindbakke</h2></div>
+                <p className="mt-1 pl-10 text-xs text-muted-foreground">Alle kundehenvendelser samlet ét sted</p>
+              </div>
+              <Badge variant="secondary" className="w-fit">0 nye</Badge>
+            </div>
+            <div className="px-4 py-3 sm:px-5">
+              <EmptyState
+                icon={<Inbox />}
+                title="Indbakken er klar"
+                description="Nye henvendelser fra Serviceydere og tilknyttede Meta-formularer vises automatisk her."
+              />
+            </div>
+          </section>
         ) : (
           <>
             {(() => {
@@ -308,6 +318,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 </div>
               );
             })()}
+            <div className="flex flex-col gap-3 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 className="text-base font-semibold text-foreground">Leadindbakke</h2></div>
+                <p className="mt-1 pl-10 text-xs text-muted-foreground">{visible.length} af {allLeads.length} leads vises</p>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground"><SlidersHorizontal className="h-4 w-4" />Søg, sortér og filtrér</div>
+            </div>
+
             {/* Toolbar */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative flex-1">
