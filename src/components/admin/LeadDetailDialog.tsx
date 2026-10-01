@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format, isSameDay, addDays, addHours, isBefore, startOfDay } from "date-fns";
 import { da } from "date-fns/locale";
 import { InlineTextSkeleton } from "@/components/admin/shared/Skeletons";
+import { TimePicker } from "@/components/admin/shared/TimePicker";
 
 export type LeadDetailLead = {
   id: string;
@@ -307,18 +308,18 @@ const FollowUpEditor = ({
             );
           })}
 
-          {/* Manuel finjustering — for præcise tider udenfor slots. */}
-          <div className="flex items-center gap-2 border-t border-border pt-3">
-            <Moon className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground">Andet tidspunkt:</span>
-            <Input
-              type="time"
+          {/* Præcist tidspunkt — samme tidsvælger som Åbningstider. */}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2">
+            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Moon className="h-3.5 w-3.5 text-muted-foreground" /> Andet tidspunkt
+            </span>
+            <TimePicker
+              label="Vælg præcist tidspunkt"
               value={selectedDate ? format(selectedDate, "HH:mm") : ""}
-              onChange={(e) => {
-                const [h, m] = e.target.value.split(":").map(Number);
+              onChange={(v) => {
+                const [h, m] = v.split(":").map(Number);
                 if (!isNaN(h) && !isNaN(m)) setTime(h, m);
               }}
-              className="h-8 w-[110px] text-xs"
             />
           </div>
         </div>
