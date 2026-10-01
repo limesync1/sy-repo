@@ -2424,6 +2424,7 @@ export type Database = {
       }
       employee_workdays: {
         Row: {
+          accumulated_seconds: number
           created_at: string
           duration_minutes: number | null
           employee_id: string
@@ -2435,6 +2436,7 @@ export type Database = {
           workday_date: string
         }
         Insert: {
+          accumulated_seconds?: number
           created_at?: string
           duration_minutes?: number | null
           employee_id: string
@@ -2446,6 +2448,7 @@ export type Database = {
           workday_date: string
         }
         Update: {
+          accumulated_seconds?: number
           created_at?: string
           duration_minutes?: number | null
           employee_id?: string
