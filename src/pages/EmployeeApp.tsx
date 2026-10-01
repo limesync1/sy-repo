@@ -369,7 +369,9 @@ const EmployeeApp = () => {
               title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
               description: nextStop.full_address || nextStop.address || "",
               illustration: "dayInProgress",
-              cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
+              cta: (stopsByRoute.get(nextRoute.id) || []).some((s) => s.status === "completed")
+                ? { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` }
+                : { label: "Start rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
             };
           } else if (dayStarted && allRoutesDone && !dayEnded) {
             suggestion = {
