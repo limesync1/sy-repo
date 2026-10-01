@@ -242,6 +242,25 @@ export const MOVING_CITIES: CityMovingContent[] = [
       "Motorvejen E20 går gennem byen — godt udgangspunkt for både Sjælland og Fyn-Jylland. Korsør har en del lejligheder uden elevator, hvilket øger tiden.",
     popularRoutes: ["Centrum → Sørbymagle", "Korsør → Slagelse", "Slagelse → København", "Slagelse → Odense", "Slagelse → Næstved"],
   },
+
+  {
+    slug: "frederiksberg", name: "Frederiksberg", region: "Hovedstaden", postalRange: "1800–2000",
+    hourlyLow: 650, hourlyHigh: 1095,
+    smallMoveLow: 2900, smallMoveHigh: 5600,
+    villaMoveLow: 12500, villaMoveHigh: 28000,
+    intro: "Flytninger på Frederiksberg handler oftest om lejligheder på 3.–5. sal uden elevator. Mange flytter internt i byen eller til Valby og Vanløse, når familien vokser.",
+    localFactor: "Trapper, smalle opgange og betalt parkering øger tidsforbruget. Søg om midlertidig parkeringstilladelse til flyttebilen hos kommunen i god tid — ellers kan bæreafstanden blive lang.",
+    popularRoutes: ["Frederiksberg → Valby", "Frederiksberg → Vanløse", "Vesterbro → Frederiksberg", "Frederiksberg → Roskilde", "Frederiksberg → Aarhus"],
+  },
+  {
+    slug: "holstebro", name: "Holstebro", region: "Midtjylland", postalRange: "7500",
+    hourlyLow: 495, hourlyHigh: 795,
+    smallMoveLow: 2000, smallMoveHigh: 4000,
+    villaMoveLow: 8000, villaMoveHigh: 18000,
+    intro: "Holstebro har mange parcelhuse og en del studerende og unge familier, der flytter mellem byen og nabobyerne. Flyttefirmaerne er ofte små, lokale virksomheder med 1–3 biler.",
+    localFactor: "Fri parkering og korte afstande holder prisen nede. Ved flytning til Aarhus eller Herning kører mange firmaer fast pris inkl. kørsel, så spørg efter det frem for timepris.",
+    popularRoutes: ["Holstebro → Herning", "Holstebro → Struer", "Holstebro → Aarhus", "Holstebro → Lemvig", "Midtbyen → Tvis"],
+  },
 ];
 
 export const findMovingCity = (slug?: string) =>

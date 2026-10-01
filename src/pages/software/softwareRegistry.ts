@@ -101,6 +101,20 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     priority: "0.8",
     group: "industry",
   },
+  {
+    href: "/software/flyttefirma",
+    label: "System til flyttefirmaer",
+    blurb: "Prisberegner til tilbud, hold og biler på flyttedagen og fakturering ud fra brugt tid.",
+    priority: "0.8",
+    group: "industry",
+  },
+  {
+    href: "/software/maler",
+    label: "System til malerfirmaer",
+    blurb: "Tilbud pr. m², svende på flerdagesopgaver og billeddokumentation i appen.",
+    priority: "0.8",
+    group: "industry",
+  },
 ];
 
 export const softwarePagesExcept = (href: string) =>
