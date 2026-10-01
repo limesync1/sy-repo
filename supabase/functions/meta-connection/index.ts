@@ -53,12 +53,12 @@ Deno.serve(async (req) => {
   const userToken = await decryptMetaToken(connection.access_token_ciphertext, connection.access_token_iv, encryptionSecret);
 
   try {
-    const accounts = await graph("me/accounts?fields=id,name,access_token,instagram_business_account{id,username}", userToken);
+    const accounts = await graph("me/accounts?fields=id,name,access_token,picture.type(large){url},instagram_business_account{id,username}", userToken);
     // Once connected, the encrypted token is intentionally replaced by the
     // selected Page token. It cannot list sibling pages, but it can still
     // administer the selected page and its forms without a new OAuth round.
     if (!Array.isArray(accounts.data) || accounts.data.length === 0) {
-      const currentPage = await graph("me?fields=id,name,access_token,instagram_business_account{id,username}", userToken);
+      const currentPage = await graph("me?fields=id,name,access_token,picture.type(large){url},instagram_business_account{id,username}", userToken);
       accounts.data = [{ ...currentPage, access_token: currentPage.access_token || userToken }];
     }
     const pages = await Promise.all((accounts.data || []).map(async (page: any) => {
@@ -67,7 +67,13 @@ Deno.serve(async (req) => {
         const formData = await graph(`${encodeURIComponent(page.id)}/leadgen_forms?fields=id,name,status&limit=100`, String(page.access_token));
         forms = (formData.data || []).map((form: any) => ({ id: String(form.id), name: String(form.name || "Leadformular"), status: form.status }));
       } catch { /* A page can be visible without lead form access. */ }
-      return { id: String(page.id), name: String(page.name), instagramName: page.instagram_business_account?.username || null, forms };
+      return {
+        id: String(page.id),
+        name: String(page.name),
+        pictureUrl: page.picture?.data?.url ? String(page.picture.data.url) : null,
+        instagramName: page.instagram_business_account?.username || null,
+        forms,
+      };
     }));
 
     if (parsed.data.action === "list") return json({ pages });
