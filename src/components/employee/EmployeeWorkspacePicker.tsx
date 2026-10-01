@@ -53,8 +53,8 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-4xl flex-1 content-start items-start gap-3 px-3 py-4 sm:px-6 sm:py-8 md:grid-cols-[200px_minmax(0,1fr)]">
-        <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm md:sticky md:top-20">
+      <main className="mx-auto grid w-full max-w-6xl flex-1 content-start items-start gap-3 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(240px,0.34fr)_minmax(0,1fr)]">
+        <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm">
           <div className="border-b border-border bg-secondary/45 p-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-foreground text-background">
               <BriefcaseBusiness className="h-4 w-4" />

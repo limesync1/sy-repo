@@ -276,7 +276,7 @@ export const useMyEmployeeStats = (
       // 5) Arbejdsdage
       const { data: workdays } = await supabase
         .from("employee_workdays")
-        .select("workday_date, duration_minutes, started_at, ended_at")
+        .select("workday_date, duration_minutes, accumulated_seconds, started_at, ended_at")
         .eq("employee_id", employeeId)
         .gte("workday_date", from)
         .lte("workday_date", to);
@@ -285,10 +285,11 @@ export const useMyEmployeeStats = (
         (sum: number, w: any) => {
           const start = w.started_at ? new Date(w.started_at).getTime() : NaN;
           const end = w.ended_at ? new Date(w.ended_at).getTime() : NaN;
+          const accumulated = Math.max(0, Number(w.accumulated_seconds || 0));
           if (Number.isFinite(start) && Number.isFinite(end)) {
-            return sum + Math.max(0, Math.floor((end - start) / 1000));
+            return sum + accumulated + Math.max(0, Math.floor((end - start) / 1000));
           }
-          return sum + Math.max(0, Math.round(Number(w.duration_minutes || 0) * 60));
+          return sum + accumulated + Math.max(0, Math.round(Number(w.duration_minutes || 0) * 60));
         },
         0,
       );
