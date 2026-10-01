@@ -239,7 +239,7 @@ const CartSheet = () => {
 
         // Send order confirmation email (fire-and-forget; non-blocking)
         supabase.functions
-          .invoke("order-email-notification", { body: { orderId: orderResult.id, kind: "confirmation" } })
+          .invoke("order-email-notification", { body: { orderId: orderResult.id, kind: "confirmation", customerEmail: effectiveEmail } })
           .catch((err) => console.warn("Email send failed (non-blocking):", err));
       }
     } catch (e: any) {
