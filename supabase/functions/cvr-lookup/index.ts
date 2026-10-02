@@ -37,8 +37,9 @@ Deno.serve(async (req) => {
       });
     }
     if (!resp.ok) {
-      console.error("cvrapi status", resp.status, (await resp.text()).slice(0, 200));
-      return new Response(JSON.stringify({ found: false, reason: "service_down", upstream: resp.status }), {
+      const body = (await resp.text()).slice(0, 300);
+      console.error("cvrapi status", resp.status, body);
+      return new Response(JSON.stringify({ found: false, reason: "service_down", upstream: resp.status, body }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
