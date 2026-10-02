@@ -2,7 +2,7 @@ import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
   canonicalPath: "/guides/vinduespudsning",
-  metaTitle: "Vinduespudsning 2026 — find vinduespudser & se priser | Serviceydere",
+  metaTitle: "Vinduespudsning 2026 — priser & find vinduespudser",
   metaDescription:
     "Vinduespudsning til hjem og erhverv: se priser fra 25 kr. pr. vindue, abonnement vs. engangsbesøg, BoligJob-fradrag og få 3 gratis tilbud fra lokale vinduespudsere.",
   keywords: "vinduespudsning, vinduespudser, vinduespudser pris, vinduespudsning pris, vinduespudsning abonnement, vinduespudsning erhverv",

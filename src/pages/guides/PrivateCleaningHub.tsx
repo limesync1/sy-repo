@@ -2,7 +2,7 @@ import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
   canonicalPath: "/guides/privatrengoering",
-  metaTitle: "Privatrengøring 2026 — pris, fradrag & find rengøringshjælp | Serviceydere",
+  metaTitle: "Privatrengøring 2026 — pris, fradrag & rengøringshjælp",
   metaDescription:
     "Privatrengøring fra 250 kr. i timen: se priser, fast aftale vs. engangsrengøring, BoligJob-fradrag og få 3 gratis tilbud fra lokale rengøringsfirmaer.",
   keywords: "privatrengøring, privat rengøring, rengøringshjælp, privatrengøring pris, rengøring pris, rengøringshjælp pris",
