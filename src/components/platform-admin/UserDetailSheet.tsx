@@ -158,7 +158,7 @@ export default function UserDetailSheet({ user, onClose }: Props) {
             <TabsContent value="profile" className="space-y-3 pt-4">
               <Card className="p-4 space-y-2 text-sm">
                 <Row label="Navn" value={user.display_name || "—"} />
-                <Row label="Email" value={user.email || "—"} icon={<Mail className="h-3.5 w-3.5" />} />
+                <Row label="E-mail" value={user.email || "—"} icon={<Mail className="h-3.5 w-3.5" />} />
                 <Row label="Telefon" value={user.phone || "—"} />
                 <Row label="Oprettet" value={fmtDate(user.auth_created_at)} />
                 <Row label="Sidste login" value={fmtDate(user.last_sign_in_at)} icon={<Clock className="h-3.5 w-3.5" />} />
