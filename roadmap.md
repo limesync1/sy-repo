@@ -30,6 +30,6 @@
 - [x] Opdatér søgning, kategori-pile, sektionslabels og sidepanelkontrol med de nye ikoner
 - [x] Ensret Lead-indstillinger med panelvinduer og ret søgeikoner, labelstreg og tilbudstrin
 ## I gang
-- [ ] Udskift headerikoner med nye simple ikoner og passende kontrast
-- [ ] Gør labelstregen større og tydeligere
-- [ ] Ret kun tydelige, små designfejl på offentlige sider; ingen redesign
+- [x] Udskift headerikoner med nye simple ikoner og passende kontrast
+- [x] Gør labelstregen større og tydeligere
+- [x] Ret kun tydelige, små designfejl på offentlige sider; ingen redesign
