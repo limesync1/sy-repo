@@ -578,7 +578,7 @@ const EmployeeApp = () => {
                     </p>
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2.5 py-1 text-[11px] font-semibold text-feature-cool-foreground shrink-0">
-                    <CheckCircle2 className="h-3 w-3" /> Færdig
+                    <CheckCircle2 className="h-3 w-3" /> Udført
                   </span>
                   <Button
                     type="button"
@@ -631,7 +631,7 @@ const EmployeeApp = () => {
                       <><UserIcon className="h-3 w-3" /> Tildelt mig</>
                     )}
                     <span aria-hidden>·</span>
-                    <span className="tabular-nums">{total > 0 ? `${done} af ${total} stop færdige` : "Ingen stop"}</span>
+                    <span className="tabular-nums">{total > 0 ? `${done} af ${total} stop udført` : "Ingen stop"}</span>
                   </p>
                 </div>
                 {isFutureDay && (

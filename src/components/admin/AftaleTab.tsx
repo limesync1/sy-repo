@@ -338,7 +338,7 @@ const getActions = (order: any): { canRespond: boolean; canProgress: boolean; ne
     return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
   }
   if (status === "confirmed") {
-    return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
+    return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Markér som i gang" };
   }
   if (status === "in_progress") {
     return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: "Udført" };

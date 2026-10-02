@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
+import { SheetHeaderBlock, Section, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useSetEmployeeSkills, useAllEmployeeSkills, type EmployeeSkill } from "@/hooks/useRoutePlannerSmarts";
@@ -1567,128 +1568,98 @@ const EmployeeTasksDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay sm:max-w-2xl p-0 gap-0 overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)]">
-        <DialogHeader className="planner-overlay-header border-b bg-card px-4 py-3 pr-12 text-left sm:px-5 sm:py-4">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
-              <ListChecks className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <DialogTitle className="truncate text-base">Aftaler · {employeeName}</DialogTitle>
-              <DialogDescription className="mt-0.5 text-xs">
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
+          <SheetHeaderBlock
+            title={<DialogTitle className="truncate text-base">Aftaler · {employeeName}</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
                 Tildelte aftaler og indtjening pr. aftale ({commissionPct} % provision ekskl. moms).
               </DialogDescription>
-            </div>
-          </div>
+            }
+          />
         </DialogHeader>
 
-        <div className="px-5 pt-3 pb-2 border-b bg-secondary/30">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="inline-flex rounded-lg border bg-card p-0.5">
-              {([
-                { k: "upcoming",  label: `Planlagt (${upcoming.length})`,  icon: CalendarDays },
-                { k: "completed", label: `Udført (${completed.length})`,   icon: CheckCircle2 },
-              ] as const).map((t) => (
-                <button
-                  key={t.k}
-                  onClick={() => setTab(t.k)}
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors",
-                    tab === t.k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <t.icon className="h-3.5 w-3.5" /> {t.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
-              {tab === "upcoming" ? (
-                <>
-                  <span>
-                    Estimeret omsætning:{" "}
-                    <span className="font-semibold text-foreground">{formatKr(upcomingRevenueTotal)}</span>
-                  </span>
-                  <span>
-                    Medarbejderens andel:{" "}
-                    <span className="font-semibold text-foreground">{formatKr(upcomingShareTotal)}</span>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>
-                    Omsætning:{" "}
-                    <span className="font-semibold text-foreground">{formatKr(completedRevenueTotal)}</span>
-                  </span>
-                  <span>
-                    Medarbejderens andel:{" "}
-                    <span className="font-semibold text-foreground">{formatKr(completedShareTotal)}</span>
-                  </span>
-                </>
-              )}
-            </div>
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+          <div className="grid grid-cols-2 gap-1 rounded-md border border-border bg-background p-0.5">
+            {([
+              { k: "upcoming", label: `Planlagt (${upcoming.length})` },
+              { k: "completed", label: `Udført (${completed.length})` },
+            ] as const).map((t) => (
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                className={cn(
+                  "h-8 rounded text-xs font-medium transition-colors",
+                  tab === t.k ? "bg-accent/10 text-foreground ring-1 ring-accent/40" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">Henter aftaler…</div>
-          ) : list.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">
-              {tab === "upcoming" ? "Ingen planlagte aftaler." : "Ingen udførte aftaler endnu."}
+          <Section icon={<CalendarDays />} title="Overblik">
+            <div className="grid grid-cols-2 gap-2 text-sm tabular-nums">
+              <div className="rounded-md border border-border bg-background px-2.5 py-2">
+                <p className="text-xs text-muted-foreground">{tab === "upcoming" ? "Forventet omsætning" : "Omsætning"}</p>
+                <p className="font-semibold text-foreground">{formatKr(tab === "upcoming" ? upcomingRevenueTotal : completedRevenueTotal)}</p>
+              </div>
+              <div className="rounded-md border border-border bg-background px-2.5 py-2">
+                <p className="text-xs text-muted-foreground">Medarbejderens andel</p>
+                <p className="font-semibold text-foreground">{formatKr(tab === "upcoming" ? upcomingShareTotal : completedShareTotal)}</p>
+              </div>
             </div>
-          ) : (
-            <ul className="divide-y">
-              {list.map((s: any) => (
-                <li key={s.id} className="px-5 py-3 hover:bg-secondary/40 transition-colors">
-                  <div className="flex items-start justify-between gap-3">
+          </Section>
+
+          <Section icon={<CheckCircle2 />} title={tab === "upcoming" ? "Planlagte aftaler" : "Udførte aftaler"}>
+            {isLoading ? (
+              <div className="space-y-2">
+                {[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-md bg-muted" />)}
+              </div>
+            ) : list.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                {tab === "upcoming" ? "Ingen planlagte aftaler." : "Ingen udførte aftaler endnu."}
+              </p>
+            ) : (
+              <ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-background">
+                {list.map((s: any) => (
+                  <li key={s.id} className="flex items-start justify-between gap-3 px-3 py-2.5">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {s.customer_name || s.service_summary || "Stop"}
-                      </p>
+                      <p className="truncate text-sm font-medium text-foreground">{s.customer_name || s.service_summary || "Aftale"}</p>
                       {s.service_summary && s.customer_name && (
-                        <p className="text-xs text-muted-foreground truncate">{s.service_summary}</p>
+                        <p className="truncate text-xs text-muted-foreground">{s.service_summary}</p>
                       )}
                       {s.address && (
-                        <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {s.address}
+                        <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3 shrink-0" /> <span className="truncate">{s.address}</span>
                         </p>
                       )}
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
+                    <div className="shrink-0 text-right">
+                      <p className="flex items-center justify-end gap-1 text-xs capitalize text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         {fmtDate(tab === "completed" ? s.completed_at : s.routes?.route_date)}
                       </p>
                       {s.routes?.name && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]">
-                          {s.routes.name}
-                        </p>
+                        <p className="mt-0.5 max-w-[140px] truncate text-xs text-muted-foreground">{s.routes.name}</p>
                       )}
-                      {Number(s.employee_share || 0) > 0 ? (
-                        <p className="mt-1 text-sm font-semibold text-foreground tabular-nums">
-                          {formatKr(Number(s.employee_share || 0))}
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-[10px] text-muted-foreground italic">
-                          Ingen provision
-                        </p>
-                      )}
-                      {Number(s.order_amount || 0) > 0 && (
-                        <p className="text-[10px] text-muted-foreground tabular-nums">
-                          af {formatKr(Number(s.order_amount || 0))} omsætning
-                        </p>
-                      )}
+                      <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">
+                        {Number(s.employee_share || 0) > 0 ? formatKr(Number(s.employee_share || 0)) : <span className="text-xs font-normal text-muted-foreground">Ingen provision</span>}
+                      </p>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
         </div>
 
-        <DialogFooter className="px-5 py-3 border-t">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Luk</Button>
-        </DialogFooter>
+        <SheetFooterBar>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Luk</Button>
+          </div>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
