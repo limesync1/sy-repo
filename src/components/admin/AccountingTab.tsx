@@ -2305,12 +2305,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               ovenfor connect-kortet på mobil) */}
           {(provider === "economic" || provider === "dinero") && (
             <SectionCard
-              title="Sådan fungerer det"
-              icon={<img src={saadanFungererDet.url} alt="" className="h-5 w-5" />}
-              description={`Dette tager typisk under et minut.`}
               className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
             >
-              <ol className="space-y-3 text-sm">
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-4 py-5 text-center shadow-sm">
+                <img
+                  src={saadanFungererDet.url}
+                  alt="Sådan fungerer det"
+                  className="h-16 w-16 object-contain sm:h-20 sm:w-20"
+                />
+                <div>
+                  <h3 className="text-[15px] font-semibold tracking-tight text-foreground">Sådan fungerer det</h3>
+                  <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">Dette tager typisk under et minut.</p>
+                </div>
+              </div>
+              <ol className="mt-4 space-y-3 text-sm">
                 {(provider === "dinero"
                   ? [
                       "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",
