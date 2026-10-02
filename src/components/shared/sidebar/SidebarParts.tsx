@@ -386,7 +386,7 @@ export const SidebarCollapseToggle = ({ collapsed, onToggle }: { collapsed: bool
         aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
         aria-pressed={collapsed}
         className={cn(
-          "group/sidebar-arrow hidden h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex",
+          "group/sidebar-arrow hidden h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-muted-foreground transition-[color,background-color,transform,box-shadow] duration-150 ease-out hover:scale-[1.02] hover:bg-secondary hover:text-foreground hover:shadow-sm active:scale-95 active:duration-75 lg:inline-flex motion-reduce:transition-none",
           FOCUS_RING,
         )}
       >
