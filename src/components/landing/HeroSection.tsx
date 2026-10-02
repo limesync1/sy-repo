@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 import heroImage from "@/assets/hero-window-cleaning.webp";
-import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * Forsidens hero — redaktionelt split-layout.
@@ -45,12 +44,7 @@ const HeroSection = () => {
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:pb-14 lg:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="max-w-2xl">
-          <span className="animate-fade-in inline-flex items-center gap-2.5 text-[10.5px] font-medium uppercase tracking-[0.24em] text-background/60 sm:text-[11px]">
-            <SectionLabelMark />
-            Danmarks serviceplatform
-          </span>
-
-          <h1 className="animate-fade-in mt-4 max-w-[21rem] text-[2.15rem] font-semibold leading-[1.04] text-background sm:max-w-none sm:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
+          <h1 className="animate-fade-in max-w-[21rem] text-[2.15rem] font-semibold leading-[1.04] text-background sm:max-w-none sm:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder

@@ -258,7 +258,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
             aria-label="Søg"
             className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition-all duration-200 hover:bg-accent/90 active:scale-[0.97] md:h-11 md:px-6"
           >
-            <UiArtwork name="search" className="h-5 w-5" aria-hidden="true" />
+            <UiArtwork name="search" className="h-6 w-6" aria-hidden="true" />
             <span className="hidden sm:inline">Søg</span>
           </Button>
         </div>
@@ -336,7 +336,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
 
                       <>
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-transform duration-200 group-hover:scale-105">
-                          <UiArtwork name="recentSearch" className="h-5 w-5" />
+                          <UiArtwork name="recentSearch" className="h-7 w-7" />
                         </span>
                         <span className="flex-1 min-w-0">
                           <div className="truncate font-semibold text-foreground">{s.label}</div>

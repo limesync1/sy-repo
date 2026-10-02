@@ -359,7 +359,7 @@ export const SidebarEdgeHandle = ({ collapsed, onToggle }: { collapsed: boolean;
         aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
         aria-pressed={collapsed}
         className={cn(
-          "group/sidebar-arrow absolute -right-3 top-[44px] z-10 hidden h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-border bg-card shadow-sm lg:flex",
+          "group/sidebar-arrow absolute -right-4 top-[42px] z-10 hidden h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-border bg-card shadow-sm lg:flex",
           "opacity-0 transition-[opacity,color,background-color] duration-150 motion-reduce:transition-none",
           "group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100 [@media(hover:none)]:opacity-100",
           "hover:bg-secondary hover:text-foreground",
@@ -389,7 +389,7 @@ export const SidebarCollapseToggle = ({ collapsed, onToggle }: { collapsed: bool
           FOCUS_RING,
         )}
       >
-        <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full"><SidebarArrowArtwork collapsed={collapsed} /></span>
+        <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full"><SidebarArrowArtwork collapsed={collapsed} /></span>
         {!collapsed && <span>Skjul sidemenu</span>}
       </button>
     </TooltipTrigger>

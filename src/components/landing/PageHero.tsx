@@ -50,7 +50,7 @@ interface PageHeroProps {
  * text, then optional search/CTAs. Keeps the marketing pages cohesive.
  */
 const PageHero = ({
-  eyebrow,
+  eyebrow: _eyebrow,
   title,
   subtitle,
   children,
@@ -122,17 +122,7 @@ const PageHero = ({
 
       <div className={`relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding} ${allowOverflow ? "" : "z-10"}`}>
         <div className="max-w-3xl">
-          {eyebrow && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-background/75 sm:text-[11px] sm:tracking-[0.22em]">
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: t.dot }}
-              />
-
-              {eyebrow}
-            </span>
-          )}
-          <h1 className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
+          <h1 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
             {title}
           </h1>
 
