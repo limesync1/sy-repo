@@ -169,35 +169,22 @@ const SiteNav = ({ active, right }: Props) => {
              loading="eager"/>
           </Link>
 
-          {/* Primær nav — opdelt i to tydelige sektioner med små labels ovenover,
-              så både kunder og virksomheder med det samme kan se hvad der er for dem. */}
-          <div className="hidden items-center gap-3 lg:flex lg:gap-4">
-            {NAV_GROUPS.map((group, gi) => (
-              <div key={group.id} className="flex items-center gap-3 lg:gap-4">
-                <div className="flex flex-col items-start gap-1.5" role="group" aria-label={group.label}>
-                  <span className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                    {group.label}
-                  </span>
-                  <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/50 p-1 shadow-sm">
-                    {group.items.map((item) => (
-                      <SmartLink
-                        key={item.key}
-                        to={item.to}
-                        className={`rounded-full px-3 py-1.5 text-sm font-medium transition-all lg:px-4 lg:py-2 ${
-                          isActive(item.key)
-                            ? "bg-foreground text-background shadow-sm hover:bg-foreground/90"
-                            : "text-foreground/70 hover:bg-secondary hover:text-foreground"
-                        }`}
-                      >
-                        {item.label}
-                      </SmartLink>
-                    ))}
-                  </div>
-                </div>
-                {gi === 0 && (
-                  <div className="hidden h-8 w-px self-end bg-border/70 lg:block" aria-hidden="true" />
-                )}
-              </div>
+          {/* Rolig, enkel navigation. Rolleikonerne er forbeholdt panelhandlinger,
+              hvor de hjælper brugeren med at genkende den rigtige visning. */}
+          <div className="hidden items-center rounded-full border border-border bg-card p-1 shadow-sm lg:flex" aria-label="Hovednavigation">
+            {NAV_GROUPS.flatMap((group) => group.items).map((item) => (
+              <SmartLink
+                key={item.key}
+                to={item.to}
+                aria-current={isActive(item.key) ? "page" : undefined}
+                className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                  isActive(item.key)
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                {item.label}
+              </SmartLink>
             ))}
           </div>
 
