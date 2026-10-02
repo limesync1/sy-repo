@@ -131,7 +131,7 @@ export function TemplatesView() {
               </Button>
             </div>
             <iframe
-              title="email preview"
+              title="Forhåndsvisning af e-mail"
               srcDoc={preview.html}
               className="flex-1 w-full bg-white"
               sandbox=""
