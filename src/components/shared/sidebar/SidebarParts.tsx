@@ -360,9 +360,10 @@ export const SidebarEdgeHandle = ({ collapsed, onToggle }: { collapsed: boolean;
         aria-pressed={collapsed}
         className={cn(
           "group/sidebar-arrow absolute -right-4 top-[42px] z-10 hidden h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-border bg-card shadow-sm lg:flex",
-          "opacity-0 transition-[opacity,color,background-color] duration-150 motion-reduce:transition-none",
+          "opacity-0 transition-[opacity,color,background-color,transform,box-shadow] duration-150 ease-out motion-reduce:transition-none",
           "group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100 [@media(hover:none)]:opacity-100",
-          "hover:bg-secondary hover:text-foreground",
+          "hover:scale-105 hover:bg-secondary hover:text-foreground hover:shadow-md",
+          "active:scale-90 active:duration-75",
           FOCUS_RING,
         )}
       >
@@ -385,7 +386,7 @@ export const SidebarCollapseToggle = ({ collapsed, onToggle }: { collapsed: bool
         aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
         aria-pressed={collapsed}
         className={cn(
-          "group/sidebar-arrow hidden h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex",
+          "group/sidebar-arrow hidden h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-muted-foreground transition-[color,background-color,transform,box-shadow] duration-150 ease-out hover:scale-[1.02] hover:bg-secondary hover:text-foreground hover:shadow-sm active:scale-95 active:duration-75 lg:inline-flex motion-reduce:transition-none",
           FOCUS_RING,
         )}
       >
