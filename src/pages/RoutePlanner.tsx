@@ -295,6 +295,7 @@ const Planner = () => {
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
+  const retainedHistoryRoute = useRetainedValue(historyRoute);
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
@@ -5151,7 +5152,7 @@ const Planner = () => {
           onOpenChange={(o) => { if (!o) setPendingRouteMove(null); }}
           routeName={retainedRouteMove?.route.name || "Rute"}
           fromDate={retainedRouteMove?.route.route_date || ""}
-          toDate={pendingRouteMove?.newDate || ""}
+          toDate={retainedRouteMove?.newDate || ""}
           recurringAppointmentCount={pendingSeriesInfo?.recurringAppointmentCount ?? 0}
           linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
           loading={moveRouteSeries.isPending}
