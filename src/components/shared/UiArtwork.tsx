@@ -25,9 +25,32 @@ export const SectionLabelMark = ({ className, ...props }: HTMLAttributes<HTMLSpa
   </span>
 );
 
+// Sort dobbeltpil i stedet for det orange artwork. Hover "skubber" pilen i
+// sidemenuens retning og den anden pil lyser op; klik-animation sidder på
+// selve knappen (SidebarEdgeHandle).
 export const SidebarArrowArtwork = ({ collapsed }: { collapsed: boolean }) => (
-  <span className={cn("group/sidebar-arrow relative block h-full w-full transition-transform", collapsed && "rotate-180")}>
-    <img src={sidebarArrow.url} alt="" className="absolute inset-0 h-full w-full scale-[1.35] object-cover transition-opacity group-hover/sidebar-arrow:opacity-0 group-focus-visible/sidebar-arrow:opacity-0" />
-    <img src={sidebarArrowHover.url} alt="" className="absolute inset-0 h-full w-full scale-[1.35] object-cover opacity-0 transition-opacity group-hover/sidebar-arrow:opacity-100 group-focus-visible/sidebar-arrow:opacity-100" />
+  <span
+    aria-hidden="true"
+    className={cn(
+      "relative block h-full w-full text-foreground",
+      "transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none",
+      collapsed && "rotate-180",
+    )}
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-full w-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/sidebar-arrow:-translate-x-[1.5px] group-focus-visible/sidebar-arrow:-translate-x-[1.5px] motion-reduce:transition-none"
+    >
+      <path d="M11.5 7 6.5 12l5 5" />
+      <path
+        d="M17.5 7l-5 5 5 5"
+        className="opacity-45 transition-opacity duration-200 group-hover/sidebar-arrow:opacity-100 group-focus-visible/sidebar-arrow:opacity-100 motion-reduce:transition-none"
+      />
+    </svg>
   </span>
 );
