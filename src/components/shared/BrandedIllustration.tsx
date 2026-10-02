@@ -69,7 +69,7 @@ import averageAppointmentNew from "@/assets/content-icons/snit-pr-aftale-maaned.
 import accountingProgramChoiceNew from "@/assets/content-icons/vaelg-dit-regnskabsprogram.svg.asset.json";
 import unassignedAppointmentsNew from "@/assets/content-icons/aftaler-uden-rute-2026.svg.asset.json";
 import customerServiceNew from "@/assets/kundeservice-ikon-2.svg";
-import payoutNew from "@/assets/illustrations/business/omsaetning.svg";
+import payoutNew from "@/assets/illustrations/business/samlet-omsaetning.svg";
 
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
 import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
