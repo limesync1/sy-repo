@@ -80,7 +80,20 @@ export const useUpdateEmployee = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { id: string; business_id: string } & Partial<Employee>) => {
-      const { id, business_id, ...rest } = input;
+      const { id, business_id, email, ...rest } = input;
+      if (typeof email === "string" && email.trim()) {
+        // Opdaterer både medarbejderens e-mail og login-kontoen, så den nye adresse får adgang
+        const { data, error: fnErr } = await supabase.functions.invoke("update-employee-email", {
+          body: { employee_id: id, email: email.trim().toLowerCase() },
+        });
+        if (fnErr) {
+          let serverMsg: string | undefined;
+          try { serverMsg = (await (fnErr as any).context?.json?.())?.error; } catch { /* ignore */ }
+          throw new Error(serverMsg || "Kunne ikke opdatere e-mail");
+        }
+        if ((data as any)?.error) throw new Error((data as any).error);
+      }
+      if (Object.keys(rest).length === 0) return { id };
       const { error } = await supabase.from("employees").update(rest).eq("id", id);
       if (error) throw error;
       return { id };
