@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/price-format";
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import { useMyBusiness, useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
@@ -267,6 +268,7 @@ const RoutePlannerDesktopOnly = () => {
 };
 
 const Planner = () => {
+  const { user: plannerAuthUser } = useAuth();
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const isCompactRouteLayout = useIsBelowBreakpoint(1280);
   const qc = useQueryClient();
@@ -2274,7 +2276,13 @@ const Planner = () => {
     todayStr,
   });
 
-  const loadingInitialPlannerData = loadingBusiness || (
+  // Databehandleraftale-tjekket i panelskallen viste ellers en ekstra
+  // spinner mellem skeleton og planlægger. Vent på samme (cachede) opslag her.
+  const { isLoading: loadingDpa } = useDpaBlocked(
+    business?.id ?? "",
+    !!business && (business as any).owner_id === plannerAuthUser?.id,
+  );
+  const loadingInitialPlannerData = loadingBusiness || loadingDpa || (
     !!businessId && (loadingCalendar || loadingUnassigned)
   );
 

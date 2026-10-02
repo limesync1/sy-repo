@@ -128,7 +128,7 @@ export const PlannerPageSkeleton = () => {
   const collapsed = readSidebarCollapsed(SIDEBAR_STORAGE_KEYS.business);
   return (
   <div className="flex min-h-screen bg-background" aria-busy="true" aria-label="Indlæser" data-sidebar-state={collapsed ? "collapsed" : "expanded"}>
-    <div className={cn("hidden shrink-0 border-r border-border bg-muted/40 lg:block", collapsed ? "w-[68px] p-2" : "w-[196px] p-4 2xl:w-[248px]")}>
+    <div className={cn("hidden shrink-0 border-r border-border bg-card lg:block", collapsed ? "w-[68px] p-2" : "w-[196px] p-4 2xl:w-[248px]")}>
       <div className={cn("h-8 animate-pulse rounded-md bg-muted", collapsed ? "mx-auto w-8" : "w-32")} />
       <div className={cn("mt-3 flex items-center rounded-md border border-border bg-card", collapsed ? "justify-center p-2" : "gap-2 p-3")}>
         <Skeleton className="h-9 w-9 shrink-0 rounded-md" />
@@ -141,7 +141,7 @@ export const PlannerPageSkeleton = () => {
       </div>
     </div>
     <div className="route-planner-workspace min-w-0 flex-1">
-      <div className="h-14 border-b border-border bg-card" />
+      <div className="flex h-14 items-center border-b border-border bg-card px-4"><Skeleton className="h-4 w-16" /></div>
       <div className="h-[calc(100vh-3.5rem)]"><PlannerSkeleton /></div>
     </div>
   </div>

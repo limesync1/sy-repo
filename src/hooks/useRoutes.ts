@@ -1999,8 +1999,8 @@ export const useUpdateRouteSeriesAppearance = () => {
         if (r.id === baseId) return { ...r, ...updates };
         if (r.base_route_id === baseId) {
           const cleared: any = { ...r };
-          if (vars.name !== undefined) cleared.name = null;
-          if (vars.color !== undefined) cleared.color = null;
+          if (vars.name !== undefined) cleared.name = vars.name;
+          if (vars.color !== undefined) cleared.color = vars.color;
           return cleared;
         }
         return r;
@@ -2034,8 +2034,10 @@ export const useUpdateRouteSeriesAppearance = () => {
         // 2) Nulstil overrides på alle materialiserede børn af originalruten,
         //    så de arver de nye værdier i stedet for at vise gamle eksplicitte felter.
         const childUpdates: { name?: string | null; color?: string | null } = {};
-        if (vars.name !== undefined) childUpdates.name = null;
-        if (vars.color !== undefined) childUpdates.color = null as any;
+        // Skriv samme værdi på børnene (i stedet for null), så en åbnet
+        // materialiseret rute viser den valgte farve næste gang.
+        if (vars.name !== undefined) childUpdates.name = vars.name;
+        if (vars.color !== undefined) childUpdates.color = vars.color;
         if (Object.keys(childUpdates).length > 0) {
           const { error: childErr } = await supabase
             .from("routes")

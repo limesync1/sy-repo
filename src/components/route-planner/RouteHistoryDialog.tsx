@@ -23,7 +23,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import EmptyState from "./EmptyState";
-import { SheetHeaderBlock } from "./SheetSection";
+import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
+import { Button } from "@/components/ui/button";
+import { CalendarDays } from "lucide-react";
 import {
   actionLabel,
   actorLabel,
@@ -86,10 +88,9 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
-            icon={<History className="h-4 w-4" />}
             title={
               <DialogTitle className="text-base">
                 Historik{routeName ? <span className="text-muted-foreground font-normal"> — {routeName}</span> : null}
@@ -102,7 +103,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
             }
           />
         </DialogHeader>
-        <div className="planner-overlay-body max-h-[65vh] overflow-auto px-4 sm:px-5 py-4 bg-secondary/25">
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
           {isLoading ? (
             <div className="flex items-center justify-center py-10 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin mr-2" /> Henter…
@@ -110,12 +111,9 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
           ) : (data?.length ?? 0) === 0 ? (
             <EmptyState icon={<History className="h-5 w-5" />} title="Ingen historik endnu" compact />
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-3">
               {grouped.map(([day, rows]) => (
-                <section key={day}>
-                  <h3 className="mb-2 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground capitalize">
-                    {dayLabel(rows[0].created_at)}
-                  </h3>
+                <Section key={day} icon={<CalendarDays />} title={dayLabel(rows[0].created_at).replace(/^./, (c) => c.toUpperCase())} hint={`${rows.length} ${rows.length === 1 ? "hændelse" : "hændelser"}`}>
                   <ol className="relative ml-3 border-l-2 border-border/70 space-y-2 py-1">
                     {rows.map((row) => {
                       const { label, tone } = actionLabel(row.action);
@@ -127,7 +125,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
                       return (
                         <li key={row.id} className="pl-4 relative">
                           <span className={`absolute -left-[7px] top-3 h-3 w-3 rounded-full border-2 border-background shadow-sm ${meta.ring}`} />
-                            <div className="rounded-md border border-border bg-card p-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] transition-[border-color,box-shadow] hover:border-accent/30 hover:shadow-sm">
+                            <div className="rounded-md border border-border/70 bg-secondary/20 p-3">
                              <div className="flex items-start gap-2">
                               <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold ${meta.badge}`}>
                                 <Icon className="h-3 w-3" />
@@ -190,11 +188,16 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
                       );
                     })}
                   </ol>
-                </section>
+                </Section>
               ))}
             </div>
           )}
         </div>
+        <SheetFooterBar>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Luk</Button>
+          </div>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
