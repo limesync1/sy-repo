@@ -21,10 +21,6 @@ import customerPanelSelected from "@/assets/header/Kundepanel_valgt.webp.asset.j
 import businessPanelSelected from "@/assets/header/Virksomhedspanel_valgt.webp.asset.json";
 import employeePanelSelected from "@/assets/header/Medarbejder_app_valgt.webp.asset.json";
 import platformAdminSelected from "@/assets/header/Platform_admin_valgt.webp.asset.json";
-import customerPanelSelectedAnimated from "@/assets/header/Kundepanel_valgt_animeret.svg.asset.json";
-import businessPanelSelectedAnimated from "@/assets/header/Virksomhedspanel_valgt_animeret.svg.asset.json";
-import employeePanelSelectedAnimated from "@/assets/header/Medarbejder_app_valgt_animeret.svg.asset.json";
-import platformAdminSelectedAnimated from "@/assets/header/Platform_admin_valgt_animeret.svg.asset.json";
 
 interface Props {
   active?: "search" | "quote" | "business" | "software" | null;
@@ -61,7 +57,6 @@ type PanelRole = {
   to: string;
   icon: string;
   selectedIcon: string;
-  selectedAnimatedIcon: string;
   current: boolean;
 };
 
@@ -72,12 +67,7 @@ const PanelIcon = ({ role, selected, size = "md" }: { role: PanelRole; selected:
     return <img src={role.icon} alt="" className={`${dimensions} shrink-0 rounded-lg object-contain`} width={size === "lg" ? 36 : 28} height={size === "lg" ? 36 : 28} />;
   }
 
-  return (
-    <span className={`${dimensions} relative inline-flex shrink-0`} aria-hidden="true">
-      <img src={role.selectedAnimatedIcon} alt="" className="h-full w-full object-contain motion-reduce:hidden" />
-      <img src={role.selectedIcon} alt="" className="hidden h-full w-full object-contain motion-reduce:block" />
-    </span>
-  );
+  return <img src={role.selectedIcon} alt="" className={`${dimensions} shrink-0 object-contain`} width={size === "lg" ? 36 : 28} height={size === "lg" ? 36 : 28} />;
 };
 
 const SiteNav = ({ active, right }: Props) => {
@@ -123,15 +113,15 @@ const SiteNav = ({ active, right }: Props) => {
     // Sorteret efter "magt" — det højest privilegerede panel står først
     // og bliver dermed standardvalg ved første login.
     if (userRoles.includes("admin")) {
-      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminSelected.url, selectedAnimatedIcon: platformAdminSelectedAnimated.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
+      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminSelected.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
     }
     if (userRoles.includes("business_owner") || business) {
-      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelSelected.url, selectedAnimatedIcon: businessPanelSelectedAnimated.url, current: pathname.startsWith("/virksomhed") });
+      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelSelected.url, current: pathname.startsWith("/virksomhed") });
     }
     if (userRoles.includes("employee") || myEmployee) {
-      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelSelected.url, selectedAnimatedIcon: employeePanelSelectedAnimated.url, current: pathname.startsWith("/medarbejder") });
+      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelSelected.url, current: pathname.startsWith("/medarbejder") });
     }
-    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelSelected.url, selectedAnimatedIcon: customerPanelSelectedAnimated.url, current: pathname.startsWith("/min-konto") });
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelSelected.url, current: pathname.startsWith("/min-konto") });
 
     return items;
   }, [business, myEmployee, pathname, user, userRoles]);
