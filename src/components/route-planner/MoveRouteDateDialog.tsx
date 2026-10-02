@@ -7,10 +7,7 @@
 // indvendig vinduespudsning der bør flytte sammen med den udvendige.
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
@@ -18,7 +15,7 @@ import { da } from "date-fns/locale";
 import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mapPostgresError } from "@/lib/route-errors";
-import { SheetHeaderBlock } from "./SheetSection";
+import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
 import { ScopeOption } from "./ScopeOption";
 
 export type MoveRouteScope = "single" | "future";
@@ -82,128 +79,121 @@ export const MoveRouteDateDialog = ({
   const canChooseFuture =
     recurringAppointmentCount >= 1 && (disabledFutureReasons?.length ?? 0) === 0;
 
+  const busy = loading || submitting;
+  const handleConfirm = async () => {
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      await onConfirm(scope, scope === "future" ? moveLinked : false);
+    } catch (e: any) {
+      const issue = mapPostgresError(e);
+      setSubmitError({
+        title: issue.title || "Kunne ikke flytte rute",
+        description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="planner-overlay left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-0 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%]">
-        <AlertDialogHeader className="planner-overlay-header min-w-0 border-b px-4 py-3 pr-12 text-left space-y-2 sm:px-5">
+    <Dialog open={open} onOpenChange={(o) => { if (!busy) onOpenChange(o); }}>
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            icon={<CalendarRange className="h-4 w-4" />}
-            title={<AlertDialogTitle className="text-base">Flyt rute til ny dato</AlertDialogTitle>}
+            title={<DialogTitle className="text-base">Flyt rute til ny dato</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg om kun denne dag skal flyttes, eller også de næste.
+              </DialogDescription>
+            }
           />
-          <AlertDialogDescription asChild>
-            <div className="min-w-0 space-y-2 text-sm">
-              <div className="min-w-0 text-foreground">
-                <span className="block min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium sm:truncate">{routeName}</span>
-              </div>
-              <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 capitalize sm:truncate">{fmt(fromDate)}</span>
-                <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
-                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium capitalize text-foreground sm:truncate">{fmt(toDate)}</span>
+        </DialogHeader>
+
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+          <Section icon={<CalendarRange />} title="Rute">
+            <div className="space-y-2 text-sm">
+              <p className="min-w-0 truncate font-medium text-foreground" title={routeName}>{routeName}</p>
+              <div className="grid min-w-0 gap-2 tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+                <span className="min-w-0 truncate rounded-md border border-border bg-background px-2.5 py-2 capitalize text-muted-foreground">{fmt(fromDate)}</span>
+                <ArrowRight className="mx-auto h-3.5 w-3.5 shrink-0 rotate-90 text-muted-foreground sm:rotate-0" />
+                <span className="min-w-0 truncate rounded-md border border-border bg-background px-2.5 py-2 font-medium capitalize text-foreground">{fmt(toDate)}</span>
               </div>
               {deltaDays !== 0 && (
-                <p className="text-[11px] text-muted-foreground">
-                  Forskydes med {Math.abs(deltaDays)} dag{Math.abs(deltaDays) === 1 ? "" : "e"}
-                  {deltaDays > 0 ? " frem" : " tilbage"}.
+                <p className="text-xs text-muted-foreground">
+                  {Math.abs(deltaDays)} dag{Math.abs(deltaDays) === 1 ? "" : "e"} {deltaDays > 0 ? "frem" : "tilbage"}.
                 </p>
               )}
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </Section>
 
-        <div className="planner-overlay-body space-y-2 px-4 py-3 sm:px-5">
           {warnings && warnings.length > 0 && (
-            <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2.5">
+            <div className="rounded-md border border-amber-300/60 bg-amber-50 p-2.5 dark:bg-amber-950/30">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-semibold text-amber-900 dark:text-amber-200 mb-0.5">
-                    Mulige konflikter på måldatoen
-                  </div>
-                  <ul className="text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90 space-y-0.5">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                <div className="min-w-0 flex-1">
+                  <div className="mb-0.5 text-xs font-semibold text-amber-900 dark:text-amber-200">Mulige konflikter på den nye dato</div>
+                  <ul className="space-y-0.5 text-xs leading-snug text-amber-900/90 dark:text-amber-200/90">
                     {warnings.map((w, i) => <li key={i}>• {w}</li>)}
                   </ul>
                 </div>
               </div>
             </div>
           )}
-          <ScopeOption
-            selected={scope === "single"}
-            onClick={() => setScope("single")}
-            title="Kun denne gang"
-            description="Flyt kun denne ene dato. Fremtidige forekomster af de tilbagevendende aftaler forbliver uændrede."
-          />
-          <ScopeOption
-            selected={scope === "future"}
-            onClick={() => canChooseFuture && setScope("future")}
-            disabled={!canChooseFuture}
-            title="Fremtidige aftaler også"
-            description={
-              canChooseFuture
-                ? `Flyt denne dato og forskyd ${recurringAppointmentCount} tilbagevendende aftale${recurringAppointmentCount === 1 ? "" : "r"} med samme antal dage — så fremtidige besøg fast lander på den nye ugedag.`
-                : "Ingen tilbagevendende aftaler på ruten at forskyde."
-            }
-            icon={<Repeat className="h-3.5 w-3.5" />}
-            extra={
-              !canChooseFuture && (disabledFutureReasons?.length ?? 0) > 0 ? (
-                <div className="mt-1.5 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 px-2 py-1.5">
-                  <div className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold text-amber-900 dark:text-amber-200">
-                    <AlertTriangle className="h-3 w-3 shrink-0" />
-                    Hvorfor er denne mulighed låst?
-                  </div>
-                  <ul className="space-y-0.5 text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90">
-                    {disabledFutureReasons!.map((r, i) => <li key={i}>• {r}</li>)}
-                  </ul>
+
+          <Section icon={<Repeat />} title="Hvad skal flyttes?">
+            <div className="space-y-2">
+              <ScopeOption
+                selected={scope === "single"}
+                onClick={() => setScope("single")}
+                title="Kun denne dag"
+                description="Kun denne dag flyttes. De næste besøg bliver på deres dato."
+              />
+              <ScopeOption
+                selected={scope === "future"}
+                onClick={() => canChooseFuture && setScope("future")}
+                disabled={!canChooseFuture}
+                title="Denne dag og de næste"
+                description={
+                  canChooseFuture
+                    ? `Alle næste besøg flyttes lige så mange dage (${recurringAppointmentCount} fast${recurringAppointmentCount === 1 ? "" : "e"} aftale${recurringAppointmentCount === 1 ? "" : "r"}).`
+                    : "Der er ingen faste aftaler på ruten."
+                }
+                icon={<Repeat className="h-3.5 w-3.5" />}
+                extra={
+                  !canChooseFuture && (disabledFutureReasons?.length ?? 0) > 0 ? (
+                    <ul className="mt-1.5 space-y-0.5 text-xs leading-snug text-muted-foreground">
+                      {disabledFutureReasons!.map((r, i) => <li key={i}>• {r}</li>)}
+                    </ul>
+                  ) : null
+                }
+              />
+            </div>
+          </Section>
+
+          {submitError && (
+            <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-2.5">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+                <div className="min-w-0 text-xs leading-snug">
+                  <div className="font-semibold text-destructive">{submitError.title}</div>
+                  {submitError.description && <p className="mt-0.5 whitespace-pre-line text-destructive/90">{submitError.description}</p>}
                 </div>
-              ) : null
-            }
-          />
-
-          {/* Linked-subscriptions checkbox fjernet: ved "fremtidige" forskydes
-              de tilbagevendende aftalers next_service_date altid med samme delta. */}
-        </div>
-
-        {submitError && (
-          <div
-            role="alert"
-            className="rounded-md border border-destructive/40 bg-destructive/5 p-2.5 animate-in fade-in-0 slide-in-from-top-1 duration-200"
-          >
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
-              <div className="min-w-0 text-[12px] leading-snug">
-                <div className="font-semibold text-destructive">{submitError.title}</div>
-                {submitError.description && (
-                  <p className="text-destructive/90 mt-0.5">{submitError.description}</p>
-                )}
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        <AlertDialogFooter className="planner-overlay-footer border-t px-4 py-3 sm:px-5">
-          <AlertDialogCancel disabled={loading || submitting}>Annullér</AlertDialogCancel>
-          <Button
-            onClick={async () => {
-              setSubmitError(null);
-              setSubmitting(true);
-              try {
-                await onConfirm(scope, scope === "future" ? moveLinked : false);
-              } catch (e: any) {
-                const issue = mapPostgresError(e);
-                setSubmitError({
-                  title: issue.title || "Kunne ikke flytte rute",
-                  description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
-                });
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-            disabled={loading || submitting}
-          >
-            {(loading || submitting) && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Flyt rute
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        <SheetFooterBar>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Annullér</Button>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConfirm} disabled={busy}>
+              {busy && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              Flyt rute
+            </Button>
+          </div>
+        </SheetFooterBar>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -14,7 +14,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2, ArrowRightLeft, CalendarArrowDown } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Wallet, Lock, GitMerge, History, MoreHorizontal, ChevronDown, Eye, Trash2, ArrowRightLeft, CalendarArrowDown } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -1487,11 +1487,11 @@ const RoutePillInner = ({
             )}
             <div
               className={cn(
-                "min-w-0 flex-1 truncate text-[11.5px] font-semibold leading-[1.2]",
+                "min-w-0 flex-1 overflow-hidden whitespace-nowrap text-[10.5px] font-semibold leading-[1.25] [mask-image:linear-gradient(to_right,black_85%,transparent)]",
                 isVirtual ? "text-muted-foreground" : "text-foreground",
               )}
             >
-              {route.name?.trim() || "Rute"}
+              <span title={route.name?.trim() || "Rute"}>{route.name?.trim() || "Rute"}</span>
             </div>
           </div>
           <div className={cn("mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] text-muted-foreground tabular-nums", (canOptimize || canDelete || canHistory) ? "pr-5" : "pr-0")}>
@@ -1571,7 +1571,7 @@ const RoutePillInner = ({
                 aria-label="Handlinger"
                 title="Handlinger"
               >
-                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3 w-3" />}
+                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChevronDown className="h-3 w-3" />}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
