@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
-  AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
+  ArrowRight, Sparkles, Star, MapPin, BadgeCheck,
+  ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
   Building2, Search, ChevronDown, Plus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
