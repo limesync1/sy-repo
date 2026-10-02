@@ -502,18 +502,34 @@ const SortableStopRow = ({
                 </Badge>
               ) : null;
             })()}
-            {stop.status === "completed" && (
+            {stop.status === "completed" ? (
               <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1">
                 <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium border-success/35 bg-success/10 text-success">
                   <Check className="h-3 w-3" /> Udført
                 </Badge>
                 {!isProjection && (
-                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); if (window.confirm("Fortryd udførsel af denne aftale? Den bliver sat tilbage til ikke udført.")) onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
+                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
                     {undoPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Undo2 className="h-3 w-3" />}
                     <span className="truncate">Fortryd</span>
                   </Button>
                 )}
               </span>
+            ) : (
+              !isProjection && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium border-success/35 text-success hover:bg-success/10 hover:text-success"
+                  disabled={markCompletedPending}
+                  onClick={(event) => { event.stopPropagation(); onMarkCompleted(); }}
+                  aria-label="Markér som udført"
+                  title="Markér som udført"
+                >
+                  {markCompletedPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  <span className="truncate">Markér som udført</span>
+                </Button>
+              )
             )}
             {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
               <Badge
