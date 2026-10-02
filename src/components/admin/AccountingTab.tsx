@@ -32,6 +32,7 @@ import economicLogo from "@/assets/accounting/economic.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
 import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import saadanFungererDet from "@/assets/brand/Saadan_fungerer_det.svg.asset.json";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -2305,7 +2306,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           {(provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
-              icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
+              icon={<img src={saadanFungererDet.url} alt="" className="h-5 w-5" />}
               description={`Dette tager typisk under et minut.`}
               className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
             >
