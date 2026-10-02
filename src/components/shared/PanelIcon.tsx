@@ -2,12 +2,12 @@ import type { ComponentType, ImgHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 import appointmentsAsset from "@/assets/content-icons/bestillinger.svg.asset.json";
-import shareProfileAsset from "@/assets/content-icons/del-din-profil.svg.asset.json";
-import settingsAsset from "@/assets/content-icons/indstillinger.svg.asset.json";
+import shareProfileAsset from "@/assets/illustrations/business/del-din-profil.svg";
+import settingsAsset from "@/assets/illustrations/business/indstillinger.svg";
 import customersAsset from "@/assets/content-icons/kunder-i-alt.svg.asset.json";
 import appointmentStartedAsset from "@/assets/panel-icons/marker-aftale-startet.svg.asset.json";
 import appointmentCompletedAsset from "@/assets/panel-icons/marker-aftale-udfoert.svg.asset.json";
-import employeesAsset from "@/assets/content-icons/medarbejdere.svg.asset.json";
+import employeesAsset from "@/assets/illustrations/business/medarbejdere-team.svg";
 import revenueAsset from "@/assets/content-icons/omsaetning.svg.asset.json";
 import privateCustomerAsset from "@/assets/content-icons/privatkunder.svg.asset.json";
 import accountingAsset from "@/assets/content-icons/regnskabsprogram.svg.asset.json";
@@ -18,7 +18,7 @@ import addCustomerAsset from "@/assets/panel-icons/tilfoej-kunde.svg.asset.json"
 import addEmployeeAsset from "@/assets/panel-icons/tilfoej-medarbejder.svg.asset.json";
 import addPrivateCustomerAsset from "@/assets/panel-icons/tilfoej-privat-kunde.svg.asset.json";
 import addRouteAsset from "@/assets/panel-icons/tilfoej-rute.svg.asset.json";
-import addServiceAsset from "@/assets/content-icons/tilfoej-service.svg.asset.json";
+import addServiceAsset from "@/assets/illustrations/business/tilfoej-service.svg";
 import addRouteStopAsset from "@/assets/panel-icons/tilfoej-stop-paa-rute.svg.asset.json";
 import addBusinessAsset from "@/assets/panel-icons/tilfoej-virksomhed.svg.asset.json";
 import businessAsset from "@/assets/panel-icons/virksomhed.svg.asset.json";
@@ -28,12 +28,12 @@ import routeOverviewAsset from "@/assets/panel-icons/vis-rute-som-kort.svg.asset
 
 export const PANEL_ICON_ASSETS = {
   appointments: appointmentsAsset.url,
-  shareProfile: shareProfileAsset.url,
-  settings: settingsAsset.url,
+  shareProfile: shareProfileAsset,
+  settings: settingsAsset,
   customers: customersAsset.url,
   appointmentStarted: appointmentStartedAsset.url,
   appointmentCompleted: appointmentCompletedAsset.url,
-  employees: employeesAsset.url,
+  employees: employeesAsset,
   revenue: revenueAsset.url,
   privateCustomer: privateCustomerAsset.url,
   accounting: accountingAsset.url,
@@ -44,7 +44,7 @@ export const PANEL_ICON_ASSETS = {
   addEmployee: addEmployeeAsset.url,
   addPrivateCustomer: addPrivateCustomerAsset.url,
   addRoute: addRouteAsset.url,
-  addService: addServiceAsset.url,
+  addService: addServiceAsset,
   addRouteStop: addRouteStopAsset.url,
   addBusiness: addBusinessAsset.url,
   business: businessAsset.url,

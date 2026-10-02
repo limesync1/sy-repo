@@ -84,4 +84,4 @@
 - [ ] Ensret fælles komponenter, tilstande, ikoner og handlinger
 - [ ] Kontrollér alle hovedvisninger på computer og mobil
 - [ ] Begræns arbejdet til små finjusteringer uden ændret struktur
-- [ ] Finjustér Overblik-toppen og giv Del profil den nye blå gradient
+- [x] Finjustér Overblik-toppen og giv Del profil den nye blå gradient
