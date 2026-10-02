@@ -1494,7 +1494,7 @@ const RoutePillInner = ({
               {route.name?.trim() || "Rute"}
             </div>
           </div>
-          <div className="mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden pr-7 text-[10.5px] text-muted-foreground tabular-nums">
+          <div className={cn("mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] text-muted-foreground tabular-nums", (canOptimize || canDelete || canHistory) ? "pr-5" : "pr-0")}>
             {isVirtual ? (
               <span
                 className="inline-flex shrink-0 items-center rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold leading-[14px] text-muted-foreground"
