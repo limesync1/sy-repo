@@ -189,6 +189,10 @@ const CartSheet = () => {
         // og samtidig en sammenhæng der bevares til kvittering, mail og admin.
         const parentOrderId = crypto.randomUUID();
         const childIds = group.items.map((_, i) => i === 0 ? parentOrderId : crypto.randomUUID());
+        // Engangskode der beviser, at det er os der bestilte (bruges til kvitteringsmail).
+        const confirmToken = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+        const confirmTokenHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(confirmToken))))
+          .map((b) => b.toString(16).padStart(2, "0")).join("");
 
         // Opret alle ordrer (én pr. service)
         for (let i = 0; i < group.items.length; i++) {
@@ -198,6 +202,7 @@ const CartSheet = () => {
             order: {
               id: childIds[i],
               parent_order_id: parentOrderId,
+              ...(i === 0 ? { guest_confirm_token_hash: confirmTokenHash } : {}),
               business_id: businessId === "unknown" ? undefined : businessId,
               customer_name: customerType === "business" && companyName ? companyName : name,
               customer_email: effectiveEmail,
@@ -239,7 +244,7 @@ const CartSheet = () => {
 
         // Send order confirmation email (fire-and-forget; non-blocking)
         supabase.functions
-          .invoke("order-email-notification", { body: { orderId: orderResult.id, kind: "confirmation", customerEmail: effectiveEmail } })
+          .invoke("order-email-notification", { body: { orderId: orderResult.id, kind: "confirmation", customerEmail: effectiveEmail, confirmToken } })
           .catch((err) => console.warn("Email send failed (non-blocking):", err));
       }
     } catch (e: any) {
