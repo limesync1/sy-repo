@@ -2250,6 +2250,29 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         }
       />
 
+      {/* Trin-indikator */}
+      <div className="flex items-center gap-2" aria-label={`Trin ${step} af 2`}>
+        {[1, 2].map(n => (
+          <div key={n} className="flex items-center gap-2">
+            <span
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                step === n
+                  ? "bg-foreground text-background"
+                  : step > n
+                    ? "bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/30"
+                    : "bg-secondary text-muted-foreground"
+              }`}
+            >
+              {step > n ? <Check className="h-3.5 w-3.5" /> : n}
+            </span>
+            <span className={`text-xs font-medium ${step === n ? "text-foreground" : "text-muted-foreground"}`}>
+              {n === 1 ? "Vælg program" : "Forbind"}
+            </span>
+            {n === 1 && <div className="mx-1 h-px w-8 bg-border sm:w-14" />}
+          </div>
+        ))}
+      </div>
+
       {/* TRIN 1 */}
       {step === 1 && (
         <SectionCard
@@ -2272,8 +2295,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       <Check className="h-2.5 w-2.5" /> Nuværende
                     </span>
                   )}
-                   <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
-                     <img src={p.logo} alt={`${p.label} logo`} className="max-h-10 max-w-[150px] object-contain" />
+                   <div className="flex h-32 items-center justify-center border-b border-border bg-secondary/20 px-6">
+                     <img src={p.logo} alt={`${p.label} logo`} className="max-h-14 max-w-[170px] object-contain" />
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-center justify-between gap-2">
@@ -2305,12 +2328,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               ovenfor connect-kortet på mobil) */}
           {(provider === "economic" || provider === "dinero") && (
             <SectionCard
-              title="Sådan fungerer det"
-              icon={<img src={saadanFungererDet.url} alt="" className="h-5 w-5" />}
-              description={`Dette tager typisk under et minut.`}
               className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
             >
-              <ol className="space-y-3 text-sm">
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-4 py-5 text-center shadow-sm">
+                <img
+                  src={saadanFungererDet.url}
+                  alt="Sådan fungerer det"
+                  className="h-16 w-16 object-contain sm:h-20 sm:w-20"
+                />
+                <div>
+                  <h3 className="text-[15px] font-semibold tracking-tight text-foreground">Sådan fungerer det</h3>
+                  <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">Dette tager typisk under et minut.</p>
+                </div>
+              </div>
+              <ol className="mt-4 space-y-3 text-sm">
                 {(provider === "dinero"
                   ? [
                       "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",

@@ -831,7 +831,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       {/* Søg + type-filter på samme linje — kompakt værktøjsbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex-1 min-w-[240px]">
-          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
+          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, e-mail, firma, CVR eller by…" />
         </div>
         <div className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
           {[

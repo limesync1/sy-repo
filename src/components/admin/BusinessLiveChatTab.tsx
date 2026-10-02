@@ -465,7 +465,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Søg navn, email, emne…"
+                placeholder="Søg navn, e-mail, emne…"
                 className="w-full rounded-[4px] border border-border bg-background pl-8 pr-3 py-2 text-sm outline-none focus:border-foreground"
               />
             </div>
