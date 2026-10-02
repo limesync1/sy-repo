@@ -6,8 +6,8 @@ export default defineGuidePage({
   canonicalPath: "/guides/have",
   metaTitle: "Haveservice priser 2026 — find havehjælp & få 3 gratis tilbud | Serviceydere",
   metaDescription:
-    "Find havehjælp nær dig: se haveservice priser (græsslåning fra 250 kr., havemand fra 400 kr./t.) og få 3 gratis tilbud fra topbedømte, lokale havefirmaer.",
-  keywords: "haveservice priser, find havehjælp, havehjælp pris, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
+    "Se haveservice priser 2026: græsslåning fra 250 kr., havemand fra 400 kr./t. Find anlægsgartner eller havehjælp nær dig og få 3 gratis tilbud fra lokale havefirmaer.",
+  keywords: "haveservice priser, find anlægsgartner, find havehjælp, havehjælp pris, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
   heroSubtitle:
@@ -61,6 +61,12 @@ export default defineGuidePage({
       <><strong>Ny terrasse eller haveanlæg:</strong> 2.495–5.495 kr. pr. m² hos en anlægsgartner.</>,
       <><strong>Snerydning:</strong> 2.495–4.500 kr. for et sæsonabonnement på en almindelig indkørsel.</>,
     ]},
+    { heading: "Havemand eller anlægsgartner — hvem skal du finde?", list: [
+      <><strong>Havemand:</strong> løbende pleje som græsslåning, hækklipning, lugning og beskæring. Afregnes typisk pr. time eller som abonnement.</>,
+      <><strong>Anlægsgartner:</strong> nye anlæg som terrasse, belægning, dræn, støttemure og større beplantning. Afregnes typisk med fast pris pr. opgave eller pr. m².</>,
+      <><strong>Sådan finder du en anlægsgartner:</strong> beskriv opgaven med mål og gerne billeder, bed om en besigtigelse, og sammenlign 2–3 skriftlige tilbud med tidsplan og garanti.</>,
+      <><strong>Kombinerede aftaler:</strong> mange firmaer tilbyder både pleje og anlæg, så du kan samle havens opgaver hos ét firma.</>,
+    ]},
     { heading: "Haveservice i hele Danmark — lokale firmaer du kan stole på", list: [
       <>Alle havefirmaer på Serviceydere er CVR-registrerede og gennemgået, før de får adgang til opgaver.</>,
       <>Du kan læse ægte anmeldelser fra andre kunder, før du vælger — se bedømmelser direkte på firmaets profil.</>,
@@ -68,7 +74,7 @@ export default defineGuidePage({
       <>Få svar samme dag — de fleste firmaer svarer inden for få timer på hverdage.</>,
     ]},
     { heading: "Prisguides og opgaver", list: [
-      <a href="/priser/haveservice">Haveservice prisguide 2026</a>,
+      <a href="/priser/haveservice">Gartner pris og havearbejde 2026</a>,
       <a href="/priser/anlaegsgartner">Anlægsgartner prisguide</a>,
       <a href="/blog/timepris-havemand-2026">Timepris havemand 2026</a>,
       <a href="/blog/haekklipning-pris-pr-meter-2026">Hækklipning pris pr. meter</a>,
