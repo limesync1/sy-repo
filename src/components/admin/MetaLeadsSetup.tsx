@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, ArrowRight, Check, ExternalLink, FileText, Loader2, RefreshCw, Settings2, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Building2, Check, ExternalLink, FileText, Loader2, RefreshCw, Settings2, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FacebookBrandIcon, InstagramBrandIcon } from "@/components/shared/MetaBrandIcons";
-import workplaceIcon from "@/assets/panel-illustrations/vaelg-arbejdsplads.svg.asset.json";
 
 type MetaPage = { id: string; name: string; pictureUrl: string | null; instagramName: string | null; forms: Array<{ id: string; name: string; status?: string }> };
 
@@ -268,7 +267,11 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
                 {pages.map((page) => (
                   <Label key={page.id} htmlFor={`meta-page-${page.id}`} className={`flex cursor-pointer items-center gap-3 rounded-md border p-3.5 transition-colors ${pageId === page.id ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-secondary/40"}`}>
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card">
-                      <img src={page.pictureUrl || workplaceIcon.url} alt="" className="h-full w-full object-contain p-1" />
+                      {page.pictureUrl ? (
+                        <img src={page.pictureUrl} alt="" className="h-full w-full object-contain p-1" />
+                      ) : (
+                        <Building2 className="h-5 w-5 text-accent" aria-hidden="true" />
+                      )}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-foreground">{page.name}</span>

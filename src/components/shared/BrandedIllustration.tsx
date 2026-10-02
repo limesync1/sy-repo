@@ -13,7 +13,7 @@ import routePlannerNew from "@/assets/content-icons/ruteplanlaegger.svg.asset.js
 import employeeAppNew from "@/assets/content-icons/medarbejder-app.svg.asset.json";
 import bookingsNew from "@/assets/content-icons/bestillinger.svg.asset.json";
 import accountingNew from "@/assets/content-icons/fakturering-og-regnskab.svg.asset.json";
-import employeesNew from "@/assets/content-icons/medarbejdere.svg.asset.json";
+import employeesNew from "@/assets/illustrations/business/medarbejdere-team.svg";
 import industriesNew from "@/assets/content-icons/brancher.svg.asset.json";
 import signupAccountingNew from "@/assets/content-icons/regnskabsintegration.svg.asset.json";
 import signupLeadsNew from "@/assets/content-icons/leads-indhent-tilbud.svg.asset.json";
@@ -22,9 +22,9 @@ import freePrivateNew from "@/assets/content-icons/gratis-for-private.svg.asset.
 import checkedBusinessesNew from "@/assets/content-icons/tjekkede-virksomheder.svg.asset.json";
 import realReviewsNew from "@/assets/content-icons/anmeldelser-fra-rigtige-opgaver.svg.asset.json";
 import compareQuicklyNew from "@/assets/content-icons/sammenlign-paa-sekunder.svg.asset.json";
-import shareProfileNew from "@/assets/content-icons/del-din-profil.svg.asset.json";
-import addServiceNew from "@/assets/content-icons/tilfoej-service.svg.asset.json";
-import settingsNew from "@/assets/content-icons/indstillinger.svg.asset.json";
+import shareProfileNew from "@/assets/illustrations/business/del-din-profil.svg";
+import addServiceNew from "@/assets/illustrations/business/tilfoej-service.svg";
+import settingsNew from "@/assets/illustrations/business/indstillinger.svg";
 import servicesTotalNew from "@/assets/content-icons/services-i-alt.svg.asset.json";
 import activeServicesNew from "@/assets/content-icons/aktive-services.svg.asset.json";
 import activeEmployeeNew from "@/assets/content-icons/medarbejder-aktiv.svg.asset.json";
@@ -68,8 +68,8 @@ import plannedWeekNew from "@/assets/content-icons/planlagt-denne-uge.svg.asset.
 import averageAppointmentNew from "@/assets/content-icons/snit-pr-aftale-maaned.svg.asset.json";
 import accountingProgramChoiceNew from "@/assets/content-icons/vaelg-dit-regnskabsprogram.svg.asset.json";
 import unassignedAppointmentsNew from "@/assets/content-icons/aftaler-uden-rute-2026.svg.asset.json";
-import customerServiceNew from "@/assets/content-icons/kundeservice-ikon-2026.svg.asset.json";
-import payoutNew from "@/assets/content-icons/til-udbetaling.svg.asset.json";
+import customerServiceNew from "@/assets/kundeservice-ikon-2.svg";
+import payoutNew from "@/assets/illustrations/business/samlet-omsaetning.svg";
 
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
 import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
@@ -118,7 +118,7 @@ export const BRANDED_ILLUSTRATIONS = {
   systemEmployeeApp: employeeAppNew.url,
   systemBooking: bookingsNew.url,
   systemAccounting: accountingNew.url,
-  systemPeople: employeesNew.url,
+  systemPeople: employeesNew,
   systemIndustries: industriesNew.url,
   signupAccounting: signupAccountingNew.url,
   signupLeads: signupLeadsNew.url,
@@ -134,10 +134,10 @@ export const BRANDED_ILLUSTRATIONS = {
   helpQuotes: helpQuotesAsset,
   helpBecomeProvider: helpBecomeProviderAsset,
   helpGuides: helpGuidesAsset,
-  shareProfile: shareProfileNew.url,
-  addService: addServiceNew.url,
-  team: employeesNew.url,
-  settings: settingsNew.url,
+  shareProfile: shareProfileNew,
+  addService: addServiceNew,
+  team: employeesNew,
+  settings: settingsNew,
   servicesTotal: servicesTotalNew.url,
   activeServices: activeServicesNew.url,
   orders: bookingsNew.url,
@@ -197,8 +197,8 @@ export const BRANDED_ILLUSTRATIONS = {
   howItWorks: howItWorksNew.url,
   independent: independentNew.url,
   verifiedProvider: verifiedProviderNew.url,
-  payout: payoutNew.url,
-  customerService: customerServiceNew.url,
+  payout: payoutNew,
+  customerService: customerServiceNew,
   hourlyPrice: hourlyPriceAsset.url,
   unansweredMessages: unansweredNew.url,
   startDay: startDayIllustration.url,

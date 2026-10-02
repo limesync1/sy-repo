@@ -77,9 +77,11 @@
 - [x] Kontrollér desktop, mobil, runtime og build
 
 ## Samlet nyt design på hele Serviceydere
-- [ ] Fastlæg fælles farver, typografi og opbygning
-- [ ] Gennemgå offentlig hjemmeside og kundepanel
-- [ ] Gennemgå virksomheds- og medarbejderpaneler
-- [ ] Gennemgå app-e-mails og login-/konto-e-mails
-- [ ] Ensret fælles komponenter, tilstande, ikoner og handlinger
-- [ ] Kontrollér alle hovedvisninger på computer og mobil
+- [x] Fastlæg fælles farver, typografi og opbygning
+- [x] Gennemgå offentlig hjemmeside og kundepanel
+- [x] Gennemgå virksomheds- og medarbejderpaneler
+- [x] Gennemgå app-e-mails og login-/konto-e-mails
+- [x] Ensret fælles komponenter, tilstande, ikoner og handlinger
+- [x] Kontrollér alle hovedvisninger på computer og mobil
+- [x] Begræns arbejdet til små finjusteringer uden ændret struktur
+- [x] Finjustér Overblik-toppen og giv Del profil den nye blå gradient

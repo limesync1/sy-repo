@@ -15,7 +15,8 @@ const mutedColor = '#737373'      // labels
 const subtle = '#a3a3a3'     // footer
 const line = '#ececec'       // borders / dividers
 const surface = '#fafafa'    // very subtle surfaces
-const teal = '#015c96'       // accent (matches site --accent, dark-blue)
+const teal = '#1a7399'       // ny brandblå, matcher platformens illustrationer
+const blueLight = '#3fb4dc'
 
 export const main = {
   backgroundColor: '#ffffff',
@@ -98,10 +99,11 @@ export const tinyMuted = {
 export const link = { color: ink, textDecoration: 'underline', fontWeight: 500 as const }
 export const buttonSection = { margin: '24px 0 8px', textAlign: 'left' as const }
 export const button = {
-  backgroundColor: ink,
+  backgroundColor: teal,
+  backgroundImage: `linear-gradient(180deg, ${blueLight}, ${teal})`,
   color: '#ffffff',
   fontSize: '14px',
-  fontWeight: 500 as const,
+  fontWeight: 600 as const,
   borderRadius: '8px',
   padding: '12px 22px',
   textDecoration: 'none',

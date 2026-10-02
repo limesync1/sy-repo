@@ -31,11 +31,11 @@ export const CustomerShell = ({
 
   return (
     <div
-      className="flex min-h-screen flex-col bg-secondary/50"
-      /* Blød farvet baggrund, så kundepanelet ikke føles gråt og fladt. */
+      className="flex min-h-screen flex-col bg-secondary/40"
+      /* Samme diskrete blå baggrundstone som de øvrige paneler. */
       style={{
         backgroundImage:
-          "radial-gradient(1100px 420px at 10% -10%, hsl(217 91% 60% / 0.10), transparent 60%), radial-gradient(900px 400px at 95% 0%, hsl(189 100% 45% / 0.10), transparent 60%)",
+          "linear-gradient(180deg, hsl(var(--accent-soft) / 0.45) 0, transparent 240px)",
       }}
     >
       {/* ── Global header ── samme SiteNav som forsiden bruger */}
@@ -60,7 +60,7 @@ export const CustomerShell = ({
                   className={cn(
                     "snap-start shrink-0 inline-flex items-center gap-2 px-3 py-3 text-sm font-medium transition-colors min-h-[48px] whitespace-nowrap border-b-2",
                     isActive
-                      ? "border-[hsl(var(--hero-mid))] text-[hsl(var(--hero-mid))]"
+                      ? "border-accent text-accent"
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
                   )}
                 >
@@ -70,7 +70,7 @@ export const CustomerShell = ({
                     <span className={cn(
                       "ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold",
                       isActive
-                        ? "bg-[hsl(var(--hero-mid))] text-background"
+                        ? "brand-blue-action"
                         : "bg-secondary text-foreground",
                     )}>
                       {tab.badge > 99 ? "99+" : tab.badge}
