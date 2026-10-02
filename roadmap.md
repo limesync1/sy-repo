@@ -46,4 +46,4 @@
 - [x] Test medarbejderens fulde rutekørsel med rigtige testdata
 - [x] Kontrollér mobil, desktop, runtime og build
 
-- [ ] Finjustér kun Aftaler visuelt mod ruteplanlæggeren uden strukturændringer
+- [x] Finjustér kun Aftaler visuelt mod ruteplanlæggeren uden strukturændringer

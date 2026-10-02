@@ -1736,22 +1736,22 @@ const AftaleTab = ({
           fra, OG når der ikke er nogen ikke-planlagte aftaler. I begge
           tilfælde lader vi venstre kolonne udvide sig vandret over hele
           bredden i stedet for at efterlade en tom 30%-spalte. */}
-      <div className={`grid gap-5 ${routePlanningEnabled && notPlannedOrders.length > 0 ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
-        <div className="space-y-5 min-w-0">
-        <div className="flex flex-wrap gap-2">
+      <div className={`grid gap-4 ${routePlanningEnabled && notPlannedOrders.length > 0 ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
+        <div className="min-w-0 space-y-4">
+        <div className="flex flex-wrap gap-2 rounded-md border border-border bg-card p-2 shadow-sm">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Søg kunde, e-mail, service, adresse…"
-              className="h-10 pl-9 rounded-lg"
+              className="h-9 rounded-md border-0 bg-secondary/45 pl-9 shadow-none focus-visible:bg-card focus-visible:ring-1"
             />
           </div>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
             <SelectTrigger
               aria-label="Sortér aftaler"
-              className="h-10 w-full gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary sm:w-auto sm:min-w-[200px]"
+              className="h-9 w-full gap-2 rounded-md border-0 bg-secondary/45 text-sm font-medium shadow-none hover:bg-secondary sm:w-auto sm:min-w-[200px]"
             >
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue />
@@ -1940,7 +1940,7 @@ const AftaleTab = ({
           Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}
       {filteredOrders && filteredOrders.length > 0 ? (
         <>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {pagedOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
@@ -2017,7 +2017,7 @@ const AftaleTab = ({
               <Card
                 key={order.id}
                 id={`order-${order.id}`}
-                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md [content-visibility:auto] [contain-intrinsic-size:1px_180px] ${
+                className={`surface-admin overflow-hidden rounded-md border-border shadow-sm transition-[border-color,box-shadow] hover:border-foreground/15 hover:shadow-md [content-visibility:auto] [contain-intrinsic-size:1px_180px] ${
                   draggingOrderId === order.id ? "opacity-60" : ""
                 } ${isExpanded ? "ring-1 ring-accent/30 border-accent/30" : ""}`}
               >
@@ -2033,7 +2033,7 @@ const AftaleTab = ({
                       setExpandedOrder(isExpanded ? null : order.id);
                     }
                   }}
-                  className={`flex items-start gap-3 px-3 py-2.5 sm:px-3.5 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${isExpanded ? "bg-secondary/40" : "hover:bg-secondary/30"}`}
+                  className={`flex items-start gap-3 px-3 py-2.5 sm:px-3.5 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${isExpanded ? "bg-secondary/55" : "hover:bg-secondary/35"}`}
                 >
                     {/* Drag-håndtag */}
                     {canDragToRoute && <div className="pt-1"><OrderDragHandle orderId={order.id} order={order} /></div>}
@@ -2212,7 +2212,7 @@ const AftaleTab = ({
                   <Sheet open onOpenChange={(open) => !open && setExpandedOrder(null)}>
                     <SheetContent
                       side="right"
-                      className="planner-overlay flex w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:w-full"
+                      className="planner-overlay flex w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:w-full"
                     >
                       <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
                         <SheetHeaderBlock
@@ -2243,15 +2243,15 @@ const AftaleTab = ({
                           )}
                         </SheetHeaderBlock>
                       </SheetHeader>
-                      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto bg-secondary/20">
+                      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto bg-secondary/15">
                     {/* Fokus-banner — primær anker når kortet foldes ud. Tydeligt
                         accent-tema så øjet straks lander her, før det glider
                         ned til detaljerne nedenunder. */}
-                    <div className="sticky top-0 z-20 border-b border-accent/30 bg-gradient-to-r from-accent/10 via-accent/5 to-transparent px-3 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                    <div className="sticky top-0 z-20 border-b border-border bg-card/95 px-3 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-card/90">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="min-w-0 flex items-start gap-2.5">
-                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent ring-1 ring-accent/30">
+                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-secondary text-accent ring-1 ring-border">
                               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                             </span>
                             <div className="min-w-0">
