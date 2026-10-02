@@ -270,7 +270,7 @@ const EmployeeStats = () => {
                  { label: "Aftaler", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: "employeeAppointments" as BrandedIllustrationName },
                  { label: "Arbejdsdage", value: s.workdaysCount, icon: "workdays" as BrandedIllustrationName },
                  { label: "Arbejdstid", value: formatWorkTime(s.workSeconds), icon: "worktime" as BrandedIllustrationName },
-                 { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: "dailyActivity" as BrandedIllustrationName },
+                 { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: "distance" as BrandedIllustrationName },
                ].map(({ label, value, icon }, index) => (
                 <div
                   key={label}

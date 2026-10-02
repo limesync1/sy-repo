@@ -12,9 +12,11 @@ export type GeocodeResult = { latitude: number; longitude: number };
 export const geocodeAddress = async (address: string): Promise<GeocodeResult | null> => {
   const q = address?.trim();
   if (!q || q.length < 4) return null;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 6000);
   try {
     const url = `https://api.dataforsyningen.dk/adresser?q=${encodeURIComponent(q)}&struktur=mini&per_side=1`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) return null;
     const rows = await res.json();
     const hit = Array.isArray(rows) ? rows[0] : null;
@@ -22,7 +24,10 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult | n
     const lng = hit?.x;
     if (typeof lat !== "number" || typeof lng !== "number") return null;
     return { latitude: lat, longitude: lng };
-  } catch {
+  } catch (error) {
+    console.warn("[geocode] Adressen kunne ikke slås op", error);
     return null;
+  } finally {
+    window.clearTimeout(timeout);
   }
 };

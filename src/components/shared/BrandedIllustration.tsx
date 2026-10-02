@@ -78,18 +78,18 @@ import helpQuotesAsset from "@/assets/section-icons/hjaelp/indhent-3-tilbud.svg"
 import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.svg";
 import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg";
 
-import routeReady from "@/assets/illustrations/employee/rute-klar-til-start.svg";
-import routeDone from "@/assets/illustrations/employee/udfoert-rute.svg";
-import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg";
-import checklist from "@/assets/illustrations/employee/tjekliste.svg";
-import drivingGuide from "@/assets/illustrations/employee/koerselsguide.svg";
+import routeReady from "@/assets/illustrations/employee/start-rute.svg.asset.json";
+import routeDone from "@/assets/illustrations/employee/ruten-er-koert-faerdig.svg.asset.json";
+import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg.asset.json";
+import checklist from "@/assets/illustrations/employee/tjekliste.svg.asset.json";
+import drivingGuide from "@/assets/illustrations/employee/koerselsguide.svg.asset.json";
 import startAppointment from "@/assets/illustrations/employee/start-aftale.svg";
 import driveGoogleMaps from "@/assets/illustrations/employee/koer-dertil-google-maps.svg";
-import dailyActivity from "@/assets/illustrations/employee/daglig-aktivitet.svg";
 import employeeRoutes from "@/assets/illustrations/employee/ruter.svg";
 import employeeAppointments from "@/assets/illustrations/employee/aftaler.svg";
-import workdays from "@/assets/illustrations/employee/arbejdsdage.svg";
-import worktime from "@/assets/illustrations/employee/arbejdstid.svg";
+import workdays from "@/assets/illustrations/employee/arbejdsdage.svg.asset.json";
+import worktime from "@/assets/illustrations/employee/arbejdstid.svg.asset.json";
+import distance from "@/assets/illustrations/employee/distance.svg.asset.json";
 import dailyActivityTable from "@/assets/illustrations/employee/daglig-aktivitet-tabel.svg";
 import buildFromScratchAsset from "@/assets/panel-illustrations/byg-fra-bunden.svg.asset.json";
 import conversionAsset from "@/assets/panel-illustrations/konvertering.svg.asset.json";
@@ -97,9 +97,9 @@ import aiCalculatorAsset from "@/assets/panel-illustrations/lad-ai-bygge-prisber
 import calculatorAsset from "@/assets/panel-illustrations/prisberegner.svg.asset.json";
 import fixedPriceAsset from "@/assets/panel-illustrations/specifik-pris.svg.asset.json";
 import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.json";
-import startDayIllustration from "@/assets/panel-illustrations/start-dagen.svg.asset.json";
-import dayInProgressIllustration from "@/assets/panel-illustrations/arbejdsdag-i-gang.svg.asset.json";
-import dayEndedIllustration from "@/assets/panel-illustrations/dagen-afsluttet.svg.asset.json";
+import startDayIllustration from "@/assets/illustrations/employee/start-dagen.svg.asset.json";
+import dayInProgressIllustration from "@/assets/illustrations/employee/arbejdsdag-i-gang.svg.asset.json";
+import dayEndedIllustration from "@/assets/illustrations/employee/dagen-afsluttet.svg.asset.json";
 import restartDayIllustration from "@/assets/panel-illustrations/genopstart-dagen.svg.asset.json";
 
 export const BRANDED_ILLUSTRATIONS = {
@@ -151,19 +151,19 @@ export const BRANDED_ILLUSTRATIONS = {
   reviewCount: reviewCountNew.url,
   reviewAverage: reviewAverageNew.url,
   verifiedReviews: verifiedReviewsNew.url,
-  routeReady: routeReady,
-  routeDone: routeDone,
-  chooseRouteMode: chooseRouteMode,
-  checklist: checklist,
-  drivingGuide: drivingGuide,
+  routeReady: routeReady.url,
+  routeDone: routeDone.url,
+  chooseRouteMode: chooseRouteMode.url,
+  checklist: checklist.url,
+  drivingGuide: drivingGuide.url,
   startAppointment: startAppointment,
   driveGoogleMaps: driveGoogleMaps,
   earnings: revenueNew.url,
-  dailyActivity: dailyActivity,
+  distance: distance.url,
   employeeRoutes: routePlannerNew.url,
   employeeAppointments: bookingsNew.url,
-  workdays: workdays,
-  worktime: worktime,
+  workdays: workdays.url,
+  worktime: worktime.url,
   dailyActivityTable: dailyActivityTable,
   activeLeads: activeLeadsNew.url,
   activeConversations: activeConversationsNew.url,

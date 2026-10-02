@@ -511,6 +511,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const lastRerouteAtRef = useRef(0);
   const rerouteSpokenStopRef = useRef<string | null>(null);
   const [isRerouting, setIsRerouting] = useState(false);
+  const [geocodeState, setGeocodeState] = useState<"idle" | "pending" | "done" | "failed">("idle");
+  const [geocodeAttempt, setGeocodeAttempt] = useState(0);
 
   /* Geolocation permission — husk på tværs af sessioner.
    * Browseren persisterer selv "granted/denied" pr. origin, men hvis
@@ -654,14 +656,35 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const missing = sortedStops.filter(
       (s) => (s.latitude == null || s.longitude == null) && (s.full_address || s.address) && !geocodingRef.current.has(s.id),
     );
-    if (missing.length === 0) return;
+    const routeNeedsCoordinates = !!route?.start_address && (route.start_latitude == null || route.start_longitude == null);
+    if (missing.length === 0 && !routeNeedsCoordinates) {
+      setGeocodeState("done");
+      return;
+    }
+    setGeocodeState("pending");
     missing.forEach((s) => geocodingRef.current.add(s.id));
     let cancelled = false;
     (async () => {
+      let foundCoordinates = false;
+      if (routeNeedsCoordinates && route?.start_address) {
+        const hit = await geocodeAddress(route.start_address);
+        if (!cancelled && hit) {
+          foundCoordinates = true;
+          queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
+            old ? { ...old, route: { ...old.route, start_latitude: hit.latitude, start_longitude: hit.longitude } } : old,
+          );
+          try {
+            await supabase.from("routes").update({ start_latitude: hit.latitude, start_longitude: hit.longitude }).eq("id", routeId);
+          } catch {
+            // Ikke fatalt — kortet bruger koordinaterne fra cachen.
+          }
+        }
+      }
       for (const s of missing) {
         const addr = s.full_address || s.address || "";
         const hit = await geocodeAddress(addr);
         if (cancelled || !hit) continue;
+        foundCoordinates = true;
         queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
           old
             ? {
@@ -678,9 +701,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           // Ikke fatalt — kortet har allerede koordinaterne i cachen.
         }
       }
+      if (!cancelled) setGeocodeState(foundCoordinates ? "done" : "failed");
     })();
     return () => { cancelled = true; };
-  }, [sortedStops, queryClient, routeId]);
+  }, [sortedStops, route?.start_address, route?.start_latitude, route?.start_longitude, queryClient, routeId, geocodeAttempt]);
+
+  const retryGeocoding = () => {
+    geocodingRef.current.clear();
+    setGeocodeState("idle");
+    setGeocodeAttempt((attempt) => attempt + 1);
+  };
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
   const { data: nextStopTimeEntries = [] } = useStopTimeEntries(nextStop ? [nextStop.id] : []);
@@ -1061,6 +1091,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     for (const s of validStops) pts.push([Number(s.latitude), Number(s.longitude)]);
     return pts;
   }, [startCoord, validStops]);
+  const hasMapPoint = allPoints.length > 0 || userPos !== null;
 
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
@@ -1653,13 +1684,27 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
       {/* ─── Map fills everything ─── */}
       <div className="relative flex-1 min-h-0">
-        {allPoints.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-muted-foreground p-6 text-center">
-            Henter koordinater til kortet…
+        {!hasMapPoint && (isLoading || geocodeState === "idle" || geocodeState === "pending") ? (
+          <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
+            <div className="space-y-2">
+              <Loader2 className="mx-auto h-5 w-5 animate-spin" aria-hidden />
+              <p className="text-sm">Henter koordinater til kortet…</p>
+            </div>
+          </div>
+        ) : !hasMapPoint ? (
+          <div className="flex h-full items-center justify-center p-6 text-center">
+            <div className="max-w-sm space-y-3">
+              <BrandedIllustration name="drivingGuide" className="mx-auto h-16 w-16" alt="" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Kortet kunne ikke finde adresserne</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Kontrollér adresserne på stoppene, eller prøv at hente dem igen.</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={retryGeocoding}>Prøv igen</Button>
+            </div>
           </div>
         ) : (
           <MapContainer
-            center={userPos || allPoints[0]}
+            center={userPos ?? allPoints[0]}
             zoom={13}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
