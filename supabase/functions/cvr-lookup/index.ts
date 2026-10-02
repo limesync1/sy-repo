@@ -22,7 +22,8 @@ Deno.serve(async (req) => {
       resp = await fetch(url, {
         headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
       });
-    } catch {
+    } catch (err) {
+      console.error("cvrapi fetch failed", String(err));
       return new Response(JSON.stringify({ found: false, reason: "service_down" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -36,7 +37,8 @@ Deno.serve(async (req) => {
       });
     }
     if (!resp.ok) {
-      return new Response(JSON.stringify({ found: false, reason: "service_down" }), {
+      console.error("cvrapi status", resp.status, (await resp.text()).slice(0, 200));
+      return new Response(JSON.stringify({ found: false, reason: "service_down", upstream: resp.status }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
