@@ -20,3 +20,9 @@
 - [x] Ensartet lead-vindue og tidsvælger som Åbningstider
 - [x] Bevar Leads-designet, men flyt indbakken op og gør næste skridt og Meta-sektioner mere kompakte
 - [x] Brug de vedhæftede ikoner ved Profil, Beskeder og Konto på Indstillinger
+
+## Plan 2026-10-02
+- [x] Lead-knapper: Send som mail (rigtig afsendelse), Kopier, Gem udkast
+- [x] Meta: "Hent seneste leads nu" + "Send test-lead"
+- [ ] Meta: rigtige test-leads — venter på at brugeren forbinder Meta igen (forbindelsen står "Kræver handling")
+- [~] Fuld gennemgang af paneler: automatisk tjek af 10 virksomhedssider ok; dybdegennemgang side for side + medarbejderpanel mangler

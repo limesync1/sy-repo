@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
     z.object({ action: z.literal("list"), businessId: z.string().uuid() }),
     z.object({ action: z.literal("connect"), businessId: z.string().uuid(), pageId: z.string().min(1), formIds: z.array(z.string()).default([]) }),
     z.object({ action: z.literal("disconnect"), businessId: z.string().uuid() }),
+    z.object({ action: z.literal("sync"), businessId: z.string().uuid() }),
   ]).safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return json({ error: "Ugyldig forespørgsel" }, 400);
 
@@ -46,6 +47,67 @@ Deno.serve(async (req) => {
   if (parsed.data.action === "disconnect") {
     await admin.from("meta_connections").update({ status: "disconnected", lead_ads_enabled: false, conversions_api_enabled: false, page_id: null, page_name: null, selected_form_ids: [], last_error: null }).eq("business_id", parsed.data.businessId);
     return json({ ok: true });
+  }
+
+  if (parsed.data.action === "sync") {
+    const { data: c } = await admin.from("meta_connections")
+      .select("access_token_ciphertext, access_token_iv, page_id, page_name, selected_form_ids, instagram_account_id, instagram_account_name, lead_ads_enabled")
+      .eq("business_id", parsed.data.businessId).maybeSingle();
+    if (!c?.page_id || !c.access_token_ciphertext || !c.access_token_iv) return json({ error: "Vælg først en Facebook-side" }, 409);
+    try {
+      const token = await decryptMetaToken(c.access_token_ciphertext, c.access_token_iv, encryptionSecret);
+      let formIds: string[] = Array.isArray(c.selected_form_ids) ? c.selected_form_ids.map(String) : [];
+      const formNames = new Map<string, string>();
+      const formList = await graph(`${encodeURIComponent(c.page_id)}/leadgen_forms?fields=id,name&limit=100`, token).catch(() => ({ data: [] }));
+      for (const f of formList.data || []) formNames.set(String(f.id), String(f.name || "Leadformular"));
+      if (formIds.length === 0) formIds = [...formNames.keys()];
+      let imported = 0;
+      for (const formId of formIds.slice(0, 25)) {
+        const leads = await graph(`${encodeURIComponent(formId)}/leads?fields=id,created_time,field_data,form_id,ad_id,campaign_id,platform&limit=50`, token).catch(() => ({ data: [] }));
+        for (const lead of leads.data || []) {
+          const platform = String(lead.platform || "").toLowerCase();
+          const isInstagram = platform.startsWith("ig") || platform === "instagram";
+          const fields = new Map<string, string>((lead.field_data || []).map((f: any) => [String(f.name), String(f.values?.[0] || "")]));
+          const fullName = fields.get("full_name") || [fields.get("first_name"), fields.get("last_name")].filter(Boolean).join(" ") || "Meta lead";
+          const { data: request } = await admin.from("quote_requests").upsert({
+            customer_name: fullName,
+            customer_email: fields.get("email") || null,
+            customer_phone: fields.get("phone_number") || null,
+            category: fields.get("service") || fields.get("category") || "Anden service",
+            description: fields.get("message") || fields.get("job_description") || "Lead indsendt via Meta Lead Ads",
+            city: fields.get("city") || null,
+            zip_code: fields.get("zip_code") || fields.get("post_code") || null,
+            share_contact: true,
+            terms_accepted_at: lead.created_time || new Date().toISOString(),
+            source: isInstagram ? "instagram" : "facebook",
+            source_channel: "lead_ads",
+            external_lead_id: String(lead.id),
+            external_form_id: String(lead.form_id || formId),
+            external_campaign_id: lead.campaign_id ? String(lead.campaign_id) : null,
+            source_metadata: {
+              ad_id: lead.ad_id || null, platform: lead.platform || null,
+              form_name: formNames.get(String(lead.form_id || formId)) || null,
+              page_id: c.page_id, page_name: c.page_name || null,
+              instagram_id: isInstagram ? c.instagram_account_id || null : null,
+              instagram_name: isInstagram ? c.instagram_account_name || null : null,
+            },
+          }, { onConflict: "source,external_lead_id" }).select("id").single();
+          if (request?.id) {
+            const { error } = await admin.from("quote_request_matches").upsert({
+              quote_request_id: request.id, business_id: parsed.data.businessId, match_score: 100,
+              reason: "Lead modtaget fra virksomhedens egen Meta-formular", status: "new",
+            }, { onConflict: "quote_request_id,business_id", ignoreDuplicates: true });
+            if (!error) imported++;
+          }
+        }
+      }
+      await admin.from("meta_connections").update({ last_synced_at: new Date().toISOString(), last_error: null }).eq("business_id", parsed.data.businessId);
+      return json({ ok: true, imported, forms: formIds.length });
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : "";
+      const expired = /190|expired|session/i.test(raw);
+      return json({ error: expired ? "Adgangen til Meta er udløbet. Tryk 'Forbind igen'." : "Leads kunne ikke hentes fra Meta lige nu. Prøv igen om lidt." }, expired ? 401 : 502);
+    }
   }
 
   const { data: connection } = await admin.from("meta_connections").select("access_token_ciphertext, access_token_iv").eq("business_id", parsed.data.businessId).maybeSingle();

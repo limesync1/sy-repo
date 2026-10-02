@@ -145,6 +145,24 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
     }
   };
 
+  const [syncing, setSyncing] = useState(false);
+  const syncNow = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("meta-connection", { body: { action: "sync", businessId } });
+      let message = data?.error as string | undefined;
+      const ctx = (error as { context?: Response } | null)?.context;
+      if (ctx) try { message = (await ctx.clone().json())?.error || message; } catch { /* ignore */ }
+      if (error || !data?.ok) throw new Error(message || "Leads kunne ikke hentes fra Meta lige nu.");
+      await refetch();
+      toast.success(data.imported > 0 ? `${data.imported} leads hentet fra Meta` : "Ingen nye leads hos Meta");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Leads kunne ikke hentes fra Meta lige nu.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const saveConnection = async () => {
     if (!pageId) return;
     setSaving(true);
@@ -210,7 +228,19 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
           </Button>
         </div>
       </div>
-      {connected && <p className="border-t border-border/70 pt-3 text-xs text-muted-foreground">{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} formularer er valgt` : "Alle nuværende og nye formularer modtages automatisk"}{connection.last_synced_at ? ` · Opdateret ${new Date(connection.last_synced_at).toLocaleDateString("da-DK")}` : ""}</p>}
+      {connected && (
+        <div className="flex flex-col gap-2 border-t border-border/70 pt-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} formularer er valgt` : "Alle nuværende og nye formularer modtages automatisk"}{connection.last_synced_at ? ` · Senest hentet ${new Date(connection.last_synced_at).toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" className="gap-1.5" asChild>
+              <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /> Send test-lead</a>
+            </Button>
+            <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={syncNow} disabled={syncing}>
+              {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Hent seneste leads nu
+            </Button>
+          </div>
+        </div>
+      )}
       {connection?.last_error && (
         <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
           <AlertCircle className="h-4 w-4 shrink-0" />

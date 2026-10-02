@@ -1,0 +1,1 @@
+ALTER TABLE public.quote_request_matches ADD COLUMN IF NOT EXISTS ai_draft_subject text;
