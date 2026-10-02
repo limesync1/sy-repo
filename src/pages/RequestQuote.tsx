@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Sparkles, Star, MapPin, BadgeCheck,
   ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
-  Building2, ChevronDown, Plus,
+  Building2, Search, ChevronDown, Plus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
