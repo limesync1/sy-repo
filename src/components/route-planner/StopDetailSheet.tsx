@@ -203,7 +203,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const statusBadge = () => {
     switch (stop.status) {
       case "completed":
-        return <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 text-[10px] h-5"><CheckCircle2 className="h-3 w-3" />Færdig</Badge>;
+        return <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 text-[10px] h-5"><CheckCircle2 className="h-3 w-3" />Udført</Badge>;
       case "in_progress":
         return <Badge variant="secondary" className="gap-1 text-[10px] h-5"><Clock className="h-3 w-3" />Afventer</Badge>;
       case "skipped":
@@ -306,7 +306,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       </p>
                        {stop.completed_at && (
                          <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
-                           Færdiggjort {format(parseISO(stop.completed_at), "d. MMM yyyy", { locale: da })}
+                           Udført {format(parseISO(stop.completed_at), "d. MMM yyyy", { locale: da })}
                          </p>
                        )}
                       {(() => {

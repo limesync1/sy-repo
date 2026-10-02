@@ -123,30 +123,30 @@ const SPECS: Record<RouteErrorCode, Spec> = {
     }),
   },
   PROJECTED_ROUTE_LOCKED: {
-    severity: "error", title: "Projiceret rute er låst",
+    severity: "error", title: "Forventet rute er låst",
     build: () => ({
-      message: "Projicerede ruter kan ikke redigeres direkte — kun selve originalruten kan ændres.",
-      hint: "Åbn originalruten for at ændre navn, farve, stops eller medarbejder.",
+      message: "Forventede ruter kan ikke redigeres direkte — kun selve den faste rute kan ændres.",
+      hint: "Åbn den faste rute for at ændre navn, farve, stops eller medarbejder.",
     }),
   },
   PROJECTED_STOP_LOCKED: {
-    severity: "error", title: "Stoppet hører til en projiceret rute",
+    severity: "error", title: "Stoppet hører til en forventet rute",
     build: () => ({
-      message: "Stops i projicerede ruter er auto-genererede og kan ikke flyttes individuelt.",
-      hint: "Rediger originalruten i stedet — ændringen propagerer automatisk.",
+      message: "Stops i forventede ruter er auto-genererede og kan ikke flyttes individuelt.",
+      hint: "Rediger den faste rute i stedet — ændringen propagerer automatisk.",
     }),
   },
   MERGE_PROJECTION_INTO_PROJECTION: {
     severity: "error", title: "Kan ikke flette to projektioner",
     build: () => ({
-      message: "Begge ruter er projicerede forekomster — de findes ikke fysisk endnu.",
-      hint: "Materialisér mindst én af ruterne først, eller rediger originalruten.",
+      message: "Begge ruter er forventede forekomster — de findes ikke fysisk endnu.",
+      hint: "Materialisér mindst én af ruterne først, eller rediger den faste rute.",
     }),
   },
   MERGE_PROJECTION_INTO_REAL: {
     severity: "warning", title: "Du fletter en projektion ind i en rigtig rute",
     build: (c) => ({
-      message: `Den projicerede forekomst på ${dk(c.date)} materialiseres som en del af målruten. Fremtidige forekomster i serien forbliver projicerede.`,
+      message: `Den forventede forekomst på ${dk(c.date)} materialiseres som en del af målruten. Fremtidige forekomster i serien forbliver projicerede.`,
     }),
   },
   SERIES_COLLISION_ON_DATE: {
@@ -159,7 +159,7 @@ const SPECS: Record<RouteErrorCode, Spec> = {
   ANOTHER_SHIFT_TARGETS_DATE: {
     severity: "error", title: "En anden forekomst peger allerede på datoen",
     build: (c) => ({
-      message: `En anden projiceret forekomst er allerede flyttet til ${dk(c.date)}.`,
+      message: `En anden forventet forekomst er allerede flyttet til ${dk(c.date)}.`,
       hint: "Vælg en anden dato eller fortryd den anden flytning først.",
     }),
   },
@@ -226,8 +226,8 @@ const SPECS: Record<RouteErrorCode, Spec> = {
   ROUTE_HAS_FUTURE_PROJECTIONS: {
     severity: "warning", title: "Ruten er original for fremtidige forekomster",
     build: (c) => ({
-      message: `${c.count ?? "Flere"} projicerede forekomster i serien forsvinder hvis originalruten arkiveres.`,
-      hint: "Bekræft at serien skal stoppes, eller flyt aftalerne til en anden originalrute.",
+      message: `${c.count ?? "Flere"} forventede forekomster i serien forsvinder hvis den faste rute arkiveres.`,
+      hint: "Bekræft at serien skal stoppes, eller flyt aftalerne til en anden fast rute.",
     }),
   },
   HOLIDAY_BLOCKED_DATE: {

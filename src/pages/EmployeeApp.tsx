@@ -379,7 +379,7 @@ const EmployeeApp = () => {
           } else if (dayStarted && allRoutesDone && !dayEnded) {
             suggestion = {
               tone: "calm",
-              title: "Alle stop er færdige — godt arbejde!",
+              title: "Alle stop er udført — godt arbejde!",
               description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",
               illustration: "dayInProgress",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
@@ -573,7 +573,7 @@ const EmployeeApp = () => {
                       {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
                     </h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Alle {total} stop er færdige
+                      Alle {total} stop er udført
                       
                     </p>
                   </div>

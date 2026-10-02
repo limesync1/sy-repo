@@ -749,7 +749,7 @@ const Planner = () => {
   const STATUS_OPTIONS: { value: string; label: string }[] = [
     { value: "planned",   label: "Planlagt" },
     { value: "confirmed", label: "Bekræftet" },
-    { value: "completed", label: "Færdig" },
+    { value: "completed", label: "Udført" },
     { value: "cancelled", label: "Aflyst" },
   ];
   useEffect(() => {
@@ -1735,7 +1735,7 @@ const Planner = () => {
       await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
     } catch (err: any) {
       setEditingProjectedContext(null);
-      toastRouteError(err, toast.error, { titleFallback: "Originalruten kunne ikke åbnes" });
+      toastRouteError(err, toast.error, { titleFallback: "Den faste rute kunne ikke åbnes" });
       await logRoutePlannerEvent({
         businessId,
         eventType: "projected_route_open_failed_client",
@@ -2087,7 +2087,7 @@ const Planner = () => {
     if (bulkStopBusy || selectedStopIds.size === 0) return;
     const ids = Array.from(selectedStopIds).filter((id) => !id.startsWith("virtual-stop:"));
     if (ids.length === 0) {
-      toast.info("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
+      toast.info("Forventede stops kan ikke slettes — åbn den faste rute for at ændre.");
       return;
     }
     setBulkStopBusy(true);
@@ -5335,7 +5335,7 @@ const Planner = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Slet {selectedStopIds.size} stop?</AlertDialogTitle>
               <AlertDialogDescription>
-                Stoppene fjernes fra deres ruter. Tilknyttede aftaler ryger tilbage til "Aftaler uden rute" og kan genplanlægges. Projicerede (låste) stop springes over.
+                Stoppene fjernes fra deres ruter. Tilknyttede aftaler ryger tilbage til "Aftaler uden rute" og kan genplanlægges. Forventede (låste) stop springes over.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
