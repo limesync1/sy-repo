@@ -223,19 +223,27 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                 </Button>
               </div>
               <div className="mt-3 overflow-hidden rounded-md border border-border bg-background">
-                <Calendar
-                  mode={mode === "range" ? "range" : "single"}
-                  selected={mode === "range" ? range : range.from}
-                  onSelect={(selection) => {
-                    if (!selection) return;
-                    if (selection instanceof Date) setRange({ from: selection, to: selection });
-                    else setRange(selection);
-                  }}
-                  defaultMonth={range.from}
-                  locale={da}
-                  className="pointer-events-auto mx-auto p-2"
-                  initialFocus
-                />
+                {mode === "range" ? (
+                  <Calendar
+                    mode="range"
+                    selected={range}
+                    onSelect={(selection) => selection && setRange(selection)}
+                    defaultMonth={range.from}
+                    locale={da}
+                    className="pointer-events-auto mx-auto p-2"
+                    initialFocus
+                  />
+                ) : (
+                  <Calendar
+                    mode="single"
+                    selected={range.from}
+                    onSelect={(selection) => selection && setRange({ from: selection, to: selection })}
+                    defaultMonth={range.from}
+                    locale={da}
+                    className="pointer-events-auto mx-auto p-2"
+                    initialFocus
+                  />
+                )}
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={chooseToday}>I dag</Button>
