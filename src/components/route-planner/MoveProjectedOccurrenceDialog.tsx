@@ -4,9 +4,8 @@
 // responsive opførsel.
 
 import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
@@ -74,18 +73,18 @@ export const MoveProjectedOccurrenceDialog = ({
   const showSuggestion = !!warnings?.length && !!suggestedFreeDate && suggestedFreeDate !== toDate;
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
-        <AlertDialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!loading && !submitting) onOpenChange(nextOpen); }}>
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            title={<AlertDialogTitle className="text-base">Flyt rute til ny dato</AlertDialogTitle>}
+            title={<DialogTitle className="text-base">Flyt rute til ny dato</DialogTitle>}
             description={
-              <AlertDialogDescription className="text-xs leading-snug">
+              <DialogDescription className="text-xs leading-snug">
                 Vælg den nye dato for denne ene rute.
-              </AlertDialogDescription>
+              </DialogDescription>
             }
           />
-        </AlertDialogHeader>
+        </DialogHeader>
 
         <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
           <Section icon={<RouteIcon />} title="Rute">
@@ -256,7 +255,7 @@ export const MoveProjectedOccurrenceDialog = ({
               </div>
             </div>
           )}
-          <AlertDialogCancel disabled={loading || submitting}>Annullér</AlertDialogCancel>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading || submitting}>Annullér</Button>
           <Button
             onClick={async () => {
               setSubmitError(null);
@@ -280,7 +279,7 @@ export const MoveProjectedOccurrenceDialog = ({
           </Button>
           </div>
         </SheetFooterBar>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 };
