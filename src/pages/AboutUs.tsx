@@ -7,17 +7,17 @@ import { IndustryIcon } from "@/components/IndustryIcon";
 import { topCategories } from "@/lib/service-taxonomy";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 import { ArrowRight } from "lucide-react";
-import iconCvr from "@/assets/brand/CVR_tjekket.svg.asset.json";
-import iconEmail from "@/assets/brand/E-mail.svg.asset.json";
-import iconFairPriser from "@/assets/brand/Fair_priser.svg.asset.json";
-import iconFindMinutter from "@/assets/brand/Find_paa_minutter.svg.asset.json";
-import iconGratis from "@/assets/brand/Gratis_for_private.svg.asset.json";
-import iconIngenMellemled from "@/assets/brand/Ingen_mellemled.svg.asset.json";
-import iconLokal from "@/assets/brand/Lokal_forankring.svg.asset.json";
-import iconOmraade from "@/assets/brand/Omraade.svg.asset.json";
-import iconPlatform from "@/assets/brand/Platform.svg.asset.json";
-import iconUafhaengig from "@/assets/brand/Uafhaengig_platform.svg.asset.json";
-import iconVerificeret from "@/assets/brand/Verificerede_udbydere.svg.asset.json";
+import iconCvr from "@/assets/brand/CVR_tjekket.png.asset.json";
+import iconEmail from "@/assets/brand/E-mail.png.asset.json";
+import iconFairPriser from "@/assets/brand/Fair_priser.png.asset.json";
+import iconFindMinutter from "@/assets/brand/Find_paa_minutter.png.asset.json";
+import iconGratis from "@/assets/brand/Gratis_for_private.png.asset.json";
+import iconIngenMellemled from "@/assets/brand/Ingen_mellemled.png.asset.json";
+import iconLokal from "@/assets/brand/Lokal_forankring.png.asset.json";
+import iconOmraade from "@/assets/brand/Omraade.png.asset.json";
+import iconPlatform from "@/assets/brand/Platform.png.asset.json";
+import iconUafhaengig from "@/assets/brand/Uafhaengig_platform.png.asset.json";
+import iconVerificeret from "@/assets/brand/Verificerede_udbydere.png.asset.json";
 
 const PRINCIPLES = [
   { icon: iconVerificeret.url, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
