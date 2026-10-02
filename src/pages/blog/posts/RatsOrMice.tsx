@@ -42,5 +42,9 @@ export default defineBlogPost({
       "Opbevar hundefoder og fuglefrø i metalbeholder",
       "Tjek loftet for huller efter ræv, fugl, mår — også potentielle museindgange",
     ] },
+    { heading: "Læs videre", list: [
+      <a href="/priser/skadedyr">Skadedyrsbekæmpelse pris 2026</a>,
+      <a href="/priser/kloakmester">Kloakmester pris — TV-inspektion og rottespærre</a>,
+    ] },
   ],
 });

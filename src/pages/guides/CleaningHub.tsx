@@ -41,6 +41,11 @@ export default defineGuidePage({
       <a href="/blog/erhvervsrengoering-pris-pr-m2-2026">Erhvervsrengøring pris pr. m²</a>,
       <a href="/blog/flytterengoering-pris-2026">Flytterengøring pris 2026</a>,
     ]},
+    { heading: "Guides til rengøring", list: [
+      <a href="/guides/privatrengoering">Privatrengøring — pris og fradrag</a>,
+      <a href="/guides/erhvervsrengoering">Erhvervsrengøring — pris pr. m²</a>,
+      <a href="/guides/vinduespudsning">Vinduespudsning — find vinduespudser</a>,
+    ]},
     { body: <CityListSection base="/rengoering" label="rengøring" cities={CLEANING_CITIES} /> },
     { heading: "Sådan vælger du det rigtige firma", list: [
       <a href="/blog/saadan-vaelger-du-rengoeringsfirma">Sådan vælger du rengøringsfirma (9 ting)</a>,

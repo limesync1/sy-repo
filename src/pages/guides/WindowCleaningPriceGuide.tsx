@@ -45,7 +45,7 @@ const WindowCleaningPriceGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Vinduespudsning pris 2026 — vinduespudser pris pr. vindue | Serviceydere"
+        title="Vinduespudsning pris 2026 — pr. vindue"
         description="Vinduespudsning pris: Hvad koster en vinduespudser? Se priser pr. vindue, abonnement, BoligJob-fradrag og typiske eksempler for private og erhverv."
         canonicalPath="/priser/vinduespudser"
         keywords="vinduespudser pris, hvad koster vinduespudser, vinduespudsning pris, vinduespudser abonnement, vinduespudser villa"

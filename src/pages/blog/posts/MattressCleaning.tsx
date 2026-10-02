@@ -38,6 +38,10 @@ const Post = defineBlogPost({
       "Hold soveværelse luftfugtighed under 60% (åbn vindue om morgenen).",
       "Tag betrækket af 1× månedligt og luft madrassen.",
     ]},
+    { heading: "Læs videre", list: [
+      <a href="/guides/privatrengoering">Privatrengøring — pris og fradrag</a>,
+      <a href="/priser/rengoering">Rengøring pris 2026</a>,
+    ]},
   ]
 });
 
