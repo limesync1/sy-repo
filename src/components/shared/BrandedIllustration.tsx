@@ -1,5 +1,44 @@
 import type { ImgHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import searchServiceNew from "@/assets/content-icons/soeg-efter-service.svg.asset.json";
+import compareProvidersNew from "@/assets/content-icons/sammenlign-udbydere.svg.asset.json";
+import bookOrQuoteNew from "@/assets/content-icons/book-eller-hent-tilbud.svg.asset.json";
+import localEasyNew from "@/assets/content-icons/lokalt-skal-vaere-let.svg.asset.json";
+import fairBusinessesNew from "@/assets/content-icons/fair-for-virksomhederne.svg.asset.json";
+import humanHelpNew from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
+import localCustomersNew from "@/assets/content-icons/flere-kunder-i-dit-omraade.svg.asset.json";
+import routePlanningNew from "@/assets/content-icons/ruteplanlaegning-inkluderet.svg.asset.json";
+import priceCalculatorNew from "@/assets/content-icons/indbygget-prisberegner.svg.asset.json";
+import routePlannerNew from "@/assets/content-icons/ruteplanlaegger.svg.asset.json";
+import employeeAppNew from "@/assets/content-icons/medarbejder-app.svg.asset.json";
+import bookingsNew from "@/assets/content-icons/bestillinger.svg.asset.json";
+import accountingNew from "@/assets/content-icons/fakturering-og-regnskab.svg.asset.json";
+import employeesNew from "@/assets/content-icons/medarbejdere.svg.asset.json";
+import industriesNew from "@/assets/content-icons/brancher.svg.asset.json";
+import signupAccountingNew from "@/assets/content-icons/regnskabsintegration.svg.asset.json";
+import signupLeadsNew from "@/assets/content-icons/leads-indhent-tilbud.svg.asset.json";
+import signupLivechatNew from "@/assets/content-icons/livechat.svg.asset.json";
+import freePrivateNew from "@/assets/content-icons/gratis-for-private.svg.asset.json";
+import checkedBusinessesNew from "@/assets/content-icons/tjekkede-virksomheder.svg.asset.json";
+import realReviewsNew from "@/assets/content-icons/anmeldelser-fra-rigtige-opgaver.svg.asset.json";
+import compareQuicklyNew from "@/assets/content-icons/sammenlign-paa-sekunder.svg.asset.json";
+import shareProfileNew from "@/assets/content-icons/del-din-profil.svg.asset.json";
+import addServiceNew from "@/assets/content-icons/tilfoej-service.svg.asset.json";
+import settingsNew from "@/assets/content-icons/indstillinger.svg.asset.json";
+import servicesTotalNew from "@/assets/content-icons/services-i-alt.svg.asset.json";
+import activeServicesNew from "@/assets/content-icons/aktive-services.svg.asset.json";
+import activeEmployeeNew from "@/assets/content-icons/medarbejder-aktiv.svg.asset.json";
+import pendingLoginNew from "@/assets/content-icons/afventer-login.svg.asset.json";
+import payrollNew from "@/assets/content-icons/provision.svg.asset.json";
+import revenueNew from "@/assets/content-icons/omsaetning.svg.asset.json";
+import reviewCountNew from "@/assets/content-icons/anmeldelser-i-alt.svg.asset.json";
+import reviewAverageNew from "@/assets/content-icons/gennemsnit.svg.asset.json";
+import verifiedReviewsNew from "@/assets/content-icons/verificerede.svg.asset.json";
+import activeLeadsNew from "@/assets/content-icons/aktive-leads.svg.asset.json";
+import activeConversationsNew from "@/assets/content-icons/aktive-samtaler.svg.asset.json";
+import satisfactionNew from "@/assets/content-icons/kundetilfredshed.svg.asset.json";
+import responseTimeNew from "@/assets/content-icons/svartid.svg.asset.json";
+import unansweredNew from "@/assets/content-icons/ubesvarede-beskeder.svg.asset.json";
 
 import searchServiceAsset from "@/assets/section-icons/forside/soeg-efter-en-service.svg";
 import compareProvidersAsset from "@/assets/section-icons/forside/sammenlign-udbydere.svg";
@@ -84,28 +123,28 @@ import dayEndedIllustration from "@/assets/panel-illustrations/dagen-afsluttet.s
 import restartDayIllustration from "@/assets/panel-illustrations/genopstart-dagen.svg.asset.json";
 
 export const BRANDED_ILLUSTRATIONS = {
-  searchService: searchServiceAsset,
-  compareProviders: compareProvidersAsset,
-  bookOrQuote: bookOrQuoteAsset,
-  localEasy: localEasyAsset,
-  fairBusinesses: fairBusinessesAsset,
-  humanHelp: humanHelpAsset,
-  localCustomers: localCustomersAsset,
-  routePlanning: routePlanningAsset,
-  priceCalculator: priceCalculatorAsset,
-  systemRoutePlanner: systemRoutePlannerAsset,
-  systemEmployeeApp: systemEmployeeAppAsset,
-  systemBooking: systemBookingAsset,
-  systemAccounting: systemAccountingAsset,
-  systemPeople: systemPeopleAsset,
-  systemIndustries: systemIndustriesAsset,
-  signupAccounting: signupAccountingAsset,
-  signupLeads: signupLeadsAsset,
-  signupLivechat: signupLivechatAsset,
-  freePrivate: freePrivateAsset,
-  checkedBusinesses: checkedBusinessesAsset,
-  realReviews: realReviewsAsset,
-  compareQuickly: compareQuicklyAsset,
+  searchService: searchServiceNew.url,
+  compareProviders: compareProvidersNew.url,
+  bookOrQuote: bookOrQuoteNew.url,
+  localEasy: localEasyNew.url,
+  fairBusinesses: fairBusinessesNew.url,
+  humanHelp: humanHelpNew.url,
+  localCustomers: localCustomersNew.url,
+  routePlanning: routePlanningNew.url,
+  priceCalculator: priceCalculatorNew.url,
+  systemRoutePlanner: routePlannerNew.url,
+  systemEmployeeApp: employeeAppNew.url,
+  systemBooking: bookingsNew.url,
+  systemAccounting: accountingNew.url,
+  systemPeople: employeesNew.url,
+  systemIndustries: industriesNew.url,
+  signupAccounting: signupAccountingNew.url,
+  signupLeads: signupLeadsNew.url,
+  signupLivechat: signupLivechatNew.url,
+  freePrivate: freePrivateNew.url,
+  checkedBusinesses: checkedBusinessesNew.url,
+  realReviews: realReviewsNew.url,
+  compareQuickly: compareQuicklyNew.url,
   unassignedAppointments: unassignedAppointmentsAsset,
   economicIntegration: economicIntegrationAsset,
   dineroIntegration: dineroIntegrationAsset,
@@ -113,23 +152,23 @@ export const BRANDED_ILLUSTRATIONS = {
   helpQuotes: helpQuotesAsset,
   helpBecomeProvider: helpBecomeProviderAsset,
   helpGuides: helpGuidesAsset,
-  shareProfile: shareProfile,
-  addService: addService,
+  shareProfile: shareProfileNew.url,
+  addService: addServiceNew.url,
   team: team,
-  settings: settings,
-  servicesTotal: servicesTotal,
-  activeServices: activeServices,
-  orders: orders,
+  settings: settingsNew.url,
+  servicesTotal: servicesTotalNew.url,
+  activeServices: activeServicesNew.url,
+  orders: bookingsNew.url,
   calendarWeek: calendarWeek,
   calendarMonth: calendarMonth,
   averageOrder: averageOrder,
-  activeEmployee: activeEmployee,
-  pendingLogin: pendingLogin,
-  payroll: payroll,
-  revenue: revenue,
-  reviewCount: reviewCount,
-  reviewAverage: reviewAverage,
-  verifiedReviews: verifiedReviews,
+  activeEmployee: activeEmployeeNew.url,
+  pendingLogin: pendingLoginNew.url,
+  payroll: payrollNew.url,
+  revenue: revenueNew.url,
+  reviewCount: reviewCountNew.url,
+  reviewAverage: reviewAverageNew.url,
+  verifiedReviews: verifiedReviewsNew.url,
   routeReady: routeReady,
   routeDone: routeDone,
   chooseRouteMode: chooseRouteMode,
@@ -137,25 +176,25 @@ export const BRANDED_ILLUSTRATIONS = {
   drivingGuide: drivingGuide,
   startAppointment: startAppointment,
   driveGoogleMaps: driveGoogleMaps,
-  earnings: earnings,
+  earnings: revenueNew.url,
   dailyActivity: dailyActivity,
-  employeeRoutes: employeeRoutes,
-  employeeAppointments: employeeAppointments,
+  employeeRoutes: routePlannerNew.url,
+  employeeAppointments: bookingsNew.url,
   workdays: workdays,
   worktime: worktime,
   dailyActivityTable: dailyActivityTable,
-  activeLeads: activeLeadsAsset.url,
-  activeConversations: activeConversationsAsset.url,
+  activeLeads: activeLeadsNew.url,
+  activeConversations: activeConversationsNew.url,
   buildFromScratch: buildFromScratchAsset.url,
   conversion: conversionAsset.url,
-  customerSatisfaction: customerSatisfactionAsset.url,
+  customerSatisfaction: satisfactionNew.url,
   aiCalculator: aiCalculatorAsset.url,
   calculator: calculatorAsset.url,
   fixedPrice: fixedPriceAsset.url,
-  responseTime: responseTimeAsset.url,
+  responseTime: responseTimeNew.url,
   payout: payoutAsset.url,
   hourlyPrice: hourlyPriceAsset.url,
-  unansweredMessages: unansweredMessagesAsset.url,
+  unansweredMessages: unansweredNew.url,
   startDay: startDayIllustration.url,
   dayInProgress: dayInProgressIllustration.url,
   dayEnded: dayEndedIllustration.url,
