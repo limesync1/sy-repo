@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BellRing, Loader2, Send, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -53,6 +53,9 @@ export function RouteCommunicationPanel({
   const choices = assigned;
   const [employeeId, setEmployeeId] = useState(choices[0]?.id ?? "");
   const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (!choices.some((c) => c.id === employeeId)) setEmployeeId(choices[0]?.id ?? "");
+  }, [choices, employeeId]);
   const [sending, setSending] = useState(false);
 
   const sendNotice = async () => {
