@@ -43,7 +43,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute, invalidateRouteSyncQueries } from "@/hooks/useRoutes";
-import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import {
@@ -2616,7 +2616,7 @@ const AftaleTab = ({
               title="Farve"
               hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
             >
-              <div className="grid grid-cols-12 gap-1.5">
+              <div className={ROUTE_COLOR_GRID}>
                 {ROUTE_COLORS.map((c) => (
                   <button
                     key={c.value}

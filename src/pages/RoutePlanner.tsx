@@ -73,7 +73,7 @@ import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialo
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { ConflictBanner } from "@/components/route-planner/ConflictBanner";
-import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { RouteEditSheet, ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import PlanningPanel from "@/components/route-planner/PlanningPanel";
 import SEO from "@/components/SEO";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
@@ -3402,14 +3402,14 @@ const Planner = () => {
                       title="Farve"
                       hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
                     >
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className={ROUTE_COLOR_GRID}>
                         {ROUTE_COLORS.map((c) => (
                           <button
                             key={c.value}
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative h-6 w-6 shrink-0 rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
+                            className={`relative aspect-square w-full max-w-7 rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
                               newRouteColor === c.value
                                 ? "ring-2 ring-foreground scale-105 shadow-[0_3px_8px_-2px_rgba(0,0,0,0.25)]"
                                 : "hover:ring-2 hover:ring-foreground/40"

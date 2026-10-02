@@ -167,35 +167,47 @@ type Props = {
 
 /** Navngivne farver — bruges i picker, til tooltips og demo-data. */
 export const ROUTE_COLORS = [
-  { name: "Teal",     value: "#14b8a6" },
-  { name: "Blå",      value: "#3b82f6" },
-  { name: "Indigo",   value: "#6366f1" },
-  { name: "Violet",   value: "#8b5cf6" },
-  { name: "Pink",     value: "#ec4899" },
-  { name: "Rød",      value: "#ef4444" },
-  { name: "Orange",   value: "#f97316" },
-  { name: "Amber",    value: "#f59e0b" },
-  { name: "Emerald",  value: "#10b981" },
-  { name: "Cyan",     value: "#06b6d4" },
-  { name: "Slate",    value: "#64748b" },
-  { name: "Fuchsia",  value: "#d946ef" },
-  // Udvidet palet — mørkere/lyse varianter for flere ruter
-  { name: "Lime",         value: "#84cc16" },
-  { name: "Grøn",         value: "#22c55e" },
-  { name: "Sky",          value: "#0ea5e9" },
-  { name: "Rose",         value: "#f43f5e" },
-  { name: "Mørk blå",     value: "#015c96" },
-  { name: "Mørk blå",     value: "#1d4ed8" },
-  { name: "Mørk lilla",   value: "#7c3aed" },
-  { name: "Mørk grøn",    value: "#15803d" },
-  { name: "Mørk rød",     value: "#b91c1c" },
-  { name: "Mørk orange",  value: "#c2410c" },
-  { name: "Stone",        value: "#78716c" },
-  { name: "Zinc",         value: "#52525b" },
+  // Række 1: klare farver i farvecirklens rækkefølge.
+  { name: "Rød", value: "#ef4444" },
+  { name: "Orange", value: "#f97316" },
+  { name: "Rav", value: "#f59e0b" },
+  { name: "Gul", value: "#eab308" },
+  { name: "Lime", value: "#84cc16" },
+  { name: "Grøn", value: "#22c55e" },
+  { name: "Smaragd", value: "#10b981" },
+  { name: "Teal", value: "#14b8a6" },
+  { name: "Cyan", value: "#06b6d4" },
+  { name: "Himmelblå", value: "#0ea5e9" },
+  { name: "Blå", value: "#3b82f6" },
+  { name: "Indigo", value: "#6366f1" },
+  { name: "Violet", value: "#8b5cf6" },
+  { name: "Pink", value: "#ec4899" },
+  // Række 2: de samme farver i mørk udgave — lige under deres lyse makker.
+  { name: "Mørk rød", value: "#b91c1c" },
+  { name: "Mørk orange", value: "#c2410c" },
+  { name: "Mørk rav", value: "#b45309" },
+  { name: "Okker", value: "#a16207" },
+  { name: "Oliven", value: "#4d7c0f" },
+  { name: "Mørk grøn", value: "#15803d" },
+  { name: "Mørk smaragd", value: "#047857" },
+  { name: "Mørk teal", value: "#0f766e" },
+  { name: "Petrol", value: "#0e7490" },
+  { name: "Havblå", value: "#0369a1" },
+  { name: "Mørk blå", value: "#1d4ed8" },
+  { name: "Mørk indigo", value: "#4338ca" },
+  { name: "Mørk lilla", value: "#6d28d9" },
+  { name: "Bær", value: "#be185d" },
 ] as const;
 
+/** Antal kolonner i farvevælgeren (= én række pr. lys/mørk). */
+export const ROUTE_COLOR_GRID = "grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1";
+
 /** Bagudkompatibel farve-array (kun hex-værdier). */
-export const ROUTE_COLOR_PALETTE = ROUTE_COLORS.map((c) => c.value);
+// Teal (brandfarven) først, så nye ruter som standard får den.
+export const ROUTE_COLOR_PALETTE = [
+  "#14b8a6",
+  ...ROUTE_COLORS.map((c) => c.value).filter((v) => v !== "#14b8a6"),
+];
 
 /** Find første farve der ikke er i `usedColors` — eller en tilfældig hvis alle er brugt. */
 export const pickAvailableColor = (usedColors: string[]): string => {
@@ -904,7 +916,7 @@ export const RouteEditSheet = ({
                 ? "Låst — redigér originalruten"
                 : ROUTE_COLORS.find((c) => c.value === color)?.name || "Brugerdefineret"}
             >
-              <div className={cn("grid grid-cols-12 gap-1.5", isProjection && "pointer-events-none opacity-60")}>
+              <div className={cn(ROUTE_COLOR_GRID, isProjection && "pointer-events-none opacity-60")}>
                 {ROUTE_COLORS.map((c) => {
                   const selected = color === c.value;
                   return (
