@@ -67,3 +67,11 @@
 - [x] Opdatér kundeserviceikonet med den vedhæftede version
 - [x] Tilpas Profil-, Beskeder- og Konto-ikoner i virksomhedsindstillinger
 - [x] Kontrollér ændringerne i virksomhedspanelet på desktop
+
+## Ikoner, søgning og nyt Overblik
+- [ ] Tilpas Profil-, Beskeder- og Konto-ikoner samt kundeserviceikonet
+- [ ] Gennemgå ikonstørrelser på Om os, Tilbud, ruteplanlæggeren og begge paneler
+- [ ] Centrér søgeikonet og forstør forslagets ikoner uden ikonflader
+- [ ] Opdatér gamle blå sektioner til den nye brandblå
+- [ ] Forbedr virksomhedspanelets Overblik i det fælles paneldesign
+- [ ] Kontrollér desktop, mobil, runtime og build
