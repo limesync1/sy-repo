@@ -49,6 +49,6 @@
 - [x] Finjustér kun Aftaler visuelt mod ruteplanlæggeren uden strukturændringer
 
 ## Ny ikonpakke
-- [ ] Erstat de 59 tidligere indholdsikoner med filerne fra Nye-Ikon-Design
-- [ ] Ret fælles ikonregistre og direkte gamle ikonreferencer
+- [x] Erstat de 59 tidligere indholdsikoner med filerne fra Nye-Ikon-Design
+- [x] Ret fælles ikonregistre og direkte gamle ikonreferencer
 - [ ] Kontrollér ikoner på offentlige sider og i alle paneltyper

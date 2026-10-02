@@ -69,11 +69,6 @@ import helpQuotesAsset from "@/assets/section-icons/hjaelp/indhent-3-tilbud.svg"
 import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.svg";
 import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg";
 
-import team from "@/assets/illustrations/business/medarbejdere-team.svg";
-import calendarWeek from "@/assets/illustrations/business/kalender-uge.svg";
-import calendarMonth from "@/assets/illustrations/business/kalender-maaned.svg";
-import averageOrder from "@/assets/illustrations/business/snit-pr-aftale.svg";
-
 import routeReady from "@/assets/illustrations/employee/rute-klar-til-start.svg";
 import routeDone from "@/assets/illustrations/employee/udfoert-rute.svg";
 import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg";
@@ -81,7 +76,6 @@ import checklist from "@/assets/illustrations/employee/tjekliste.svg";
 import drivingGuide from "@/assets/illustrations/employee/koerselsguide.svg";
 import startAppointment from "@/assets/illustrations/employee/start-aftale.svg";
 import driveGoogleMaps from "@/assets/illustrations/employee/koer-dertil-google-maps.svg";
-import earnings from "@/assets/illustrations/employee/min-indtjening.svg";
 import dailyActivity from "@/assets/illustrations/employee/daglig-aktivitet.svg";
 import employeeRoutes from "@/assets/illustrations/employee/ruter.svg";
 import employeeAppointments from "@/assets/illustrations/employee/aftaler.svg";
