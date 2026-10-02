@@ -165,7 +165,7 @@ export const PlanningPanel = ({
           className="h-8 gap-1.5 rounded-md border-border/70 font-semibold hover:bg-secondary hover:text-foreground transition-colors"
           title="Overblik over uge, kapacitet og uplanlagte aftaler"
         >
-          <BarChart3 className="h-3.5 w-3.5" />
+          <BarChart3 className="h-4 w-4" />
           Overblik
           {(unassignedCount > 0) && (
             <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-feature-warm/15 text-feature-warm-foreground text-[10px] font-bold tabular-nums">

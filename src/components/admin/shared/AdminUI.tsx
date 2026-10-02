@@ -75,8 +75,11 @@ export const StatIconTile = ({
   <div
     className={cn(
       "flex aspect-square shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/70",
-      size === "lg" ? "h-14 w-14 p-2 sm:h-16 sm:w-16 sm:p-2.5" : "h-11 w-11 p-1.5",
-      "[&_img]:h-7 [&_img]:w-7 [&_img]:max-h-full [&_img]:max-w-full [&_img]:object-contain [&_svg]:h-7 [&_svg]:w-7",
+      size === "lg" ? "h-14 w-14 p-1.5 sm:h-16 sm:w-16 sm:p-2" : "h-11 w-11 p-1.5",
+      size === "lg"
+        ? "[&_img]:h-11 [&_img]:w-11 [&_svg]:h-8 [&_svg]:w-8"
+        : "[&_img]:h-8 [&_img]:w-8 [&_svg]:h-6 [&_svg]:w-6",
+      "[&_img]:max-h-full [&_img]:max-w-full [&_img]:object-contain",
       className,
     )}
   >

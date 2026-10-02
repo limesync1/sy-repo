@@ -337,8 +337,8 @@ export const UnassignedJobCard = ({
                 aria-hidden
                 title={items[0].service_name}
                 className={cn(
-                  "shrink-0 inline-flex items-center justify-center rounded-md bg-secondary/70 ring-1 ring-border/60",
-                  compact ? "h-6 w-6 p-1" : "h-7 w-7 p-1.5",
+                  "shrink-0 inline-flex items-center justify-center",
+                  compact ? "h-7 w-7" : "h-8 w-8",
                 )}
               >
                 <IndustryIcon
