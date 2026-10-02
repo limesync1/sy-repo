@@ -58,29 +58,18 @@ const renderRoute = (route: CalendarRoute) =>
   );
 
 describe("MonthWeekCalendar — projected route states", () => {
-  it("FUTURE: viser præcis ét lås-badge med 'Låst' og tooltip om oplåsning", () => {
-    const date = ymd(addDays(new Date(), 14));
-    renderRoute(makeRoute(date));
-    // Ét — og kun ét — lås-relateret badge.
-    const locked = screen.getAllByLabelText(/Projiceret, låst indtil/);
-    expect(locked).toHaveLength(1);
-    expect(locked[0].getAttribute("title") || "").toMatch(/låst indtil/i);
-    expect(screen.queryByLabelText(/Aktiv i dag/i)).toBeNull();
-    expect(screen.queryByLabelText(/Historisk/i)).toBeNull();
-    expect(screen.getByText("Låst")).toBeInTheDocument();
+  it("FUTURE: viser ét 'Forventet'-mærke", () => {
+    renderRoute(makeRoute(ymd(addDays(new Date(), 14))));
+    expect(screen.getAllByLabelText(/^Forventet besøg fra en fast rute$/)).toHaveLength(1);
   });
 
-  it("TODAY: viser 'I dag'-badge uden lås", () => {
-    const date = ymd(new Date());
-    renderRoute(makeRoute(date));
-    expect(screen.getByLabelText(/aktiv i dag/i)).toBeInTheDocument();
-    expect(screen.queryByText("Låst")).toBeNull();
+  it("TODAY: viser 'Forventet i dag'", () => {
+    renderRoute(makeRoute(ymd(new Date())));
+    expect(screen.getByLabelText(/i dag fra en fast rute/i)).toBeInTheDocument();
   });
 
-  it("PAST: viser 'Historisk'-badge uden lås", () => {
-    const date = ymd(addDays(new Date(), -10));
-    renderRoute(makeRoute(date));
-    expect(screen.getByLabelText(/historisk projiceret/i)).toBeInTheDocument();
-    expect(screen.queryByText("Låst")).toBeNull();
+  it("PAST: viser tidligere forventet besøg", () => {
+    renderRoute(makeRoute(ymd(addDays(new Date(), -10))));
+    expect(screen.getByLabelText(/tidligere forventet/i)).toBeInTheDocument();
   });
 });
