@@ -2295,8 +2295,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       <Check className="h-2.5 w-2.5" /> Nuværende
                     </span>
                   )}
-                   <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
-                     <img src={p.logo} alt={`${p.label} logo`} className="max-h-10 max-w-[150px] object-contain" />
+                   <div className="flex h-32 items-center justify-center border-b border-border bg-secondary/20 px-6">
+                     <img src={p.logo} alt={`${p.label} logo`} className="max-h-14 max-w-[170px] object-contain" />
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-center justify-between gap-2">
