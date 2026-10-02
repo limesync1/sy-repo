@@ -829,8 +829,8 @@ export const RouteEditSheet = ({
             className="planner-overlay-header relative px-5 py-4 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
             <SheetHeaderBlock
-              icon={<img src={editRouteIllustration} alt="" className="h-12 w-12 object-contain" />}
-              iconClassName="h-14 w-14 rounded-xl bg-secondary/60"
+              icon={<img src={editRouteIllustration} alt="" className="h-10 w-10 object-contain" />}
+              iconClassName="h-12 w-12 rounded-lg bg-secondary/60"
               title={
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute
@@ -842,9 +842,12 @@ export const RouteEditSheet = ({
                 </SheetTitle>
               }
               description={
-                <SheetDescription className="text-xs">
+                <SheetDescription className="text-[13px]">
                   {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : ""}
                   {stopCount > 0 && <> · {stopCount} stop</>}
+                  <span className="ml-1.5 text-[11px] text-muted-foreground/80" aria-live="polite">
+                    · {updateAppearance.isPending ? "Gemmer…" : "Gemmes automatisk"}
+                  </span>
                 </SheetDescription>
               }
             />
