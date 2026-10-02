@@ -408,14 +408,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Søg efter kunde, e-mail, beskrivelse, by, kategori eller note..."
+                  placeholder="Søg kunde, e-mail, by eller note…"
                   className="h-10 pl-9 rounded-lg"
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-10 w-full rounded-lg sm:w-[200px]">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
+                <SelectTrigger className="h-10 w-full rounded-lg sm:w-[230px]">
+                  <div className="flex min-w-0 items-center gap-2 whitespace-nowrap text-sm">
+                    <Filter className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <SelectValue />
                   </div>
                 </SelectTrigger>
@@ -429,6 +429,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
             {/* Status chips */}
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+              <div className="-mx-1 flex w-[calc(100%+0.5rem)] snap-x items-center gap-x-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:flex-wrap sm:gap-y-2 sm:overflow-visible sm:px-0 sm:pb-0">
               {(() => {
                 type Chip = { key: string; label: string; count: number; tone?: "danger" | "warn" };
                 const groups: Chip[][] = [
@@ -448,7 +449,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   ],
                 ].filter((g) => g.length > 0);
                 return groups.map((group, gi) => (
-                  <div key={gi} className="flex flex-wrap items-center gap-1.5">
+                  <div key={gi} className="flex shrink-0 items-center gap-1.5 sm:flex-wrap">
                     {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
                     {group.map(({ key, label, count, tone }) => {
                       const isActive = filter === key;
@@ -458,7 +459,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                         <button
                           key={key}
                           onClick={() => setFilter(key)}
-                          className={`relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                          className={`relative inline-flex min-h-10 shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs sm:min-h-0 font-medium transition-colors ${
                             showDot ? `before:absolute before:left-2 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${dotCls} pl-5` : ""
                           } ${
                             isActive
@@ -479,7 +480,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 ));
               })()}
 
-              <div className="ml-auto flex flex-wrap items-center gap-2">
+              </div>
+              <div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:items-center">
                 <Select value={sourceFilter} onValueChange={setSourceFilter}>
                   <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[170px]">
                     <SelectValue placeholder="Alle kilder" />
@@ -678,7 +680,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                 <Button
                                   size="sm"
                                   onClick={() => setOpenId(l.id)}
-                                  className="h-8 gap-1.5 text-xs"
+                                  className="h-10 gap-1.5 text-xs sm:h-8"
                                 >
                                   <MessageSquare className="h-3.5 w-3.5" /> Åbn & svar
                                 </Button>
@@ -688,7 +690,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => updateStatus(l.id, "won")}
-                                      className="h-7 flex-1 gap-1 text-[11px]"
+                                      className="h-10 flex-1 gap-1 text-xs sm:h-7 sm:text-[11px]"
                                     >
                                       <Trophy className="h-3 w-3" /> Vundet
                                     </Button>
@@ -698,7 +700,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                       size="sm"
                                       variant="ghost"
                                       onClick={() => updateStatus(l.id, "declined")}
-                                      className="h-7 flex-1 gap-1 text-[11px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                      className="h-10 flex-1 gap-1 text-xs sm:h-7 sm:text-[11px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                     >
                                       <XCircle className="h-3 w-3" /> Afvis
                                     </Button>
