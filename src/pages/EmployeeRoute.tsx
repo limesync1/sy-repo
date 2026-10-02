@@ -1704,7 +1704,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         ) : (
           <MapContainer
-            center={userPos ?? allPoints[0]}
+            center={userPos ?? allPoints[0] ?? [56.1, 10.2]}
             zoom={13}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
