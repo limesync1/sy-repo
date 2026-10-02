@@ -6,13 +6,24 @@ import PageHero from "@/components/landing/PageHero";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { topCategories } from "@/lib/service-taxonomy";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
-import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight, Sparkles, Lock, Search } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import iconCvr from "@/assets/brand/CVR_tjekket.svg.asset.json";
+import iconEmail from "@/assets/brand/E-mail.svg.asset.json";
+import iconFairPriser from "@/assets/brand/Fair_priser.svg.asset.json";
+import iconFindMinutter from "@/assets/brand/Find_paa_minutter.svg.asset.json";
+import iconGratis from "@/assets/brand/Gratis_for_private.svg.asset.json";
+import iconIngenMellemled from "@/assets/brand/Ingen_mellemled.svg.asset.json";
+import iconLokal from "@/assets/brand/Lokal_forankring.svg.asset.json";
+import iconOmraade from "@/assets/brand/Omraade.svg.asset.json";
+import iconPlatform from "@/assets/brand/Platform.svg.asset.json";
+import iconUafhaengig from "@/assets/brand/Uafhaengig_platform.svg.asset.json";
+import iconVerificeret from "@/assets/brand/Verificerede_udbydere.svg.asset.json";
 
 const PRINCIPLES = [
-  { icon: Shield, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
-  { icon: Users, title: "Lokal forankring", text: "Udbydere i hele Danmark — fra København til Aalborg, Aarhus, Odense og alle byer imellem." },
-  { icon: HeartHandshake, title: "Fair priser", text: "Gennemsigtige prisguides, så du kender markedsprisen før du beder om tilbud." },
-  { icon: CheckCircle2, title: "Uafhængig platform", text: "Vi er ikke selv serviceyder — vi forbinder kun. Du vælger frit hvem du vil arbejde med." },
+  { icon: iconVerificeret.url, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
+  { icon: iconLokal.url, title: "Lokal forankring", text: "Udbydere i hele Danmark — fra København til Aalborg, Aarhus, Odense og alle byer imellem." },
+  { icon: iconFairPriser.url, title: "Fair priser", text: "Gennemsigtige prisguides, så du kender markedsprisen før du beder om tilbud." },
+  { icon: iconUafhaengig.url, title: "Uafhængig platform", text: "Vi er ikke selv serviceyder — vi forbinder kun. Du vælger frit hvem du vil arbejde med." },
 ];
 
 const STATS = [
