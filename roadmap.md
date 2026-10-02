@@ -61,9 +61,9 @@
 - [x] Kontrollér centrale sider og rutekørsel på mobil og desktop
 
 ## Ruteplanlægger og panelikoner
-- [ ] Skjul Varighed og Planlagte tider i ruteplanlæggerens aftalevisning
-- [ ] Vis tydeligt rutedage og antal ruter i Print ruter-kalenderen
-- [ ] Fjern krydset fra ikonet ved Aftaler uden rute
-- [ ] Opdatér kundeserviceikonet med den vedhæftede version
-- [ ] Tilpas Profil-, Beskeder- og Konto-ikoner i virksomhedsindstillinger
+- [x] Skjul Varighed og Planlagte tider i ruteplanlæggerens aftalevisning
+- [x] Vis tydeligt rutedage og antal ruter i Print ruter-kalenderen
+- [x] Fjern krydset fra ikonet ved Aftaler uden rute
+- [x] Opdatér kundeserviceikonet med den vedhæftede version
+- [x] Tilpas Profil-, Beskeder- og Konto-ikoner i virksomhedsindstillinger
 - [ ] Kontrollér ændringerne i virksomhedspanelet på desktop

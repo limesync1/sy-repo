@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { eachDayOfInterval, endOfWeek, format, parseISO, startOfWeek } from "date-fns";
 import { da } from "date-fns/locale";
-import type { DateRange } from "react-day-picker";
+import type { DateRange, DayContentProps } from "react-day-picker";
 import {
   CalendarDays,
-  Clock3,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   MapPin,
   Printer,
@@ -47,8 +48,6 @@ type PrintOptions = {
   address: boolean;
   service: boolean;
   notes: boolean;
-  times: boolean;
-  duration: boolean;
   startAddress: boolean;
   distance: boolean;
   routeColor: boolean;
@@ -70,8 +69,6 @@ const DEFAULT_OPTIONS: PrintOptions = {
   address: true,
   service: true,
   notes: true,
-  times: true,
-  duration: true,
   startAddress: true,
   distance: true,
   routeColor: true,
@@ -84,8 +81,6 @@ const optionRows: { key: keyof PrintOptions; label: string }[] = [
   { key: "phone", label: "Telefonnumre" },
   { key: "service", label: "Service og aftale" },
   { key: "notes", label: "Noter" },
-  { key: "times", label: "Planlagte tider" },
-  { key: "duration", label: "Varighed" },
   { key: "startAddress", label: "Startadresse" },
   { key: "distance", label: "Rutens distance" },
   { key: "routeColor", label: "Rutefarve" },
@@ -94,7 +89,6 @@ const optionRows: { key: keyof PrintOptions; label: string }[] = [
 
 const dateLabel = (date: string) => format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da });
 const shortDateLabel = (date: string) => format(parseISO(date), "d. MMM", { locale: da });
-const timeLabel = (value?: string | null) => value?.slice(0, 5) ?? null;
 
 export default function RoutePrintDialog({ open, onOpenChange, initialDate, routes, businessName }: Props) {
   const initial = parseISO(initialDate);
@@ -164,6 +158,35 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
     return grouped;
   }, [selectedDates, selectedRoutes]);
 
+  const routeCountByDate = useMemo(() => {
+    const counts = new Map<string, number>();
+    routes.forEach((route) => counts.set(route.date, (counts.get(route.date) ?? 0) + 1));
+    return counts;
+  }, [routes]);
+
+  const PrintDayContent = ({ date }: DayContentProps) => {
+    const count = routeCountByDate.get(format(date, "yyyy-MM-dd")) ?? 0;
+    return (
+      <span className="relative flex h-9 w-9 items-center justify-center">
+        <span>{date.getDate()}</span>
+        {count > 0 && (
+          <span
+            className="absolute bottom-0.5 right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-0.5 text-[8px] font-bold leading-none text-accent-foreground ring-1 ring-background"
+            aria-label={`${count} ${count === 1 ? "rute" : "ruter"}`}
+          >
+            {count}
+          </span>
+        )}
+      </span>
+    );
+  };
+
+  const calendarComponents = {
+    DayContent: PrintDayContent,
+    IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+    IconRight: () => <ChevronRight className="h-4 w-4" />,
+  };
+
   const totalStops = selectedRoutes.reduce((sum, route) => sum + route.stops.length, 0);
   const periodLabel = selectedDates.length === 1
     ? dateLabel(selectedDates[0])
@@ -231,6 +254,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                     defaultMonth={range.from}
                     locale={da}
                     className="pointer-events-auto mx-auto p-2"
+                    components={calendarComponents}
                     initialFocus
                   />
                 ) : (
@@ -241,9 +265,14 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                     defaultMonth={range.from}
                     locale={da}
                     className="pointer-events-auto mx-auto p-2"
+                    components={calendarComponents}
                     initialFocus
                   />
                 )}
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span className="flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-0.5 text-[8px] font-bold text-accent-foreground">2</span>
+                Tallet viser antal ruter på dagen
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={chooseToday}>I dag</Button>
@@ -314,7 +343,6 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                                 </div>
                                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                                   {options.distance && route.distanceKm != null && <span className="flex items-center gap-1"><RouteIcon className="h-3 w-3" />{route.distanceKm.toFixed(1)} km</span>}
-                                  {options.times && route.plannedStartTime && <span className="flex items-center gap-1"><Clock3 className="h-3 w-3" />Start {timeLabel(route.plannedStartTime)}</span>}
                                 </div>
                               </div>
                               {options.startAddress && route.startAddress && (
@@ -323,18 +351,12 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
 
                               <ol className={cn("mt-3 divide-y divide-border border-t border-border", options.compact && "mt-2")}>
                                 {route.stops.map((stop, index) => {
-                                  const arrival = timeLabel(stop.plannedArrival);
-                                  const departure = timeLabel(stop.plannedDeparture);
                                   return (
                                     <li key={stop.id ?? `${route.id}-${index}`} className={cn("grid grid-cols-[24px_minmax(0,1fr)] gap-2.5", options.compact ? "py-2" : "py-3")}>
                                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold tabular-nums text-background">{index + 1}</span>
                                       <div className="min-w-0">
                                         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
                                           <p className="break-words text-xs font-semibold text-foreground">{stop.customerName}</p>
-                                          <div className="flex flex-wrap gap-x-2 text-[10px] tabular-nums text-muted-foreground">
-                                            {options.times && arrival && <span>{arrival}{departure ? `–${departure}` : ""}</span>}
-                                            {options.duration && stop.durationMinutes != null && <span>{stop.durationMinutes} min.</span>}
-                                          </div>
                                         </div>
                                         <div className="mt-1 grid gap-1 text-[11px] text-muted-foreground">
                                           {options.address && stop.address && <p className="flex items-start gap-1.5"><MapPin className="mt-0.5 h-3 w-3 shrink-0" /><span className="break-words">{stop.address}</span></p>}
