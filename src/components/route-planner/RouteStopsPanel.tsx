@@ -530,9 +530,9 @@ const SortableStopRow = ({
                   <Check className="h-3 w-3" /> Udført
                 </Badge>
                 {!isProjection && (
-                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
+                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udført" title="Fortryd udført">
                     {undoPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Undo2 className="h-3 w-3" />}
-                    <span className="truncate">Fortryd</span>
+                    <span className="truncate">Fortryd udført</span>
                   </Button>
                 )}
               </span>

@@ -1595,7 +1595,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </h1>
               </div>
               <p className="text-[11px] text-muted-foreground tabular-nums">
-                {completedCount} af {sortedStops.length} stop færdige
+                {completedCount} af {sortedStops.length} stop udført
               </p>
             </div>
 
@@ -2410,7 +2410,7 @@ const StopListPanel = ({
 
   const statusMeta = (s: RouteStop): { label: string; bg: string; text: string; dot: string } => {
     if (s.status === "completed") return {
-      label: "Færdig",
+      label: "Udført",
       bg: "hsl(var(--muted))",
       text: "hsl(var(--muted-foreground))",
       dot: "hsl(142 71% 45%)",
