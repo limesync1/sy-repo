@@ -6,13 +6,24 @@ import PageHero from "@/components/landing/PageHero";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { topCategories } from "@/lib/service-taxonomy";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
-import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight, Sparkles, Lock, Search } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import iconCvr from "@/assets/brand/CVR_tjekket.png.asset.json";
+import iconEmail from "@/assets/brand/E-mail.png.asset.json";
+import iconFairPriser from "@/assets/brand/Fair_priser.png.asset.json";
+import iconFindMinutter from "@/assets/brand/Find_paa_minutter.png.asset.json";
+import iconGratis from "@/assets/brand/Gratis_for_private.png.asset.json";
+import iconIngenMellemled from "@/assets/brand/Ingen_mellemled.png.asset.json";
+import iconLokal from "@/assets/brand/Lokal_forankring.png.asset.json";
+import iconOmraade from "@/assets/brand/Omraade.png.asset.json";
+import iconPlatform from "@/assets/brand/Platform.png.asset.json";
+import iconUafhaengig from "@/assets/brand/Uafhaengig_platform.png.asset.json";
+import iconVerificeret from "@/assets/brand/Verificerede_udbydere.png.asset.json";
 
 const PRINCIPLES = [
-  { icon: Shield, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
-  { icon: Users, title: "Lokal forankring", text: "Udbydere i hele Danmark — fra København til Aalborg, Aarhus, Odense og alle byer imellem." },
-  { icon: HeartHandshake, title: "Fair priser", text: "Gennemsigtige prisguides, så du kender markedsprisen før du beder om tilbud." },
-  { icon: CheckCircle2, title: "Uafhængig platform", text: "Vi er ikke selv serviceyder — vi forbinder kun. Du vælger frit hvem du vil arbejde med." },
+  { icon: iconVerificeret.url, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
+  { icon: iconLokal.url, title: "Lokal forankring", text: "Udbydere i hele Danmark — fra København til Aalborg, Aarhus, Odense og alle byer imellem." },
+  { icon: iconFairPriser.url, title: "Fair priser", text: "Gennemsigtige prisguides, så du kender markedsprisen før du beder om tilbud." },
+  { icon: iconUafhaengig.url, title: "Uafhængig platform", text: "Vi er ikke selv serviceyder — vi forbinder kun. Du vælger frit hvem du vil arbejde med." },
 ];
 
 const STATS = [
@@ -151,15 +162,15 @@ const AboutUs = () => {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  { Icon: Search, k: "Find", t: "Find på minutter", b: "Søg, filtrér og sammenlign lokale udbydere uden at oprette en konto." },
-                  { Icon: Shield, k: "Tryghed", t: "CVR-tjekket", b: "Hver virksomhed valideres mod CVR-registret før de bliver synlige." },
-                  { Icon: Sparkles, k: "Gratis", t: "Gratis for private", b: "Du betaler kun for opgaven — aldrig for at bruge platformen." },
-                  { Icon: Lock, k: "Direkte", t: "Ingen mellemled", b: "Du aftaler direkte med udbyderen — vi formidler kun kontakten." },
-                ].map(({ Icon, k, t, b }) => (
+                  { icon: iconFindMinutter.url, k: "Find", t: "Find på minutter", b: "Søg, filtrér og sammenlign lokale udbydere uden at oprette en konto." },
+                  { icon: iconCvr.url, k: "Tryghed", t: "CVR-tjekket", b: "Hver virksomhed valideres mod CVR-registret før de bliver synlige." },
+                  { icon: iconGratis.url, k: "Gratis", t: "Gratis for private", b: "Du betaler kun for opgaven — aldrig for at bruge platformen." },
+                  { icon: iconIngenMellemled.url, k: "Direkte", t: "Ingen mellemled", b: "Du aftaler direkte med udbyderen — vi formidler kun kontakten." },
+                ].map(({ icon, k, t, b }) => (
                   <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
-                        <Icon className="h-4 w-4" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/5">
+                        <img src={icon} alt="" className="h-6 w-6" loading="lazy" />
                       </div>
                       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
                     </div>
@@ -272,13 +283,13 @@ const AboutUs = () => {
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {PRINCIPLES.map(({ icon: Icon, title, text }) => (
+              {PRINCIPLES.map(({ icon, title, text }) => (
                 <div
                   key={title}
                   className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background">
-                    <Icon className="h-5 w-5" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground/5">
+                    <img src={icon} alt="" className="h-7 w-7" loading="lazy" />
                   </div>
                   <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</h3>
                   <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{text}</p>
@@ -306,13 +317,13 @@ const AboutUs = () => {
               </div>
               <dl className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { Icon: Building2, label: "Platform", value: "Serviceydere", sub: "serviceydere.dk" },
-                  { Icon: MapPin, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
-                  { Icon: Mail, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
-                ].map(({ Icon, label, value, sub, href }) => (
+                  { icon: iconPlatform.url, label: "Platform", value: "Serviceydere", sub: "serviceydere.dk" },
+                  { icon: iconOmraade.url, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
+                  { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
+                ].map(({ icon, label, value, sub, href }) => (
                   <div key={label} className="rounded-[20px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                      <Icon className="h-5 w-5" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft">
+                      <img src={icon} alt="" className="h-6 w-6" loading="lazy" />
                     </div>
                     <dt className="mt-4 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{label}</dt>
                     <dd className="mt-1 text-[15px] font-semibold text-foreground">
