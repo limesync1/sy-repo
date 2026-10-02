@@ -75,8 +75,23 @@ const BetaNotice = () => {
     } catch {
       /* private mode */
     }
-    const t = window.setTimeout(() => setPopupOpen(true), 900);
-    return () => window.clearTimeout(t);
+    // Vent med popup'en til cookievalget er truffet — ellers blokerer
+    // popup'ens mørke baggrund cookie-bjælken nederst på skærmen.
+    let t: number | undefined;
+    const openWhenReady = () => {
+      try {
+        if (!window.localStorage.getItem("serviceydere.cookie-consent")) return;
+      } catch {
+        /* private mode */
+      }
+      t = window.setTimeout(() => setPopupOpen(true), 900);
+    };
+    openWhenReady();
+    window.addEventListener("cookie-consent-given", openWhenReady);
+    return () => {
+      if (t) window.clearTimeout(t);
+      window.removeEventListener("cookie-consent-given", openWhenReady);
+    };
   }, [hidden, data?.enabled, done]);
 
   if (hidden || !data?.enabled) return null;
