@@ -59,3 +59,11 @@
 - [x] Ensret illustrationer i nøgletalsfelter og på Om os
 - [x] Stop kortnavigationens endeløse koordinatventetilstand og tilføj genforsøg
 - [x] Kontrollér centrale sider og rutekørsel på mobil og desktop
+
+## Ruteplanlægger og panelikoner
+- [ ] Skjul Varighed og Planlagte tider i ruteplanlæggerens aftalevisning
+- [ ] Vis tydeligt rutedage og antal ruter i Print ruter-kalenderen
+- [ ] Fjern krydset fra ikonet ved Aftaler uden rute
+- [ ] Opdatér kundeserviceikonet med den vedhæftede version
+- [ ] Tilpas Profil-, Beskeder- og Konto-ikoner i virksomhedsindstillinger
+- [ ] Kontrollér ændringerne i virksomhedspanelet på desktop
