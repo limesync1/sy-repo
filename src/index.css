@@ -1443,6 +1443,16 @@ img[loading="lazy"].is-error {
 @keyframes ui-modal-out { to { opacity: 0; translate: 0 10px; scale: 0.985; } }
 @keyframes ui-sheet-in { from { opacity: 0; translate: var(--ui-sheet-x, 0) var(--ui-sheet-y, 0); } }
 @keyframes ui-sheet-out { to { opacity: 0; translate: var(--ui-sheet-x, 0) var(--ui-sheet-y, 0); } }
+@keyframes sidebar-onboarding-nudge {
+  0%, 78%, 100% { transform: translateY(0) rotate(0deg); }
+  84% { transform: translateY(-2px) rotate(-3deg); }
+  90% { transform: translateY(0) rotate(3deg); }
+  96% { transform: translateY(-1px) rotate(0deg); }
+}
+
+.sidebar-onboarding-nudge {
+  animation: sidebar-onboarding-nudge 4.8s ease-in-out infinite;
+}
 
 .ui-overlay[data-state="open"] { animation: ui-fade-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
 .ui-overlay[data-state="closed"] { animation: ui-fade-out 220ms cubic-bezier(0.4, 0, 1, 1) both !important; }
@@ -1459,6 +1469,7 @@ img[loading="lazy"].is-error {
 /* Ved "begræns bevægelse" bevarer vi en kort, rolig fade (ingen bevægelse),
    så vinduer stadig ikke blinker hårdt frem. */
 @media (prefers-reduced-motion: reduce) {
+  .sidebar-onboarding-nudge { animation: none !important; }
   .ui-modal[data-state], .ui-sheet[data-state], .ui-overlay[data-state] {
     animation-name: ui-fade-in !important;
     animation-duration: 180ms !important;
