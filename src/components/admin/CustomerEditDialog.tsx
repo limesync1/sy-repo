@@ -383,7 +383,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <FieldLabel required>Email</FieldLabel>
+                <FieldLabel required>E-mail</FieldLabel>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
               </div>
               <div>

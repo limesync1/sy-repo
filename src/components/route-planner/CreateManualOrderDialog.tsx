@@ -345,7 +345,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                   <Field label={isBusiness ? "Firmanavn" : "Navn"} required>
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className="h-9" />
                   </Field>
-                  <Field label="Email" required>
+                  <Field label="E-mail" required>
                     <CustomerEmailAutocomplete
                       businessId={businessId}
                       value={customerEmail}

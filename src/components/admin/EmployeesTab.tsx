@@ -426,7 +426,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
               Ny medarbejder
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
-              Udfyld navn og e-mail — medarbejderen får en invitation med login.
+              Udfyld navn og e-mail for at oprette medarbejderen.
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto bg-secondary/20 px-4 py-4 sm:px-5">
