@@ -25,4 +25,4 @@
 - [x] Lead-knapper: Send som mail (rigtig afsendelse), Kopier, Gem udkast
 - [x] Meta: "Hent seneste leads nu" + "Send test-lead"
 - [ ] Meta: rigtige test-leads — venter på at brugeren forbinder Meta igen (forbindelsen står "Kræver handling")
-- [~] Fuld gennemgang af paneler: automatisk tjek af 10 virksomhedssider ok; dybdegennemgang side for side + medarbejderpanel mangler
+- [~] Fuld gennemgang: runde 2 udført (tablet/mobil, medarbejderpanel, store kundeknapper, danske datoer). Mangler: klik gennem alle vinduer/formularer side for side

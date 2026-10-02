@@ -90,9 +90,9 @@ export const MoveProjectedOccurrenceDialog = ({
                 <span className="block min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium sm:truncate">{routeName}</span>
               </div>
               <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 capitalize sm:truncate">{fromDate ? fmt(fromDate) : "—"}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 first-letter:uppercase sm:truncate">{fromDate ? fmt(fromDate) : "—"}</span>
                 <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
-                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium capitalize text-foreground sm:truncate">{toDate ? fmt(toDate) : "—"}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium first-letter:uppercase text-foreground sm:truncate">{toDate ? fmt(toDate) : "—"}</span>
               </div>
               {deltaDays !== 0 && (
                 <p className="text-[11px] text-muted-foreground">

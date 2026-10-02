@@ -216,7 +216,7 @@ const EmployeeStats = () => {
           guidede frem for at "blinke" pludseligt. */}
       <EmployeePage transitionKey={`${range}|${from}|${to}`}>
         <PageHeader
-          title={<span className="capitalize">{headerLabel}</span>}
+          title={<span className="inline-block first-letter:uppercase">{headerLabel}</span>}
           description={
             <span className="tabular-nums">
               {format(parseISO(from), "d. MMM yyyy", { locale: da })} – {format(parseISO(to), "d. MMM yyyy", { locale: da })}
@@ -315,7 +315,7 @@ const EmployeeStats = () => {
                               className="grid w-full gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
                             >
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-foreground tracking-tight capitalize">
+                                <p className="text-sm font-semibold text-foreground tracking-tight first-letter:uppercase">
                                   {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
                                 </p>
                                 <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">

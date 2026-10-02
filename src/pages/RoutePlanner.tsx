@@ -4504,7 +4504,7 @@ const Planner = () => {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <div className="min-w-0 flex-1 text-center">
-                      <p className="truncate text-sm font-semibold capitalize tabular-nums text-foreground">
+                      <p className="truncate text-sm font-semibold first-letter:uppercase tabular-nums text-foreground">
                         {view === "week"
                           ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
                           : format(parseISO(date), "MMMM yyyy", { locale: da })}

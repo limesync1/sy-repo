@@ -1054,13 +1054,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     {/* Handlinger */}
                     {/* Inline handlings-knapper — synlige for hver kunde, så ingen
                         dropdown er nødvendig. Tooltips forklarer hver handling. */}
-                     <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[120px]" onClick={(e) => e.stopPropagation()}>
+                     <div className="flex items-center justify-end gap-0.5 shrink-0 sm:min-w-[136px]" onClick={(e) => e.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                        <button
                              type="button"
                              onClick={() => setSelectedEmail(c.email)}
-                             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                             className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground sm:h-8 sm:w-8 hover:bg-secondary hover:text-foreground transition-colors"
                             aria-label="Se detaljer"
                           >
                             <ExternalLink className="h-4 w-4" />
@@ -1073,7 +1073,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                            <button
                              type="button"
                              onClick={() => openCreateOrderForCustomer(c)}
-                             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                             className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground sm:h-8 sm:w-8 hover:bg-secondary hover:text-foreground transition-colors"
                             aria-label="Opret aftale"
                           >
                             <ShoppingBag className="h-4 w-4" />
@@ -1086,7 +1086,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                            <button
                              type="button"
                              onClick={() => openEditDialog(c)}
-                             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                             className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground sm:h-8 sm:w-8 hover:bg-secondary hover:text-foreground transition-colors"
                             aria-label="Rediger kunde"
                           >
                             <Pencil className="h-4 w-4" />
@@ -1099,7 +1099,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                            <button
                              type="button"
                              onClick={() => setConfirmDelete({ open: true, targets: [c] })}
-                             className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                             className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground sm:h-8 sm:w-8 hover:bg-destructive/10 hover:text-destructive transition-colors"
                             aria-label="Slet kunde"
                           >
                             <Trash2 className="h-4 w-4" />
