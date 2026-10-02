@@ -743,7 +743,7 @@ const SmartStatCard = ({
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
           <div className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground transition-colors [&_img]:h-8 [&_img]:w-8 [&_img]:object-contain [&_svg]:h-5 [&_svg]:w-5",
             onClick && "group-hover:bg-foreground group-hover:text-background",
           )}>
             {icon}

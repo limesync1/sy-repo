@@ -85,3 +85,9 @@
 - [x] Kontrollér alle hovedvisninger på computer og mobil
 - [x] Begræns arbejdet til små finjusteringer uden ændret struktur
 - [x] Finjustér Overblik-toppen og giv Del profil den nye blå gradient
+
+## Små ikon- og farvejusteringer
+- [x] Gør nøgletalsikoner tydeligere i virksomheds- og medarbejderpanelerne
+- [x] Forstør kundeserviceikonet og fjern ikonfladen ved Profil, Beskeder og Konto
+- [x] Opdatér de to mørke forsidesektioner til den nye blå
+- [x] Centrér og forstør ikonerne i servicesøgningen uden ekstra ikonflader

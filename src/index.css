@@ -1477,6 +1477,11 @@ img[loading="lazy"].is-error {
   background-image: linear-gradient(180deg, hsl(var(--brand-blue-start) / 0.94), hsl(var(--brand-blue-end) / 0.94));
 }
 
+.brand-blue-section {
+  background:
+    linear-gradient(118deg, hsl(var(--hero-bg)) 0%, hsl(var(--brand-blue-end)) 100%);
+}
+
 .panel-overview-hero {
   background:
     linear-gradient(105deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg)) 48%, hsl(var(--brand-blue-end)) 100%);
