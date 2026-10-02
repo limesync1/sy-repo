@@ -13,7 +13,7 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult | n
   const q = address?.trim();
   if (!q || q.length < 4) return null;
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 6000);
+  const timeout = globalThis.setTimeout(() => controller.abort(), 6000);
   try {
     const url = `https://api.dataforsyningen.dk/adresser?q=${encodeURIComponent(q)}&struktur=mini&per_side=1`;
     const res = await fetch(url, { signal: controller.signal });
@@ -28,6 +28,6 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult | n
     console.warn("[geocode] Adressen kunne ikke slås op", error);
     return null;
   } finally {
-    window.clearTimeout(timeout);
+    globalThis.clearTimeout(timeout);
   }
 };

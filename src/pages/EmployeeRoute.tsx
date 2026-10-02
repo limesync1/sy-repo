@@ -666,18 +666,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     let cancelled = false;
     (async () => {
       let foundCoordinates = false;
+      let routeHit: Awaited<ReturnType<typeof geocodeAddress>> = null;
+      const stopHits = new Map<string, NonNullable<Awaited<ReturnType<typeof geocodeAddress>>>>();
       if (routeNeedsCoordinates && route?.start_address) {
-        const hit = await geocodeAddress(route.start_address);
-        if (!cancelled && hit) {
+        routeHit = await geocodeAddress(route.start_address);
+        if (!cancelled && routeHit) {
           foundCoordinates = true;
-          queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
-            old ? { ...old, route: { ...old.route, start_latitude: hit.latitude, start_longitude: hit.longitude } } : old,
-          );
-          try {
-            await supabase.from("routes").update({ start_latitude: hit.latitude, start_longitude: hit.longitude }).eq("id", routeId);
-          } catch {
-            // Ikke fatalt — kortet bruger koordinaterne fra cachen.
-          }
         }
       }
       for (const s of missing) {
@@ -685,20 +679,35 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         const hit = await geocodeAddress(addr);
         if (cancelled || !hit) continue;
         foundCoordinates = true;
-        queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
-          old
-            ? {
-                ...old,
-                stops: (old.stops || []).map((x: RouteStop) =>
-                  x.id === s.id ? { ...x, latitude: hit.latitude, longitude: hit.longitude } : x,
-                ),
-              }
-            : old,
-        );
+        stopHits.set(s.id, hit);
+      }
+      if (cancelled) return;
+      queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
+        old
+          ? {
+              ...old,
+              route: routeHit
+                ? { ...old.route, start_latitude: routeHit.latitude, start_longitude: routeHit.longitude }
+                : old.route,
+              stops: (old.stops || []).map((x: RouteStop) => {
+                const hit = stopHits.get(x.id);
+                return hit ? { ...x, latitude: hit.latitude, longitude: hit.longitude } : x;
+              }),
+            }
+          : old,
+      );
+      if (routeHit) {
         try {
-          await supabase.from("route_stops").update({ latitude: hit.latitude, longitude: hit.longitude }).eq("id", s.id);
+          await supabase.from("routes").update({ start_latitude: routeHit.latitude, start_longitude: routeHit.longitude }).eq("id", routeId);
         } catch {
-          // Ikke fatalt — kortet har allerede koordinaterne i cachen.
+          // Ikke fatalt — kortet bruger koordinaterne fra cachen.
+        }
+      }
+      for (const [stopId, hit] of stopHits) {
+        try {
+          await supabase.from("route_stops").update({ latitude: hit.latitude, longitude: hit.longitude }).eq("id", stopId);
+        } catch {
+          // Ikke fatalt — kortet bruger koordinaterne fra cachen.
         }
       }
       if (!cancelled) setGeocodeState(foundCoordinates ? "done" : "failed");

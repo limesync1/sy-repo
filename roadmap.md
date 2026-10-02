@@ -58,4 +58,4 @@
 - [x] Tilføj de 11 nye arbejdsdags-, statistik- og rutekørselsikoner
 - [x] Ensret illustrationer i nøgletalsfelter og på Om os
 - [x] Stop kortnavigationens endeløse koordinatventetilstand og tilføj genforsøg
-- [ ] Kontrollér centrale sider og rutekørsel på mobil og desktop
+- [x] Kontrollér centrale sider og rutekørsel på mobil og desktop
