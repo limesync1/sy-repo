@@ -1235,6 +1235,7 @@ export const RouteEditSheet = ({
         onOpenChange={setMoveStopsOpen}
         route={route}
         stops={stops}
+        onSourceRouteDeleted={() => onOpenChange(false)}
       />
 
       <SeriesScopeDialog
