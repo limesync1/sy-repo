@@ -7,17 +7,17 @@ import { IndustryIcon } from "@/components/IndustryIcon";
 import { topCategories } from "@/lib/service-taxonomy";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 import { ArrowRight } from "lucide-react";
-import iconCvr from "@/assets/brand/CVR_tjekket.png.asset.json";
-import iconEmail from "@/assets/brand/E-mail.png.asset.json";
+import iconCvr from "@/assets/content-icons/cvr-tjekket.svg.asset.json";
+import iconEmail from "@/assets/content-icons/email.svg.asset.json";
 import iconFairPriser from "@/assets/brand/Fair_priser.png.asset.json";
 import iconFindMinutter from "@/assets/brand/Find_paa_minutter.png.asset.json";
-import iconGratis from "@/assets/brand/Gratis_for_private.png.asset.json";
-import iconIngenMellemled from "@/assets/brand/Ingen_mellemled.png.asset.json";
+import iconGratis from "@/assets/content-icons/gratis-for-private.svg.asset.json";
+import iconIngenMellemled from "@/assets/content-icons/direkte.svg.asset.json";
 import iconLokal from "@/assets/brand/Lokal_forankring.png.asset.json";
-import iconOmraade from "@/assets/brand/Omraade.png.asset.json";
-import iconPlatform from "@/assets/brand/Platform.png.asset.json";
-import iconUafhaengig from "@/assets/brand/Uafhaengig_platform.png.asset.json";
-import iconVerificeret from "@/assets/brand/Verificerede_udbydere.png.asset.json";
+import iconOmraade from "@/assets/content-icons/omraade.svg.asset.json";
+import iconPlatform from "@/assets/content-icons/platform.svg.asset.json";
+import iconUafhaengig from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
+import iconVerificeret from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const PRINCIPLES = [

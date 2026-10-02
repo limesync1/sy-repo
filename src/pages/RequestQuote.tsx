@@ -26,12 +26,10 @@ import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import beskrivOpgavenIcon from "@/assets/quote/Beskriv_opgaven.png.asset.json";
-import viMatcherIcon from "@/assets/quote/Vi_matcher.png.asset.json";
-import sammenlignIcon from "@/assets/quote/Sammenlign_og_vaelg.png.asset.json";
 import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu-2.png.asset.json";
 import loaderMatchesGif from "@/assets/quote/Loader_matches-2.gif.asset.json";
 import { UiArtwork } from "@/components/shared/UiArtwork";
+import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
 /** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
  *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
@@ -586,13 +584,13 @@ const RequestQuote = () => {
               <h2 className="text-base font-semibold tracking-tight text-foreground">Sådan fungerer det</h2>
               <ol className="mt-4 space-y-4">
                 {[
-                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", icon: beskrivOpgavenIcon.url },
-                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: viMatcherIcon.url },
-                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: sammenlignIcon.url },
+                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", icon: "describeTask" as BrandedIllustrationName },
+                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: "match" as BrandedIllustrationName },
+                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: "compareProviders" as BrandedIllustrationName },
                 ].map((s) => (
                   <li key={s.n} className="flex gap-3">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-                      <img src={s.icon} alt="" width={40} height={40} className="h-10 w-10 object-contain" loading="lazy" decoding="async" />
+                      <BrandedIllustration name={s.icon} className="h-10 w-10" alt="" />
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-foreground">{s.title}</span>

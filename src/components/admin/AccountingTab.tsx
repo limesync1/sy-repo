@@ -32,7 +32,7 @@ import economicLogo from "@/assets/accounting/economic.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
 import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
-import saadanFungererDet from "@/assets/brand/Saadan_fungerer_det.png.asset.json";
+import saadanFungererDet from "@/assets/content-icons/saadan-fungerer-det.svg.asset.json";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.

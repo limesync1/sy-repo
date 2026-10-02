@@ -1,16 +1,16 @@
 import type { ComponentType, ImgHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-import appointmentsAsset from "@/assets/panel-icons/aftaler.svg.asset.json";
-import shareProfileAsset from "@/assets/panel-icons/del-profil.svg.asset.json";
-import settingsAsset from "@/assets/panel-icons/indstillinger.svg.asset.json";
-import customersAsset from "@/assets/panel-icons/kunder.svg.asset.json";
+import appointmentsAsset from "@/assets/content-icons/bestillinger.svg.asset.json";
+import shareProfileAsset from "@/assets/content-icons/del-din-profil.svg.asset.json";
+import settingsAsset from "@/assets/content-icons/indstillinger.svg.asset.json";
+import customersAsset from "@/assets/content-icons/kunder-i-alt.svg.asset.json";
 import appointmentStartedAsset from "@/assets/panel-icons/marker-aftale-startet.svg.asset.json";
 import appointmentCompletedAsset from "@/assets/panel-icons/marker-aftale-udfoert.svg.asset.json";
-import employeesAsset from "@/assets/panel-icons/medarbejdere.svg.asset.json";
-import revenueAsset from "@/assets/panel-icons/omsaetning.svg.asset.json";
-import privateCustomerAsset from "@/assets/panel-icons/privat-kunde.svg.asset.json";
-import accountingAsset from "@/assets/panel-icons/regnskabsprogram.svg.asset.json";
+import employeesAsset from "@/assets/content-icons/medarbejdere.svg.asset.json";
+import revenueAsset from "@/assets/content-icons/omsaetning.svg.asset.json";
+import privateCustomerAsset from "@/assets/content-icons/privatkunder.svg.asset.json";
+import accountingAsset from "@/assets/content-icons/regnskabsprogram.svg.asset.json";
 import routeAsset from "@/assets/panel-icons/rute.svg.asset.json";
 import routeStopsAsset from "@/assets/panel-icons/stops-paa-rute.svg.asset.json";
 import addOrderAsset from "@/assets/panel-icons/tilfoej-bestilling.svg.asset.json";
@@ -18,7 +18,7 @@ import addCustomerAsset from "@/assets/panel-icons/tilfoej-kunde.svg.asset.json"
 import addEmployeeAsset from "@/assets/panel-icons/tilfoej-medarbejder.svg.asset.json";
 import addPrivateCustomerAsset from "@/assets/panel-icons/tilfoej-privat-kunde.svg.asset.json";
 import addRouteAsset from "@/assets/panel-icons/tilfoej-rute.svg.asset.json";
-import addServiceAsset from "@/assets/panel-icons/tilfoej-service.svg.asset.json";
+import addServiceAsset from "@/assets/content-icons/tilfoej-service.svg.asset.json";
 import addRouteStopAsset from "@/assets/panel-icons/tilfoej-stop-paa-rute.svg.asset.json";
 import addBusinessAsset from "@/assets/panel-icons/tilfoej-virksomhed.svg.asset.json";
 import businessAsset from "@/assets/panel-icons/virksomhed.svg.asset.json";
