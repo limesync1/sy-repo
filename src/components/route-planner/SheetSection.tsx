@@ -18,6 +18,9 @@ export const SheetHeaderBlock = ({
   title,
   description,
   children,
+  /** Ekstra klasser til ikon-boksen — fx større flade til illustrationer
+      (tailwind-merge løser konflikten med standard h-9 w-9 / rounded-md). */
+  iconClassName,
 }: {
   icon?: React.ReactNode;
   /** Tekst i rund badge (fx sekvensnummer). Vises i stedet for ikon hvis sat. */
@@ -27,6 +30,7 @@ export const SheetHeaderBlock = ({
   description?: React.ReactNode;
   /** Ekstra indhold under description (fx status-badges). */
   children?: React.ReactNode;
+  iconClassName?: string;
 }) => {
   // Når der ikke er angivet en eksplicit accent-farve falder vi tilbage
   // på primary-tokenet. I light mode er det næsten sort (hvid ikon = ✓)
@@ -40,7 +44,10 @@ export const SheetHeaderBlock = ({
     <div className="flex items-start gap-3">
       {hasBadge && (
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 ring-1 ring-inset ring-border"
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 ring-1 ring-inset ring-border",
+            iconClassName,
+          )}
           style={{ background: bg, color: iconColor }}
           aria-hidden={!badge}
         >

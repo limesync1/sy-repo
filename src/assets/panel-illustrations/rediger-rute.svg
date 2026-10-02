@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Basic" xmlns="http://www.w3.org/2000/svg" width="1000px" height="1000px" viewBox="0 0 1000 1000"><defs>
+    <style>
+      .c1 { fill: #a2a2a1; }
+      .c2 { fill: #feeb02; }
+      .c3 { fill: #484f4d; }
+      .c4 { fill: #f05c24; }
+      .c5 { fill: #e0bf00; }
+      .c6 { fill: #d1d1d1; }
+      .c10 { fill: #ffffff; }
+      .c11 { fill: #e6e6e6; }
+      .wood { fill: #f6c67a; }
+      .wood2 { fill: #dea24d; }
+    </style>
+    <clipPath id="rr-map">
+      <polygon points="80,240 340,205 340,745 80,780"/>
+      <polygon points="340,205 600,240 600,780 340,745"/>
+      <polygon points="600,240 860,205 860,745 600,780"/>
+    </clipPath>
+    <clipPath id="rr-pin-r"><rect x="700" y="300" width="120" height="260"/></clipPath>
+    <clipPath id="rr-eraser"><rect x="-58" y="-585" width="116" height="80" rx="30"/></clipPath>
+  </defs>
+  <g transform="translate(0 -25)">
+    <!-- Kort: tykkelse -->
+    <g transform="translate(0 24)" fill="#a2a2a1" stroke="#a2a2a1" stroke-width="28" stroke-linejoin="round">
+      <polygon points="80,240 340,205 340,745 80,780"/>
+      <polygon points="340,205 600,240 600,780 340,745"/>
+      <polygon points="600,240 860,205 860,745 600,780"/>
+    </g>
+    <!-- Kort: flader -->
+    <g fill="#e6e6e6" stroke="#e6e6e6" stroke-width="28" stroke-linejoin="round">
+      <polygon points="80,240 340,205 340,745 80,780"/>
+      <polygon points="340,205 600,240 600,780 340,745"/>
+      <polygon points="600,240 860,205 860,745 600,780"/>
+    </g>
+    <g clip-path="url(#rr-map)">
+      <rect x="95" y="310" width="210" height="150" rx="50" fill="#8fb02e"/>
+      <circle cx="775" cy="305" r="48" fill="#8fb02e"/>
+      <path d="M440,150C440,330 530,360 530,470S455,640 475,820" fill="none" stroke="#63bae5" stroke-width="56" stroke-linecap="round"/>
+      <polygon points="340,205 600,240 600,780 340,745" fill="#000" opacity="0.07"/>
+    </g>
+    <!-- Rute -->
+    <path d="M170,700C290,700 310,575 420,575S580,675 700,545" fill="none" stroke="#fff" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M170,700C290,700 310,575 420,575S580,675 700,545" fill="none" stroke="#f05c24" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Start -->
+    <circle class="c10" cx="170" cy="700" r="54"/>
+    <circle class="c3" cx="170" cy="700" r="38"/>
+    <circle class="c10" cx="170" cy="700" r="13"/>
+    <!-- Nål -->
+    <path d="M700,560C700,560 618,470 618,405A82,82 0 1 1 782,405C782,470 700,560 700,560Z" fill="#fff" stroke="#fff" stroke-width="14" stroke-linejoin="round"/>
+    <path class="c2" d="M700,560C700,560 618,470 618,405A82,82 0 1 1 782,405C782,470 700,560 700,560Z"/>
+    <path class="c5" clip-path="url(#rr-pin-r)" d="M700,560C700,560 618,470 618,405A82,82 0 1 1 782,405C782,470 700,560 700,560Z"/>
+    <circle class="c3" cx="700" cy="405" r="32"/>
+    <!-- Blyant -->
+    <g transform="translate(540 905) rotate(45)">
+      <path d="M0,0L-58,-130H58Z" class="wood"/>
+      <path d="M0,0L58,-130H0Z" class="wood2"/>
+      <path d="M0,0L-23,-52H23Z" class="c3"/>
+      <rect class="c2" x="-58" y="-450" width="116" height="320"/>
+      <rect class="c5" x="22" y="-450" width="36" height="320"/>
+      <rect class="c6" x="-58" y="-505" width="116" height="55"/>
+      <rect class="c1" x="22" y="-505" width="36" height="55"/>
+      <rect class="c4" x="-58" y="-585" width="116" height="80" rx="30"/>
+      <rect x="-58" y="-540" width="116" height="35" fill="#f05c24"/>
+      <rect x="22" y="-585" width="36" height="80" fill="#d45020" clip-path="url(#rr-eraser)"/>
+    </g>
+  </g>
+</svg>
