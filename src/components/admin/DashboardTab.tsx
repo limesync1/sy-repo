@@ -392,10 +392,9 @@ const DashboardTab = ({
 
   return (
     <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
-      {/* Roligt velkomstfelt med samme blå retning som de nye ikoner. */}
+      {/* Roligt velkomstfelt i panelets nye mørke/blå designsprog. */}
       <section
-        className="relative isolate overflow-hidden rounded-md px-4 py-4 text-background sm:px-6 sm:py-6 lg:px-7 lg:py-7"
-        style={{ background: "linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(var(--brand-blue-end)) 100%)" }}
+        className="panel-overview-hero relative isolate overflow-hidden rounded-md px-4 py-4 text-background shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7"
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div
@@ -422,8 +421,7 @@ const DashboardTab = ({
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:shrink-0">
               <button
                 type="button" onClick={copyLink}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[hsl(var(--hero-bg))] transition-all hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
-                style={{ background: "linear-gradient(110deg, hsl(var(--hero-cyan)) 0%, hsl(var(--hero-cyan-bright)) 100%)" }}
+                className="brand-blue-action inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-[transform,box-shadow] hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
               >
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
                 {copied ? "Kopieret" : "Del profil"}
@@ -543,7 +541,7 @@ const DashboardTab = ({
 
         <section className="order-2 min-w-0 max-w-full space-y-3 sm:space-y-4 xl:order-2">
           {/* Smart Quick Actions */}
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+          <Card className="surface-admin overflow-hidden rounded-md border-border/80 shadow-sm">
             <div className="border-b border-border px-4 py-3 sm:px-5">
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-foreground" />
@@ -625,7 +623,7 @@ const DashboardTab = ({
 
           {/* Profilfuldendelse */}
           {completeness.pct < 100 && (
-            <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <Card className="surface-admin rounded-md border-border/80 shadow-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

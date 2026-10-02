@@ -1477,6 +1477,20 @@ img[loading="lazy"].is-error {
   background-image: linear-gradient(180deg, hsl(var(--brand-blue-start) / 0.94), hsl(var(--brand-blue-end) / 0.94));
 }
 
+.panel-overview-hero {
+  background:
+    linear-gradient(105deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg)) 48%, hsl(var(--brand-blue-end)) 100%);
+  border: 1px solid hsl(var(--brand-blue-start) / 0.18);
+}
+
+/* Den samme rolige overfladebehandling på virksomhedens, medarbejderens og
+   kundens arbejdsflader uden at ændre deres opbygning. */
+.service-panel-workspace .service-panel-card,
+.service-panel-workspace .surface-admin {
+  border-color: hsl(var(--border) / 0.82);
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.035), 0 10px 24px -22px hsl(var(--brand-blue-end) / 0.45);
+}
+
 .ui-overlay[data-state="open"] { animation: ui-fade-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
 .ui-overlay[data-state="closed"] { animation: ui-fade-out 220ms cubic-bezier(0.4, 0, 1, 1) both !important; }
 .ui-modal[data-state="open"] { animation: ui-modal-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
