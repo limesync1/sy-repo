@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * "Hvorfor Serviceydere" som redaktionel liste i stedet for fire ens kort:
@@ -40,7 +41,7 @@ const WhyUs = () => {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/65">
-              <span className="h-px w-6 bg-ocean-foreground/35" />
+              <SectionLabelMark />
               Hvorfor Serviceydere
             </span>
             <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-ocean-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:text-[2.75rem]">

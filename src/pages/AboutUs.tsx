@@ -18,6 +18,7 @@ import iconOmraade from "@/assets/brand/Omraade.png.asset.json";
 import iconPlatform from "@/assets/brand/Platform.png.asset.json";
 import iconUafhaengig from "@/assets/brand/Uafhaengig_platform.png.asset.json";
 import iconVerificeret from "@/assets/brand/Verificerede_udbydere.png.asset.json";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const PRINCIPLES = [
   { icon: iconVerificeret.url, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
@@ -150,7 +151,7 @@ const AboutUs = () => {
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-16">
               <div>
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <span className="h-px w-6 bg-foreground/30" />
+                  <SectionLabelMark />
                   Mission
                 </span>
                 <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
@@ -189,7 +190,7 @@ const AboutUs = () => {
             <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <span className="h-px w-6 bg-foreground/30" />
+                  <SectionLabelMark />
                   Brancher
                 </span>
                 <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
@@ -235,7 +236,7 @@ const AboutUs = () => {
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-16">
               <div className="max-w-md shrink-0">
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <span className="h-px w-6 bg-foreground/30" />
+                  <SectionLabelMark />
                   Geografi
                 </span>
                 <h2 className="mt-5 text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
@@ -272,7 +273,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Principper
               </span>
               <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
@@ -305,7 +306,7 @@ const AboutUs = () => {
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <span className="h-px w-6 bg-foreground/30" />
+                  <SectionLabelMark />
                   Kontakt
                 </span>
                 <h2 className="mt-5 text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">

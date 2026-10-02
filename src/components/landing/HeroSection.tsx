@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 import heroImage from "@/assets/hero-window-cleaning.webp";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * Forsidens hero — redaktionelt split-layout.
@@ -45,7 +46,7 @@ const HeroSection = () => {
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:pb-14 lg:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="max-w-2xl">
           <span className="animate-fade-in inline-flex items-center gap-2.5 text-[10.5px] font-medium uppercase tracking-[0.24em] text-background/60 sm:text-[11px]">
-            <span className="h-px w-6 bg-[hsl(var(--hero-cyan))]" />
+            <SectionLabelMark />
             Danmarks serviceplatform
           </span>
 

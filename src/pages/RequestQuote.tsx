@@ -426,7 +426,7 @@ const RequestQuote = () => {
                               setCategoryOpen(false);
                               setCategoryQuery("");
                             }}
-                            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                            className={`group flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
                               active ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary/60"
                             }`}
                           >

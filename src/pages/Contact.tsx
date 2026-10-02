@@ -6,6 +6,7 @@ import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 import PageHero from "@/components/landing/PageHero";
 import { Mail, MapPin, Clock, ArrowUpRight, ArrowRight, Sparkles } from "lucide-react";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const Contact = () => {
   const jsonLd = [
@@ -137,7 +138,7 @@ const Contact = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 max-w-2xl">
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Søger du en udbyder?
               </span>
               <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.5rem]">

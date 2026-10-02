@@ -7,6 +7,7 @@ import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { ShieldCheck, MessageSquare, BadgeCheck, Star, ArrowRight, ArrowUpRight, Quote, Sparkles } from "lucide-react";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const PREVIEW_REVIEWS = [
   { category: "Rengøring", city: "Aarhus", initials: "—", placeholder: true },
@@ -74,7 +75,7 @@ const Reviews = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 flex flex-col gap-3">
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Forhåndsvisning
               </span>
               <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
@@ -149,7 +150,7 @@ const Reviews = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Kvalitetsfilter
               </span>
               <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
@@ -186,7 +187,7 @@ const Reviews = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Sådan virker anmeldelser
               </span>
               <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">

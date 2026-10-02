@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * En enkel, sammenhængende proces frem for tre løsrevne salgskort.
@@ -29,7 +30,7 @@ const HowItWorks = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/65">
-            <span className="h-px w-6 bg-ocean-foreground/35" />
+            <SectionLabelMark />
             Sådan virker det
           </span>
           <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] sm:text-[2.2rem] lg:text-[2.4rem] 2xl:text-[2.75rem]">

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * SectionShell — den fælles ramme om alle sektioner på de offentlige sider.
@@ -69,10 +70,7 @@ const SectionShell = ({
                     align === "center" && "justify-center",
                   )}
                 >
-                  <span
-                    aria-hidden
-                    className={cn("h-px w-6", dark ? "bg-ocean-foreground/40" : "bg-foreground/30")}
-                  />
+                  <SectionLabelMark />
                   {eyebrow}
                 </span>
               )}
