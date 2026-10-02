@@ -42,6 +42,7 @@ import {
 } from "@/components/shared/OrderStatusBadges";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { CustomerIllustration, type CustomerIllustrationName } from "@/components/shared/CustomerIllustration";
+import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
 type Customer = {
   email: string;
@@ -579,6 +580,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [orderCustomer, setOrderCustomer] = useState<Customer | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EditableCustomer | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -774,7 +776,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   };
 
   const openCreateOrderForCustomer = (c: Customer) => {
-    openEditDialog(c);
+    setOrderCustomer(c);
   };
 
   const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
@@ -1170,6 +1172,22 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <CreateManualOrderDialog
+        open={!!orderCustomer}
+        onOpenChange={(v) => { if (!v) setOrderCustomer(null); }}
+        businessId={businessId}
+        businessName={businessName}
+        initialCustomer={orderCustomer ? {
+          customer_name: orderCustomer.name,
+          customer_email: orderCustomer.email,
+          customer_phone: orderCustomer.phone ?? null,
+          address: orderCustomer.address ?? null,
+          zip_code: orderCustomer.zip_code ?? null,
+          city: orderCustomer.city ?? null,
+          cvr: orderCustomer.cvr ?? null,
+          company_name: orderCustomer.company_name ?? null,
+        } : null}
+      />
     </div>
     </TooltipProvider>
   );
