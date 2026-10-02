@@ -66,4 +66,4 @@
 - [x] Fjern krydset fra ikonet ved Aftaler uden rute
 - [x] Opdatér kundeserviceikonet med den vedhæftede version
 - [x] Tilpas Profil-, Beskeder- og Konto-ikoner i virksomhedsindstillinger
-- [ ] Kontrollér ændringerne i virksomhedspanelet på desktop
+- [x] Kontrollér ændringerne i virksomhedspanelet på desktop
