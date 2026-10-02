@@ -2325,6 +2325,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
                 onComplete={() => handleComplete(s)}
                 onUndo={() => handleUndo(s)}
+                onNavigate={() => handleNavigate(s)}
                 isPending={updateStatus.isPending}
                 pendingTimeLabel="Starter automatisk, når du ankommer"
               />
