@@ -100,7 +100,7 @@ export const Section = React.forwardRef<HTMLDivElement, {
   // tracking-wider) så de to paneler ser ud som ét designsystem.
   <div ref={ref} className={cn("relative rounded-md border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]", className)}>
     <div className="flex min-h-9 items-center gap-2 rounded-t-[calc(0.375rem-1px)] border-b border-border bg-secondary/35 px-3 py-2">
-      <span
+      {icon ? <span
         className={cn(
           "inline-flex items-center justify-center h-5 w-5 rounded-[4px] shrink-0",
           tone === "primary"  && "bg-primary/10 text-primary",
@@ -112,7 +112,7 @@ export const Section = React.forwardRef<HTMLDivElement, {
         )}
       >
         <span className="[&>svg]:h-3 [&>svg]:w-3 inline-flex">{icon}</span>
-      </span>
+      </span> : null}
       <h4 className="text-[13px] font-semibold text-foreground">
         {title}
       </h4>
