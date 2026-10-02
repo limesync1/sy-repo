@@ -26,6 +26,11 @@ import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import beskrivOpgavenIcon from "@/assets/quote/Beskriv_opgaven.png.asset.json";
+import viMatcherIcon from "@/assets/quote/Vi_matcher.png.asset.json";
+import sammenlignIcon from "@/assets/quote/Sammenlign_og_vaelg.png.asset.json";
+import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu.png.asset.json";
+import loaderMatchesGif from "@/assets/quote/Loader_matches.gif.asset.json";
 
 /** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
  *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
@@ -583,13 +588,13 @@ const RequestQuote = () => {
               <h2 className="text-base font-semibold tracking-tight text-foreground">Sådan fungerer det</h2>
               <ol className="mt-4 space-y-4">
                 {[
-                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", hue: 186 },
-                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", hue: 262 },
-                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", hue: 28 },
+                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", icon: beskrivOpgavenIcon.url },
+                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: viMatcherIcon.url },
+                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: sammenlignIcon.url },
                 ].map((s) => (
-                  <li key={s.n} style={{ ["--step" as string]: `${s.hue}` }} className="flex gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--step)_70%_94%)] text-sm font-bold text-[hsl(var(--step)_60%_32%)] dark:bg-[hsl(var(--step)_45%_16%)] dark:text-[hsl(var(--step)_70%_78%)]">
-                      {s.n}
+                  <li key={s.n} className="flex gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-secondary/70 ring-1 ring-border">
+                      <img src={s.icon} alt="" width={44} height={44} className="h-full w-full object-contain" loading="lazy" decoding="async" />
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-foreground">{s.title}</span>
@@ -621,8 +626,8 @@ const RequestQuote = () => {
           <div className="flex flex-col items-center gap-6 text-center animate-fade-in">
             <div className="relative">
               <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/20 bg-accent/5 shadow-lg shadow-accent/20">
-                <Loader2 className="h-8 w-8 animate-spin text-accent" />
+              <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-accent/20 bg-card shadow-lg shadow-accent/20">
+                <img src={loaderMatchesGif.url} alt="" width={96} height={96} className="h-full w-full object-contain" />
               </div>
             </div>
             <div>
@@ -642,8 +647,8 @@ const RequestQuote = () => {
       {error && !isLoading && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
           <div className="rounded-[1.75rem] border border-border bg-card p-8 text-center animate-fade-in sm:p-10">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
-              <AlertCircle className="h-7 w-7 text-muted-foreground/70" />
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-secondary">
+              <img src={ingenMatchesIcon.url} alt="" width={80} height={80} className="h-full w-full object-contain" loading="lazy" decoding="async" />
             </div>
             <p className="text-lg font-semibold tracking-tight text-foreground">Ingen matches lige nu</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
