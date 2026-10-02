@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/price-format";
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRetainedValue } from "@/hooks/useRetainedValue";
 import { useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import { useMyBusiness, useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -73,7 +74,7 @@ import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialo
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { ConflictBanner } from "@/components/route-planner/ConflictBanner";
-import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { RouteEditSheet, ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import PlanningPanel from "@/components/route-planner/PlanningPanel";
 import SEO from "@/components/SEO";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
@@ -294,6 +295,7 @@ const Planner = () => {
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
+  const retainedHistoryRoute = useRetainedValue(historyRoute);
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
@@ -2275,6 +2277,7 @@ const Planner = () => {
     serviceSummaryForJob,
     todayStr,
   });
+  const retainedRouteMove = useRetainedValue(pendingRouteMove);
 
   // Databehandleraftale-tjekket i panelskallen viste ellers en ekstra
   // spinner mellem skeleton og planlægger. Vent på samme (cachede) opslag her.
@@ -3402,14 +3405,14 @@ const Planner = () => {
                       title="Farve"
                       hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
                     >
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className={ROUTE_COLOR_GRID}>
                         {ROUTE_COLORS.map((c) => (
                           <button
                             key={c.value}
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative h-6 w-6 shrink-0 rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
+                            className={`relative aspect-square w-full max-w-7 rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
                               newRouteColor === c.value
                                 ? "ring-2 ring-foreground scale-105 shadow-[0_3px_8px_-2px_rgba(0,0,0,0.25)]"
                                 : "hover:ring-2 hover:ring-foreground/40"
@@ -5148,9 +5151,9 @@ const Planner = () => {
         <MoveRouteDateDialog
           open={!!pendingRouteMove}
           onOpenChange={(o) => { if (!o) setPendingRouteMove(null); }}
-          routeName={pendingRouteMove?.route.name || "Rute"}
-          fromDate={pendingRouteMove?.route.route_date || ""}
-          toDate={pendingRouteMove?.newDate || ""}
+          routeName={retainedRouteMove?.route.name || "Rute"}
+          fromDate={retainedRouteMove?.route.route_date || ""}
+          toDate={retainedRouteMove?.newDate || ""}
           recurringAppointmentCount={pendingSeriesInfo?.recurringAppointmentCount ?? 0}
           linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
           loading={moveRouteSeries.isPending}
@@ -5834,8 +5837,8 @@ const Planner = () => {
           <RouteHistoryDialog
             open={!!historyRoute}
             onOpenChange={(o) => { if (!o) setHistoryRoute(null); }}
-            routeId={historyRoute?.id ?? null}
-            routeName={historyRoute?.name}
+            routeId={retainedHistoryRoute?.id ?? null}
+            routeName={retainedHistoryRoute?.name}
           />
         </Suspense>
       )}

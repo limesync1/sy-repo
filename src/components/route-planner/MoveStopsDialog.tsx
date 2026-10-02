@@ -9,6 +9,7 @@
 // gang"). For at flytte hele den faste serie til en anden ugedag skal man
 // bruge dato-vælgeren i RouteEditSheet, der bruger MoveRouteDateDialog.
 
+import { useRetainedValue } from "@/hooks/useRetainedValue";
 import { useEffect, useMemo, useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -162,7 +163,8 @@ type Props = {
 
 const fmtDay = (iso: string) => format(parseISO(iso), "EEEE d. MMM", { locale: da });
 
-export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode, preselectAll, onSourceRouteDeleted, onMoved }: Props) => {
+export const MoveStopsDialog = ({ open, onOpenChange, route: routeProp, stops, defaultMode, preselectAll, onSourceRouteDeleted, onMoved }: Props) => {
+  const route = useRetainedValue(routeProp);
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"date" | "route">("date");

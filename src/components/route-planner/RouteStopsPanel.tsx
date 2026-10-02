@@ -2,6 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
+import { useRetainedValue } from "@/hooks/useRetainedValue";
 import { useEffect, useRef, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -90,8 +91,9 @@ type Props = {
 };
 
 export const RouteStopsPanel = ({
-  route, stops, open, onOpenChange, onSelectStop, employees, onRouteDeleted, isProjection = false,
+  route: routeProp, stops, open, onOpenChange, onSelectStop, employees, onRouteDeleted, isProjection = false,
 }: Props) => {
+  const route = useRetainedValue(routeProp);
   const reorder = useReorderStops();
   const deleteStop = useDeleteStop();
   const qc = useQueryClient();
