@@ -168,40 +168,25 @@ type Props = {
 
 /** Navngivne farver — bruges i picker, til tooltips og demo-data. */
 export const ROUTE_COLORS = [
-  // Række 1: klare farver i farvecirklens rækkefølge.
+  // To rolige rækker med syv tydeligt forskellige farver.
   { name: "Rød", value: "#ef4444" },
   { name: "Orange", value: "#f97316" },
-  { name: "Rav", value: "#f59e0b" },
   { name: "Gul", value: "#eab308" },
-  { name: "Lime", value: "#84cc16" },
   { name: "Grøn", value: "#22c55e" },
-  { name: "Smaragd", value: "#10b981" },
   { name: "Teal", value: "#14b8a6" },
-  { name: "Cyan", value: "#06b6d4" },
-  { name: "Himmelblå", value: "#0ea5e9" },
   { name: "Blå", value: "#3b82f6" },
-  { name: "Indigo", value: "#6366f1" },
   { name: "Violet", value: "#8b5cf6" },
-  { name: "Pink", value: "#ec4899" },
-  // Række 2: de samme farver i mørk udgave — lige under deres lyse makker.
   { name: "Mørk rød", value: "#b91c1c" },
-  { name: "Mørk orange", value: "#c2410c" },
   { name: "Mørk rav", value: "#b45309" },
-  { name: "Okker", value: "#a16207" },
   { name: "Oliven", value: "#4d7c0f" },
   { name: "Mørk grøn", value: "#15803d" },
-  { name: "Mørk smaragd", value: "#047857" },
-  { name: "Mørk teal", value: "#0f766e" },
   { name: "Petrol", value: "#0e7490" },
-  { name: "Havblå", value: "#0369a1" },
-  { name: "Mørk blå", value: "#1d4ed8" },
   { name: "Mørk indigo", value: "#4338ca" },
-  { name: "Mørk lilla", value: "#6d28d9" },
   { name: "Bær", value: "#be185d" },
 ] as const;
 
-/** Antal kolonner i farvevælgeren (= én række pr. lys/mørk). */
-export const ROUTE_COLOR_GRID = "grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1";
+/** Syv kolonner giver to lige, let aflæselige rækker i begge rutevinduer. */
+export const ROUTE_COLOR_GRID = "grid grid-cols-7 gap-2";
 
 /** Bagudkompatibel farve-array (kun hex-værdier). */
 // Teal (brandfarven) først, så nye ruter som standard får den.
@@ -944,7 +929,7 @@ export const RouteEditSheet = ({
                       }}
                       title={c.name}
                       className={cn(
-                        "relative aspect-square rounded-md transition-all hover:scale-110 ring-offset-1 ring-offset-background flex items-center justify-center",
+                        "relative aspect-square w-full max-w-9 justify-self-center rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background flex items-center justify-center",
                         selected ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30",
                       )}
                       style={{ background: c.value }}

@@ -35,3 +35,4 @@
 - [x] Bevar sektionernes oprindelige opdeling og struktur uden redesign
 
 - [x] Dæmp kun de skarpe flerfarvede effekter i undersidernes topområder; bevar struktur og indhold
+- [x] Forenkle rutefarver til to overskuelige rækker og forhindre arkiverede spøgelsesruter

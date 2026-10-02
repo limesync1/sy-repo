@@ -1094,6 +1094,12 @@ export const useDeleteRoute = () => {
         .eq("id", routeId)
         .maybeSingle();
       if ((count ?? 0) > 0) {
+        // En arkiveret rute må ikke fortsat være anker for faste aftaler.
+        // Ellers kan kalenderen projicere den som en synlig spøgelsesrute.
+        await Promise.all([
+          supabase.from("subscriptions").update({ preferred_route_id: null }).eq("preferred_route_id", routeId),
+          supabase.from("agreements").update({ preferred_route_id: null }).eq("preferred_route_id", routeId),
+        ]);
         const { error } = await supabase
           .from("routes")
           .update({ archived_at: new Date().toISOString() })
