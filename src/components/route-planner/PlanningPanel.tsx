@@ -320,7 +320,7 @@ export const PlanningPanel = ({
           )}
 
           {/* Forklaringer */}
-          <section className="overflow-hidden rounded-md border border-border bg-card px-3 pb-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
+          <section className="overflow-hidden rounded-md border border-border bg-card px-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
             <button
               type="button"
               onClick={() => setExplanationsOpen((v) => !v)}
@@ -334,7 +334,7 @@ export const PlanningPanel = ({
               />
             </button>
             {explanationsOpen && (
-              <div className="-mx-3 space-y-3 border-t border-border px-3 pt-3 text-xs">
+              <div className="-mx-3 space-y-3 border-t border-border px-3 py-3 text-xs">
                 <LegendGroup title="Ordrestatus">
                   <LegendDot color="hsl(220 14% 70%)" label="Afventer" />
                   <LegendDot color="hsl(217 91% 60%)" label="Bekræftet" />
