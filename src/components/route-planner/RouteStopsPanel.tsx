@@ -23,7 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2, Undo2,
+  GripVertical, MapPin, Trash2, Inbox, Loader2, Undo2,
   Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
