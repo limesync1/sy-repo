@@ -2777,6 +2777,24 @@ export type Database = {
           },
         ]
       }
+      onboarding_videos: {
+        Row: {
+          step_id: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          step_id: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          step_id?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
