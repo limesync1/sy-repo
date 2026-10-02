@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ImgHTMLAttributes } from "react";
 import animatedArrow from "@/assets/ui/Pil_animeret.svg.asset.json";
-import recentSearch from "@/assets/ui/Senest_soegt.svg.asset.json";
-import searchIcon from "@/assets/ui/Soeg.svg.asset.json";
+import recentSearch from "@/assets/content-icons/senest-soegt.svg.asset.json";
+import searchIcon from "@/assets/content-icons/soeg.svg.asset.json";
 import animatedLine from "@/assets/ui/Streg_animeret.webp.asset.json";
 import { cn } from "@/lib/utils";
 

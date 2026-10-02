@@ -60,8 +60,18 @@ import accountingProgramNew from "@/assets/content-icons/regnskabsprogram.svg.as
 import howItWorksNew from "@/assets/content-icons/saadan-fungerer-det.svg.asset.json";
 import independentNew from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
 import verifiedProviderNew from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
+import fairPricesNew from "@/assets/content-icons/fair-priser.svg.asset.json";
+import noMatchesNew from "@/assets/content-icons/ingen-matches-lige-nu.svg.asset.json";
+import matchingLoaderNew from "@/assets/content-icons/loader-matches.svg.asset.json";
+import localRootsNew from "@/assets/content-icons/lokal-forankring.svg.asset.json";
+import plannedMonthNew from "@/assets/content-icons/planlagt-denne-maaned.svg.asset.json";
+import plannedWeekNew from "@/assets/content-icons/planlagt-denne-uge.svg.asset.json";
+import averageAppointmentNew from "@/assets/content-icons/snit-pr-aftale-maaned.svg.asset.json";
+import accountingProgramChoiceNew from "@/assets/content-icons/vaelg-dit-regnskabsprogram.svg.asset.json";
+import unassignedAppointmentsNew from "@/assets/content-icons/aftaler-uden-rute.svg.asset.json";
+import customerServiceNew from "@/assets/content-icons/kundeservice-ikon.svg.asset.json";
+import payoutNew from "@/assets/content-icons/til-udbetaling.svg.asset.json";
 
-import unassignedAppointmentsAsset from "@/assets/section-icons/virksomhed-ruter/aftaler-uden-rute.svg";
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
 import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
 import helpFindProviderAsset from "@/assets/section-icons/hjaelp/find-en-serviceudbyder.svg";
@@ -87,7 +97,6 @@ import conversionAsset from "@/assets/panel-illustrations/konvertering.svg.asset
 import aiCalculatorAsset from "@/assets/panel-illustrations/lad-ai-bygge-prisberegneren.svg.asset.json";
 import calculatorAsset from "@/assets/panel-illustrations/prisberegner.svg.asset.json";
 import fixedPriceAsset from "@/assets/panel-illustrations/specifik-pris.svg.asset.json";
-import payoutAsset from "@/assets/panel-illustrations/til-udbetaling.svg.asset.json";
 import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.json";
 import startDayIllustration from "@/assets/panel-illustrations/start-dagen.svg.asset.json";
 import dayInProgressIllustration from "@/assets/panel-illustrations/arbejdsdag-i-gang.svg.asset.json";
@@ -100,6 +109,8 @@ export const BRANDED_ILLUSTRATIONS = {
   bookOrQuote: bookOrQuoteNew.url,
   localEasy: localEasyNew.url,
   fairBusinesses: fairBusinessesNew.url,
+  localRoots: localRootsNew.url,
+  fairPrices: fairPricesNew.url,
   humanHelp: humanHelpNew.url,
   localCustomers: localCustomersNew.url,
   routePlanning: routePlanningNew.url,
@@ -117,7 +128,7 @@ export const BRANDED_ILLUSTRATIONS = {
   checkedBusinesses: checkedBusinessesNew.url,
   realReviews: realReviewsNew.url,
   compareQuickly: compareQuicklyNew.url,
-  unassignedAppointments: unassignedAppointmentsAsset,
+  unassignedAppointments: unassignedAppointmentsNew.url,
   economicIntegration: economicIntegrationAsset,
   dineroIntegration: dineroIntegrationAsset,
   helpFindProvider: helpFindProviderAsset,
@@ -131,9 +142,9 @@ export const BRANDED_ILLUSTRATIONS = {
   servicesTotal: servicesTotalNew.url,
   activeServices: activeServicesNew.url,
   orders: bookingsNew.url,
-  calendarWeek: bookingsNew.url,
-  calendarMonth: bookingsNew.url,
-  averageOrder: averageNew.url,
+  calendarWeek: plannedWeekNew.url,
+  calendarMonth: plannedMonthNew.url,
+  averageOrder: averageAppointmentNew.url,
   activeEmployee: activeEmployeeNew.url,
   pendingLogin: pendingLoginNew.url,
   payroll: payrollNew.url,
@@ -167,6 +178,8 @@ export const BRANDED_ILLUSTRATIONS = {
   averageResponseTime: averageResponseNew.url,
   describeTask: describeTaskNew.url,
   match: matchNew,
+  noMatches: noMatchesNew.url,
+  matchingLoader: matchingLoaderNew.url,
   businessCustomers: businessCustomersNew.url,
   privateCustomers: privateCustomersNew.url,
   customersTotal: customersTotalNew.url,
@@ -181,10 +194,12 @@ export const BRANDED_ILLUSTRATIONS = {
   messages: messagesNew.url,
   editRoute: editRouteNew.url,
   accountingProgram: accountingProgramNew.url,
+  accountingProgramChoice: accountingProgramChoiceNew.url,
   howItWorks: howItWorksNew.url,
   independent: independentNew.url,
   verifiedProvider: verifiedProviderNew.url,
-  payout: payoutAsset.url,
+  payout: payoutNew.url,
+  customerService: customerServiceNew.url,
   hourlyPrice: hourlyPriceAsset.url,
   unansweredMessages: unansweredNew.url,
   startDay: startDayIllustration.url,

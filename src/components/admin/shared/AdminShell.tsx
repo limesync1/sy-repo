@@ -21,7 +21,7 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/PanelBottomNav";
-import supportIcon from "@/assets/kundeservice-ikon.svg.asset.json";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import {
   ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminMobilePrimaryKeys, adminNeighbours,
@@ -200,7 +200,7 @@ export const AdminShell = ({
           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 text-xs font-semibold text-background shadow-sm transition-[background-color,transform] hover:bg-foreground/90 active:scale-95 motion-reduce:transition-none sm:px-3"
         >
           <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">
-            <img src={supportIcon.url} alt="" className="h-6 w-6 object-contain" />
+            <BrandedIllustration name="customerService" className="h-6 w-6" />
             <span className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75 motion-reduce:animate-none" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground" />

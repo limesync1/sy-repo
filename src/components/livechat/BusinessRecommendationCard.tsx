@@ -1,9 +1,7 @@
 import { formatPrice as formatDkk } from "@/lib/price-format";
 import { Link } from "react-router-dom";
 import { BadgeCheck, MapPin, ArrowRight, Building2 } from "lucide-react";
-import supportPortraitAsset from "@/assets/kundeservice-ikon.svg.asset.json";
-
-const supportPortrait = supportPortraitAsset.url;
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 interface RecommendationMetadata {
   kind: string;
@@ -54,7 +52,7 @@ const BusinessRecommendationCard = ({
     <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
       <div className="w-7 flex-shrink-0">
         <span className="flex h-9 w-9 items-center justify-center overflow-visible">
-          <img src={supportPortrait} alt="Serviceydere kundeservice" className="h-8 w-8 object-contain" />
+          <BrandedIllustration name="customerService" alt="Serviceydere kundeservice" className="h-8 w-8" />
         </span>
       </div>
       <div className="flex max-w-[88%] flex-col items-start">
