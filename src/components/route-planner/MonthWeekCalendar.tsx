@@ -1696,6 +1696,7 @@ const RoutePillInner = ({
   );
 
   return (
+    <RouteHoverPreview route={route} disabled={!!jobDragActive || !!routeDragSourceId || isDragging}>
     <RouteContextMenu
       hide={{
         duplicate: true,
@@ -1712,10 +1713,9 @@ const RoutePillInner = ({
         else if (action === "history" && canHistory) onShowHistory!();
       }}
     >
-      <RouteHoverPreview route={route} disabled={!!jobDragActive || !!routeDragSourceId || isDragging}>
-        {pill}
-      </RouteHoverPreview>
+      {pill}
     </RouteContextMenu>
+    </RouteHoverPreview>
   );
 };
 
