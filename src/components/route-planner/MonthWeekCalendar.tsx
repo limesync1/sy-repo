@@ -1487,7 +1487,7 @@ const RoutePillInner = ({
             )}
             <div
               className={cn(
-                "min-w-0 flex-1 break-words text-[12px] font-semibold leading-[1.2] line-clamp-2",
+                "min-w-0 flex-1 truncate text-[11.5px] font-semibold leading-[1.2]",
                 isVirtual ? "text-muted-foreground" : "text-foreground",
               )}
             >
@@ -1498,8 +1498,8 @@ const RoutePillInner = ({
             {isVirtual ? (
               <span
                 className="inline-flex shrink-0 items-center rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold leading-[14px] text-muted-foreground"
-                aria-label={projectedKind === "today" ? "Forventet besøg i dag fra en fast rute" : projectedKind === "past" ? "Tidligere forventet besøg fra en fast rute" : "Forventet besøg fra en fast rute"}
-                title="Vises automatisk, fordi en fast rute gentages på denne dag"
+                aria-label={projectedKind === "today" ? "Forventet i dag — den faste rute kører igen i dag" : projectedKind === "past" ? "Forventet besøg der er passeret" : "Forventet — den faste rute kører igen denne dag"}
+                title="Ruten er ikke lavet endnu. Den vises, fordi den faste rute kører igen denne dag."
               >
                 {projectedKind === "today" ? "Forventet i dag" : "Forventet"}
               </span>
@@ -1510,7 +1510,7 @@ const RoutePillInner = ({
             ) : (
               <>
                 {isBaseRecurring && (
-                  <span className="inline-flex shrink-0 items-center rounded-sm bg-accent/12 px-1 text-[10px] font-semibold leading-[14px] text-accent" aria-label="Fast rute – gentages automatisk">
+                  <span className="inline-flex shrink-0 items-center rounded-sm bg-accent/12 px-1 text-[10px] font-semibold leading-[14px] text-accent" aria-label="Fast rute — den kører igen af sig selv" title="Fast rute — den kører igen af sig selv">
                     Fast
                   </span>
                 )}
@@ -1543,7 +1543,7 @@ const RoutePillInner = ({
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
-          <div className="absolute right-0.5 top-0.5 z-[3] flex items-center opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/pill:opacity-100 [@media(hover:hover)]:focus-within:opacity-100">
+          <div className="absolute right-0.5 top-0.5 z-[3] flex items-center">
         {false && (
           <button
             type="button"
@@ -1567,7 +1567,7 @@ const RoutePillInner = ({
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
                 disabled={busy}
-                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
+                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md border border-border/70 bg-card/90 text-foreground/80 shadow-sm hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >
@@ -1750,7 +1750,7 @@ const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute
         </div>
         <p className="border-b border-border bg-secondary/40 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
           {route.isVirtual
-            ? "Forventet besøg: vises automatisk, fordi en fast rute gentages på denne dag. Stiplet kant betyder, at den ikke er en selvstændig rute endnu."
+            ? "Forventet: den faste rute kører igen denne dag. Den stiplet kant betyder, at ruten ikke er lavet endnu."
             : "Planlagt rute: gemt med faste aftaler på denne dag."}
         </p>
         <div className="space-y-2.5 px-3 py-2.5">

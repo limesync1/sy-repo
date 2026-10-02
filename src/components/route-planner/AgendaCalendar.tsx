@@ -480,7 +480,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {isVirtual && (
             <span
               className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
-              title="Forventet besøg — vises automatisk ud fra en fast rute"
+              title="Forventet — den faste rute kører igen denne dag"
             >
               <Lock className="h-2 w-2" />
               Forventet
