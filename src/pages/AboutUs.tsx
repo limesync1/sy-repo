@@ -40,13 +40,6 @@ const CITY_PILLS = [
   "Silkeborg", "Næstved", "Frederiksberg", "Holstebro",
 ];
 
-const CATEGORY_TONES = [
-  "bg-feature-cool text-feature-cool-foreground",
-  "bg-feature-warm text-feature-warm-foreground",
-  "bg-feature-lilac text-feature-lilac-foreground",
-  "bg-accent-soft text-accent",
-] as const;
-
 const FEATURED_CATEGORIES = topCategories().slice(0, 10);
 
 const AboutUs = () => {
@@ -209,17 +202,18 @@ const AboutUs = () => {
               </SmartLink>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-              {FEATURED_CATEGORIES.map((cat, i) => (
+                {FEATURED_CATEGORIES.map((cat) => (
                 <SmartLink
                   key={cat.key}
                   to={`/search?category=${encodeURIComponent(cat.key)}`}
-                  className={`group relative flex min-h-[140px] flex-col justify-between overflow-hidden rounded-[24px] border border-border/60 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${CATEGORY_TONES[i % CATEGORY_TONES.length]}`}
+                  className="group flex min-h-[140px] flex-col justify-between rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
-                  <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-                  <IndustryIcon category={cat.key} className="h-9 w-9" alt={cat.label} />
-                  <div className="relative">
-                    <div className="text-[14px] font-semibold leading-tight">{cat.label}</div>
-                    <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold opacity-80">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/60 bg-secondary/60 p-2">
+                    <IndustryIcon category={cat.key} className="h-full w-full" alt={cat.label} />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold leading-tight text-foreground">{cat.label}</div>
+                    <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
                       Se firmaer
                       <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </div>
