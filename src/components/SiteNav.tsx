@@ -17,6 +17,10 @@ import businessPanelIcon from "@/assets/header/Virksomhedspanel.png.asset.json";
 import employeePanelIcon from "@/assets/header/Medarbejder_app.png.asset.json";
 import platformAdminIcon from "@/assets/header/Platform_admin.png.asset.json";
 import logoutIcon from "@/assets/header/Log_ud.png.asset.json";
+import customerPanelSelected from "@/assets/header/Kundepanel_valgt.webp.asset.json";
+import businessPanelSelected from "@/assets/header/Virksomhedspanel_valgt.webp.asset.json";
+import employeePanelSelected from "@/assets/header/Medarbejder_app_valgt.webp.asset.json";
+import platformAdminSelected from "@/assets/header/Platform_admin_valgt.webp.asset.json";
 
 interface Props {
   active?: "search" | "quote" | "business" | "software" | null;
@@ -47,6 +51,24 @@ const NAV_GROUPS: { id: "customers" | "business"; label: string; items: NavItem[
 ];
 
 const PANEL_PREFERENCE_KEY = "preferred-panel-route";
+
+type PanelRole = {
+  label: string;
+  to: string;
+  icon: string;
+  selectedIcon: string;
+  current: boolean;
+};
+
+const PanelIcon = ({ role, selected, size = "md" }: { role: PanelRole; selected: boolean; size?: "md" | "lg" }) => {
+  const dimensions = size === "lg" ? "h-9 w-9" : "h-7 w-7";
+
+  if (!selected) {
+    return <img src={role.icon} alt="" className={`${dimensions} shrink-0 rounded-lg object-contain`} width={size === "lg" ? 36 : 28} height={size === "lg" ? 36 : 28} />;
+  }
+
+  return <img src={role.selectedIcon} alt="" className={`${dimensions} shrink-0 object-contain`} width={size === "lg" ? 36 : 28} height={size === "lg" ? 36 : 28} />;
+};
 
 const SiteNav = ({ active, right }: Props) => {
   const [open, setOpen] = useState(false);
@@ -85,21 +107,21 @@ const SiteNav = ({ active, right }: Props) => {
   });
 
   const roles = useMemo(() => {
-    const items: { label: string; to: string; icon: string; current: boolean }[] = [];
+    const items: PanelRole[] = [];
     if (!user) return items;
 
     // Sorteret efter "magt" — det højest privilegerede panel står først
     // og bliver dermed standardvalg ved første login.
     if (userRoles.includes("admin")) {
-      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
+      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminSelected.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
     }
     if (userRoles.includes("business_owner") || business) {
-      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, current: pathname.startsWith("/virksomhed") });
+      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelSelected.url, current: pathname.startsWith("/virksomhed") });
     }
     if (userRoles.includes("employee") || myEmployee) {
-      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, current: pathname.startsWith("/medarbejder") });
+      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelSelected.url, current: pathname.startsWith("/medarbejder") });
     }
-    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, current: pathname.startsWith("/min-konto") });
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelSelected.url, current: pathname.startsWith("/min-konto") });
 
     return items;
   }, [business, myEmployee, pathname, user, userRoles]);
@@ -203,7 +225,7 @@ const SiteNav = ({ active, right }: Props) => {
                         className="h-auto rounded-none px-3.5 py-2 text-sm font-semibold text-background hover:bg-foreground/90 hover:text-background"
                         title={`Gå til ${preferredRole.label}`}
                       >
-                        <img src={preferredRole.icon} alt="" className="h-7 w-7 rounded-md object-contain" width={28} height={28} />
+                        <PanelIcon role={preferredRole} selected />
                         <span className="max-w-[160px] truncate">{preferredRole.label}</span>
                       </Button>
                       <DropdownMenu>
@@ -226,7 +248,7 @@ const SiteNav = ({ active, right }: Props) => {
                               onClick={() => { handleSelectPanel(r.to); navigate(r.to); }}
                               className={preferredRole.to === r.to ? "bg-secondary" : ""}
                             >
-                              <img src={r.icon} alt="" className="mr-2 h-8 w-8 rounded-lg object-contain" width={32} height={32} />{r.label}
+                               <span className="mr-2"><PanelIcon role={r} selected={preferredRole.to === r.to} size="lg" /></span>{r.label}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
@@ -238,7 +260,7 @@ const SiteNav = ({ active, right }: Props) => {
                       onClick={() => navigate(preferredRole.to)}
                       className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 sm:inline-flex"
                     >
-                      <img src={preferredRole.icon} alt="" className="mr-1.5 h-7 w-7 rounded-md object-contain" width={28} height={28} />{preferredRole.label}
+                      <PanelIcon role={preferredRole} selected />{preferredRole.label}
                     </Button>
                   )
                 )}
@@ -326,7 +348,7 @@ const SiteNav = ({ active, right }: Props) => {
                           preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                         }`}
                       >
-                      <img src={r.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />{r.label}
+                       <PanelIcon role={r} selected={preferredRole?.to === r.to} size="lg" />{r.label}
                       </Button>
                     ))}
                     <div className="my-2 h-px bg-border" />
@@ -339,7 +361,7 @@ const SiteNav = ({ active, right }: Props) => {
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
                     className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
-                    <img src={preferredRole.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />Gå til {preferredRole.label}
+                     <PanelIcon role={preferredRole} selected size="lg" />Gå til {preferredRole.label}
                   </Button>
                 )}
                 <Button
