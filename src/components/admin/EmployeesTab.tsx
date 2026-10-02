@@ -121,7 +121,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
 
   const handleCreate = () => {
     if (!name.trim() || !email.trim()) {
-      toast.error("Navn og email er påkrævet");
+      toast.error("Udfyld navn og e-mail");
       return;
     }
     if (atLoginsLimit) {
@@ -426,7 +426,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
               Ny medarbejder
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
-              Opret medarbejderen i et fokuseret modul — resten af panelet dæmpes imens.
+              Udfyld navn og e-mail for at oprette medarbejderen.
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto bg-secondary/20 px-4 py-4 sm:px-5">
@@ -441,7 +441,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                 />
               </div>
               <div>
-                <FieldLabel required>Email</FieldLabel>
+                <FieldLabel required>E-mail</FieldLabel>
                 <Input
                   type="email"
                   value={email}
@@ -1123,7 +1123,7 @@ const EmployeeRow = ({
                   <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
                 </div>
                 <div className="sm:col-span-2">
-                  <FieldLabel required>Email</FieldLabel>
+                  <FieldLabel required>E-mail</FieldLabel>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -1312,7 +1312,7 @@ const EmployeeRow = ({
             <PrimaryButton
               onClick={() => {
                 if (!editName.trim() || !editEmail.trim()) {
-                  toast.error("Navn og email er påkrævet");
+                  toast.error("Udfyld navn og e-mail");
                   return;
                 }
                 const pctNum = editCommission.trim() === "" ? 0 : Number(editCommission.replace(",", "."));

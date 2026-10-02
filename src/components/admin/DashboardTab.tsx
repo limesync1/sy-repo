@@ -292,7 +292,7 @@ const DashboardTab = ({
       { label: "Logo", done: !!business.logo_url },
       { label: "Coverbillede", done: !!business.cover_image_url },
       { label: "Telefon", done: !!business.phone },
-      { label: "Email", done: !!business.email },
+      { label: "E-mail", done: !!business.email },
       { label: "Adresse", done: !!business.address },
       { label: "By", done: !!business.city },
       { label: "Services tilføjet", done: servicesCount > 0 },

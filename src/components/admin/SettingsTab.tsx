@@ -719,7 +719,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       { key: "cover",       section: "branding", done: !!coverUrl,                      label: "Coverbillede" },
       { key: "description", section: "general",  done: description.trim().length > 20,  label: "Beskrivelse" },
       { key: "phone",       section: "contact",  done: !!phone,                         label: "Telefon" },
-      { key: "email",       section: "contact",  done: !!email,                         label: "Email" },
+      { key: "email",       section: "contact",  done: !!email,                         label: "E-mail" },
       { key: "address",     section: "contact",  done: !!address && !!zipCode,          label: "Adresse" },
       { key: "categories",  section: "industries", done: selectedCategories.length > 0, label: "Branche" },
       { key: "hours",       section: "hours",    done: Object.keys(openHours).length > 0, label: "Åbningstider" },
@@ -1174,7 +1174,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   CVR: {cvrResult.vat} · {cvrResult.address}, {cvrResult.zipcode} {cvrResult.city}
                 </p>
                 {cvrResult.phone && <p className="text-xs text-muted-foreground">Tlf: {cvrResult.phone}</p>}
-                {cvrResult.email && <p className="text-xs text-muted-foreground">Email: {cvrResult.email}</p>}
+                {cvrResult.email && <p className="text-xs text-muted-foreground">E-mail: {cvrResult.email}</p>}
               </div>
               <Button size="sm" onClick={applyCvrData} className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
                 Anvend
@@ -1270,7 +1270,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </div>
                 </div>
                 <div data-tour="field-email">
-                  <FieldLabel required>Email</FieldLabel>
+                  <FieldLabel required>E-mail</FieldLabel>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="email" />

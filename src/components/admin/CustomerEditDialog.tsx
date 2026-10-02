@@ -188,10 +188,12 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   };
 
   const validate = (): string | null => {
-    if (!email.trim()) return "Email er påkrævet";
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return "Ugyldig email";
-    if (type === "private" && !name.trim()) return "Navn er påkrævet";
-    if (type === "business" && !companyName.trim()) return "Firmanavn er påkrævet";
+    const missing: string[] = [];
+    if (type === "private" && !name.trim()) missing.push("navn");
+    if (type === "business" && !companyName.trim()) missing.push("firmanavn");
+    if (!email.trim()) missing.push("e-mail");
+    if (missing.length) return `Udfyld ${missing.join(" og ")}`;
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return "Skriv en gyldig e-mailadresse, fx navn@firma.dk";
     return null;
   };
 
@@ -381,7 +383,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <FieldLabel required>Email</FieldLabel>
+                <FieldLabel required>E-mail</FieldLabel>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
               </div>
               <div>
