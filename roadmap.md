@@ -29,3 +29,7 @@
 - [x] Brug de vedhæftede valgte-ikoner i headerens panelvælger for kunde, virksomhed, medarbejder og platformadmin
 - [x] Opdatér søgning, kategori-pile, sektionslabels og sidepanelkontrol med de nye ikoner
 - [x] Ensret Lead-indstillinger med panelvinduer og ret søgeikoner, labelstreg og tilbudstrin
+## I gang
+- [ ] Udskift headerikoner med nye simple ikoner og passende kontrast
+- [ ] Gør labelstregen større og tydeligere
+- [ ] Gennemgå og forbedr offentlig sides visuelle konsistens på mobil og computer
