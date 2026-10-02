@@ -44,5 +44,10 @@ export default defineBlogPost({
       "Vask T-shirts efter hver brug — sved skal ikke nå at oxidere",
       "Tilsæt 1 dl iltbleg i hver kogvask som forebyggelse",
     ] },
+    { heading: "Læs videre", list: [
+      <a href="/guides/privatrengoering">Privatrengøring — pris og fradrag</a>,
+      <a href="/priser/rengoering">Rengøring pris 2026</a>,
+      <a href="/guides/rengoering">Rengøring — komplet guide</a>,
+    ] },
   ],
 });

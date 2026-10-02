@@ -31,5 +31,10 @@ export default defineBlogPost({
       "Funktion af alle elinstallationer og VVS",
     ] },
     { heading: "Sådan styrker du din position", paragraphs: ["Gem ALT skriftligt: tilbud, fakturaer, mailkorrespondance, billeder før/under/efter. Få afleveringsforretning med underskrevet mangelliste. Det halverer ofte konflikten ved en senere reklamationssag."] },
+    { heading: "Læs videre", list: [
+      <a href="/priser/haandvaerker">Hvad koster en håndværker i timen?</a>,
+      <a href="/guides/haandvaerkerfradrag-2026">Håndværkerfradrag 2026</a>,
+      <a href="/guides/haandvaerker">Find håndværker — komplet guide</a>,
+    ] },
   ],
 });
