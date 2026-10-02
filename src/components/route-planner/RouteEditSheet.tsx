@@ -1106,7 +1106,7 @@ export const RouteEditSheet = ({
                 <div className="flex items-start gap-2 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
                   <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/70" />
                   <div>
-                    <div className="font-semibold text-foreground mb-0.5">Projiceret forekomst</div>
+                    <div className="font-semibold text-foreground mb-0.5">Forventet besøg fra fast rute</div>
                     Denne rute er automatisk genereret ud fra basisruten. Ændringer i rækkefølge,
                     dato eller sletning gælder kun denne ene dag — for at ændre serien skal du
                     redigere basisruten.

@@ -254,7 +254,7 @@ export const RouteStopsPanel = ({
               <ListOrdered className="h-3 w-3 shrink-0 opacity-70" />
               <span className="truncate">
                 {isProjection
-                  ? "Projiceret forekomst · rediger originalruten for at ændre rækkefølgen"
+                  ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
                   : "Træk for at omrangere · klik for detaljer"}
               </span>
             </SheetDescription>
@@ -407,7 +407,7 @@ const SortableStopRow = ({
           <span
             className="flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7"
             aria-hidden
-            title="Projiceret rute — låst rækkefølge"
+            title="Forventet besøg — låst rækkefølge"
           >
             <GripVertical className="h-4 w-4" />
           </span>

@@ -1664,7 +1664,7 @@ const Planner = () => {
     const projectedSourceKeys: string[] = Array.isArray(r.sourceKeys) ? r.sourceKeys : [];
     const projectedPreviewStops = Array.isArray(r.stops) ? r.stops : [];
     if (projectedPreviewStops.length === 0) {
-      toast.error("Projiceret rute fjernet", {
+      toast.error("Forventet besøg fjernet", {
         description: "Ruten har ingen aktive stops og vises derfor ikke længere.",
       });
       await qc.invalidateQueries({ queryKey: ["route-calendar"] });
