@@ -15,7 +15,7 @@ export default function UsersFilters({ q, setQ, roleFilter, setRoleFilter, activ
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, email, telefon..." />
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, e-mail, telefon…" />
         <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
           <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>

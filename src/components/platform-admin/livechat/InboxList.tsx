@@ -63,7 +63,7 @@ export default function InboxList({
           <input
             ref={searchRef}
             value={search} onChange={(e) => onSearch(e.target.value)}
-            placeholder="Søg navn, email, emne, besked… (tryk /)"
+            placeholder="Søg navn, e-mail, emne, besked… (tryk /)"
             className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-2.5 text-xs text-foreground outline-none focus:border-foreground"
           />
         </div>

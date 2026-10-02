@@ -416,7 +416,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
 
       {/* Søgefelt */}
       <div data-tour="employees-search" className="flex items-center gap-2 flex-wrap">
-        <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, telefon eller titel..." />
+        <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, e-mail, telefon eller titel…" />
       </div>
 
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) resetForm(); else setShowForm(true); }}>
