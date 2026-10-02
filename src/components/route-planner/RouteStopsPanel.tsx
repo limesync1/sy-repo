@@ -23,7 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2, Undo2,
+  GripVertical, MapPin, Trash2, Inbox, Loader2, Undo2,
   Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -416,7 +416,7 @@ const SortableStopRow = ({
         {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
         <div className="flex shrink-0 items-center pr-1.5">
           <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[12px] font-bold tabular-nums shadow-sm ring-1 ring-card sm:h-8 sm:w-8 sm:text-sm"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-sm ring-1 ring-card"
             style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
             aria-label={`Stop ${index}`}
           >
@@ -439,7 +439,7 @@ const SortableStopRow = ({
               <span
                 aria-hidden
                 title={stop.service_summary}
-                className="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-md bg-secondary/70 ring-1 ring-border/60 p-1"
+                className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded-md bg-secondary/70 p-0.5"
               >
                 <IndustryIcon
                   name={stop.service_summary}
@@ -454,7 +454,6 @@ const SortableStopRow = ({
             {assigneeEmps.length > 0 && (
               <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
             )}
-            <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
           </div>
 
           {/* Ydelse — sekundær linje */}
@@ -531,7 +530,7 @@ const SortableStopRow = ({
         )}
 
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
-        <div className="flex shrink-0 items-stretch self-stretch border-l border-border/60 bg-secondary/25">
+        <div className="flex shrink-0 flex-col items-center justify-center gap-1 px-1.5">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
@@ -543,7 +542,7 @@ const SortableStopRow = ({
               type="button"
               onClick={onRemove}
               className={cn(
-                "flex w-10 rounded-none border-l border-border/60",
+                "flex h-8 w-8 rounded-md",
                 ICON_BTN_DESTRUCTIVE,
               )}
               aria-label="Fjern stop"
@@ -660,7 +659,7 @@ const AssigneeToggle = ({
         <button
           type="button"
           className={cn(
-            "flex w-9 rounded-none",
+            "flex h-8 w-8 rounded-md",
             ICON_BTN_ACCENT,
             selectedIds.length > 0 && "text-accent",
           )}
