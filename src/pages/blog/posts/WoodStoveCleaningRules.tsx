@@ -48,5 +48,9 @@ export default defineBlogPost({
       "Installerer ny ovn uden anmeldelse til skorstensfejer",
       "Glemmer at tjekke afstandskrav ved gulvskift",
     ] },
+    { heading: "Læs videre", list: [
+      <a href="/priser/skorstensfejer">Skorstensfejer pris 2026</a>,
+      <a href="/guides/servicefradrag-2026">Servicefradrag 2026</a>,
+    ] },
   ],
 });
