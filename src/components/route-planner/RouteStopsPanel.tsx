@@ -239,7 +239,7 @@ export const RouteStopsPanel = ({
               className="absolute left-0 top-0 bottom-0 w-1"
               style={{ background: route.color }}
             />
-            <SheetTitle className="flex items-center gap-2 text-[17px] leading-tight">
+            <SheetTitle className="flex items-center gap-2 text-base leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
                 Stops på ruten
               </span>
@@ -250,8 +250,8 @@ export const RouteStopsPanel = ({
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-[11.5px] leading-snug mt-1 text-muted-foreground/85 flex items-center gap-1.5">
-              <ListOrdered className="h-3 w-3 shrink-0 opacity-70" />
+            <SheetDescription className="text-[13px] leading-snug mt-0.5 text-muted-foreground flex items-center gap-1.5">
+              <ListOrdered className="h-3.5 w-3.5 shrink-0 opacity-70" />
               <span className="truncate">
                 {isProjection
                   ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
@@ -273,7 +273,7 @@ export const RouteStopsPanel = ({
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={items.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                  <ol className="space-y-1.5">
+                  <ol className="space-y-2">
                     {items.map((stop, idx) => (
                       <SortableStopRow
                         key={stop.id}
