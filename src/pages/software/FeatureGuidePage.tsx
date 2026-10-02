@@ -111,7 +111,6 @@ const FeatureGuidePage = () => {
           <span className="text-foreground">Funktionsguide</span>
         </nav>
 
-        <h1 className="sr-only">Funktionsguide til Serviceydere</h1>
 
         {/* Søgning */}
         <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
