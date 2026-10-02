@@ -1,11 +1,11 @@
 // "Kom godt i gang" — fast fane i virksomhedspanelet.
-// Bruger samme layout-sprog som de øvrige faner: PageHeader øverst,
-// nøgletal-kort, og indhold i SectionCard'er. To kolonner på store skærme,
-// én kolonne på mobil/tablet.
+// Bevidst enkelt layout: PageHeader, ét "start her"-kort med fremgang, og
+// én liste med trin. Færdige trin og frivilligt ekstra ligger foldet sammen,
+// så skærmen aldrig viser mere end det næste, der skal gøres.
 import { useEffect, useRef, useState } from "react";
 import {
-  CheckCircle2, Inbox, MessageCircle, Star, LifeBuoy, BookOpen, Sparkles,
-  Clock, ChevronDown, ExternalLink, ListChecks, Rocket, Target,
+  CheckCircle2, ChevronDown, ExternalLink, ListChecks, Rocket, Target,
+  LifeBuoy, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,17 +20,11 @@ type Props = {
   onNavigate: (tab: string, action?: string | null) => void;
 };
 
-const NEXT_LEVEL_LINKS = [
-  { icon: Inbox, title: "Leads", body: "Modtag kundehenvendelser fra Serviceydere.", tab: "settings" },
-  { icon: MessageCircle, title: "Livechat", body: "Lad besøgende skrive direkte til jer.", tab: "settings" },
-  { icon: Star, title: "Anmeldelser", body: "Bed kunder om en anmeldelse efter besøg.", tab: "reviews" },
-];
-
 const RESOURCES = [
-  { title: "Brugsanvisning til ruteplanlæggeren", body: "Søgbar guide til hver funktion — med eksempel og trin. Kan hentes som PDF.", href: "/software/funktioner" },
-  { title: "Ofte stillede spørgsmål", body: "Aftaler, bestillinger, priser og medarbejder-app.", href: "/hjaelp#faq" },
-  { title: "Prisguides", body: "Se markedspriser i jeres branche som udgangspunkt.", href: "/guides/priser-2026" },
-  { title: "Kontakt os", body: "Sidder I fast? Skriv til os — vi svarer på hverdage.", href: "/kontakt" },
+  { title: "Guide til ruteplanlæggeren", href: "/software/funktioner" },
+  { title: "Ofte stillede spørgsmål", href: "/hjaelp#faq" },
+  { title: "Prisguides", href: "/guides/priser-2026" },
+  { title: "Kontakt os", href: "/kontakt" },
 ];
 
 export default function GettingStartedTab({ business, onNavigate }: Props) {
@@ -39,8 +33,8 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
     focus, setFocus, clearFocus, completedCount, totalCount, allDone, nextStepId,
   } = useOnboardingSignals(business);
   const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | "none" | null>(null);
-  const [showNextLevel, setShowNextLevel] = useState(false);
   const [showDone, setShowDone] = useState(false);
+  const [showExtra, setShowExtra] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const wasDone = useRef<boolean | null>(null);
   useEffect(() => {
@@ -76,23 +70,15 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         description={
           allDone
             ? "Opsætningen er færdig — jeres side er klar til kunder."
-            : `${totalCount} ting skal på plads, før I kan tage imod jeres første kunde.`
+            : `${activeSteps.length} ting tilbage, før I kan tage imod jeres første kunde.`
         }
         action={
-          <div className="flex w-full gap-2 sm:w-auto">
-            {focus && (
-              <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={clearFocus}>
-                <Target className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                Skift formål
-              </Button>
-            )}
-            <Button asChild variant="outline" size="sm" className="h-9 flex-1 text-xs sm:flex-none">
-              <a href={publicHref} target="_blank" rel="noreferrer">
-                Se jeres side
-                <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
-              </a>
-            </Button>
-          </div>
+          <Button asChild variant="outline" size="sm" className="h-9 text-xs">
+            <a href={publicHref} target="_blank" rel="noreferrer">
+              Se jeres side
+              <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
+            </a>
+          </Button>
         }
       />
 
@@ -103,7 +89,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           allDone ? "border-accent/40" : "border-border",
         )}
       >
-        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="min-w-0">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-foreground">
               <Rocket className="h-3 w-3" aria-hidden="true" />
@@ -163,11 +149,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
               celebrate && "animate-pulse",
             )}
           >
-            {completedCount}/{totalCount} · {pct}%
-          </span>
-          <span className="hidden shrink-0 items-center gap-1 text-xs text-muted-foreground sm:inline-flex">
-            <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-            ~15 min
+            {completedCount}/{totalCount}
           </span>
         </div>
       </div>
@@ -195,137 +177,126 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         </SectionCard>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] xl:items-start">
-        {/* Venstre: trin */}
-        <div className="space-y-4">
-          {activeSteps.length > 0 && (
-            <SectionCard
-              title={`Skal på plads (${activeSteps.length})`}
-              icon={<ListChecks />}
-              description="Start øverst — vi åbner det rigtige sted i panelet for jer."
-            >
-              <div className="space-y-2">
-                {activeSteps.map((step) => (
-                  <OnboardingStepCard
-                    key={step.id}
-                    step={step}
-                    number={steps.indexOf(step) + 1}
-                    counts={counts}
-                    done={false}
-                    current={step.id === nextStepId}
-                    skipped={!!skipped[step.id]}
-                    expanded={expandedId === step.id}
-                    onToggleExpand={() =>
-                      setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
-                    }
-                    onNavigate={onNavigate}
-                    onToggleSkip={() => toggleSkip(step.id)}
-                  />
-                ))}
-              </div>
-            </SectionCard>
-          )}
+      {/* Trinene — én enkel liste */}
+      {activeSteps.length > 0 && (
+        <SectionCard
+          title={`Skal på plads (${activeSteps.length})`}
+          icon={<ListChecks />}
+          description="Start øverst — vi åbner det rigtige sted i panelet for jer."
+          action={
+            focus ? (
+              <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFocus}>
+                <Target className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                Skift formål
+              </Button>
+            ) : undefined
+          }
+        >
+          <div className="space-y-2">
+            {activeSteps.map((step) => (
+              <OnboardingStepCard
+                key={step.id}
+                step={step}
+                number={steps.indexOf(step) + 1}
+                counts={counts}
+                done={false}
+                current={step.id === nextStepId}
+                skipped={!!skipped[step.id]}
+                expanded={expandedId === step.id}
+                onToggleExpand={() =>
+                  setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
+                }
+                onNavigate={onNavigate}
+                onToggleSkip={() => toggleSkip(step.id)}
+              />
+            ))}
+          </div>
+        </SectionCard>
+      )}
 
-          {allDone && (
-            <SectionCard
-              title="Grundopsætningen er på plads"
-              icon={<CheckCircle2 />}
-              description="Medarbejderne kan logge ind og se deres aftaler. Næste niveau:"
-              className="border-accent/30"
-            >
-              <div className="grid gap-2 sm:grid-cols-3">
-                {NEXT_LEVEL_LINKS.map((n) => (
-                  <button
-                    key={n.title}
-                    type="button"
-                    onClick={() => onNavigate(n.tab)}
-                    className="rounded-xl border border-border bg-background p-3 text-left transition-colors hover:border-foreground/30 hover:bg-secondary/40"
-                  >
-                    <n.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                    <p className="mt-1.5 text-sm font-semibold text-foreground">{n.title}</p>
-                    <p className="text-xs leading-snug text-muted-foreground">{n.body}</p>
-                  </button>
-                ))}
-              </div>
-            </SectionCard>
-          )}
+      {allDone && (
+        <SectionCard
+          title="Grundopsætningen er på plads"
+          icon={<CheckCircle2 />}
+          description="Medarbejderne kan logge ind og se deres aftaler. Kunder kan finde jer i søgningen."
+          className="border-accent/30"
+        >
+          <p className="text-sm text-muted-foreground">
+            Brug fanerne i sidemenuen til hverdagen — Aftaler, Ruter og Leads. Denne side kan I altid vende tilbage til.
+          </p>
+        </SectionCard>
+      )}
 
-          {/* Færdige trin */}
-          {doneSteps.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-              <button
-                type="button"
-                onClick={() => setShowDone((v) => !v)}
-                aria-expanded={showDone}
-                className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
-              >
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                <span className="text-sm font-semibold text-foreground">Færdige ({doneSteps.length})</span>
-                <ChevronDown
-                  className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showDone && "rotate-180")}
-                  aria-hidden="true"
+      {/* Færdige trin — foldet sammen */}
+      {doneSteps.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowDone((v) => !v)}
+            aria-expanded={showDone}
+            className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+            <span className="text-sm font-semibold text-foreground">Færdige ({doneSteps.length})</span>
+            <ChevronDown
+              className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showDone && "rotate-180")}
+              aria-hidden="true"
+            />
+          </button>
+          {showDone && (
+            <div className="border-t border-border">
+              {doneSteps.map((step) => (
+                <OnboardingStepCard
+                  key={step.id}
+                  step={step}
+                  counts={counts}
+                  done
+                  compact
+                  skipped={!!skipped[step.id]}
+                  expanded={false}
+                  onToggleExpand={() => {}}
+                  onNavigate={onNavigate}
+                  onToggleSkip={() => toggleSkip(step.id)}
                 />
-              </button>
-              {showDone && (
-                <div className="border-t border-border">
-                  {doneSteps.map((step) => (
-                    <OnboardingStepCard
-                      key={step.id}
-                      step={step}
-                      counts={counts}
-                      done
-                      compact
-                      skipped={!!skipped[step.id]}
-                      expanded={false}
-                      onToggleExpand={() => {}}
-                      onNavigate={onNavigate}
-                      onToggleSkip={() => toggleSkip(step.id)}
-                    />
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
           )}
         </div>
+      )}
 
-        {/* Højre: frivilligt + ressourcer */}
-        <div className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-            <button
-              type="button"
-              onClick={() => setShowNextLevel((v) => !v)}
-              aria-expanded={showNextLevel}
-              className="flex w-full items-start gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
-            >
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold text-foreground">Når I er klar</span>
-                <span className="block text-xs text-muted-foreground">Frivilligt — blokerer ikke opstarten</span>
-              </span>
-              <ChevronDown
-                className={cn("ml-auto mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform", showNextLevel && "rotate-180")}
-                aria-hidden="true"
+      {/* Ekstra: frivillige trin + ressourcer — foldet sammen */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <button
+          type="button"
+          onClick={() => setShowExtra((v) => !v)}
+          aria-expanded={showExtra}
+          className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
+        >
+          <Sparkles className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-foreground">Mere — når I er klar</span>
+            <span className="block text-xs text-muted-foreground">Frivillige funktioner og hjælp. Blokerer ikke opstarten.</span>
+          </span>
+          <ChevronDown
+            className={cn("ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform", showExtra && "rotate-180")}
+            aria-hidden="true"
+          />
+        </button>
+        {showExtra && (
+          <div className="space-y-3 border-t border-border p-3 sm:p-4">
+            {nextLevelSteps.map((step) => (
+              <OnboardingStepCard
+                key={step.id}
+                step={step}
+                counts={counts}
+                done={done[step.id]}
+                skipped={!!skipped[step.id]}
+                expanded={expandedId === step.id}
+                onToggleExpand={() => setManualExpanded((cur) => (cur === step.id ? "none" : step.id))}
+                onNavigate={onNavigate}
+                onToggleSkip={() => toggleSkip(step.id)}
               />
-            </button>
-            {showNextLevel && (
-              <div className="space-y-2 border-t border-border p-3">
-                {nextLevelSteps.map((step) => (
-                  <OnboardingStepCard
-                    key={step.id}
-                    step={step}
-                    counts={counts}
-                    done={done[step.id]}
-                    skipped={!!skipped[step.id]}
-                    expanded={expandedId === step.id}
-                    onToggleExpand={() => setManualExpanded((cur) => (cur === step.id ? "none" : step.id))}
-                    onNavigate={onNavigate}
-                    onToggleSkip={() => toggleSkip(step.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <SectionCard title="Ressourcer" icon={<Sparkles />}>
+            ))}
             <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
               {RESOURCES.map((r) => (
                 <a
@@ -333,39 +304,27 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                   href={r.href}
                   className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
                 >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-foreground">{r.title}</span>
-                    <span className="block truncate text-xs leading-snug text-muted-foreground">{r.body}</span>
-                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{r.title}</span>
                   <ExternalLink
                     className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
                     aria-hidden="true"
                   />
                 </a>
               ))}
+              <a
+                href="/hjaelp"
+                className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
+              >
+                <LifeBuoy className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">Hjælp og support</span>
+                <ExternalLink
+                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </a>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
-                <a href={publicHref} target="_blank" rel="noreferrer">
-                  <BookOpen className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                  Se din offentlige side
-                </a>
-              </Button>
-              <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
-                <a href="/guides/serviceydere-ruteplanlaegger-brugerguide.pdf" target="_blank" rel="noreferrer" download>
-                  <BookOpen className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                  Hent PDF-guide
-                </a>
-              </Button>
-              <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
-                <a href="/hjaelp">
-                  <LifeBuoy className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                  Hjælp og support
-                </a>
-              </Button>
-            </div>
-          </SectionCard>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
