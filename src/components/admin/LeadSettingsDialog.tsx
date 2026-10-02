@@ -224,10 +224,10 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /><Label>Maks. afstand</Label></div>
                 <span className="text-sm font-semibold tabular-nums">{s.lead_max_km ? `${s.lead_max_km} km` : "Hele landet"}</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
                 {DISTANCE_PRESETS.map((p) => (
                   <Button key={p.label} type="button" variant={s.lead_max_km === p.km ? "default" : "outline"} onClick={() => setS({ ...s, lead_max_km: p.km })}
-                    className="h-auto min-h-11 justify-start px-2 py-1.5 text-left text-xs">
+                    className="h-auto min-h-11 flex-col items-start justify-center gap-0 px-2 py-1.5 text-left text-xs">
                     <span className="block font-semibold">{p.label}</span>
                     <span className="block opacity-75">{p.hint}</span>
                   </Button>
