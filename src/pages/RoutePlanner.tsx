@@ -1139,7 +1139,9 @@ const Planner = () => {
       const { data, error } = await supabase
         .from("routes")
         .select("*")
-        .in("id", recurringRouteIds);
+        .in("id", recurringRouteIds)
+        .is("archived_at", null)
+        .is("deleted_at", null);
       if (error) throw error;
       const routes = (data || []) as any[];
       const { data: stopsData, error: stopsErr } = await supabase
@@ -3412,9 +3414,9 @@ const Planner = () => {
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square w-full max-w-7 rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
+                            className={`relative aspect-square w-full max-w-9 justify-self-center rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background shadow-sm ${
                               newRouteColor === c.value
-                                ? "ring-2 ring-foreground scale-105 shadow-[0_3px_8px_-2px_rgba(0,0,0,0.25)]"
+                                ? "ring-2 ring-foreground scale-105 shadow-md"
                                 : "hover:ring-2 hover:ring-foreground/40"
                             }`}
                             style={{ background: c.value }}
