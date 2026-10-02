@@ -392,25 +392,16 @@ const DashboardTab = ({
 
   return (
     <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
-      {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
+      {/* Roligt velkomstfelt med samme blå retning som de nye ikoner. */}
       <section
-        className="relative isolate overflow-hidden rounded-xl px-3 py-3 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
-        style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+        className="relative isolate overflow-hidden rounded-md px-4 py-4 text-background sm:px-6 sm:py-6 lg:px-7 lg:py-7"
+        style={{ background: "linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(var(--brand-blue-end)) 100%)" }}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div
-            className="absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full blur-[110px] opacity-25 animate-blob-slow"
-            style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
-          />
-          <div
-            className="absolute -bottom-32 right-[-10%] h-[26rem] w-[26rem] rounded-full blur-[100px] opacity-30"
-            style={{ backgroundColor: "hsl(var(--hero-mid))" }}
-          />
-          <div
             className="absolute inset-0"
-            style={{ backgroundImage: "radial-gradient(ellipse 70% 60% at 75% 50%, hsl(var(--hero-mid) / 0.22), transparent 60%)" }}
+            style={{ backgroundImage: "linear-gradient(110deg, transparent 35%, hsl(var(--brand-blue-start) / 0.18) 100%)" }}
           />
-          <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
         </div>
 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
@@ -456,7 +447,7 @@ const DashboardTab = ({
         </div>
 
         {/* Snapshot-pille: i dag */}
-        <div className="mt-2.5 grid min-w-0 grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
+         <div className="mt-4 grid min-w-0 grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-4 lg:mt-6">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort((stats.todayRevenue))}`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort((stats.revenue7))}`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Afventer behandling" : "Ingen i kø"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
@@ -481,7 +472,7 @@ const DashboardTab = ({
           />
 
           {/* Seneste bestillinger */}
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+          <Card className="surface-admin overflow-hidden rounded-md border-border/80 shadow-sm">
             <OrdersListSection
               recentOrders={recentOrders}
               servicesCount={servicesCount}
@@ -568,14 +559,14 @@ const DashboardTab = ({
                     type="button"
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
                       className={cn(
-                        "group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border px-3 py-3 text-left transition-all",
+                        "group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all",
                       a.tone === "primary" && "border-foreground/15 bg-foreground text-background hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_hsl(var(--foreground)/0.5)]",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
                     )}
                   >
                     <div className={cn(
-                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg p-1 [&_svg]:h-4 [&_svg]:w-4",
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-md p-1.5 [&_img]:h-8 [&_img]:w-8 [&_svg]:h-5 [&_svg]:w-5",
                       a.tone === "primary" && "bg-background/15 text-background",
                       a.tone === "accent" && "bg-accent/15 text-accent",
                       a.tone === "muted" && "border border-border bg-secondary text-foreground",
@@ -691,15 +682,15 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "min-w-0 overflow-hidden rounded-lg border px-2 py-1.5 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
+    "min-w-0 overflow-hidden rounded-md border px-3 py-2.5 text-left backdrop-blur-sm transition-all sm:px-3.5 sm:py-3",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
     onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
   );
   const content = (
     <>
-      <p className="truncate text-[9px] font-medium uppercase tracking-wide text-background/60 sm:text-[10px] sm:tracking-wider">{label}</p>
-      <p className="mt-0.5 min-w-0 truncate text-sm font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
-      <p className="truncate text-[9px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
+      <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-background/70 sm:text-[11px]">{label}</p>
+      <p className="mt-1 min-w-0 truncate text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
+      <p className="mt-0.5 truncate text-[10px] text-background/75 sm:text-xs">{sub}</p>
     </>
   );
   if (onClick) {

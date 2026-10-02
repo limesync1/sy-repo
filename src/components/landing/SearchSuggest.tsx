@@ -226,12 +226,12 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           isHero ? "h-14 md:h-16" : "h-12 md:h-14"
         }`}
       >
-        <div className="pl-4 pr-2 text-muted-foreground sm:pr-3">
+        <div className="flex h-full shrink-0 items-center justify-center pl-4 pr-2 text-muted-foreground sm:pr-3">
           {/* Ikonet skaleres med feltet: lidt større end før, så det ikke
               virker forsvindende i det høje søgefelt. */}
           <UiArtwork
             name="search"
-            className={`h-7 w-7 md:h-8 md:w-8 transition-transform duration-300 ${open ? "scale-105" : ""}`}
+            className={`block h-8 w-8 object-center md:h-9 md:w-9 transition-transform duration-300 ${open ? "scale-105" : ""}`}
           />
         </div>
         {/* Vi rendrer to <input> så placeholder kan tilpasses pr. breakpoint
@@ -261,9 +261,9 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           <Button
             onClick={() => submit()}
             aria-label="Søg"
-            className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition-all duration-200 hover:bg-accent/90 active:scale-[0.97] md:h-11 md:px-6"
+            className="brand-blue-action h-10 gap-2 rounded-full px-4 text-sm font-semibold transition-all duration-200 active:scale-[0.97] md:h-11 md:px-6"
           >
-            <Search className="h-4 w-4" aria-hidden="true" />
+            <Search className="h-5 w-5" aria-hidden="true" />
             <span className="hidden sm:inline">Søg</span>
           </Button>
         </div>
@@ -327,8 +327,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                   >
                     {s.type === "query" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                          <UiArtwork name="search" className="h-5 w-5" />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-accent">
+                          <UiArtwork name="search" className="h-8 w-8" />
                         </span>
                         <span className="min-w-0 flex-1">
                           <div className="truncate font-semibold text-foreground">Søg efter “{s.label}”</div>
@@ -340,8 +340,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     {s.type === "history" && (
 
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-transform duration-200 group-hover:scale-105">
-                          <UiArtwork name="recentSearch" className="h-7 w-7" />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground transition-transform duration-200 group-hover:scale-105">
+                          <UiArtwork name="recentSearch" className="h-9 w-9" />
                         </span>
                         <span className="flex-1 min-w-0">
                           <div className="truncate font-semibold text-foreground">{s.label}</div>
@@ -351,8 +351,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "category" && (
                       <>
-                        <span className="icon-tile h-9 w-9 shrink-0 rounded-lg p-1.5">
-                          <IndustryIcon category={s.key} className="h-full w-full" alt={s.label} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                          <IndustryIcon category={s.key} className="h-9 w-9 object-contain" alt={s.label} />
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
@@ -365,8 +365,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "city" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-transform duration-200 group-hover:scale-105">
-                          <MapPin className="h-4 w-4" />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-foreground transition-transform duration-200 group-hover:scale-105">
+                          <MapPin className="h-6 w-6" />
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
@@ -376,19 +376,19 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "business" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card transition-transform duration-200 group-hover:scale-105">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-105">
                           {s.logo ? (
                             <img
                               src={s.logo}
                               alt=""
                               className="h-full w-full object-contain p-0.5"
-                              width={36}
-                              height={36}
+                              width={40}
+                              height={40}
                               loading="lazy"
                               decoding="async"
                             />
                           ) : (
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <Building2 className="h-6 w-6 text-muted-foreground" />
                           )}
                         </span>
                         <span className="flex-1 min-w-0">

@@ -98,7 +98,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {s.serviceSummary && (
-                            <IndustryIcon name={s.serviceSummary} className="h-5 w-5 shrink-0" alt="" />
+                            <IndustryIcon name={s.serviceSummary} className="h-7 w-7 shrink-0 object-contain" alt="" />
                           )}
                           <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
                         </div>
