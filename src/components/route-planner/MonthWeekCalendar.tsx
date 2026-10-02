@@ -332,6 +332,7 @@ const DayOverviewSheet = ({
                 <button
                   key={r.id}
                   type="button"
+                  data-route-pill=""
                   onClick={() => onSelectRoute(r)}
                   className={cn(
                     "planner-card group w-full text-left rounded-[5px] border border-border/70 bg-card p-3 hover:border-accent/40 hover:shadow-sm transition-all relative overflow-hidden",

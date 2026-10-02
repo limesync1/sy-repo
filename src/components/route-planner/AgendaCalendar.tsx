@@ -427,6 +427,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       ref={setRefs}
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
+      data-route-pill=""
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
         "relative flex min-h-[64px] items-center gap-2 rounded-[5px] border border-border/70 bg-card px-2.5 py-2 cursor-pointer transition-colors overflow-hidden",
