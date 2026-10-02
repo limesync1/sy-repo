@@ -4,6 +4,7 @@
 //
 // Bemærk: ingen komponenter her opretter deres egen TooltipProvider — PanelShell
 // (eller appens rod) leverer én. Det sparer en provider pr. menupunkt.
+import { EmployeeAvatar, readableOnEmployeeColor } from "@/components/shared/EmployeeAvatar";
 import { Fragment, forwardRef, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronsUpDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -518,7 +519,7 @@ export const SidebarProfileMenu = ({
           {avatarUrl ? <AvatarImage src={avatarUrl} alt="" className="rounded-full object-cover" /> : null}
           <AvatarFallback
             className="rounded-full bg-secondary text-xs font-bold text-foreground"
-            style={avatarColor ? { background: avatarColor, color: "hsl(var(--background))" } : undefined}
+            style={avatarColor ? { background: avatarColor, color: readableOnEmployeeColor(avatarColor) } : undefined}
           >
             {initialsOf(name, fallback)}
           </AvatarFallback>

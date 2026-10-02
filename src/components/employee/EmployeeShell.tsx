@@ -8,6 +8,7 @@
 //   <EmployeeShell activeTab="today" title="Min dag" topbarRight={...}>
 //     <indhold />
 //   </EmployeeShell>
+import { EmployeeAvatar, readableOnEmployeeColor } from "@/components/shared/EmployeeAvatar";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
@@ -243,7 +244,7 @@ export const EmployeeShell = ({
           <Button type="button" variant="ghost" className="h-10 gap-2 px-1.5" aria-label="Profilmenu">
             <Avatar className="h-8 w-8 rounded-full ring-1 ring-border" style={{ background: accentColor }}>
               {employee?.avatar_url ? <AvatarImage src={employee.avatar_url} alt={displayName} className="rounded-full object-cover" /> : null}
-              <AvatarFallback className="rounded-full text-xs font-bold text-background" style={{ background: accentColor }}>
+              <AvatarFallback className="rounded-full text-xs font-bold" style={{ background: accentColor, color: readableOnEmployeeColor(employee?.color) }}>
                 {initialsOf(displayName, "M")}
               </AvatarFallback>
             </Avatar>

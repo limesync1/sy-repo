@@ -2,6 +2,7 @@ import { formatPrice } from "@/lib/price-format";
 // RouteEditSheet — rediger en rute: navn, farve, dato, medarbejdere.
 // Bruges fra den nye måned/uge kalender.
 
+import { EmployeeAvatar, readableOnEmployeeColor } from "@/components/shared/EmployeeAvatar";
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -1374,16 +1375,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
             return (
               <div key={empId} className="rounded-lg border bg-card overflow-hidden">
                 <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40 border-b">
-                  {emp?.avatar_url ? (
-                    <img src={emp.avatar_url} alt={emp.name} className="h-6 w-6 rounded-full object-cover" />
-                  ) : (
-                    <span
-                      className="inline-flex h-6 w-6 rounded-full items-center justify-center text-[10px] font-bold"
-                      style={{ background: emp?.color || "#64748b", color: readableTextOn(emp?.color || "#64748b") }}
-                    >
-                      {(emp?.name || "?").slice(0, 1).toUpperCase()}
-                    </span>
-                  )}
+                  <EmployeeAvatar employee={emp} size={24} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{emp?.name || "Ukendt medarbejder"}</p>
                     <p className="text-[10px] text-muted-foreground">

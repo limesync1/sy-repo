@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BellRing, Loader2, Send, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EmployeeAvatar as SharedEmployeeAvatar } from "@/components/shared/EmployeeAvatar";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,20 +18,8 @@ type Employee = {
   color?: string | null;
 };
 
-const initialsFor = (name: string) => name
-  .split(/\s+/)
-  .filter(Boolean)
-  .slice(0, 2)
-  .map((part) => part.charAt(0).toUpperCase())
-  .join("") || "M";
-
 const EmployeeAvatar = ({ employee, className }: { employee: Employee; className?: string }) => (
-  <Avatar className={className}>
-    <AvatarImage src={employee.avatar_url || undefined} alt={employee.name} className="object-cover" />
-    <AvatarFallback className="bg-secondary text-[10px] font-semibold text-foreground ring-1 ring-inset ring-border">
-      {initialsFor(employee.name)}
-    </AvatarFallback>
-  </Avatar>
+  <SharedEmployeeAvatar employee={employee} size={28} className={className} />
 );
 
 export function RouteCommunicationPanel({

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { EmployeeAvatar, readableOnEmployeeColor, employeeInitials } from "@/components/shared/EmployeeAvatar";
 import { useQuery } from "@tanstack/react-query";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import {
@@ -720,21 +721,7 @@ const EmployeeRow = ({
                 title="Skift billede eller farve"
                 className="relative h-10 w-10 shrink-0 rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-foreground/20 hover:ring-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2"
               >
-                {employee.avatar_url ? (
-                  <img
-                    src={employee.avatar_url}
-                    alt={employee.name}
-                    className="h-10 w-10 rounded-full object-cover border"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <span
-                    className="block h-10 w-10 rounded-full border"
-                    style={{ background: fallbackColor }}
-                    aria-label={`Farve for ${employee.name}`}
-                  />
-                )}
+                <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={40} className="border border-border text-sm" />
                 <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-background bg-card text-muted-foreground shadow-sm">
                   <Pencil className="h-2.5 w-2.5" />
                 </span>
@@ -760,10 +747,10 @@ const EmployeeRow = ({
                   />
                 ) : (
                   <div
-                    className="flex aspect-square w-full items-center justify-center text-4xl font-bold text-white"
-                    style={{ background: fallbackColor }}
+                    className="flex aspect-square w-full items-center justify-center text-5xl font-bold"
+                    style={{ background: fallbackColor, color: readableOnEmployeeColor(fallbackColor) }}
                   >
-                    {(employee.name || "?").charAt(0).toUpperCase()}
+                    {employeeInitials(employee.name)}
                   </div>
                 )}
               </div>
@@ -1068,22 +1055,7 @@ const EmployeeRow = ({
           {/* Status-badge er flyttet ned under titel, så den ikke kolliderer
               med Dialog'ens luk-knap (X) i højre hjørne. */}
           <div className="flex items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4 pr-12">
-            {employee.avatar_url ? (
-              <img
-                src={employee.avatar_url}
-                alt=""
-                className="h-11 w-11 rounded-full object-cover border border-border shrink-0"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <div
-                className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0"
-                style={{ backgroundColor: fallbackColor }}
-              >
-                {(employee.name || "?").charAt(0).toUpperCase()}
-              </div>
-            )}
+            <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={44} className="border border-border" />
             <div className="min-w-0 flex-1">
               <DialogHeader className="space-y-0.5 text-left">
                 <DialogTitle className="text-base font-semibold text-foreground truncate">
