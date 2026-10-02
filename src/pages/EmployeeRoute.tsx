@@ -42,6 +42,7 @@ import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completi
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
+import { geocodeAddress } from "@/lib/geocode";
 import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
@@ -644,6 +645,42 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     () => sortedStops.filter((s) => s.latitude != null && s.longitude != null),
     [sortedStops],
   );
+
+  // Geokod stop der mangler koordinater, så kortet aldrig viser "ingen
+  // koordinater" — DAWA er gratis og kræver ingen nøgle. Resultatet
+  // forsøges gemt på stoppet, så det kun skal slås op én gang.
+  const geocodingRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const missing = sortedStops.filter(
+      (s) => (s.latitude == null || s.longitude == null) && (s.full_address || s.address) && !geocodingRef.current.has(s.id),
+    );
+    if (missing.length === 0) return;
+    missing.forEach((s) => geocodingRef.current.add(s.id));
+    let cancelled = false;
+    (async () => {
+      for (const s of missing) {
+        const addr = s.full_address || s.address || "";
+        const hit = await geocodeAddress(addr);
+        if (cancelled || !hit) continue;
+        queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
+          old
+            ? {
+                ...old,
+                stops: (old.stops || []).map((x: RouteStop) =>
+                  x.id === s.id ? { ...x, latitude: hit.latitude, longitude: hit.longitude } : x,
+                ),
+              }
+            : old,
+        );
+        try {
+          await supabase.from("route_stops").update({ latitude: hit.latitude, longitude: hit.longitude }).eq("id", s.id);
+        } catch {
+          // Ikke fatalt — kortet har allerede koordinaterne i cachen.
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sortedStops, queryClient, routeId]);
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
   const { data: nextStopTimeEntries = [] } = useStopTimeEntries(nextStop ? [nextStop.id] : []);
