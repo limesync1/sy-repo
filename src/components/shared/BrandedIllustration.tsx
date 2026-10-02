@@ -13,7 +13,8 @@ import routePlannerNew from "@/assets/content-icons/ruteplanlaegger.svg.asset.js
 import employeeAppNew from "@/assets/content-icons/medarbejder-app.svg.asset.json";
 import bookingsNew from "@/assets/content-icons/bestillinger.svg.asset.json";
 import accountingNew from "@/assets/content-icons/fakturering-og-regnskab.svg.asset.json";
-import employeesNew from "@/assets/illustrations/business/medarbejdere-team.svg";
+import employeesTeamOld from "@/assets/illustrations/business/medarbejdere-team.svg";
+import employeesNew from "@/assets/content-icons/medarbejdere.svg.asset.json";
 import industriesNew from "@/assets/content-icons/brancher.svg.asset.json";
 import signupAccountingNew from "@/assets/content-icons/regnskabsintegration.svg.asset.json";
 import signupLeadsNew from "@/assets/content-icons/leads-indhent-tilbud.svg.asset.json";
@@ -118,7 +119,7 @@ export const BRANDED_ILLUSTRATIONS = {
   systemEmployeeApp: employeeAppNew.url,
   systemBooking: bookingsNew.url,
   systemAccounting: accountingNew.url,
-  systemPeople: employeesNew,
+  systemPeople: employeesNew.url,
   systemIndustries: industriesNew.url,
   signupAccounting: signupAccountingNew.url,
   signupLeads: signupLeadsNew.url,
@@ -136,7 +137,7 @@ export const BRANDED_ILLUSTRATIONS = {
   helpGuides: helpGuidesAsset,
   shareProfile: shareProfileNew,
   addService: addServiceNew,
-  team: employeesNew,
+  team: employeesTeamOld,
   settings: settingsNew,
   servicesTotal: servicesTotalNew.url,
   activeServices: activeServicesNew.url,
