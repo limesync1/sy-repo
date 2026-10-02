@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/price-format";
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRetainedValue } from "@/hooks/useRetainedValue";
 import { useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import { useMyBusiness, useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -5148,8 +5149,8 @@ const Planner = () => {
         <MoveRouteDateDialog
           open={!!pendingRouteMove}
           onOpenChange={(o) => { if (!o) setPendingRouteMove(null); }}
-          routeName={pendingRouteMove?.route.name || "Rute"}
-          fromDate={pendingRouteMove?.route.route_date || ""}
+          routeName={retainedRouteMove?.route.name || "Rute"}
+          fromDate={retainedRouteMove?.route.route_date || ""}
           toDate={pendingRouteMove?.newDate || ""}
           recurringAppointmentCount={pendingSeriesInfo?.recurringAppointmentCount ?? 0}
           linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
@@ -5834,8 +5835,8 @@ const Planner = () => {
           <RouteHistoryDialog
             open={!!historyRoute}
             onOpenChange={(o) => { if (!o) setHistoryRoute(null); }}
-            routeId={historyRoute?.id ?? null}
-            routeName={historyRoute?.name}
+            routeId={retainedHistoryRoute?.id ?? null}
+            routeName={retainedHistoryRoute?.name}
           />
         </Suspense>
       )}
