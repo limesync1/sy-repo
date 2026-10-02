@@ -1,0 +1,2 @@
+REVOKE ALL ON FUNCTION public.detach_archived_route_recurrence_links() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.cleanup_source_route_after_stop_move() FROM PUBLIC, anon, authenticated;
