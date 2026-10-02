@@ -40,7 +40,7 @@ import satisfactionNew from "@/assets/content-icons/kundetilfredshed.svg.asset.j
 import responseTimeNew from "@/assets/content-icons/svartid.svg.asset.json";
 import unansweredNew from "@/assets/content-icons/ubesvarede-beskeder.svg.asset.json";
 import describeTaskNew from "@/assets/content-icons/beskriv-opgaven.svg.asset.json";
-import matchNew from "@/assets/content-icons/vi-matcher.svg.asset.json";
+import matchNew from "@/assets/content-icons/vi-matcher.svg?url";
 import averageNew from "@/assets/content-icons/gennemsnit.svg.asset.json";
 import averageResponseNew from "@/assets/content-icons/gennemsnitlig-svartid.svg.asset.json";
 import businessCustomersNew from "@/assets/content-icons/erhvervskunder.svg.asset.json";
@@ -166,7 +166,7 @@ export const BRANDED_ILLUSTRATIONS = {
   responseTime: responseTimeNew.url,
   averageResponseTime: averageResponseNew.url,
   describeTask: describeTaskNew.url,
-  match: matchNew.url,
+  match: matchNew,
   businessCustomers: businessCustomersNew.url,
   privateCustomers: privateCustomersNew.url,
   customersTotal: customersTotalNew.url,
