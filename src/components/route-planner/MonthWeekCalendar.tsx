@@ -1713,7 +1713,7 @@ const RoutePillInner = ({
         else if (action === "history" && canHistory) onShowHistory!();
       }}
     >
-      {pill}
+      <HoverCardTrigger asChild>{pill}</HoverCardTrigger>
     </RouteContextMenu>
     </RouteHoverPreview>
   );
@@ -1722,12 +1722,11 @@ const RoutePillInner = ({
 /** Hover-forhåndsvisning: kunder og medarbejdere på ruten. Kun på enheder
  *  med mus — på touch åbner et tryk ruten direkte. */
 const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute; disabled?: boolean; children: React.ReactNode }) => {
-  if (disabled) return <>{children}</>;
   const stops = route.stops;
   const emps = route.attachedEmployees;
   return (
-    <HoverCard openDelay={350} closeDelay={60}>
-      <HoverCardTrigger asChild>{children}</HoverCardTrigger>
+    <HoverCard openDelay={350} closeDelay={60} {...(disabled ? { open: false } : {})}>
+      {children}
       <HoverCardContent side="right" align="start" className="hidden w-64 p-0 [@media(hover:hover)]:block">
         <div className="flex items-center gap-2 border-b border-border px-3 py-2">
           <span className="h-3 w-1 shrink-0 rounded-full" style={{ background: route.color }} aria-hidden />
