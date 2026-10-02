@@ -33,11 +33,11 @@ export const PageHeaderSkeleton = ({ withAction = true }: { withAction?: boolean
 /* ─────────── StatCard-skeleton ─────────── */
 /** Matcher `StatCard` fra `AdminUI.tsx`. */
 export const StatCardSkeleton = ({ className }: { className?: string }) => (
-  // Matcher StatCard: ikon-badge h-8 (mobil) → h-10 (sm+), value h-6 → h-7,
+  // Matcher StatCard: tydeligt ikon-badge på mobil og desktop, value h-6 → h-7,
   // padding p-3 → p-4. Ikonet sidder til venstre, ikke højre.
   <Card className={cn("service-panel-card rounded-md border-border shadow-sm", className)}>
     <div className="flex items-start gap-2.5 p-3">
-      <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
+      <Skeleton className="h-[3.25rem] w-[3.25rem] shrink-0 rounded-md sm:h-14 sm:w-14" />
       <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-6 w-20 sm:h-7 sm:w-24" />
