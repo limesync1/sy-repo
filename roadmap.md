@@ -39,9 +39,9 @@
 - [x] Gør print af ruter overskueligt med dato/periode, indholdsvalg og detaljeret forhåndsvisning
 - [x] Forenkle Min dag-rutekort og ensret Flyt rute til ny dato med Flyt aftaler
 ## Aftaler, rutetest og nye ikoner
-- [ ] Redesign aftaledetaljen som panelvindue
-- [ ] Udskift alle 26 brancheikoner gennem fælles register
-- [ ] Udskift matchende indholdsikoner uden at ændre virksomhedsnavigationen
-- [ ] Test fletning med rigtige, sikre testdata
+- [x] Redesign aftaledetaljen som panelvindue
+- [x] Udskift alle 26 brancheikoner gennem fælles register
+- [x] Udskift matchende indholdsikoner uden at ændre virksomhedsnavigationen
+- [x] Test fletning med rigtige, sikre testdata
 - [ ] Test medarbejderens fulde rutekørsel med rigtige testdata
 - [ ] Kontrollér mobil, desktop, runtime og build

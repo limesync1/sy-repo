@@ -1,4 +1,4 @@
-import type { ImgHTMLAttributes } from "react";
+import { forwardRef, type ImgHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import searchServiceNew from "@/assets/content-icons/soeg-efter-service.svg.asset.json";
 import compareProvidersNew from "@/assets/content-icons/sammenlign-udbydere.svg.asset.json";
@@ -40,31 +40,6 @@ import satisfactionNew from "@/assets/content-icons/kundetilfredshed.svg.asset.j
 import responseTimeNew from "@/assets/content-icons/svartid.svg.asset.json";
 import unansweredNew from "@/assets/content-icons/ubesvarede-beskeder.svg.asset.json";
 
-import searchServiceAsset from "@/assets/section-icons/forside/soeg-efter-en-service.svg";
-import compareProvidersAsset from "@/assets/section-icons/forside/sammenlign-udbydere.svg";
-import bookOrQuoteAsset from "@/assets/section-icons/forside/book-eller-hent-tilbud.svg";
-import localEasyAsset from "@/assets/section-icons/forside/lokalt-er-let.svg";
-import fairBusinessesAsset from "@/assets/section-icons/forside/fair-for-virksomhederne.svg";
-import humanHelpAsset from "@/assets/section-icons/forside/et-menneske-naar-du-har-brug-for-det.svg";
-import localCustomersAsset from "@/assets/section-icons/forside/flere-kunder-i-dit-omraade.svg";
-import routePlanningAsset from "@/assets/section-icons/forside/ruteplanlaegning-inkluderet.svg";
-import priceCalculatorAsset from "@/assets/section-icons/forside/indbygget-prisberegner.svg";
-
-import systemRoutePlannerAsset from "@/assets/section-icons/systemet/ruteplanlaegger.svg";
-import systemEmployeeAppAsset from "@/assets/section-icons/systemet/medarbejder-app.svg";
-import systemBookingAsset from "@/assets/section-icons/systemet/booking-og-tilbud.svg";
-import systemAccountingAsset from "@/assets/section-icons/systemet/fakturering-og-regnskab.svg";
-import systemPeopleAsset from "@/assets/section-icons/systemet/kunder-og-medarbejdere.svg";
-import systemIndustriesAsset from "@/assets/section-icons/systemet/brancher.svg";
-
-import signupAccountingAsset from "@/assets/section-icons/opret-virksomhed/regnskabsintegration.svg";
-import signupLeadsAsset from "@/assets/section-icons/opret-virksomhed/leads.svg";
-import signupLivechatAsset from "@/assets/section-icons/opret-virksomhed/livechat.svg";
-import freePrivateAsset from "@/assets/section-icons/opret-virksomhed/gratis-for-private.svg";
-import checkedBusinessesAsset from "@/assets/section-icons/opret-virksomhed/tjekkede-virksomheder.svg";
-import realReviewsAsset from "@/assets/section-icons/opret-virksomhed/anmeldelser-fra-rigtige-opgaver.svg";
-import compareQuicklyAsset from "@/assets/section-icons/opret-virksomhed/sammenlign-paa-sekunder.svg";
-
 import unassignedAppointmentsAsset from "@/assets/section-icons/virksomhed-ruter/aftaler-uden-rute.svg";
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
 import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
@@ -73,23 +48,10 @@ import helpQuotesAsset from "@/assets/section-icons/hjaelp/indhent-3-tilbud.svg"
 import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.svg";
 import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg";
 
-import shareProfile from "@/assets/illustrations/business/del-din-profil.svg";
-import addService from "@/assets/illustrations/business/tilfoej-service.svg";
 import team from "@/assets/illustrations/business/medarbejdere-team.svg";
-import settings from "@/assets/illustrations/business/indstillinger.svg";
-import servicesTotal from "@/assets/illustrations/business/services-i-alt.svg";
-import activeServices from "@/assets/illustrations/business/aktive-services.svg";
-import orders from "@/assets/illustrations/business/bestillinger.svg";
 import calendarWeek from "@/assets/illustrations/business/kalender-uge.svg";
 import calendarMonth from "@/assets/illustrations/business/kalender-maaned.svg";
 import averageOrder from "@/assets/illustrations/business/snit-pr-aftale.svg";
-import activeEmployee from "@/assets/illustrations/business/aktiv-medarbejder.svg";
-import pendingLogin from "@/assets/illustrations/business/afventer-foerste-login.svg";
-import payroll from "@/assets/illustrations/business/provision-loen.svg";
-import revenue from "@/assets/illustrations/business/samlet-omsaetning.svg";
-import reviewCount from "@/assets/illustrations/business/antal-anmeldelser.svg";
-import reviewAverage from "@/assets/illustrations/business/gennemsnit-stjerne.svg";
-import verifiedReviews from "@/assets/illustrations/business/verificerede-anmeldelser.svg";
 
 import routeReady from "@/assets/illustrations/employee/rute-klar-til-start.svg";
 import routeDone from "@/assets/illustrations/employee/udfoert-rute.svg";
@@ -105,18 +67,13 @@ import employeeAppointments from "@/assets/illustrations/employee/aftaler.svg";
 import workdays from "@/assets/illustrations/employee/arbejdsdage.svg";
 import worktime from "@/assets/illustrations/employee/arbejdstid.svg";
 import dailyActivityTable from "@/assets/illustrations/employee/daglig-aktivitet-tabel.svg";
-import activeLeadsAsset from "@/assets/panel-illustrations/aktive-leads.svg.asset.json";
-import activeConversationsAsset from "@/assets/panel-illustrations/aktive-samtaler.svg.asset.json";
 import buildFromScratchAsset from "@/assets/panel-illustrations/byg-fra-bunden.svg.asset.json";
 import conversionAsset from "@/assets/panel-illustrations/konvertering.svg.asset.json";
-import customerSatisfactionAsset from "@/assets/panel-illustrations/kundetilfredshed.svg.asset.json";
 import aiCalculatorAsset from "@/assets/panel-illustrations/lad-ai-bygge-prisberegneren.svg.asset.json";
 import calculatorAsset from "@/assets/panel-illustrations/prisberegner.svg.asset.json";
 import fixedPriceAsset from "@/assets/panel-illustrations/specifik-pris.svg.asset.json";
-import responseTimeAsset from "@/assets/panel-illustrations/svartid.svg.asset.json";
 import payoutAsset from "@/assets/panel-illustrations/til-udbetaling.svg.asset.json";
 import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.json";
-import unansweredMessagesAsset from "@/assets/panel-illustrations/ubesvarede-beskeder.svg.asset.json";
 import startDayIllustration from "@/assets/panel-illustrations/start-dagen.svg.asset.json";
 import dayInProgressIllustration from "@/assets/panel-illustrations/arbejdsdag-i-gang.svg.asset.json";
 import dayEndedIllustration from "@/assets/panel-illustrations/dagen-afsluttet.svg.asset.json";
@@ -207,8 +164,9 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
   name: BrandedIllustrationName;
 };
 
-export const BrandedIllustration = ({ name, className, alt = "", ...props }: Props) => (
+export const BrandedIllustration = forwardRef<HTMLImageElement, Props>(({ name, className, alt = "", ...props }, ref) => (
   <img
+    ref={ref}
     src={BRANDED_ILLUSTRATIONS[name]}
     alt={alt}
     aria-hidden={alt ? undefined : true}
@@ -218,6 +176,8 @@ export const BrandedIllustration = ({ name, className, alt = "", ...props }: Pro
     className={cn("inline-block shrink-0 select-none object-contain", className)}
     {...props}
   />
-);
+));
+
+BrandedIllustration.displayName = "BrandedIllustration";
 
 export default BrandedIllustration;
