@@ -427,40 +427,71 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
 
   const saveDraft = async () => {
     setSaving(true);
-    const { error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("quote_request_matches")
-      .update({ ai_draft: draft || null })
-      .eq("id", lead.id);
+      .update({ ai_draft: draft || null, ai_draft_subject: subject.trim() || null })
+      .eq("id", lead.id)
+      .select("id");
     setSaving(false);
-    if (error) { toast.error("Kunne ikke gemme"); return; }
+    if (error || !data?.length) { toast.error("Udkastet kunne ikke gemmes. Prøv igen."); return; }
     onChange({ ...lead, ai_draft: draft || null });
-    toast.success("Udkast gemt");
+    toast.success(`Udkast gemt kl. ${new Date().toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`);
   };
 
   const copyDraft = async () => {
-    if (!draft) return;
-    await navigator.clipboard.writeText(draft);
+    if (!draft.trim()) { toast.error("Der er ingen tekst at kopiere"); return; }
+    const text = subject.trim() ? `Emne: ${subject.trim()}\n\n${draft}` : draft;
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch { ok = false; }
+    }
+    if (!ok) { toast.error("Browseren tillod ikke kopiering. Markér teksten og kopier manuelt."); return; }
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
-    toast.success("Kopieret");
+    toast.success("Emne og tekst kopieret");
   };
 
+  const [sending, setSending] = useState(false);
   const sendDraftAsEmail = async () => {
-    if (!qr?.customer_email) { toast.error("Ingen e-mail på kunden"); return; }
+    if (!qr?.customer_email) { toast.error("Kunden har ingen e-mail"); return; }
     if (!draft.trim()) { toast.error("Skriv eller generer et udkast først"); return; }
     const subj = subject.trim() || `Tilbud på ${qr.category}`;
-    const url = `mailto:${qr.customer_email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(draft)}`;
-    // Save draft + mark contacted
-    await supabase
-      .from("quote_request_matches")
-      .update({
-        ai_draft: draft || null,
-        status: lead.status === "won" ? "won" : "contacted",
-        responded_at: new Date().toISOString(),
-      })
-      .eq("id", lead.id);
-    onChange({ ...lead, ai_draft: draft, status: lead.status === "won" ? "won" : "contacted" });
-    window.location.href = url;
+    if (!window.confirm(`Send e-mail til ${qr.customer_email}?\n\nEmne: ${subj}`)) return;
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-lead-reply", {
+        body: { matchId: lead.id, subject: subj, body: draft },
+      });
+      let msg = (data as any)?.error as string | undefined;
+      if (error && !msg) {
+        try { msg = (await (error as any).context?.json())?.error; } catch { /* ignore */ }
+      }
+      if (error || msg) throw new Error(msg || "E-mailen kunne ikke sendes. Prøv igen.");
+      onChange({ ...lead, ai_draft: draft, status: lead.status === "won" ? "won" : "contacted" });
+      toast.success(`E-mail sendt til ${qr.customer_email}`);
+    } catch (e: any) {
+      toast.error(e?.message || "E-mailen kunne ikke sendes. Prøv igen.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const openInMailApp = () => {
+    if (!qr?.customer_email) { toast.error("Kunden har ingen e-mail"); return; }
+    const subj = subject.trim() || `Tilbud på ${qr.category}`;
+    window.open(`mailto:${qr.customer_email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(draft)}`, "_blank");
   };
 
   const updateStatus = async (status: string) => {
@@ -575,18 +606,28 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
               />
             )}
 
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={sendDraftAsEmail} className="gap-1.5" disabled={!qr?.customer_email}>
-                <Send className="h-4 w-4" /> Send som mail
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={sendDraftAsEmail} className="gap-1.5" disabled={!qr?.customer_email || sending || !draft.trim()}>
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {sending ? "Sender…" : "Send som mail"}
               </Button>
-              <Button variant="outline" onClick={copyDraft} disabled={!draft} className="gap-1.5">
+              <Button variant="outline" onClick={copyDraft} disabled={!draft.trim()} className="gap-1.5">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Kopieret" : "Kopier"}
               </Button>
               <Button variant="ghost" onClick={saveDraft} disabled={saving} className="gap-1.5">
-                <Save className="h-4 w-4" /> Gem udkast
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? "Gemmer…" : "Gem udkast"}
               </Button>
+              {qr?.customer_email && draft.trim() && (
+                <button type="button" onClick={openInMailApp} className="text-xs text-muted-foreground underline-offset-2 hover:underline">
+                  Åbn i eget mailprogram
+                </button>
+              )}
             </div>
+            {!qr?.customer_email && (
+              <p className="text-xs text-muted-foreground">Kunden har ingen e-mail — kopier teksten og send den på anden vis.</p>
+            )}
           </TabsContent>
 
           {/* Note tab */}
