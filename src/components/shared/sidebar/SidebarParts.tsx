@@ -115,7 +115,7 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
         <Icon
           className={cn(
             "h-5 w-5 shrink-0 transition-[color,transform] duration-200 ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:transform-none",
-            active ? "text-accent" : "text-muted-foreground group-hover:text-foreground",
+            active ? "nav-icon-gradient" : "text-muted-foreground group-hover:text-foreground",
           )}
           aria-hidden="true"
         />
