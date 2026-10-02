@@ -4,17 +4,16 @@
 // responsive opførsel.
 
 import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Info, Repeat, Sparkles, SkipForward, Users } from "lucide-react";
+import { Route as RouteIcon, ArrowRight, Loader2, AlertTriangle, Info, Repeat, Sparkles, SkipForward, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { mapPostgresError } from "@/lib/route-errors";
-import { SheetHeaderBlock } from "./SheetSection";
+import { SheetFooterBar, SheetHeaderBlock, Section } from "./SheetSection";
 
 type Props = {
   open: boolean;
@@ -74,25 +73,29 @@ export const MoveProjectedOccurrenceDialog = ({
   const showSuggestion = !!warnings?.length && !!suggestedFreeDate && suggestedFreeDate !== toDate;
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="planner-overlay left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-0 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%]">
-        <AlertDialogHeader className="planner-overlay-header min-w-0 border-b px-4 py-3 pr-12 text-left space-y-2 sm:px-5">
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!loading && !submitting) onOpenChange(nextOpen); }}>
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            icon={<CalendarRange className="h-4 w-4" />}
-            title={<AlertDialogTitle className="text-base">Flyt rute til ny dato</AlertDialogTitle>}
+            title={<DialogTitle className="text-base">Flyt rute til ny dato</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg den nye dato for denne ene rute.
+              </DialogDescription>
+            }
           />
-          <AlertDialogDescription asChild>
+        </DialogHeader>
+
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+          <Section icon={<RouteIcon />} title="Rute">
             <div className="min-w-0 space-y-2 text-sm">
-              <p className="text-muted-foreground">
-                Du flytter kun denne ene forekomst. Resten af serien forbliver uændret.
-              </p>
               <div className="min-w-0 text-foreground">
-                <span className="block min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium sm:truncate">{routeName}</span>
+                <span className="block min-w-0 [overflow-wrap:anywhere] font-medium sm:truncate">{routeName}</span>
               </div>
               <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 first-letter:uppercase sm:truncate">{fromDate ? fmt(fromDate) : "—"}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-background px-2.5 py-2 first-letter:uppercase sm:truncate">{fromDate ? fmt(fromDate) : "—"}</span>
                 <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
-                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium first-letter:uppercase text-foreground sm:truncate">{toDate ? fmt(toDate) : "—"}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-background px-2.5 py-2 font-medium first-letter:uppercase text-foreground sm:truncate">{toDate ? fmt(toDate) : "—"}</span>
               </div>
               {deltaDays !== 0 && (
                 <p className="text-[11px] text-muted-foreground">
@@ -101,10 +104,7 @@ export const MoveProjectedOccurrenceDialog = ({
                 </p>
               )}
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <div className="planner-overlay-body space-y-2 px-4 py-3 sm:px-5">
+          </Section>
           <div className="rounded-md border border-border bg-secondary/30 p-2.5">
             <div className="flex items-start gap-2">
               <Info className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
@@ -237,7 +237,8 @@ export const MoveProjectedOccurrenceDialog = ({
           )}
         </div>
 
-        <AlertDialogFooter className="planner-overlay-footer border-t px-4 py-3 sm:px-5">
+        <SheetFooterBar>
+          <div className="flex flex-wrap justify-end gap-2">
           {submitError && (
             <div
               role="alert"
@@ -254,7 +255,7 @@ export const MoveProjectedOccurrenceDialog = ({
               </div>
             </div>
           )}
-          <AlertDialogCancel disabled={loading || submitting}>Annullér</AlertDialogCancel>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading || submitting}>Annullér</Button>
           <Button
             onClick={async () => {
               setSubmitError(null);
@@ -276,8 +277,9 @@ export const MoveProjectedOccurrenceDialog = ({
             {(loading || submitting) && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
             Flyt denne dag
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </div>
+        </SheetFooterBar>
+      </DialogContent>
+    </Dialog>
   );
 };

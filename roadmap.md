@@ -37,3 +37,4 @@
 - [x] Dæmp kun de skarpe flerfarvede effekter i undersidernes topområder; bevar struktur og indhold
 - [x] Forenkle rutefarver til to overskuelige rækker og forhindre arkiverede spøgelsesruter
 - [x] Gør print af ruter overskueligt med dato/periode, indholdsvalg og detaljeret forhåndsvisning
+- [x] Forenkle Min dag-rutekort og ensret Flyt rute til ny dato med Flyt aftaler
