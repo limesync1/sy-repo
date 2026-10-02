@@ -212,6 +212,7 @@ const PageFallback = () => {
   // Den kommende side er allerede prefetchet fra menupunktet, og en kort,
   // neutral flade føles roligere end at genopbygge hele navigationen visuelt.
   const isInternalPanelNavigation = typeof window !== "undefined" && sessionStorage.getItem("sy.panel.navigation") === "1";
+  if (isInternalPanelNavigation && typeof window !== "undefined") sessionStorage.removeItem("sy.panel.navigation");
   const [show, setShow] = useState(isPanel && !isInternalPanelNavigation);
   useEffect(() => {
     if (isPanel && !isInternalPanelNavigation) { setShow(true); return; }

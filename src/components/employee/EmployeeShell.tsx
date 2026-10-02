@@ -45,6 +45,11 @@ import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
+const navigateWithinEmployeePanel = (navigate: ReturnType<typeof useNavigate>, href: string) => {
+  sessionStorage.setItem("sy.panel.navigation", "1");
+  navigate(href);
+};
+
 type NavItem = {
   value: EmployeeTabKey;
   label: string;
@@ -276,7 +281,7 @@ export const EmployeeShell = ({
     label: item.label,
     icon: item.icon,
     active: activeTab === item.value,
-    onSelect: () => navigate(item.href),
+    onSelect: () => navigateWithinEmployeePanel(navigate, item.href),
     onPrefetch: () => prefetchTab(item.value),
     badge: item.value === "today" ? unreadCount : null,
     badgeWarn: item.value === "today" && unreadCount > 0,
@@ -299,7 +304,7 @@ export const EmployeeShell = ({
               type="button"
               variant="outline"
               onClick={() => setPickerOpen(true)}
-              className="hidden h-9 max-w-[12rem] gap-2 px-2.5 md:inline-flex"
+              className="hidden h-9 max-w-[12rem] gap-2 px-2.5 transition-[background-color,border-color,transform] duration-200 ease-out hover:-translate-y-px md:inline-flex motion-reduce:transform-none"
               aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
             >
               <Building2 className="h-4 w-4 shrink-0" />
@@ -334,7 +339,7 @@ export const EmployeeShell = ({
                 collapsed={ctx.collapsed}
                 badge={item.value === "today" ? unreadCount : null}
                 badgeWarn={item.value === "today" && unreadCount > 0}
-                onClick={() => { ctx.closeDrawer(); navigate(item.href); }}
+                onClick={() => { ctx.closeDrawer(); navigateWithinEmployeePanel(navigate, item.href); }}
                 onMouseEnter={() => prefetchTab(item.value)}
                 onFocus={() => prefetchTab(item.value)}
                 onTouchStart={() => prefetchTab(item.value)}

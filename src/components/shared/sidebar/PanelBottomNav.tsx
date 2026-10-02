@@ -39,7 +39,7 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
   const itemClass = (active: boolean) =>
     cn(
       "relative flex h-[60px] w-full touch-manipulation flex-col items-center justify-center gap-0.5 text-[11px] font-medium outline-none",
-      "transition-colors motion-reduce:transition-none focus-visible:bg-secondary/60",
+      "transition-[background-color,color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-secondary/40 active:translate-y-0 motion-reduce:transition-none motion-reduce:transform-none focus-visible:bg-secondary/60",
       active ? "text-accent" : "text-muted-foreground active:text-foreground",
     );
 

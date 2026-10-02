@@ -133,9 +133,14 @@ export const AdminShell = ({
   }, [activeTab]);
 
   const go = (item: AdminNavItem) => {
-    if (item.href) { navigate(item.href); return; }
+    if (item.href) {
+      sessionStorage.setItem("sy.panel.navigation", "1");
+      navigate(item.href);
+      return;
+    }
     if (onTabChange) { onTabChange(item.value); return; }
     // På en anden side end /virksomhed (fx /virksomhed/ruter): naviger hjem.
+    sessionStorage.setItem("sy.panel.navigation", "1");
     navigate(`/virksomhed?tab=${item.value}`);
   };
 

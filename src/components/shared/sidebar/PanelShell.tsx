@@ -79,7 +79,7 @@ const SidebarBody = ({
           to="/"
           aria-label="Forside"
           onClick={onClose}
-          className="flex items-center overflow-hidden rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          className="flex items-center overflow-hidden rounded-md outline-none transition-[background-color,transform] duration-200 ease-out hover:scale-[1.015] hover:bg-secondary/40 focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transform-none"
         >
           {collapsed ? (
             <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-lg object-contain" width={64} height={64} decoding="async" />
