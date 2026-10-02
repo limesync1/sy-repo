@@ -277,7 +277,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
 
             <div data-print-routes-root className="mx-auto max-w-[210mm] space-y-4 print:max-w-none print:space-y-0">
               {[...routesByDate.entries()].map(([date, dayRoutes]) => (
-                <section key={date} data-print-day className="overflow-hidden rounded-md border border-border bg-background shadow-sm print:rounded-none print:border-0 print:shadow-none">
+                <section key={date} data-print-day className={cn("overflow-hidden rounded-md border border-border bg-background shadow-sm print:rounded-none print:border-0 print:shadow-none", dayRoutes.length === 0 && "print:hidden")}>
                   <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-3 sm:px-6 print:px-0 print:pt-0">
                     <div>
                       <p className="text-[10px] font-semibold uppercase text-muted-foreground">Ruteplan</p>
