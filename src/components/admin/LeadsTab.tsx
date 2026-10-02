@@ -408,14 +408,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Søg efter kunde, e-mail, beskrivelse, by, kategori eller note..."
+                  placeholder="Søg kunde, e-mail, by eller note…"
                   className="h-10 pl-9 rounded-lg"
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-10 w-full rounded-lg sm:w-[200px]">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
+                <SelectTrigger className="h-10 w-full rounded-lg sm:w-[230px]">
+                  <div className="flex min-w-0 items-center gap-2 whitespace-nowrap text-sm">
+                    <Filter className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <SelectValue />
                   </div>
                 </SelectTrigger>
