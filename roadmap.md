@@ -75,3 +75,11 @@
 - [x] Opdatér gamle blå sektioner til den nye brandblå
 - [x] Forbedr virksomhedspanelets Overblik i det fælles paneldesign
 - [x] Kontrollér desktop, mobil, runtime og build
+
+## Samlet nyt design på hele Serviceydere
+- [ ] Fastlæg fælles farver, typografi og opbygning
+- [ ] Gennemgå offentlig hjemmeside og kundepanel
+- [ ] Gennemgå virksomheds- og medarbejderpaneler
+- [ ] Gennemgå app-e-mails og login-/konto-e-mails
+- [ ] Ensret fælles komponenter, tilstande, ikoner og handlinger
+- [ ] Kontrollér alle hovedvisninger på computer og mobil
