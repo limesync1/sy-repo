@@ -111,7 +111,7 @@ export const MoveRouteDateDialog = ({
         </DialogHeader>
 
         <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
-          <Section icon={<CalendarRange />} title="Rute">
+          <Section icon={null} title="Rute">
             <div className="space-y-2 text-sm">
               <p className="min-w-0 truncate font-medium text-foreground" title={routeName}>{routeName}</p>
               <div className="grid min-w-0 gap-2 tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
@@ -141,7 +141,7 @@ export const MoveRouteDateDialog = ({
             </div>
           )}
 
-          <Section icon={<Repeat />} title="Hvad skal flyttes?">
+          <Section icon={null} title="Hvad skal flyttes?">
             <div className="space-y-2">
               <ScopeOption
                 selected={scope === "single"}

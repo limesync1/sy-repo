@@ -802,7 +802,7 @@ export const RouteEditSheet = ({
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
-            "planner-overlay flex flex-col p-0 shadow-sm",
+            "planner-overlay flex flex-col p-0 shadow-sm data-[state=open]:duration-[420ms] data-[state=closed]:duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:![--tw-enter-translate-x:2.5rem] data-[state=closed]:![--tw-exit-translate-x:2.5rem] data-[state=open]:![--tw-enter-translate-y:3rem] data-[state=closed]:![--tw-exit-translate-y:3rem]",
             isCompact ? "h-[92dvh] max-h-[92dvh] rounded-t-md" : "w-full sm:max-w-md",
           )}
           hideOverlay={!isCompact}
@@ -859,7 +859,8 @@ export const RouteEditSheet = ({
             {!isProjection && route?.id && (seriesInfo?.recurringAppointmentCount ?? 0) > 0 && (
               <RouteOccurrenceTimeline routeId={route.id} />
             )}
-            {/* Navn */}
+            {/* Navn + farve skjules på forventede ruter — de er låst alligevel. */}
+            {!isProjection && (<>
             <Section
               icon={<Pencil className="h-3.5 w-3.5" />}
               title="Navn"
@@ -941,6 +942,7 @@ export const RouteEditSheet = ({
                 })}
               </div>
             </Section>
+            </>)}
 
             {/* Dato — på projicerede forekomster åbner ændring en bekræftelses-
                 dialog der materialiserer netop denne ene forekomst på den nye
