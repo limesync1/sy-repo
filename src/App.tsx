@@ -419,6 +419,7 @@ const App = () => (
               <Route path="/guides" element={<GuidesIndex />} />
 
               {/* ── By-landingssider for rengøring (SEO) ── */}
+              <Route path="/rengoering" element={<CleaningSearchHub />} />
               <Route path="/rengoering/:city" element={<CleaningCityPage />} />
               <Route path="/flyttehjaelp/:city" element={<MovingCityPage />} />
               <Route path="/haandvaerker/:city" element={<HandymanCityPage />} />
