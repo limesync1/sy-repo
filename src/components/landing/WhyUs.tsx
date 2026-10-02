@@ -37,6 +37,9 @@ const benefits = [
 const WhyUs = () => {
   return (
     <section className="relative bg-ocean py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-24">
+      {/* Skillelinje, så sektionen ikke flyder sammen med "Sådan virker det",
+          når anmeldelsessektionen imellem er tom. */}
+      <div aria-hidden className="absolute inset-x-0 top-0 mx-auto h-px max-w-7xl bg-gradient-to-r from-transparent via-ocean-foreground/25 to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="max-w-2xl">
