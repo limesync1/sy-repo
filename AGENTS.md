@@ -2,7 +2,7 @@
 
 - Business and employee surfaces compose navigation through `PanelShell`, `PanelBottomNav`, and shared `SidebarParts`; platform admin retains compatibility exports while using the shared `service-panel-*` visual system, so role-specific logic cannot duplicate layout behavior.
 - Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
-- Branded panel illustrations resolve through `PanelIcon`; compact custom UI artwork resolves through `UiArtwork`, keeping uploaded icon sizing and state behavior consistent.
+- Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
 - Official external profile URLs are centralized in `src/lib/social-links.ts` so visible links and page-level organization data stay consistent.
 - Public SEO routes get a build-time static <head> (title, description, canonical, og:*) generated from the content registries via the sitemap script and the seo-prerender-head Vite plugin, so non-JS crawlers see page-specific metadata.
 - All lead sources normalize into `quote_requests`/`quote_request_matches`, while provider connections and credentials stay server-side and business-scoped, so the Leads workspace has one secure source of truth.

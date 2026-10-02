@@ -112,7 +112,7 @@ const Footer = () => {
           </div>
         </div>
 
-         <div className="mt-10 flex flex-col items-center justify-between gap-5 border-t border-background/10 pt-6 text-xs text-background/55 md:flex-row">
+         <div className="mt-10 flex flex-col items-center justify-between gap-5 border-t border-background/10 pt-6 text-xs text-background/70 md:flex-row">
            <div className="flex flex-col items-center gap-3 md:items-start">
              <div>© {new Date().getFullYear()} Serviceydere</div>
              <nav aria-label="Serviceydere på sociale medier" className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
@@ -138,7 +138,7 @@ const Footer = () => {
            <img
             src="/serviceydere-logo.webp"
             alt="Serviceydere"
-            className="h-9 w-auto opacity-90"
+             className="h-9 w-auto"
             width={1920}
             height={539}
             decoding="async"
