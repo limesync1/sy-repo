@@ -334,7 +334,7 @@ export const RouteChecklistView = ({
                             aria-label="Flyt stoppet tidligere"
                             disabled={reordering || remIdx <= 1}
                             onClick={() => onMoveStop!(s.id, -1)}
-                            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                            className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
                           >
                             <ArrowUp className="h-4 w-4" />
                           </Button>
@@ -344,7 +344,7 @@ export const RouteChecklistView = ({
                             aria-label="Flyt stoppet senere"
                             disabled={reordering || remIdx >= remaining.length - 1}
                             onClick={() => onMoveStop!(s.id, 1)}
-                            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                            className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
