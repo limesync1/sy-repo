@@ -64,7 +64,7 @@ export const PanelIcon = ({ name, className, alt = "", ...props }: PanelIconProp
     src={PANEL_ICON_ASSETS[name]}
     alt={alt}
     draggable={false}
-    className={cn("inline-block shrink-0 select-none object-contain", className)}
+    className={cn("inline-block max-h-full max-w-full shrink-0 select-none object-contain", className)}
     {...props}
   />
 );

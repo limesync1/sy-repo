@@ -22,7 +22,7 @@ export const CustomerIllustration = ({ name, className, alt = "", ...props }: Pr
     alt={alt}
     aria-hidden={alt ? undefined : true}
     draggable={false}
-    className={cn("inline-block shrink-0 select-none object-contain", className)}
+    className={cn("inline-block max-h-full max-w-full shrink-0 select-none object-contain", className)}
     {...props}
   />
 );
