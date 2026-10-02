@@ -2,7 +2,7 @@
 // manuelt. Spejler "Bliv udbyder"-siden, men med admin-specifikke felter
 // (force-active, custom trial-længde, admin-note) og uden at admin selv
 // behøver oprette ejer-bruger først.
-import { lookupCvr } from "@/lib/cvr-lookup";
+import { lookupCvr as fetchCvr } from "@/lib/cvr-lookup";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,7 +73,7 @@ export default function CreateBusinessWizard({ open, onOpenChange }: Props) {
     if (cleaned.length !== 8) { setCvrError("CVR skal være 8 cifre"); return; }
     setCvrLoading(true); setCvrError("");
     try {
-      const { data, error } = await lookupCvr(cleaned);
+      const { data, error } = await fetchCvr(cleaned);
       if (error) throw error;
       if (!data?.found) { setCvrError("Vi kunne ikke finde dette CVR-nummer"); return; }
       setName(data.name || "");
