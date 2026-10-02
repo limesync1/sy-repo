@@ -284,20 +284,20 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
-        <DialogContent className="max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col p-0 gap-0 overflow-hidden">
-          <DialogHeader className="px-4 py-3 border-b shrink-0 text-left sm:px-5 sm:py-4">
+        <DialogContent className="planner-overlay max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col p-0 gap-0 overflow-hidden">
+          <DialogHeader className="planner-overlay-header px-4 py-3 border-b shrink-0 text-left sm:px-5 sm:py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
               {type === "business" ? <Building2 className="h-4 w-4 text-accent" /> : <User className="h-4 w-4 text-accent" />}
               {initial?.id ? "Rediger kunde" : "Opret ny kunde"}
             </DialogTitle>
-            <DialogDescription className="text-xs leading-snug">
+            <DialogDescription className="text-[13px] leading-snug">
               {initial?.id
                 ? "Ret kundens oplysninger. Ændringerne gemmes i kartoteket."
                 : "Gem kunden i kartoteket — eller fortsæt direkte til første bestilling."}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-secondary/20 sm:px-5 sm:py-4 sm:space-y-4">
+          <div className="planner-overlay-body flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-secondary/20 sm:px-5 sm:py-4 sm:space-y-4">
             {!initial?.id && (
               <Tabs value={type} onValueChange={(v) => setType(v as CustomerType)}>
                 <TabsList className="grid h-10 w-full grid-cols-2">
@@ -367,34 +367,36 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 </div>
                 <div>
                   <FieldLabel required>Firmanavn</FieldLabel>
-                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-9" />
+                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-10" />
                 </div>
                 <div>
                   <FieldLabel optional>Kontaktperson</FieldLabel>
-                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-9" />
+                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
                 </div>
               </div>
             )}
 
+            <div className="space-y-3 rounded-lg border bg-card p-3">
             {type === "private" && (
               <div>
                 <FieldLabel required>Navn</FieldLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-9" />
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <FieldLabel required>E-mail</FieldLabel>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-10" />
               </div>
               <div>
                 <FieldLabel optional>Telefon</FieldLabel>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-10" />
               </div>
             </div>
+            </div>
 
-            <div className="relative z-20 space-y-2 rounded-lg border bg-card p-3 sm:border-0 sm:bg-transparent sm:p-0">
+            <div className="relative z-20 space-y-2 rounded-lg border bg-card p-3">
               <FieldLabel optional>Adresse</FieldLabel>
               <AddressAutocomplete
                 value={{ address, zip_code: zipCode, city, latitude, longitude }}
@@ -407,8 +409,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             {(zipCode || city) && (
               <div className="grid grid-cols-3 gap-3">
-                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></div>
-                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></div>
+                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-10" /></div>
+                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-10" /></div>
               </div>
             )}
 
@@ -424,18 +426,18 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <FieldLabel optional>Kunde-nr.</FieldLabel>
-                  <Input value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-9" />
+                  <Input value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-10" />
                 </div>
                 <div>
                   <FieldLabel optional>Betalingsbetingelse (dage)</FieldLabel>
-                  <Input type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-9" />
+                  <Input type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-10" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <FieldLabel optional>Momszone</FieldLabel>
                   <Select value={vatZone} onValueChange={setVatZone}>
-                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="domestic">Indland</SelectItem>
                       <SelectItem value="eu">EU</SelectItem>
@@ -446,14 +448,14 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 </div>
                 <div>
                   <FieldLabel optional>EAN-nummer</FieldLabel>
-                  <Input value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-9" />
+                  <Input value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-10" />
                 </div>
               </div>
               {customerGroups.length > 0 && (
                 <div>
                   <FieldLabel optional>{groupsLabel}</FieldLabel>
                   <Select value={customerGroup} onValueChange={setCustomerGroup}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Vælg gruppe" /></SelectTrigger>
+                    <SelectTrigger className="h-10"><SelectValue placeholder="Vælg gruppe" /></SelectTrigger>
                     <SelectContent>
                       {customerGroups.map(g => (
                         <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
@@ -505,10 +507,10 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             )}
           </div>
 
-          <DialogFooter className="px-4 py-3 border-t shrink-0 gap-2 sm:gap-2 sm:px-5 sm:flex-row sm:justify-between">
-            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-9">Annullér</Button>
+          <DialogFooter className="planner-overlay-footer px-4 py-3 border-t shrink-0 gap-2 sm:gap-2 sm:px-5 sm:flex-row sm:justify-between">
+            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-10">Annullér</Button>
             <div className="grid w-full gap-2 sm:flex sm:w-auto">
-              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving} className="h-9">
+              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving} className="h-10">
                 {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                 Gem kunde
               </Button>
@@ -517,7 +519,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   onClick={() => handleSave(true)}
                   disabled={saving}
                   title={hasActiveServices ? "Gem kunden og opret en bestilling" : "Opret en aktiv service før du kan oprette bestillinger"}
-                  className="h-9 bg-accent text-accent-foreground hover:bg-accent/90"
+                  className="h-10 bg-accent text-accent-foreground hover:bg-accent/90"
                 >
                   <ShoppingBag className="h-4 w-4 mr-1.5" />
                   Gem og opret bestilling
