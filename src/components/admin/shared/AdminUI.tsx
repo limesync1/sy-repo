@@ -76,7 +76,7 @@ export const StatIconTile = ({
     className={cn(
       "flex aspect-square shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/70",
       size === "lg" ? "h-14 w-14 p-2 sm:h-16 sm:w-16 sm:p-2.5" : "h-11 w-11 p-1.5",
-      "[&_img]:h-7 [&_img]:w-7 [&_img]:max-h-full [&_img]:max-w-full [&_img]:object-contain [&_svg]:h-6 [&_svg]:w-6",
+      "[&_img]:h-7 [&_img]:w-7 [&_img]:max-h-full [&_img]:max-w-full [&_img]:object-contain [&_svg]:h-7 [&_svg]:w-7",
       className,
     )}
   >
@@ -250,7 +250,7 @@ export const EmptyState = React.forwardRef<
 >(({ icon, title, description, action }, ref) => (
   <Card ref={ref} className="service-panel-card rounded-[5px] border-dashed border-border">
     <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-md border border-border/70 bg-secondary/70 p-1.5 [&_img]:h-7 [&_img]:w-7 [&_img]:object-contain [&_svg]:h-6 [&_svg]:w-6 [&_svg]:text-muted-foreground/70">
+      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-md border border-border/70 bg-secondary/70 p-1.5 [&_img]:h-7 [&_img]:w-7 [&_img]:object-contain [&_svg]:h-7 [&_svg]:w-7 [&_svg]:text-muted-foreground/70">
         {icon}
       </div>
       <p className="text-sm font-semibold text-foreground">{title}</p>

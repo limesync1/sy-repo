@@ -163,8 +163,8 @@ const AboutUs = () => {
                 ].map(({ icon, k, t, b }) => (
                   <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground/5">
-                        <img src={icon} alt="" className="h-7 w-7" loading="lazy" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/60 bg-secondary/60 p-2">
+                        <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                       </div>
                       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
                     </div>
@@ -283,8 +283,8 @@ const AboutUs = () => {
                   key={title}
                   className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground/5">
-                    <img src={icon} alt="" className="h-7 w-7" loading="lazy" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/60 bg-secondary/60 p-2">
+                    <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                   </div>
                   <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</h3>
                   <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{text}</p>
@@ -317,8 +317,8 @@ const AboutUs = () => {
                   { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
                 ].map(({ icon, label, value, sub, href }) => (
                   <div key={label} className="rounded-[20px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft">
-                      <img src={icon} alt="" className="h-6 w-6" loading="lazy" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/60 bg-secondary/60 p-2">
+                      <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                     </div>
                     <dt className="mt-4 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{label}</dt>
                     <dd className="mt-1 text-[15px] font-semibold text-foreground">

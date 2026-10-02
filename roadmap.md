@@ -53,3 +53,9 @@
 - [x] Ret fælles ikonregistre og direkte gamle ikonreferencer
 - [x] Kontrollér ikoner på offentlige sider og i alle paneltyper
 - [x] Ensret ikonstørrelser, indvendig luft, baggrunde og beskæring på tværs af sider og paneler
+
+## Ikongennemgang og kortnavigation
+- [x] Tilføj de 11 nye arbejdsdags-, statistik- og rutekørselsikoner
+- [x] Ensret illustrationer i nøgletalsfelter og på Om os
+- [x] Stop kortnavigationens endeløse koordinatventetilstand og tilføj genforsøg
+- [x] Kontrollér centrale sider og rutekørsel på mobil og desktop
