@@ -189,8 +189,8 @@ export default function OrderDetailSheet({ orderId, onClose }: Props) {
                     const Icon = t.icon;
                     return (
                       <div key={i} className="flex items-start gap-2.5 text-sm">
-                        <div className="mt-0.5 rounded-full border border-border bg-background p-1">
-                          <Icon className={`h-3 w-3 ${t.tone || "text-muted-foreground"}`} />
+                        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-background">
+                          <Icon className={`h-3.5 w-3.5 ${t.tone || "text-muted-foreground"}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`font-medium ${t.tone || "text-foreground"}`}>{t.label}</p>

@@ -1210,7 +1210,7 @@ const ServiceForm = ({
           <div className="hidden sm:flex flex-wrap items-center justify-end gap-1.5">
             {serviceCategory && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
-                <IndustryIcon category={serviceCategory} className="h-4 w-4" />
+                <IndustryIcon category={serviceCategory} className="h-5 w-5 shrink-0" />
                 {serviceCategory}
               </span>
             )}

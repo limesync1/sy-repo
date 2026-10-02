@@ -64,7 +64,7 @@ export const CustomerShell = ({
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-5 w-5 shrink-0" />
                   {tab.label}
                   {typeof tab.badge === "number" && tab.badge > 0 && (
                     <span className={cn(
