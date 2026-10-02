@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
 /** Lead-indstillinger gemmes i businesses.notification_settings (jsonb) og læses af match-quotes. */
 type LeadSettings = {
@@ -149,19 +150,20 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2"><Settings2 className="h-4 w-4" />Indstillinger</Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
-        <DialogHeader className="border-b border-border px-5 pb-5 pt-6 sm:px-7">
-          <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-foreground"><Settings2 className="h-5 w-5" /></span>
-          <DialogTitle className="text-xl sm:text-2xl">Lead-indstillinger</DialogTitle>
-          <DialogDescription>Styr hvilke leads du modtager, og hvem der får besked.</DialogDescription>
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
+          <SheetHeaderBlock
+            title={<DialogTitle className="text-base">Lead-indstillinger</DialogTitle>}
+            description={<DialogDescription className="text-xs leading-snug">Styr hvilke leads du modtager, og hvem der får besked.</DialogDescription>}
+          />
         </DialogHeader>
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>
         ) : (
-          <div className="space-y-6 px-5 py-5 sm:px-7">
-            <section className="space-y-3">
-              <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /><h3 className="text-sm font-semibold text-foreground">Beskeder om nye leads</h3></div>
-              <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-4">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+            <Section icon={<Mail />} title="Beskeder om nye leads">
+              <div className="space-y-3">
+              <div className="flex items-start justify-between gap-4">
               <div>
                 <Label>E-mail ved ny lead</Label>
                 <p className="text-xs text-muted-foreground">Sendes til {ownerEmail || "virksomhedens e-mail"} når en ny lead kommer ind.</p>
@@ -169,7 +171,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               <Switch checked={s.lead_emails} onCheckedChange={(v) => setS({ ...s, lead_emails: v })} />
               </div>
 
-              <div className="space-y-2 rounded-md border border-border bg-card p-4">
+              <div className="space-y-2 border-t border-border pt-3">
               <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" /><Label>Ekstra modtagere</Label></div>
               <p className="text-xs text-muted-foreground">Vælg medarbejdere eller tilføj e-mails. Du kan vælge op til 5.</p>
               {staff.filter((m) => m.email !== ownerEmail).length > 0 && (
@@ -189,11 +191,12 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               <ChipInput values={s.lead_recipients} validate={emailOk} placeholder="anden@firma.dk"
                 onChange={(v) => setS({ ...s, lead_recipients: v.slice(0, 5) })} />
               </div>
-            </section>
+              </div>
+            </Section>
 
-            <section className="space-y-3">
-              <div className="flex items-center gap-2"><BriefcaseBusiness className="h-4 w-4 text-muted-foreground" /><h3 className="text-sm font-semibold text-foreground">Hvilke leads vil du modtage?</h3></div>
-              <div className="space-y-2 rounded-md border border-border bg-card p-4">
+            <Section icon={<BriefcaseBusiness />} title="Hvilke leads vil du modtage?">
+              <div className="space-y-3">
+              <div className="space-y-2">
               <Label>Brancher</Label>
               <p className="text-xs text-muted-foreground">
                 {ownCategories.length ? "Foreslået ud fra jeres egne services. Tryk for at slå til eller fra. Ingen valgt = alle jeres brancher." : "Opret services, så foreslår vi automatisk jeres brancher."}
@@ -216,15 +219,15 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               </div>
               </div>
 
-              <div className="space-y-3 rounded-md border border-border bg-card p-4">
+              <div className="space-y-3 border-t border-border pt-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /><Label>Maks. afstand</Label></div>
                 <span className="text-sm font-semibold tabular-nums">{s.lead_max_km ? `${s.lead_max_km} km` : "Hele landet"}</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
                 {DISTANCE_PRESETS.map((p) => (
                   <Button key={p.label} type="button" variant={s.lead_max_km === p.km ? "default" : "outline"} onClick={() => setS({ ...s, lead_max_km: p.km })}
-                    className="h-auto min-h-11 justify-start px-2 py-1.5 text-left text-xs">
+                    className="h-auto min-h-11 flex-col items-start justify-center gap-0 px-2 py-1.5 text-left text-xs">
                     <span className="block font-semibold">{p.label}</span>
                     <span className="block opacity-75">{p.hint}</span>
                   </Button>
@@ -233,13 +236,15 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               <Slider min={5} max={200} step={5} value={[s.lead_max_km ?? 200]}
                 onValueChange={([v]) => setS({ ...s, lead_max_km: v >= 200 ? null : v })} aria-label="Maks. afstand i km" />
               </div>
-            </section>
+              </div>
+            </Section>
 
-            <section className="space-y-3 rounded-md border border-border bg-card p-4">
+            <Section icon={<MessageSquare />} title="Automatisk svar til kunden">
+              <div className="space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-2"><MessageSquare className="h-4 w-4 text-muted-foreground" /><Label>Automatisk svar til kunden</Label></div>
-                  <p className="mt-1 text-xs text-muted-foreground">Send din valgte besked med det samme, når et nyt lead kommer ind.</p>
+                  <Label>Send svar med det samme</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">Send din valgte besked automatisk, når et nyt lead kommer ind.</p>
                 </div>
                 <Switch checked={s.lead_auto_reply} onCheckedChange={(v) => setS({ ...s, lead_auto_reply: v })} />
               </div>
@@ -279,13 +284,16 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
                   </div>
                 </>
               )}
-            </section>
+              </div>
+            </Section>
           </div>
         )}
-        <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
-          <Button variant="outline" onClick={() => setOpen(false)}>Annuller</Button>
-          <Button onClick={save} disabled={saving || loading}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Gem</Button>
-        </DialogFooter>
+        <SheetFooterBar>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Annullér</Button>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={save} disabled={saving || loading}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Gem indstillinger</Button>
+          </div>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
