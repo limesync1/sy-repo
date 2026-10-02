@@ -1,8 +1,6 @@
 import { MessageCircle, Trash2 } from "lucide-react";
 import { platformKey, type RegisteredChat } from "./chatRegistry";
-import supportPortraitAsset from "@/assets/kundeservice-ikon.svg.asset.json";
-
-const supportPortrait = supportPortraitAsset.url;
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 type Props = {
   chats: RegisteredChat[];
@@ -13,7 +11,7 @@ type Props = {
 
 const ChatAvatar = ({ chat }: { chat: RegisteredChat }) => {
   if (chat.scope === "platform") {
-    return <img src={supportPortrait} alt="Serviceydere kundeservice" className="h-9 w-9 shrink-0 object-contain" />;
+    return <BrandedIllustration name="customerService" alt="Serviceydere kundeservice" className="h-9 w-9" />;
   }
 
   return (

@@ -1489,7 +1489,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/40 to-card p-6 sm:p-8">
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center">
-              <BrandedIllustration name="economicIntegration" className="h-full w-full" alt="" />
+              <BrandedIllustration name="accountingProgramChoice" className="h-14 w-14" alt="" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg font-semibold text-foreground">Vælg dit regnskabsprogram</h3>

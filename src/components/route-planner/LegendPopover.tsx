@@ -2,8 +2,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
-  HelpCircle, Lock, Sparkles, History, Repeat, CheckCircle2, AlertTriangle, Inbox, CalendarArrowDown, Send,
+  HelpCircle, Lock, Sparkles, History, Repeat, CheckCircle2, AlertTriangle, CalendarArrowDown, Send,
 } from "lucide-react";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**
  * Lille hjælpe-legend i topbaren. Forklarer hvad farver, badges og ikoner
@@ -52,7 +53,7 @@ export function LegendPopover() {
               <Row swatch={<AlertTriangle className="h-3.5 w-3.5 text-amber-500" />} label="Skill-mismatch" desc="Medarbejder mangler en færdighed" />
               <Row swatch={<Dot className="bg-destructive" />} label="Konflikt" desc="Overbooket eller tidsoverlap" />
               <Row swatch={<BarBg />} label="Kapacitets-bjælke" desc="Planlagte stop vs. dagens stopkapacitet" />
-              <Row swatch={<Inbox className="h-3.5 w-3.5 text-muted-foreground" />} label="Aftaler uden rute" desc="Skal placeres på kalenderen" />
+              <Row swatch={<BrandedIllustration name="unassignedAppointments" className="h-4 w-4" />} label="Aftaler uden rute" desc="Skal placeres på kalenderen" />
             </Section>
           </div>
           <div className="px-3 py-2 border-t bg-secondary/30 text-[10.5px] text-muted-foreground flex items-center gap-1.5">

@@ -17,9 +17,9 @@ import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import supportPortrait from "@/assets/william-ross-jepsen.jpg.asset.json";
-import supportRobotAsset from "@/assets/kundeservice-ikon.svg.asset.json";
+import { BRANDED_ILLUSTRATIONS } from "@/components/shared/BrandedIllustration";
 
-const supportRobot = supportRobotAsset.url;
+const supportRobot = BRANDED_ILLUSTRATIONS.customerService;
 import {
   DropdownMenu,
   DropdownMenuContent,

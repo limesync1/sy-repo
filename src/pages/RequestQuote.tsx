@@ -26,8 +26,6 @@ import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu-2.png.asset.json";
-import loaderMatchesGif from "@/assets/quote/Loader_matches-2.gif.asset.json";
 import { UiArtwork } from "@/components/shared/UiArtwork";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
@@ -623,7 +621,7 @@ const RequestQuote = () => {
             <div className="relative">
               <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
               <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-accent/20 bg-card shadow-lg shadow-accent/20">
-                <img src={loaderMatchesGif.url} alt="" width={96} height={96} className="h-full w-full object-contain" />
+                <BrandedIllustration name="matchingLoader" className="h-20 w-20" />
               </div>
             </div>
             <div>
@@ -644,7 +642,7 @@ const RequestQuote = () => {
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
           <div className="rounded-[1.75rem] border border-border bg-card p-8 text-center animate-fade-in sm:p-10">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-secondary">
-              <img src={ingenMatchesIcon.url} alt="" width={80} height={80} className="h-full w-full object-contain" loading="lazy" decoding="async" />
+              <BrandedIllustration name="noMatches" className="h-16 w-16" />
             </div>
             <p className="text-lg font-semibold tracking-tight text-foreground">Ingen matches lige nu</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
