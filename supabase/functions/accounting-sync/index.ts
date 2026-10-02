@@ -7,6 +7,17 @@ import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { makeAdapter, AccountingAdapter } from "../_shared/accounting/index.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
+// Build a safe PostgREST .or() filter for cvr/email: values are strictly
+// validated so caller-controlled order data cannot inject filter syntax.
+function safeCvrEmailOr(cvr: unknown, email: unknown): string {
+  const parts: string[] = [];
+  const c = String(cvr ?? "").replace(/\D/g, "").slice(0, 20);
+  if (c) parts.push(`cvr.eq.${c}`);
+  const e = String(email ?? "").trim().toLowerCase();
+  if (/^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(e) && e.length <= 320) parts.push(`email.eq.${e}`);
+  return parts.length ? parts.join(",") : "id.is.null";
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -193,7 +204,7 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
       // Findes der allerede en business_customer med samme cvr/email?
       const { data: ex } = await admin.from("business_customers").select("id")
         .eq("business_id", business_id)
-        .or(`cvr.eq.${o.cvr},email.eq.${email}`)
+        .or(safeCvrEmailOr(o.cvr, email))
         .maybeSingle();
       if (ex) {
         rows.push({ business_id, entity_type: "customer", entity_id: ex.id, operation: "update" });
@@ -1282,7 +1293,7 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
 
   if (isCompany) {
     const { data } = await admin.from("business_customers").select("id")
-      .eq("business_id", integ.business_id).or(`cvr.eq.${order.cvr},email.eq.${email}`).limit(1).maybeSingle();
+      .eq("business_id", integ.business_id).or(safeCvrEmailOr(order.cvr, email)).limit(1).maybeSingle();
     internalId = data?.id ?? null;
   } else {
     const { data } = await admin.from("private_customers").select("id")
@@ -1296,7 +1307,7 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
     if (isCompany) {
       const { data: dup } = await admin.from("business_customers").select("id")
         .eq("business_id", integ.business_id)
-        .or(`cvr.eq.${order.cvr},email.eq.${email}`).limit(1).maybeSingle();
+        .or(safeCvrEmailOr(order.cvr, email)).limit(1).maybeSingle();
       if (dup) { internalId = dup.id; }
       else {
       const { data } = await admin.from("business_customers").insert({
