@@ -1496,15 +1496,27 @@ const RoutePillInner = ({
           </div>
           <div className="mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden pr-7 text-[10.5px] text-muted-foreground tabular-nums">
             {isVirtual ? (
-              <span className="shrink-0 font-medium" aria-label="Projiceret rute">Projiceret</span>
+              <span
+                className="inline-flex shrink-0 items-center rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold leading-[14px] text-muted-foreground"
+                aria-label="Forventet besøg fra en fast rute"
+              >
+                Forventet
+              </span>
             ) : showAsCompleted ? (
               <span className="inline-flex shrink-0 items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-3 w-3" /> Udført
               </span>
             ) : (
-              <span className="shrink-0">
-                {completedCount > 0 ? `${completedCount}/` : ""}{stopCount} stop
-              </span>
+              <>
+                {isBaseRecurring && (
+                  <span className="inline-flex shrink-0 items-center rounded-sm bg-accent/12 px-1 text-[10px] font-semibold leading-[14px] text-accent" aria-label="Fast rute – gentages automatisk">
+                    Fast
+                  </span>
+                )}
+                <span className="shrink-0">
+                  {completedCount > 0 ? `${completedCount}/` : ""}{stopCount} stop
+                </span>
+              </>
             )}
             {!isVirtual && (hasAssigneeConflict || hasSkillMismatch) && (
               <AlertTriangle
@@ -1733,8 +1745,13 @@ const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute
         <div className="flex items-center gap-2 border-b border-border px-3 py-2">
           <span className="h-3 w-1 shrink-0 rounded-full" style={{ background: route.color }} aria-hidden />
           <p className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{route.name?.trim() || "Rute"}</p>
-          {route.isVirtual && <span className="shrink-0 text-[10px] font-medium text-muted-foreground">Projiceret</span>}
+          {route.isVirtual && <span className="shrink-0 rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold text-muted-foreground">Forventet</span>}
         </div>
+        <p className="border-b border-border bg-secondary/40 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
+          {route.isVirtual
+            ? "Forventet besøg: beregnet ud fra en fast rute. Ændringer her gælder kun denne dag, medmindre du vælger alle næste besøg."
+            : "Planlagt rute: gemt med faste aftaler på denne dag."}
+        </p>
         <div className="space-y-2.5 px-3 py-2.5">
           <div>
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejdere</p>
