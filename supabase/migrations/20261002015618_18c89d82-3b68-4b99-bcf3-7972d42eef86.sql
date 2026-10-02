@@ -1,0 +1,1 @@
+ALTER FUNCTION public.admin_list_orders(integer, integer, text, text, text, text, timestamp with time zone, timestamp with time zone) VOLATILE;
