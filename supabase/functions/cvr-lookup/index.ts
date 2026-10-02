@@ -16,13 +16,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    const url = `https://cvrapi.dk/api?search=${cleaned}&country=dk`;
+    // cvrapi.dk deler gratis kvote pr. IP — på delte cloud-servere er den
+    // hurtigt opbrugt. Med en betalt token (CVRAPI_TOKEN) får vi egen kvote.
+    const token = Deno.env.get("CVRAPI_TOKEN");
+    const url = `https://cvrapi.dk/api?search=${cleaned}&country=dk${token ? `&token=${encodeURIComponent(token)}` : ""}`;
     let resp: Response;
     try {
       resp = await fetch(url, {
         headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
       });
-    } catch {
+    } catch (err) {
+      console.error("cvrapi fetch failed", String(err));
       return new Response(JSON.stringify({ found: false, reason: "service_down" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -36,6 +40,8 @@ Deno.serve(async (req) => {
       });
     }
     if (!resp.ok) {
+      const body = (await resp.text()).slice(0, 300);
+      console.error("cvrapi status", resp.status, body);
       return new Response(JSON.stringify({ found: false, reason: "service_down" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
