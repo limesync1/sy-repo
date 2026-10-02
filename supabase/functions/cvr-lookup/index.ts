@@ -16,14 +16,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // cvrapi.dk deler gratis kvote pr. IP — på delte cloud-servere er den
-    // hurtigt opbrugt. Med en betalt token (CVRAPI_TOKEN) får vi egen kvote.
-    const token = Deno.env.get("CVRAPI_TOKEN");
-    const url = `https://cvrapi.dk/api?search=${cleaned}&country=dk${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+    const url = `https://cvrapi.dk/api?vat=${cleaned}&country=dk`;
     let resp: Response;
     try {
       resp = await fetch(url, {
-        headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
+        headers: { "User-Agent": "Serviceydere - CVR opslag - kontakt@serviceydere.dk" },
       });
     } catch (err) {
       console.error("cvrapi fetch failed", String(err));

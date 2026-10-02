@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { lookupCvr } from "@/lib/cvr-lookup";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, Check, AlertCircle } from "lucide-react";
@@ -41,7 +41,7 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
     setLoading(true);
     setStatus("idle");
     try {
-      const { data, error } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: cleaned } });
+      const { data, error } = await lookupCvr(cleaned);
       if (error) {
         // Edge function svarede ikke — typisk netværk eller midlertidigt nede.
         setStatus("service_down");

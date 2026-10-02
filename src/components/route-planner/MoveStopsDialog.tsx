@@ -11,11 +11,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon, Check, MapPin } from "lucide-react";
+import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon, Check, Repeat } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { ROUTE_COLORS, pickAvailableColor } from "./RouteEditSheet";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
-import { SheetHeaderBlock } from "./SheetSection";
+import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -125,6 +125,26 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
   }
 };
 
+/** Flyt aftalens opstartsdato (ordre, abonnement og ny aftalemodel). */
+const shiftOrderStartDate = async (orderId: string, newDate: string) => {
+  try {
+    await supabase.from("orders").update({ preferred_date: newDate, next_service_date: newDate }).eq("id", orderId);
+  } catch (err) { console.warn("[MoveStops] orders.preferred_date", err); }
+  try {
+    await supabase.from("subscriptions").update({ next_service_date: newDate })
+      .eq("order_id", orderId).eq("status", "active");
+  } catch (err) { console.warn("[MoveStops] subscriptions.next_service_date", err); }
+  try {
+    const { data: subs } = await supabase.from("subscriptions").select("id").eq("order_id", orderId);
+    const subIds = (subs || []).map((s: any) => s.id);
+    if (subIds.length > 0) {
+      await supabase.from("agreements").update({ start_date: newDate }).in("legacy_subscription_id", subIds);
+    }
+  } catch (err) { console.warn("[MoveStops] agreements.start_date", err); }
+};
+
+type Scope = "single" | "future";
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -134,14 +154,21 @@ type Props = {
   defaultMode?: "date" | "route";
   /** Forvælg alle stops når dialogen åbnes (fx ved "flet rute") */
   preselectAll?: boolean;
+  /** Kaldes når kilderuten blev tom og derfor slettet — så forælderen kan lukke sig. */
+  onSourceRouteDeleted?: () => void;
+  /** Kaldes efter et vellykket flyt (fx for at lukke rute-vinduet). */
+  onMoved?: () => void;
 };
 
-export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode, preselectAll }: Props) => {
+const fmtDay = (iso: string) => format(parseISO(iso), "EEEE d. MMM", { locale: da });
+
+export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode, preselectAll, onSourceRouteDeleted, onMoved }: Props) => {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"date" | "route">("date");
   const [targetDate, setTargetDate] = useState<string>("");
   const [targetRouteId, setTargetRouteId] = useState<string>("");
+  const [scope, setScope] = useState<Scope>("single");
   const [moving, setMoving] = useState(false);
 
   useEffect(() => {
@@ -150,9 +177,33 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
       setMode(defaultMode || "date");
       setTargetDate(route?.route_date || "");
       setTargetRouteId("");
+      setScope("single");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, route?.route_date, defaultMode, preselectAll]);
+
+  // Hvilke ordrer på ruten er faste (gentagende) aftaler?
+  const orderIds = useMemo(
+    () => Array.from(new Set(stops.map((s) => s.order_id).filter(Boolean) as string[])),
+    [stops],
+  );
+  const { data: recurringOrderIds = new Set<string>() } = useQuery({
+    queryKey: ["move-stops-recurring", orderIds.join(",")],
+    enabled: open && orderIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("order_id, interval, status")
+        .in("order_id", orderIds)
+        .eq("status", "active")
+        .neq("interval", "engangskøb");
+      return new Set((data || []).map((r: any) => r.order_id as string));
+    },
+  });
+  const selectedHasRecurring = useMemo(
+    () => stops.some((s) => selected.has(s.id) && s.order_id && recurringOrderIds.has(s.order_id)),
+    [stops, selected, recurringOrderIds],
+  );
 
   // Hent andre ruter for samme business som mulige mål
   const { data: otherRoutes = [] } = useQuery({
@@ -166,6 +217,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
         .neq("id", route!.id)
         .is("deleted_at", null)
         .is("archived_at", null)
+        .gte("route_date", todayStr())
         .order("route_date", { ascending: true });
       if (error) throw error;
       const mapped = (data || []).map((r: any) => ({
@@ -175,11 +227,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
         color: r.color as string,
         stop_count: Number(r.route_stops?.[0]?.count ?? 0),
       }));
-      // Skjul tomme ruter — disse er reelt ikke "eksisterende ruter"
-      // brugeren kan flytte til; vælg "Ny dato" eller opret en ny rute.
       const withStops = mapped.filter((r) => r.stop_count > 0);
-      // Dedupér på (dato + navn + farve) — viser kun den rute med flest stops
-      // hvis flere ruter ved et uheld er identiske.
       const byKey = new Map<string, typeof withStops[number]>();
       for (const r of withStops) {
         const key = `${r.route_date}|${(r.name || "").trim().toLowerCase()}|${(r.color || "").toLowerCase()}`;
@@ -190,7 +238,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
     },
   });
 
-  // Konfliktdetektion for valgt måldato (kun i "date"-mode).
   const { conflicts: targetDateConflicts } = useDayConflicts(
     route?.business_id,
     mode === "date" ? targetDate : undefined,
@@ -216,6 +263,10 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
     setSelected(allSelected ? new Set() : new Set(stops.map((s) => s.id)));
   };
 
+  const destDate = mode === "date"
+    ? targetDate
+    : (otherRoutes.find((r) => r.id === targetRouteId)?.route_date ?? "");
+
   const canConfirm = useMemo(() => {
     if (!route) return false;
     if (selected.size === 0) return false;
@@ -231,87 +282,108 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
   const handleConfirm = async () => {
     if (!route || !canConfirm) return;
     setMoving(true);
+    const movedIds = Array.from(selected);
     try {
       let movedCount = 0;
       let missingEmployee = 0;
       let successLabel = "";
       if (mode === "date") {
-        if (targetDate < todayStr()) {
-          toast.error("Kan ikke flytte aftaler bagud i tiden", {
-            description: "Vælg en dato fra i dag eller frem.",
-          });
-          return;
-        }
         const { data, error } = await supabase.rpc("move_stops_to_date", {
-          _stop_ids: Array.from(selected),
+          _stop_ids: movedIds,
           _target_date: targetDate,
         });
         if (error) {
           console.error("[MoveStops] move_stops_to_date fejlede", error);
-          toast.error("Aftaler kunne ikke flyttes", {
-            description: error.message || "Prøv igen om lidt.",
-          });
+          toast.error("Aftalerne kunne ikke flyttes", { description: "Prøv igen om lidt." });
           return;
         }
         const row = Array.isArray(data) ? data[0] : data;
         movedCount = Number(row?.moved_count ?? 0);
         missingEmployee = Number(row?.missing_employee_count ?? 0);
-        successLabel = format(parseISO(targetDate), "EEEE d. MMM", { locale: da });
+        successLabel = fmtDay(targetDate);
         if (movedCount > 0) {
-          try { await renameFreshSplitRoutes(Array.from(selected), targetDate); } catch (e) { console.warn("renameFreshSplitRoutes", e); }
+          try { await renameFreshSplitRoutes(movedIds, targetDate); } catch (e) { console.warn("renameFreshSplitRoutes", e); }
         }
-
       } else {
         const { data, error } = await supabase.rpc("move_stops_to_route", {
-          _stop_ids: Array.from(selected),
+          _stop_ids: movedIds,
           _target_route_id: targetRouteId,
         });
         if (error) {
           console.error("[MoveStops] move_stops_to_route fejlede", error);
-          toast.error("Aftaler kunne ikke flyttes", {
-            description: error.message || "Prøv igen om lidt.",
-          });
+          toast.error("Aftalerne kunne ikke flyttes", { description: "Prøv igen om lidt." });
           return;
         }
         const row = Array.isArray(data) ? data[0] : data;
         movedCount = Number(row?.moved_count ?? 0);
         const target = otherRoutes.find((r) => r.id === targetRouteId);
-        successLabel = target
-          ? `${target.name || "rute"} (${format(parseISO(target.route_date), "EEEE d. MMM", { locale: da })})`
-          : "valgt rute";
+        successLabel = target ? `${target.name || "rute"} (${fmtDay(target.route_date)})` : "valgt rute";
       }
-      if (movedCount > 0) {
-        toast.success(
-          `${movedCount} aftale${movedCount === 1 ? "" : "r"} flyttet til ${successLabel}`,
-        );
+
+      if (movedCount === 0) {
+        if (missingEmployee > 0) {
+          toast.error(
+            `${missingEmployee} aftale${missingEmployee === 1 ? "" : "r"} mangler en medarbejder`,
+            { description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen." },
+          );
+        } else {
+          toast.error("Ingen aftaler blev flyttet", { description: "De valgte aftaler ligger måske allerede på den dato." });
+        }
+        return;
       }
+
+      // Opstartsdato: engangsaftaler følger altid med. Faste aftaler kun når
+      // brugeren har valgt "denne og fremtidige" — så rytmen forskydes.
+      if (destDate) {
+        const movedOrderIds = Array.from(new Set(
+          stops.filter((s) => selected.has(s.id) && s.order_id).map((s) => s.order_id as string),
+        ));
+        for (const oid of movedOrderIds) {
+          const recurring = recurringOrderIds.has(oid);
+          if (!recurring || scope === "future") await shiftOrderStartDate(oid, destDate);
+        }
+      }
+
+      toast.success(`${movedCount} aftale${movedCount === 1 ? "" : "r"} flyttet til ${successLabel}`, {
+        description: selectedHasRecurring
+          ? scope === "future" ? "Fremtidige besøg følger den nye dato." : "Kun dette besøg er flyttet — resten af serien er uændret."
+          : "Opstartsdatoen er opdateret.",
+      });
       if (missingEmployee > 0) {
         toast.error(
           `${missingEmployee} aftale${missingEmployee === 1 ? "" : "r"} mangler en medarbejder`,
           { description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen." },
         );
       }
-      invalidateRouteSyncQueries(qc);
-      await qc.refetchQueries({ queryKey: ["route-calendar"] });
-      if (movedCount > 0) {
-        // Tjek om kilderuten nu er tom — slet automatisk uden at spørge.
-        // Tomme ruter er ikke tilladt og bringer ingen værdi at beholde.
-        const { count } = await supabase
-          .from("route_stops")
-          .select("id", { count: "exact", head: true })
-          .eq("route_id", route.id);
-        onOpenChange(false);
-        if ((count ?? 0) === 0) {
-          const { error: delErr } = await supabase.from("routes").delete().eq("id", route.id);
-          if (delErr) {
-            console.error("[MoveStops] kunne ikke auto-slette tom kilderute", delErr);
-            toast.error("Kunne ikke slette tom rute", { description: delErr.message });
-          } else {
-            toast.success("Tom rute slettet automatisk");
-            invalidateRouteSyncQueries(qc);
-          }
+
+      // Tom kilderute slettes automatisk.
+      const { count } = await supabase
+        .from("route_stops")
+        .select("id", { count: "exact", head: true })
+        .eq("route_id", route.id);
+      let deleted = false;
+      if ((count ?? 0) === 0) {
+        const { error: delErr } = await supabase.from("routes").delete().eq("id", route.id);
+        if (delErr) {
+          console.error("[MoveStops] kunne ikke auto-slette tom kilderute", delErr);
+        } else {
+          deleted = true;
         }
       }
+
+      invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["agreements"] });
+      qc.invalidateQueries({ queryKey: ["subscriptions"] });
+      onOpenChange(false);
+      if (deleted) {
+        toast.success("Ruten var tom og er slettet");
+        onSourceRouteDeleted?.();
+      }
+      onMoved?.();
+      void qc.refetchQueries({ queryKey: ["route-calendar"] });
     } finally {
       setMoving(false);
     }
@@ -320,137 +392,116 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
   if (!route) return null;
 
   return (
-    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay max-w-lg">
-        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            icon={<CalendarDays className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Flyt aftaler</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vælg hvilke aftaler der skal flyttes — enten til en ny dato eller direkte til en eksisterende rute. Kun de markerede flyttes.
+                Vælg aftaler og hvor de skal hen.
               </DialogDescription>
             }
           />
         </DialogHeader>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <button
-              type="button"
-              onClick={toggleAll}
-              className="min-h-9 rounded-md px-2 font-medium text-accent hover:bg-accent/10 active:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              {allSelected ? "Fravælg alle" : "Vælg alle"}
-            </button>
-            <span className="text-muted-foreground">
-              {selected.size} af {stops.length} valgt
-            </span>
-          </div>
-
-          <div className="max-h-[260px] overflow-y-auto rounded-md border divide-y">
-            {stops.length === 0 && (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Ingen aftaler på ruten.
-              </div>
-            )}
-            {stops.map((s) => {
-              const isSelected = selected.has(s.id);
-              return (
-                <label
-                  key={s.id}
-                  className={cn(
-                    "flex min-h-14 items-start gap-2.5 p-2.5 cursor-pointer transition-colors hover:bg-secondary/50 focus-within:ring-2 focus-within:ring-inset focus-within:ring-accent",
-                    isSelected && "bg-accent/[0.055]",
-                  )}
-                >
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => toggle(s.id)}
-                    className="mt-0.5"
-                  />
-                  <span
-                    className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-base leading-none ring-1 ring-border"
-                    aria-hidden
-                  >
-                    <IndustryIcon
-                      name={s.service_summary}
-                      className="h-5 w-5 object-contain"
-                      alt=""
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground">{s.customer_name}</p>
-                    </div>
-                    <p className={`text-xs truncate ${s.service_summary ? "text-muted-foreground" : "text-muted-foreground/70 italic"}`}>
-                      {s.service_summary || "Ingen ydelser angivet"}
-                    </p>
-                    {s.address && (
-                      <p className="text-[11px] text-muted-foreground truncate">{s.address}</p>
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+          <Section
+            icon={<Check />}
+            title="Aftaler"
+            hint={
+              <button
+                type="button"
+                onClick={toggleAll}
+                className="rounded px-1.5 py-0.5 text-[11px] font-medium text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {allSelected ? "Fravælg alle" : `Vælg alle (${selected.size}/${stops.length})`}
+              </button>
+            }
+          >
+            <div className="-m-3 max-h-[240px] divide-y overflow-y-auto">
+              {stops.length === 0 && (
+                <div className="p-4 text-center text-sm text-muted-foreground">Ingen aftaler på ruten.</div>
+              )}
+              {stops.map((s) => {
+                const isSelected = selected.has(s.id);
+                const recurring = !!s.order_id && recurringOrderIds.has(s.order_id);
+                return (
+                  <label
+                    key={s.id}
+                    className={cn(
+                      "flex min-h-14 cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50",
+                      isSelected && "bg-secondary/60",
                     )}
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-
-          <div>
-            <div className="flex gap-1 mb-2 rounded-md bg-secondary/50 p-0.5">
-              <button
-                type="button"
-                onClick={() => setMode("date")}
-                className={cn(
-                  "flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                  mode === "date" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
-                )}
-              >
-                <CalendarDays className="h-3.5 w-3.5" /> Ny dato
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("route")}
-                className={cn(
-                  "flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                  mode === "route" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
-                )}
-              >
-                <RouteIcon className="h-3.5 w-3.5" /> Eksisterende rute
-              </button>
+                  >
+                    <Checkbox checked={isSelected} onCheckedChange={() => toggle(s.id)} />
+                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary ring-1 ring-border" aria-hidden>
+                      <IndustryIcon name={s.service_summary} className="h-5 w-5 object-contain" alt="" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">{s.customer_name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {s.service_summary || "Ingen ydelser angivet"}
+                        {s.address ? ` · ${s.address}` : ""}
+                      </p>
+                    </div>
+                    {recurring && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        <Repeat className="h-3 w-3" /> Fast
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
             </div>
-            {mode === "date" ? (
-              <>
-                <DatePickerField value={targetDate} onChange={setTargetDate} minDate={todayStr()} />
-                {targetDate && route.route_date && targetDate !== route.route_date && (
-                  <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
-                    <span className="capitalize">
-                      {format(parseISO(route.route_date), "EEEE d. MMM", { locale: da })}
-                    </span>
-                    <ArrowRight className="h-3 w-3" />
-                    <span className="capitalize text-foreground font-medium">
-                      {format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}
-                    </span>
-                  </p>
-                )}
-                {conflictWarnings.length > 0 && (
-                  <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-50 dark:bg-amber-950/30 p-2.5 text-xs">
-                    <div className="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-300 mb-1">
-                      <AlertTriangle className="h-3.5 w-3.5" /> Mulige konflikter
+          </Section>
+
+          <Section icon={<CalendarDays />} title="Flyt til">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-1 rounded-md bg-secondary/60 p-1">
+                {([
+                  { v: "date", label: "Ny dato", Icon: CalendarDays },
+                  { v: "route", label: "Eksisterende rute", Icon: RouteIcon },
+                ] as const).map(({ v, label, Icon }) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setMode(v)}
+                    className={cn(
+                      "flex min-h-9 items-center justify-center gap-1.5 rounded px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      mode === v ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" /> {label}
+                  </button>
+                ))}
+              </div>
+
+              {mode === "date" ? (
+                <>
+                  <DatePickerField value={targetDate} onChange={setTargetDate} minDate={todayStr()} />
+                  {targetDate && route.route_date && targetDate !== route.route_date && (
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <span className="capitalize">{fmtDay(route.route_date)}</span>
+                      <ArrowRight className="h-3 w-3" />
+                      <span className="font-medium capitalize text-foreground">{fmtDay(targetDate)}</span>
+                    </p>
+                  )}
+                  {conflictWarnings.length > 0 && (
+                    <div className="rounded-md border border-amber-500/40 bg-amber-50 p-2.5 text-xs dark:bg-amber-950/30">
+                      <div className="mb-1 flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-300">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Mulige konflikter
+                      </div>
+                      <ul className="space-y-0.5 text-amber-800 dark:text-amber-200">
+                        {conflictWarnings.map((w, i) => <li key={i}>• {w}</li>)}
+                      </ul>
                     </div>
-                    <ul className="space-y-0.5 text-amber-800 dark:text-amber-200">
-                      {conflictWarnings.map((w, i) => <li key={i}>• {w}</li>)}
-                    </ul>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="max-h-[220px] overflow-y-auto rounded-md border divide-y bg-background">
+                  )}
+                </>
+              ) : (
+                <div className="max-h-[220px] divide-y overflow-y-auto rounded-md border bg-background">
                   {otherRoutes.length === 0 && (
-                    <div className="p-4 text-center text-sm text-muted-foreground">
-                      Der er ingen andre ruter at flytte til.
-                    </div>
+                    <div className="p-4 text-center text-sm text-muted-foreground">Der er ingen andre ruter at flytte til.</div>
                   )}
                   {otherRoutes.map((r) => {
                     const isSelected = targetRouteId === r.id;
@@ -460,65 +511,74 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                         type="button"
                         onClick={() => setTargetRouteId(r.id)}
                         className={cn(
-                          "w-full min-h-14 flex items-center gap-3 p-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
-                          isSelected ? "bg-accent/[0.07] ring-1 ring-inset ring-accent/25" : "hover:bg-secondary/50",
+                          "flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                          isSelected ? "bg-secondary/70" : "hover:bg-secondary/40",
                         )}
                       >
-                        <span
-                          className="h-9 w-1.5 rounded-full shrink-0"
-                          style={{ background: r.color }}
-                          aria-hidden
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium truncate">
-                              {r.name || "Rute uden navn"}
-                            </p>
-                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
-                              {r.stop_count} {r.stop_count === 1 ? "stop" : "stops"}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground capitalize flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
-                            {format(parseISO(r.route_date), "EEEE d. MMM yyyy", { locale: da })}
+                        <span className="h-8 w-1.5 shrink-0 rounded-full" style={{ background: r.color }} aria-hidden />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{r.name || "Rute uden navn"}</p>
+                          <p className="text-xs capitalize text-muted-foreground">
+                            {fmtDay(r.route_date)} · {r.stop_count} {r.stop_count === 1 ? "stop" : "stops"}
                           </p>
                         </div>
-                        <span
-                          className={cn(
-                            "h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition-colors",
-                            isSelected
-                              ? "bg-accent border-accent text-accent-foreground"
-                              : "border-border bg-background",
-                          )}
-                        >
+                        <span className={cn(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+                          isSelected ? "border-foreground bg-foreground text-background" : "border-border bg-background",
+                        )}>
                           {isSelected && <Check className="h-3 w-3" />}
                         </span>
                       </button>
                     );
                   })}
                 </div>
-                {targetRouteId && (
-                  <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    Aftalerne tilføjes til slutningen af den valgte rute.
-                  </p>
-                )}
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          </Section>
+
+          {selectedHasRecurring && (
+            <Section icon={<Repeat />} title="Faste aftaler">
+              <div className="grid gap-2">
+                {([
+                  { v: "single", title: "Kun dette besøg", desc: "De næste besøg bliver på de gamle datoer." },
+                  { v: "future", title: "Dette og alle næste besøg", desc: "Opstartsdatoen flyttes, så hele rytmen følger den nye dato." },
+                ] as const).map(({ v, title, desc }) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setScope(v)}
+                    className={cn(
+                      "flex items-start gap-3 rounded-md border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      scope === v ? "border-foreground bg-background" : "border-border bg-background hover:bg-secondary/40",
+                    )}
+                  >
+                    <span className={cn(
+                      "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                      scope === v ? "border-foreground" : "border-border",
+                    )}>
+                      {scope === v && <span className="h-2 w-2 rounded-full bg-foreground" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground">{title}</span>
+                      <span className="block text-xs text-muted-foreground">{desc}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Section>
+          )}
         </div>
 
-        <DialogFooter className="planner-overlay-footer -mx-6 -mb-6 mt-2 border-t bg-card px-5 py-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={moving}>
-            Annullér
-          </Button>
-          <Button onClick={handleConfirm} disabled={!canConfirm || moving}>
-            {moving && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Flyt {selected.size > 0 ? `${selected.size} ` : ""}aftale{selected.size === 1 ? "" : "r"}
-          </Button>
-        </DialogFooter>
+        <SheetFooterBar>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={moving}>Annullér</Button>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConfirm} disabled={!canConfirm || moving}>
+              {moving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              Flyt {selected.size > 0 ? `${selected.size} ` : ""}aftale{selected.size === 1 ? "" : "r"}
+            </Button>
+          </div>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
-    </>
   );
 };

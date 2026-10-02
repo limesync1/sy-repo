@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BellRing, Loader2, Send, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -49,9 +49,13 @@ export function RouteCommunicationPanel({
     const ids = new Set(stops.flatMap((item) => item.assignee_ids?.length ? item.assignee_ids : [item.assigned_employee_id]).filter(Boolean));
     return employees.filter((employee) => employee.is_active !== false && ids.has(employee.id));
   }, [employees, stops]);
-  const choices = assigned.length ? assigned : employees.filter((employee) => employee.is_active !== false);
+  // Kun medarbejdere der faktisk er på rutens aftaler kan kontaktes.
+  const choices = assigned;
   const [employeeId, setEmployeeId] = useState(choices[0]?.id ?? "");
   const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (!choices.some((c) => c.id === employeeId)) setEmployeeId(choices[0]?.id ?? "");
+  }, [choices, employeeId]);
   const [sending, setSending] = useState(false);
 
   const sendNotice = async () => {
@@ -79,6 +83,9 @@ export function RouteCommunicationPanel({
   };
 
   const selectedEmployee = choices.find((employee) => employee.id === employeeId);
+
+  // Ingen medarbejder på ruten → intet at kontakte.
+  if (choices.length === 0) return null;
 
   return (
     <section className="overflow-hidden rounded-md border border-border bg-card">

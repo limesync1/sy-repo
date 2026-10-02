@@ -592,7 +592,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
                         <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
                           <Calendar className="h-3 w-3" />
-                          Opstartsdato
+                          Foreløbig opstartsdato
                         </Label>
                         <DatePickerField
                           value={it.startDate}
