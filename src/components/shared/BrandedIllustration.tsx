@@ -41,7 +41,6 @@ import responseTimeNew from "@/assets/content-icons/svartid.svg.asset.json";
 import unansweredNew from "@/assets/content-icons/ubesvarede-beskeder.svg.asset.json";
 import describeTaskNew from "@/assets/content-icons/beskriv-opgaven.svg.asset.json";
 import matchNew from "@/assets/content-icons/vi-matcher.svg?url";
-import averageNew from "@/assets/content-icons/gennemsnit.svg.asset.json";
 import averageResponseNew from "@/assets/content-icons/gennemsnitlig-svartid.svg.asset.json";
 import businessCustomersNew from "@/assets/content-icons/erhvervskunder.svg.asset.json";
 import privateCustomersNew from "@/assets/content-icons/privatkunder.svg.asset.json";
