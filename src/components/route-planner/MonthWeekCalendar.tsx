@@ -1749,7 +1749,7 @@ const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute
         </div>
         <p className="border-b border-border bg-secondary/40 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
           {route.isVirtual
-            ? "Forventet besøg: beregnet ud fra en fast rute. Ændringer her gælder kun denne dag, medmindre du vælger alle næste besøg."
+            ? "Forventet besøg: vises automatisk, fordi en fast rute gentages på denne dag. Stiplet kant betyder, at den ikke er en selvstændig rute endnu."
             : "Planlagt rute: gemt med faste aftaler på denne dag."}
         </p>
         <div className="space-y-2.5 px-3 py-2.5">
