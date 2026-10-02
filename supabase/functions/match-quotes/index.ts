@@ -369,6 +369,10 @@ ${bizSummaries}`,
         if (typeof ns.lead_max_km === "number" && typeof m.distance_km === "number" && m.distance_km > ns.lead_max_km) return false;
         return true;
       });
+      // Lead-indstillinger er en præference, ikke et filter der må tabe
+      // forespørgslen: rammer filteret alle matches, sender vi til alle
+      // oprindelige matches, så kunden aldrig står uden modtagere.
+      if (leadMatches.length === 0) leadMatches = enrichedMatches;
     }
     if (persist && leadMatches.length > 0 && customerEmail) {
       try {
@@ -497,7 +501,7 @@ ${bizSummaries}`,
       }
     }
 
-    return new Response(JSON.stringify({ matches: enrichedMatches, quote_request_id: quoteRequestId }), {
+    return new Response(JSON.stringify({ matches: persist ? leadMatches : enrichedMatches, quote_request_id: quoteRequestId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
