@@ -51,4 +51,4 @@
 ## Ny ikonpakke
 - [x] Erstat de 59 tidligere indholdsikoner med filerne fra Nye-Ikon-Design
 - [x] Ret fælles ikonregistre og direkte gamle ikonreferencer
-- [ ] Kontrollér ikoner på offentlige sider og i alle paneltyper
+- [x] Kontrollér ikoner på offentlige sider og i alle paneltyper
