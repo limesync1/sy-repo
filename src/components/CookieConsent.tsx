@@ -43,6 +43,9 @@ const CookieConsent = () => {
       /* ignore */
     }
     setVisible(false);
+    // Fortæl resten af appen (fx testfase-popup'en) at cookievalget er truffet,
+    // så ingen modal åbner oven på banneret og gør det umuligt at trykke på.
+    window.dispatchEvent(new Event("cookie-consent-given"));
   };
 
   const showing = visible && !isPanelRoute;
@@ -60,7 +63,7 @@ const CookieConsent = () => {
       aria-live="polite"
       aria-label="Cookies"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[60] px-3 pb-3 sm:px-4 sm:pb-4",
+        "fixed inset-x-0 bottom-0 z-[90] px-3 pb-3 sm:px-4 sm:pb-4",
         "animate-fade-in",
       )}
       style={{ animationDelay: "100ms" }}
