@@ -45,8 +45,8 @@ const WindowCleaningPriceGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Vinduespudser pris 2026 | Pris pr. vindue & abonnement"
-        description="Hvad koster en vinduespudser? Se priser pr. vindue, abonnement, BoligJob-fradrag og typiske eksempler for private og erhverv."
+        title="Vinduespudsning pris 2026 — vinduespudser pris pr. vindue | Serviceydere"
+        description="Vinduespudsning pris: Hvad koster en vinduespudser? Se priser pr. vindue, abonnement, BoligJob-fradrag og typiske eksempler for private og erhverv."
         canonicalPath="/priser/vinduespudser"
         keywords="vinduespudser pris, hvad koster vinduespudser, vinduespudsning pris, vinduespudser abonnement, vinduespudser villa"
         ogType="article"
@@ -60,7 +60,7 @@ const WindowCleaningPriceGuide = () => {
           { label: "Vinduespudsning" },
         ]}
         eyebrow="Prisguide · Opdateret juni 2026"
-        title="Vinduespudser pris i 2026"
+        title="Vinduespudsning pris i 2026"
         subtitle="Få overblik over priser pr. vindue, abonnement vs. engangsbesøg, fradragsregler og hvad der reelt påvirker prisen for vinduespudsning."
       />
 

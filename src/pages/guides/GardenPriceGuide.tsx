@@ -43,8 +43,8 @@ const GardenPriceGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Haveservice priser 2026 — gartner & havemand fra 400 kr./t | Få 3 gratis tilbud"
-        description="Hvad koster haveservice? Se lokale priser: gartner fra 400 kr./t, græsslåning fra 250 kr., hækklipning fra 45 kr./m. Sammenlign gratis og få 3 tilbud fra havefirmaer nær dig."
+        title="Gartner pris 2026 — havearbejde fra 400 kr./t | Serviceydere"
+        description="Hvad koster en gartner og havearbejde? Se priser: gartner fra 400 kr./t, græsslåning fra 250 kr., hækklipning fra 45 kr./m. Sammenlign gratis og få 3 tilbud fra havefirmaer nær dig."
         canonicalPath="/priser/haveservice"
         keywords="haveservice pris, havemand pris, græsslåning pris, hækklipning pris, havefirma pris, haveservice abonnement"
         ogType="article"
@@ -58,7 +58,7 @@ const GardenPriceGuide = () => {
           { label: "Haveservice" },
         ]}
         eyebrow="Prisguide · Opdateret juni 2026"
-        title="Haveservice priser i 2026"
+        title="Gartner pris og havearbejde i 2026"
         subtitle="Komplet prisguide til haveservice i Danmark — timepris, fast abonnement, græsslåning, hækklipning og BoligJob-fradraget."
       />
 

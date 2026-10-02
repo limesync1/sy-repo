@@ -25,13 +25,13 @@ export interface GuideMeta {
 
 export const GUIDES: GuideMeta[] = [
   // Eksisterende prisguides
-  { href: "/priser/rengoering", title: "Hvad koster rengøring i 2026?", desc: "Komplet prisguide for privat- og erhvervsrengøring — timepris, fast pris og BoligJob-fradrag.", category: "Rengøring", tag: "Prisguide", priority: "0.8" },
+  { href: "/priser/rengoering", title: "Rengøring pris 2026 — timepris & fast pris", desc: "Komplet prisguide for privat- og erhvervsrengøring — timepris, fast pris og BoligJob-fradrag.", category: "Rengøring", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/flyttehjaelp", title: "Hvad koster flyttehjælp i 2026?", desc: "Priser på flyttefirmaer — pakker, kørsel, opbevaring og typiske flytteeksempler.", category: "Flyttehjælp", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/haandvaerker", title: "Hvad koster en håndværker i timen?", desc: "Timepriser for tømrer, murer, snedker og alm. håndværker — inkl. udkald og BoligJob-fradrag.", category: "Håndværker", tag: "Prisguide", priority: "0.85" },
   { href: "/priser/maler", title: "Maler pris pr. m² i 2026", desc: "Priser pr. m² for vægge, lofter og træværk — indvendigt og udvendigt malerarbejde.", category: "Maler", tag: "Prisguide", priority: "0.8" },
-  { href: "/priser/vinduespudser", title: "Vinduespudser pris 2026", desc: "Pris pr. vindue, abonnement vs. engangsbesøg og hvad fradraget betyder for din regning.", category: "Vinduespudsning", tag: "Prisguide", priority: "0.8" },
+  { href: "/priser/vinduespudser", title: "Vinduespudsning pris 2026", desc: "Pris pr. vindue, abonnement vs. engangsbesøg og hvad fradraget betyder for din regning.", category: "Vinduespudsning", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/vvs", title: "VVS pris 2026 — udkald & timepris", desc: "Timepris, akutudkald og typiske opgaver fra dryppende vandhane til varmepumpe.", category: "VVS", tag: "Prisguide", priority: "0.8" },
-  { href: "/priser/haveservice", title: "Haveservice priser 2026", desc: "Timepris, abonnement, græsslåning og hækklipning — inkl. BoligJob-fradraget.", category: "Haveservice", tag: "Prisguide", priority: "0.8" },
+  { href: "/priser/haveservice", title: "Gartner pris 2026 — havearbejde", desc: "Gartnerens timepris, abonnement, græsslåning og hækklipning — inkl. BoligJob-fradraget.", category: "Haveservice", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/elektriker", title: "Elektriker pris 2026", desc: "Timepris, udkald, ladestander og typiske el-opgaver fra HFI til ny gruppe.", category: "Elektriker", tag: "Prisguide", priority: "0.85" },
   { href: "/priser/tomrer", title: "Tømrer pris 2026 — timepris & opgaver", desc: "Timepris, terrasser, trapper, carport og tilbygninger — inkl. AB-Forbruger og BoligJob-fradrag.", category: "Tømrer", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/murer", title: "Murer pris 2026 — opmuring & omfugning", desc: "Timepris, opmuring, facadepudsning, omfugning og udbedring af sætningsskader.", category: "Murer", tag: "Prisguide", priority: "0.8" },

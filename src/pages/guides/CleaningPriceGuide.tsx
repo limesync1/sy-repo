@@ -89,8 +89,8 @@ const CleaningPriceGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Prisguide: Hvad koster rengøring i 2026? | Serviceydere"
-        description="Hvad koster rengøringshjælp i Danmark? Se timepriser, faste priser, BoligJob-fradrag og hvad der påvirker prisen for privat- og erhvervsrengøring."
+        title="Rengøring pris 2026 — timepris for privat- og erhvervsrengøring | Serviceydere"
+        description="Rengøring pris: Hvad koster rengøringshjælp i Danmark? Se timepriser, faste priser, BoligJob-fradrag og hvad der påvirker prisen for privat- og erhvervsrengøring."
         canonicalPath="/priser/rengoering"
         keywords="rengøringsfirma priser, hvad koster privat rengøring, rengøring pris, timepris rengøring, fast pris rengøring, erhvervsrengøring pris, boligjob fradrag rengøring"
         ogType="article"
