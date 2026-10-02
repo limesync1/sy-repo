@@ -300,9 +300,10 @@ export const SidebarProgressCard = forwardRef<HTMLButtonElement, {
 ) {
   const pct = total > 0 ? Math.min(1, Math.max(0, done / total)) : 0;
   const hint = total > 0 ? `${done} af ${total} trin klaret` : "Sæt din virksomhed op";
+  const hasPendingSteps = total > 0 && done < total;
 
   const ring = (size: string, iconSize: string) => (
-    <span className={cn("relative inline-flex shrink-0 items-center justify-center", size)}>
+    <span className={cn("relative inline-flex shrink-0 items-center justify-center", size, hasPendingSteps && !active && "sidebar-onboarding-nudge")}>
       <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90" aria-hidden="true">
         <circle cx="18" cy="18" r={RING_R} fill="none" strokeWidth="3" className="stroke-border" />
         <circle
@@ -312,7 +313,7 @@ export const SidebarProgressCard = forwardRef<HTMLButtonElement, {
           strokeDashoffset={RING_C * (1 - pct)}
         />
       </svg>
-      <Icon className={cn("text-accent", iconSize)} aria-hidden="true" />
+      <Icon className={cn("text-accent transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none", iconSize)} aria-hidden="true" />
     </span>
   );
 
@@ -327,14 +328,14 @@ export const SidebarProgressCard = forwardRef<HTMLButtonElement, {
       aria-current={active ? "page" : undefined}
       aria-label={collapsed ? `${label}. ${hint}` : undefined}
       className={cn(
-        "flex w-full items-center text-left transition-colors motion-reduce:transition-none",
+        "group flex w-full items-center text-left transition-[background-color,border-color,transform,box-shadow] duration-300 motion-reduce:transition-none",
         FOCUS_RING,
         collapsed
           ? "h-10 justify-center rounded-lg hover:bg-secondary/60"
           : "gap-3 rounded-xl border p-2.5",
         !collapsed && (active
           ? "border-accent/30 bg-secondary"
-          : "border-border/60 bg-secondary/40 hover:bg-secondary/70"),
+          : "border-border/60 bg-secondary/40 hover:-translate-y-px hover:border-accent/35 hover:bg-secondary/70 hover:shadow-sm"),
         collapsed && active && "bg-secondary",
       )}
     >
