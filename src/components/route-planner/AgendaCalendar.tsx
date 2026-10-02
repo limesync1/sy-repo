@@ -480,7 +480,6 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {isVirtual && (
             <span
               className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
-              title="Forventet — den faste rute kører igen denne dag"
             >
               <Lock className="h-2 w-2" />
               Forventet
@@ -489,7 +488,6 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {!isVirtual && isPast && (
             <span
               className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
-              title="Låst — tidligere rute kan ikke ændres"
               aria-label="Låst — tidligere rute"
             >
               <Lock className="h-2 w-2" />
@@ -499,10 +497,9 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {!isVirtual && route.isReplacement && (
             <span
               className="inline-flex items-center gap-0.5 rounded-sm bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
-              title={route.replacedFromDate
+              aria-label={route.replacedFromDate
                 ? `Flyttet hertil fra ${format(parseISO(route.replacedFromDate), "EEEE d. MMM", { locale: da })}`
                 : "Flyttet hertil fra en anden dato"}
-              aria-label="Erstatningsrute — flyttet hertil"
             >
               <CalendarArrowDown className="h-2 w-2" />
               Flyttet
@@ -511,8 +508,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {!isVirtual && hasAssigneeConflict && (
             <span
               className="inline-flex items-center gap-0.5 rounded-sm bg-destructive/15 text-destructive px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
-              title="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
-              aria-label="Medarbejder-konflikt"
+              aria-label="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
             >
               <AlertTriangle className="h-2 w-2" />
               Konflikt

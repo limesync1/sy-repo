@@ -42,6 +42,7 @@ import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completi
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
+import { geocodeAddress } from "@/lib/geocode";
 import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
@@ -644,6 +645,42 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     () => sortedStops.filter((s) => s.latitude != null && s.longitude != null),
     [sortedStops],
   );
+
+  // Geokod stop der mangler koordinater, så kortet aldrig viser "ingen
+  // koordinater" — DAWA er gratis og kræver ingen nøgle. Resultatet
+  // forsøges gemt på stoppet, så det kun skal slås op én gang.
+  const geocodingRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const missing = sortedStops.filter(
+      (s) => (s.latitude == null || s.longitude == null) && (s.full_address || s.address) && !geocodingRef.current.has(s.id),
+    );
+    if (missing.length === 0) return;
+    missing.forEach((s) => geocodingRef.current.add(s.id));
+    let cancelled = false;
+    (async () => {
+      for (const s of missing) {
+        const addr = s.full_address || s.address || "";
+        const hit = await geocodeAddress(addr);
+        if (cancelled || !hit) continue;
+        queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
+          old
+            ? {
+                ...old,
+                stops: (old.stops || []).map((x: RouteStop) =>
+                  x.id === s.id ? { ...x, latitude: hit.latitude, longitude: hit.longitude } : x,
+                ),
+              }
+            : old,
+        );
+        try {
+          await supabase.from("route_stops").update({ latitude: hit.latitude, longitude: hit.longitude }).eq("id", s.id);
+        } catch {
+          // Ikke fatalt — kortet har allerede koordinaterne i cachen.
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sortedStops, queryClient, routeId]);
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
   const { data: nextStopTimeEntries = [] } = useStopTimeEntries(nextStop ? [nextStop.id] : []);
@@ -703,7 +740,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       if (error) console.warn("[live-position] kunne ikke sendes", error.message);
     };
     void pushPosition();
-    const timer = window.setInterval(pushPosition, 25_000);
+    const timer = window.setInterval(pushPosition, 5_000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, liveStopId, filtered?.pos[0], filtered?.pos[1]]);
 
@@ -1265,10 +1302,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     voice(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
   }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
 
-  if (isLoading) {
-    return <RouteViewSkeleton />;
-  }
-  if (!data || !route) {
+  // Chooseren ("Hvordan vil du køre ruten?") må vises med det samme ud fra
+  // kun route-id'et — vi venter ikke på hele useMyRouteData-loadet.
+  // Kun når hentningen er FÆRDIG og intet blev fundet, viser vi fejlsiden.
+  if (!isLoading && !route) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-muted-foreground">
         <p>Rute ikke fundet eller du har ikke adgang.</p>
@@ -1278,12 +1315,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }
 
   const handleNavigate = (s: RouteStop) => {
-    const dest = s.address || (s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : s.customer_name || "");
-    if (!dest) return;
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`,
-      "_blank",
-    );
+    // Åbn vores egen kørselsguide på kortet i stedet for at sende
+    // medarbejderen ud til Google Maps.
+    setHighlightedId(s.id);
+    setSelectedId(null);
+    setFollowMode(false);
+    if (runMode !== "guide") {
+      setRunMode("guide");
+      writeRunMode("guide", !!readRunMode());
+    }
   };
 
   /** Hent én position — bruges når vi ikke sporer GPS (tjekliste-tilstand). */
@@ -1447,6 +1487,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* ── Tjekliste-tilstand: den simple visning uden kort og GPS ── */
   if (routeStarted && runMode === "list") {
+    if (!route) return <RouteViewSkeleton />;
     return (
       <RouteChecklistView
         routeName={route.name || "Rute"}
@@ -1492,7 +1533,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       <div className="employee-route-run fixed inset-0 flex min-h-dvh items-center justify-center overflow-hidden bg-secondary/35 px-3 py-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="w-full max-w-md rounded-md border border-border bg-card p-4 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase text-muted-foreground">{todayLabel}</p>
-          <h1 className="mt-1 truncate text-lg font-semibold text-foreground">{route.name || "Dagens rute"}</h1>
+          <h1 className="mt-1 truncate text-lg font-semibold text-foreground">{route?.name || "Dagens rute"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{remainingStops.length} stop klar</p>
           {routeDateLocked && (
             <div className="mt-4 rounded-md border border-warning/35 bg-warning/10 px-3 py-3 text-sm text-warning-foreground">
@@ -1517,6 +1558,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         )}
       </div>
     );
+  }
+
+  if (!route) {
+    return <RouteViewSkeleton />;
   }
 
   return (
@@ -1610,7 +1655,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       <div className="relative flex-1 min-h-0">
         {allPoints.length === 0 ? (
           <div className="h-full flex items-center justify-center text-muted-foreground p-6 text-center">
-            Ingen koordinater tilgængelige. Brug listevisningen i stedet.
+            Henter koordinater til kortet…
           </div>
         ) : (
           <MapContainer
@@ -1808,10 +1853,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <>
             <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
               <div className="flex h-14 w-full items-center gap-1.5 rounded-md border border-border bg-card/95 px-1.5 text-foreground shadow-lg backdrop-blur-md">
-                <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                  <Link to="/medarbejder" aria-label="Tilbage">
-                    <ArrowLeft className="h-5 w-5" />
-                  </Link>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  aria-label="Tilbage til tjekliste"
+                  onClick={() => {
+                    setRunMode("list");
+                    writeRunMode("list", !!readRunMode());
+                  }}
+                >
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="min-w-0 flex-1 border-l border-border pl-3">
                   <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{route.name || "Dagens rute"}</p>
@@ -2277,6 +2330,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
                 onComplete={() => handleComplete(s)}
                 onUndo={() => handleUndo(s)}
+                onNavigate={() => handleNavigate(s)}
                 isPending={updateStatus.isPending}
                 pendingTimeLabel="Starter automatisk, når du ankommer"
               />

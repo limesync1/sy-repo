@@ -7,17 +7,14 @@
 // Spejler UI'et fra MoveRouteDateDialog så brugeren genkender mønstret.
 
 import { useEffect, useState } from "react";
-import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IndustryIcon } from "@/components/IndustryIcon";
-import { SheetHeaderBlock } from "./SheetSection";
+import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
 import { ScopeOption } from "./ScopeOption";
 
 export type MergeScope = "single" | "future";
@@ -68,15 +65,25 @@ export const MergeRoutesDialog = ({
   const canChooseFuture =
     recurringAppointmentCount >= 1 && (disabledFutureReasons?.length ?? 0) === 0;
 
+  const busy = !!loading;
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="planner-overlay left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-0 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%]">
-        <AlertDialogHeader className="planner-overlay-header min-w-0 border-b px-4 py-3 pr-12 text-left space-y-2 sm:px-5">
+    <Dialog open={open} onOpenChange={(o) => { if (!busy) onOpenChange(o); }}>
+      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
             icon={<Combine className="h-4 w-4" />}
-            title={<AlertDialogTitle className="text-base">Flet ruter</AlertDialogTitle>}
+            title={<DialogTitle className="text-base">Flet ruter</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg om kun denne dato flyttes, eller også fremtidige aftaler.
+              </DialogDescription>
+            }
           />
-          <AlertDialogDescription asChild>
+        </DialogHeader>
+
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+          <Section icon={<Combine />} title="Ruter">
             <div className="min-w-0 space-y-2 text-sm">
               <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
                 <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
@@ -121,10 +128,10 @@ export const MergeRoutesDialog = ({
                 Medarbejder­tilknytninger pr. aftale bevares.
               </p>
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </Section>
 
-        <div className="planner-overlay-body space-y-2 px-4 py-3 sm:px-5">
+          <Section icon={<Repeat />} title="Hvad skal flettes?">
+            <div className="space-y-2">
           <ScopeOption
             selected={scope === "single"}
             onClick={() => setScope("single")}
@@ -156,19 +163,24 @@ export const MergeRoutesDialog = ({
               ) : null
             }
           />
+            </div>
+          </Section>
         </div>
 
-        <AlertDialogFooter className="planner-overlay-footer border-t px-4 py-3 sm:px-5">
-          <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
-          <Button
-            onClick={async () => { await onConfirm(scope); }}
-            disabled={loading}
-          >
-            {loading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Flet ruter
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        <SheetFooterBar>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Annullér</Button>
+            <Button
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+              onClick={async () => { await onConfirm(scope); }}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+              Flet ruter
+            </Button>
+          </div>
+        </SheetFooterBar>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -1567,17 +1567,19 @@ const EmployeeTasksDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
-        <DialogHeader className="px-5 py-4 border-b">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <ListChecks className="h-4 w-4 text-accent" />
-            Aftaler — {employeeName}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Overblik over hvilke aftaler medarbejderen er tildelt — og præcis
-            hvad de tjener pr. aftale (provision {commissionPct} % af beløb
-            ekskl. moms, delt ligeligt mellem medarbejdere på samme aftale).
-          </DialogDescription>
+      <DialogContent className="planner-overlay sm:max-w-2xl p-0 gap-0 overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)]">
+        <DialogHeader className="planner-overlay-header border-b bg-card px-4 py-3 pr-12 text-left sm:px-5 sm:py-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+              <ListChecks className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base">Aftaler · {employeeName}</DialogTitle>
+              <DialogDescription className="mt-0.5 text-xs">
+                Tildelte aftaler og indtjening pr. aftale ({commissionPct} % provision ekskl. moms).
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="px-5 pt-3 pb-2 border-b bg-secondary/30">

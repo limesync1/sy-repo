@@ -37,11 +37,11 @@ export function LegendPopover() {
           <div className="p-3 space-y-3 text-xs">
             <Section title="Rute-status">
               <Row swatch={<BadgeChip className="bg-accent/15 text-accent ring-accent/30"><Send className="h-2.5 w-2.5" /></BadgeChip>} label="Sendt" desc="Ruten er sendt til medarbejderen" />
-              <Row swatch={<BadgeChip className="bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300"><CheckCircle2 className="h-2.5 w-2.5" /></BadgeChip>} label="Udført" desc="Alle stop er færdige" />
+              <Row swatch={<BadgeChip className="bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300"><CheckCircle2 className="h-2.5 w-2.5" /></BadgeChip>} label="Udført" desc="Alle stop er udført" />
             </Section>
             <Divider />
             <Section title="Gentagende ruter">
-              <Row swatch={<BadgeChip className="bg-foreground text-background ring-foreground/20"><Repeat className="h-2.5 w-2.5" /></BadgeChip>} label="Original" desc="Kilden til serien — rediger her for at ændre alle" />
+              <Row swatch={<BadgeChip className="bg-foreground text-background ring-foreground/20"><Repeat className="h-2.5 w-2.5" /></BadgeChip>} label="Fast rute" desc="Kilden til serien — rediger her for at ændre alle" />
               <Row swatch={<BadgeChip className="bg-foreground/[0.06] text-muted-foreground ring-foreground/10"><Lock className="h-2.5 w-2.5" /></BadgeChip>} label="Låst" desc="Fremtidig — låses op på dagen" />
               <Row swatch={<BadgeChip className="bg-foreground/[0.06] text-muted-foreground ring-foreground/10"><Sparkles className="h-2.5 w-2.5" /></BadgeChip>} label="I dag" desc="Aktiv projektion — kan udføres nu" />
               <Row swatch={<BadgeChip className="bg-foreground/[0.06] text-muted-foreground ring-foreground/10"><History className="h-2.5 w-2.5" /></BadgeChip>} label="Historisk" desc="Passeret — kun til indsigt" />

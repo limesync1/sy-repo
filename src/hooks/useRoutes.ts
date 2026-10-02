@@ -354,14 +354,43 @@ export const useStartStopTime = () => {
       if (error) throw error;
       return data as StopTimeEntry;
     },
-    onSuccess: (entry) => {
+    // Optimistisk: knappen skal reagere øjeblikkeligt — ikke vente på DB-turen.
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["stop-time-entries"] });
+      const previous = qc.getQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] });
+      const optimisticId = `optimistic-${vars.stop_id}-${vars.employee_id}-${Date.now()}`;
+      const optimisticEntry: StopTimeEntry = {
+        id: optimisticId,
+        stop_id: vars.stop_id,
+        employee_id: vars.employee_id,
+        started_at: new Date().toISOString(),
+        ended_at: null,
+        duration_minutes: null,
+        is_team_fallback: !!vars.is_team_fallback,
+        notes: null,
+      };
       qc.setQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] }, (current) => {
-        if (!current || current.some((item) => item.id === entry.id)) return current;
-        return [...current, entry];
+        if (!current) return current;
+        if (current.some((e) => e.stop_id === vars.stop_id && e.employee_id === vars.employee_id && !e.ended_at)) return current;
+        return [...current, optimisticEntry];
       });
+      return { previous, optimisticId };
+    },
+    onSuccess: (entry, _vars, ctx) => {
+      qc.setQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] }, (current) => {
+        if (!current) return current;
+        const withoutOptimistic = current.filter((e) => e.id !== ctx?.optimisticId);
+        if (withoutOptimistic.some((item) => item.id === entry.id)) return withoutOptimistic;
+        return [...withoutOptimistic, entry];
+      });
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, value]) => qc.setQueryData(key, value));
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" });
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
     },
-    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" }),
   });
 };
 
@@ -382,13 +411,30 @@ export const useEndStopTime = () => {
       if (error) throw error;
       return data as StopTimeEntry | null;
     },
-    onSuccess: () => {
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["stop-time-entries"] });
+      const previous = qc.getQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] });
+      const endedAt = new Date().toISOString();
+      qc.setQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] }, (current) => {
+        if (!current) return current;
+        return current.map((e) =>
+          e.stop_id === vars.stop_id && e.employee_id === vars.employee_id && !e.ended_at
+            ? { ...e, ended_at: endedAt }
+            : e,
+        );
+      });
+      return { previous };
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, value]) => qc.setQueryData(key, value));
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke afslutte tidsregistrering" });
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
       qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
-    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke afslutte tidsregistrering" }),
   });
 };
 
@@ -1381,7 +1427,9 @@ export const useReorderStops = () => {
       }),
     onMutate: async (updates) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      await qc.cancelQueries({ queryKey: ["my-route-data"] });
       const snapshots = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      const routeDataSnapshots = qc.getQueriesData<any>({ queryKey: ["my-route-data"] });
       const byId = new Map(updates.map((u) => [u.id, u]));
       qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
         old
@@ -1392,10 +1440,26 @@ export const useReorderStops = () => {
             })
           : old,
       );
-      return { snapshots };
+      // Rute-kørselssiden henter sine stop via "my-route-data" (ikke
+      // "route-stops-bulk") — uden denne patch virkede omrokering af stop
+      // under kørsel ikke optimistisk, selvom DB-kaldet lykkedes.
+      qc.setQueriesData<any>({ queryKey: ["my-route-data"] }, (old) =>
+        old && Array.isArray(old.stops)
+          ? {
+              ...old,
+              stops: old.stops.map((s: RouteStop) => {
+                const u = byId.get(s.id);
+                if (!u) return s;
+                return { ...s, sequence: u.sequence, ...(u.route_id ? { route_id: u.route_id } : {}) } as RouteStop;
+              }),
+            }
+          : old,
+      );
+      return { snapshots, routeDataSnapshots };
     },
     onError: (_e, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      ctx?.routeDataSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
     },
     onSettled: () => invalidateRouteSyncQueries(qc),
   });
@@ -1593,8 +1657,31 @@ export const useUpdateStopStatus = () => {
       if (error) throw error;
       return data as RouteStop;
     },
-    onSuccess: () => invalidateRouteSyncQueries(qc),
-    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere stop" }),
+    // Optimistisk opdatering: "Markér udført"/"Fortryd" skal føles instant —
+    // vi patcher stoppet direkte i my-route-data (den medarbejderen rent
+    // faktisk kigger på), ruller tilbage ved fejl, og synkroniserer bagefter.
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["my-route-data"] });
+      const previous = qc.getQueriesData<any>({ queryKey: ["my-route-data"] });
+      const completedAt = vars.status === "completed" ? new Date().toISOString() : null;
+      qc.setQueriesData<any>({ queryKey: ["my-route-data"] }, (old) => {
+        if (!old?.stops) return old;
+        return {
+          ...old,
+          stops: old.stops.map((s: RouteStop) =>
+            s.id === vars.id
+              ? { ...s, status: vars.status, completed_at: completedAt, notes: vars.notes !== undefined ? vars.notes : s.notes }
+              : s,
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, value]) => qc.setQueryData(key, value));
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere stop" });
+    },
+    onSettled: () => invalidateRouteSyncQueries(qc),
   });
 };
 

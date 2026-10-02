@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import {
-  useReorderStops, useDeleteStop, useSetStopAssignees, useUndoCompletedRouteStop,
+  useReorderStops, useDeleteStop, useSetStopAssignees, useUndoCompletedRouteStop, useUpdateStopStatus,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,7 +99,9 @@ export const RouteStopsPanel = ({
   const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const undoCompleted = useUndoCompletedRouteStop();
+  const updateStopStatus = useUpdateStopStatus();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
+  const [confirmUndo, setConfirmUndo] = useState<RouteStop | null>(null);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
   const firstSeenAtStopRef = useRef(new Map<string, string>());
 
@@ -134,8 +136,8 @@ export const RouteStopsPanel = ({
 
   const handleDragEnd = async (e: DragEndEvent) => {
     if (isProjection) {
-      toast.info("Rækkefølgen redigeres på originalruten", {
-        description: "Åbn originalruten for at ændre rækkefølgen — projicerede ruter er låste visninger.",
+      toast.info("Rækkefølgen redigeres på den faste rute", {
+        description: "Åbn den faste rute for at ændre rækkefølgen — forventede ruter er låste visninger.",
       });
       return;
     }
@@ -291,8 +293,10 @@ export const RouteStopsPanel = ({
                         }
                         onSelect={() => onSelectStop(stop)}
                         onRemove={() => setConfirmDelete(stop)}
-                        onUndoCompleted={() => undoCompleted.mutate(stop.id)}
-                        undoPending={undoCompleted.isPending}
+                        onUndoCompleted={() => setConfirmUndo(stop)}
+                        undoPending={undoCompleted.isPending && undoCompleted.variables === stop.id}
+                        onMarkCompleted={() => updateStopStatus.mutate({ id: stop.id, status: "completed" })}
+                        markCompletedPending={updateStopStatus.isPending && updateStopStatus.variables?.id === stop.id}
                       />
                     ))}
                   </ol>
@@ -334,6 +338,28 @@ export const RouteStopsPanel = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!confirmUndo} onOpenChange={(o) => !o && setConfirmUndo(null)}>
+        <AlertDialogContent className="planner-overlay">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Fortryd udførsel?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{confirmUndo?.customer_name}</strong> bliver sat tilbage til ikke udført.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmUndo) undoCompleted.mutate(confirmUndo.id);
+                setConfirmUndo(null);
+              }}
+            >
+              Fortryd udførsel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
@@ -352,10 +378,12 @@ type RowProps = {
   onRemove: () => void;
   onUndoCompleted: () => void;
   undoPending: boolean;
+  onMarkCompleted: () => void;
+  markCompletedPending: boolean;
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, isProjection = false,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
@@ -496,18 +524,34 @@ const SortableStopRow = ({
                 </Badge>
               ) : null;
             })()}
-            {stop.status === "completed" && (
+            {stop.status === "completed" ? (
               <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1">
                 <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium border-success/35 bg-success/10 text-success">
-                  <Check className="h-3 w-3" /> Færdig
+                  <Check className="h-3 w-3" /> Udført
                 </Badge>
                 {!isProjection && (
-                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); if (window.confirm("Fortryd udførsel af denne aftale? Den bliver sat tilbage til ikke udført.")) onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
+                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
                     {undoPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Undo2 className="h-3 w-3" />}
                     <span className="truncate">Fortryd</span>
                   </Button>
                 )}
               </span>
+            ) : (
+              !isProjection && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium border-success/35 text-success hover:bg-success/10 hover:text-success"
+                  disabled={markCompletedPending}
+                  onClick={(event) => { event.stopPropagation(); onMarkCompleted(); }}
+                  aria-label="Markér som udført"
+                  title="Markér som udført"
+                >
+                  {markCompletedPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  <span className="truncate">Markér som udført</span>
+                </Button>
+              )
             )}
             {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
               <Badge

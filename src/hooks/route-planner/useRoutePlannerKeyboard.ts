@@ -113,7 +113,7 @@ export function useRoutePlannerKeyboard(opts: {
         }
       } else if ((e.key === "Delete" || e.key === "Backspace") && selectedStopId) {
         if (selectedStopId.startsWith("virtual-stop:")) {
-          toast.message("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
+          toast.message("Forventede stops kan ikke slettes — åbn den faste rute for at ændre.");
           return;
         }
         e.preventDefault();

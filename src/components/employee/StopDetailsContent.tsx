@@ -49,13 +49,14 @@ type Props = {
   onNoteChange?: (v: string) => void;
   onComplete?: () => void;
   onUndo?: () => void;
+  onNavigate?: () => void;
   isPending?: boolean;
   pendingTimeLabel?: string;
 };
 
 export const StopDetailsContent = ({
   stop, index, route, readOnly = false,
-  noteDraft = "", onNoteChange, onComplete, onUndo, isPending, pendingTimeLabel,
+  noteDraft = "", onNoteChange, onComplete, onUndo, onNavigate, isPending, pendingTimeLabel,
 }: Props) => {
   const { data: order, isLoading: loadingOrder } = useOrderForStop(stop.order_id);
   const { data: meEmployee } = useMyEmployee();
@@ -318,20 +319,15 @@ export const StopDetailsContent = ({
             Stor touch-target, kompakt layout, samme stil som virksomhedspanelet. */}
         {!readOnly && (fullAddress || stop.customer_phone) && (
           <div className="mt-3 flex gap-2">
-            {fullAddress && (
+            {fullAddress && onNavigate && (
               <Button
-                asChild
+                type="button"
                 variant="outline"
                 size="sm"
                 className="flex-1 gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary"
+                onClick={onNavigate}
               >
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${addressForMaps}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <MapPin className="h-3.5 w-3.5" /> Maps
-                </a>
+                <MapPin className="h-3.5 w-3.5" /> Kør dertil
               </Button>
             )}
             {stop.customer_phone && (

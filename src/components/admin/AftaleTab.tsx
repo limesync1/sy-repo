@@ -2246,7 +2246,7 @@ const AftaleTab = ({
                                 size="sm"
                                 onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
                                 title="Kun til manuel udførelse — hvis aftalen skal udføres af en medarbejder på en rute, sker det automatisk når medarbejderen markerer stoppet udført i medarbejder-appen. Brug kun denne knap hvis du som ejer selv udfører aftalen manuelt uden at lægge den på en rute."
-                                className="h-8 gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90"
+                                className="h-8 gap-1.5 rounded-[4px] px-2.5 text-xs font-semibold bg-foreground text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                               >
                                 {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                                 {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
