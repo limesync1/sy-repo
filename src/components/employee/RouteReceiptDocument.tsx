@@ -60,7 +60,7 @@ export const RouteReceiptDocument = ({
               <h1 className={cn("mt-1.5 break-words font-semibold leading-tight", preview ? "text-lg" : "text-xl sm:text-2xl")}>
                 {route.name || "Rute"}
               </h1>
-              <p className="mt-1 text-xs capitalize text-muted-foreground sm:text-sm">
+              <p className="mt-1 text-xs first-letter:uppercase text-muted-foreground sm:text-sm">
                 {format(parseISO(route.route_date), "EEEE d. MMMM yyyy", { locale: da })}
               </p>
             </div>

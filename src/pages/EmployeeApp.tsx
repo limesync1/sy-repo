@@ -243,7 +243,7 @@ const EmployeeApp = () => {
               className="h-9 flex-1 min-w-0 gap-1.5 rounded-[4px] px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
             >
               <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
-              <span className="capitalize tabular-nums truncate">
+              <span className="inline-block tabular-nums truncate first-letter:uppercase">
                 {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
               </span>
             </Button>
@@ -303,7 +303,7 @@ const EmployeeApp = () => {
           så det føles som en blød navigation frem for et hårdt re-render. */}
       <EmployeePage transitionKey={date} className="employee-day sm:space-y-4">
         <PageHeader
-          title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
+          title={<span className="inline-block first-letter:uppercase">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={(
             <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">{completedStops}/{totalStops} stop</span>
