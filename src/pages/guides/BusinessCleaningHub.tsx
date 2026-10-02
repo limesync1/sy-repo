@@ -2,7 +2,7 @@ import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
   canonicalPath: "/guides/erhvervsrengoering",
-  metaTitle: "Erhvervsrengøring 2026 — pris pr. m² & rengøringsfirma",
+  metaTitle: "Erhvervsrengøring 2026 — pris pr. m²",
   metaDescription:
     "Erhvervsrengøring af kontor, butik og klinik: se priser fra 8 kr. pr. m² pr. måned, hvad en aftale bør indeholde, og få 3 gratis tilbud fra rengøringsfirmaer.",
   keywords: "erhvervsrengøring, erhvervsrengøring pris, kontorrengøring, rengøringsfirma erhverv, rengøring af kontor",
