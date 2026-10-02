@@ -178,10 +178,11 @@ export const EmployeeShell = ({
   const activeBusiness = employee?.business ?? null;
   const activeBusinessName = activeBusiness?.name || "Virksomhed";
 
-  if (employeeLoading || employeesLoading) {
-    return <ShellSkeleton variant="employee" navigationItems={3} />;
-  }
-
+  // Bloker IKKE hele shell'en mens medarbejder-data hentes — siderne
+  // (EmployeeStats, EmployeeApp osv.) viser selv deres egen skeleton for
+  // indholdet. Blokerer vi her, ser brugeren to forskellige skeletons efter
+  // hinanden (først ShellSkeleton, så sidens egen). Sidebar/topbar falder
+  // gracefully tilbage til neutrale værdier (employee?.xxx) indtil data er klar.
   const unreadCount = unreadNotifications.length;
 
   /* ---------------- Notifikationer ---------------- */

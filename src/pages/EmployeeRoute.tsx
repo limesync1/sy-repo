@@ -1302,10 +1302,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     voice(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
   }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
 
-  if (isLoading) {
-    return <RouteViewSkeleton />;
-  }
-  if (!data || !route) {
+  // Chooseren ("Hvordan vil du køre ruten?") må vises med det samme ud fra
+  // kun route-id'et — vi venter ikke på hele useMyRouteData-loadet.
+  // Kun når hentningen er FÆRDIG og intet blev fundet, viser vi fejlsiden.
+  if (!isLoading && !route) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-muted-foreground">
         <p>Rute ikke fundet eller du har ikke adgang.</p>
@@ -1487,6 +1487,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* ── Tjekliste-tilstand: den simple visning uden kort og GPS ── */
   if (routeStarted && runMode === "list") {
+    if (!route) return <RouteViewSkeleton />;
     return (
       <RouteChecklistView
         routeName={route.name || "Rute"}
@@ -1532,7 +1533,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       <div className="employee-route-run fixed inset-0 flex min-h-dvh items-center justify-center overflow-hidden bg-secondary/35 px-3 py-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="w-full max-w-md rounded-md border border-border bg-card p-4 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase text-muted-foreground">{todayLabel}</p>
-          <h1 className="mt-1 truncate text-lg font-semibold text-foreground">{route.name || "Dagens rute"}</h1>
+          <h1 className="mt-1 truncate text-lg font-semibold text-foreground">{route?.name || "Dagens rute"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{remainingStops.length} stop klar</p>
           {routeDateLocked && (
             <div className="mt-4 rounded-md border border-warning/35 bg-warning/10 px-3 py-3 text-sm text-warning-foreground">
@@ -1557,6 +1558,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         )}
       </div>
     );
+  }
+
+  if (!route) {
+    return <RouteViewSkeleton />;
   }
 
   return (
