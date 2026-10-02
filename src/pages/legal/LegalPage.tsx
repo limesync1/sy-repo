@@ -288,7 +288,7 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
                       type="button"
                       onClick={() => copyLink(s.id)}
                       aria-label={`Kopiér link til ${s.title}`}
-                      className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 print:hidden"
+                      className="hidden shrink-0 rounded-md p-1 text-muted-foreground opacity-0 sm:inline-flex transition-opacity hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 print:hidden"
                     >
                       <Link2 className="h-4 w-4" />
                     </button>
