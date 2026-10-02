@@ -829,22 +829,25 @@ export const RouteEditSheet = ({
             className="planner-overlay-header relative px-5 py-4 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
             <SheetHeaderBlock
-              icon={<img src={editRouteIllustration} alt="" className="h-12 w-12 object-contain" />}
-              iconClassName="h-14 w-14 rounded-xl bg-secondary/60"
+              icon={<img src={editRouteIllustration} alt="" className="h-10 w-10 object-contain" />}
+              iconClassName="h-12 w-12 rounded-lg bg-secondary/60"
               title={
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute
                   {isPast && (
-                    <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                    <Badge variant="secondary" className="gap-1 text-[11px] font-medium">
                       <History className="h-2.5 w-2.5" /> Kørt
                     </Badge>
                   )}
                 </SheetTitle>
               }
               description={
-                <SheetDescription className="text-xs">
+                <SheetDescription className="text-[13px]">
                   {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : ""}
                   {stopCount > 0 && <> · {stopCount} stop</>}
+                  <span className="ml-1.5 text-[11px] text-muted-foreground/80" aria-live="polite">
+                    · {updateAppearance.isPending ? "Gemmer…" : "Gemmes automatisk"}
+                  </span>
                 </SheetDescription>
               }
             />
@@ -1106,7 +1109,7 @@ export const RouteEditSheet = ({
                 <div className="flex items-start gap-2 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
                   <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/70" />
                   <div>
-                    <div className="font-semibold text-foreground mb-0.5">Projiceret forekomst</div>
+                    <div className="font-semibold text-foreground mb-0.5">Forventet besøg fra fast rute</div>
                     Denne rute er automatisk genereret ud fra basisruten. Ændringer i rækkefølge,
                     dato eller sletning gælder kun denne ene dag — for at ændre serien skal du
                     redigere basisruten.
@@ -1378,7 +1381,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                   <EmployeeAvatar employee={emp} size={24} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{emp?.name || "Ukendt medarbejder"}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {info.stops.length} {info.stops.length === 1 ? "aftale" : "aftaler"} udført
                     </p>
                   </div>
@@ -1386,7 +1389,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                     <p className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                       {formatPrice(Math.round(info.earnings))}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">indtjening</p>
+                    <p className="text-[11px] text-muted-foreground">indtjening</p>
                   </div>
                 </div>
                 <ul className="divide-y">
@@ -1395,7 +1398,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                       <div className="min-w-0">
                         <p className="font-medium truncate">{s.customer_name || "Aftale"}</p>
                         {s.service_summary && (
-                          <p className="text-[10px] text-muted-foreground truncate">{s.service_summary}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{s.service_summary}</p>
                         )}
                       </div>
                       <div className="text-right shrink-0">
@@ -1440,7 +1443,7 @@ const RouteRevenueBreakdown = ({
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Estimat for perioden
           </p>
           <p className="text-[11px] text-muted-foreground">{periodLabel}</p>
@@ -1462,7 +1465,7 @@ const RouteRevenueBreakdown = ({
               return (
                 <li key={s.id || i} className="flex items-center justify-between gap-2 px-2.5 py-1.5">
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-bold tabular-nums text-foreground">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-bold tabular-nums text-foreground">
                       {i + 1}
                     </span>
                     <span className="truncate text-foreground">{s.customer_name || "Aftale"}</span>

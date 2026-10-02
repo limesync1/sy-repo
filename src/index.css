@@ -1417,3 +1417,16 @@ img[loading="lazy"].is-error {
 @media (max-width: 639px) {
   body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0; pointer-events: none; }
 }
+
+/* Ensartet størrelse i alle panel-vinduer (Rediger rute, Stops, Opret rute,
+   Opret bestilling, Opret kunde) — undgår at felter er for store/små. */
+@layer components {
+  .planner-overlay-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  .planner-overlay-body [role="combobox"],
+  .planner-overlay-body select {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+  }
+  .planner-overlay-body textarea { font-size: 0.875rem; }
+  .planner-overlay-footer button { min-height: 2.5rem; font-size: 0.875rem; }
+}

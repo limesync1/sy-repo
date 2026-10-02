@@ -239,7 +239,7 @@ export const RouteStopsPanel = ({
               className="absolute left-0 top-0 bottom-0 w-1"
               style={{ background: route.color }}
             />
-            <SheetTitle className="flex items-center gap-2 text-[17px] leading-tight">
+            <SheetTitle className="flex items-center gap-2 text-base leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
                 Stops på ruten
               </span>
@@ -250,11 +250,11 @@ export const RouteStopsPanel = ({
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-[11.5px] leading-snug mt-1 text-muted-foreground/85 flex items-center gap-1.5">
-              <ListOrdered className="h-3 w-3 shrink-0 opacity-70" />
+            <SheetDescription className="text-[13px] leading-snug mt-0.5 text-muted-foreground flex items-center gap-1.5">
+              <ListOrdered className="h-3.5 w-3.5 shrink-0 opacity-70" />
               <span className="truncate">
                 {isProjection
-                  ? "Projiceret forekomst · rediger originalruten for at ændre rækkefølgen"
+                  ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
                   : "Træk for at omrangere · klik for detaljer"}
               </span>
             </SheetDescription>
@@ -273,7 +273,7 @@ export const RouteStopsPanel = ({
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={items.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                  <ol className="space-y-1.5">
+                  <ol className="space-y-2">
                     {items.map((stop, idx) => (
                       <SortableStopRow
                         key={stop.id}
@@ -407,7 +407,7 @@ const SortableStopRow = ({
           <span
             className="flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7"
             aria-hidden
-            title="Projiceret rute — låst rækkefølge"
+            title="Forventet besøg — låst rækkefølge"
           >
             <GripVertical className="h-4 w-4" />
           </span>
@@ -459,18 +459,18 @@ const SortableStopRow = ({
 
           {/* Ydelse — sekundær linje */}
           {stop.service_summary ? (
-            <p className="text-[10px] text-muted-foreground truncate sm:text-[11px]">
+            <p className="text-[11px] text-muted-foreground truncate sm:text-[11px]">
               {stop.service_summary}
             </p>
           ) : (
-            <p className="text-[10px] text-muted-foreground/60 truncate italic sm:text-[11px]">
+            <p className="text-[11px] text-muted-foreground/60 truncate italic sm:text-[11px]">
               Ingen ydelser angivet
             </p>
           )}
 
           {/* Adresse — tertiær */}
           {stop.address && (
-            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 sm:text-[11px]">
+            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 sm:text-[11px]">
               <MapPin className="h-3 w-3 shrink-0" />
               {stop.address}
             </p>
@@ -591,7 +591,7 @@ const LiveStopPresence = ({
         </span>
         <div>
           <p className="text-xs font-semibold text-foreground">Ved denne aftale nu</p>
-          <p className="text-[10px] text-muted-foreground">Live-position fra aktiv rutekørsel</p>
+          <p className="text-[11px] text-muted-foreground">Live-position fra aktiv rutekørsel</p>
         </div>
       </div>
       <div className="space-y-1.5">
@@ -611,7 +611,7 @@ const LiveStopPresence = ({
                 <img src={employee.avatar_url} alt={name} className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-border" />
               ) : (
                 <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ring-1 ring-border"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ring-1 ring-border"
                   style={{ background: employee?.color || "hsl(var(--muted))", color: readableTokenOn(employee?.color) }}
                 >
                   {name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()}
@@ -619,7 +619,7 @@ const LiveStopPresence = ({
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-semibold text-foreground">{name}</p>
-                <p className="text-[10px] text-muted-foreground">{arrivalLabel}</p>
+                <p className="text-[11px] text-muted-foreground">{arrivalLabel}</p>
               </div>
             </div>
           );
@@ -672,7 +672,7 @@ const AssigneeToggle = ({
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-2" align="end" onClick={(e) => e.stopPropagation()}>
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 px-1 font-semibold">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5 px-1 font-semibold">
           Tildel medarbejdere
         </p>
         {employees.length === 0 ? (
@@ -717,7 +717,7 @@ const AssigneeToggle = ({
                       />
                     ) : (
                       <span
-                        className="h-5 w-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold"
+                        className="h-5 w-5 rounded-full inline-flex items-center justify-center text-[11px] font-bold"
                         style={{ background: e.color || "hsl(220 13% 46%)", color: readableTokenOn(e.color) }}
                       >
                         {e.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()}
@@ -747,7 +747,7 @@ const AssigneeToggle = ({
           </div>
         )}
         {selectedIds.length > 1 && (
-          <p className="text-[10px] text-muted-foreground mt-2 px-1 italic">
+          <p className="text-[11px] text-muted-foreground mt-2 px-1 italic">
             Provision deles ligeligt ({Math.round(100 / selectedIds.length)}% pr. medarbejder).
           </p>
         )}
