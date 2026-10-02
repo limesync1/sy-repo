@@ -835,7 +835,7 @@ export const RouteEditSheet = ({
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute
                   {isPast && (
-                    <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                    <Badge variant="secondary" className="gap-1 text-[11px] font-medium">
                       <History className="h-2.5 w-2.5" /> Kørt
                     </Badge>
                   )}
@@ -1381,7 +1381,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                   <EmployeeAvatar employee={emp} size={24} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{emp?.name || "Ukendt medarbejder"}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {info.stops.length} {info.stops.length === 1 ? "aftale" : "aftaler"} udført
                     </p>
                   </div>
@@ -1389,7 +1389,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                     <p className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                       {formatPrice(Math.round(info.earnings))}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">indtjening</p>
+                    <p className="text-[11px] text-muted-foreground">indtjening</p>
                   </div>
                 </div>
                 <ul className="divide-y">
@@ -1398,7 +1398,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                       <div className="min-w-0">
                         <p className="font-medium truncate">{s.customer_name || "Aftale"}</p>
                         {s.service_summary && (
-                          <p className="text-[10px] text-muted-foreground truncate">{s.service_summary}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{s.service_summary}</p>
                         )}
                       </div>
                       <div className="text-right shrink-0">
@@ -1443,7 +1443,7 @@ const RouteRevenueBreakdown = ({
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Estimat for perioden
           </p>
           <p className="text-[11px] text-muted-foreground">{periodLabel}</p>
@@ -1465,7 +1465,7 @@ const RouteRevenueBreakdown = ({
               return (
                 <li key={s.id || i} className="flex items-center justify-between gap-2 px-2.5 py-1.5">
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-bold tabular-nums text-foreground">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-bold tabular-nums text-foreground">
                       {i + 1}
                     </span>
                     <span className="truncate text-foreground">{s.customer_name || "Aftale"}</span>

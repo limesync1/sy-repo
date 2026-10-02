@@ -313,18 +313,18 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             }
           >
             {/* Live status-chips — opdaterer mens brugeren bygger bestillingen */}
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
               <Package className="h-3 w-3" />
               {items.length} {items.length === 1 ? "service" : "services"}
             </span>
             {recurringCount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">
+              <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
                 <Repeat className="h-3 w-3" />
                 {recurringCount} tilbagevendende
               </span>
             )}
             {totalAmount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-bold tabular-nums text-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-bold tabular-nums text-foreground">
                 {fmt(totalAmount)}
               </span>
             )}
@@ -458,7 +458,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 {servicesByCategory.map(([category, group], idx) => (
                   <SelectGroup key={category}>
                     {idx > 0 && <SelectSeparator />}
-                    <SelectLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <SelectLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                       {category}
                     </SelectLabel>
                     {group.map((s) => {
@@ -518,15 +518,15 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           <p className="truncate font-semibold text-sm leading-tight text-foreground">{it.service.name}</p>
                           <div className="mt-1 flex flex-wrap items-center gap-1.5">
                             {(sub || it.service.service_category) && (
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className="text-[11px] text-muted-foreground">
                                 {sub || it.service.service_category}
                               </span>
                             )}
-                            <Badge variant="outline" className="text-[10px] font-normal">
+                            <Badge variant="outline" className="text-[11px] font-normal">
                               {it.service.pricing_type === "fast_pris" ? "Specifik pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
                             </Badge>
                             {it.interval && it.interval !== "engangskøb" && (
-                              <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-[10px] font-medium">
+                              <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-[11px] font-medium">
                                 <Repeat className="h-2.5 w-2.5 mr-0.5" />
                                 {INTERVAL_LABELS[it.interval] || it.interval}
                               </Badge>
@@ -599,7 +599,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           onChange={(v) => updateItem(it.serviceId, { startDate: v })}
                           minDate={format(new Date(), "yyyy-MM-dd")}
                         />
-                        <p className="mt-1 text-[10px] text-muted-foreground">
+                        <p className="mt-1 text-[11px] text-muted-foreground">
                           Datoen hvor denne service skal starte{it.interval && it.interval !== "engangskøb" ? " (første gentagelse)" : ""}. Tidspunkt planlægges på ruten.
                         </p>
                       </div>
@@ -624,7 +624,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               rows={2}
               className="bg-background resize-none"
             />
-            <p className="text-[10px] text-muted-foreground text-right mt-1">{businessMessage.length}/500</p>
+            <p className="text-[11px] text-muted-foreground text-right mt-1">{businessMessage.length}/500</p>
           </Section>
         </div>}
 
