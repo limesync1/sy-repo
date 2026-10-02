@@ -293,8 +293,10 @@ export const RouteStopsPanel = ({
                         }
                         onSelect={() => onSelectStop(stop)}
                         onRemove={() => setConfirmDelete(stop)}
-                        onUndoCompleted={() => undoCompleted.mutate(stop.id)}
-                        undoPending={undoCompleted.isPending}
+                        onUndoCompleted={() => setConfirmUndo(stop)}
+                        undoPending={undoCompleted.isPending && undoCompleted.variables === stop.id}
+                        onMarkCompleted={() => updateStopStatus.mutate({ id: stop.id, status: "completed" })}
+                        markCompletedPending={updateStopStatus.isPending && updateStopStatus.variables?.id === stop.id}
                       />
                     ))}
                   </ol>
@@ -354,10 +356,12 @@ type RowProps = {
   onRemove: () => void;
   onUndoCompleted: () => void;
   undoPending: boolean;
+  onMarkCompleted: () => void;
+  markCompletedPending: boolean;
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, isProjection = false,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
