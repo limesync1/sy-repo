@@ -368,7 +368,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
   useEffect(() => {
     if (!lead) return;
     setDraft(lead.ai_draft || "");
-    setSubject(lead.quote_request ? `Tilbud på ${lead.quote_request.category}` : "");
+    setSubject((lead as any).ai_draft_subject || (lead.quote_request ? `Tilbud på ${lead.quote_request.category}` : ""));
     setNote(lead.business_note || "");
     setFollowUp(lead.follow_up_at ? lead.follow_up_at.slice(0, 16) : "");
     setCopied(false);
