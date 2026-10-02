@@ -291,7 +291,9 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               {initial?.id ? "Rediger kunde" : "Opret ny kunde"}
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
-              Gem kunden i kartoteket — eller fortsæt direkte til første bestilling.
+              {initial?.id
+                ? "Ret kundens oplysninger. Ændringerne gemmes i kartoteket."
+                : "Gem kunden i kartoteket — eller fortsæt direkte til første bestilling."}
             </DialogDescription>
           </DialogHeader>
 

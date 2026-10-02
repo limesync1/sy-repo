@@ -1172,6 +1172,22 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <CreateManualOrderDialog
+        open={!!orderCustomer}
+        onOpenChange={(v) => { if (!v) setOrderCustomer(null); }}
+        businessId={businessId}
+        businessName={businessName}
+        initialCustomer={orderCustomer ? {
+          customer_name: orderCustomer.name,
+          customer_email: orderCustomer.email,
+          customer_phone: orderCustomer.phone ?? null,
+          address: orderCustomer.address ?? null,
+          zip_code: orderCustomer.zip_code ?? null,
+          city: orderCustomer.city ?? null,
+          cvr: orderCustomer.cvr ?? null,
+          company_name: orderCustomer.company_name ?? null,
+        } : null}
+      />
     </div>
     </TooltipProvider>
   );
