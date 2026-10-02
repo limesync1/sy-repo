@@ -1,3 +1,4 @@
+import { lookupCvr } from "@/lib/cvr-lookup";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -129,7 +130,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
     }
     setCvrLoading(true); setCvrError(""); setCvrData(null);
     try {
-      const { data, error } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: cleaned } });
+      const { data, error } = await lookupCvr(cleaned);
       if (error) throw error;
       if (!data?.found) {
         setCvrError("Vi kunne ikke finde dette CVR-nummer");

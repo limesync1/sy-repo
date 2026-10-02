@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { lookupCvr } from "@/lib/cvr-lookup";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, Check, AlertCircle } from "lucide-react";
@@ -41,36 +41,7 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
     setLoading(true);
     setStatus("idle");
     try {
-      // 1) Slå op direkte fra brugerens browser — cvrapi.dk's åbne API har
-      //    kvote pr. IP, og delte servere rammer den hurtigt. Brugerens egen
-      //    forbindelse har sin egen kvote.
-      try {
-        const res = await fetch(`https://cvrapi.dk/api?vat=${cleaned}&country=dk`);
-        const j: any = await res.json().catch(() => null);
-        if (res.ok && j?.name) {
-          const r: CvrResult = {
-            cvr: cleaned,
-            name: j.name,
-            address: j.address || null,
-            zip_code: j.zipcode ? String(j.zipcode) : null,
-            city: j.city || null,
-            phone: j.phone ? String(j.phone) : null,
-            email: j.email || null,
-          };
-          setStatus("ok");
-          setCompanyName(r.name);
-          onResult?.(r);
-          return;
-        }
-        if (res.status === 404 || j?.error === "NOT_FOUND") {
-          setStatus("notfound");
-          setCompanyName(null);
-          onResult?.(null);
-          return;
-        }
-      } catch { /* fald tilbage til serveren */ }
-      // 2) Fallback via vores server.
-      const { data, error } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: cleaned } });
+      const { data, error } = await lookupCvr(cleaned);
       if (error) {
         // Edge function svarede ikke — typisk netværk eller midlertidigt nede.
         setStatus("service_down");

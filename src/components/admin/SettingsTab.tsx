@@ -1,6 +1,7 @@
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
+import { lookupCvr } from "@/lib/cvr-lookup";
 import { useState, useMemo, useEffect, useRef, useCallback, forwardRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { IndustryIcon } from "@/components/IndustryIcon";
@@ -666,7 +667,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     cvrAutoFillTried.current = true;
     (async () => {
       try {
-        const { data } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: savedCvr } });
+        const { data } = await lookupCvr(savedCvr);
         if (!data?.found) return;
         if (!address && data.address) setAddress(data.address);
         if (!zipCode && data.zip_code) setZipCode(data.zip_code);
