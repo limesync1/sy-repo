@@ -229,6 +229,34 @@ const BetaNotice = () => {
 
   return (
     <>
+      {/* Smal stribe øverst — synlig vej til tilmelding, også efter popup'en er lukket */}
+      {!done && (
+        <div className="bg-foreground text-background">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center">
+            <span className="text-[12.5px] font-medium leading-snug">
+              Vi er i testfase — åbner snart for kunder og virksomheder.
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full bg-background px-3 py-1 text-[12px] font-semibold text-foreground transition-opacity hover:opacity-90"
+            >
+              Få besked når vi åbner
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tilmeldingsdialog — åbnes fra striben */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className={dialogClass} onOpenAutoFocus={focusEmail}>
+          {dialogHeader}
+          <div className="p-6 sm:p-8">
+            {justSignedUp ? confirmation : signupForm}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Popup ved første besøg i sessionen */}
       {(!done || justSignedUp) && (
