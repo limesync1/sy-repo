@@ -20,14 +20,14 @@ export const UiArtwork = ({ name, className, alt = "", ...props }: ImgHTMLAttrib
 );
 
 export const SectionLabelMark = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => (
-  <span aria-hidden className={cn("inline-flex h-3 w-7 shrink-0 overflow-hidden rounded-full", className)} {...props}>
-    <img src={animatedLine.url} alt="" className="h-full w-full object-fill motion-reduce:animate-none" />
+  <span aria-hidden className={cn("inline-flex h-2 w-14 shrink-0 overflow-hidden", className)} {...props}>
+    <img src={animatedLine.url} alt="" className="h-full w-full object-contain motion-reduce:animate-none" />
   </span>
 );
 
 export const SidebarArrowArtwork = ({ collapsed }: { collapsed: boolean }) => (
-  <span className={cn("group/sidebar-arrow relative block h-full w-full", collapsed && "rotate-180")}>
-    <img src={sidebarArrow.url} alt="" className="absolute inset-0 h-full w-full object-cover transition-opacity group-hover/sidebar-arrow:opacity-0 group-focus-visible/sidebar-arrow:opacity-0" />
-    <img src={sidebarArrowHover.url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity group-hover/sidebar-arrow:opacity-100 group-focus-visible/sidebar-arrow:opacity-100" />
+  <span className={cn("group/sidebar-arrow relative block h-full w-full transition-transform", collapsed && "rotate-180")}>
+    <img src={sidebarArrow.url} alt="" className="absolute inset-0 h-full w-full scale-[1.35] object-cover transition-opacity group-hover/sidebar-arrow:opacity-0 group-focus-visible/sidebar-arrow:opacity-0" />
+    <img src={sidebarArrowHover.url} alt="" className="absolute inset-0 h-full w-full scale-[1.35] object-cover opacity-0 transition-opacity group-hover/sidebar-arrow:opacity-100 group-focus-visible/sidebar-arrow:opacity-100" />
   </span>
 );
