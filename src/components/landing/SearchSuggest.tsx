@@ -226,8 +226,15 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           isHero ? "h-14 md:h-16" : "h-12 md:h-14"
         }`}
       >
-        <div className="pl-5 pr-2 text-muted-foreground sm:pr-3">
-          <UiArtwork name="search" className={`h-6 w-6 transition-transform duration-300 ${open ? "scale-105" : ""}`} />
+        <div className={`pl-4 pr-2 text-muted-foreground sm:pr-3 ${isHero ? "md:pl-5" : ""}`}>
+          {/* Ikonet skaleres med feltet: lidt større på /virksomheder, hvor
+              det små 24px-ikon virkede forsvindende i det høje felt. */}
+          <UiArtwork
+            name="search"
+            className={`transition-transform duration-300 ${open ? "scale-105" : ""} ${
+              isHero ? "h-7 w-7 md:h-8 md:w-8" : "h-7 w-7 md:h-8 md:w-8"
+            }`}
+          />
         </div>
         {/* Vi rendrer to <input> så placeholder kan tilpasses pr. breakpoint
             (HTML har ikke responsive placeholders). Den korte vises kun på
