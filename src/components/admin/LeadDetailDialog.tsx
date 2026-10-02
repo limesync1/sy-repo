@@ -363,6 +363,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!lead) return;
@@ -463,7 +464,6 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
     toast.success("Emne og tekst kopieret");
   };
 
-  const [sending, setSending] = useState(false);
   const sendDraftAsEmail = async () => {
     if (!qr?.customer_email) { toast.error("Kunden har ingen e-mail"); return; }
     if (!draft.trim()) { toast.error("Skriv eller generer et udkast først"); return; }
