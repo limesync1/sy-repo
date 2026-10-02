@@ -3263,6 +3263,7 @@ export type Database = {
         Row: {
           ai_draft: string | null
           ai_draft_generated_at: string | null
+          ai_draft_subject: string | null
           business_id: string
           business_note: string | null
           created_at: string
@@ -3284,6 +3285,7 @@ export type Database = {
         Insert: {
           ai_draft?: string | null
           ai_draft_generated_at?: string | null
+          ai_draft_subject?: string | null
           business_id: string
           business_note?: string | null
           created_at?: string
@@ -3305,6 +3307,7 @@ export type Database = {
         Update: {
           ai_draft?: string | null
           ai_draft_generated_at?: string | null
+          ai_draft_subject?: string | null
           business_id?: string
           business_note?: string | null
           created_at?: string
