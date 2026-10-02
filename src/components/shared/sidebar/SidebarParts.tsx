@@ -36,6 +36,20 @@ export const initialsOf = (name: string, fallback = "V") =>
     .map((p) => p.charAt(0).toUpperCase())
     .join("") || fallback;
 
+/** Skjult SVG-def med panel-navigationens gradientblå (#3fb4dc → #1a7399,
+ *  samme gradient som de brugerleverede ikon-SVG'er). Rendres én gang af
+ *  PanelShell; .nav-icon-gradient peger på den via `stroke: url(#sy-nav-blue)`. */
+export const NavIconGradientDefs = () => (
+  <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="sy-nav-blue" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#3fb4dc" />
+        <stop offset="1" stopColor="#1a7399" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
 /* ------------------------------------------------------------------ */
 /* Intern: tooltip der kun er aktiv når sidebaren er collapsed.       */
 /* ------------------------------------------------------------------ */
@@ -115,7 +129,7 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
         <Icon
           className={cn(
             "h-5 w-5 shrink-0 transition-[color,transform] duration-200 ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:transform-none",
-            active ? "text-accent" : "text-muted-foreground group-hover:text-foreground",
+            active ? "nav-icon-gradient" : "text-muted-foreground group-hover:text-foreground",
           )}
           aria-hidden="true"
         />

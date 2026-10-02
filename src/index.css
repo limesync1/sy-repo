@@ -1454,6 +1454,14 @@ img[loading="lazy"].is-error {
   animation: sidebar-onboarding-nudge 4.8s ease-in-out infinite;
 }
 
+/* Gradient-blå til aktive navigationspunkter i panelerne — samme farvegradient
+   (lyseblå #3fb4dc → mørk blå #1a7399, top → bund) som de brugerleverede
+   ikon-SVG'er, så navigationen matcher illustrationerne. Gradienten defineres
+   af NavIconGradientDefs i PanelShell og refereres via url(#sy-nav-blue). */
+.nav-icon-gradient {
+  stroke: url(#sy-nav-blue) hsl(var(--accent));
+}
+
 .ui-overlay[data-state="open"] { animation: ui-fade-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
 .ui-overlay[data-state="closed"] { animation: ui-fade-out 220ms cubic-bezier(0.4, 0, 1, 1) both !important; }
 .ui-modal[data-state="open"] { animation: ui-modal-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }

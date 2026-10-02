@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import useSidebarCollapsed from "./useSidebarCollapsed";
-import { SidebarEdgeHandle } from "./SidebarParts";
+import { NavIconGradientDefs, SidebarEdgeHandle } from "./SidebarParts";
 
 export type PanelSidebarContext = {
   /** True når sidebaren vises som ikon-stribe (kun desktop). Altid false i drawer. */
@@ -163,6 +163,8 @@ export const PanelShell = ({
 
   return (
     <TooltipProvider delayDuration={200}>
+      {/* Gradient-defs til aktive nav-ikoner (.nav-icon-gradient). */}
+      <NavIconGradientDefs />
       <div
         data-sidebar={collapsed ? "collapsed" : "expanded"}
         className={cn(
