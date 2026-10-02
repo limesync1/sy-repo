@@ -159,7 +159,7 @@ const PlatformReviewsTab = () => {
         <Select value={ratingFilter} onValueChange={setRatingFilter}>
           <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle ratings</SelectItem>
+            <SelectItem value="all">Alle bedømmelser</SelectItem>
             {[5, 4, 3, 2, 1].map((n) => <SelectItem key={n} value={String(n)}>{n} stjerner</SelectItem>)}
           </SelectContent>
         </Select>
