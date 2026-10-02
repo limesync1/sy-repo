@@ -26,7 +26,8 @@ export const seoPrerenderHead = () => ({
         .replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${d}$2`)
         .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${d}$2`)
         .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${url}$2`)
-        .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`);
+        .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`)
+        .replace(/(<meta property="og:type" content=")[^"]*(")/, `$1${r.path.startsWith("/blog/") ? "article" : "website"}$2`);
       const dir = join(resolve("dist"), r.path);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, "index.html"), out);
