@@ -16,11 +16,11 @@
     --secondary-foreground: 0 0% 13%;
     --muted: 0 0% 97%;
     --muted-foreground: 0 0% 45%;
-    --accent: 206 99% 30%;
+    --accent: 198 71% 35%;
     --accent-foreground: 0 0% 100%;
-    --accent-soft: 187 100% 95%;
+    --accent-soft: 196 70% 95%;
     /* Brandteal — testfase-modalens glød og bekræftelsesfarve. */
-    --beta-accent: 184 90% 42%;
+    --beta-accent: 198 71% 35%;
     --feature-cool: 196 85% 94%;
     --feature-cool-foreground: 195 70% 26%;
     --feature-warm: 42 100% 93%;
@@ -86,10 +86,10 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217 25% 14%;
     --muted-foreground: 215 18% 68%;
-    --accent: 184 75% 45%;
+    --accent: 195 69% 55%;
     --accent-foreground: 222 47% 11%;
-    --accent-soft: 184 60% 18%;
-    --beta-accent: 184 85% 48%;
+    --accent-soft: 198 55% 18%;
+    --beta-accent: 195 69% 55%;
     --feature-cool: 195 40% 18%;
     --feature-cool-foreground: 195 65% 82%;
     --feature-warm: 30 35% 18%;
@@ -112,15 +112,15 @@
     --meta-instagram-end: 270 76% 65%;
     --border: 217 22% 22%;
     --input: 217 22% 22%;
-    --ring: 184 75% 50%;
+    --ring: 195 69% 55%;
     --sidebar-background: 222 35% 8%;
     --sidebar-foreground: 210 30% 92%;
-    --sidebar-primary: 184 75% 45%;
+    --sidebar-primary: 195 69% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 25% 15%;
     --sidebar-accent-foreground: 210 30% 92%;
     --sidebar-border: 217 22% 18%;
-    --sidebar-ring: 184 75% 50%;
+    --sidebar-ring: 195 69% 55%;
 
     --surface: 222 30% 9%;
     --surface-strong: 222 28% 12%;
@@ -261,9 +261,9 @@
   .route-planner-open [role="menu"],
   .route-planner-open [data-radix-popper-content-wrapper] {
     letter-spacing: 0;
-    --accent: 184 90% 34%;
+    --accent: 198 71% 35%;
     --accent-foreground: 0 0% 100%;
-    --ring: 184 90% 34%;
+    --ring: 198 71% 35%;
     --planner-success: 151 58% 36%;
     --planner-warning: 38 92% 44%;
     --planner-danger: 0 72% 51%;
@@ -287,9 +287,9 @@
   .dark .route-planner-open [role="dialog"],
   .dark .route-planner-open [role="menu"],
   .dark .route-planner-open [data-radix-popper-content-wrapper] {
-    --accent: 184 78% 45%;
+    --accent: 195 69% 55%;
     --accent-foreground: 222 47% 8%;
-    --ring: 184 78% 45%;
+    --ring: 195 69% 55%;
     --planner-success: 151 56% 48%;
     --planner-warning: 40 90% 58%;
     --planner-danger: 0 75% 62%;
@@ -1485,5 +1485,18 @@ img[loading="lazy"].is-error {
   .ui-modal[data-state="closed"], .ui-sheet[data-state="closed"], .ui-overlay[data-state="closed"] {
     animation-name: ui-fade-out !important;
     animation-duration: 140ms !important;
+  }
+}
+
+/* Ny Serviceydere-blå: knapper med accentfarve får samme gradient som ikonerne. */
+@layer utilities {
+  button.bg-accent,
+  a.bg-accent,
+  [role="button"].bg-accent {
+    background-image: linear-gradient(180deg, #3fb4dc 0%, #1a7399 100%);
+  }
+  button.bg-accent:hover,
+  a.bg-accent:hover {
+    background-image: linear-gradient(180deg, #38a6cc 0%, #16658a 100%);
   }
 }
