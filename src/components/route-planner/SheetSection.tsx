@@ -45,7 +45,7 @@ export const SheetHeaderBlock = ({
       {hasBadge && (
         <span
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0 ring-1 ring-inset ring-border",
+            "flex h-10 w-10 items-center justify-center rounded-md text-sm font-bold shrink-0 ring-1 ring-inset ring-border",
             iconClassName,
           )}
           style={{ background: bg, color: iconColor }}
@@ -55,11 +55,11 @@ export const SheetHeaderBlock = ({
         </span>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-[17px] font-bold leading-tight text-left truncate text-foreground">
+        <div className="text-base font-semibold leading-tight text-left truncate text-foreground">
           {title}
         </div>
         {description && (
-          <div className="text-xs leading-snug text-muted-foreground mt-1 text-left">
+          <div className="text-[13px] leading-snug text-muted-foreground mt-0.5 text-left">
             {description}
           </div>
         )}
@@ -119,7 +119,7 @@ export const Section = React.forwardRef<HTMLDivElement, {
       {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    <div className="p-3">
+    <div className="space-y-3 p-3 sm:p-4">
       {children}
     </div>
   </div>
@@ -147,7 +147,7 @@ export const CollapsibleSection = ({
 }) => {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className={cn("bg-card rounded-[5px] border border-border", className)}>
+    <div className={cn("bg-card rounded-md border border-border", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -157,7 +157,7 @@ export const CollapsibleSection = ({
         <span className="text-muted-foreground inline-flex items-center justify-center h-4 w-4">
           {icon}
         </span>
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h4 className="text-[11px] font-bold uppercase text-foreground">
           {title}
         </h4>
         {hint && <span className="ml-auto min-w-0 truncate text-right text-[10px] text-muted-foreground">{hint}</span>}
@@ -188,8 +188,8 @@ export const Field = ({
   hint?: React.ReactNode;
   children: React.ReactNode;
 }) => (
-  <div className="space-y-1">
-    <label className={cn("flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground")}>
+  <div className="space-y-1.5">
+    <label className={cn("flex flex-wrap items-center gap-1.5 text-[13px] font-medium text-foreground")}>
       <span>{label}</span>
       {required && (
         <span className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal text-accent">
@@ -203,7 +203,7 @@ export const Field = ({
       ) : null}
     </label>
     {children}
-    {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+    {hint && <p className="text-xs leading-snug text-muted-foreground">{hint}</p>}
   </div>
 );
 
