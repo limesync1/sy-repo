@@ -21,12 +21,19 @@ export const BusinessPlansView = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-business-plans-list"],
     queryFn: async () => {
+      // Ingen FK mellem business_plans og businesses → hent virksomheder separat og flet.
       const { data, error } = await supabase
         .from("business_plans")
-        .select("*, businesses(id, name, slug, owner_id)")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      const ids = [...new Set((data || []).map((p: any) => p.business_id).filter(Boolean))];
+      const { data: biz, error: bizErr } = ids.length
+        ? await supabase.from("businesses").select("id, name, slug, owner_id").in("id", ids)
+        : { data: [], error: null };
+      if (bizErr) throw bizErr;
+      const byId = new Map((biz || []).map((b: any) => [b.id, b]));
+      return (data || []).map((p: any) => ({ ...p, businesses: byId.get(p.business_id) ?? null }));
     },
   });
 
