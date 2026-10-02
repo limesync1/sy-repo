@@ -1007,6 +1007,12 @@ export const RouteEditSheet = ({
                 />
               </Section>
             )}
+            {!isProjection && route?.id && (
+              <div className="space-y-2">
+                <RouteEarlyCompletionToggle route={route} />
+                <RouteSnapshotSection routeId={route.id} />
+              </div>
+            )}
           </div>
 
           {/* Footer actions */}
@@ -1058,9 +1064,9 @@ export const RouteEditSheet = ({
             )}
             {!isProjection && route?.id && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground border-border/70"
+                className="h-8 w-full justify-center gap-2 text-muted-foreground hover:text-foreground"
                 onClick={() => setHistoryOpen(true)}
                 title="Se hvem der har ændret ruten, og hvornår — fx flyttet, tilføjet stop eller optimeret"
               >
@@ -1097,12 +1103,6 @@ export const RouteEditSheet = ({
                   </Button>
                 </div>
               </div>
-            )}
-            {!isProjection && route?.id && (
-              <>
-                <RouteEarlyCompletionToggle route={route} />
-                <RouteSnapshotSection routeId={route.id} />
-              </>
             )}
             {isProjection && (
               <>

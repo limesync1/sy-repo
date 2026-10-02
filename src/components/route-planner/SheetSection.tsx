@@ -113,7 +113,7 @@ export const Section = React.forwardRef<HTMLDivElement, {
       >
         <span className="[&>svg]:h-3 [&>svg]:w-3 inline-flex">{icon}</span>
       </span>
-      <h4 className="text-[11px] font-bold uppercase text-foreground">
+      <h4 className="text-[13px] font-semibold text-foreground">
         {title}
       </h4>
       {required && null}
@@ -157,7 +157,7 @@ export const CollapsibleSection = ({
         <span className="text-muted-foreground inline-flex items-center justify-center h-4 w-4">
           {icon}
         </span>
-        <h4 className="text-[11px] font-bold uppercase text-foreground">
+        <h4 className="text-[13px] font-semibold text-foreground">
           {title}
         </h4>
         {hint && <span className="ml-auto min-w-0 truncate text-right text-[10px] text-muted-foreground">{hint}</span>}
