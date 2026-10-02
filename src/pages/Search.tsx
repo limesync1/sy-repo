@@ -34,6 +34,8 @@ import SearchSuggest from "@/components/landing/SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 
 import { CardGridSkeleton } from "@/components/admin/shared/Skeletons";
+import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu-2.png.asset.json";
+import loaderMatchesGif from "@/assets/quote/Loader_matches-2.gif.asset.json";
 
 /** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
  *  præcis det virksomheder kan vælge i panelet. */
@@ -494,7 +496,19 @@ const SearchPage = () => {
 
         {/* Results — list or map */}
         {isLoading ? (
-          <CardGridSkeleton count={8} />
+          <div className="flex min-h-[320px] flex-col items-center justify-center gap-5 rounded-[2rem] border border-border bg-card px-6 py-12 text-center shadow-sm">
+            <img
+              src={loaderMatchesGif.url}
+              alt=""
+              width={112}
+              height={112}
+              className="h-28 w-28 object-contain"
+            />
+            <div>
+              <p className="text-lg font-bold tracking-tight text-foreground">Finder relevante virksomheder</p>
+              <p className="mt-1 text-sm text-muted-foreground">Vi leder efter de bedste matches til din søgning.</p>
+            </div>
+          </div>
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           view === "map" ? (
             <Suspense fallback={<CardGridSkeleton count={4} />}>
@@ -521,8 +535,16 @@ const SearchPage = () => {
           )
         ) : (
           <div className="rounded-[2rem] border border-dashed border-border bg-card px-6 py-14 text-center shadow-sm sm:px-10 sm:py-16">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
-              <SearchIcon className="h-7 w-7 text-muted-foreground/50" />
+            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-secondary sm:h-28 sm:w-28">
+              <img
+                src={ingenMatchesIcon.url}
+                alt=""
+                width={112}
+                height={112}
+                className="h-full w-full object-contain"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
             <p className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
               {hasFilters ? "Ingen virksomheder matcher" : "Ingen virksomheder i denne kategori endnu"}

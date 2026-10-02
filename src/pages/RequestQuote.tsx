@@ -29,8 +29,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import beskrivOpgavenIcon from "@/assets/quote/Beskriv_opgaven.png.asset.json";
 import viMatcherIcon from "@/assets/quote/Vi_matcher.png.asset.json";
 import sammenlignIcon from "@/assets/quote/Sammenlign_og_vaelg.png.asset.json";
-import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu.png.asset.json";
-import loaderMatchesGif from "@/assets/quote/Loader_matches.gif.asset.json";
+import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu-2.png.asset.json";
+import loaderMatchesGif from "@/assets/quote/Loader_matches-2.gif.asset.json";
 
 /** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
  *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
