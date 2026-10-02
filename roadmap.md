@@ -43,5 +43,5 @@
 - [x] Udskift alle 26 brancheikoner gennem fælles register
 - [x] Udskift matchende indholdsikoner uden at ændre virksomhedsnavigationen
 - [x] Test fletning med rigtige, sikre testdata
-- [ ] Test medarbejderens fulde rutekørsel med rigtige testdata
-- [ ] Kontrollér mobil, desktop, runtime og build
+- [x] Test medarbejderens fulde rutekørsel med rigtige testdata
+- [x] Kontrollér mobil, desktop, runtime og build
