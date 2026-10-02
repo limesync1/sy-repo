@@ -31,6 +31,7 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/virksomheder", changefreq: "daily", priority: "0.9" },
   { path: "/tilbud", changefreq: "weekly", priority: "0.9" },
+  { path: "/rengoering", changefreq: "weekly", priority: "0.9" },
   { path: "/opret-virksomhed", changefreq: "monthly", priority: "0.7" },
   { path: "/hjaelp", changefreq: "monthly", priority: "0.5" },
   { path: "/guides", changefreq: "weekly", priority: "0.8" },
@@ -188,6 +189,7 @@ const STATIC_META = [
   { path: "/privatlivspolitik", title: "Privatlivspolitik | Serviceydere", description: "Sådan behandler Serviceydere dine personoplysninger, og hvilke rettigheder du har." },
   { path: "/vilkaar", title: "Vilkår og betingelser | Serviceydere", description: "Vilkår for brug af Serviceydere for kunder og virksomheder." },
   { path: "/slet-data", title: "Slet data og tilbagekald samtykke | Serviceydere", description: "Slet cookievalg, anmod om sletning af konto og personoplysninger eller fjern virksomhedsdata hos Serviceydere." },
+  { path: "/rengoering", title: "Find rengøringsvirksomhed i din by — se priser | Serviceydere", description: "Søg efter rengøringsfirmaer i din by og se lokale priser på privat- og erhvervsrengøring. Sammenlign og få op til 3 gratis tilbud — uforpligtende." },
 ];
 const routeMeta = [
   ...STATIC_META,

@@ -56,7 +56,7 @@ const CleaningSearchHub = () => {
       <SiteNav />
 
       <PageHero
-        tone="teal"
+        tone="cyan"
         eyebrow="Rengøring i hele Danmark"
         title="Find en rengøringsvirksomhed i din by."
         subtitle="Søg på din by eller dit postnummer og se lokale priser med det samme — derefter kan du få op til 3 gratis tilbud."

@@ -35,6 +35,7 @@ export const VALID_SITE_PATHS: string[] = [
   "/databehandleraftale",
   "/underdatabehandlere",
   "/slet-data",
+  "/rengoering",
 ];
 
 const VALID_PREFIXES = ["/priser/", "/guides/", "/blog/", "/v/", "/rengoering/", "/flyttehjaelp/", "/haandvaerker/", "/haveservice/"];
