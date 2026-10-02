@@ -238,7 +238,8 @@ export const MoveProjectedOccurrenceDialog = ({
           )}
         </div>
 
-        <AlertDialogFooter className="planner-overlay-footer border-t px-4 py-3 sm:px-5">
+        <SheetFooterBar>
+          <div className="flex flex-wrap justify-end gap-2">
           {submitError && (
             <div
               role="alert"
@@ -277,7 +278,8 @@ export const MoveProjectedOccurrenceDialog = ({
             {(loading || submitting) && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
             Flyt denne dag
           </Button>
-        </AlertDialogFooter>
+          </div>
+        </SheetFooterBar>
       </AlertDialogContent>
     </AlertDialog>
   );

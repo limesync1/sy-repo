@@ -17,7 +17,7 @@ import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewS
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info, CalendarCheck, ArrowRight, Eye, Lock as LockIcon,
+  Users, User as UserIcon, Info, CalendarCheck, ArrowRight, Lock as LockIcon,
   Unlock as UnlockIcon,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday } from "date-fns";
