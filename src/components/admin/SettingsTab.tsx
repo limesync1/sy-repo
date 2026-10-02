@@ -1174,7 +1174,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   CVR: {cvrResult.vat} · {cvrResult.address}, {cvrResult.zipcode} {cvrResult.city}
                 </p>
                 {cvrResult.phone && <p className="text-xs text-muted-foreground">Tlf: {cvrResult.phone}</p>}
-                {cvrResult.email && <p className="text-xs text-muted-foreground">Email: {cvrResult.email}</p>}
+                {cvrResult.email && <p className="text-xs text-muted-foreground">E-mail: {cvrResult.email}</p>}
               </div>
               <Button size="sm" onClick={applyCvrData} className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
                 Anvend
