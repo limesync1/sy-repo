@@ -39,7 +39,7 @@ export default function CreateOrderDialogHost({
 
   useEffect(() => {
     if (open) return;
-    const t = setTimeout(() => setMounted(false), 250);
+    const t = setTimeout(() => setMounted(false), 350);
     return () => clearTimeout(t);
   }, [open]);
 
