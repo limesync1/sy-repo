@@ -166,7 +166,7 @@ export const BRANDED_ILLUSTRATIONS = {
   responseTime: responseTimeNew.url,
   averageResponseTime: averageResponseNew.url,
   describeTask: describeTaskNew.url,
-  match: matchNew.url,
+  match: matchNew,
   businessCustomers: businessCustomersNew.url,
   privateCustomers: privateCustomersNew.url,
   customersTotal: customersTotalNew.url,
