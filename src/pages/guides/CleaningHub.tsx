@@ -35,6 +35,7 @@ export default defineGuidePage({
   sections: [
     { heading: "Typer af rengøring — vælg den rette guide", list: [
       <a href="/priser/rengoering">Rengøring prisguide 2026 (privat + erhverv)</a>,
+      <a href="/rengoering">Find rengøringsvirksomhed i din by — se lokale priser</a>,
       <a href="/blog/hovedrengoering-pris-pr-m2-2026">Hovedrengøring pris pr. m²</a>,
       <a href="/blog/privatrengoering-timepris-2026">Privat rengøring timepris 2026</a>,
       <a href="/blog/kontorrengoering-koebenhavn-pris-2026">Kontorrengøring København pris</a>,
