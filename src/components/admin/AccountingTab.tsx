@@ -2250,6 +2250,29 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         }
       />
 
+      {/* Trin-indikator */}
+      <div className="flex items-center gap-2" aria-label={`Trin ${step} af 2`}>
+        {[1, 2].map(n => (
+          <div key={n} className="flex items-center gap-2">
+            <span
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                step === n
+                  ? "bg-foreground text-background"
+                  : step > n
+                    ? "bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/30"
+                    : "bg-secondary text-muted-foreground"
+              }`}
+            >
+              {step > n ? <Check className="h-3.5 w-3.5" /> : n}
+            </span>
+            <span className={`text-xs font-medium ${step === n ? "text-foreground" : "text-muted-foreground"}`}>
+              {n === 1 ? "Vælg program" : "Forbind"}
+            </span>
+            {n === 1 && <div className="mx-1 h-px w-8 bg-border sm:w-14" />}
+          </div>
+        ))}
+      </div>
+
       {/* TRIN 1 */}
       {step === 1 && (
         <SectionCard
