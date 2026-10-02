@@ -365,8 +365,8 @@ const RequestQuote = () => {
                     <span className="flex min-w-0 items-center gap-2">
                       {selectedCategory ? (
                         <>
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-secondary/70 ring-1 ring-border">
-                            <IndustryIcon category={selectedCategory.key} className="h-5 w-5" alt={selectedCategory.label} />
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+                            <IndustryIcon category={selectedCategory.key} className="h-8 w-8 object-contain" alt={selectedCategory.label} />
                           </span>
                           <span className="truncate">{selectedCategory.label}</span>
                         </>
@@ -427,8 +427,8 @@ const RequestQuote = () => {
                               active ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary/60"
                             }`}
                           >
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary/70 ring-1 ring-border">
-                              <IndustryIcon category={key} className="h-7 w-7" alt={label} />
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                              <IndustryIcon category={key} className="h-9 w-9 object-contain" alt={label} />
                             </span>
                             <span className="flex-1 min-w-0">
                               <div className="font-medium truncate">{label}</div>
@@ -587,8 +587,8 @@ const RequestQuote = () => {
                   { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: "compareProviders" as BrandedIllustrationName },
                 ].map((s) => (
                   <li key={s.n} className="flex gap-3">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-                      <BrandedIllustration name={s.icon} className="h-10 w-10" alt="" />
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+                      <BrandedIllustration name={s.icon} className="h-12 w-12" alt="" />
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-foreground">{s.title}</span>

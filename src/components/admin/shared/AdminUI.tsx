@@ -46,7 +46,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-      "h-9 rounded-[4px] bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-4 shadow-sm",
+      "brand-blue-action h-9 rounded-[4px] text-sm font-semibold px-4",
       // Holdt simpelt: kun farve-overgang ved hover, lille press-feedback ved klik.
       // Ingen "lift" eller ikon-skalering — det føltes tilfældigt på en CTA.
       "transition-colors duration-150 ease-out active:scale-[0.98]",

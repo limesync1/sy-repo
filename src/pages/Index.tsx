@@ -127,8 +127,8 @@ const Index = () => {
           <Reveal><ForBusinesses /></Reveal>
         </Suspense>
 
-        <Suspense fallback={<SectionSkeleton cards={0} className="bg-ocean" dark />}>
-          <Reveal className="bg-ocean">
+        <Suspense fallback={<SectionSkeleton cards={0} className="bg-background" dark />}>
+          <Reveal className="bg-background">
             <CTABand
               eyebrow="Kom i gang"
               title="Beskriv opgaven én gang — få op til 3 tilbud"
