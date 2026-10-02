@@ -3,8 +3,6 @@ import animatedArrow from "@/assets/ui/Pil_animeret.svg.asset.json";
 import recentSearch from "@/assets/ui/Senest_soegt.svg.asset.json";
 import searchIcon from "@/assets/ui/Soeg.svg.asset.json";
 import animatedLine from "@/assets/ui/Streg_animeret.webp.asset.json";
-import sidebarArrow from "@/assets/ui/Pil_venstre.png.asset.json";
-import sidebarArrowHover from "@/assets/ui/Pil_venstre_hover.png.asset.json";
 import { cn } from "@/lib/utils";
 
 type ArtworkName = "search" | "recentSearch" | "categoryArrow";
