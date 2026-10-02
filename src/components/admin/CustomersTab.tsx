@@ -42,6 +42,7 @@ import {
 } from "@/components/shared/OrderStatusBadges";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { CustomerIllustration, type CustomerIllustrationName } from "@/components/shared/CustomerIllustration";
+import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
 type Customer = {
   email: string;
@@ -579,6 +580,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [orderCustomer, setOrderCustomer] = useState<Customer | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EditableCustomer | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -774,7 +776,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   };
 
   const openCreateOrderForCustomer = (c: Customer) => {
-    openEditDialog(c);
+    setOrderCustomer(c);
   };
 
   const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
