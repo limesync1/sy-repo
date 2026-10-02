@@ -1491,7 +1491,7 @@ const RoutePillInner = ({
                 isVirtual ? "text-muted-foreground" : "text-foreground",
               )}
             >
-              <span title={route.name?.trim() || "Rute"}>{route.name?.trim() || "Rute"}</span>
+              <span>{route.name?.trim() || "Rute"}</span>
             </div>
           </div>
           <div className={cn("mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] text-muted-foreground tabular-nums", (canOptimize || canDelete || canHistory) ? "pr-5" : "pr-0")}>
@@ -1499,7 +1499,6 @@ const RoutePillInner = ({
               <span
                 className="inline-flex shrink-0 items-center rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold leading-[14px] text-muted-foreground"
                 aria-label={projectedKind === "today" ? "Forventet i dag — den faste rute kører igen i dag" : projectedKind === "past" ? "Forventet besøg der er passeret" : "Forventet — den faste rute kører igen denne dag"}
-                title="Ruten er ikke lavet endnu. Den vises, fordi den faste rute kører igen denne dag."
               >
                 {projectedKind === "today" ? "Forventet i dag" : "Forventet"}
               </span>

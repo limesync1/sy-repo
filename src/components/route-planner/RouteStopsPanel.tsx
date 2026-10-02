@@ -338,6 +338,28 @@ export const RouteStopsPanel = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!confirmUndo} onOpenChange={(o) => !o && setConfirmUndo(null)}>
+        <AlertDialogContent className="planner-overlay">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Fortryd udførsel?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{confirmUndo?.customer_name}</strong> bliver sat tilbage til ikke udført.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmUndo) undoCompleted.mutate(confirmUndo.id);
+                setConfirmUndo(null);
+              }}
+            >
+              Fortryd udførsel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
