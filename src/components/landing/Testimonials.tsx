@@ -87,11 +87,11 @@ const Testimonials = () => {
           </SmartLink>
         </div>
 
-        <HorizontalScroller>
+        <HorizontalScroller fadeEdges={false} ariaLabel="Kundeanmeldelser — stryg vandret for at se flere">
           {shuffled.map((r) => (
             <article
               key={r.id}
-              className="relative flex w-[286px] shrink-0 flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[330px] 2xl:w-[360px] 2xl:p-7"
+              className="relative flex w-[286px] shrink-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 motion-safe:hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-premium sm:w-[330px] 2xl:w-[360px] 2xl:p-7"
             >
               <Quote aria-hidden className="absolute right-5 top-5 h-7 w-7 rotate-180 text-foreground/5" />
               <div className="mb-4 flex items-center gap-1">

@@ -17,6 +17,7 @@ import PageHero from "@/components/landing/PageHero";
 import { translateAuthError } from "@/lib/auth-errors";
 import AnimatedNumber from "@/components/admin/AnimatedNumber";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import NumberStepIcon from "@/components/shared/NumberStepIcon";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * BusinessOnboarding — én side, ingen trin.
@@ -816,20 +817,20 @@ const Section = ({
   number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
   <section
-    className={`group relative rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md sm:p-6 ${
+    className={`group/step relative rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md sm:p-6 ${
       done ? "border-accent/40" : "border-border"
     }`}
   >
     <div className="flex items-baseline gap-3">
-      <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold shadow-sm ring-2 ring-background transition-all ${
-          done
-            ? "bg-gradient-to-br from-accent to-accent/80 text-accent-foreground"
-            : "bg-gradient-to-br from-foreground to-foreground/80 text-background"
-        }`}
-      >
-        {done ? <Check className="h-3.5 w-3.5" /> : number}
-      </span>
+      {done ? (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm ring-2 ring-background">
+          <Check className="h-4 w-4" />
+        </span>
+      ) : number <= 4 ? (
+        <NumberStepIcon number={number as 1 | 2 | 3 | 4} animated className="h-10 w-10" />
+      ) : (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background shadow-sm ring-2 ring-background">{number}</span>
+      )}
       <div className="min-w-0">
         <h2 className="text-base font-semibold text-foreground sm:text-lg">{title}</h2>
         {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}

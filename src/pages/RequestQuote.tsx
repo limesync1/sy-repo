@@ -31,6 +31,7 @@ import viMatcherIcon from "@/assets/quote/Vi_matcher.png.asset.json";
 import sammenlignIcon from "@/assets/quote/Sammenlign_og_vaelg.png.asset.json";
 import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu.png.asset.json";
 import loaderMatchesGif from "@/assets/quote/Loader_matches.gif.asset.json";
+import NumberStepIcon from "@/components/shared/NumberStepIcon";
 
 /** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
  *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
@@ -337,7 +338,7 @@ const RequestQuote = () => {
                 matcher de øvrige trin. */}
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">1</span>
+                <NumberStepIcon number={1} className="h-8 w-8" />
                 <label className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</label>
               </div>
               <div className="rounded-2xl border border-border bg-card/80 px-3 py-2.5">
@@ -355,7 +356,7 @@ const RequestQuote = () => {
                 brugeren skrive sig frem i stedet for at scanne 15 ikoner. */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">2</span>
+                <NumberStepIcon number={2} className="h-8 w-8" />
                 <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
               </div>
               <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
@@ -451,9 +452,7 @@ const RequestQuote = () => {
             {/* Step 3: Description */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                  category ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
-                }`}>3</span>
+                <NumberStepIcon number={3} className={`h-8 w-8 transition-opacity ${category ? "opacity-100" : "opacity-45"}`} />
                 <label className="text-sm font-semibold text-foreground">Beskriv dit behov</label>
               </div>
               <Textarea
@@ -491,9 +490,7 @@ const RequestQuote = () => {
             {/* Step 4: Kontaktoplysninger */}
             <div className="mt-7">
               <div className="mb-1 flex items-center gap-2">
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                  description.trim() ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
-                }`}>4</span>
+                <NumberStepIcon number={4} className={`h-8 w-8 transition-opacity ${description.trim() ? "opacity-100" : "opacity-45"}`} />
                 <label className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</label>
               </div>
               <p className="mb-4 ml-8 text-xs text-muted-foreground">
@@ -588,14 +585,15 @@ const RequestQuote = () => {
               <h2 className="text-base font-semibold tracking-tight text-foreground">Sådan fungerer det</h2>
               <ol className="mt-4 space-y-4">
                 {[
-                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", icon: beskrivOpgavenIcon.url },
-                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: viMatcherIcon.url },
-                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: sammenlignIcon.url },
+                  { n: 1 as const, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", icon: beskrivOpgavenIcon.url },
+                  { n: 2 as const, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: viMatcherIcon.url },
+                  { n: 3 as const, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: sammenlignIcon.url },
                 ].map((s) => (
-                  <li key={s.n} className="flex gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-secondary/70 ring-1 ring-border">
-                      <img src={s.icon} alt="" width={44} height={44} className="h-full w-full object-contain" loading="lazy" decoding="async" />
-                    </span>
+                  <li key={s.n} className="group/step flex gap-3">
+                    <div className="relative h-14 w-14 shrink-0">
+                      <NumberStepIcon number={s.n} animated className="h-14 w-14" />
+                      <img src={s.icon} alt="" width={24} height={24} className="absolute -bottom-1 -right-1 h-7 w-7 rounded-lg border border-border bg-card object-contain p-0.5 shadow-sm" loading="lazy" decoding="async" />
+                    </div>
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-foreground">{s.title}</span>
                       <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">{s.text}</span>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
-import { Menu, X, LogOut, ChevronDown, User, Briefcase, ShieldCheck, Truck } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
@@ -12,13 +12,18 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import customerPanelIcon from "@/assets/header/Kundepanel.png.asset.json";
+import businessPanelIcon from "@/assets/header/Virksomhedspanel.png.asset.json";
+import employeePanelIcon from "@/assets/header/Medarbejder_app.png.asset.json";
+import platformAdminIcon from "@/assets/header/Platform_admin.png.asset.json";
+import logoutIcon from "@/assets/header/Log_ud.png.asset.json";
 
 interface Props {
   active?: "search" | "quote" | "business" | "software" | null;
   right?: React.ReactNode;
 }
 
-type NavItem = { key: NonNullable<Props["active"]>; label: string; to: string };
+type NavItem = { key: NonNullable<Props["active"]>; label: string; to: string; icon?: string };
 
 /** Navigationen er delt i to publikummer, så både brugere, skærmlæsere og
  *  sprogmodeller kan se hvad der er til kunder og hvad der er til virksomheder. */
@@ -35,7 +40,7 @@ const NAV_GROUPS: { id: "customers" | "business"; label: string; items: NavItem[
     id: "business",
     label: "For virksomheder",
     items: [
-      { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
+      { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed", icon: businessPanelIcon.url },
       { key: "software", label: "Systemet", to: "/software" },
     ],
   },
@@ -80,21 +85,21 @@ const SiteNav = ({ active, right }: Props) => {
   });
 
   const roles = useMemo(() => {
-    const items: { label: string; to: string; icon: React.ComponentType<any>; current: boolean }[] = [];
+    const items: { label: string; to: string; icon: string; current: boolean }[] = [];
     if (!user) return items;
 
     // Sorteret efter "magt" — det højest privilegerede panel står først
     // og bliver dermed standardvalg ved første login.
     if (userRoles.includes("admin")) {
-      items.push({ label: "Platform admin", to: "/admin", icon: ShieldCheck, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
+      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
     }
     if (userRoles.includes("business_owner") || business) {
-      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: Briefcase, current: pathname.startsWith("/virksomhed") });
+      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, current: pathname.startsWith("/virksomhed") });
     }
     if (userRoles.includes("employee") || myEmployee) {
-      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: Truck, current: pathname.startsWith("/medarbejder") });
+      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, current: pathname.startsWith("/medarbejder") });
     }
-    items.push({ label: "Kundepanel", to: "/min-konto", icon: User, current: pathname.startsWith("/min-konto") });
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, current: pathname.startsWith("/min-konto") });
 
     return items;
   }, [business, myEmployee, pathname, user, userRoles]);
@@ -204,22 +209,27 @@ const SiteNav = ({ active, right }: Props) => {
                 {preferredRole && (
                   showSwitcher ? (
                     <div className="hidden sm:inline-flex items-stretch overflow-hidden rounded-full bg-foreground text-background shadow-sm">
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
                         onClick={() => navigate(preferredRole.to)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-foreground/90"
+                        className="h-auto rounded-none px-3.5 py-2 text-sm font-semibold text-background hover:bg-foreground/90 hover:text-background"
                         title={`Gå til ${preferredRole.label}`}
                       >
-                        <preferredRole.icon className="h-4 w-4" />
+                        <img src={preferredRole.icon} alt="" className="h-7 w-7 rounded-md object-contain" width={28} height={28} />
                         <span className="max-w-[160px] truncate">{preferredRole.label}</span>
-                      </button>
+                      </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button
-                            className="inline-flex items-center border-l border-background/20 px-2 transition-colors hover:bg-foreground/90"
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-auto rounded-none border-l border-background/20 px-2 text-background hover:bg-foreground/90 hover:text-background"
                             aria-label="Skift panel"
                           >
                             <ChevronDown className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuLabel className="text-xs text-muted-foreground">Skift panel</DropdownMenuLabel>
@@ -229,7 +239,7 @@ const SiteNav = ({ active, right }: Props) => {
                               onClick={() => { handleSelectPanel(r.to); navigate(r.to); }}
                               className={preferredRole.to === r.to ? "bg-secondary" : ""}
                             >
-                              <r.icon className="mr-2 h-4 w-4" />{r.label}
+                              <img src={r.icon} alt="" className="mr-2 h-8 w-8 rounded-lg object-contain" width={32} height={32} />{r.label}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
@@ -241,7 +251,7 @@ const SiteNav = ({ active, right }: Props) => {
                       onClick={() => navigate(preferredRole.to)}
                       className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 sm:inline-flex"
                     >
-                      <preferredRole.icon className="mr-1.5 h-4 w-4" />{preferredRole.label}
+                      <img src={preferredRole.icon} alt="" className="mr-1.5 h-7 w-7 rounded-md object-contain" width={28} height={28} />{preferredRole.label}
                     </Button>
                   )
                 )}
@@ -252,32 +262,36 @@ const SiteNav = ({ active, right }: Props) => {
                   onClick={handleSignOut}
                   className="hidden rounded-full border-border bg-background text-foreground hover:bg-secondary hover:text-foreground sm:inline-flex"
                 >
-                  <LogOut className="mr-1.5 h-4 w-4" />Log ud
+                  <img src={logoutIcon.url} alt="" className="mr-1.5 h-7 w-7 rounded-md object-contain" width={28} height={28} />Log ud
                 </Button>
               </>
             ) : (
               <>
-                <Link to="/log-ind" className="hidden lg:inline-block">
-                  <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
+                <Button asChild variant="ghost" size="sm" className="hidden rounded-full px-3 font-semibold lg:inline-flex">
+                  <Link to="/log-ind">
+                    <img src={customerPanelIcon.url} alt="" className="mr-1.5 h-7 w-7 rounded-md object-contain" width={28} height={28} />
                     Log ind
-                  </button>
-                </Link>
-                <Link to="/log-ind?signup=1" className="hidden lg:inline-block">
-                  <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow active:scale-95">
+                  </Link>
+                </Button>
+                <Button asChild size="sm" className="hidden rounded-full bg-foreground px-3 font-semibold text-background shadow-sm hover:bg-foreground/90 lg:inline-flex">
+                  <Link to="/log-ind?signup=1">
                     Opret konto
-                  </button>
-                </Link>
+                  </Link>
+                </Button>
               </>
             )}
 
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => setOpen((v) => !v)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary lg:hidden"
+              className="h-10 w-10 rounded-full text-foreground lg:hidden"
               aria-label={open ? "Luk menu" : "Åbn menu"}
               aria-expanded={open}
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -297,10 +311,11 @@ const SiteNav = ({ active, right }: Props) => {
                     key={item.key}
                     to={item.to}
                     onClick={() => setOpen(false)}
-                    className={`block rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                     }`}
                   >
+                    {item.icon && <img src={item.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />}
                     {item.label}
                   </SmartLink>
                 ))}
@@ -316,37 +331,44 @@ const SiteNav = ({ active, right }: Props) => {
                       <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Skift visning</p>
                     </div>
                     {roles.map((r) => (
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
                         key={r.to}
                         onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                        className={`h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
                           preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                         }`}
                       >
-                        <r.icon className="h-4 w-4" />{r.label}
-                      </button>
+                      <img src={r.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />{r.label}
+                      </Button>
                     ))}
                     <div className="my-2 h-px bg-border" />
                   </>
                 )}
                 {preferredRole && (
-                  <button
+                  <Button
+                    type="button"
+                    variant="ghost"
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                    className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
-                    <preferredRole.icon className="h-4 w-4" />Gå til {preferredRole.label}
-                  </button>
+                    <img src={preferredRole.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />Gå til {preferredRole.label}
+                  </Button>
                 )}
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={() => { setOpen(false); handleSignOut(); }}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                  className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
                 >
-                  <LogOut className="h-4 w-4" />Log ud
-                </button>
+                  <img src={logoutIcon.url} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />Log ud
+                </Button>
               </>
             ) : (
               <>
-                <Link to="/log-ind" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
+                <Link to="/log-ind" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
+                  <img src={customerPanelIcon.url} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />
                   Log ind
                 </Link>
                 <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
