@@ -636,6 +636,9 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
                 <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
               </div>
+              {items.length === 0 && (
+                <span className="text-[11px] text-muted-foreground">Vælg mindst én service for at oprette bestillingen</span>
+              )}
               {items.length > 0 && (
                 <span className="text-[11px] text-muted-foreground">
                   {items.length} {items.length === 1 ? "service" : "services"}
