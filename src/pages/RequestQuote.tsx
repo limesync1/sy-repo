@@ -167,6 +167,7 @@ const RequestQuote = () => {
   }, [category, description]);
 
   const selectedCategory = CATEGORIES.find((c) => c.key === category);
+  const hasLocation = Boolean(location.city || location.zip);
   const POPULAR_KEYS = topCategories().map((t) => t.key);
   const trimmedQuery = categoryQuery.trim();
   /** Når der søges: brug det rige branche-søg. Når feltet er tomt: vis
@@ -338,7 +339,7 @@ const RequestQuote = () => {
                 matcher de øvrige trin. */}
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">1</span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${hasLocation ? "opacity-100" : "opacity-45"}`}>1</span>
                 <label className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</label>
               </div>
               <div className="rounded-2xl border border-border bg-card/80 px-3 py-2.5">
@@ -356,7 +357,7 @@ const RequestQuote = () => {
                 brugeren skrive sig frem i stedet for at scanne 15 ikoner. */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">2</span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${category ? "opacity-100" : "opacity-45"}`}>2</span>
                 <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
               </div>
               <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
@@ -375,7 +376,7 @@ const RequestQuote = () => {
                         </>
                       ) : (
                         <>
-                          <UiArtwork name="search" className="h-5 w-5" />
+                          <Search className="h-5 w-5" />
                           <span className="text-muted-foreground">Søg eller vælg en kategori…</span>
                         </>
                       )}
@@ -391,7 +392,7 @@ const RequestQuote = () => {
                   className="w-[var(--radix-popover-trigger-width)] rounded-2xl border-border bg-card p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.25)]"
                 >
                   <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-                    <UiArtwork name="search" className="h-5 w-5" />
+                    <Search className="h-5 w-5" />
                     <input
                       autoFocus
                       aria-label="Søg efter kategori"
@@ -439,7 +440,7 @@ const RequestQuote = () => {
                                 <div className="text-[11px] text-muted-foreground truncate">via "{matchedVia}"</div>
                               )}
                             </span>
-                            {active ? <Check className="h-4 w-4 text-accent" /> : <UiArtwork name="categoryArrow" className="h-7 w-7 opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100" />}
+                            {active ? <Check className="h-4 w-4 text-accent" /> : <UiArtwork name="categoryArrow" className="h-7 w-7 brightness-0 opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100" />}
                           </button>
                         </li>
                       );
@@ -452,7 +453,7 @@ const RequestQuote = () => {
             {/* Step 3: Description */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${category ? "opacity-100" : "opacity-45"}`}>3</span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${description.trim() ? "opacity-100" : "opacity-45"}`}>3</span>
                 <label className="text-sm font-semibold text-foreground">Beskriv dit behov</label>
               </div>
               <Textarea
@@ -490,7 +491,7 @@ const RequestQuote = () => {
             {/* Step 4: Kontaktoplysninger */}
             <div className="mt-7">
               <div className="mb-1 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${description.trim() ? "opacity-100" : "opacity-45"}`}>4</span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${customerName.trim() && customerEmail.trim() ? "opacity-100" : "opacity-45"}`}>4</span>
                 <label className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</label>
               </div>
               <p className="mb-4 ml-8 text-xs text-muted-foreground">

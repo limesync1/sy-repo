@@ -28,3 +28,4 @@
 - [~] Fuld gennemgang: runde 3 (opret-vinduer, valideringstekster, dansk "Luk"/"E-mail"). Mangler: indstillinger, regnskab, dataimport, rutekørsel
 - [x] Brug de vedhæftede valgte-ikoner i headerens panelvælger for kunde, virksomhed, medarbejder og platformadmin
 - [x] Opdatér søgning, kategori-pile, sektionslabels og sidepanelkontrol med de nye ikoner
+- [x] Ensret Lead-indstillinger med panelvinduer og ret søgeikoner, labelstreg og tilbudstrin
