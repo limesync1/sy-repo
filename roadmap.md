@@ -26,3 +26,4 @@
 - [x] Meta: "Hent seneste leads nu" + "Send test-lead"
 - [ ] Meta: rigtige test-leads — venter på at brugeren forbinder Meta igen (forbindelsen står "Kræver handling")
 - [~] Fuld gennemgang: runde 3 (opret-vinduer, valideringstekster, dansk "Luk"/"E-mail"). Mangler: indstillinger, regnskab, dataimport, rutekørsel
+- [ ] Brug de vedhæftede valgte-ikoner i headerens panelvælger for kunde, virksomhed, medarbejder og platformadmin
