@@ -44,7 +44,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
         <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<CalendarDays className="h-4 w-4" />}
-            title={<SheetTitle className="text-base capitalize">{date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}</SheetTitle>}
+            title={<SheetTitle className="text-base first-letter:uppercase">{date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}</SheetTitle>}
             description={sorted.length === 0 ? <span className="text-xs text-muted-foreground">Ingen aftaler denne dag.</span> : undefined}
           >
             {sorted.length > 0 && (
