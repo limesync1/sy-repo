@@ -126,6 +126,9 @@ const ServiceTaxGuide        = lazyRoute("/guides/servicefradrag-2026", () => im
 const CleaningHub            = lazyRoute("/guides/rengoering", () => import("./pages/guides/CleaningHub"));
 const MovingHub              = lazyRoute("/guides/flytning", () => import("./pages/guides/MovingHub"));
 const HandymanHub            = lazyRoute("/guides/haandvaerker", () => import("./pages/guides/HandymanHub"));
+const WindowCleaningHub      = lazyRoute("/guides/vinduespudsning", () => import("./pages/guides/WindowCleaningHub"));
+const PrivateCleaningHub     = lazyRoute("/guides/privatrengoering", () => import("./pages/guides/PrivateCleaningHub"));
+const BusinessCleaningHub    = lazyRoute("/guides/erhvervsrengoering", () => import("./pages/guides/BusinessCleaningHub"));
 const GardenHub              = lazyRoute("/guides/have", () => import("./pages/guides/GardenHub"));
 const PricesHub              = lazyRoute("/guides/priser-2026", () => import("./pages/guides/PricesHub"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
@@ -408,6 +411,9 @@ const App = () => (
               <Route path="/guides/flytning" element={<MovingHub />} />
               <Route path="/guides/haandvaerker" element={<HandymanHub />} />
               <Route path="/guides/have" element={<GardenHub />} />
+              <Route path="/guides/vinduespudsning" element={<WindowCleaningHub />} />
+              <Route path="/guides/privatrengoering" element={<PrivateCleaningHub />} />
+              <Route path="/guides/erhvervsrengoering" element={<BusinessCleaningHub />} />
               <Route path="/guides/priser-2026" element={<PricesHub />} />
               <Route path="/guides" element={<GuidesIndex />} />
 
