@@ -1342,6 +1342,7 @@ const RoutePillInner = ({
   const pill = (
     <div
       ref={setRefs}
+      data-route-pill=""
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => {

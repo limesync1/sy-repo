@@ -815,12 +815,12 @@ export const RouteEditSheet = ({
              outside-close når target er inde i et Radix portal — Esc og X
              lukker stadig som forventet. */
           onPointerDownOutside={(e) => {
-            if (nestedOverlayOpenRef.current || isRouteEditPortalTarget(e.target)) {
+            if (nestedOverlayOpenRef.current || isRouteEditPortalTarget(e.target) || (e.target as Element | null)?.closest?.("[data-route-pill]")) {
               e.preventDefault();
             }
           }}
           onInteractOutside={(e) => {
-            if (nestedOverlayOpenRef.current || isRouteEditPortalTarget(e.target)) {
+            if (nestedOverlayOpenRef.current || isRouteEditPortalTarget(e.target) || (e.target as Element | null)?.closest?.("[data-route-pill]")) {
               e.preventDefault();
             }
           }}
