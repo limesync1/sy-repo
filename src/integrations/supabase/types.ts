@@ -5525,6 +5525,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      merge_routes: {
+        Args: { _scope?: string; _source: string; _target: string }
+        Returns: Json
+      }
       move_projected_occurrence:
         | {
             Args: {

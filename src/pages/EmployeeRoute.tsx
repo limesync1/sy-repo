@@ -703,7 +703,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       if (error) console.warn("[live-position] kunne ikke sendes", error.message);
     };
     void pushPosition();
-    const timer = window.setInterval(pushPosition, 25_000);
+    const timer = window.setInterval(pushPosition, 5_000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, liveStopId, filtered?.pos[0], filtered?.pos[1]]);
 
@@ -1278,12 +1278,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }
 
   const handleNavigate = (s: RouteStop) => {
-    const dest = s.address || (s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : s.customer_name || "");
-    if (!dest) return;
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`,
-      "_blank",
-    );
+    // Åbn vores egen kørselsguide på kortet i stedet for at sende
+    // medarbejderen ud til Google Maps.
+    setHighlightedId(s.id);
+    setSelectedId(null);
+    setFollowMode(false);
+    if (runMode !== "guide") {
+      setRunMode("guide");
+      writeRunMode("guide", !!readRunMode());
+    }
   };
 
   /** Hent én position — bruges når vi ikke sporer GPS (tjekliste-tilstand). */
@@ -1610,7 +1613,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       <div className="relative flex-1 min-h-0">
         {allPoints.length === 0 ? (
           <div className="h-full flex items-center justify-center text-muted-foreground p-6 text-center">
-            Ingen koordinater tilgængelige. Brug listevisningen i stedet.
+            Henter koordinater til kortet…
           </div>
         ) : (
           <MapContainer
@@ -1808,10 +1811,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <>
             <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
               <div className="flex h-14 w-full items-center gap-1.5 rounded-md border border-border bg-card/95 px-1.5 text-foreground shadow-lg backdrop-blur-md">
-                <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                  <Link to="/medarbejder" aria-label="Tilbage">
-                    <ArrowLeft className="h-5 w-5" />
-                  </Link>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  aria-label="Tilbage til tjekliste"
+                  onClick={() => {
+                    setRunMode("list");
+                    writeRunMode("list", !!readRunMode());
+                  }}
+                >
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="min-w-0 flex-1 border-l border-border pl-3">
                   <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{route.name || "Dagens rute"}</p>
