@@ -30,7 +30,7 @@ export const SidebarArrowArtwork = ({ collapsed }: { collapsed: boolean }) => (
   <span
     aria-hidden="true"
     className={cn(
-      "relative block h-full w-full text-foreground",
+      "relative flex h-full w-full items-center justify-center text-foreground",
       "transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none",
       collapsed && "rotate-180",
     )}
@@ -42,7 +42,7 @@ export const SidebarArrowArtwork = ({ collapsed }: { collapsed: boolean }) => (
       strokeWidth="2.25"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-full w-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/sidebar-arrow:-translate-x-[1.5px] group-focus-visible/sidebar-arrow:-translate-x-[1.5px] motion-reduce:transition-none"
+      className="h-[58%] w-[58%] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/sidebar-arrow:-translate-x-[1.5px] group-focus-visible/sidebar-arrow:-translate-x-[1.5px] motion-reduce:transition-none"
     >
       <path d="M11.5 7 6.5 12l5 5" />
       <path
