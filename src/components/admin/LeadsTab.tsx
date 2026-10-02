@@ -428,7 +428,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             </div>
 
             {/* Status chips */}
-            <div className="-mx-1 flex snap-x items-center gap-x-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-y-2 sm:overflow-visible sm:px-0 sm:pb-0">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+              <div className="-mx-1 flex w-[calc(100%+0.5rem)] snap-x items-center gap-x-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:flex-wrap sm:gap-y-2 sm:overflow-visible sm:px-0 sm:pb-0">
               {(() => {
                 type Chip = { key: string; label: string; count: number; tone?: "danger" | "warn" };
                 const groups: Chip[][] = [
@@ -479,7 +480,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 ));
               })()}
 
-              <div className="ml-auto flex flex-wrap items-center gap-2">
+              </div>
+              <div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:items-center">
                 <Select value={sourceFilter} onValueChange={setSourceFilter}>
                   <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[170px]">
                     <SelectValue placeholder="Alle kilder" />
