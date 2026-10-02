@@ -21,10 +21,10 @@ import customerPanelSelected from "@/assets/header/Kundepanel_valgt.webp.asset.j
 import businessPanelSelected from "@/assets/header/Virksomhedspanel_valgt.webp.asset.json";
 import employeePanelSelected from "@/assets/header/Medarbejder_app_valgt.webp.asset.json";
 import platformAdminSelected from "@/assets/header/Platform_admin_valgt.webp.asset.json";
-import customerPanelSelectedAnimated from "@/assets/header/Kundepanel_valgt_animeret.svg";
-import businessPanelSelectedAnimated from "@/assets/header/Virksomhedspanel_valgt_animeret.svg";
-import employeePanelSelectedAnimated from "@/assets/header/Medarbejder_app_valgt_animeret.svg";
-import platformAdminSelectedAnimated from "@/assets/header/Platform_admin_valgt_animeret.svg";
+import customerPanelSelectedAnimated from "@/assets/header/Kundepanel_valgt_animeret.svg.asset.json";
+import businessPanelSelectedAnimated from "@/assets/header/Virksomhedspanel_valgt_animeret.svg.asset.json";
+import employeePanelSelectedAnimated from "@/assets/header/Medarbejder_app_valgt_animeret.svg.asset.json";
+import platformAdminSelectedAnimated from "@/assets/header/Platform_admin_valgt_animeret.svg.asset.json";
 
 interface Props {
   active?: "search" | "quote" | "business" | "software" | null;
@@ -123,15 +123,15 @@ const SiteNav = ({ active, right }: Props) => {
     // Sorteret efter "magt" — det højest privilegerede panel står først
     // og bliver dermed standardvalg ved første login.
     if (userRoles.includes("admin")) {
-      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminSelected.url, selectedAnimatedIcon: platformAdminSelectedAnimated, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
+      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminSelected.url, selectedAnimatedIcon: platformAdminSelectedAnimated.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
     }
     if (userRoles.includes("business_owner") || business) {
-      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelSelected.url, selectedAnimatedIcon: businessPanelSelectedAnimated, current: pathname.startsWith("/virksomhed") });
+      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelSelected.url, selectedAnimatedIcon: businessPanelSelectedAnimated.url, current: pathname.startsWith("/virksomhed") });
     }
     if (userRoles.includes("employee") || myEmployee) {
-      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelSelected.url, selectedAnimatedIcon: employeePanelSelectedAnimated, current: pathname.startsWith("/medarbejder") });
+      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelSelected.url, selectedAnimatedIcon: employeePanelSelectedAnimated.url, current: pathname.startsWith("/medarbejder") });
     }
-    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelSelected.url, selectedAnimatedIcon: customerPanelSelectedAnimated, current: pathname.startsWith("/min-konto") });
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelSelected.url, selectedAnimatedIcon: customerPanelSelectedAnimated.url, current: pathname.startsWith("/min-konto") });
 
     return items;
   }, [business, myEmployee, pathname, user, userRoles]);
