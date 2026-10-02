@@ -2085,7 +2085,7 @@ const IndustryPicker = ({
                 onClick={() => onToggle(k)}
                 className="group inline-flex items-center gap-1.5 rounded-full border border-foreground/20 bg-foreground/5 px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
               >
-                <IndustryIcon category={ind.key} className="h-4 w-4" alt={ind.label} />
+                <IndustryIcon category={ind.key} className="h-5 w-5 shrink-0" alt={ind.label} />
                 <span>{ind.label}</span>
                 <span aria-hidden className="text-muted-foreground transition-colors group-hover:text-destructive">×</span>
               </button>
@@ -2129,7 +2129,7 @@ const IndustryPicker = ({
                         : "border-border bg-card hover:border-foreground/40 hover:bg-secondary/40"
                     }`}
                   >
-                    <IndustryIcon category={i.key} className="h-6 w-6" alt={i.label} />
+                    <IndustryIcon category={i.key} className="h-7 w-7 shrink-0" alt={i.label} />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[13px] font-medium leading-tight text-foreground break-words">
                         {i.label}

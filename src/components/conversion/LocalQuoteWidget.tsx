@@ -209,8 +209,8 @@ const LocalQuoteWidget = ({
                 className={`flex h-12 w-full items-center justify-between gap-2 rounded-xl border px-3 text-left text-sm focus:outline-none focus:ring-2 ${field}`}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary/70 ring-1 ring-border">
-                    <IndustryIcon category={selectedService.key} className="h-6 w-6" alt={selectedService.label} />
+                  <span className="icon-tile h-9 w-9 shrink-0 rounded-lg p-1.5">
+                    <IndustryIcon category={selectedService.key} className="h-full w-full" alt={selectedService.label} />
                   </span>
                   <span className="truncate font-medium">{selectedService.label}</span>
                 </span>
@@ -254,8 +254,8 @@ const LocalQuoteWidget = ({
                         }}
                         className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${active ? activeRow : hoverRow}`}
                       >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary/70 ring-1 ring-border">
-                          <IndustryIcon category={industry.key} className="h-7 w-7" alt={industry.label} />
+                        <span className="icon-tile h-9 w-9 shrink-0 rounded-lg p-1.5">
+                          <IndustryIcon category={industry.key} className="h-full w-full" alt={industry.label} />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-medium">{industry.label}</span>

@@ -205,9 +205,9 @@ export const EmployeeShell = ({
       className="relative h-9 w-9 shrink-0"
       aria-label={`${unreadCount} ulæste notifikationer`}
     >
-      <Bell className="h-4 w-4" />
+      <Bell className="h-5 w-5" />
       {unreadCount > 0 && (
-        <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+        <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground ring-2 ring-card">
           {Math.min(unreadCount, 9)}
         </span>
       )}
