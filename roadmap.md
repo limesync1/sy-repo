@@ -45,3 +45,5 @@
 - [x] Test fletning med rigtige, sikre testdata
 - [x] Test medarbejderens fulde rutekørsel med rigtige testdata
 - [x] Kontrollér mobil, desktop, runtime og build
+
+- [x] Finjustér kun Aftaler visuelt mod ruteplanlæggeren uden strukturændringer
