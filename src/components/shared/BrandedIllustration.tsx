@@ -137,7 +137,7 @@ export const BRANDED_ILLUSTRATIONS = {
   helpGuides: helpGuidesAsset,
   shareProfile: shareProfileNew,
   addService: addServiceNew,
-  team: employeesNew,
+  team: employeesTeamOld,
   settings: settingsNew,
   servicesTotal: servicesTotalNew.url,
   activeServices: activeServicesNew.url,
