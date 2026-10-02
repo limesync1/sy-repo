@@ -227,11 +227,11 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         }`}
       >
         <div className="flex h-full shrink-0 items-center justify-center pl-4 pr-2 text-muted-foreground sm:pr-3">
-          {/* Ikonet skaleres med feltet: lidt større end før, så det ikke
-              virker forsvindende i det høje søgefelt. */}
+          {/* Forstørrelsesglassets glyph ligger optisk lidt højt i sin viewBox,
+              så ikonet nuddes en anelse ned for at flugte med tekstlinjen. */}
           <UiArtwork
             name="search"
-            className={`block h-10 w-10 object-contain object-center md:h-11 md:w-11 transition-transform duration-300 ${open ? "scale-105" : ""}`}
+            className={`block h-8 w-8 translate-y-[1.5px] object-contain object-center md:h-9 md:w-9 transition-transform duration-300 ${open ? "scale-105" : ""}`}
           />
         </div>
         {/* Vi rendrer to <input> så placeholder kan tilpasses pr. breakpoint
