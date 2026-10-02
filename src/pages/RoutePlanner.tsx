@@ -2277,6 +2277,7 @@ const Planner = () => {
     serviceSummaryForJob,
     todayStr,
   });
+  const retainedRouteMove = useRetainedValue(pendingRouteMove);
 
   // Databehandleraftale-tjekket i panelskallen viste ellers en ekstra
   // spinner mellem skeleton og planlægger. Vent på samme (cachede) opslag her.
