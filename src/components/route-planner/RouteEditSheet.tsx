@@ -829,8 +829,8 @@ export const RouteEditSheet = ({
             className="planner-overlay-header relative px-5 py-4 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
             <SheetHeaderBlock
-              icon={<img src={editRouteIllustration} alt="" className="h-10 w-10 object-contain" />}
-              iconClassName="h-12 w-12 rounded-lg bg-secondary/60"
+              icon={<img src={editRouteIllustration} alt="" className="h-14 w-14 object-contain" />}
+              iconClassName="h-14 w-14 rounded-none border-0 bg-transparent shadow-none ring-0"
               title={
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute

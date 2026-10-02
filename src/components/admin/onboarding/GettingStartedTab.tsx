@@ -1,18 +1,15 @@
 // "Kom godt i gang" — fast fane i virksomhedspanelet.
-// Bevidst enkelt layout: PageHeader, ét "start her"-kort med fremgang, og
-// én liste med trin. Færdige trin og frivilligt ekstra ligger foldet sammen,
-// så skærmen aldrig viser mere end det næste, der skal gøres.
-import { useEffect, useRef, useState } from "react";
-import {
-  CheckCircle2, ChevronDown, ExternalLink, ListChecks, Rocket, Target,
-  LifeBuoy, Sparkles,
-} from "lucide-react";
+// Én topbar med fremskridt ("2 af 5 trin klaret") og ét trin ad gangen med
+// sin egen guide-video. Video-links styres af platform-admin
+// (onboarding_videos), så videoerne kan skiftes uden kodeændring.
+import { useEffect, useState } from "react";
+import { ArrowRight, Check, CheckCircle2, ExternalLink, Lock, PlayCircle, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PageHeader, SectionCard } from "@/components/admin/shared/AdminUI";
 import { FOCUS_OPTIONS, type OnboardingStepId } from "./steps";
-import OnboardingStepCard from "./OnboardingStepCard";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
+import { useOnboardingVideos, toEmbedUrl } from "@/hooks/useOnboardingVideos";
 import { ListCardSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
 
 type Props = {
@@ -20,147 +17,133 @@ type Props = {
   onNavigate: (tab: string, action?: string | null) => void;
 };
 
-const RESOURCES = [
-  { title: "Guide til ruteplanlæggeren", href: "/software/funktioner" },
-  { title: "Ofte stillede spørgsmål", href: "/hjaelp#faq" },
-  { title: "Prisguides", href: "/guides/priser-2026" },
-  { title: "Kontakt os", href: "/kontakt" },
-];
+const StepVideo = ({ url, title }: { url?: string; title: string }) => {
+  if (!url) {
+    return (
+      <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/40 text-muted-foreground">
+        <PlayCircle className="h-10 w-10 opacity-50" aria-hidden="true" />
+        <p className="text-sm font-medium">Video kommer snart</p>
+      </div>
+    );
+  }
+  const embed = toEmbedUrl(url);
+  return (
+    <div className="aspect-video w-full overflow-hidden rounded-xl border border-border bg-foreground">
+      {embed ? (
+        <iframe
+          src={embed}
+          title={`Guide: ${title}`}
+          className="h-full w-full"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowFullScreen
+          loading="lazy"
+        />
+      ) : (
+        <video key={url} src={url} controls preload="metadata" playsInline className="h-full w-full object-contain">
+          Din browser kan ikke afspille videoen.
+        </video>
+      )}
+    </div>
+  );
+};
 
 export default function GettingStartedTab({ business, onNavigate }: Props) {
   const {
-    counts, isLoading, done, skipped, toggleSkip, steps, nextLevelSteps,
-    focus, setFocus, clearFocus, completedCount, totalCount, allDone, nextStepId,
+    counts, isLoading, done, steps, focus, setFocus, clearFocus,
+    completedCount, totalCount, allDone, nextStepId,
   } = useOnboardingSignals(business);
-  const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | "none" | null>(null);
-  const [showDone, setShowDone] = useState(false);
-  const [showExtra, setShowExtra] = useState(false);
-  const [celebrate, setCelebrate] = useState(false);
-  const wasDone = useRef<boolean | null>(null);
-  useEffect(() => {
-    if (isLoading || !counts) return;
-    if (wasDone.current === false && allDone) {
-      setCelebrate(true);
-      const t = setTimeout(() => setCelebrate(false), 6000);
-      return () => clearTimeout(t);
-    }
-    wasDone.current = allDone;
-  }, [allDone, isLoading, counts]);
+  const { data: videos = {} } = useOnboardingVideos();
+  const [selected, setSelected] = useState<OnboardingStepId | null>(null);
 
-  const expandedId = manualExpanded === null ? nextStepId : manualExpanded;
-  const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
-  const publicHref = `/v/${business?.slug ?? ""}`;
-  const activeSteps = steps.filter((s) => !done[s.id]);
-  const doneSteps = steps.filter((s) => done[s.id]);
-  const nextStep = steps.find((s) => s.id === nextStepId) ?? null;
+  // Følg automatisk med til næste trin, når et trin bliver klaret.
+  useEffect(() => { setSelected(null); }, [nextStepId]);
 
   if (isLoading || !counts) {
     return (
       <div className="space-y-4">
         <PageHeaderSkeleton withAction={false} />
-        <ListCardSkeleton rows={5} />
+        <ListCardSkeleton rows={3} />
       </div>
     );
   }
+
+  const activeId = selected ?? nextStepId ?? steps[0]?.id;
+  const step = steps.find((s) => s.id === activeId) ?? steps[0];
+  const index = step ? steps.indexOf(step) : 0;
+  const stepDone = step ? !!done[step.id] : false;
+  const missing = step ? (step.requires ?? []).filter((r) => !r.met(counts)) : [];
+  const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="space-y-4">
       <PageHeader
         title="Kom godt i gang"
-        description={
-          allDone
-            ? "Opsætningen er færdig — jeres side er klar til kunder."
-            : `${activeSteps.length} ting tilbage, før I kan tage imod jeres første kunde.`
-        }
+        description={allDone ? "Opsætningen er færdig — jeres side er klar til kunder." : "Se videoen for hvert trin, og gør det bagefter i panelet."}
         action={
           <Button asChild variant="outline" size="sm" className="h-9 text-xs">
-            <a href={publicHref} target="_blank" rel="noreferrer">
-              Se jeres side
-              <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
+            <a href={`/v/${business?.slug ?? ""}`} target="_blank" rel="noreferrer">
+              Se jeres side <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
             </a>
           </Button>
         }
       />
 
-      {/* Start her — ét tydeligt næste skridt, så man aldrig er i tvivl. */}
-      <div
-        className={cn(
-          "overflow-hidden rounded-2xl border bg-card shadow-sm",
-          allDone ? "border-accent/40" : "border-border",
-        )}
-      >
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-foreground">
-              <Rocket className="h-3 w-3" aria-hidden="true" />
-              {allDone ? "I er live" : "Start her"}
-            </span>
-            <h3 className="mt-2 text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-              {allDone
-                ? `Opsætningen er færdig${business?.name ? `, ${business.name}` : ""}`
-                : nextStep
-                  ? `Trin ${steps.indexOf(nextStep) + 1} af ${totalCount}: ${nextStep.title}`
-                  : "Klar til at gå i gang"}
-            </h3>
-            <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
-              {allDone
-                ? "Medarbejderne kan logge ind, og kunder kan finde jer."
-                : nextStep
-                  ? nextStep.short
-                  : "Følg trinene herunder — de markeres færdige automatisk."}
-            </p>
-          </div>
-          {!allDone && nextStep && (
-            <Button
-              size="lg"
-              className="h-11 shrink-0 gap-2 text-sm font-semibold"
-              onClick={() => onNavigate(nextStep.tab(counts), nextStep.action?.(counts) ?? null)}
-            >
-              {nextStep.cta(counts)}
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </Button>
+      {/* Topbar med fremskridt — trinene kan klikkes */}
+      <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
+        <div className="mb-2.5 flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-foreground">
+            {allDone ? "Alle trin er klaret" : `${completedCount} af ${totalCount} trin klaret`}
+          </p>
+          {focus && (
+            <button type="button" onClick={clearFocus} className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+              Skift formål
+            </button>
           )}
         </div>
-        <div className="flex items-center gap-3 border-t border-border bg-secondary/30 px-4 py-3 sm:px-5">
-          <div
-            className="flex flex-1 gap-1.5"
-            role="progressbar"
-            aria-label="Opsætningens fremgang"
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
-            {steps.map((s, i) => (
-              <span
+        <div
+          className="grid gap-1.5"
+          style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+          role="progressbar"
+          aria-label="Opsætningens fremskridt"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          {steps.map((s, i) => {
+            const isDone = !!done[s.id];
+            const isActive = s.id === step?.id;
+            return (
+              <button
                 key={s.id}
-                className={cn(
-                  "h-1.5 flex-1 rounded-full bg-border transition-colors duration-500",
-                  done[s.id] && (allDone ? "bg-accent" : "bg-foreground"),
-                  !done[s.id] && s.id === nextStepId && "bg-foreground/30",
-                )}
-                style={{ transitionDelay: `${i * 60}ms` }}
-              />
-            ))}
-          </div>
-          <span
-            className={cn(
-              "shrink-0 text-xs font-bold tabular-nums",
-              allDone ? "text-accent" : "text-foreground",
-              celebrate && "animate-pulse",
-            )}
-          >
-            {completedCount}/{totalCount}
-          </span>
+                type="button"
+                onClick={() => setSelected(s.id)}
+                aria-current={isActive ? "step" : undefined}
+                className="group min-w-0 text-left focus-visible:outline-none"
+              >
+                <span
+                  className={cn(
+                    "block h-1.5 rounded-full transition-colors duration-300",
+                    isDone ? "bg-accent" : isActive ? "bg-foreground" : "bg-border group-hover:bg-foreground/30",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "mt-1.5 flex min-w-0 items-center gap-1 text-[11px] font-medium",
+                    isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                >
+                  {isDone && <Check className="h-3 w-3 shrink-0 text-accent" aria-hidden="true" />}
+                  <span className="truncate">Trin {i + 1}<span className="hidden sm:inline">: {s.title}</span></span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Ét spørgsmål der tilpasser guiden */}
+      {/* Ét spørgsmål der tilpasser trinene */}
       {!focus && !allDone && (
-        <SectionCard
-          title="Hvad vil I bruge Serviceydere til?"
-          icon={<Target />}
-          description="Vi skjuler de trin I ikke har brug for. Kan ændres senere."
-        >
+        <SectionCard title="Hvad vil I bruge Serviceydere til?" icon={<Target />} description="Vi skjuler de trin I ikke har brug for.">
           <div className="grid gap-2 sm:grid-cols-3">
             {FOCUS_OPTIONS.map((o) => (
               <button
@@ -177,155 +160,50 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         </SectionCard>
       )}
 
-      {/* Trinene — én enkel liste */}
-      {activeSteps.length > 0 && (
-        <SectionCard
-          title={`Skal på plads (${activeSteps.length})`}
-          icon={<ListChecks />}
-          description="Start øverst — vi åbner det rigtige sted i panelet for jer."
-          action={
-            focus ? (
-              <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFocus}>
-                <Target className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                Skift formål
-              </Button>
-            ) : undefined
-          }
-        >
-          <div className="space-y-2">
-            {activeSteps.map((step) => (
-              <OnboardingStepCard
-                key={step.id}
-                step={step}
-                number={steps.indexOf(step) + 1}
-                counts={counts}
-                done={false}
-                current={step.id === nextStepId}
-                skipped={!!skipped[step.id]}
-                expanded={expandedId === step.id}
-                onToggleExpand={() =>
-                  setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
-                }
-                onNavigate={onNavigate}
-                onToggleSkip={() => toggleSkip(step.id)}
-              />
-            ))}
-          </div>
-        </SectionCard>
-      )}
-
-      {allDone && (
-        <SectionCard
-          title="Grundopsætningen er på plads"
-          icon={<CheckCircle2 />}
-          description="Medarbejderne kan logge ind og se deres aftaler. Kunder kan finde jer i søgningen."
-          className="border-accent/30"
-        >
-          <p className="text-sm text-muted-foreground">
-            Brug fanerne i sidemenuen til hverdagen — Aftaler, Ruter og Leads. Denne side kan I altid vende tilbage til.
-          </p>
-        </SectionCard>
-      )}
-
-      {/* Færdige trin — foldet sammen */}
-      {doneSteps.length > 0 && (
+      {/* Det valgte trin: video + én handling */}
+      {step && (
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-          <button
-            type="button"
-            onClick={() => setShowDone((v) => !v)}
-            aria-expanded={showDone}
-            className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
-          >
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-            <span className="text-sm font-semibold text-foreground">Færdige ({doneSteps.length})</span>
-            <ChevronDown
-              className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showDone && "rotate-180")}
-              aria-hidden="true"
-            />
-          </button>
-          {showDone && (
-            <div className="border-t border-border">
-              {doneSteps.map((step) => (
-                <OnboardingStepCard
-                  key={step.id}
-                  step={step}
-                  counts={counts}
-                  done
-                  compact
-                  skipped={!!skipped[step.id]}
-                  expanded={false}
-                  onToggleExpand={() => {}}
-                  onNavigate={onNavigate}
-                  onToggleSkip={() => toggleSkip(step.id)}
-                />
-              ))}
+          <div className="grid gap-4 p-3 sm:p-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-6">
+            <StepVideo url={videos[step.id]} title={step.title} />
+            <div className="flex min-w-0 flex-col">
+              <p className="text-xs font-semibold text-muted-foreground">Trin {index + 1} af {totalCount}</p>
+              <h3 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground">
+                {step.title}
+                {stepDone && <CheckCircle2 className="h-5 w-5 text-accent" aria-label="Klaret" />}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+              {step.tip && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Tip: {step.tip}</p>}
+
+              {missing.length > 0 && (
+                <div className="mt-3 space-y-1 rounded-lg bg-secondary/50 p-2.5">
+                  {missing.map((r) => (
+                    <button key={r.label} type="button" onClick={() => onNavigate(r.tab)} className="flex w-full items-center gap-2 text-left text-xs text-foreground hover:underline">
+                      <Lock className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      Kræver først: {r.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                <Button
+                  className="h-10 gap-2"
+                  variant={stepDone ? "outline" : "default"}
+                  disabled={missing.length > 0}
+                  onClick={() => onNavigate(step.tab(counts), step.action?.(counts) ?? null)}
+                >
+                  {step.cta(counts)} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+                {index < steps.length - 1 && (
+                  <Button variant="ghost" className="h-10" onClick={() => setSelected(steps[index + 1].id)}>
+                    Næste trin
+                  </Button>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
-
-      {/* Ekstra: frivillige trin + ressourcer — foldet sammen */}
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <button
-          type="button"
-          onClick={() => setShowExtra((v) => !v)}
-          aria-expanded={showExtra}
-          className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
-        >
-          <Sparkles className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="min-w-0">
-            <span className="block text-sm font-semibold text-foreground">Mere — når I er klar</span>
-            <span className="block text-xs text-muted-foreground">Frivillige funktioner og hjælp. Blokerer ikke opstarten.</span>
-          </span>
-          <ChevronDown
-            className={cn("ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform", showExtra && "rotate-180")}
-            aria-hidden="true"
-          />
-        </button>
-        {showExtra && (
-          <div className="space-y-3 border-t border-border p-3 sm:p-4">
-            {nextLevelSteps.map((step) => (
-              <OnboardingStepCard
-                key={step.id}
-                step={step}
-                counts={counts}
-                done={done[step.id]}
-                skipped={!!skipped[step.id]}
-                expanded={expandedId === step.id}
-                onToggleExpand={() => setManualExpanded((cur) => (cur === step.id ? "none" : step.id))}
-                onNavigate={onNavigate}
-                onToggleSkip={() => toggleSkip(step.id)}
-              />
-            ))}
-            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
-              {RESOURCES.map((r) => (
-                <a
-                  key={r.title}
-                  href={r.href}
-                  className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{r.title}</span>
-                  <ExternalLink
-                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
-                    aria-hidden="true"
-                  />
-                </a>
-              ))}
-              <a
-                href="/hjaelp"
-                className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
-              >
-                <LifeBuoy className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">Hjælp og support</span>
-                <ExternalLink
-                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
-                  aria-hidden="true"
-                />
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
