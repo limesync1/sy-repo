@@ -144,18 +144,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   }, [lookupPostalCity]);
 
   const reverseGeocodeCoords = useCallback(async (latitude: number, longitude: number) => {
-    const dawa = await fetchJSON(
-      `https://api.dataforsyningen.dk/adgangsadresser/reverse?x=${longitude}&y=${latitude}`,
-      6000,
-    );
-
-    if (dawa) {
-      const zip = dawa?.postnummer?.nr || null;
-      const city = dawa?.postnummer?.navn || dawa?.supplerendebynavn || null;
-      const region = dawa?.kommune?.navn || null;
-        if (city || zip) return { city, zip, region };
-    }
-
+    // DAWA (api.dataforsyningen.dk/adgangsadresser) er lukket (410 Gone) — gå direkte til Nominatim.
     const nominatim = await fetchJSON(
       `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=da`,
       6000,
