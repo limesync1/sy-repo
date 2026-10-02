@@ -572,7 +572,7 @@ const SearchPage = () => {
                     onClick={() => { setDebouncedQuery(""); setSelectedCategory(cat.key); }}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
                   >
-                    <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
+                    <IndustryIcon category={cat.key} className="h-5 w-5 shrink-0" alt={cat.label} />
                     {cat.label}
                   </button>
                 ))}

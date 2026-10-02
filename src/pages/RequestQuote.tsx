@@ -474,7 +474,7 @@ const RequestQuote = () => {
                         onClick={() => setCategory(s.key)}
                         className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[12px] font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
                       >
-                        <IndustryIcon category={s.key} className="h-4 w-4" alt={s.label} />
+                        <IndustryIcon category={s.key} className="h-5 w-5 shrink-0" alt={s.label} />
                         {s.label}
                       </button>
                     ))}
