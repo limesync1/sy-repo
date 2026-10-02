@@ -56,6 +56,11 @@ export type RouteErrorCode =
   // Sletning
   | "ROUTE_HAS_COMPLETED_STOPS"
   | "ROUTE_HAS_FUTURE_PROJECTIONS"
+  // Fletning (merge_routes RPC)
+  | "MERGE_ROUTE_ARCHIVED"
+  | "MERGE_SAME_ROUTE"
+  | "MERGE_DIFFERENT_BUSINESS"
+  | "MERGE_INVALID_SCOPE"
   // Holidays / pauses
   | "HOLIDAY_BLOCKED_DATE"
   | "AGREEMENT_PAUSED"
@@ -239,6 +244,28 @@ const SPECS: Record<RouteErrorCode, Spec> = {
       hint: "Afslut pausen eller vælg en dato uden for pausen.",
     }),
   },
+  MERGE_ROUTE_ARCHIVED: {
+    severity: "error", title: "Ruten er arkiveret",
+    build: () => ({
+      message: "Kilde- eller målruten er allerede arkiveret eller slettet, så den kan ikke flettes.",
+      hint: "Genindlæs siden for at se den aktuelle status på ruterne.",
+    }),
+  },
+  MERGE_SAME_ROUTE: {
+    severity: "error", title: "Kan ikke flette en rute med sig selv",
+    build: () => ({ message: "Kilde- og målruten er den samme rute.", hint: "Vælg to forskellige ruter." }),
+  },
+  MERGE_DIFFERENT_BUSINESS: {
+    severity: "error", title: "Ruterne hører ikke sammen",
+    build: () => ({
+      message: "Ruterne tilhører forskellige virksomheder og kan ikke flettes.",
+      hint: "Kontakt support hvis du mener dette er en fejl.",
+    }),
+  },
+  MERGE_INVALID_SCOPE: {
+    severity: "error", title: "Ugyldig fletteindstilling",
+    build: () => ({ message: "Den valgte fletteindstilling er ugyldig.", hint: "Genindlæs siden og prøv igen." }),
+  },
   AUTH_REQUIRED: {
     severity: "error", title: "Login krævet",
     build: () => ({ message: "Du skal være logget ind for at udføre handlingen.", hint: "Log ind og prøv igen." }),
@@ -298,6 +325,15 @@ export function mapPostgresError(err: any): Issue {
     || detail.match(/COALESCE\(base_route_id, id\), route_date\)=\([^)]*,\s*(\d{4}-\d{2}-\d{2})\)/i);
   if (!navigator?.onLine) return makeIssue("NETWORK_ERROR");
   if (/jwt|not authenticated|28000/i.test(msg + " " + code)) return makeIssue("AUTH_REQUIRED");
+  // Specifikke fejlpræfikser fra merge_routes()-RPC'en — disse er allerede
+  // utvetydige, så vi mapper dem direkte i stedet for at falde igennem til
+  // de generiske heuristikker nedenfor.
+  if (/^ROUTE_ARCHIVED:/.test(msg)) return makeIssue("MERGE_ROUTE_ARCHIVED");
+  if (/^SAME_ROUTE:/.test(msg)) return makeIssue("MERGE_SAME_ROUTE");
+  if (/^DIFFERENT_BUSINESS:/.test(msg)) return makeIssue("MERGE_DIFFERENT_BUSINESS");
+  if (/^INVALID_SCOPE:/.test(msg)) return makeIssue("MERGE_INVALID_SCOPE");
+  if (/^ROUTE_NOT_FOUND:/.test(msg)) return makeIssue("ROUTE_NOT_FOUND");
+  if (/^PERMISSION_DENIED:/.test(msg)) return makeIssue("PERMISSION_DENIED");
   if (/forbidden|permission denied|42501/i.test(msg + " " + code)) return makeIssue("PERMISSION_DENIED");
   if (code === "23505" || /duplicate key|unique constraint/i.test(msg)) {
     if (/routes_unique_series_per_date/i.test(detail + msg)) {

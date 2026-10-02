@@ -125,24 +125,24 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 className={cn(
                   "group h-auto min-w-0 justify-start gap-2 rounded-md border px-2.5 py-2 text-left transition-colors",
                   isActive
-                    ? "border-foreground bg-foreground text-background hover:bg-foreground/90 hover:text-background"
+                    ? "border-accent/40 bg-accent/10 text-foreground hover:bg-accent/15 hover:text-foreground"
                     : "border-transparent bg-secondary/50 text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground",
                 )}
               >
                 <span
                   className={cn(
                     "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold tabular-nums",
-                    isActive
-                      ? "border-background/30 bg-background text-foreground"
-                      : isDone
-                        ? "border-accent bg-accent text-accent-foreground"
+                    isDone
+                      ? "border-accent bg-accent text-accent-foreground"
+                      : isActive
+                        ? "border-accent/50 bg-accent/15 text-accent"
                         : "border-border bg-background text-muted-foreground",
                   )}
                 >
                   {isDone ? <Check className="h-3 w-3" aria-hidden="true" /> : i + 1}
                 </span>
                 <span className="min-w-0">
-                  <span className={cn("block text-[10px] font-medium", isActive ? "text-background/70" : "text-muted-foreground")}>Trin {i + 1}</span>
+                  <span className={cn("block text-[10px] font-medium", isActive ? "text-accent" : "text-muted-foreground")}>Trin {i + 1}</span>
                   <span className="block truncate text-xs font-semibold">{s.title}</span>
                 </span>
               </Button>
@@ -180,7 +180,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             <StepVideo url={videos[step.id]} title={step.title} />
             <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-foreground px-2 py-1 text-[10px] font-bold text-background">TRIN {index + 1} AF {totalCount}</span>
+                <span className="rounded-full bg-accent/10 px-2 py-1 text-[10px] font-bold text-accent">TRIN {index + 1} AF {totalCount}</span>
                 <span className="text-xs font-medium text-muted-foreground">Du ser dette trin nu</span>
               </div>
               <h3 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground">

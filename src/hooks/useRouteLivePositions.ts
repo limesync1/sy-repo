@@ -16,8 +16,8 @@ export type RouteLivePosition = {
 export const useRouteLivePositions = (routeId?: string | null) => useQuery({
   queryKey: ["route-live-positions", routeId],
   enabled: !!routeId,
-  refetchInterval: 15_000,
-  staleTime: 10_000,
+  refetchInterval: 5_000,
+  staleTime: 3_000,
   queryFn: async () => {
     const { data, error } = await supabase
       .from("route_live_positions")
