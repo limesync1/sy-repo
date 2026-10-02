@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { toast } from "sonner";
+import { Section } from "./SheetSection";
 
 type Employee = {
   id: string;
@@ -76,17 +77,12 @@ export function RouteCommunicationPanel({
   if (choices.length === 0) return null;
 
   return (
-    <section className="overflow-hidden rounded-md border border-border bg-card">
-      <div className="flex items-center gap-2.5 border-b border-border bg-secondary/35 px-3 py-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
-          <BellRing className="h-4 w-4" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">Kontakt medarbejder</p>
-          <p className="text-[11px] leading-snug text-muted-foreground">Beskeden markeres på {stop ? "aftalen" : "ruten"}, indtil den er set.</p>
-        </div>
-      </div>
-      <div className="space-y-3 p-3">
+    <Section
+      icon={<BellRing className="h-3.5 w-3.5" />}
+      title="Kontakt medarbejder"
+      hint={stop ? "Vises på aftalen" : "Vises på ruten"}
+    >
+      <div className="space-y-3">
         {choices.length === 0 ? (
           <div className="flex items-center gap-2.5 rounded-md border border-dashed border-border bg-secondary/30 px-3 py-3 text-xs text-muted-foreground">
             <UsersRound className="h-4 w-4 shrink-0" />
@@ -141,6 +137,6 @@ export function RouteCommunicationPanel({
           </>
         )}
       </div>
-    </section>
+    </Section>
   );
 }
