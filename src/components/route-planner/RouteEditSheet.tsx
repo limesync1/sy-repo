@@ -185,8 +185,8 @@ export const ROUTE_COLORS = [
   { name: "Bær", value: "#be185d" },
 ] as const;
 
-/** Syv kolonner giver to lige, let aflæselige rækker i begge rutevinduer. */
-export const ROUTE_COLOR_GRID = "grid grid-cols-7 gap-2";
+/** Fast størrelse og jævn afstand — to pæne rækker uanset vinduets bredde. */
+export const ROUTE_COLOR_GRID = "flex flex-wrap gap-2";
 
 /** Bagudkompatibel farve-array (kun hex-værdier). */
 // Teal (brandfarven) først, så nye ruter som standard får den.
@@ -929,7 +929,7 @@ export const RouteEditSheet = ({
                       }}
                       title={c.name}
                       className={cn(
-                        "relative aspect-square w-full max-w-9 justify-self-center rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background flex items-center justify-center",
+                        "relative h-8 w-8 rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background flex items-center justify-center",
                         selected ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30",
                       )}
                       style={{ background: c.value }}
