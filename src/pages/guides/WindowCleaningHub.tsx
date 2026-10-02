@@ -42,7 +42,7 @@ export default defineGuidePage({
     ]},
     { heading: "Sådan vælger du en vinduespudser", list: [
       <>Tjek at firmaet er CVR-registreret og har ansvarsforsikring.</>,
-      <>Få prisen oplyst pr. besøg, og spør om ind- og udvendig er med.</>,
+      <>Få prisen oplyst pr. besøg, og spørg om ind- og udvendig er med.</>,
       <>Betal digitalt, så du kan få BoligJob-fradrag.</>,
       <>Sammenlign 2–3 tilbud fra lokale vinduespudsere.</>,
     ]},
