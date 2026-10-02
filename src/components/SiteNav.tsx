@@ -209,22 +209,27 @@ const SiteNav = ({ active, right }: Props) => {
                 {preferredRole && (
                   showSwitcher ? (
                     <div className="hidden sm:inline-flex items-stretch overflow-hidden rounded-full bg-foreground text-background shadow-sm">
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
                         onClick={() => navigate(preferredRole.to)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-foreground/90"
+                        className="h-auto rounded-none px-3.5 py-2 text-sm font-semibold text-background hover:bg-foreground/90 hover:text-background"
                         title={`Gå til ${preferredRole.label}`}
                       >
                         <img src={preferredRole.icon} alt="" className="h-7 w-7 rounded-md object-contain" width={28} height={28} />
                         <span className="max-w-[160px] truncate">{preferredRole.label}</span>
-                      </button>
+                      </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button
-                            className="inline-flex items-center border-l border-background/20 px-2 transition-colors hover:bg-foreground/90"
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-auto rounded-none border-l border-background/20 px-2 text-background hover:bg-foreground/90 hover:text-background"
                             aria-label="Skift panel"
                           >
                             <ChevronDown className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuLabel className="text-xs text-muted-foreground">Skift panel</DropdownMenuLabel>
@@ -326,33 +331,39 @@ const SiteNav = ({ active, right }: Props) => {
                       <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Skift visning</p>
                     </div>
                     {roles.map((r) => (
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
                         key={r.to}
                         onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                        className={`h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
                           preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                         }`}
                       >
                       <img src={r.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />{r.label}
-                      </button>
+                      </Button>
                     ))}
                     <div className="my-2 h-px bg-border" />
                   </>
                 )}
                 {preferredRole && (
-                  <button
+                  <Button
+                    type="button"
+                    variant="ghost"
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                    className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
                     <img src={preferredRole.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />Gå til {preferredRole.label}
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={() => { setOpen(false); handleSignOut(); }}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                  className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
                 >
                   <img src={logoutIcon.url} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />Log ud
-                </button>
+                </Button>
               </>
             ) : (
               <>
