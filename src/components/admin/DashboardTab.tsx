@@ -327,12 +327,33 @@ const DashboardTab = ({
   const shareUrl = business.slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/v/${business.slug}` : "";
   const copyLink = async () => {
     if (!shareUrl) return;
+    let copiedSuccessfully = false;
     try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard API er ikke tilgængelig");
       await navigator.clipboard.writeText(shareUrl);
+      copiedSuccessfully = true;
+    } catch {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = shareUrl;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        copiedSuccessfully = document.execCommand("copy");
+        document.body.removeChild(textarea);
+      } catch {
+        copiedSuccessfully = false;
+      }
+    }
+    if (copiedSuccessfully) {
       setCopied(true);
       toast.success("Link kopieret");
       setTimeout(() => setCopied(false), 2000);
-    } catch { toast.error("Kunne ikke kopiere"); }
+      return;
+    }
+    window.prompt("Kopiér linket til jeres profil:", shareUrl);
   };
 
   const { actions, primaryActions } = useMemo(() => {

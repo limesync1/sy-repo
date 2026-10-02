@@ -62,7 +62,7 @@ const Testimonials = () => {
   if (!shuffled.length) return null;
 
   return (
-    <section className="bg-background py-12 sm:py-14 lg:py-16 2xl:py-24">
+    <section className="border-y border-border/60 bg-secondary/25 py-12 sm:py-14 lg:py-16 2xl:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-14">
           <div className="max-w-2xl">
@@ -92,15 +92,16 @@ const Testimonials = () => {
           {shuffled.map((r) => (
             <article
               key={r.id}
-              className="relative flex w-[286px] shrink-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 motion-safe:hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-premium sm:w-[330px] 2xl:w-[360px] 2xl:p-7"
+              className="group/review relative flex w-[286px] shrink-0 flex-col overflow-hidden rounded-xl border border-border/90 bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 motion-safe:hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-premium sm:w-[330px] 2xl:w-[360px] 2xl:p-7"
             >
-              <Quote aria-hidden className="absolute right-5 top-5 h-7 w-7 rotate-180 text-foreground/5" />
-              <div className="mb-4 flex items-center gap-1">
+              <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-accent opacity-0 transition-opacity duration-300 group-hover/review:opacity-100" />
+              <Quote aria-hidden className="absolute right-5 top-5 h-8 w-8 rotate-180 text-foreground/10" />
+              <div className="mb-4 flex items-center gap-1" aria-label={`${r.rating} ud af 5 stjerner`}>
                 {Array.from({ length: 5 }).map((_, idx) => (
-                  <Star key={idx} className={`h-3.5 w-3.5 ${idx < r.rating ? "fill-foreground text-foreground" : "text-muted-foreground/20"}`} />
+                  <Star aria-hidden key={idx} className={`h-4 w-4 ${idx < r.rating ? "fill-foreground/90 text-foreground" : "text-muted-foreground/20"}`} />
                 ))}
               </div>
-              <p className="mb-6 line-clamp-4 flex-1 text-[15px] leading-7 text-foreground">"{r.comment}"</p>
+              <p className="mb-6 line-clamp-4 flex-1 text-[15px] leading-7 text-foreground">“{r.comment}”</p>
               <div className="flex items-center gap-3 border-t border-border pt-4">
                 {/* Anmelderens avatar — profilbillede eller initial-fallback. */}
                 {r._avatarUrl ? (
@@ -112,7 +113,7 @@ const Testimonials = () => {
                     decoding="async"
                   />
                 ) : (
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-xs font-semibold">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground text-xs font-semibold ring-1 ring-border">
                     {r.reviewer_name.charAt(0).toUpperCase()}
                   </div>
                 )}

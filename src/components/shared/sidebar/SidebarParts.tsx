@@ -102,16 +102,20 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
         aria-label={collapsed ? label : undefined}
         className={cn(
           "group relative flex w-full items-center rounded-lg text-[13.5px] font-medium text-left",
-          "transition-[background-color,color] duration-150 motion-reduce:transition-none",
+          "transition-[background-color,color,transform] duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none",
           FOCUS_RING,
           collapsed ? "h-10 justify-center px-0" : "h-9 gap-2.5 px-2.5",
           active
-            ? "bg-secondary text-foreground"
+            ? "bg-secondary text-foreground hover:bg-secondary/80"
             : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground active:bg-secondary",
+          collapsed ? "hover:scale-[1.04]" : "hover:translate-x-0.5",
         )}
       >
         <Icon
-          className={cn("h-[18px] w-[18px] shrink-0 transition-colors", active ? "text-accent" : "text-muted-foreground group-hover:text-foreground")}
+          className={cn(
+            "h-[18px] w-[18px] shrink-0 transition-[color,transform] duration-200 ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:transform-none",
+            active ? "text-accent" : "text-muted-foreground group-hover:text-foreground",
+          )}
           aria-hidden="true"
         />
         <span

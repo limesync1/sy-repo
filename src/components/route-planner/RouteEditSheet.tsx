@@ -50,6 +50,7 @@ import { formatDistanceToNow } from "date-fns";
 import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 import { RouteLivePositionDialog } from "./RouteLivePositionDialog";
 import { useRouteLivePositions } from "@/hooks/useRouteLivePositions";
+import editRouteAsset from "@/assets/panel-icons/rediger-rute.svg.asset.json";
 
 export type RouteEmployeeOption = {
   id: string;
@@ -827,7 +828,7 @@ export const RouteEditSheet = ({
             className="planner-overlay-header relative px-5 py-4 pr-14 border-b shrink-0 space-y-0 text-left bg-card"
           >
             <SheetHeaderBlock
-              icon={<Pencil className="h-4 w-4" />}
+              icon={<img src={editRouteAsset.url} alt="" className="h-7 w-7 object-contain" />}
               title={
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute
