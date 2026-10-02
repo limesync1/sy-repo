@@ -163,8 +163,8 @@ const AboutUs = () => {
                 ].map(({ icon, k, t, b }) => (
                   <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/5">
-                        <img src={icon} alt="" className="h-6 w-6" loading="lazy" />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground/5">
+                        <img src={icon} alt="" className="h-7 w-7" loading="lazy" />
                       </div>
                       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
                     </div>
