@@ -19,8 +19,23 @@ serve(async (req) => {
       radius_km,
       customer,        // { name, email, phone, share_contact? }
       terms_accepted,  // boolean — customer must accept platform terms
-      persist = true,  // when false, only returns matches without saving (e.g. previews)
     } = await req.json();
+    // Always persist: anonymous previews that only consume AI are not allowed.
+    const persist = true;
+    const json400 = (error: string, status = 400) => new Response(JSON.stringify({ error }), {
+      status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+    if (typeof category !== "string" || category.trim().length === 0 || category.length > 100) return json400("Ugyldig kategori");
+    if (typeof description !== "string" || description.trim().length < 5 || description.length > 2000) {
+      return json400("Beskrivelsen skal være mellem 5 og 2000 tegn.");
+    }
+    const emailRaw = typeof customer?.email === "string" ? customer.email.trim().toLowerCase() : "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailRaw) || emailRaw.length > 320) return json400("Indtast en gyldig e-mail.");
+    if (typeof customer?.name !== "string" || customer.name.trim().length < 1 || customer.name.length > 200) return json400("Indtast dit navn.");
+    if (customer?.phone != null && (typeof customer.phone !== "string" || customer.phone.length > 40)) return json400("Ugyldigt telefonnummer.");
+    if (location?.city != null && (typeof location.city !== "string" || location.city.length > 100)) return json400("Ugyldig by.");
+    if (location?.zip != null && (typeof location.zip !== "string" || !/^\d{3,4}$/.test(location.zip))) return json400("Ugyldigt postnummer.");
+    if (radius_km != null && (typeof radius_km !== "number" || radius_km < 0 || radius_km > 500)) return json400("Ugyldig afstand.");
     if (!category || !description) {
       return new Response(JSON.stringify({ error: "category and description required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -47,6 +62,13 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Bound usage per e-mail: at most 5 requests per 24 hours before we call AI or send mails.
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: recentCount } = await supabase.from("quote_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_email", emailRaw).gte("created_at", since);
+    if ((recentCount ?? 0) >= 5) return json400("Du har sendt mange forespørgsler i dag. Prøv igen i morgen.", 429);
 
     // Query by categories array (contains) instead of single category field
     const { data: businesses, error: bizError } = await supabase
@@ -480,7 +502,7 @@ ${bizSummaries}`,
     });
   } catch (e) {
     console.error("match-quotes error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Noget gik galt. Prøv igen om lidt." }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

@@ -294,6 +294,19 @@ Deno.serve(async (req) => {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Kun åbne samtaler, kun friske beskeder og et loft over AI-svar pr. samtale.
+    if (conv.status && conv.status !== "open") {
+      return new Response(JSON.stringify({ skipped: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const aiReplyCount = history.filter((m: any) => m.metadata?.kind === "ai").length;
+    const visitorMsgAgeMs = Date.now() - new Date(lastVisitorMsg.created_at).getTime();
+    if (aiReplyCount >= 25 || !(visitorMsgAgeMs < 10 * 60 * 1000)) {
+      return new Response(JSON.stringify({ skipped: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     // Undgå at svare to gange på samme besked (fx dobbelt-klik/race).
     const lastAiMsg = [...history].reverse().find((m: any) => m.metadata?.kind === "ai");
     if (lastAiMsg && new Date(lastAiMsg.created_at) > new Date(lastVisitorMsg.created_at)) {
