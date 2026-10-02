@@ -12,15 +12,12 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import customerPanelIcon from "@/assets/header/Kundepanel.png.asset.json";
-import businessPanelIcon from "@/assets/header/Virksomhedspanel.png.asset.json";
-import employeePanelIcon from "@/assets/header/Medarbejder_app.png.asset.json";
-import platformAdminIcon from "@/assets/header/Platform_admin.png.asset.json";
-import logoutIcon from "@/assets/header/Log_ud.png.asset.json";
-import customerPanelSelected from "@/assets/header/Kundepanel_valgt.webp.asset.json";
-import businessPanelSelected from "@/assets/header/Virksomhedspanel_valgt.webp.asset.json";
-import employeePanelSelected from "@/assets/header/Medarbejder_app_valgt.webp.asset.json";
-import platformAdminSelected from "@/assets/header/Platform_admin_valgt.webp.asset.json";
+import customerPanelIcon from "@/assets/header-simple/Kundepanel_simpel.svg.asset.json";
+import businessPanelIcon from "@/assets/header-simple/Virksomhedspanel_simpel.svg.asset.json";
+import employeePanelIcon from "@/assets/header-simple/Medarbejder_app_simpel.svg.asset.json";
+import platformAdminIcon from "@/assets/header-simple/Platform_admin_simpel.svg.asset.json";
+import logoutIcon from "@/assets/header-simple/Log_ud_simpel.svg.asset.json";
+import loginIcon from "@/assets/header-simple/Log_ind_simpel.svg.asset.json";
 
 interface Props {
   active?: "search" | "quote" | "business" | "software" | null;
@@ -62,12 +59,17 @@ type PanelRole = {
 
 const PanelIcon = ({ role, selected, size = "md" }: { role: PanelRole; selected: boolean; size?: "md" | "lg" }) => {
   const dimensions = size === "lg" ? "h-9 w-9" : "h-7 w-7";
-
-  if (!selected) {
-    return <img src={role.icon} alt="" className={`${dimensions} shrink-0 rounded-lg object-contain`} width={size === "lg" ? 36 : 28} height={size === "lg" ? 36 : 28} />;
-  }
-
-  return <img src={role.selectedIcon} alt="" className={`${dimensions} shrink-0 object-contain`} width={size === "lg" ? 36 : 28} height={size === "lg" ? 36 : 28} />;
+  return (
+    <span className={`${dimensions} flex shrink-0 items-center justify-center rounded-lg ${selected ? "bg-background/12" : "bg-secondary"}`}>
+      <img
+        src={role.icon}
+        alt=""
+        className={`${size === "lg" ? "h-5 w-5" : "h-4 w-4"} object-contain ${selected ? "brightness-0 invert" : "opacity-75"}`}
+        width={size === "lg" ? 20 : 16}
+        height={size === "lg" ? 20 : 16}
+      />
+    </span>
+  );
 };
 
 const SiteNav = ({ active, right }: Props) => {
@@ -113,15 +115,15 @@ const SiteNav = ({ active, right }: Props) => {
     // Sorteret efter "magt" — det højest privilegerede panel står først
     // og bliver dermed standardvalg ved første login.
     if (userRoles.includes("admin")) {
-      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminSelected.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
+      items.push({ label: "Platform admin", to: "/admin", icon: platformAdminIcon.url, selectedIcon: platformAdminIcon.url, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
     }
     if (userRoles.includes("business_owner") || business) {
-      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelSelected.url, current: pathname.startsWith("/virksomhed") });
+      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: businessPanelIcon.url, selectedIcon: businessPanelIcon.url, current: pathname.startsWith("/virksomhed") });
     }
     if (userRoles.includes("employee") || myEmployee) {
-      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelSelected.url, current: pathname.startsWith("/medarbejder") });
+      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: employeePanelIcon.url, selectedIcon: employeePanelIcon.url, current: pathname.startsWith("/medarbejder") });
     }
-    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelSelected.url, current: pathname.startsWith("/min-konto") });
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: customerPanelIcon.url, selectedIcon: customerPanelIcon.url, current: pathname.startsWith("/min-konto") });
 
     return items;
   }, [business, myEmployee, pathname, user, userRoles]);
@@ -271,14 +273,14 @@ const SiteNav = ({ active, right }: Props) => {
                   onClick={handleSignOut}
                   className="hidden rounded-full border-border bg-background text-foreground hover:bg-secondary hover:text-foreground sm:inline-flex"
                 >
-                  <img src={logoutIcon.url} alt="" className="mr-1.5 h-7 w-7 rounded-md object-contain" width={28} height={28} />Log ud
+                  <span className="mr-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} /></span>Log ud
                 </Button>
               </>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm" className="hidden rounded-full px-3 font-semibold lg:inline-flex">
                   <Link to="/log-ind">
-                    <img src={customerPanelIcon.url} alt="" className="mr-1.5 h-7 w-7 rounded-md object-contain" width={28} height={28} />
+                    <span className="mr-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} /></span>
                     Log ind
                   </Link>
                 </Button>
@@ -370,13 +372,13 @@ const SiteNav = ({ active, right }: Props) => {
                   onClick={() => { setOpen(false); handleSignOut(); }}
                   className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
                 >
-                  <img src={logoutIcon.url} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />Log ud
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>Log ud
                 </Button>
               </>
             ) : (
               <>
                 <Link to="/log-ind" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
-                  <img src={customerPanelIcon.url} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>
                   Log ind
                 </Link>
                 <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
