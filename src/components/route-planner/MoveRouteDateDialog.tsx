@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
+import { Route as RouteIcon, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mapPostgresError } from "@/lib/route-errors";
 import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
@@ -111,7 +111,7 @@ export const MoveRouteDateDialog = ({
         </DialogHeader>
 
         <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
-          <Section icon={null} title="Rute">
+          <Section icon={<RouteIcon />} title="Rute">
             <div className="space-y-2 text-sm">
               <p className="min-w-0 truncate font-medium text-foreground" title={routeName}>{routeName}</p>
               <div className="grid min-w-0 gap-2 tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
@@ -141,7 +141,7 @@ export const MoveRouteDateDialog = ({
             </div>
           )}
 
-          <Section icon={null} title="Hvad skal flyttes?">
+          <Section icon={<Repeat />} title="Hvad skal flyttes?">
             <div className="space-y-2">
               <ScopeOption
                 selected={scope === "single"}
@@ -189,7 +189,7 @@ export const MoveRouteDateDialog = ({
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Annullér</Button>
             <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConfirm} disabled={busy}>
               {busy && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-              Flyt rute
+              Flyt til ny dato
             </Button>
           </div>
         </SheetFooterBar>
