@@ -231,7 +231,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
               virker forsvindende i det høje søgefelt. */}
           <UiArtwork
             name="search"
-            className={`block h-8 w-8 object-center md:h-9 md:w-9 transition-transform duration-300 ${open ? "scale-105" : ""}`}
+            className={`block h-10 w-10 object-contain object-center md:h-11 md:w-11 transition-transform duration-300 ${open ? "scale-105" : ""}`}
           />
         </div>
         {/* Vi rendrer to <input> så placeholder kan tilpasses pr. breakpoint
@@ -327,8 +327,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                   >
                     {s.type === "query" && (
                       <>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-accent">
-                          <UiArtwork name="search" className="h-8 w-8" />
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center text-accent">
+                          <UiArtwork name="search" className="h-11 w-11" />
                         </span>
                         <span className="min-w-0 flex-1">
                           <div className="truncate font-semibold text-foreground">Søg efter “{s.label}”</div>
@@ -340,8 +340,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     {s.type === "history" && (
 
                       <>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground transition-transform duration-200 group-hover:scale-105">
-                          <UiArtwork name="recentSearch" className="h-9 w-9" />
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center text-muted-foreground transition-transform duration-200 group-hover:scale-105">
+                          <UiArtwork name="recentSearch" className="h-11 w-11" />
                         </span>
                         <span className="flex-1 min-w-0">
                           <div className="truncate font-semibold text-foreground">{s.label}</div>
@@ -351,8 +351,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "category" && (
                       <>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center">
-                          <IndustryIcon category={s.key} className="h-9 w-9 object-contain" alt={s.label} />
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center">
+                          <IndustryIcon category={s.key} className="h-11 w-11 object-contain" alt={s.label} />
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
@@ -365,8 +365,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "city" && (
                       <>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-foreground transition-transform duration-200 group-hover:scale-105">
-                          <MapPin className="h-6 w-6" />
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center text-foreground transition-transform duration-200 group-hover:scale-105">
+                          <MapPin className="h-7 w-7" />
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
@@ -376,19 +376,19 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "business" && (
                       <>
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-105">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-105">
                           {s.logo ? (
                             <img
                               src={s.logo}
                               alt=""
                               className="h-full w-full object-contain p-0.5"
-                              width={40}
-                              height={40}
+                              width={48}
+                              height={48}
                               loading="lazy"
                               decoding="async"
                             />
                           ) : (
-                            <Building2 className="h-6 w-6 text-muted-foreground" />
+                            <Building2 className="h-7 w-7 text-muted-foreground" />
                           )}
                         </span>
                         <span className="flex-1 min-w-0">

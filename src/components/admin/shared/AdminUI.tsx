@@ -75,10 +75,10 @@ export const StatIconTile = ({
   <div
     className={cn(
       "flex aspect-square shrink-0 items-center justify-center rounded-md border border-border/80 bg-secondary/70",
-      size === "lg" ? "h-14 w-14 p-1.5 sm:h-16 sm:w-16 sm:p-2" : "h-11 w-11 p-1.5",
+      size === "lg" ? "h-16 w-16 p-1 sm:h-[4.5rem] sm:w-[4.5rem] sm:p-1.5" : "h-[3.25rem] w-[3.25rem] p-1 sm:h-14 sm:w-14",
       size === "lg"
-        ? "[&_img]:h-11 [&_img]:w-11 [&_svg]:h-8 [&_svg]:w-8"
-        : "[&_img]:h-8 [&_img]:w-8 [&_svg]:h-6 [&_svg]:w-6",
+        ? "[&_img]:h-14 [&_img]:w-14 sm:[&_img]:h-16 sm:[&_img]:w-16 [&_svg]:h-9 [&_svg]:w-9"
+        : "[&_img]:h-11 [&_img]:w-11 [&_svg]:h-7 [&_svg]:w-7",
       "[&_img]:max-h-full [&_img]:max-w-full [&_img]:object-contain",
       className,
     )}
@@ -125,7 +125,7 @@ export const StatCard = ({
     : "";
   return (
     <Card className={cn("service-panel-card rounded-[5px] border-border shadow-sm transition-colors duration-150 ease-out hover:border-accent/35", ring)}>
-      <CardContent className="flex items-start gap-2.5 p-3">
+      <CardContent className="flex items-start gap-3 p-3">
         <StatIconTile className={iconTone[tone]}>
           {icon}
         </StatIconTile>
