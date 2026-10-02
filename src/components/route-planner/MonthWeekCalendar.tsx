@@ -1491,7 +1491,7 @@ const RoutePillInner = ({
                 isVirtual ? "text-muted-foreground" : "text-foreground",
               )}
             >
-              {route.name?.trim() || "Rute"}
+              <span title={route.name?.trim() || "Rute"}>{route.name?.trim() || "Rute"}</span>
             </div>
           </div>
           <div className={cn("mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] text-muted-foreground tabular-nums", (canOptimize || canDelete || canHistory) ? "pr-5" : "pr-0")}>
