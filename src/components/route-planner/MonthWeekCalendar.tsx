@@ -1494,7 +1494,7 @@ const RoutePillInner = ({
               {route.name?.trim() || "Rute"}
             </div>
           </div>
-          <div className="mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden pr-7 text-[10.5px] text-muted-foreground tabular-nums">
+          <div className={cn("mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden text-[10.5px] text-muted-foreground tabular-nums", (canOptimize || canDelete || canHistory) ? "pr-5" : "pr-0")}>
             {isVirtual ? (
               <span
                 className="inline-flex shrink-0 items-center rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold leading-[14px] text-muted-foreground"
@@ -1543,7 +1543,7 @@ const RoutePillInner = ({
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
-          <div className="absolute right-0.5 top-0.5 z-[3] flex items-center">
+          <div className="absolute bottom-1 right-1 z-[3] flex items-center">
         {false && (
           <button
             type="button"
@@ -1567,11 +1567,11 @@ const RoutePillInner = ({
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
                 disabled={busy}
-                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md border border-border/70 bg-card/90 text-foreground/80 shadow-sm hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
-                aria-label="Flere handlinger"
-                title="Flere handlinger"
+                className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground before:absolute before:-inset-1.5 before:content-[''] relative"
+                aria-label="Handlinger"
+                title="Handlinger"
               >
-                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3.5 w-3.5" />}
+                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3 w-3" />}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
