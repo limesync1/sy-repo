@@ -18,6 +18,14 @@ export default defineGuidePage({
     <>Store arealer og hyppige besøg ligger i den lave ende</>,
     <>Ingen BoligJob-fradrag — men udgiften er en driftsomkostning</>,
   ],
+  priceTable: {
+    headers: { label: "Aftale", price: "Typisk pris", note: "Bemærkning" },
+    rows: [
+      { label: "Fast aftale", price: "8–18 kr./m² pr. md.", note: "Lavest ved store arealer" },
+      { label: "Engangs- og hovedrengøring", price: "220–380 kr./t", note: "Ekskl. moms" },
+    ],
+    footnote: "Priser ekskl. moms for erhverv.",
+  },
   sections: [
     { heading: "Hvad bør en rengøringsaftale indeholde?", list: [
       <>En tydelig opgaveliste pr. rum og hyppighed</>,

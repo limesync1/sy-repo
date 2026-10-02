@@ -18,6 +18,14 @@ export default defineGuidePage({
     <>BoligJob-fradrag: op til <strong>12.300 kr. pr. voksen</strong></>,
     <>Firmaet skal være momsregistreret, og du skal betale digitalt</>,
   ],
+  priceTable: {
+    headers: { label: "Opgave", price: "Typisk pris", note: "Frekvens" },
+    rows: [
+      { label: "Fast rengøringshjælp", price: "250–450 kr./t", note: "Ugentligt / 14-dags" },
+      { label: "Engangs- og hovedrengøring", price: "250–450 kr./t", note: "Efter behov" },
+    ],
+    footnote: "Priser inkl. moms. Servicefradraget reducerer den reelle udgift.",
+  },
   sections: [
     { heading: "Hvad indgår i privatrengøring?", list: [
       <>Støvsugning og gulvvask i alle rum</>,
