@@ -3950,6 +3950,7 @@ const Planner = () => {
                             description="Nye aftaler lander her, så snart de oprettes."
                             action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                             compact
+                            animated={false}
                           />
                         );
                       })()

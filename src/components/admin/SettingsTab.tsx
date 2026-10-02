@@ -32,6 +32,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import profileGroupIcon from "@/assets/settings-icons/profil.svg.asset.json";
 import messagesGroupIcon from "@/assets/settings-icons/beskeder.svg.asset.json";
 import accountGroupIcon from "@/assets/settings-icons/konto.svg.asset.json";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**
  * Lille selvopdaterende komponent — tikker hvert minut og holder
@@ -289,11 +290,7 @@ const FeatureRow = ({
     }`}
   >
     <div className="flex min-w-0 items-start gap-3">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5 ${
-          active ? "bg-foreground text-background" : "bg-muted text-foreground"
-        }`}
-      >
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center">
         {icon}
       </div>
       <div className="min-w-0">
@@ -1969,7 +1966,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
                 <div className="space-y-2.5">
                   <FeatureRow
-                    icon={<Sparkles />}
+                    icon={<BrandedIllustration name="signupLeads" className="h-full w-full" alt="" />}
                     title="Leads fra ”Indhent 3 tilbud”"
                     badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                     description="Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem."
@@ -1979,7 +1976,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     onToggle={() => setLeadsEnabled((v) => !v)}
                   />
                   <FeatureRow
-                    icon={<MessageCircle />}
+                    icon={<BrandedIllustration name="signupLivechat" className="h-full w-full" alt="" />}
                     title="Livechat på virksomhedssiden"
                     badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                     description="En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen."

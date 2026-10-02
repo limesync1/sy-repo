@@ -11,12 +11,14 @@ type Props = {
   action?: { label: string; onClick: () => void; icon?: ReactNode };
   className?: string;
   compact?: boolean;
+  animated?: boolean;
 };
 
-export default function EmptyState({ icon, title, description, action, className, compact }: Props) {
+export default function EmptyState({ icon, title, description, action, className, compact, animated = true }: Props) {
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center text-center animate-fade-in",
+      "flex flex-col items-center justify-center text-center",
+      animated && "animate-fade-in",
       compact ? "py-6 px-3 gap-2" : "py-10 px-6 gap-3",
       className,
     )}>

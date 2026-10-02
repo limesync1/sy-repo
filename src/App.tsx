@@ -208,14 +208,16 @@ const PageFallback = () => {
   // rolig skeleton der matcher sidetypen (panel vs. offentlig side).
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   const isPanel = /^\/(virksomhed|medarbejder|admin)(\/|$)/.test(path);
-  // Panelernes shell skal være synlig fra første frame. Ellers ses et tomt
-  // skærmbillede, og den gemte sidebarbredde kan ikke opleves som stabil.
-  const [show, setShow] = useState(isPanel);
+  // Ved almindelige panel-skift viser vi ikke en ny fuld sidebar-skeleton.
+  // Den kommende side er allerede prefetchet fra menupunktet, og en kort,
+  // neutral flade føles roligere end at genopbygge hele navigationen visuelt.
+  const isInternalPanelNavigation = typeof window !== "undefined" && sessionStorage.getItem("sy.panel.navigation") === "1";
+  const [show, setShow] = useState(isPanel && !isInternalPanelNavigation);
   useEffect(() => {
-    if (isPanel) { setShow(true); return; }
+    if (isPanel && !isInternalPanelNavigation) { setShow(true); return; }
     const t = setTimeout(() => setShow(true), 180);
     return () => clearTimeout(t);
-  }, [isPanel]);
+  }, [isPanel, isInternalPanelNavigation]);
   const isPlanner = /^\/virksomhed\/ruter(\/|$)/.test(path);
   const isEmployeeRoute = /^\/medarbejder\/rute\//.test(path);
   if (!show) return <div className="min-h-screen bg-background" aria-hidden />;
