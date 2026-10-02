@@ -258,7 +258,7 @@ export default function OrderDetailSheet({ orderId, onClose }: Props) {
                   </SelectContent>
                 </Select>
                 <a href={`mailto:${order.customer_email}`} className="ml-auto">
-                  <Button size="sm" variant="outline" className="h-9 gap-1.5"><Mail className="h-3.5 w-3.5" /> Email</Button>
+                  <Button size="sm" variant="outline" className="h-9 gap-1.5"><Mail className="h-3.5 w-3.5" /> E-mail</Button>
                 </a>
               </div>
             </div>

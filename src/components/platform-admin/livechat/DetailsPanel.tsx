@@ -30,7 +30,7 @@ export default function DetailsPanel({ active, messages, onOpenCannedManager }: 
         </div>
         <div className="space-y-2.5 text-xs">
           <div>
-            <p className="mb-0.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"><Mail className="h-3 w-3" /> Email</p>
+            <p className="mb-0.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"><Mail className="h-3 w-3" /> E-mail</p>
             <a href={`mailto:${active.visitor_email}`} className="break-all text-foreground hover:text-accent">{active.visitor_email}</a>
           </div>
           {active.subject && (
