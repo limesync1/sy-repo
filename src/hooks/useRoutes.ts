@@ -1381,7 +1381,9 @@ export const useReorderStops = () => {
       }),
     onMutate: async (updates) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      await qc.cancelQueries({ queryKey: ["my-route-data"] });
       const snapshots = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      const routeDataSnapshots = qc.getQueriesData<any>({ queryKey: ["my-route-data"] });
       const byId = new Map(updates.map((u) => [u.id, u]));
       qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
         old
@@ -1392,10 +1394,26 @@ export const useReorderStops = () => {
             })
           : old,
       );
-      return { snapshots };
+      // Rute-kørselssiden henter sine stop via "my-route-data" (ikke
+      // "route-stops-bulk") — uden denne patch virkede omrokering af stop
+      // under kørsel ikke optimistisk, selvom DB-kaldet lykkedes.
+      qc.setQueriesData<any>({ queryKey: ["my-route-data"] }, (old) =>
+        old && Array.isArray(old.stops)
+          ? {
+              ...old,
+              stops: old.stops.map((s: RouteStop) => {
+                const u = byId.get(s.id);
+                if (!u) return s;
+                return { ...s, sequence: u.sequence, ...(u.route_id ? { route_id: u.route_id } : {}) } as RouteStop;
+              }),
+            }
+          : old,
+      );
+      return { snapshots, routeDataSnapshots };
     },
     onError: (_e, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      ctx?.routeDataSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
     },
     onSettled: () => invalidateRouteSyncQueries(qc),
   });

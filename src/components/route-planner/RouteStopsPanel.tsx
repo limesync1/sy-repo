@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import {
-  useReorderStops, useDeleteStop, useSetStopAssignees, useUndoCompletedRouteStop,
+  useReorderStops, useDeleteStop, useSetStopAssignees, useUndoCompletedRouteStop, useUpdateStopStatus,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,7 +99,9 @@ export const RouteStopsPanel = ({
   const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const undoCompleted = useUndoCompletedRouteStop();
+  const updateStopStatus = useUpdateStopStatus();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
+  const [confirmUndo, setConfirmUndo] = useState<RouteStop | null>(null);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
   const firstSeenAtStopRef = useRef(new Map<string, string>());
 
