@@ -208,7 +208,7 @@ export const BrandedIllustration = forwardRef<HTMLImageElement, Props>(({ name, 
     draggable={false}
     loading="eager"
     decoding="sync"
-    className={cn("inline-block shrink-0 select-none object-contain", className)}
+    className={cn("inline-block max-h-full max-w-full shrink-0 select-none object-contain", className)}
     {...props}
   />
 ));

@@ -52,3 +52,4 @@
 - [x] Erstat de 59 tidligere indholdsikoner med filerne fra Nye-Ikon-Design
 - [x] Ret fælles ikonregistre og direkte gamle ikonreferencer
 - [x] Kontrollér ikoner på offentlige sider og i alle paneltyper
+- [x] Ensret ikonstørrelser, indvendig luft, baggrunde og beskæring på tværs af sider og paneler

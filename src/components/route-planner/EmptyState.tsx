@@ -36,8 +36,10 @@ export default function EmptyState({ icon, title, description, action, className
             )}
           />
           <div className={cn(
-            "relative rounded-full bg-gradient-to-b from-secondary to-secondary/50 text-muted-foreground flex items-center justify-center ring-1 ring-border/60 shadow-sm",
-            compact ? "h-11 w-11" : "h-16 w-16",
+            "relative flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-b from-secondary to-secondary/50 text-muted-foreground ring-1 ring-border/60 shadow-sm [&_img]:object-contain",
+            compact
+              ? "h-11 w-11 p-1.5 [&_img]:max-h-8 [&_img]:max-w-8"
+              : "h-16 w-16 p-2 [&_img]:max-h-12 [&_img]:max-w-12",
           )}>
             {icon}
           </div>
