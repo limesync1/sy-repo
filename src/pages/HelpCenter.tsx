@@ -6,6 +6,7 @@ import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -181,7 +182,7 @@ const HelpCenter = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Genveje
               </span>
               <h2 id="topics" className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
@@ -221,7 +222,7 @@ const HelpCenter = () => {
             <div className="mb-8 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <span className="h-px w-6 bg-foreground/30" />
+                  <SectionLabelMark />
                   FAQ
                 </span>
                 <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">

@@ -8,6 +8,7 @@ import {
   Upload,
 } from "lucide-react";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
   * Forretningsrettet sektion på forsiden. Et lyst, kontraststærkt overblik
@@ -58,7 +59,7 @@ const ForBusinesses = () => {
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-14">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              <span className="h-px w-6 bg-foreground/30" />
+              <SectionLabelMark />
               For virksomheder
             </span>
             <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">
@@ -176,7 +177,7 @@ const ForBusinesses = () => {
           <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-center 2xl:gap-8 2xl:p-10">
             <div>
               <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
+                <SectionLabelMark />
                 Prismodel
               </span>
               <h3 className="mt-4 text-[1.5rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[1.9rem]">

@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * CTABand — mørkt afslutnings-bånd der bruges i bunden af alle
@@ -37,7 +38,7 @@ const CTABand = ({ eyebrow, title, body, primary, secondary, className }: Props)
         <div className="max-w-2xl">
           {eyebrow && (
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
-              <span aria-hidden className="h-px w-6 bg-ocean-foreground/40" />
+              <SectionLabelMark />
               {eyebrow}
             </span>
           )}

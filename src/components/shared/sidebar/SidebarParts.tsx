@@ -5,7 +5,7 @@
 // Bemærk: ingen komponenter her opretter deres egen TooltipProvider — PanelShell
 // (eller appens rod) leverer én. Det sparer en provider pr. menupunkt.
 import { Fragment, forwardRef, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronsLeft, ChevronsRight, ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { SidebarArrowArtwork } from "@/components/shared/UiArtwork";
 
 /* ------------------------------------------------------------------ */
 /* Konstanter                                                         */
@@ -358,19 +359,18 @@ export const SidebarEdgeHandle = ({ collapsed, onToggle }: { collapsed: boolean;
         aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
         aria-pressed={collapsed}
         className={cn(
-          "absolute -right-3 top-[44px] z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm lg:flex",
+          "group/sidebar-arrow absolute -right-3 top-[44px] z-10 hidden h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-border bg-card shadow-sm lg:flex",
           "opacity-0 transition-[opacity,color,background-color] duration-150 motion-reduce:transition-none",
           "group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100 [@media(hover:none)]:opacity-100",
           "hover:bg-secondary hover:text-foreground",
           FOCUS_RING,
         )}
       >
-        {collapsed ? <ChevronsRight className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronsLeft className="h-3.5 w-3.5" aria-hidden="true" />}
+        <SidebarArrowArtwork collapsed={collapsed} />
       </button>
     </TooltipTrigger>
     <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2 whitespace-nowrap">
       <span>{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</span>
-      <kbd className="inline-flex h-4 items-center rounded border border-border/60 bg-background/20 px-1 font-mono text-[10px] font-semibold">[</kbd>
     </TooltipContent>
   </Tooltip>
 );
@@ -385,18 +385,12 @@ export const SidebarCollapseToggle = ({ collapsed, onToggle }: { collapsed: bool
         aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
         aria-pressed={collapsed}
         className={cn(
-          "hidden h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex",
+          "group/sidebar-arrow hidden h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex",
           FOCUS_RING,
         )}
       >
-        {collapsed ? (
-          <ChevronsRight className="h-3.5 w-3.5" aria-hidden="true" />
-        ) : (
-          <>
-            <ChevronsLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Skjul sidemenu</span>
-          </>
-        )}
+        <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full"><SidebarArrowArtwork collapsed={collapsed} /></span>
+        {!collapsed && <span>Skjul sidemenu</span>}
       </button>
     </TooltipTrigger>
     <TooltipContent side={collapsed ? "right" : "top"} sideOffset={8} className="whitespace-nowrap">

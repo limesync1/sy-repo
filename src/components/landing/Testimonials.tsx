@@ -5,6 +5,7 @@ import { Star, Quote, Building2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import HorizontalScroller from "./HorizontalScroller";
+import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 type Review = {
   id: string;
@@ -66,7 +67,7 @@ const Testimonials = () => {
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-14">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              <span className="h-px w-6 bg-foreground/30" />
+              <SectionLabelMark />
               Anmeldelser
             </span>
             <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">

@@ -31,6 +31,7 @@ import viMatcherIcon from "@/assets/quote/Vi_matcher.png.asset.json";
 import sammenlignIcon from "@/assets/quote/Sammenlign_og_vaelg.png.asset.json";
 import ingenMatchesIcon from "@/assets/quote/Ingen_matches_lige_nu-2.png.asset.json";
 import loaderMatchesGif from "@/assets/quote/Loader_matches-2.gif.asset.json";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 
 /** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
  *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
@@ -374,7 +375,7 @@ const RequestQuote = () => {
                         </>
                       ) : (
                         <>
-                          <Search className="h-4 w-4 text-muted-foreground" />
+                          <UiArtwork name="search" className="h-5 w-5" />
                           <span className="text-muted-foreground">Søg eller vælg en kategori…</span>
                         </>
                       )}
@@ -390,7 +391,7 @@ const RequestQuote = () => {
                   className="w-[var(--radix-popover-trigger-width)] rounded-2xl border-border bg-card p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.25)]"
                 >
                   <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <UiArtwork name="search" className="h-5 w-5" />
                     <input
                       autoFocus
                       aria-label="Søg efter kategori"
@@ -425,7 +426,7 @@ const RequestQuote = () => {
                               setCategoryOpen(false);
                               setCategoryQuery("");
                             }}
-                            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                            className={`group flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
                               active ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary/60"
                             }`}
                           >
@@ -438,7 +439,7 @@ const RequestQuote = () => {
                                 <div className="text-[11px] text-muted-foreground truncate">via "{matchedVia}"</div>
                               )}
                             </span>
-                            {active && <Check className="h-4 w-4 text-accent" />}
+                            {active ? <Check className="h-4 w-4 text-accent" /> : <UiArtwork name="categoryArrow" className="h-7 w-7 opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100" />}
                           </button>
                         </li>
                       );

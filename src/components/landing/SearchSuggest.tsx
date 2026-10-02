@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, MapPin, Building2, Clock, X, CornerDownLeft } from "lucide-react";
+import { MapPin, Building2, X, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
 import { rankByQuery } from "@/lib/search-scoring";
 import { IndustryIcon } from "@/components/IndustryIcon";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 
 /** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
  *  og virksomhedspanelet altid viser præcis de samme brancher. */
@@ -226,11 +227,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         }`}
       >
         <div className="pl-5 pr-2 text-muted-foreground sm:pr-3">
-          <Search
-            className={`h-5 w-5 transition-all duration-300 ${
-              open ? "text-accent scale-105" : ""
-            }`}
-          />
+          <UiArtwork name="search" className={`h-6 w-6 transition-transform duration-300 ${open ? "scale-105" : ""}`} />
         </div>
         {/* Vi rendrer to <input> så placeholder kan tilpasses pr. breakpoint
             (HTML har ikke responsive placeholders). Den korte vises kun på
@@ -261,7 +258,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
             aria-label="Søg"
             className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition-all duration-200 hover:bg-accent/90 active:scale-[0.97] md:h-11 md:px-6"
           >
-            <Search className="h-4 w-4" aria-hidden="true" />
+            <UiArtwork name="search" className="h-5 w-5" aria-hidden="true" />
             <span className="hidden sm:inline">Søg</span>
           </Button>
         </div>
@@ -326,7 +323,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     {s.type === "query" && (
                       <>
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                          <Search className="h-4 w-4" />
+                          <UiArtwork name="search" className="h-5 w-5" />
                         </span>
                         <span className="min-w-0 flex-1">
                           <div className="truncate font-semibold text-foreground">Søg efter “{s.label}”</div>
@@ -339,7 +336,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
 
                       <>
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-transform duration-200 group-hover:scale-105">
-                          <Clock className="h-4 w-4" />
+                          <UiArtwork name="recentSearch" className="h-5 w-5" />
                         </span>
                         <span className="flex-1 min-w-0">
                           <div className="truncate font-semibold text-foreground">{s.label}</div>
@@ -356,6 +353,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                             {s.matchedVia ? `Kategori · via "${s.matchedVia}"` : "Kategori"}
                           </div>
                         </span>
+                        <UiArtwork name="categoryArrow" className="h-7 w-7 opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100" />
                       </>
                     )}
                     {s.type === "city" && (

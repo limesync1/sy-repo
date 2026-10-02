@@ -5,6 +5,7 @@ import HorizontalScroller from "./HorizontalScroller";
 import { ALL_INDUSTRIES, TOP_CATEGORY_KEYS } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
+import { SectionLabelMark, UiArtwork } from "@/components/shared/UiArtwork";
 
 const categories = ALL_INDUSTRIES.map((ind) => ({
   key: ind.key,
@@ -33,7 +34,7 @@ const CategoryCard = ({
       <span className="flex h-16 w-16 items-center justify-center">
         <IndustryIcon category={cat.key} className="h-14 w-14" alt={cat.label} />
       </span>
-      <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+      <UiArtwork name="categoryArrow" className="h-9 w-9 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100" />
     </div>
     <div className="relative mt-4 min-w-0">
       <div className="break-words text-[15px] font-semibold leading-snug">{cat.label}</div>
@@ -56,7 +57,7 @@ const Categories = () => {
         <div className="mb-7 flex flex-col gap-5 md:mb-8 md:flex-row md:items-end md:justify-between 2xl:mb-10">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              <span className="h-px w-6 bg-foreground/30" />
+              <SectionLabelMark />
               Servicebrancher
             </span>
             <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">

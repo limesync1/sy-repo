@@ -27,3 +27,4 @@
 - [ ] Meta: rigtige test-leads — venter på at brugeren forbinder Meta igen (forbindelsen står "Kræver handling")
 - [~] Fuld gennemgang: runde 3 (opret-vinduer, valideringstekster, dansk "Luk"/"E-mail"). Mangler: indstillinger, regnskab, dataimport, rutekørsel
 - [x] Brug de vedhæftede valgte-ikoner i headerens panelvælger for kunde, virksomhed, medarbejder og platformadmin
+- [x] Opdatér søgning, kategori-pile, sektionslabels og sidepanelkontrol med de nye ikoner
