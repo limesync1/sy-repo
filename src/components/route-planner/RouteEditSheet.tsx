@@ -830,7 +830,7 @@ export const RouteEditSheet = ({
           >
             <SheetHeaderBlock
               icon={<img src={editRouteIllustration} alt="" className="h-14 w-14 object-contain" />}
-              iconClassName="h-14 w-14 rounded-none border-0 bg-transparent shadow-none ring-0"
+              iconClassName="h-14 w-14 rounded-none !bg-transparent ring-0"
               title={
                 <SheetTitle className="text-base flex items-center gap-2">
                   Rediger rute
