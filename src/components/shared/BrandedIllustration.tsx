@@ -39,6 +39,27 @@ import activeConversationsNew from "@/assets/content-icons/aktive-samtaler.svg.a
 import satisfactionNew from "@/assets/content-icons/kundetilfredshed.svg.asset.json";
 import responseTimeNew from "@/assets/content-icons/svartid.svg.asset.json";
 import unansweredNew from "@/assets/content-icons/ubesvarede-beskeder.svg.asset.json";
+import describeTaskNew from "@/assets/content-icons/beskriv-opgaven.svg.asset.json";
+import matchNew from "@/assets/content-icons/vi-matcher.svg.asset.json";
+import averageNew from "@/assets/content-icons/gennemsnit.svg.asset.json";
+import averageResponseNew from "@/assets/content-icons/gennemsnitlig-svartid.svg.asset.json";
+import businessCustomersNew from "@/assets/content-icons/erhvervskunder.svg.asset.json";
+import privateCustomersNew from "@/assets/content-icons/privatkunder.svg.asset.json";
+import customersTotalNew from "@/assets/content-icons/kunder-i-alt.svg.asset.json";
+import cvrCheckedNew from "@/assets/content-icons/cvr-tjekket.svg.asset.json";
+import directNew from "@/assets/content-icons/direkte.svg.asset.json";
+import emailNew from "@/assets/content-icons/email.svg.asset.json";
+import freeNew from "@/assets/content-icons/gratis.svg.asset.json";
+import areaNew from "@/assets/content-icons/omraade.svg.asset.json";
+import platformNew from "@/assets/content-icons/platform.svg.asset.json";
+import profileNew from "@/assets/content-icons/profil.svg.asset.json";
+import accountNew from "@/assets/content-icons/konto.svg.asset.json";
+import messagesNew from "@/assets/content-icons/beskeder.svg.asset.json";
+import editRouteNew from "@/assets/content-icons/rediger-rute.svg.asset.json";
+import accountingProgramNew from "@/assets/content-icons/regnskabsprogram.svg.asset.json";
+import howItWorksNew from "@/assets/content-icons/saadan-fungerer-det.svg.asset.json";
+import independentNew from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
+import verifiedProviderNew from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
 
 import unassignedAppointmentsAsset from "@/assets/section-icons/virksomhed-ruter/aftaler-uden-rute.svg";
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
@@ -111,14 +132,14 @@ export const BRANDED_ILLUSTRATIONS = {
   helpGuides: helpGuidesAsset,
   shareProfile: shareProfileNew.url,
   addService: addServiceNew.url,
-  team: team,
+  team: employeesNew.url,
   settings: settingsNew.url,
   servicesTotal: servicesTotalNew.url,
   activeServices: activeServicesNew.url,
   orders: bookingsNew.url,
-  calendarWeek: calendarWeek,
-  calendarMonth: calendarMonth,
-  averageOrder: averageOrder,
+  calendarWeek: bookingsNew.url,
+  calendarMonth: bookingsNew.url,
+  averageOrder: averageNew.url,
   activeEmployee: activeEmployeeNew.url,
   pendingLogin: pendingLoginNew.url,
   payroll: payrollNew.url,
@@ -149,6 +170,26 @@ export const BRANDED_ILLUSTRATIONS = {
   calculator: calculatorAsset.url,
   fixedPrice: fixedPriceAsset.url,
   responseTime: responseTimeNew.url,
+  averageResponseTime: averageResponseNew.url,
+  describeTask: describeTaskNew.url,
+  match: matchNew.url,
+  businessCustomers: businessCustomersNew.url,
+  privateCustomers: privateCustomersNew.url,
+  customersTotal: customersTotalNew.url,
+  cvrChecked: cvrCheckedNew.url,
+  direct: directNew.url,
+  email: emailNew.url,
+  free: freeNew.url,
+  area: areaNew.url,
+  platform: platformNew.url,
+  profile: profileNew.url,
+  account: accountNew.url,
+  messages: messagesNew.url,
+  editRoute: editRouteNew.url,
+  accountingProgram: accountingProgramNew.url,
+  howItWorks: howItWorksNew.url,
+  independent: independentNew.url,
+  verifiedProvider: verifiedProviderNew.url,
   payout: payoutAsset.url,
   hourlyPrice: hourlyPriceAsset.url,
   unansweredMessages: unansweredNew.url,

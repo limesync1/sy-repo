@@ -340,9 +340,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         />
 
         <div className="flex snap-x gap-2.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
-          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="orders" />} /></div>
+          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} /></div>
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" /></div>
-          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="calendarWeek" />} /></div>
+          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="averageResponseTime" />} /></div>
         </div>
 
         {allLeads.length === 0 ? (
