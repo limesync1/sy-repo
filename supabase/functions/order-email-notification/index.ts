@@ -7,7 +7,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   try {
-    const { orderId, kind, customerEmail } = await req.json()
+    const { orderId, kind, customerEmail, confirmToken } = await req.json()
     if (!orderId || !['confirmation', 'manual-confirmed', 'status-update'].includes(kind)) return json({ error: 'invalid_request' }, 400)
     const url = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -31,6 +31,12 @@ Deno.serve(async (req) => {
         // and the idempotency key below guarantees at most one confirmation.
         const supplied = typeof customerEmail === 'string' ? customerEmail.trim().toLowerCase() : ''
         if (!supplied || supplied !== String(order.customer_email).trim().toLowerCase()) return json({ error: 'forbidden' }, 403)
+        // ...and present the one-time secret generated at checkout (only its hash is stored).
+        if (typeof confirmToken !== 'string' || confirmToken.length < 32 || confirmToken.length > 200 || !order.guest_confirm_token_hash) return json({ error: 'forbidden' }, 403)
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(confirmToken)))
+        const hash = Array.from(digest).map((b) => b.toString(16).padStart(2, '0')).join('')
+        if (hash !== order.guest_confirm_token_hash) return json({ error: 'forbidden' }, 403)
+        await admin.from('orders').update({ guest_confirm_token_hash: null }).eq('id', order.id)
       }
     } else {
       const auth = req.headers.get('Authorization') || ''
@@ -79,6 +85,6 @@ Deno.serve(async (req) => {
     return json(result)
   } catch (error) {
     console.error('order email failed', error)
-    return json({ error: error instanceof Error ? error.message : 'send_failed' }, 500)
+    return json({ error: 'send_failed' }, 500)
   }
 })

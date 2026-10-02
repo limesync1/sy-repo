@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { decryptMetaToken } from "../_shared/meta-crypto.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const Body = z.object({
   businessId: z.string().uuid(),
@@ -21,7 +22,17 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const encryptionSecret = Deno.env.get("META_TOKEN_ENCRYPTION_KEY");
   if (!url || !serviceKey || !encryptionSecret) return json({ error: "Not configured" }, 503);
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!anonKey) return json({ error: "Not configured" }, 503);
+  // Only the business owner (or a platform admin) may send events for a business.
+  const auth = await requireAuthenticatedUser(req, url, anonKey);
+  if (!("userClient" in auth)) return json({ error: auth.error }, auth.status);
   const admin = createClient(url, serviceKey);
+  const [{ data: owned }, { data: isAdmin }] = await Promise.all([
+    admin.from("businesses").select("id").eq("id", parsed.data.businessId).eq("owner_id", auth.userId).maybeSingle(),
+    admin.rpc("has_role", { _user_id: auth.userId, _role: "admin" }),
+  ]);
+  if (!owned && !isAdmin) return json({ error: "Ingen adgang" }, 403);
   const { data: connection } = await admin.from("meta_connections")
     .select("pixel_id, access_token_ciphertext, access_token_iv, conversions_api_enabled")
     .eq("business_id", parsed.data.businessId).eq("status", "connected").maybeSingle();
@@ -43,5 +54,5 @@ Deno.serve(async (req) => {
   await admin.from("meta_conversion_events").update(response.ok
     ? { status: "sent", sent_at: new Date().toISOString(), error_message: null }
     : { status: "failed", error_message: details.slice(0, 1000) }).eq("business_id", parsed.data.businessId).eq("event_id", parsed.data.eventId);
-  return response.ok ? json({ sent: true }) : json({ error: "Meta afviste hændelsen", details }, response.status);
+  return response.ok ? json({ sent: true }) : json({ error: "Meta afviste hændelsen" }, 502);
 });

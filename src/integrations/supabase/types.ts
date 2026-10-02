@@ -2912,6 +2912,7 @@ export type Database = {
           due_date: string | null
           estimated_duration_minutes: number | null
           external_order_number: string | null
+          guest_confirm_token_hash: string | null
           id: string
           invoice_external_id: string | null
           invoice_external_number: string | null
@@ -2971,6 +2972,7 @@ export type Database = {
           due_date?: string | null
           estimated_duration_minutes?: number | null
           external_order_number?: string | null
+          guest_confirm_token_hash?: string | null
           id?: string
           invoice_external_id?: string | null
           invoice_external_number?: string | null
@@ -3030,6 +3032,7 @@ export type Database = {
           due_date?: string | null
           estimated_duration_minutes?: number | null
           external_order_number?: string | null
+          guest_confirm_token_hash?: string | null
           id?: string
           invoice_external_id?: string | null
           invoice_external_number?: string | null
