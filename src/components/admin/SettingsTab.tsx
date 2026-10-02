@@ -30,9 +30,9 @@ import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import profileGroupIcon from "@/assets/settings-icons/profil.svg.asset.json";
-import messagesGroupIcon from "@/assets/settings-icons/beskeder.svg.asset.json";
-import accountGroupIcon from "@/assets/settings-icons/konto.svg.asset.json";
+import profileGroupIcon from "@/assets/content-icons/profil.svg.asset.json";
+import messagesGroupIcon from "@/assets/content-icons/beskeder.svg.asset.json";
+import accountGroupIcon from "@/assets/content-icons/konto.svg.asset.json";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 /**

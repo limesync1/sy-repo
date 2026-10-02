@@ -22,6 +22,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON, getSubcategoryIcon } from "@/lib/category-icons";
 import { IndustryIcon } from "@/components/IndustryIcon";
@@ -2206,7 +2209,41 @@ const AftaleTab = ({
                     2) Hvad er aftalen om? (ydelser, kundens note)
                     3) Kontekst (kontakt, rute, tilbagevendende, tidslinje) */}
                 {isExpanded && (
-                  <div className="border-t border-border bg-background">
+                  <Sheet open onOpenChange={(open) => !open && setExpandedOrder(null)}>
+                    <SheetContent
+                      side="right"
+                      className="planner-overlay flex w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:w-full"
+                    >
+                      <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
+                        <SheetHeaderBlock
+                          icon={(
+                            <IndustryIcon
+                              category={primaryCategory}
+                              subcategory={primarySubcategory}
+                              name={primaryName}
+                              className="h-8 w-8"
+                            />
+                          )}
+                          iconClassName="h-11 w-11 overflow-hidden bg-transparent p-0 ring-0"
+                          title={<SheetTitle className="text-base">{order.customer_name}</SheetTitle>}
+                          description={(
+                            <SheetDescription className="text-xs">
+                              {serviceSummary} · {formatPrice(currentTotal)}
+                            </SheetDescription>
+                          )}
+                        >
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                            {cfg.label}
+                          </span>
+                          {routePlanningEnabled && routeInfo && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground">
+                              <RouteIcon className="h-2.5 w-2.5" /> {routeDisplayName(routeInfo)}
+                            </span>
+                          )}
+                        </SheetHeaderBlock>
+                      </SheetHeader>
+                      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto bg-secondary/20">
                     {/* Fokus-banner — primær anker når kortet foldes ud. Tydeligt
                         accent-tema så øjet straks lander her, før det glider
                         ned til detaljerne nedenunder. */}
@@ -2260,7 +2297,7 @@ const AftaleTab = ({
                             {(order.status === "confirmed" || order.status === "in_progress") && (
                               <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
                                 className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                                <XCircle className="h-3.5 w-3.5" /> Annuller
+                              <XCircle className="h-3.5 w-3.5" /> Annullér
                               </Button>
                             )}
                             <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
@@ -2445,6 +2482,8 @@ const AftaleTab = ({
                     </div>
                   </div>
                   </div>
+                    </SheetContent>
+                  </Sheet>
                 )}
               </Card>
             );
