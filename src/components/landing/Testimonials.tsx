@@ -81,7 +81,7 @@ const Testimonials = () => {
           </div>
           <SmartLink
             to="/virksomheder"
-            className="group inline-flex items-center gap-2 self-start rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30 md:self-auto"
+            className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto"
           >
             Find virksomheder
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

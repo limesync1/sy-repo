@@ -39,7 +39,7 @@ const CategoryCard = ({
     <div className="relative mt-4 min-w-0">
       <div className="break-words text-[15px] font-semibold leading-snug">{cat.label}</div>
       {cat.hint && (
-        <div className="mt-1.5 line-clamp-1 text-xs font-medium text-muted-foreground">{cat.hint}</div>
+        <div className="mt-1.5 line-clamp-1 text-[11px] font-medium text-muted-foreground">{cat.hint}</div>
       )}
     </div>
   </Link>
