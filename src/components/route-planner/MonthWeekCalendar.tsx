@@ -1498,7 +1498,7 @@ const RoutePillInner = ({
             {isVirtual ? (
               <span
                 className="inline-flex shrink-0 items-center rounded-sm border border-dashed border-muted-foreground/50 px-1 text-[10px] font-semibold leading-[14px] text-muted-foreground"
-                aria-label={projectedKind === "today" ? "Forventet besøg i dag fra en fast rute" : projectedKind === "past" ? "Tidligere forventet besøg fra en fast rute" : "Forventet besøg fra en fast rute"}
+                aria-label={projectedKind === "today" ? "Forventet i dag — den faste rute kører igen i dag" : projectedKind === "past" ? "Forventet besøg der er passeret" : "Forventet — den faste rute kører igen denne dag"}
                 title="Ruten er ikke lavet endnu. Den vises, fordi den faste rute kører igen denne dag."
               >
                 {projectedKind === "today" ? "Forventet i dag" : "Forventet"}
@@ -1750,7 +1750,7 @@ const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute
         </div>
         <p className="border-b border-border bg-secondary/40 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
           {route.isVirtual
-            ? "Forventet besøg: vises automatisk, fordi en fast rute gentages på denne dag. Stiplet kant betyder, at den ikke er en selvstændig rute endnu."
+            ? "Forventet: den faste rute kører igen denne dag. Den stiplet kant betyder, at ruten ikke er lavet endnu."
             : "Planlagt rute: gemt med faste aftaler på denne dag."}
         </p>
         <div className="space-y-2.5 px-3 py-2.5">
