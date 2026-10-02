@@ -209,7 +209,7 @@ export const RouteStopsPanel = ({
             const t = e.target as Element | null;
             if (
               t?.closest(
-                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
+                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster],[data-route-pill]',
               )
             ) {
               e.preventDefault();
@@ -219,7 +219,7 @@ export const RouteStopsPanel = ({
             const t = e.target as Element | null;
             if (
               t?.closest(
-                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
+                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster],[data-route-pill]',
               )
             ) {
               e.preventDefault();

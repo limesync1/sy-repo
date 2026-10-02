@@ -8,6 +8,8 @@ import { formatPrice } from "@/lib/price-format";
 // - Klik rute → åbner rute-sheet (onSelectRoute)
 // - Klik aftale → åbner stop-sheet (onSelectStop)
 
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { EmployeeAvatar } from "@/components/shared/EmployeeAvatar";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -330,6 +332,7 @@ const DayOverviewSheet = ({
                 <button
                   key={r.id}
                   type="button"
+                  data-route-pill=""
                   onClick={() => onSelectRoute(r)}
                   className={cn(
                     "planner-card group w-full text-left rounded-[5px] border border-border/70 bg-card p-3 hover:border-accent/40 hover:shadow-sm transition-all relative overflow-hidden",
@@ -1340,6 +1343,7 @@ const RoutePillInner = ({
   const pill = (
     <div
       ref={setRefs}
+      data-route-pill=""
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => {
@@ -1364,7 +1368,7 @@ const RoutePillInner = ({
         // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
         // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
         PILL_BASE,
-        "w-full max-w-full cursor-pointer min-h-[80px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
+        "group/pill w-full max-w-full cursor-pointer min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 active:scale-[0.99]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1407,19 +1411,7 @@ const RoutePillInner = ({
         anySelected && !selected && !isVirtual && !isPast && "opacity-70 hover:opacity-100",
         anySelected && (isVirtual || isPast) && "opacity-30",
       )}
-      title={
-        validation?.topMessage
-          ? validation.topMessage
-          : projectedKind === "future"
-            ? `Låst projektion — oplåses ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}. Klik åbner originalruten; træk for at flytte netop denne forekomst.`
-            : projectedKind === "today"
-              ? "Projiceret forekomst — aktiv i dag. Klik åbner originalruten; træk for at flytte netop denne forekomst."
-              : projectedKind === "past"
-                ? "Historisk projektion — datoen er passeret. Klik åbner originalruten."
-                : isPast
-            ? "Tidligere rute — kan ikke flyttes"
-            : "Klik åbner ruten · træk for at flytte · ⌘/Shift-klik for at vælge flere"
-      }
+      title={validation?.topMessage || undefined}
       aria-busy={busy || undefined}
     >
       {/* Venstre farve-rail (3px, blød afslutning) + svag tint-glow indad —
@@ -1482,203 +1474,64 @@ const RoutePillInner = ({
           // Lidt mere højre-padding når der er medarbejder-avatarer på
           // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
           // pillens højre kant i smalle måneds-celler.
-          "relative z-[1] min-h-[68px] min-w-0 py-1.5 pl-2 pr-1.5 2xl:min-h-[78px] 2xl:pl-2.5 2xl:pr-2 flex flex-col items-stretch gap-0.5 overflow-hidden",
+          "relative z-[1] min-h-[48px] min-w-0 py-1.5 pl-2.5 pr-1.5 flex flex-col items-stretch gap-0.5 overflow-hidden",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="min-h-[1.75rem] max-w-full break-words text-[11.5px] font-semibold text-foreground leading-[1.2] tracking-normal line-clamp-2 overflow-hidden" title={route.name || "Rute"}>
-            {route.name?.trim() || "Rute"}
+          <div className="flex min-w-0 items-start gap-1">
+            {isVirtual && (
+              <Repeat className="mt-[2px] h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+            )}
+            <div
+              className={cn(
+                "min-w-0 flex-1 break-words text-[12px] font-semibold leading-[1.2] line-clamp-2",
+                isVirtual ? "text-muted-foreground" : "text-foreground",
+              )}
+            >
+              {route.name?.trim() || "Rute"}
+            </div>
           </div>
-          <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
-            {projectedKind && (() => {
-              const unlockLabel = format(parseISO(route.route_date), "d. MMM yyyy", { locale: da });
-              const meta = projectedKind === "future"
-                ? {
-                    Icon: Lock,
-                    text: "Låst",
-                    title: `Projiceret rute — låst indtil ${unlockLabel}. Oplåses automatisk på dagen og kan derefter udføres af tildelt medarbejder.`,
-                    aria: `Projiceret, låst indtil ${unlockLabel}`,
-                  }
-                : projectedKind === "today"
-                ? {
-                    Icon: Sparkles,
-                    text: "I dag",
-                    title: "Projiceret forekomst — aktiv i dag. Kan udføres af tildelt medarbejder eller flyttes til en anden dato.",
-                    aria: "Projiceret, aktiv i dag",
-                  }
-                : {
-                    Icon: History,
-                    text: "Historisk",
-                    title: "Historisk projektion — datoen er passeret. Vises kun til indsigt; udførsel/ændring skal ske på originalruten.",
-                    aria: "Historisk projiceret forekomst",
-                  };
-              const { Icon, text, title: t, aria } = meta;
-              return (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
-                    compact ? "px-1 py-px" : "px-1.5 py-px",
-                  )}
-                  title={t}
-                  aria-label={aria}
-                >
-                  <Icon className="h-2 w-2 opacity-80" />
-                  {!compact && text}
-                </span>
-              );
-            })()}
-            {/* Tidligere (ikke-projicerede) ruter er låste for flyt/redigér.
-                Vis et lille Lås-badge så brugeren ser det INDEN drag-forsøg —
-                samme stil som projicerede badges for konsistens. */}
-            {isPast && !isVirtual && !projectedKind && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
+          <div className="mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden pr-7 text-[10.5px] text-muted-foreground tabular-nums">
+            {isVirtual ? (
+              <span className="shrink-0 font-medium" aria-label="Projiceret rute">Projiceret</span>
+            ) : showAsCompleted ? (
+              <span className="inline-flex shrink-0 items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="h-3 w-3" /> Udført
+              </span>
+            ) : (
+              <span className="shrink-0">
+                {completedCount > 0 ? `${completedCount}/` : ""}{stopCount} stop
+              </span>
+            )}
+            {!isVirtual && (hasAssigneeConflict || hasSkillMismatch) && (
+              <AlertTriangle
+                className={cn("h-3 w-3 shrink-0", hasAssigneeConflict ? "text-destructive" : "text-amber-500")}
+                aria-label={hasAssigneeConflict ? "Medarbejder-konflikt" : "Mangler færdighed"}
+              />
+            )}
+            {visibleEmployees.length > 0 && (
+              <span className="ml-auto flex shrink-0 -space-x-1">
+                {visibleEmployees.map((emp) => (
+                  <EmployeeAvatar key={emp.id} employee={emp} size={18} className="ring-2 ring-card" />
+                ))}
+                {extraEmployees > 0 && (
+                  <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-muted px-0.5 text-[9px] font-bold text-muted-foreground ring-2 ring-card">
+                    +{extraEmployees}
+                  </span>
                 )}
-                title="Tidligere rute — kan ikke flyttes. Klik åbner detaljer."
-                aria-label="Låst — tidligere rute"
-              >
-                <Lock className="h-2 w-2 opacity-80" />
-                {!compact && "Låst"}
-              </span>
-            )}
-            {isBaseRecurring && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground text-background text-[9px] font-bold uppercase tracking-[0.06em] shadow-sm shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title="Originalrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
-                aria-label="Originalrute"
-              >
-                <Repeat className="h-2 w-2" />
-                {!compact && "Original"}
-              </span>
-            )}
-            {showAsCompleted && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title="Ruten er udført — åbn for at se detaljer eller genåbn"
-                aria-label="Udført"
-              >
-                <CheckCircle2 className="h-2 w-2" />
-                {!compact && "Udført"}
-              </span>
-            )}
-            {!isVirtual && route.isReplacement && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title={route.replacedFromDate
-                  ? `Erstatningsrute — flyttet hertil fra ${format(parseISO(route.replacedFromDate), "EEEE d. MMM", { locale: da })}`
-                  : "Erstatningsrute — flyttet hertil fra en anden dato"}
-                aria-label="Erstatningsrute — flyttet hertil"
-              >
-                <CalendarArrowDown className="h-2 w-2" />
-                {!compact && "Flyttet"}
-              </span>
-            )}
-            {!isVirtual && hasAssigneeConflict && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-destructive/15 text-destructive ring-1 ring-inset ring-destructive/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
-                aria-label="Medarbejder-konflikt"
-              >
-                <AlertTriangle className="h-2 w-2" />
-                {!compact && "Konflikt"}
-              </span>
-            )}
-            {hasSkillMismatch && (
-              <span
-                className="shrink-0 inline-flex"
-                title="En tildelt medarbejder mangler en færdighed for et af stoppene"
-                aria-label="Skill-mismatch"
-              >
-                <AlertTriangle className="h-3 w-3 text-amber-500" />
-              </span>
-            )}
-          </div>
-          <div
-            className={cn(
-              "mt-0.5 flex min-w-0 items-center gap-x-1.5 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
-              (canOptimize || canDelete || canHistory) && "pr-14",
-              compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
-            )}
-          >
-            {stopCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 shrink-0">
-                <MapPin className="h-3 w-3" />
-                <span>
-                  {completedCount > 0 && (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{completedCount}/</span>
-                  )}
-                  {stopCount} {stopCount === 1 ? "stop" : "stop"}
-                </span>
-              </span>
-            )}
-            {revenue > 0 && (
-              <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
-                <Wallet className="h-3 w-3 shrink-0" />
-                {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
               </span>
             )}
           </div>
         </div>
-        {/* Medarbejder-avatarer */}
-        {visibleEmployees.length > 0 && (
-          <div className="absolute bottom-1.5 right-14 flex -space-x-1" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
-            {visibleEmployees.map((emp) =>
-              emp.avatar_url ? (
-                <img
-                  key={emp.id}
-                  src={emp.avatar_url}
-                  alt={emp.name}
-                  title={emp.name}
-                  loading="lazy"
-                  className="h-5 w-5 rounded-full object-cover ring-2 ring-card"
-                />
-              ) : (
-                <span
-                  key={emp.id}
-                  className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-2 ring-card text-[9px] font-bold leading-none"
-                  style={{ background: emp.color || "hsl(var(--muted-foreground))", color: readableTokenOn(emp.color) }}
-                  title={emp.name}
-                  aria-label={emp.name}
-                >
-                  {initials(emp.name)}
-                </span>
-              ),
-            )}
-            {extraEmployees > 0 && (
-              <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-0.5 rounded-full text-[9px] font-bold ring-2 ring-card bg-muted text-muted-foreground">
-                +{extraEmployees}
-              </span>
-            )}
-          </div>
-        )}
-        {visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
-          <span className="text-[10px] text-muted-foreground italic flex items-center gap-0.5 shrink-0">
-            <Users className="h-3 w-3" />0
-          </span>
-        )}
         {/* Handlings-cluster: optimér + ⋯-menu vises i en samlet ramme på
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
-          <div className="absolute bottom-1 right-1 z-[3] flex items-center gap-px rounded-[4px] border border-border/80 bg-card/95 p-px shadow-sm backdrop-blur-sm opacity-100">
-        {!isVirtual && stopCount >= 2 && (
+          <div className="absolute right-0.5 top-0.5 z-[3] flex items-center opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/pill:opacity-100 [@media(hover:hover)]:focus-within:opacity-100">
+        {false && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
@@ -1845,6 +1698,7 @@ const RoutePillInner = ({
   );
 
   return (
+    <RouteHoverPreview route={route} disabled={!!jobDragActive || !!routeDragSourceId || isDragging}>
     <RouteContextMenu
       hide={{
         duplicate: true,
@@ -1861,8 +1715,67 @@ const RoutePillInner = ({
         else if (action === "history" && canHistory) onShowHistory!();
       }}
     >
-      {pill}
+      <HoverCardTrigger asChild>{pill}</HoverCardTrigger>
     </RouteContextMenu>
+    </RouteHoverPreview>
+  );
+};
+
+/** Hover-forhåndsvisning: kunder og medarbejdere på ruten. Kun på enheder
+ *  med mus — på touch åbner et tryk ruten direkte. */
+const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute; disabled?: boolean; children: React.ReactNode }) => {
+  const stops = route.stops;
+  const emps = route.attachedEmployees;
+  return (
+    <HoverCard openDelay={350} closeDelay={60} {...(disabled ? { open: false } : {})}>
+      {children}
+      <HoverCardContent side="right" align="start" className="hidden w-64 p-0 [@media(hover:hover)]:block">
+        <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+          <span className="h-3 w-1 shrink-0 rounded-full" style={{ background: route.color }} aria-hidden />
+          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{route.name?.trim() || "Rute"}</p>
+          {route.isVirtual && <span className="shrink-0 text-[10px] font-medium text-muted-foreground">Projiceret</span>}
+        </div>
+        <div className="space-y-2.5 px-3 py-2.5">
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejdere</p>
+            {emps.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Ingen tildelt</p>
+            ) : (
+              <ul className="space-y-1">
+                {emps.map((e) => (
+                  <li key={e.id} className="flex items-center gap-2 text-xs text-foreground">
+                    <EmployeeAvatar employee={e} size={20} />
+                    <span className="truncate">{e.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Kunder ({stops.length})
+            </p>
+            {stops.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Ingen aftaler</p>
+            ) : (
+              <ol className="space-y-0.5">
+                {stops.slice(0, 8).map((s, i) => (
+                  <li key={s.id} className="flex items-center gap-2 text-xs">
+                    <span className="w-4 shrink-0 text-right tabular-nums text-muted-foreground">{i + 1}.</span>
+                    <span className={cn("truncate", s.status === "completed" ? "text-muted-foreground line-through" : "text-foreground")}>
+                      {s.customer_name || "Kunde"}
+                    </span>
+                  </li>
+                ))}
+                {stops.length > 8 && (
+                  <li className="pl-6 text-[11px] text-muted-foreground">+ {stops.length - 8} flere</li>
+                )}
+              </ol>
+            )}
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 

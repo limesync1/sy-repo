@@ -1,4 +1,6 @@
 import { formatPrice } from "@/lib/price-format";
+import { SheetHeaderBlock } from "./SheetSection";
+import { EmployeeAvatar } from "@/components/shared/EmployeeAvatar";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -172,22 +174,19 @@ export const PlanningPanel = ({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="planner-overlay w-[360px] sm:max-w-sm p-0 overflow-y-auto bg-background">
-        <SheetHeader className="planner-overlay-header px-5 py-3 pr-12 border-b border-border/70 bg-card">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-secondary ring-1 ring-border/70">
-              <BarChart3 className="h-3.5 w-3.5 text-foreground" />
-            </span>
-            <div>
-              <SheetTitle className="text-base tracking-tight leading-none font-bold">Overblik</SheetTitle>
-              <SheetDescription className="text-[11px] mt-1 capitalize">
+      <SheetContent side="right" className="planner-overlay flex w-full flex-col gap-0 p-0 sm:max-w-md">
+        <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b bg-card px-4 py-3 pr-12 text-left sm:px-5">
+          <SheetHeaderBlock
+            title={<SheetTitle className="text-base">Overblik</SheetTitle>}
+            description={
+              <SheetDescription className="text-xs leading-snug capitalize">
                 {format(parseISO(anchorDate), "MMMM yyyy", { locale: da })}
               </SheetDescription>
-            </div>
-          </div>
+            }
+          />
         </SheetHeader>
 
-        <div className="planner-overlay-body px-5 py-4 space-y-5 bg-secondary/[0.12]">
+        <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
           {/* Hurtigt overblik øverst — viser umiddelbart hvad der kræver
               opmærksomhed (uplanlagte aftaler, overbookede dage). */}
           {(unassignedCount > 0 || stats.overbookedDays.length > 0) && (
@@ -217,7 +216,7 @@ export const PlanningPanel = ({
           )}
 
           {/* Nøgletal denne uge */}
-          <section>
+          <section className="overflow-hidden rounded-md border border-border bg-card px-3 pb-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
             <SectionLabel icon={<TrendingUp className="h-3.5 w-3.5" />}>
               Denne uge
             </SectionLabel>
@@ -229,7 +228,7 @@ export const PlanningPanel = ({
           </section>
 
           {/* Planlagt omsætning */}
-          <section>
+          <section className="overflow-hidden rounded-md border border-border bg-card px-3 pb-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
             <SectionLabel icon={<CalendarIcon className="h-3.5 w-3.5" />}>
               Planlagt omsætning
             </SectionLabel>
@@ -241,7 +240,7 @@ export const PlanningPanel = ({
 
           {/* Stopbaseret kapacitet */}
            {stats.loadPerDay.length > 0 && (
-            <section>
+            <section className="overflow-hidden rounded-md border border-border bg-card px-3 pb-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
                <SectionLabel icon={<BarChart3 className="h-3.5 w-3.5" />}>
                 Stop pr. dag
               </SectionLabel>
@@ -284,7 +283,7 @@ export const PlanningPanel = ({
 
           {/* Medarbejder-filter */}
           {employees.length > 0 && (
-            <section>
+            <section className="overflow-hidden rounded-md border border-border bg-card px-3 pb-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
               <SectionLabel icon={<Users className="h-3.5 w-3.5" />}>
                 Medarbejdere
               </SectionLabel>
@@ -321,21 +320,21 @@ export const PlanningPanel = ({
           )}
 
           {/* Forklaringer */}
-          <section>
+          <section className="overflow-hidden rounded-md border border-border bg-card px-3 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
             <button
               type="button"
               onClick={() => setExplanationsOpen((v) => !v)}
-              className="flex w-full items-center justify-between text-left"
+              className="relative -mx-3 block w-[calc(100%+1.5rem)] text-left"
             >
-              <SectionLabel icon={<Palette className="h-3.5 w-3.5" />}>
-                Forklaringer
-              </SectionLabel>
+              <span className="flex min-h-9 items-center gap-2 bg-secondary/35 px-3 py-2 text-[11px] font-bold uppercase text-foreground">
+                <Palette className="h-3 w-3 text-muted-foreground" /> Forklaringer
+              </span>
               <ChevronDown
-                className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${explanationsOpen ? "rotate-180" : ""}`}
+                className={`absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground transition-transform ${explanationsOpen ? "rotate-180" : ""}`}
               />
             </button>
             {explanationsOpen && (
-              <div className="mt-2 space-y-3 text-xs">
+              <div className="-mx-3 space-y-3 border-t border-border px-3 py-3 text-xs">
                 <LegendGroup title="Ordrestatus">
                   <LegendDot color="hsl(220 14% 70%)" label="Afventer" />
                   <LegendDot color="hsl(217 91% 60%)" label="Bekræftet" />
@@ -352,7 +351,7 @@ export const PlanningPanel = ({
 };
 
 const SectionLabel = ({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) => (
-  <h3 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+  <h3 className="-mx-3 flex min-h-9 items-center gap-2 border-b border-border bg-secondary/35 px-3 py-2 text-[11px] font-bold uppercase text-foreground [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground">
     {icon}
     {children}
   </h3>
@@ -399,26 +398,6 @@ export default PlanningPanel;
 
 /** Avatar-chip til medarbejder-filter. Bruger profilbillede hvis sat,
  *  ellers initialer på medarbejderens farve som fallback. */
-const EmployeeAvatarChip = ({ employee }: { employee: PlanningPanelEmployee }) => {
-  const name = employee.name || "?";
-  const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-  if (employee.avatar_url) {
-    return (
-      <img
-        src={employee.avatar_url}
-        alt={name}
-        loading="lazy"
-        className="h-5 w-5 rounded-full object-cover ring-1 ring-border"
-      />
-    );
-  }
-  return (
-    <span
-      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-background text-[9px] font-semibold"
-      style={{ background: employee.color || "hsl(220 13% 46%)" }}
-      aria-hidden
-    >
-      {initials}
-    </span>
-  );
-};
+const EmployeeAvatarChip = ({ employee }: { employee: PlanningPanelEmployee }) => (
+  <EmployeeAvatar employee={employee} size={20} />
+);
