@@ -214,7 +214,7 @@ const GroupHeader = ({
   hint?: string;
 }) => (
   <div className="mt-2 flex items-center gap-3 first:mt-0">
-    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground shadow-sm [&_svg]:h-4 [&_svg]:w-4">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground shadow-sm [&_svg]:h-5 [&_svg]:w-5">
       {icon}
     </div>
     <div className="min-w-0">
@@ -226,7 +226,7 @@ const GroupHeader = ({
 );
 
 const SettingsGroupIcon = ({ src }: { src: string }) => (
-  <img src={src} alt="" aria-hidden="true" className="h-9 w-9 shrink-0 object-contain" />
+  <img src={src} alt="" aria-hidden="true" className="h-11 w-11 shrink-0 object-contain" />
 );
 
 /* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød).

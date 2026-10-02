@@ -67,8 +67,8 @@ import plannedMonthNew from "@/assets/content-icons/planlagt-denne-maaned.svg.as
 import plannedWeekNew from "@/assets/content-icons/planlagt-denne-uge.svg.asset.json";
 import averageAppointmentNew from "@/assets/content-icons/snit-pr-aftale-maaned.svg.asset.json";
 import accountingProgramChoiceNew from "@/assets/content-icons/vaelg-dit-regnskabsprogram.svg.asset.json";
-import unassignedAppointmentsNew from "@/assets/content-icons/aftaler-uden-rute.svg.asset.json";
-import customerServiceNew from "@/assets/content-icons/kundeservice-ikon.svg.asset.json";
+import unassignedAppointmentsNew from "@/assets/content-icons/aftaler-uden-rute-2026.svg.asset.json";
+import customerServiceNew from "@/assets/content-icons/kundeservice-ikon-2026.svg.asset.json";
 import payoutNew from "@/assets/content-icons/til-udbetaling.svg.asset.json";
 
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
