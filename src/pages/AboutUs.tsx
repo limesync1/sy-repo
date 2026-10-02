@@ -162,15 +162,15 @@ const AboutUs = () => {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  { Icon: Search, k: "Find", t: "Find på minutter", b: "Søg, filtrér og sammenlign lokale udbydere uden at oprette en konto." },
-                  { Icon: Shield, k: "Tryghed", t: "CVR-tjekket", b: "Hver virksomhed valideres mod CVR-registret før de bliver synlige." },
-                  { Icon: Sparkles, k: "Gratis", t: "Gratis for private", b: "Du betaler kun for opgaven — aldrig for at bruge platformen." },
-                  { Icon: Lock, k: "Direkte", t: "Ingen mellemled", b: "Du aftaler direkte med udbyderen — vi formidler kun kontakten." },
-                ].map(({ Icon, k, t, b }) => (
+                  { icon: iconFindMinutter.url, k: "Find", t: "Find på minutter", b: "Søg, filtrér og sammenlign lokale udbydere uden at oprette en konto." },
+                  { icon: iconCvr.url, k: "Tryghed", t: "CVR-tjekket", b: "Hver virksomhed valideres mod CVR-registret før de bliver synlige." },
+                  { icon: iconGratis.url, k: "Gratis", t: "Gratis for private", b: "Du betaler kun for opgaven — aldrig for at bruge platformen." },
+                  { icon: iconIngenMellemled.url, k: "Direkte", t: "Ingen mellemled", b: "Du aftaler direkte med udbyderen — vi formidler kun kontakten." },
+                ].map(({ icon, k, t, b }) => (
                   <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
-                        <Icon className="h-4 w-4" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/5">
+                        <img src={icon} alt="" className="h-6 w-6" loading="lazy" />
                       </div>
                       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
                     </div>
