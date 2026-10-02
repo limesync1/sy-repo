@@ -183,10 +183,14 @@ export const ROUTE_COLORS = [
   { name: "Petrol", value: "#0e7490" },
   { name: "Mørk indigo", value: "#4338ca" },
   { name: "Bær", value: "#be185d" },
+  { name: "Lime", value: "#84cc16" },
+  { name: "Cyan", value: "#06b6d4" },
+  { name: "Rosa", value: "#ec4899" },
+  { name: "Brun", value: "#78350f" },
 ] as const;
 
-/** To lige rækker af syv — paletten holdes kompakt uanset vinduets bredde. */
-export const ROUTE_COLOR_GRID = "grid w-full max-w-[300px] grid-cols-7 gap-2";
+/** To lige rækker af ni — paletten holdes kompakt uanset vinduets bredde. */
+export const ROUTE_COLOR_GRID = "grid w-full max-w-[360px] grid-cols-9 gap-2";
 
 /** Bagudkompatibel farve-array (kun hex-værdier). */
 // Teal (brandfarven) først, så nye ruter som standard får den.

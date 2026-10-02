@@ -2394,18 +2394,21 @@ const Planner = () => {
       tryPromptOptimize(movedRouteId, route.name, "moved");
   };
 
-  // Flet alle aftaler fra én rute over i en anden, og slet kilden.
-  // scope === "future" → flyt også gentagne aftalers preferred_route_id over
-  // på målruten (og forskyd deres næste forekomst med dato-deltaet),
-  // præcis som "Flyt rute til ny dato" gør.
+  // Flet alle aftaler fra én rute over i en anden ved ét enkelt, atomisk
+  // kald til serverside-RPC'en `merge_routes`. Tidligere lavede klienten en
+  // sekvens af separate kald (flyt stops → opdater abonnementer/aftaler →
+  // slet kilderute → verificér), og hvert skridt blev RLS-tjekket for sig.
+  // Når stops allerede var flyttet kunne et senere skridt (fx selve
+  // sletningen) blive afvist af RLS, og brugeren så en vildledende
+  // "ingen rettigheder"-fejl selvom det meste af fletningen var gennemført.
+  // `merge_routes` kører som SECURITY DEFINER i én transaktion: enten
+  // lykkes hele fletningen, eller også ruller den helt tilbage — ingen
+  // halve fletninger, ingen spøgelses-fejl.
   const handleConfirmRouteMerge = async (scope: "single" | "future" = "single") => {
     if (!pendingRouteMerge) return;
     if (mergingRoute) return; // dobbeltklik-beskyttelse
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
-    // Struktureret diagnostik-event: gør det muligt at reproducere og
-    // efterforske spøgelses-ruter ved at have alle relevante ids og scope
-    // i én konsol-linje pr. fletning. mergeId binder log-linjerne sammen.
     const mergeId =
       (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
     const mergeLog = (event: string, payload: Record<string, unknown> = {}) => {
@@ -2425,18 +2428,36 @@ const Planner = () => {
       } catch { /* logging må aldrig fælde flow'et */ }
     };
     mergeLog("start");
-    // Persistent loading-toast så brugeren får live feedback under flytningen.
-    // Lukkes/erstattes i success eller error blok nedenfor.
+
+    // Hurtig klient-side forcheck: fang de mest åbenlyse ugyldige kald
+    // (samme rute, forskellig virksomhed) før vi overhovedet rammer
+    // serveren — RPC'en validerer det samme autoritativt, men det giver
+    // en hurtigere og mere præcis fejlbesked at fange det her først.
+    if (source.id === target.id) {
+      mergeLog("precheck_failed", { reason: "same_route" });
+      toast.error("Kan ikke flette en rute med sig selv", {
+        description: "Vælg to forskellige ruter.",
+      });
+      setMergingRoute(false);
+      return;
+    }
+    if ((source as any).business_id && (target as any).business_id &&
+      (source as any).business_id !== (target as any).business_id) {
+      mergeLog("precheck_failed", { reason: "different_business" });
+      toast.error("Ruterne hører ikke sammen", {
+        description: "Ruterne tilhører forskellige virksomheder og kan ikke flettes.",
+      });
+      setMergingRoute(false);
+      return;
+    }
+
     const toastId = toast.loading(
       `Fletter ${source.name || "rute"} → ${target.name || "rute"}…`,
       { description: scope === "future" ? "Inklusive fremtidige forekomster" : "Kun denne dato" },
     );
     // Optimistisk: flyt stops til målruten i cachen så UI'et reagerer
-    // øjeblikkeligt. Vi fjerner IKKE kilderuten optimistisk — om den slettes
-    // afgøres serverside ud fra om der stadig findes gentagne aftaler der
-    // peger på den (i scope=single). Snapshots gør rollback muligt.
+    // øjeblikkeligt. Rulles tilbage hvis RPC'en fejler.
     const calSnapshots = qc.getQueriesData<any>({ queryKey: ["route-calendar"] });
-    const sourceSnapshot: any = { ...source };
     qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: any) => {
       if (!old?.routes || !old?.stops) return old;
       return {
@@ -2446,192 +2467,45 @@ const Planner = () => {
         ),
       };
     });
+
+    let result: { moved: number; source_archived: boolean; source_kept: boolean; recurring_refs: number } | null = null;
     try {
-      const result = await routeMutationQueue.run(async () => {
-      const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
-      mergeLog("snapshot", {
-        source_stop_count: sourceStops.length,
-        source_stop_ids: sourceStops.map((s: any) => s.id),
-      });
-      // Idempotens: hvis kilderuten allerede er slettet (fx fra et tidligere
-      // klik der nåede igennem), så er der intet at flette — bare returnér.
-      const { data: existing } = await supabase
-        .from("routes")
-        .select("id")
-        .eq("id", source.id)
-        .maybeSingle();
-      if (!existing) {
-        mergeLog("idempotent_short_circuit");
-        return { sourceStops, moved: 0, alreadyMerged: true };
-      }
-      let moved = 0;
-      if (sourceStops.length > 0) {
-        const { data, error } = await supabase.rpc("move_stops_to_route", {
-          _stop_ids: sourceStops.map((s: any) => s.id),
-          _target_route_id: target.id,
+      result = await routeMutationQueue.run(async () => {
+        const { data, error } = await (supabase.rpc as any)("merge_routes", {
+          _source: source.id,
+          _target: target.id,
+          _scope: scope,
         });
         if (error) {
-          mergeLog("move_stops_failed", { error: error.message });
+          mergeLog("merge_rpc_failed", { error: error.message, code: (error as any).code });
           throw error;
         }
-        const row = Array.isArray(data) ? data[0] : data;
-        moved = Number(row?.moved_count ?? 0);
-        mergeLog("stops_moved", { moved });
-      }
-
-      // "Fremtidige aftaler også": forskyd recurring aftaler/abonnementer
-      // på kilden til målrutens dato, og re-point preferred_route_id så
-      // fremtidige projektioner tegnes på målruten i stedet.
-      if (scope === "future") {
-        const deltaMs =
-          new Date(target.route_date).getTime() - new Date(source.route_date).getTime();
-        const deltaDays = Math.round(deltaMs / 86_400_000);
-        const shiftIso = (d: string) => {
-          const nd = new Date(d);
-          nd.setDate(nd.getDate() + deltaDays);
-          return nd.toISOString();
-        };
-        const shiftDate = (d: string) => {
-          const nd = new Date(d);
-          nd.setDate(nd.getDate() + deltaDays);
-          return nd.toISOString().slice(0, 10);
-        };
-        const [subsRes, agrsRes] = await Promise.all([
-          supabase
-            .from("subscriptions")
-            .select("id, next_service_date")
-            .eq("preferred_route_id", source.id)
-            .eq("status", "active")
-            .neq("interval", "engangskøb"),
-          supabase
-            .from("agreements")
-            .select("id, start_date")
-            .eq("preferred_route_id", source.id)
-            .eq("status", "active")
-            .neq("interval", "engangskøb"),
-        ]);
-        await Promise.all([
-          ...(subsRes.data || []).map((s: any) =>
-            supabase
-              .from("subscriptions")
-              .update({
-                preferred_route_id: target.id,
-                ...(deltaDays !== 0 && s.next_service_date
-                  ? { next_service_date: shiftIso(s.next_service_date) }
-                  : {}),
-              })
-              .eq("id", s.id),
-          ),
-          ...(agrsRes.data || []).map((a: any) =>
-            supabase
-              .from("agreements")
-              .update({
-                preferred_route_id: target.id,
-                ...(deltaDays !== 0 && a.start_date
-                  ? { start_date: shiftDate(a.start_date) }
-                  : {}),
-              })
-              .eq("id", a.id),
-          ),
-        ]);
-      }
-
-      // Auto-slet kilderute KUN hvis det er sikkert:
-      //   1) Den har 0 stops tilbage (alle aftaler er flyttet).
-      //   2) Ingen aktive gentagne aftaler/abonnementer henviser stadig til
-      //      den (ellers ville projicerede "spøgelses-ruter" med kildens
-      //      navn og farve fortsætte med at dukke op i kalenderen).
-      // For scope=single bevarer vi derfor kilderuten som en tom basis-rute
-      // hvis der findes gentagne aftaler — præcis som dialogteksten lover.
-      const [stopRes, agrRes, subRes] = await Promise.all([
-        supabase
-          .from("route_stops")
-          .select("id", { count: "exact", head: true })
-          .eq("route_id", source.id),
-        supabase
-          .from("agreements")
-          .select("id", { count: "exact", head: true })
-          .eq("preferred_route_id", source.id)
-          .eq("status", "active")
-          .neq("interval", "engangskøb"),
-        supabase
-          .from("subscriptions")
-          .select("id", { count: "exact", head: true })
-          .eq("preferred_route_id", source.id)
-          .eq("status", "active")
-          .neq("interval", "engangskøb"),
-      ]);
-      const stopsLeft = stopRes.count ?? 0;
-      const recurringRefs = (agrRes.count ?? 0) + (subRes.count ?? 0);
-      mergeLog("post_move_state", {
-        stops_left_on_source: stopsLeft,
-        recurring_agreements: agrRes.count ?? 0,
-        recurring_subscriptions: subRes.count ?? 0,
+        mergeLog("merge_rpc_ok", data as any);
+        return data as { moved: number; source_archived: boolean; source_kept: boolean; recurring_refs: number };
       });
-      let sourceKept = false;
-      if (stopsLeft === 0 && recurringRefs === 0) {
-        const { error: delErr } = await supabase.from("routes").delete().eq("id", source.id);
-        if (delErr) {
-          mergeLog("source_delete_failed", { error: delErr.message });
-          throw delErr;
-        }
-        mergeLog("source_deleted");
-      } else if (stopsLeft === 0 && recurringRefs > 0 && scope === "single") {
-        // Behold kilderuten som tom basis så projektionerne stadig fungerer.
-        sourceKept = true;
-        mergeLog("source_kept_for_projections", { recurring_refs: recurringRefs });
-      }
-      // Server-side invariant-tjek: nægter at fortsætte hvis sletningen
-      // efterlod spøgelses-referencer. Raiser med detaljeret fejlbesked
-      // som vises til brugeren og logges struktureret.
-      try {
-        const { error: assertErr } = await supabase.rpc(
-          "assert_route_safely_deleted" as any,
-          { _route_id: source.id },
-        );
-        if (assertErr) {
-          mergeLog("assert_failed", { error: assertErr.message });
-          throw assertErr;
-        }
-      } catch (e: any) {
-        mergeLog("assert_threw", { error: e?.message });
-        throw e;
-      }
-      return { sourceStops, moved, alreadyMerged: false, sourceKept, recurringRefs };
-      });
-      const sourceStops = result?.sourceStops ?? [];
+
       const moved = result?.moved ?? 0;
-      const successTitle = result?.alreadyMerged
-        ? "Allerede flettet"
-        : result?.sourceKept
-          ? `${moved} aftale${moved === 1 ? "" : "r"} flettet — kilderuten beholdes`
-          : sourceStops.length === 0
-            ? "Tom rute slettet"
-            : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
+      const successTitle = result?.source_kept
+        ? `${moved} aftale${moved === 1 ? "" : "r"} flettet — kilderuten beholdes`
+        : moved === 0
+          ? "Tom rute flettet"
+          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
       toast.success(successTitle, {
         id: toastId,
-        description: result?.sourceKept
-          ? `Kilderuten beholdes som basis for ${result.recurringRefs} gentagne aftale${result.recurringRefs === 1 ? "" : "r"}.`
+        description: result?.source_kept
+          ? `Kilderuten beholdes som basis for ${result.recurring_refs} gentagne aftale${result.recurring_refs === 1 ? "" : "r"}.`
           : scope === "future"
             ? "Fremtidige forekomster af gentagne aftaler følger med."
-            : "Kilderuten blev slettet automatisk.",
+            : "Kilderuten blev arkiveret automatisk.",
         duration: 8000,
-        action: scope === "single" ? {
-          label: "Fortryd",
-          onClick: async () => {
-            try {
-              const ran = await routeHistory.undoLast();
-              if (ran) toast.success(`Fortrudt: ${ran.label}`);
-            } catch (e: any) {
-              toast.error("Kunne ikke fortryde", { description: e?.message });
-            }
-          },
-        } : undefined,
       });
+
+      // Luk dialogen med det samme ved succes.
       setPendingRouteMerge(null);
-      // Fuld resync: vent på at alle kalender- og projektions-queries
-      // er refetchet før vi forlader handleren, så UI'et aldrig viser
-      // gamle rute-data der kunne ligne en spøgelses-rute.
+
+      // Fuld resync: vent på at alle kalender- og projektions-queries er
+      // refetchet før vi forlader handleren, så UI'et aldrig viser gamle
+      // rute-data der kunne ligne en spøgelses-rute.
       try {
         await resyncRoutePlanner(qc);
         mergeLog("resync_complete");
@@ -2639,85 +2513,33 @@ const Planner = () => {
         mergeLog("resync_failed", { error: e?.message });
       }
       mergeLog("done", {
-        source_kept: !!result?.sourceKept,
-        moved: result?.moved ?? 0,
+        source_archived: !!result?.source_archived,
+        source_kept: !!result?.source_kept,
+        moved,
       });
 
       // Efter en flet er målruten næsten altid blevet større. Spørg om vi
       // skal optimere stop-rækkefølgen så den nye samlede rute kører
       // geografisk korrekt.
-      if (!result?.alreadyMerged) {
-        // Klogt: spørg KUN hvis estimatet faktisk viser meningsfuld
-        // besparelse — ellers er fletteren bare blevet en længere rute
-        // der allerede kører fornuftigt.
-        tryPromptOptimize(target.id, target.name, "merged");
-      }
-
-      // Undo (kun for "single" scope — at rulle subscription/agreement-ændringer
-      // tilbage er destruktivt og ikke worth complexity). Genopretter kildens
-      // routes-row med samme id + flytter stops tilbage.
-      if (!result?.alreadyMerged && scope === "single") {
-        const stopIdsToMoveBack = sourceStops.map((s: any) => s.id);
-        pushRouteUndo({
-          label: `Flet ${source.name || "rute"} → ${target.name || "rute"}`,
-          undo: async () => {
-            try {
-              // 1) Genopret kildens routes-row hvis den blev slettet.
-              const { data: stillExists } = await supabase
-                .from("routes")
-                .select("id")
-                .eq("id", source.id)
-                .maybeSingle();
-              if (!stillExists) {
-                const insertRow: any = {
-                  id: source.id,
-                  business_id: (source as any).business_id,
-                  route_date: source.route_date,
-                  name: source.name,
-                  color: (source as any).color ?? null,
-                  status: (source as any).status ?? "draft",
-                  employee_id: (source as any).employee_id ?? null,
-                  start_address: (source as any).start_address ?? null,
-                  base_route_id: (source as any).base_route_id ?? null,
-                  recurrence_type: (source as any).recurrence_type ?? null,
-                  recurrence_interval: (source as any).recurrence_interval ?? null,
-                  recurrence_days: (source as any).recurrence_days ?? null,
-                };
-                const { error: insErr } = await supabase.from("routes").insert(insertRow);
-                if (insErr) throw insErr;
-              }
-              // 2) Flyt stops tilbage til kilden (kun dem vi rent faktisk flyttede).
-              if (stopIdsToMoveBack.length > 0) {
-                const { error: mvErr } = await supabase.rpc("move_stops_to_route", {
-                  _stop_ids: stopIdsToMoveBack,
-                  _target_route_id: source.id,
-                });
-                if (mvErr) throw mvErr;
-              }
-              await resyncRoutePlanner(qc);
-              mergeLog("undo_complete");
-              toast.success(`Fletning fortrudt — ${source.name || "rute"} gendannet`);
-            } catch (e: any) {
-              mergeLog("undo_failed", { error: e?.message });
-              toast.error("Kunne ikke fortryde fletning", {
-                description: e?.message ?? "Prøv at genindlæse siden.",
-              });
-              throw e;
-            }
-          },
-        });
-      }
+      tryPromptOptimize(target.id, target.name, "merged");
     } catch (err: any) {
       // Rul optimistisk cache-patch tilbage hvis fletningen fejlede.
       calSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.dismiss(toastId);
       mergeLog("error", { error: err?.message, code: err?.code });
-      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke flette ruterne" });
+      toastRouteError(err, toast.error, {
+        titleFallback: "Kunne ikke flette ruterne",
+        audit: {
+          business_id: (source as any).business_id ?? null,
+          action: "merge_routes",
+          route_id: target.id,
+          scope,
+          payload: { source_id: source.id, target_id: target.id },
+        },
+      });
       // Behold dialogen åben så brugeren kan prøve igen eller annullere bevidst.
     } finally {
       setMergingRoute(false);
-      // Brug sourceSnapshot for at undgå unused-var advarsel hvis vi ikke nåede til undo-blokken.
-      void sourceSnapshot;
     }
   };
 
