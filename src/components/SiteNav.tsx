@@ -23,7 +23,7 @@ interface Props {
   right?: React.ReactNode;
 }
 
-type NavItem = { key: NonNullable<Props["active"]>; label: string; to: string; icon?: string };
+type NavItem = { key: NonNullable<Props["active"]>; label: string; to: string };
 
 /** Navigationen er delt i to publikummer, så både brugere, skærmlæsere og
  *  sprogmodeller kan se hvad der er til kunder og hvad der er til virksomheder. */
@@ -40,7 +40,7 @@ const NAV_GROUPS: { id: "customers" | "business"; label: string; items: NavItem[
     id: "business",
     label: "For virksomheder",
     items: [
-      { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed", icon: businessPanelIcon.url },
+      { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
       { key: "software", label: "Systemet", to: "/software" },
     ],
   },
@@ -302,7 +302,6 @@ const SiteNav = ({ active, right }: Props) => {
                       isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                     }`}
                   >
-                    {item.icon && <img src={item.icon} alt="" className="h-9 w-9 rounded-lg object-contain" width={36} height={36} />}
                     {item.label}
                   </SmartLink>
                 ))}

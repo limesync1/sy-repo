@@ -2,7 +2,7 @@
 // hosting. Den dynamiske edge function (sitemap) bruges stadig som fuld
 // sitemap med alle virksomheder — vi henviser til begge fra robots.txt.
 
-import { writeFileSync } from "fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { BLOG_POSTS } from "../src/pages/blog/blogPosts";
 import { BLOG_CATEGORIES } from "../src/pages/blog/blogCategories";
@@ -153,16 +153,24 @@ writeFileSync(resolve("public/sitemap-cities.xml"), buildUrlset(citiesUrls));
 const allUrls = [...pagesUrls, ...blogUrls, ...guidesUrls, ...citiesUrls];
 writeFileSync(resolve("public/sitemap.xml"), buildUrlset(allUrls));
 
-const indexXml = [
-  `<?xml version="1.0" encoding="UTF-8"?>`,
-  `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-  ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml", "sitemap-businesses.xml"].map(
-    (name) =>
-      `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
-  ),
-  `</sitemapindex>`,
-].join("\n");
-writeFileSync(resolve("public/sitemap-index.xml"), indexXml);
+const writeSitemapIndex = () => {
+  const sitemapFiles = ["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml"];
+  try {
+    const businessSitemap = readFileSync(resolve("public/sitemap-businesses.xml"), "utf8");
+    if (businessSitemap.includes("<url>")) sitemapFiles.push("sitemap-businesses.xml");
+  } catch {
+    // Ingen aktive virksomhedssider endnu — undlad et tomt child-sitemap.
+  }
+  const indexXml = [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    ...sitemapFiles.map(
+      (name) => `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
+    ),
+    `</sitemapindex>`,
+  ].join("\n");
+  writeFileSync(resolve("public/sitemap-index.xml"), indexXml);
+};
 
 console.log(
   `sitemaps written — pages:${pagesUrls.length} blog:${blogUrls.length} guides:${guidesUrls.length} cities:${citiesUrls.length} (legacy sitemap.xml:${allUrls.length})`,
@@ -224,14 +232,20 @@ try {
         description: (desc || `Book ${b.name}${where} online. Se priser, anmeldelser og åbningstider på Serviceydere.`).slice(0, 158),
       });
     }
-    writeFileSync(resolve("public/sitemap-businesses.xml"), buildUrlset(valid.map((b) => ({
-      path: `/v/${b.slug}`, changefreq: "weekly", priority: "0.8",
-      ...(b.updated_at ? { lastmod: b.updated_at.slice(0, 10) } : {}),
-    }))));
+    const businessSitemapPath = resolve("public/sitemap-businesses.xml");
+    if (valid.length > 0) {
+      writeFileSync(businessSitemapPath, buildUrlset(valid.map((b) => ({
+        path: `/v/${b.slug}`, changefreq: "weekly", priority: "0.8",
+        ...(b.updated_at ? { lastmod: b.updated_at.slice(0, 10) } : {}),
+      }))));
+    } else if (existsSync(businessSitemapPath)) {
+      unlinkSync(businessSitemapPath);
+    }
     console.log(`business seo pages: ${valid.length}`);
   }
 } catch (e) {
   console.warn("business seo fetch skipped:", (e as Error).message);
 }
+writeSitemapIndex();
 writeFileSync(resolve("scripts/.seo-routes.json"), JSON.stringify(routeMeta));
 console.log(`seo route meta written (${routeMeta.length})`);
