@@ -46,7 +46,7 @@ export const BusinessListRow = ({
           </span>
         )}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[calc(100%-6rem)] sm:basis-0">
         <div className="flex flex-wrap items-center gap-1.5">
           <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
           {b.public_id && (
@@ -111,7 +111,7 @@ export const BusinessListRow = ({
           </div>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex w-full flex-wrap items-center gap-1.5 pl-[5.25rem] sm:w-auto sm:pl-0">
         <Button size="sm" variant="outline" className="gap-1.5" onClick={() => onVerifyToggle(b)}>
           {b.is_verified ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           <span className="hidden sm:inline">{b.is_verified ? "Fjern verif." : "Verificér"}</span>
