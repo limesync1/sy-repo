@@ -32,4 +32,4 @@
 ## I gang
 - [x] Udskift headerikoner med nye simple ikoner og passende kontrast
 - [x] Gør labelstregen større og tydeligere
-- [x] Ret kun tydelige, små designfejl på offentlige sider; ingen redesign
+- [x] Bevar sektionernes oprindelige opdeling og struktur uden redesign
