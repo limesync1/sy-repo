@@ -144,7 +144,7 @@ const PlatformBusinessesTab = () => {
         title="Virksomheder"
         description={`${total} ${total === 1 ? "virksomhed" : "virksomheder"} matcher · side ${page + 1}/${totalPages}`}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <SortMenu sort={sort} onSortChange={setSort} />
             <ViewsMenu views={views} onSaveView={saveCurrentView} onApplyView={applyView} onDeleteView={deleteView} />
             <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
