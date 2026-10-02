@@ -34,4 +34,4 @@
 - [x] Gør labelstregen større og tydeligere
 - [x] Bevar sektionernes oprindelige opdeling og struktur uden redesign
 
-- [ ] Dæmp kun de skarpe flerfarvede effekter i undersidernes topområder; bevar struktur og indhold
+- [x] Dæmp kun de skarpe flerfarvede effekter i undersidernes topområder; bevar struktur og indhold

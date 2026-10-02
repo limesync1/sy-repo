@@ -1,19 +1,14 @@
 import { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
-/** Farvetoner pr. sidetype. Heroen er stadig mørk og genkendelig, men hver
- *  hovedsektion får sin egen kulør, så man visuelt kan mærke hvor man er:
- *  Find services (cyan), Få tilbud (violet), Bliv udbyder (varm), Systemet
- *  (grøn), Kundepanel (blå). */
+/** Beholdes i komponentens API, så eksisterende sider ikke skal ændres.
+ *  Det visuelle udtryk er bevidst samlet i én rolig brandtone. */
 export type HeroTone = "ocean" | "cyan" | "violet" | "amber" | "emerald" | "azure";
 
-const TONES: Record<HeroTone, { glowA: string; glowB: string; dot: string; edge: string }> = {
-  ocean:   { glowA: "hsl(var(--hero-mid))",        glowB: "hsl(var(--hero-cyan))",   dot: "hsl(var(--hero-cyan-bright))", edge: "hsl(var(--hero-cyan) / 0.55)" },
-  cyan:    { glowA: "hsl(189 100% 45%)",           glowB: "hsl(201 99% 33%)",        dot: "hsl(188 100% 55%)",            edge: "hsl(189 100% 50% / 0.6)" },
-  violet:  { glowA: "hsl(268 70% 52%)",            glowB: "hsl(210 90% 45%)",        dot: "hsl(268 85% 70%)",             edge: "hsl(268 80% 62% / 0.6)" },
-  amber:   { glowA: "hsl(30 95% 50%)",             glowB: "hsl(350 75% 48%)",        dot: "hsl(38 100% 62%)",             edge: "hsl(32 95% 55% / 0.6)" },
-  emerald: { glowA: "hsl(160 84% 39%)",            glowB: "hsl(195 90% 40%)",        dot: "hsl(158 80% 55%)",             edge: "hsl(160 80% 45% / 0.6)" },
-  azure:   { glowA: "hsl(217 91% 55%)",            glowB: "hsl(190 90% 45%)",        dot: "hsl(210 100% 70%)",            edge: "hsl(217 91% 60% / 0.6)" },
+const HERO_ACCENT = {
+  glowA: "hsl(var(--hero-mid))",
+  glowB: "hsl(var(--hero-cyan))",
+  edge: "hsl(var(--hero-cyan) / 0.32)",
 };
 
 interface PageHeroProps {
@@ -57,10 +52,9 @@ const PageHero = ({
   actions,
   backgroundImage,
   size = "default",
-  tone = "ocean",
+  tone: _tone = "ocean",
   allowOverflow = false,
 }: PageHeroProps) => {
-  const t = TONES[tone];
   const padding =
     size === "compact"
       ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
@@ -98,25 +92,24 @@ const PageHero = ({
             "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.9) 50%, hsl(var(--hero-bg) / 0.55) 100%)",
         }}
       />
-      {/* Ambient glows i sidens egen farvetone. Dæmpet på mobil, hvor de
-          ellers fylder hele skærmen og gør farverne skrigende. */}
+      {/* Diskret brandglød, ens på alle undersider. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div
-          className="absolute -top-32 right-[-8%] h-[20rem] w-[20rem] rounded-full opacity-[0.14] blur-[90px] sm:h-[28rem] sm:w-[28rem] sm:opacity-30 sm:blur-[110px]"
-          style={{ backgroundColor: t.glowA }}
+          className="absolute -top-32 right-[-8%] h-[20rem] w-[20rem] rounded-full opacity-[0.1] blur-[100px] sm:h-[28rem] sm:w-[28rem] sm:opacity-[0.16] sm:blur-[120px]"
+          style={{ backgroundColor: HERO_ACCENT.glowA }}
         />
         <div
-          className="absolute -bottom-32 -left-24 h-[16rem] w-[16rem] rounded-full opacity-[0.12] blur-[80px] sm:h-[22rem] sm:w-[22rem] sm:opacity-25 sm:blur-[100px]"
-          style={{ backgroundColor: t.glowB }}
+          className="absolute -bottom-32 -left-24 h-[16rem] w-[16rem] rounded-full opacity-[0.07] blur-[90px] sm:h-[22rem] sm:w-[22rem] sm:opacity-[0.12] sm:blur-[110px]"
+          style={{ backgroundColor: HERO_ACCENT.glowB }}
         />
         <div className="absolute inset-0 bg-noise opacity-[0.04] mix-blend-overlay sm:opacity-[0.05]" />
       </div>
       </div>
-      {/* Farvet bundkant — binder heroen sammen med sidens farvetone. */}
+      {/* Diskret brandkant mellem topområdet og sidens indhold. */}
       <div
         aria-hidden
         className={`absolute inset-x-0 bottom-0 h-px sm:h-1 ${allowOverflow ? "" : "z-10"}`}
-        style={{ backgroundImage: `linear-gradient(90deg, ${t.edge}, transparent 85%)` }}
+        style={{ backgroundImage: `linear-gradient(90deg, ${HERO_ACCENT.edge}, transparent 85%)` }}
       />
 
 
