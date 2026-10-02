@@ -36,4 +36,4 @@
 
 - [x] Dæmp kun de skarpe flerfarvede effekter i undersidernes topområder; bevar struktur og indhold
 - [x] Forenkle rutefarver til to overskuelige rækker og forhindre arkiverede spøgelsesruter
-- [ ] Gør print af ruter overskueligt med dato/periode, indholdsvalg og detaljeret forhåndsvisning
+- [x] Gør print af ruter overskueligt med dato/periode, indholdsvalg og detaljeret forhåndsvisning

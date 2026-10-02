@@ -5792,25 +5792,33 @@ const Planner = () => {
       <RoutePrintDialog
         open={printOpen}
         onOpenChange={setPrintOpen}
-        date={date}
+        initialDate={date}
         businessName={(business as any)?.name}
-        routes={(calendarRoutes
-          .filter((r: any) => r.route_date === date)
-          .map((r: any): PrintRoute => ({
+        routes={calendarRoutes.map((r: any): PrintRoute => ({
             id: r.id,
+            date: r.route_date,
             name: r.name || r.display_name || "Rute",
             color: r.color,
-            employeeName: (r.employees?.[0]?.name) ?? null,
+            employeeNames: (r.employees ?? r.attachedEmployees ?? [])
+              .map((employee: any) => employee?.name)
+              .filter(Boolean),
+            startAddress: r.start_address ?? null,
+            distanceKm: r.total_distance_km ?? null,
+            plannedStartTime: r.planned_start_time ?? null,
             stops: [...(r.stops ?? [])]
               .sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0))
               .map((s: any) => ({
+                id: s.id,
                 customerName: s.customer_name ?? "—",
-                address: s.address ?? null,
-                city: null,
+                address: s.full_address ?? s.address ?? null,
                 phone: s.customer_phone ?? null,
                 notes: s.notes ?? null,
+                serviceSummary: s.service_summary ?? null,
+                plannedArrival: s.planned_arrival ?? null,
+                plannedDeparture: s.planned_departure ?? null,
+                durationMinutes: s.duration_minutes ?? null,
               })),
-          })))}
+          }))}
       />
       )}
       {dayDetailOpen && (
