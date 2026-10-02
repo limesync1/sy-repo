@@ -153,10 +153,18 @@ writeFileSync(resolve("public/sitemap-cities.xml"), buildUrlset(citiesUrls));
 const allUrls = [...pagesUrls, ...blogUrls, ...guidesUrls, ...citiesUrls];
 writeFileSync(resolve("public/sitemap.xml"), buildUrlset(allUrls));
 
+const sitemapFiles = ["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml"];
+try {
+  const businessSitemap = await import("fs").then(({ readFileSync }) => readFileSync(resolve("public/sitemap-businesses.xml"), "utf8"));
+  if (businessSitemap.includes("<url>")) sitemapFiles.push("sitemap-businesses.xml");
+} catch {
+  // Ingen aktive virksomhedssider endnu — undlad et tomt child-sitemap.
+}
+
 const indexXml = [
   `<?xml version="1.0" encoding="UTF-8"?>`,
   `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-  ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml", "sitemap-businesses.xml"].map(
+  ...sitemapFiles.map(
     (name) =>
       `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
   ),
