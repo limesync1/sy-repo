@@ -74,4 +74,4 @@
 - [x] Centrér søgeikonet og forstør forslagets ikoner uden ikonflader
 - [x] Opdatér gamle blå sektioner til den nye brandblå
 - [x] Forbedr virksomhedspanelets Overblik i det fælles paneldesign
-- [ ] Kontrollér desktop, mobil, runtime og build
+- [x] Kontrollér desktop, mobil, runtime og build
