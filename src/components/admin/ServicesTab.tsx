@@ -316,7 +316,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
             <DialogDescription className="text-xs leading-snug">
               {editingService
                 ? "Opdater detaljer, pris og intervaller uden at forlade servicekataloget."
-                : "Opret servicen i et fokuseret modul — resten af siden dæmpes imens."}
+                : "Opret en ny service i fire korte trin."}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto bg-secondary/20 p-4 sm:p-5">

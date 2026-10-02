@@ -426,7 +426,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
               Ny medarbejder
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
-              Opret medarbejderen i et fokuseret modul — resten af panelet dæmpes imens.
+              Udfyld navn og e-mail — medarbejderen får en invitation med login.
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto bg-secondary/20 px-4 py-4 sm:px-5">
