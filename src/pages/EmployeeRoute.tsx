@@ -322,7 +322,7 @@ const FlyToStop = forwardRef<never, { target: [number, number] | null }>(({ targ
 FlyToStop.displayName = "FlyToStop";
 
 
-const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
+const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`);
 /** Format total minutes as natural Danish route time, e.g. "3 t. 45 min.". */
 const formatHoursMin = (mins: number | null | undefined): string => {
   if (mins == null || !Number.isFinite(mins)) return "—";
@@ -2232,7 +2232,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <div className="px-2 py-2.5">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1)} km` : "—"}
+                      {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1).replace(".", ",")} km` : "—"}
                     </p>
                   </div>
                 </div>

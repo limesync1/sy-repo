@@ -74,7 +74,7 @@ export default function InboxList({
               f === "unread" ? "Ulæst" :
               f === "open" ? "Åbne" :
               f === "closed" ? "Lukket" :
-              `Snoozed${snoozedCount ? ` (${snoozedCount})` : ""}`;
+              `Udsat${snoozedCount ? ` (${snoozedCount})` : ""}`;
             return (
               <button
                 key={f} onClick={() => onFilter(f)}
@@ -142,8 +142,8 @@ export default function InboxList({
                     </span>
                   )}
                   {snoozes[c.id] && (
-                    <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground" title={`Snoozed indtil ${new Date(snoozes[c.id]).toLocaleString("da-DK")}`}>
-                      <BellOff className="h-2.5 w-2.5" /> Snoozed
+                    <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground" title={`Udsat indtil ${new Date(snoozes[c.id]).toLocaleString("da-DK")}`}>
+                      <BellOff className="h-2.5 w-2.5" /> Udsat
                     </span>
                   )}
                   {c.status === "closed" && (

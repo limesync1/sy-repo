@@ -150,7 +150,7 @@ export default function PlatformRouteEventsTab() {
           </SelectTrigger>
           <SelectContent>
             {EVENT_TYPES.map((t) => (
-              <SelectItem key={t} value={t}>{t === "all" ? "Alle event-typer" : t}</SelectItem>
+              <SelectItem key={t} value={t}>{t === "all" ? "Alle hændelsestyper" : t}</SelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -66,7 +66,7 @@ export function FilterBar(props: {
         title={watch.length === 0 ? "Tilføj admins til watch via stjernen på rækker" : `Vis kun handlinger fra ${watch.length} watched admin${watch.length === 1 ? "" : "s"}`}
       >
         <Star className={cn("h-3.5 w-3.5 mr-1.5", watchOnly && "fill-current")} />
-        Watch ({watch.length})
+        Overvåg ({watch.length})
       </Button>
     </div>
     {watch.length > 0 && (
