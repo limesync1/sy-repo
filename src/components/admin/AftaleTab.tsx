@@ -2623,7 +2623,7 @@ const AftaleTab = ({
                     type="button"
                     onClick={() => setNewRouteColor(c.value)}
                     title={c.name}
-                    className={`relative aspect-square rounded transition-all hover:scale-110 ring-offset-1 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
+                    className={`relative aspect-square w-full rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background shadow-sm ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30"}`}
                     style={{ background: c.value }}
                     aria-label={`Vælg farve ${c.name}`}
                   />

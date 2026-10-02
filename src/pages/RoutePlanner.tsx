@@ -3414,7 +3414,7 @@ const Planner = () => {
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square w-full max-w-9 justify-self-center rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background shadow-sm ${
+                            className={`relative aspect-square w-full rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background shadow-sm ${
                               newRouteColor === c.value
                                 ? "ring-2 ring-foreground scale-105 shadow-md"
                                 : "hover:ring-2 hover:ring-foreground/40"
