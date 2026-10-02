@@ -163,7 +163,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
           <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
             <Section icon={<Mail />} title="Beskeder om nye leads">
               <div className="space-y-3">
-              <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-4">
+              <div className="flex items-start justify-between gap-4">
               <div>
                 <Label>E-mail ved ny lead</Label>
                 <p className="text-xs text-muted-foreground">Sendes til {ownerEmail || "virksomhedens e-mail"} når en ny lead kommer ind.</p>
@@ -171,7 +171,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               <Switch checked={s.lead_emails} onCheckedChange={(v) => setS({ ...s, lead_emails: v })} />
               </div>
 
-              <div className="space-y-2 rounded-md border border-border bg-card p-4">
+              <div className="space-y-2 border-t border-border pt-3">
               <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" /><Label>Ekstra modtagere</Label></div>
               <p className="text-xs text-muted-foreground">Vælg medarbejdere eller tilføj e-mails. Du kan vælge op til 5.</p>
               {staff.filter((m) => m.email !== ownerEmail).length > 0 && (
@@ -196,7 +196,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
 
             <Section icon={<BriefcaseBusiness />} title="Hvilke leads vil du modtage?">
               <div className="space-y-3">
-              <div className="space-y-2 rounded-md border border-border bg-card p-4">
+              <div className="space-y-2">
               <Label>Brancher</Label>
               <p className="text-xs text-muted-foreground">
                 {ownCategories.length ? "Foreslået ud fra jeres egne services. Tryk for at slå til eller fra. Ingen valgt = alle jeres brancher." : "Opret services, så foreslår vi automatisk jeres brancher."}
@@ -219,7 +219,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               </div>
               </div>
 
-              <div className="space-y-3 rounded-md border border-border bg-card p-4">
+              <div className="space-y-3 border-t border-border pt-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /><Label>Maks. afstand</Label></div>
                 <span className="text-sm font-semibold tabular-nums">{s.lead_max_km ? `${s.lead_max_km} km` : "Hele landet"}</span>
