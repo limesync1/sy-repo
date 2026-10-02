@@ -248,7 +248,7 @@ const SiteNav = ({ active, right }: Props) => {
                               onClick={() => { handleSelectPanel(r.to); navigate(r.to); }}
                               className={preferredRole.to === r.to ? "bg-secondary" : ""}
                             >
-                               <span className="mr-2"><PanelIcon role={r} selected={preferredRole.to === r.to} size="lg" /></span>{r.label}
+                               <span className="mr-2"><PanelIcon role={r} selected={false} size="lg" /></span>{r.label}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
@@ -361,7 +361,7 @@ const SiteNav = ({ active, right }: Props) => {
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
                     className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
-                     <PanelIcon role={preferredRole} selected size="lg" />Gå til {preferredRole.label}
+                     <PanelIcon role={preferredRole} selected={false} size="lg" />Gå til {preferredRole.label}
                   </Button>
                 )}
                 <Button

@@ -3939,14 +3939,13 @@ const Planner = () => {
                         }
                         if (isCompactRouteLayout) {
                           return (
-                            <p className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
-                              <Inbox className="h-4 w-4 shrink-0" /> Alle aftaler er planlagt.
+                            <p className="px-4 py-3 text-sm text-muted-foreground">
+                              Alle aftaler er planlagt.
                             </p>
                           );
                         }
                         return (
                           <EmptyState
-                            icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt"
                             description="Nye aftaler lander her, så snart de oprettes."
                             action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
