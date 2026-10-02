@@ -4,7 +4,7 @@
 - Erstat headerens panel- og loginikoner med de seks nye, simple ikoner.
 - Tilpas ikonfarver automatisk til lyse og mørke knapflader.
 - Gør den animerede labelstreg større uden at dominere teksten.
-- Ret synlige problemer med kontrast, hierarki, kortkanter og billedvisning på offentlige sider.
+- Ret kun små, tydelige problemer med kontrast, kanter og billedvisning på offentlige sider; behold nuværende opbygning.
 
 ## Teknisk
 - Genbrug SiteNav og UiArtwork, og behold eksisterende navigation og adfærd.
