@@ -30,7 +30,7 @@ const NumberStepIcon = ({ number, animated = false, className = "h-9 w-9" }: Num
         alt=""
         width={400}
         height={400}
-        className={`h-full w-full object-contain ${animated ? "motion-safe:hidden" : ""}`}
+        className={`h-full w-full object-contain ${animated ? "motion-safe:group-hover/step:hidden motion-safe:group-focus-within/step:hidden" : ""}`}
         loading="lazy"
         decoding="async"
       />
@@ -40,7 +40,7 @@ const NumberStepIcon = ({ number, animated = false, className = "h-9 w-9" }: Num
           alt=""
           width={400}
           height={400}
-          className="hidden h-full w-full object-contain motion-safe:block"
+          className="hidden h-full w-full object-contain motion-safe:group-hover/step:block motion-safe:group-focus-within/step:block"
           loading="lazy"
           decoding="async"
         />

@@ -589,7 +589,7 @@ const RequestQuote = () => {
                   { n: 2 as const, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: viMatcherIcon.url },
                   { n: 3 as const, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: sammenlignIcon.url },
                 ].map((s) => (
-                  <li key={s.n} className="flex gap-3">
+                  <li key={s.n} className="group/step flex gap-3">
                     <div className="relative h-14 w-14 shrink-0">
                       <NumberStepIcon number={s.n} animated className="h-14 w-14" />
                       <img src={s.icon} alt="" width={24} height={24} className="absolute -bottom-1 -right-1 h-7 w-7 rounded-lg border border-border bg-card object-contain p-0.5 shadow-sm" loading="lazy" decoding="async" />

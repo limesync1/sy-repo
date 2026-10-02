@@ -817,7 +817,7 @@ const Section = ({
   number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
   <section
-    className={`group relative rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md sm:p-6 ${
+    className={`group/step relative rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md sm:p-6 ${
       done ? "border-accent/40" : "border-border"
     }`}
   >
