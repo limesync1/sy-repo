@@ -295,7 +295,7 @@ export const RouteChecklistView = ({
                         className={cn(
                           "relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums",
                           done && "border-success bg-success text-success-foreground",
-                          current && "border-foreground bg-foreground text-background",
+                          current && "border-2 border-accent bg-card text-foreground",
                           !done && !current && "border-border bg-card text-muted-foreground",
                         )}
                       >
