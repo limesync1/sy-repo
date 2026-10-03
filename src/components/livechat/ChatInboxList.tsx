@@ -55,7 +55,7 @@ const ChatInboxList = ({ chats, activeKey, onSelect, onDelete }: Props) => {
   const businessChats = chats.filter((chat) => chat.scope === "business");
 
   if (chats.length === 0) {
-    return <p className="px-3 py-4 text-[12px] text-muted-foreground">Ingen gemte samtaler endnu.</p>;
+    return <div className="px-3 py-6 text-center text-[12px] text-muted-foreground"><NoItemsIcon className="mb-2 h-12 w-12" />Ingen gemte samtaler endnu.</div>;
   }
 
   return (
@@ -73,7 +73,7 @@ const ChatInboxList = ({ chats, activeKey, onSelect, onDelete }: Props) => {
             onDelete={() => onDelete(platformChat)}
           />
         ) : (
-          <p className="rounded-xl border border-dashed border-border px-3 py-3 text-[12px] text-muted-foreground">Ingen samtale med kundeservice.</p>
+          <div className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-[12px] text-muted-foreground"><NoItemsIcon className="mb-2 h-10 w-10" />Ingen samtale med kundeservice.</div>
         )}
       </section>
 

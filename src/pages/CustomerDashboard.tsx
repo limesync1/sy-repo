@@ -82,9 +82,8 @@ const isEffectiveOneTimeOrder = (order: any) => {
 /*  Abonnementer / Favoritter                       */
 /* ════════════════════════════════════════════════ */
 const EmptyPanel = ({
-  icon, title, description, primary, secondary,
+  title, description, primary, secondary,
 }: {
-  icon: React.ReactNode;
   title: string;
   description: string;
   primary: { to: string; label: string; icon?: React.ReactNode };
@@ -92,9 +91,7 @@ const EmptyPanel = ({
 }) => (
   <Card className="rounded-2xl border-dashed border-border bg-card">
     <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center sm:py-16">
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-muted-foreground/60">
-        {icon}
-      </div>
+      <NoItemsIcon className="mb-5 h-16 w-16" />
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
       <div className="mt-6 flex flex-col gap-2 sm:flex-row">
@@ -214,7 +211,6 @@ const FavoritesView = () => {
   if (!favorites || favorites.length === 0) {
     return (
       <EmptyPanel
-        icon={<Heart className="h-7 w-7" />}
         title="Du har ingen favoritter endnu"
         description="Tryk på hjertet på en virksomhed for at gemme den her — så har du hurtig adgang til dem du holder af."
         primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
@@ -360,7 +356,6 @@ const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
   if (!orders || orders.length === 0) {
     return (
       <EmptyPanel
-        icon={<NoItemsIcon className="h-full w-full" />}
         title="Ingen bestillinger endnu"
         description="Find en virksomhed og bestil en service direkte — eller modtag tilbud fra flere udbydere på én gang."
         primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
@@ -518,7 +513,7 @@ const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
         </div>
       ) : (
         <div className="py-12 text-center">
-          <FileText className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
+          <NoItemsIcon className="mb-3" />
           <p className="text-sm text-muted-foreground">Ingen bestillinger i denne kategori</p>
         </div>
       )}
@@ -1038,7 +1033,6 @@ const SubscriptionsView = () => {
   if (visibleSubscriptions.length === 0) {
     return (
       <EmptyPanel
-        icon={<Package className="h-7 w-7" />}
         title="Ingen aktive abonnementer"
         description="Tilmeld dig en tilbagevendende service som rengøring, haveservice eller vinduespudsning — så slipper du for at huske at bestille hver gang."
         primary={{ to: "/virksomheder", label: "Find tilbagevendende services", icon: <CalendarClock className="h-4 w-4" /> }}
@@ -1758,7 +1752,6 @@ const MyReviewsView = () => {
   if (reviews.length === 0) {
     return (
       <EmptyPanel
-        icon={<Star className="h-7 w-7" />}
         title="Du har ikke skrevet anmeldelser endnu"
         description="Når du har brugt en service, kan du dele din oplevelse — det hjælper både virksomheden og andre kunder."
         primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
