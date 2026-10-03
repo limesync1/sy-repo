@@ -104,7 +104,6 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             </Button>
           )}
         </div>
-        </div>
         <div className="planner-overlay-body bg-secondary/20 px-3 py-2 sm:px-4">
         <div className="mb-2.5 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
           <div className="h-full rounded-full bg-accent transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${pct}%` }} />
