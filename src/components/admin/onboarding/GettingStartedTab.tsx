@@ -108,8 +108,8 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           <div className="h-full rounded-full bg-accent transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${pct}%` }} />
         </div>
         <div
-          className="grid gap-1.5 overflow-x-auto pb-1"
-          style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+          className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1 [scrollbar-width:thin]"
+           
           aria-label="Vælg trin"
         >
           {steps.map((s, i) => {
@@ -123,7 +123,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 onClick={() => setSelected(s.id)}
                 aria-current={isActive ? "step" : undefined}
                 className={cn(
-                  "group h-auto min-w-0 justify-start gap-2 rounded-md border px-2.5 py-2 text-left transition-colors",
+                  "group h-auto w-32 sm:w-40 shrink-0 justify-start gap-2 rounded-md border px-2.5 py-2 text-left transition-colors",
                   isActive
                     ? "border-accent/40 bg-accent/10 text-foreground hover:bg-accent/15 hover:text-foreground"
                     : "border-transparent bg-secondary/50 text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground",
