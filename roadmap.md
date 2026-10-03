@@ -1,5 +1,15 @@
 # Roadmap
 
+## Rutekørsel: samlet HUD- og UX-forbedring
+- [ ] Vis samlet afslutningsoversigt og fjern automatisk retur
+- [ ] Ensret køretid, kundetid og ankomst i guide og tjekliste
+- [ ] Tilpas kortets zoom og synlige fokusområde til HUD
+- [ ] Ret mørk tilstand, stopvinduer, fejlbeskeder og defekte nye ikoner
+- [ ] Gør navigation automatisk og tilføj tydelig Fortryd udførsel ved Information
+- [ ] Vis stopoplysninger forankret ved tidslinjen uden at flytte kortet
+- [ ] Test guide, tjekliste, modaler, afslutning og fortryd på mobil med isolerede testdata
+- [ ] Fysisk kontrol i bil og hørbar lyd på telefon — kræver brugerens telefon og kørsel
+
 ## SEO-fund 2026-10-03
 - [x] Ret Tilbuds fire trin til semantiske overskrifter uden visuelle ændringer
 - [x] Kontrollér overskrifter i browseren og registrér rettelsen
