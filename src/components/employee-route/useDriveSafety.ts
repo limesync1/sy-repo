@@ -83,6 +83,17 @@ export function useNightMode() {
   return { night, toggle };
 }
 
+/** Applies dark theme to the document root while active, so portal windows (stop sheet, dialogs) follow night mode. */
+export function useRootDark(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const root = document.documentElement;
+    const had = root.classList.contains("dark");
+    root.classList.add("dark");
+    return () => { if (!had) root.classList.remove("dark"); };
+  }, [active]);
+}
+
 /** Combines every location/network problem into one prioritized, Danish list. */
 export function useDriveIssues(opts: {
   active: boolean;

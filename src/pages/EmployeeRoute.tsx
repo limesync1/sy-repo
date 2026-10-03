@@ -54,7 +54,7 @@ import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
 import { ArrowUp, ArrowDown, Zap } from "lucide-react";
-import { useDriveIssues, useWakeLock, useNightMode } from "@/components/employee-route/useDriveSafety";
+import { useDriveIssues, useWakeLock, useNightMode, useRootDark } from "@/components/employee-route/useDriveSafety";
 import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 
@@ -597,6 +597,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   useWakeLock(driving && pageVisible);
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
   const { night, toggle: toggleNight } = useNightMode();
+  useRootDark(night && routeStarted);
   // Uden centrér-knap: kortet vender selv tilbage til at følge dig kort
   // efter at du har kigget rundt med fingeren.
   useEffect(() => {
@@ -1563,6 +1564,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onComplete={handleComplete}
         onUndo={handleUndo}
         startedAt={routeStartedAt ?? getRouteStartedAt(routeId)}
+        etaLabel={etaLabel}
         onNavigate={handleNavigate}
         onSwitchToGuide={() => {
           setRunMode("guide");
@@ -2071,7 +2073,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   const current = i === nextStopIdx;
                   return (
                     <button type="button" key={s.id} onClick={() => setTimelineTip((t) => (t === s.id ? null : s.id))} className="relative flex h-6 w-6 items-center justify-center" aria-label={`Stop ${i + 1}: ${s.customer_name || "Stop"}${done ? ", udført" : current ? ", aktuelt" : ""}`}>
-                      {current && <span className={cn("absolute inset-0 animate-ping rounded-full", isAtNextStop ? "bg-success/60" : "bg-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
+                      {current && <span className={cn("route-soft-pulse absolute inset-0 rounded-full", isAtNextStop ? "bg-success/60" : "bg-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
                       <span className={cn(
                         "relative flex items-center justify-center rounded-full",
                         done ? "h-3.5 w-3.5 bg-success text-success-foreground" : current ? cn("h-3.5 w-3.5", isAtNextStop ? "bg-success" : "bg-accent") : "h-2.5 w-2.5 bg-muted-foreground/40",
