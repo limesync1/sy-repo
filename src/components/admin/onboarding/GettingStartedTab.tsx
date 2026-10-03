@@ -1,4 +1,4 @@
-import noItemsIcon from "@/assets/content-icons/ingen-emner-generel.svg.asset.json";
+import noVideoIcon from "@/assets/content-icons/video-kommer-snart.svg.asset.json";
 // "Kom godt i gang" — fast fane i virksomhedspanelet.
 // Bygget som ét panelvindue (samme header/body/footer-flader som
 // ruteplanlæggerens vinduer) og målt til præcis den synlige skærmhøjde, så
@@ -53,7 +53,7 @@ const StepVideo = ({ url, title }: { url?: string; title: string }) => {
   if (!url) {
     return (
       <div className="flex h-full min-h-[7rem] w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-card text-muted-foreground">
-        <img src={noItemsIcon.url} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
+        <img src={noVideoIcon.url} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
         <p className="text-sm font-medium">Video kommer snart</p>
       </div>
     );
