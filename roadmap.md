@@ -1,9 +1,10 @@
 # Roadmap
 
 ## Aftalevinduer og nyt visningsikon
-- [ ] Ensret de faktiske aftalevinduer på Aftaler, Min dag og rutekørsel med samme header og vinduesflader
-- [ ] Brug det vedhæftede Visning af aftale-ikon i alle aftaledetaljer
-- [ ] Kontrollér åbne vinduer, ikon og mobilvisning i browseren
+- [x] Ensret de faktiske aftalevinduer på Aftaler, Min dag og rutekørsel med samme header og vinduesflader
+- [x] Brug det vedhæftede Visning af aftale-ikon i alle aftaledetaljer
+- [x] Kontrollér Aftaler-vinduet og indlæst ikon på computer og mobil i browseren
+- [ ] Kontrollér medarbejdervinduet under aktiv rutekørsel — Patrick Nissen har ingen ruter på den valgte dag
 
 - [x] Redesign aftaledetaljer og deres åbne/lukke-flow på rutekort, liste og Statistik
 - [x] Opdatér Medarbejdere-siden med ensartede handlinger, tooltips og nyt paneldesign
