@@ -17,8 +17,11 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     const googleMapsApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
+    // Virksomhedens egen Google-servernøgle bruges først, så adresseopslag
+    // virker på det egne domæne; ellers falder vi tilbage til forbindelsen.
+    const ownGoogleKey = Deno.env.get("GOOGLE_API_KEY");
     if (!authHeader || !supabaseUrl || !anonKey) return json({ error: "Ikke logget ind" }, 401);
-    if (!lovableApiKey || !googleMapsApiKey) return json({ error: "Adresseopslaget er ikke konfigureret" }, 503);
+    if (!ownGoogleKey && (!lovableApiKey || !googleMapsApiKey)) return json({ error: "Adresseopslaget er ikke konfigureret" }, 503);
 
     const authClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -30,14 +33,17 @@ Deno.serve(async (req) => {
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) return json({ error: "Indtast en gyldig adresse" }, 400);
 
-    const url = new URL("https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
+    const url = new URL(ownGoogleKey
+      ? "https://maps.googleapis.com/maps/api/geocode/json"
+      : "https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
     url.searchParams.set("address", parsed.data.address);
     url.searchParams.set("region", "dk");
     url.searchParams.set("language", "da");
-    const response = await fetch(url, {
+    if (ownGoogleKey) url.searchParams.set("key", ownGoogleKey);
+    const response = await fetch(url, ownGoogleKey ? undefined : {
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": googleMapsApiKey,
+        "X-Connection-Api-Key": googleMapsApiKey!,
       },
     });
 
