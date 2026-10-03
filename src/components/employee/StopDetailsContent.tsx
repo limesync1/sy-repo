@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
-  Package, Send, Undo2,
+  Package, Send, Undo2, KeyRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -212,6 +212,7 @@ export const StopDetailsContent = ({
 
   const fallbackSummary = !tasks.length && stop.service_summary ? stripPrices(stop.service_summary) : null;
   const customerNote: string | null = (order as any)?.notes || null;
+  const doorCode = customerNote?.match(/(?:dørkode|portkode|adgangskode|kode)\s*[:=–-]?\s*([\dA-Za-z#*]{3,12})/i)?.[1];
 
   const orderTotal = useMemo(() => {
     if (!order) return 0;
@@ -320,7 +321,7 @@ export const StopDetailsContent = ({
         
       </div>
 
-      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-4 p-4 sm:space-y-5 sm:p-5">
+      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-3 p-3 sm:space-y-4 sm:p-5">
         {!readOnly && (fullAddress || stop.customer_phone) && (
           <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kontakt og navigation">
             <div className={stop.customer_phone && fullAddress && onNavigate ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
@@ -338,6 +339,21 @@ export const StopDetailsContent = ({
           </Section>
         )}
 
+        {customerNote?.trim() && (
+          <Section icon={<MessageSquare className="h-3.5 w-3.5" />} title="Oplysninger fra kunden">
+            {doorCode && (
+              <div className="flex flex-wrap items-center gap-3 border-b border-border pb-3">
+                <KeyRound className="h-5 w-5 shrink-0 text-accent" />
+                <div><p className="text-xs text-muted-foreground">Dørkode</p><p className="font-mono text-xl font-semibold tracking-normal text-foreground">{doorCode}</p></div>
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="mb-1 text-xs font-medium text-muted-foreground">Bemærkninger</p>
+              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">{customerNote}</p>
+            </div>
+          </Section>
+        )}
+
         {/* Statistik viser kun afsluttet faktisk tidsforbrug. Aktiv status og
             starttid hører alene til medarbejderens aktive rutekørsel. */}
         {(!readOnly || (!isWorking && totalDurationSeconds > 0)) && (
@@ -346,12 +362,12 @@ export const StopDetailsContent = ({
             title={readOnly ? "Faktisk tidsforbrug" : "Tidsregistrering"}
             hint={!readOnly && isWorking ? "I gang" : totalDurationSeconds > 0 ? durationLabel : undefined}
           >
-            <div className="rounded-md border bg-card p-3 flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 {!readOnly && isWorking ? (
-                  <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground">
+                  <div className="flex flex-wrap items-baseline gap-2 text-sm font-medium text-muted-foreground">
                     <span>Tidsregistrering aktiv</span>
-                    <span className="font-mono font-semibold tabular-nums text-foreground">{durationLabel}</span>
+                    <span className="font-mono text-xl font-semibold tabular-nums text-foreground">{durationLabel}</span>
                   </div>
                 ) : totalDurationSeconds > 0 ? (
                   <p className="text-sm text-muted-foreground">
@@ -371,7 +387,7 @@ export const StopDetailsContent = ({
                 <Button
                   size="sm"
                   variant={isWorking ? "outline" : "default"}
-                  className="h-9 gap-2 shrink-0"
+                  className="h-11 w-full shrink-0 gap-2 sm:w-auto"
                   onClick={isWorking ? handleEndWork : handleStartWork}
                   disabled={startStopTime.isPending || endStopTime.isPending}
                 >
@@ -420,7 +436,7 @@ export const StopDetailsContent = ({
                   {t.selections.length > 0 && (
                     <div className="mt-2 rounded-md bg-secondary/40 divide-y divide-border/50">
                       {t.selections.map((sel, k) => (
-                        <div key={k} className="flex justify-between px-2.5 py-1 text-[11px]">
+                        <div key={k} className="flex flex-wrap justify-between gap-x-3 gap-y-1 px-2.5 py-1 text-[11px]">
                           <span className="text-muted-foreground">{sel.label}</span>
                           <span className="font-medium text-foreground tabular-nums">{sel.value}</span>
                         </div>
@@ -441,16 +457,6 @@ export const StopDetailsContent = ({
           )}
         </Section>
 
-        {customerNote && customerNote.trim() && (
-          <Section
-            icon={<MessageSquare className="h-3.5 w-3.5" />}
-            title="Besked fra kunden"
-          >
-            <div className="rounded-md border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
-              <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
-            </div>
-          </Section>
-        )}
 
         {orderTotal > 0 && (
           <Section

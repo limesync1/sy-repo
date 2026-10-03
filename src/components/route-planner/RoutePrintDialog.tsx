@@ -93,6 +93,7 @@ const shortDateLabel = (date: string) => format(parseISO(date), "d. MMM", { loca
 
 export default function RoutePrintDialog({ open, onOpenChange, initialDate, routes, businessName, title = "Print ruter" }: Props) {
   const initial = parseISO(initialDate);
+  const [mobileView, setMobileView] = useState<"preview" | "options">("preview");
   const [mode, setMode] = useState<"day" | "range">("day");
   const [range, setRange] = useState<DateRange>({ from: initial, to: initial });
   const [options, setOptions] = useState<PrintOptions>(() => {
@@ -108,6 +109,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
   useEffect(() => {
     if (!open) return;
     const selected = parseISO(initialDate);
+    setMobileView("preview");
     setMode("day");
     setRange({ from: selected, to: selected });
   }, [initialDate, open]);
@@ -214,21 +216,25 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay flex h-[min(92vh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-md p-0">
+      <DialogContent className="planner-overlay flex h-[min(94dvh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-md p-0">
         <div className="planner-overlay-header flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3 pr-14 sm:px-5">
           <div className="min-w-0">
             <DialogTitle className="truncate text-sm font-semibold text-foreground">{title}</DialogTitle>
-            <DialogDescription className="mt-0.5 truncate text-xs text-muted-foreground">Vælg periode og indhold, før du printer eller gemmer som PDF.</DialogDescription>
+            <DialogDescription className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Vælg periode og indhold, før du printer eller gemmer som PDF.</DialogDescription>
           </div>
-          <Button size="sm" onClick={() => window.print()} disabled={selectedRoutes.length === 0} className="shrink-0 gap-2">
+          <Button size="sm" onClick={() => window.print()} disabled={selectedRoutes.length === 0} className="hidden shrink-0 gap-2 lg:inline-flex">
             <Printer className="h-4 w-4" />
             <span className="hidden sm:inline">Print / Gem som PDF</span>
             <span className="sm:hidden">Print</span>
           </Button>
         </div>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="overflow-y-auto border-b border-border bg-secondary/20 p-4 lg:border-b-0 lg:border-r">
+        <div className="grid shrink-0 grid-cols-2 gap-1 border-b border-border p-2 lg:hidden" role="group" aria-label="Printvisning">
+          <Button variant={mobileView === "preview" ? "secondary" : "ghost"} className="h-11 gap-2" aria-pressed={mobileView === "preview"} onClick={() => setMobileView("preview")}><FileText className="h-4 w-4" />Forhåndsvisning</Button>
+          <Button variant={mobileView === "options" ? "secondary" : "ghost"} className="h-11 gap-2" aria-pressed={mobileView === "options"} onClick={() => setMobileView("options")}><Settings2 className="h-4 w-4" />Printvalg</Button>
+        </div>
+        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className={cn("min-h-0 overflow-y-auto overscroll-contain border-border bg-secondary/20 p-3 lg:block lg:border-r lg:p-4", mobileView !== "options" && "hidden")}>
             <section>
               <div className="mb-3 flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -294,7 +300,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
             </section>
           </aside>
 
-          <main className="min-h-0 overflow-y-auto bg-secondary/30 p-3 sm:p-5">
+          <main className={cn("min-h-0 overflow-y-auto overscroll-contain bg-secondary/30 p-3 sm:p-5 lg:block", mobileView !== "preview" && "hidden")}>
             <div className="mx-auto mb-3 flex max-w-[210mm] flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs">
               <span className="font-medium capitalize text-foreground">{periodLabel}</span>
               <span className="tabular-nums text-muted-foreground">
@@ -389,6 +395,10 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
               ))}
             </div>
           </main>
+        </div>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
+          <span className="min-w-0 text-xs text-muted-foreground">{selectedRoutes.length} {selectedRoutes.length === 1 ? "rute" : "ruter"} · {totalStops} stop</span>
+          <Button className="h-11 shrink-0 gap-2" onClick={() => window.print()} disabled={selectedRoutes.length === 0}><Printer className="h-4 w-4" />Print / PDF</Button>
         </div>
       </DialogContent>
     </Dialog>
