@@ -36,7 +36,7 @@ const options: Array<{
     mode: "guide",
     illustration: "drivingGuide",
     title: "Kørselsguide",
-    body: "Kort med rutelinje, afstand til næste stop og talte drej undervejs.",
+    body: "Kort med rutelinje, afstand til næste stop og stille vejvisning.",
     note: "Bruger mere strøm — hold gerne telefonen i lader.",
   },
 ];

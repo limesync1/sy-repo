@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
       : "https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
     url.searchParams.set("address", parsed.data.address);
     url.searchParams.set("region", "dk");
+    url.searchParams.set("components", "country:DK");
     url.searchParams.set("language", "da");
     if (ownGoogleKey) url.searchParams.set("key", ownGoogleKey);
     const response = await fetch(url, ownGoogleKey ? undefined : {
@@ -82,7 +83,11 @@ Deno.serve(async (req) => {
         const part = (type: string) => parts.find((p: any) => p.types?.includes(type))?.long_name ?? "";
         const loc = hit.geometry?.location;
         if (!part("route") || !part("street_number") || !part("postal_code") || part("country") !== "Danmark" && part("country") !== "Denmark" || hit.partial_match || hit.geometry?.location_type === "APPROXIMATE" || typeof loc?.lat !== "number" || typeof loc?.lng !== "number") return [];
-        return [{ address: `${part("route")} ${part("street_number")}`, zip_code: part("postal_code"), city: part("postal_town") || part("locality"), latitude: loc.lat, longitude: loc.lng }];
+        // Retain the user-provided postal town when Google supplies a village
+        // locality, but only if the postcode is an exact match.
+        const enteredTown = parsed.data.address.match(/\b(\d{4})\s+([^,]+)$/);
+        const city = part("postal_town") || (enteredTown?.[1] === part("postal_code") ? enteredTown[2].trim() : part("locality"));
+        return [{ address: `${part("route")} ${part("street_number")}`, zip_code: part("postal_code"), city, latitude: loc.lat, longitude: loc.lng }];
       });
       return json({ suggestions });
     }

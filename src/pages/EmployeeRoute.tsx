@@ -1666,7 +1666,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <BrandedIllustration name="drivingGuide" className="mx-auto h-16 w-16" alt="" />
               <div>
                 <p className="text-sm font-semibold text-foreground">{geocodeError ? "Korttjenesten er midlertidigt utilgængelig" : "Kortet kunne ikke finde adresserne"}</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">{geocodeError ? "Stoplisten virker stadig. Prøv adresseopslaget igen om et øjeblik." : "Kontrollér, at vej, husnummer, postnummer og by står på aftalen, og prøv igen."}</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{geocodeError ? geocodeError : "Kontrollér, at vej, husnummer, postnummer og by står på aftalen, og prøv igen."}</p>
                 {!geocodeError && unresolvedAddresses.length > 0 && (
                   <ul className="mt-2 space-y-0.5 text-left text-[11px] text-muted-foreground">
                     {unresolvedAddresses.map((addr) => (
@@ -1680,6 +1680,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         ) : (
           <>
+            {geocodeError && <div role="alert" className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card p-3 text-xs shadow-lg"><p className="font-semibold text-destructive">{geocodeError}</p><Button variant="outline" size="sm" className="mt-2" onClick={retryGeocoding}>Prøv adresseopslaget igen</Button></div>}
             {unresolvedAddresses.length > 0 && (
               <div className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card/95 p-2 text-[11px] leading-5 text-muted-foreground shadow-lg backdrop-blur-md sm:inset-x-4">
                 <p className="font-semibold text-destructive">{unresolvedAddresses.length === 1 ? "1 adresse kunne ikke findes" : `${unresolvedAddresses.length} adresser kunne ikke findes`}</p>
@@ -1934,7 +1935,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Næste manøvre — placeret under den faste kørselsbjælke */}
             {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute left-2 right-[4.25rem] top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] z-[1000] pointer-events-none sm:left-4 sm:right-[5rem] lg:left-auto lg:right-4 lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-                <Card className="overflow-hidden rounded-md border-border bg-card/97 shadow-xl pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
+                <Card className="overflow-hidden rounded-md border-border bg-card shadow-lg pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
                     <div className="flex w-[76px] shrink-0 flex-col items-center justify-center bg-accent px-1 py-3 text-accent-foreground">
                       <ManeuverIcon
@@ -2066,7 +2067,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
                 {sortedStops.map((s, i) => (
@@ -2076,10 +2077,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     style={{
                       background:
                         s.status === "completed"
-                          ? "hsl(142 70% 45%)"
+                          ? "hsl(var(--success))"
                           : i === nextStopIdx
                             ? themeColor
-                            : "hsl(220 14% 92%)",
+                            : "hsl(var(--muted))",
                     }}
                   />
                 ))}
@@ -2087,7 +2088,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
+                className="group h-auto w-full flex-wrap sm:flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
@@ -2097,7 +2098,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 >
                   {nextStopIdx + 1}
                 </span>
-                <div className="flex-1 text-left min-w-0">
+                <div className="flex-1 basis-[calc(100%-5rem)] sm:basis-auto text-left min-w-0">
                   <p
                     className="font-semibold text-[14px] text-foreground truncate leading-tight"
                     title={nextStop.customer_name || undefined}
@@ -2125,7 +2126,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 )}
                 {isAtNextStop ? (
                   <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-success/15 text-success">
-                    <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500" />
                     Fremme
                   </Badge>
                 ) : distanceToNextM != null ? (
@@ -2171,7 +2171,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       disabled={updateStatus.isPending || routeDateLocked}
                     >
                       {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                      Afslut aftale
+                      Markér udført
                     </Button>
                   ) : isAtNextStop ? (
                     <Button
@@ -2298,7 +2298,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Done state ─── */}
         {allDone && (
           <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-            <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
+            <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card shadow-lg backdrop-blur-md">
               <div className="space-y-3 p-3.5 text-center sm:p-4">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center">
                   <BrandedIllustration name="routeDone" className="h-full w-full" />
