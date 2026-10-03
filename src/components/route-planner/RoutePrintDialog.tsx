@@ -19,6 +19,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { formatKr } from "@/lib/commission";
+import { formatClockTime, formatRunDuration } from "@/components/employee-route/route-run-clock";
 
 export type PrintRoute = {
   id: string;
@@ -29,6 +31,7 @@ export type PrintRoute = {
   startAddress?: string | null;
   distanceKm?: number | null;
   plannedStartTime?: string | null;
+  receipt?: { start: number | null; end: number | null; customerSeconds: number; driveEstimateSeconds: number | null; earnings: number | null; loading?: boolean; error?: boolean };
   stops: {
     id?: string;
     customerName: string;
@@ -39,6 +42,9 @@ export type PrintRoute = {
     plannedArrival?: string | null;
     plannedDeparture?: string | null;
     durationMinutes?: number | null;
+    arrivedAt?: number | null;
+    completedAt?: string | null;
+    earnings?: number | null;
   }[];
 };
 
@@ -353,6 +359,19 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                                 <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground"><MapPin className="mt-0.5 h-3 w-3 shrink-0" /><span><span className="font-medium text-foreground">Start:</span> {route.startAddress}</span></p>
                               )}
 
+                              {route.receipt && <section className="mt-3 border-y border-border py-3" aria-label="Arbejdskvittering">
+                                <h3 className="text-sm font-semibold">Arbejdskvittering</h3>
+                                <p className="mt-1 text-xs text-muted-foreground">{route.stops.filter(s => s.completedAt).length} af {route.stops.length} stop udført · {route.receipt.end ? "Afsluttet" : "Ikke afsluttet"}</p>
+                                {route.receipt.error ? <p role="alert" className="mt-2 text-sm text-destructive">Tider eller beløb kunne ikke hentes. Luk og prøv igen.</p> : route.receipt.loading ? <p role="status" className="mt-2 text-sm">Henter tider og beløb…</p> : <dl className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
+                                  <div><dt className="text-muted-foreground">Start</dt><dd className="mt-1 font-semibold">{route.receipt.start ? formatClockTime(route.receipt.start) : "Ikke registreret"}</dd></div>
+                                  <div><dt className="text-muted-foreground">Slut</dt><dd className="mt-1 font-semibold">{route.receipt.end ? formatClockTime(route.receipt.end) : "Ikke afsluttet"}</dd></div>
+                                  <div><dt className="text-muted-foreground">Køretid · ca.</dt><dd className="mt-1 font-semibold">{route.receipt.driveEstimateSeconds == null ? "Ikke registreret" : formatRunDuration(route.receipt.driveEstimateSeconds)}</dd></div>
+                                  <div><dt className="text-muted-foreground">Tid hos kunder</dt><dd className="mt-1 font-semibold">{formatRunDuration(route.receipt.customerSeconds)}</dd></div>
+                                  <div><dt className="text-muted-foreground">Min indtjening</dt><dd className="mt-1 font-semibold">{route.receipt.earnings == null ? "Ikke tilgængelig" : formatKr(route.receipt.earnings)}</dd></div>
+                                </dl>}
+                                <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Køretid er beregnet tid uden kundearbejde og kan indeholde pauser. Beløbet er din andel, ikke en betalingskvittering til kunden.</p>
+                              </section>}
+
                               <ol className={cn("mt-3 divide-y divide-border border-t border-border", options.compact && "mt-2")}>
                                 {route.stops.map((stop, index) => {
                                   return (
@@ -363,6 +382,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                                           <p className="break-words text-xs font-semibold text-foreground">{stop.customerName}</p>
                                         </div>
                                         <div className="mt-1 grid gap-1 text-[11px] text-muted-foreground">
+                                          {route.receipt && <p className="flex flex-wrap gap-x-3 gap-y-1"><span>Ankommet: {stop.arrivedAt ? formatClockTime(stop.arrivedAt) : "Ikke registreret"}</span><span>Udført: {stop.completedAt ? formatClockTime(new Date(stop.completedAt).getTime()) : "Nej"}</span>{stop.earnings != null && <span>Min andel: {formatKr(stop.earnings)}</span>}</p>}
                                           {options.address && stop.address && <p className="flex items-start gap-1.5"><MapPin className="mt-0.5 h-3 w-3 shrink-0" /><span className="break-words">{stop.address}</span></p>}
                                           {options.phone && stop.phone && <p className="tabular-nums">Tlf. {stop.phone}</p>}
                                         </div>

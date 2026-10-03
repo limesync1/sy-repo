@@ -4,7 +4,10 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
 import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
-import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
+import { useStopTimeEntries } from "@/hooks/useRoutes";
+import { getRouteStartedAt, readArrival } from "@/components/employee-route/route-run-clock";
+import { runMetrics } from "@/components/employee-route/run-metrics";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { canCompleteEarly, earlyCompletionReason, type EarlyCompletionMode } from "@/lib/early-completion";
@@ -165,6 +168,8 @@ const EmployeeApp = () => {
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
   const { data: me } = useMyEmployee();
+  const { data: receiptStats, isLoading: receiptStatsLoading, isError: receiptStatsError } = useMyEmployeeStats(previewRouteId ? me?.id : undefined, me?.commission_pct ?? 0, date, date);
+  const { data: receiptTimes = [], isLoading: receiptTimesLoading, isError: receiptTimesError } = useStopTimeEntries(previewRouteId ? stops.filter(s => s.route_id === previewRouteId).map(s => s.id) : []);
   const routeDates = useMemo(() => new Set(routes.map((route) => route.route_date).filter(Boolean)), [routes]);
   const stopsByRoute = useMemo(() => {
     const grouped = new Map<string, RouteStop[]>();
@@ -180,6 +185,16 @@ const EmployeeApp = () => {
     startAddress: route.start_address,
     distanceKm: route.total_distance_km,
     plannedStartTime: route.planned_start_time,
+    receipt: (() => {
+      const routeStops = stopsByRoute.get(route.id) || [];
+      const start = getRouteStartedAt(route.id);
+      const completed = routeStops.filter(s => s.status === "completed");
+      const end = routeStops.length > 0 && completed.length === routeStops.length ? Math.max(...completed.map(s => s.completed_at ? new Date(s.completed_at).getTime() : 0)) || null : null;
+      const entries = receiptTimes.filter(e => routeStops.some(s => s.id === e.stop_id));
+      const earningsRows = receiptStats?.perDay.flatMap(d => d.entries) ?? [];
+      const earnings = completed.length === 0 ? 0 : completed.every(s => earningsRows.some(e => e.stopId === s.id)) ? completed.reduce((sum, s) => sum + (earningsRows.find(e => e.stopId === s.id)?.share ?? 0), 0) : null;
+      return { start, end, ...runMetrics(start, end ?? Date.now(), entries, me?.id), earnings, loading: receiptStatsLoading || receiptTimesLoading, error: receiptStatsError || receiptTimesError };
+    })(),
     stops: (stopsByRoute.get(route.id) || []).map((stop) => ({
       id: stop.id,
       customerName: stop.customer_name || "Aftale",
@@ -190,8 +205,11 @@ const EmployeeApp = () => {
       plannedArrival: stop.planned_arrival,
       plannedDeparture: stop.planned_departure,
       durationMinutes: stop.duration_minutes,
+      arrivedAt: readArrival(route.id, stop.id),
+      completedAt: stop.status === "completed" ? stop.completed_at : null,
+      earnings: stop.status === "completed" ? receiptStats?.perDay.flatMap(d => d.entries).find(e => e.stopId === stop.id)?.share : null,
     })),
-  })), [routes, stopsByRoute, me?.name]);
+  })), [routes, stopsByRoute, me?.name, me?.id, receiptTimes, receiptStats, receiptStatsLoading, receiptTimesLoading, receiptStatsError, receiptTimesError, previewRouteId]);
   const [workdayNow, setWorkdayNow] = useState(() => Date.now());
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
@@ -859,7 +877,7 @@ const EmployeeApp = () => {
         initialDate={date}
         routes={printableRoutes.filter((route) => !previewRouteId || route.id === previewRouteId)}
         businessName={me?.business?.name}
-        title="Print rute / kvittering"
+        title="Print arbejdskvittering"
       />
     </EmployeeShell>
   );
