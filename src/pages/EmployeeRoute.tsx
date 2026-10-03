@@ -1799,9 +1799,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           >
             {/* Day tiles double as a dim reserve while the vector night style loads. */}
             <TileLayer
-              key={night && routeStarted ? "night" : "day"}
+              key={night ? "night" : "day"}
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              className={night && routeStarted ? "route-tiles-night" : undefined}
+              className={night ? "route-tiles-night" : undefined}
               attribution="&copy; OpenStreetMap-bidragydere"
               updateWhenIdle={false}
               updateWhenZooming={false}
@@ -1810,7 +1810,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               maxZoom={20}
               maxNativeZoom={19}
             />
-            {night && routeStarted && <NightBasemap retry={nightMapRetry} onFailure={reportNightMapFailure} />}
+            {night && <NightBasemap retry={nightMapRetry} onFailure={reportNightMapFailure} />}
 
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted && !highlightedId} />
@@ -1912,7 +1912,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && (
           <>
             <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-              <div className="flex h-14 w-full items-center gap-1.5 rounded-md border border-border bg-card/95 px-1.5 text-foreground shadow-lg backdrop-blur-md">
+              <div className="flex h-12 w-full items-center gap-1 rounded-md border border-border bg-card/95 px-1 text-foreground shadow-lg backdrop-blur-md">
                 <Button
                   type="button"
                   variant="ghost"
@@ -1977,9 +1977,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               const longStretch = maneuver.distanceToManeuverM > 2000 || curType === "depart";
               const road = maneuver.currentStep.name;
               return (
-                <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+                <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                   <div className="overflow-hidden rounded-md border border-border bg-card text-foreground shadow-lg" aria-live="polite">
-                    <div className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="flex items-center gap-3 px-3 py-2">
                       {longStretch
                         ? <Navigation className="h-7 w-7 shrink-0 text-foreground" aria-hidden="true" />
                         : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-8 w-8 shrink-0" />}
@@ -1992,7 +1992,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       </div>
                     </div>
                     {showThen && (
-                      <div className="flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
+                      <div className="route-maneuver-then flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
                         <span className="font-medium">Derefter</span>
                         <ManeuverIcon type={thenStep.maneuver.type} modifier={thenStep.maneuver.modifier} className="h-4 w-4 shrink-0" />
                         <span className="truncate">{thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
@@ -2084,12 +2084,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
+                className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-2 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setSelectedId(nextStop.id)}
                 aria-label="Vis aftalens oplysninger"
               >
                 <span
-                   className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-base font-bold tabular-nums shrink-0"
+                   className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-sm font-bold tabular-nums shrink-0"
                 >
                   {nextStopIdx + 1}
                 </span>
@@ -2155,7 +2155,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
               {collapsed && (
-                <div className="flex flex-wrap gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2">
                   {activeNextStopEntry ? (
                     <Button
                       onClick={() => handleComplete(nextStop)}
@@ -2183,9 +2183,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Start aftale
                     </Button>
                   ) : (
-                    <p className="flex w-full items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" />{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)} til næste stop` : "Vejvisning mod næste stop"}</p>
+                    <p className="flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" /><span className="truncate">{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)}` : "Vejvisning mod næste stop"}</span></p>
                   )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Oplysninger</Button>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className={cn("h-11 gap-1.5 rounded-md px-3 text-xs", activeNextStopEntry || isAtNextStop || latestCompleted ? "flex-1" : "shrink-0")}><Info className="h-4 w-4" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
