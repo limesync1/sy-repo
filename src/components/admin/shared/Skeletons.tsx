@@ -386,3 +386,72 @@ export const CardGridSkeleton = ({
     ))}
   </div>
 );
+
+/** Overblik: samme silhuet ved login, sideindlæsning og datahentning. */
+export const DashboardSkeleton = () => (
+  <div className="min-w-0 space-y-3 sm:space-y-5" aria-busy="true" aria-label="Indlæser overblik">
+    <section className="panel-overview-hero overflow-hidden rounded-md px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+      <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-3 w-48 max-w-full bg-background/15" />
+          <Skeleton className="h-8 w-72 max-w-full bg-background/20" />
+          <Skeleton className="h-4 w-96 max-w-full bg-background/15" />
+        </div>
+        <div className="flex shrink-0 gap-2"><Skeleton className="h-8 w-28 bg-background/20" /><Skeleton className="h-8 w-28 bg-background/20" /></div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-4 lg:mt-6">
+        {[0, 1, 2, 3].map(i => <div key={i} className="min-w-0 space-y-2 rounded-md border border-border bg-card p-3">
+          <Skeleton className="h-3 w-24 max-w-full" /><Skeleton className="h-6 w-28 max-w-full" /><Skeleton className="h-3 w-36 max-w-full" />
+        </div>)}
+      </div>
+    </section>
+    <div className="grid min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+      <div className="min-w-0 space-y-3 sm:space-y-4">
+        <Card className="service-panel-card overflow-hidden rounded-md border-border shadow-sm">
+          <div className="flex items-center justify-between gap-3 border-b border-border p-4"><Skeleton className="h-4 w-40" /><Skeleton className="h-8 w-28" /></div>
+          <div className="grid grid-cols-2 divide-x divide-border">{[0,1,2,3].map(i => <div key={i} className="min-w-0 space-y-3 border-b border-border p-4 sm:p-5"><div className="flex items-center justify-between gap-2"><Skeleton className="h-3 w-24" /><Skeleton className="h-10 w-10 shrink-0" /></div><Skeleton className="h-7 w-28 max-w-full" /><Skeleton className="h-3 w-full" /></div>)}</div>
+          <div className="flex items-center gap-3 p-4"><Skeleton className="h-10 w-10" /><Skeleton className="h-4 w-40" /></div>
+        </Card>
+        <ListCardSkeleton rows={4} />
+      </div>
+      <div className="min-w-0 space-y-3 sm:space-y-4"><ListCardSkeleton rows={4} /><FormSkeleton fields={2} /></div>
+    </div>
+  </div>
+);
+
+/** Statistik følger indtjeningsfelt, samlet nøgletalsstribe og aktivitetsliste. */
+export const EmployeeStatsSkeleton = ({ withHeader = false }: { withHeader?: boolean }) => (
+  <div className="min-w-0 space-y-4 sm:space-y-5" aria-busy="true" aria-label="Indlæser statistik">
+    {withHeader && <PageHeaderSkeleton />}
+    <Card className="service-panel-card overflow-hidden rounded-md border-border shadow-sm">
+      <div className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center sm:p-6">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4"><Skeleton className="h-16 w-16 shrink-0" /><div className="min-w-0 space-y-2"><Skeleton className="h-3 w-24" /><Skeleton className="h-8 w-40 max-w-full" /><Skeleton className="h-3 w-32 max-w-full" /></div></div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-1"><Skeleton className="h-8 w-full sm:w-24" /><Skeleton className="h-8 w-full sm:w-24" /></div>
+      </div>
+    </Card>
+    <div className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-sm lg:grid-cols-5">
+      {[0,1,2,3,4].map(i => <div key={i} className={cn("flex min-h-[76px] min-w-0 items-center gap-3 border-b border-border p-3.5 odd:border-r lg:border-b-0 lg:border-r", i === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0")}><Skeleton className="h-10 w-10 shrink-0" /><div className="min-w-0 flex-1 space-y-2"><Skeleton className="h-3 w-16 max-w-full" /><Skeleton className="h-5 w-20 max-w-full" /></div></div>)}
+    </div>
+    <ListCardSkeleton rows={4} />
+  </div>
+);
+
+export const SettingsSkeleton = () => (
+  <div className="min-w-0 space-y-6" aria-busy="true" aria-label="Indlæser indstillinger">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+      <div className="flex min-w-0 items-center gap-4"><Skeleton className="h-12 w-12 shrink-0" /><div className="min-w-0 space-y-2"><Skeleton className="h-7 w-44 max-w-full" /><Skeleton className="h-3.5 w-64 max-w-full" /></div></div><Skeleton className="h-8 w-32" />
+    </div>
+    <div className="grid items-start gap-6 lg:grid-cols-[224px_minmax(0,1fr)]">
+      <div className="hidden space-y-3 lg:block"><Skeleton className="h-16 w-full" />{[0,1,2,3,4,5,6,7,8].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+      <div className="min-w-0 space-y-5"><FormSkeleton fields={3} /><FormSkeleton fields={3} /></div>
+    </div>
+  </div>
+);
+
+export const AccountingSkeleton = () => (
+  <div className="min-w-0 space-y-5" aria-busy="true" aria-label="Indlæser regnskab">
+    <PageHeaderSkeleton withAction={false} />
+    <div className="flex items-start gap-4 rounded-md border border-border bg-card p-4 sm:p-6"><Skeleton className="h-14 w-14 shrink-0" /><div className="min-w-0 flex-1 space-y-3"><Skeleton className="h-5 w-56 max-w-full" /><Skeleton className="h-4 w-full max-w-md" /><Skeleton className="h-8 w-32" /></div></div>
+    <div className="grid gap-4 sm:grid-cols-2">{[0,1].map(i => <div key={i} className="space-y-3 rounded-md border border-border bg-card p-5"><Skeleton className="h-12 w-32" /><Skeleton className="h-5 w-24" /><Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-3/4" /><Skeleton className="h-9 w-full" /></div>)}</div>
+  </div>
+);

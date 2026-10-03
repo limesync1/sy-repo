@@ -6,7 +6,7 @@ function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
   // lidt blødere på lyse baggrunde uden at "forsvinde" på mørke kort.
   return (
     <div
-      className={cn("animate-pulse rounded-md bg-muted/70", className)}
+      className={cn("motion-safe:animate-pulse rounded-md bg-muted/70", className)}
       {...props}
     />
   );

@@ -16,3 +16,5 @@
 - Archived routes cannot remain recurrence anchors or enter projection queries, preventing deleted routes from resurfacing as ghost routes.
 - Route printing consumes the loaded calendar route collection and applies date and content selection inside the print workspace, keeping one source of truth for preview and paper output.
 - Employee route geocoding uses an authenticated server function through the linked Google Maps connector, keeping billable credentials off the browser and distinguishing service outages from unmatched addresses.
+
+- Business tab fallbacks and data-loading states share eagerly imported skeletons from the common panel registry; employee statistics uses its matching strip skeleton, preventing blank lazy fallbacks and outdated loading layouts.

@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
-import { PanelIcon } from "@/components/shared/PanelIcon";
+export { DashboardSkeleton } from "@/components/admin/shared/Skeletons";
 
 interface Props {
   business: Business;
@@ -421,13 +421,6 @@ const DashboardTab = ({
 
           {business.slug && (
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:shrink-0">
-              <button
-                type="button" onClick={copyLink}
-                className="brand-blue-action inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-[transform,box-shadow] hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
-              >
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
-                {copied ? "Kopieret" : "Del profil"}
-              </button>
               <a
                 href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary sm:px-3.5 sm:py-2 sm:text-xs"
@@ -940,7 +933,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
-            <PanelIcon name="appointmentCompleted" className="h-10 w-10" />
+            <BrandedIllustration name="verifiedReviews" className="h-10 w-10" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>
@@ -1565,118 +1558,3 @@ const StatDetailSheet = ({
 
 export default DashboardTab;
 
-/* ─────────────────────────────────────────────────────────────────────── */
-
-/** DashboardSkeleton — vises mens overblikkets data hentes første gang. */
-export const DashboardSkeleton = () => {
-  const Shimmer = ({ className }: { className?: string }) => (
-    <div className={cn("animate-pulse rounded-md bg-muted/70", className)} />
-  );
-  return (
-    <div className="space-y-5" aria-busy="true" aria-live="polite">
-      {/* Hero */}
-      <section
-        className="relative isolate overflow-hidden rounded-2xl px-5 py-6 sm:px-8 sm:py-8"
-        style={{ backgroundColor: "hsl(var(--hero-bg))" }}
-      >
-        <div className="space-y-3">
-          <div className="h-3 w-48 animate-pulse rounded bg-background/15" />
-          <div className="h-8 w-72 max-w-full animate-pulse rounded bg-background/20" />
-          <div className="h-4 w-2/3 animate-pulse rounded bg-background/15" />
-        </div>
-        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-background/10 bg-background/[0.06] p-3">
-              <div className="h-2.5 w-14 animate-pulse rounded bg-background/20" />
-              <div className="mt-2 h-5 w-12 animate-pulse rounded bg-background/25" />
-              <div className="mt-1 h-2.5 w-20 animate-pulse rounded bg-background/15" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="grid w-full max-w-full min-w-0 gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="min-w-0 space-y-3 sm:space-y-4">
-          {/* Stat cards */}
-          <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Card key={i} className="surface-admin rounded-xl border-border/80 shadow-sm">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-start justify-between">
-                    <Shimmer className="h-3 w-24" />
-                    <Shimmer className="h-7 w-7 rounded-lg" />
-                  </div>
-                  <Shimmer className="mt-3 h-8 w-32" />
-                  <div className="mt-3 flex h-8 min-w-0 items-end gap-[3px] overflow-hidden">
-                    {Array.from({ length: 14 }).map((_, j) => (
-                      <div
-                        key={j}
-                        className="w-1.5 animate-pulse rounded-sm bg-muted/70"
-                        style={{ height: `${20 + ((j * 13) % 70)}%` }}
-                      />
-                    ))}
-                  </div>
-                  <Shimmer className="mt-3 h-3 w-40" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Recent orders skeleton */}
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-            <div className="border-b border-border px-4 py-3 sm:px-5">
-              <Shimmer className="h-4 w-40" />
-              <Shimmer className="mt-2 h-3 w-64 max-w-full" />
-              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-                <Shimmer className="h-9 w-full rounded-lg" />
-                <Shimmer className="h-9 w-full rounded-lg sm:w-[210px]" />
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-1.5 min-[430px]:flex min-[430px]:flex-wrap">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Shimmer key={i} className="h-6 w-full rounded-full min-[430px]:w-20" />
-                ))}
-              </div>
-            </div>
-            <div className="divide-y divide-border">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="grid gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5">
-                  <div className="space-y-2">
-                    <Shimmer className="h-4 w-40" />
-                    <Shimmer className="h-3 w-24" />
-                  </div>
-                  <Shimmer className="h-5 w-20 rounded-full" />
-                  <div className="flex items-center justify-end gap-2">
-                    <Shimmer className="h-4 w-16" />
-                    <Shimmer className="h-4 w-4 rounded" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </section>
-
-        <section className="space-y-3 sm:space-y-4">
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-            <div className="border-b border-border px-4 py-3 sm:px-5">
-              <Shimmer className="h-4 w-36" />
-              <Shimmer className="mt-2 h-3 w-48 max-w-full" />
-            </div>
-            <div className="space-y-2 p-3 sm:p-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                  <Shimmer className="h-9 w-9 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <Shimmer className="h-4 w-3/4" />
-                    <Shimmer className="h-3 w-1/2" />
-                  </div>
-                  <Shimmer className="h-4 w-4 rounded" />
-                </div>
-              ))}
-            </div>
-          </Card>
-        </section>
-      </div>
-      <span className="sr-only">Henter dit overblik…</span>
-    </div>
-  );
-};
