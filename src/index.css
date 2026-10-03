@@ -21,6 +21,8 @@
     --accent-soft: 196 70% 95%;
     --brand-blue-start: 195 68% 55%;
     --brand-blue-end: 198 71% 35%;
+    --route-line-casing: 0 0% 100%;
+    --route-pin-foreground: 0 0% 100%;
     /* Brandteal — testfase-modalens glød og bekræftelsesfarve. */
     --beta-accent: 198 71% 35%;
     --feature-cool: 196 85% 94%;
@@ -697,11 +699,11 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    border: 2px solid hsl(var(--accent-foreground));
+    border: 3px solid hsl(var(--route-line-casing));
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
-    background: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+    background: linear-gradient(145deg, hsl(var(--brand-blue-start)), hsl(var(--brand-blue-end)));
+    color: hsl(var(--route-pin-foreground));
     box-shadow: 0 2px 6px hsl(var(--foreground) / 0.24);
   }
   .employee-route-run .route-map-pin > * { transform: rotate(45deg); font-weight: 700; font-size: 14px; }
@@ -709,6 +711,10 @@
   .employee-route-run .route-map-pin-done { background: hsl(var(--success)); }
   .employee-route-run .route-map-pin-start { background: hsl(var(--foreground)); }
   .employee-route-run .route-map-pin-selected { outline: 3px solid hsl(var(--accent) / 0.28); outline-offset: 2px; }
+  .employee-route-run .route-map-pin-next { outline: 3px solid hsl(var(--brand-blue-start) / 0.2); outline-offset: 2px; }
+  .employee-route-run .nav-puck-rot { position: relative; width: 64px; height: 64px; transform-origin: center; }
+  .employee-route-run .nav-puck-dot { position: absolute; top: 18px; left: 18px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(145deg, hsl(var(--brand-blue-start)), hsl(var(--brand-blue-end))); border: 4px solid hsl(var(--route-line-casing)); box-shadow: 0 2px 8px hsl(var(--foreground) / 0.25); }
+  .employee-route-run .nav-puck-cone { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 34px solid hsl(var(--brand-blue-start) / 0.25); opacity: 0; }
   .employee-route-run .leaflet-control-attribution { background: hsl(var(--card) / 0.88); color: hsl(var(--muted-foreground)); font-size: 9px; }
   .employee-route-run .leaflet-control-attribution a { color: hsl(var(--accent)); }
 

@@ -21,4 +21,5 @@
 - Business tab fallbacks and data-loading states share eagerly imported skeletons from the common panel registry; employee statistics uses its matching strip skeleton, preventing blank lazy fallbacks and outdated loading layouts.
 - Customer list empty panels always render the shared `NoItemsIcon` instead of accepting per-page icons, keeping favorites, subscriptions, reviews, and orders consistent with employee empty lists.
 
-- Driving maps use integer tile zooms, coordinate-keyed framing and stop-selection suspension of GPS following, preventing competing cameras and blurred map labels.
+- Driving maps use synchronized motion-track panning, dwell/hysteresis integer zooms, coordinate-keyed framing and stop-selection suspension of following, preventing camera shake and blurred labels.
+- Driving route lines preserve provider road geometry and render through the shared SVG brand-gradient layer, so decoration never moves a route off the road.

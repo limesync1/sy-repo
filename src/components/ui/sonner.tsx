@@ -1,16 +1,21 @@
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, toast } from "sonner";
+import { useLocation } from "react-router-dom";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
+  const { pathname } = useLocation();
+  const driving = pathname.startsWith("/medarbejder/rute/");
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       duration={2500}
+      position={driving ? "top-left" : "bottom-right"}
+      closeButton={driving}
       toastOptions={{
         classNames: {
           // Mere kompakt: mindre padding, smallere tekst, lavere min-højde
