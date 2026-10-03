@@ -25,6 +25,7 @@ import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
 import { SheetHeaderBlock, Section } from "@/components/route-planner/SheetSection";
 import { SheetFooterBar } from "@/components/route-planner/SheetSection";
+import { AppointmentDetailsHeader } from "@/components/shared/AppointmentDetailsHeader";
 import { INTERVAL_LABELS } from "@/types/service";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -290,8 +291,8 @@ export const StopDetailsContent = ({
   return (
     <div className="flex h-full min-h-0 flex-col bg-secondary/20">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
-      <div className="planner-overlay-header shrink-0 border-b border-border px-4 pb-3 pt-3 pr-14 sm:px-5 sm:pr-14">
-        <SheetHeaderBlock
+      <div className="planner-overlay-header shrink-0 border-b border-border px-4 py-3 pr-14 sm:px-5 sm:pr-14">
+        <AppointmentDetailsHeader
           title={<span className="text-base font-semibold">{stop.customer_name || "Stop"}</span>}
           description={
             fullAddress ? (
@@ -316,7 +317,7 @@ export const StopDetailsContent = ({
           <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
           </Badge>
-        </SheetHeaderBlock>
+        </AppointmentDetailsHeader>
         
       </div>
 

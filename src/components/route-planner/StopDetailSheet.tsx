@@ -29,6 +29,7 @@ import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { intervalToCadence } from "@/lib/interval";
 import { Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
+import { AppointmentDetailsHeader } from "@/components/shared/AppointmentDetailsHeader";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
@@ -243,15 +244,13 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
-            "planner-overlay w-full p-0 flex flex-col",
-            isCompact ? "h-[88vh] max-h-[88vh] rounded-t-md" : "sm:max-w-2xl",
+            "planner-overlay appointment-details-overlay w-full p-0 flex flex-col gap-0 overflow-hidden shadow-premium",
+            isCompact ? "h-[min(88dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0" : "h-full sm:max-w-2xl",
           )}
           /* Tillad luk via klik udenfor + Esc (Radix default). */
         >
-          <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border p-4 pr-14 text-left sm:px-5">
-            <SheetHeaderBlock
-              badge={typeof sequenceLabel === "number" ? sequenceLabel : undefined}
-              accent={routeColor || undefined}
+          <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
+            <AppointmentDetailsHeader
               title={<SheetTitle className="text-base">{stop.customer_name || "Stop"}</SheetTitle>}
               description={
                 <SheetDescription className="text-xs">
@@ -259,6 +258,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 </SheetDescription>
               }
             >
+              {typeof sequenceLabel === "number" && <Badge variant="outline" className="text-[10px]">Stop {sequenceLabel}</Badge>}
               {statusBadge()}
               {pausedSub && (
                 <Badge variant="outline" className="gap-1 border-warning/40 bg-warning/10 text-[10px] text-warning-foreground">
@@ -277,7 +277,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   {format(parseISO((stop as any).occurrence_date), "d. MMM yyyy", { locale: da })}
                 </Badge>
               )}
-            </SheetHeaderBlock>
+            </AppointmentDetailsHeader>
           </SheetHeader>
 
           <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
