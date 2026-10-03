@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.103.0";
+import { consumeAiBudget } from "../_shared/ai-budget.ts";
 import { lookupDkZip, haversineKm } from "./dk-postcodes.ts";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 
@@ -180,6 +181,9 @@ serve(async (req) => {
       return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Brancher: ${cats} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"}${distanceLabel}\nServices:\n${serviceList || "Ingen"}\nBeskrivelse: ${b.description || ""}`;
     }).join("\n---\n");
 
+    if (!(await consumeAiBudget(supabase, "match-quotes", req, { perClientPerHour: 8, globalPerHour: 200 }))) {
+      return json400("Der er travlt lige nu. Prøv igen om lidt.", 429);
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 

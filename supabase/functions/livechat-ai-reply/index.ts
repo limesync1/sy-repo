@@ -1,3 +1,4 @@
+import { consumeAiBudget } from "../_shared/ai-budget.ts";
 // Edge function — Serviceyderes AI-første kundeservice i den offentlige livechat.
 //
 // Kaldes anonymt (uden login) fra LiveChatWidget efter hver besked fra en
@@ -329,6 +330,11 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (!(await consumeAiBudget(admin, "livechat-ai-reply", req, { perClientPerHour: 30, globalPerHour: 400 }))) {
+      return new Response(JSON.stringify({ skipped: true, reason: "budget" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "AI gateway ikke konfigureret" }), {
