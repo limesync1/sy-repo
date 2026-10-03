@@ -145,7 +145,7 @@ const NavPuckMarker = ({
       const prev = shownHeading.v;
       if (prev != null) {
         const delta = Math.abs(((heading - prev + 540) % 360) - 180);
-        if (delta < 2) return;
+        if (delta < 0.5) return;
       }
       const unwrapped = prev == null ? heading : prev + ((heading - prev + 540) % 360) - 180;
       shownHeading.v = unwrapped;
@@ -837,22 +837,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
-  // Dynamisk ankomstradius — afvejer to konkurrerende behov:
-  //   1) Skal kunne skelne mellem to nabohuse i et villakvarter (typisk
-  //      15-25 m mellem matrikler) og lejligheder i samme kompleks.
-  //   2) Skal stadig fange brugeren når GPS er upålidelig (indendørs,
-  //      gade-kløfter) eller når pin'en er sat lidt skævt af geokoderen.
-  //
-  // Formel:
-  //   - Ved meget præcist fix (acc ≤ 10 m): 18 m radius — tæt nok til at
-  //     skelne nabohuse.
-  //   - Ved typisk udendørs (acc 10-25 m): 20-35 m — stadig granular.
-  //   - Ved dårligt fix (acc > 25 m): glidende op mod 60 m loft.
-  //
-  // Vi bruger en glat "1.4 × accuracy + offset"-formel clamped til
-  // [TIGHT_MIN, LOOSE_MAX] i stedet for en hård tærskel — det giver en
-  // mere forudsigelig oplevelse end tidligere step-funktion.
-    const arrivalThresholdM = arrivalRadius(userAccuracyM);
+  // Recognize parking near an entrance, but require low speed and usable GPS.
+  const arrivalThresholdM = arrivalRadius(userAccuracyM);
   // Hysterese: vi træder IND i ankomstzonen ved radius, men træder først
   // UD igen ved 1,8 × radius.  Uden det skifter kortet mellem "fremme" og
   // "kør videre" hver gang GPS sitrer et par meter — præcis den "frem og
@@ -1114,10 +1100,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [allDone, routeStarted, navigate]);
 
   const etaLabel: string | null = useMemo(() => {
-    if (!directions?.duration_s) return null;
-    const eta = new Date(Date.now() + directions.duration_s * 1000);
+    if (liveDurationS == null) return null;
+    const eta = new Date(Date.now() + liveDurationS * 1000);
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-  }, [directions?.duration_s]);
+  }, [liveDurationS, userPos]);
 
   /* Resterende stop bruges til ruteoptimering og navigation. */
   const remainingStops = useMemo(
@@ -1747,7 +1733,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; OpenStreetMap-bidragydere'
-              updateWhenIdle
+              updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
               zIndex={1}
@@ -2130,14 +2116,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Distance</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
-                            {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
+                            {liveDistanceM != null ? formatKm(liveDistanceM) : "—"}
                           </p>
                         </div>
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Køretid</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {(() => {
-                              const d = directions ? pickDuration(directions, false) : null;
+                              const d = liveDurationS;
                               return d != null ? formatMin(d) : "—";
                             })()}
                           </p>
@@ -2477,7 +2463,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
                         aria-label="Flyt stoppet tidligere på ruten"
                         disabled={reordering || posInRemaining <= 0}
                         onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, -1); }}
-                         className="h-8 w-8 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                         className="h-11 w-11 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
                       >
                         <ArrowUp className="h-3.5 w-3.5" />
                       </button>
@@ -2486,7 +2472,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
                         aria-label="Flyt stoppet senere på ruten"
                         disabled={reordering || posInRemaining < 0 || posInRemaining >= remainingIds.length - 1}
                         onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, 1); }}
-                         className="h-8 w-8 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                         className="h-11 w-11 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
                       >
                         <ArrowDown className="h-3.5 w-3.5" />
                       </button>
@@ -2495,7 +2481,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                    className="text-[10px] font-bold text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary transition-colors uppercase tracking-wider"
+                    className="min-h-11 text-xs font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-secondary transition-colors"
                   >
                     Detaljer
                   </button>

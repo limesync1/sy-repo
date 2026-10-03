@@ -21,7 +21,7 @@ export type Step = {
  * Stable turn-by-turn step picker.
  *
  * Designet så banneret IKKE flimrer ved GPS-jitter eller når man cykler langsomt:
- *  - Vi vælger den FØRSTE maneuver der stadig er foran brugeren (>20 m væk).
+ *  - Vejgeometrien afgør, hvilket vejstykke brugeren faktisk kører på.
  *  - Vi advancerer kun fremad — aldrig tilbage til en tidligere maneuver, selv
  *    hvis GPS-fixet hopper. Dette undgår at banneret pludselig hopper til en
  *    "tidligere" instruktion og så tilbage igen.
@@ -50,7 +50,7 @@ export const useCurrentManeuver = (
     // to a turn is not evidence it was passed (especially on parallel roads).
     let bestIdx = startFrom;
     let closest = Infinity;
-    for (let i = Math.max(0, startFrom - 1); i < steps.length; i++) {
+    for (let i = Math.max(0, startFrom - 1); i <= Math.min(startFrom + 2, steps.length - 1); i++) {
       const coords = steps[i].geometry?.coordinates;
       if (!coords || coords.length < 2) continue;
       const line = coords.map(([lng, lat]) => [lat, lng] as [number, number]);

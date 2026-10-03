@@ -6,5 +6,5 @@ export function canDetectArrival(distanceM: number | null, speedMps: number, acc
   return distanceM != null && distanceM <= arrivalRadius(accuracyM) && speedMps <= 3 && (accuracyM ?? 20) <= 65;
 }
 export function headingDelta(from: number, to: number): number {
-  return ((to - from + 540) % 360) - 180;
+  return (((to - from + 180) % 360 + 360) % 360) - 180;
 }
