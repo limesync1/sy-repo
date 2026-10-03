@@ -466,11 +466,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
    * tilstanden er "granted" ønsker vi at starte watcheren med det samme,
    * så vi har en position klar når brugeren trykker "Start rute" — uden
    * at vise endnu en prompt. */
-  const [gpsError, setGpsError] = useState<string | null>(null);
-  const reportGpsError = (error: GeolocationPositionError) => setGpsError(error.code === 1
-    ? "GPS-adgang er blokeret. Tillad placering i browseren for at følge din position."
-    : error.code === 2 ? "Din position kunne ikke findes. Flyt dig til et sted med bedre GPS-signal."
-    : "GPS svarer ikke lige nu. Kort og stopadresser er stadig tilgængelige.");
+  const [gpsErrorCode, setGpsErrorCode] = useState<number | null>(null);
+  const setGpsError = (_: null) => setGpsErrorCode(null);
+  const reportGpsError = (error: GeolocationPositionError) => setGpsErrorCode(error.code);
+  const [gpsRetry, setGpsRetry] = useState(0);
+  const [lastFixAt, setLastFixAt] = useState<number | null>(null);
+  const retryGps = () => {
+    setGpsErrorCode(null);
+    lastFixRef.current = null;
+    setGpsRetry((n) => n + 1);
+    navigator.geolocation?.getCurrentPosition(() => setLastFixAt(Date.now()), reportGpsError, { enableHighAccuracy: true, timeout: 12000 });
+  };
   const [geoPermission, setGeoPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
   useEffect(() => {
     if (!("permissions" in navigator)) { setGeoPermission("unknown"); return; }
@@ -533,6 +539,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       (pos) => {
         if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
         setGpsError(null);
+        setLastFixAt(Date.now());
         const now = pos.timestamp ?? Date.now();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
@@ -559,7 +566,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       { enableHighAccuracy: true, maximumAge: 1500, timeout: 12000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [routeStarted, geoPermission, runMode, pageVisible]);
+  }, [routeStarted, geoPermission, runMode, pageVisible, gpsRetry]);
 
   // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
   // position + heading + estimeret hastighed (sidstnævnte bruges også
@@ -572,6 +579,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [filtered?.pos[0], filtered?.pos[1], filtered?.heading]);
   const userSpeedMps = filtered?.speedMps ?? 0;
   const userAccuracyM = filtered?.accuracyM ?? null;
+  const driving = routeStarted && runMode !== "list";
+  useWakeLock(driving && pageVisible);
+  const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
@@ -1667,9 +1677,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
       )}
 
-      {gpsError && routeStarted && <div role="alert" className="relative z-[1004] border-b border-warning/30 bg-card px-4 py-3 text-sm text-foreground">{gpsError}</div>}
       {/* ─── Map fills everything ─── */}
       <div className={cn("route-map-stage relative flex-1 min-h-0", routeStarted && !allDone && "route-map-stage-driving")}>
+        <DriveIssueBanner issues={driveIssues} onRetry={retryGps} />
         {!hasMapPoint && (isLoading || geocodeState === "idle" || geocodeState === "pending") ? (
           <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
             <div className="space-y-2">
