@@ -93,3 +93,10 @@
 - [x] Centrér og forstør ikonerne i servicesøgningen uden ekstra ikonflader
 - [x] Gendan den nye ikonpakke på virksomhedens Overblik og kundeserviceknap
 - [x] Kontrollér og forstør Overblik-, panelhandlings- og kundeserviceikoner
+
+## Medarbejderpanel: sidste kontrol
+- [x] Vis de nye ikoner til Vælg arbejdsplads og Genopstart dagen stabilt
+- [x] Stop Statistik fra at blive hængende i indlæsning uden en medarbejderpost
+- [x] Fjern referencefejl fra rutekørslens stopliste og aftaledetaljer
+- [x] Kontrollér Min dag og Statistik i en rigtig indlogget visning
+- [ ] Kontrollér print og kortkørsel med en aktiv rute — den valgte medarbejder har ingen tilgængelig rute

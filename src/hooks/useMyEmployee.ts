@@ -115,6 +115,19 @@ export type EmployeeStats = {
   }[];
 };
 
+export const EMPTY_STATS: EmployeeStats = {
+  routesCount: 0,
+  stopsTotal: 0,
+  stopsCompleted: 0,
+  workdaysCount: 0,
+  workSeconds: 0,
+  totalDistanceKm: 0,
+  revenue: 0,
+  commission: 0,
+  activityDays: [],
+  perDay: [],
+};
+
 /** Aggregeret statistik for medarbejder i et datointerval (inkl. begge ender). */
 export const useMyEmployeeStats = (
   employeeId: string | undefined,
@@ -129,11 +142,7 @@ export const useMyEmployeeStats = (
     staleTime: 30_000,
     queryFn: async (): Promise<EmployeeStats> => {
       if (!employeeId) {
-        return {
-          routesCount: 0, stopsTotal: 0, stopsCompleted: 0,
-           workdaysCount: 0, workSeconds: 0, totalDistanceKm: 0,
-          revenue: 0, commission: 0, activityDays: [], perDay: [],
-        };
+        return EMPTY_STATS;
       }
 
       // 1) Find ruter i perioden, hvor medarbejderen er tilknyttet (via

@@ -8,7 +8,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import { EmployeePage } from "@/components/employee/EmployeePage";
-import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
+import { EMPTY_STATS, useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -228,8 +228,8 @@ const EmployeeStats = () => {
     </div>
   );
 
-  const isLoading = empLoading || statsLoading;
-  const s = stats;
+  const isLoading = empLoading || (!!employee && statsLoading);
+  const s = employee ? stats : EMPTY_STATS;
   const headerLabel =
     range === "custom" && customRange?.from ? customLabel : RANGE_LABELS[range as Exclude<RangeKey, "custom">];
 

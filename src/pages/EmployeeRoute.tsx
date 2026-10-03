@@ -2451,10 +2451,7 @@ const MapInteractionWatcher = forwardRef<never, { onInteract: () => void }>(({ o
 MapInteractionWatcher.displayName = "MapInteractionWatcher";
 
 /* ─── Collapsible bottom stop-list with live status & map sync ─── */
-const StopListPanel = ({
-  open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
-  canReorder, reordering, onMoveStop,
-}: {
+const StopListPanel = forwardRef<HTMLDivElement, {
   open: boolean;
   onToggle: () => void;
   stops: RouteStop[];
@@ -2466,7 +2463,10 @@ const StopListPanel = ({
   canReorder: boolean;
   reordering: boolean;
   onMoveStop: (stopId: string, dir: -1 | 1) => void;
-}) => {
+}>(({
+  open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
+  canReorder, reordering, onMoveStop,
+}, ref) => {
   const remainingIds = stops.filter((s) => s.status !== "completed").map((s) => s.id);
   const total = stops.length;
   const done = stops.filter((s) => s.status === "completed").length;
@@ -2494,6 +2494,7 @@ const StopListPanel = ({
 
   return (
     <div
+      ref={ref}
       className="absolute left-0 right-0 bottom-0 z-[1100] pointer-events-none"
       aria-hidden={false}
     >
@@ -2658,6 +2659,7 @@ const StopListPanel = ({
       </div>
     </div>
   );
-};
+});
+StopListPanel.displayName = "StopListPanel";
 
 export default EmployeeRoute;
