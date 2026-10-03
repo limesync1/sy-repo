@@ -28,7 +28,7 @@ import { format, parseISO, addDays, addWeeks, addMonths, addYears } from "date-f
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { intervalToCadence } from "@/lib/interval";
-import { Section, SheetFooterBar } from "./SheetSection";
+import { Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
@@ -248,52 +248,39 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           )}
           /* Tillad luk via klik udenfor + Esc (Radix default). */
         >
-          {/* Header — samme look som "Se detaljer" på kunder-siden:
-              kompakt titel, lille beskrivelse og en række diskrete status-pills. */}
-          <SheetHeader className="planner-overlay-header border-b border-border p-4 pr-14 shrink-0 space-y-0 text-left">
-            <SheetTitle className="text-left">
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-bold text-foreground truncate flex items-center gap-2 sm:text-lg">
-                    {routeColor && (
-                      <span
-                        className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ background: routeColor }}
-                        aria-hidden
-                      />
-                    )}
-                    {stop.customer_name || "Stop"}
-                  </h3>
-                  <SheetDescription className="text-xs text-muted-foreground font-normal mt-0.5">
-                    {typeof sequenceLabel === "number" ? <>Stop #{sequenceLabel} · </> : null}
-                    {business?.name ? <>Bestilling hos <strong className="font-semibold">{business.name}</strong></> : "Detaljer for dette stop"}
-                  </SheetDescription>
-                  <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                    {statusBadge()}
-                    {pausedSub && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 dark:text-orange-300 dark:border-orange-500/40 gap-1 text-[10px]">
-                        <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
-                      </Badge>
-                    )}
-                    {recurringInterval && recurringInterval !== "engangskøb" && (
-                      <Badge variant="secondary" className="gap-1 text-[10px]">
-                        <Repeat className="h-2.5 w-2.5" />
-                        {INTERVAL_LABELS[recurringInterval] || recurringInterval}
-                      </Badge>
-                    )}
-                    {(stop as any).occurrence_date && (
-                      <Badge variant="outline" className="gap-1 text-[10px]">
-                        <CalendarClock className="h-2.5 w-2.5" />
-                        Forekomst {format(parseISO((stop as any).occurrence_date), "d. MMM yyyy", { locale: da })}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </SheetTitle>
+          <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border p-4 pr-14 text-left sm:px-5">
+            <SheetHeaderBlock
+              badge={typeof sequenceLabel === "number" ? sequenceLabel : undefined}
+              accent={routeColor || undefined}
+              title={<SheetTitle className="text-base">{stop.customer_name || "Stop"}</SheetTitle>}
+              description={
+                <SheetDescription className="text-xs">
+                  {business?.name ? <>Bestilling hos <strong className="font-semibold">{business.name}</strong></> : "Detaljer for dette stop"}
+                </SheetDescription>
+              }
+            >
+              {statusBadge()}
+              {pausedSub && (
+                <Badge variant="outline" className="gap-1 border-warning/40 bg-warning/10 text-[10px] text-warning-foreground">
+                  <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
+                </Badge>
+              )}
+              {recurringInterval && recurringInterval !== "engangskøb" && (
+                <Badge variant="secondary" className="gap-1 text-[10px]">
+                  <Repeat className="h-2.5 w-2.5" />
+                  {INTERVAL_LABELS[recurringInterval] || recurringInterval}
+                </Badge>
+              )}
+              {(stop as any).occurrence_date && (
+                <Badge variant="outline" className="gap-1 text-[10px]">
+                  <CalendarClock className="h-2.5 w-2.5" />
+                  {format(parseISO((stop as any).occurrence_date), "d. MMM yyyy", { locale: da })}
+                </Badge>
+              )}
+            </SheetHeaderBlock>
           </SheetHeader>
 
-          <div className="planner-overlay-body flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
               {/* Completion banner — when the stop is already done, show
                   who completed it and when, so the owner has a quick recap. */}
               {stop.status === "completed" && (

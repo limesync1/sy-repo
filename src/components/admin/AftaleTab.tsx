@@ -251,18 +251,6 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: st
   cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-destructive/30 bg-destructive/5 text-destructive/80",                                                            dot: "bg-destructive/70" },
 };
 
-/** Lille label til at gruppere sektioner inde i den foldede aftaledetalje.
- *  En tynd linje + uppercase tekst skaber tydelig visuel rytme, så øjet
- *  hurtigt kan se hvor "Aftalen" slutter og "Kontekst" starter. */
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center gap-2 px-0.5">
-    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
-      {children}
-    </span>
-    <span className="h-px flex-1 bg-border" />
-  </div>
-);
-
 const PRICING_LABELS: Record<string, string> = {
   fast_pris: "Specifik pris",
   timepris: "Timepris",
@@ -2242,18 +2230,14 @@ const AftaleTab = ({
                         </SheetHeaderBlock>
                       </SheetHeader>
                       <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
-                    {/* Fokus-banner — primær anker når kortet foldes ud. Tydeligt
-                        accent-tema så øjet straks lander her, før det glider
-                        ned til detaljerne nedenunder. */}
-                    <div className="sticky top-0 z-20 border-b border-border bg-card/95 px-3 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-card/90">
+                    <Section icon={<ArrowRight className="h-3.5 w-3.5" />} title="Næste handling">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="min-w-0 flex items-start gap-2.5">
-                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-secondary text-accent ring-1 ring-border">
+                            <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
                               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                             </span>
                             <div className="min-w-0">
-                              <p className="text-[10px] font-semibold uppercase tracking-wider text-accent/90">Næste handling</p>
                               <p className="truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
                             </div>
                           </div>
@@ -2345,7 +2329,7 @@ const AftaleTab = ({
                           </div>
                         </div>
                       )}
-                    </div>
+                    </Section>
 
                     {isResponding && (
                       <div className="border-b border-border bg-card/70 px-3 py-2 space-y-2" onClick={(e) => e.stopPropagation()}>
@@ -2397,9 +2381,8 @@ const AftaleTab = ({
                     {!isResponding && <AdjustmentDisplay order={order} />}
 
                     {/* ── 2) Aftalen — hvad er bestilt, kundens noter ── */}
-                    <div className="pt-1">
-                      <SectionLabel>Aftalen</SectionLabel>
-                      <div className="mt-1.5 space-y-2">
+                    <Section icon={<ShoppingCart className="h-3.5 w-3.5" />} title="Aftalen">
+                      <div className="space-y-2">
                         <CustomerOrderSummary order={order} />
                         {order.notes && (
                           <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
@@ -2408,12 +2391,11 @@ const AftaleTab = ({
                           </div>
                         )}
                       </div>
-                    </div>
+                    </Section>
 
                     {/* ── 3) Kontekst — kontakt, rute, abonnement, tidslinje ── */}
-                    <div className="pt-1">
-                      <SectionLabel>Kontekst</SectionLabel>
-                      <div className="mt-1.5 space-y-2">
+                    <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kunde og planlægning">
+                      <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <a href={`mailto:${order.customer_email}`}
                         className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
@@ -2477,9 +2459,14 @@ const AftaleTab = ({
                       <div className="mt-2"><OrderTimeline order={order as any} /></div>
                     </details>
                       </div>
-                    </div>
+                    </Section>
                   </div>
                   </div>
+                    <SheetFooterBar>
+                      <div className="flex justify-end">
+                        <Button variant="outline" onClick={() => setExpandedOrder(null)}>Luk</Button>
+                      </div>
+                    </SheetFooterBar>
                     </SheetContent>
                   </Sheet>
                 )}
