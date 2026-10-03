@@ -1407,6 +1407,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }
         return;
       }
+      // Står man allerede ved (eller tæt på) næste stop, må rækkefølgen ikke
+      // ændres — ellers flyttes stoppet man er fremme ved bagerst i køen.
+      const head = remaining[0];
+      if (head && head.latitude != null && head.longitude != null) {
+        const dLat = (head.latitude - pos[0]) * 111_320;
+        const dLng = (head.longitude - pos[1]) * 111_320 * Math.cos((pos[0] * Math.PI) / 180);
+        if (Math.hypot(dLat, dLng) < 250) {
+          if (!opts.silent) toast.success("Du er ved næste stop — rækkefølgen er uændret");
+          return;
+        }
+      }
       const res = await optimizeLive.mutateAsync({ routeId, lat: pos[0], lng: pos[1] });
       if (res.order_changed && !opts.silent) {
         const savedKm = Math.round(res.saved_km ?? 0);
