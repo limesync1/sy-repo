@@ -2213,8 +2213,13 @@ const AftaleTab = ({
                 {isExpanded && (
                   <Sheet open onOpenChange={(open) => !open && setExpandedOrder(null)}>
                     <SheetContent
-                      side="right"
-                      className="planner-overlay flex w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:w-full"
+                      side={isCompact ? "bottom" : "right"}
+                      className={cn(
+                        "planner-overlay flex w-full flex-col gap-0 overflow-hidden p-0 shadow-premium",
+                        isCompact
+                          ? "h-[min(88dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0"
+                          : "h-full sm:max-w-2xl",
+                      )}
                     >
                       <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
                         <SheetHeaderBlock
