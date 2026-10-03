@@ -2216,15 +2216,6 @@ const AftaleTab = ({
                     >
                       <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
                         <SheetHeaderBlock
-                          icon={(
-                            <IndustryIcon
-                              category={primaryCategory}
-                              subcategory={primarySubcategory}
-                              name={primaryName}
-                              className="h-8 w-8"
-                            />
-                          )}
-                          iconClassName="h-11 w-11 overflow-hidden bg-transparent p-0 ring-0"
                           title={<SheetTitle className="text-base">{order.customer_name}</SheetTitle>}
                           description={(
                             <SheetDescription className="text-xs">
@@ -2243,7 +2234,7 @@ const AftaleTab = ({
                           )}
                         </SheetHeaderBlock>
                       </SheetHeader>
-                      <div className="planner-overlay-body min-h-0 flex-1 space-y-5 overflow-y-auto bg-secondary/20 p-4 sm:p-5">
+                      <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
                     {/* Fokus-banner — primær anker når kortet foldes ud. Tydeligt
                         accent-tema så øjet straks lander her, før det glider
                         ned til detaljerne nedenunder. */}

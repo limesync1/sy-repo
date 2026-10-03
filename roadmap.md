@@ -100,3 +100,10 @@
 - [x] Fjern referencefejl fra rutekørslens stopliste og aftaledetaljer
 - [x] Kontrollér Min dag og Statistik i en rigtig indlogget visning
 - [ ] Kontrollér print og kortkørsel med en aktiv rute — den valgte medarbejder har ingen tilgængelig rute
+
+## Vinduer, onboarding og rutekort
+- [x] Ensret Aftaler-detaljer med ruteplanlæggerens vinduesdesign
+- [x] Brug samme stopdetaljevindue fra Min dag og aktiv rutekørsel
+- [x] Tilpas Kom godt i gang til den synlige skærmhøjde uden sidescroll
+- [x] Erstat det lukkede danske adresseopslag med loginbeskyttet Google Maps-geokodning
+- [ ] Afprøv kortet på en aktiv medarbejderrute og kontroller de tre vinduer på mobil og computer

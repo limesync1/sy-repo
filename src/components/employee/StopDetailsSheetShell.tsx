@@ -20,8 +20,8 @@ export const StopDetailsSheetShell = forwardRef<HTMLDivElement, Props>(({ open, 
         side={isCompact ? "bottom" : "right"}
         className={
           isCompact
-            ? "planner-overlay h-[88dvh] w-full !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col shadow-premium"
-            : "planner-overlay w-full p-0 flex flex-col shadow-premium sm:max-w-2xl"
+            ? "planner-overlay h-[min(88dvh,52rem)] w-full !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col shadow-premium"
+            : "planner-overlay h-[calc(100dvh-1rem)] w-full p-0 flex flex-col shadow-premium sm:max-w-2xl lg:h-full"
         }
       >
         <SheetTitle className="sr-only">Aftalens oplysninger</SheetTitle>

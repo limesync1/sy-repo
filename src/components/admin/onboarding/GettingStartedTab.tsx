@@ -75,7 +75,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-[calc(100dvh-6.25rem)] min-h-0 flex-col gap-3 overflow-hidden pb-1 sm:h-[calc(100dvh-5.5rem)]">
       <PageHeader
         title="Kom godt i gang"
         description={allDone ? "Opsætningen er færdig — jeres side er klar til kunder." : "Se videoen for hvert trin, og gør det bagefter i panelet."}
@@ -88,8 +88,8 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         }
       />
 
-      <div className="rounded-lg border border-border bg-card p-3 shadow-sm sm:p-4">
-        <div className="mb-3 flex items-start justify-between gap-3">
+      <div className="planner-overlay shrink-0 overflow-hidden rounded-md border border-border bg-card shadow-sm">
+        <div className="planner-overlay-header flex items-start justify-between gap-3 border-b border-border px-3 py-2.5 sm:px-4">
           <div>
             <p className="text-sm font-semibold text-foreground">
               {allDone ? "Opsætningen er klar" : `${completedCount} af ${totalCount} trin klaret`}
@@ -104,7 +104,9 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             </Button>
           )}
         </div>
-        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+        </div>
+        <div className="planner-overlay-body bg-secondary/20 px-3 py-2 sm:px-4">
+        <div className="mb-2.5 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
           <div className="h-full rounded-full bg-accent transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${pct}%` }} />
         </div>
         <div
@@ -123,7 +125,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 onClick={() => setSelected(s.id)}
                 aria-current={isActive ? "step" : undefined}
                 className={cn(
-                  "group h-auto w-32 sm:w-40 shrink-0 justify-start gap-2 rounded-md border px-2.5 py-2 text-left transition-colors",
+                  "group h-auto w-36 shrink-0 justify-start gap-2 rounded-md border px-2.5 py-2 text-left transition-colors sm:w-40",
                   isActive
                     ? "border-accent/40 bg-accent/10 text-foreground hover:bg-accent/15 hover:text-foreground"
                     : "border-transparent bg-secondary/50 text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground",
@@ -149,11 +151,13 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             );
           })}
         </div>
+        </div>
       </div>
 
+      <div className="min-h-0 flex-1 overflow-hidden">
       {/* Ét spørgsmål der tilpasser trinene */}
       {!focus && !allDone && (
-        <SectionCard title="Vælg først, hvad I vil opsætte" icon={<Target />} description="Så viser vi kun de trin, der passer til jeres virksomhed.">
+        <SectionCard title="Vælg først, hvad I vil opsætte" icon={<Target />} description="Så viser vi kun de trin, der passer til jeres virksomhed." className="h-full overflow-y-auto">
           <div className="grid gap-2 sm:grid-cols-3">
             {FOCUS_OPTIONS.map((o) => (
               <Button
@@ -175,10 +179,10 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
 
       {/* Det valgte trin: video + én handling */}
       {step && (focus || allDone) && (
-        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-          <div className="grid gap-4 p-3 sm:p-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-6">
-            <StepVideo url={videos[step.id]} title={step.title} />
-            <div className="flex min-w-0 flex-col">
+        <div className="planner-overlay h-full overflow-hidden rounded-md border border-border bg-card shadow-sm">
+          <div className="planner-overlay-body grid h-full min-h-0 gap-3 overflow-hidden bg-secondary/20 p-3 sm:p-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,1fr)] lg:gap-5">
+            <div className="min-h-0 [&>div]:max-h-full"><StepVideo url={videos[step.id]} title={step.title} /></div>
+            <div className="flex min-h-0 min-w-0 flex-col overflow-y-auto rounded-md border border-border bg-card p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <span className="rounded-full bg-accent/10 px-2 py-1 text-[10px] font-bold text-accent">TRIN {index + 1} AF {totalCount}</span>
                 <span className="text-xs font-medium text-muted-foreground">Du ser dette trin nu</span>
@@ -225,6 +229,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
