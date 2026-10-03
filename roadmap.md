@@ -1,5 +1,10 @@
 # Roadmap
 
+## Aftalevinduer og nyt visningsikon
+- [ ] Ensret de faktiske aftalevinduer på Aftaler, Min dag og rutekørsel med samme header og vinduesflader
+- [ ] Brug det vedhæftede Visning af aftale-ikon i alle aftaledetaljer
+- [ ] Kontrollér åbne vinduer, ikon og mobilvisning i browseren
+
 - [x] Redesign aftaledetaljer og deres åbne/lukke-flow på rutekort, liste og Statistik
 - [x] Opdatér Medarbejdere-siden med ensartede handlinger, tooltips og nyt paneldesign
 - [x] Færdiggør selvbetjent Meta-forbindelse med side/formularvalg, webhook-tilmelding og tydelige fejl
