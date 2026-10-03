@@ -1566,7 +1566,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onSwitchToGuide={() => {
           setRunMode("guide");
           writeRunMode("guide", !!readRunMode());
-          toast.success("Skiftet til kørselsguide");
         }}
         onFinish={onBack}
         onMoveStop={handleMoveStop}
