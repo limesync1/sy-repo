@@ -17,6 +17,8 @@ import {
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
+import "leaflet-rotate";
+import { arrivalRadius, headingDelta } from "@/components/employee-route/navigation-policy";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -63,7 +65,7 @@ const stopIcon = (n: number, state: "next" | "done" | "future", _color: string, 
   if (existing) return existing;
   const icon = L.divIcon({
     className: "route-map-marker",
-    html: `<div class="route-map-pin route-map-pin-${state}${highlighted ? " route-map-pin-selected" : ""}"><span>${state === "done" ? "✓" : n}</span></div>`,
+    html: `<div class="route-map-pin route-map-pin-${state}${highlighted ? " route-map-pin-selected" : ""}"><span>${state === "done" ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>' : n}</span></div>`,
     iconSize: [36, 44], iconAnchor: [18, 44],
   });
   if (stopIcons.size > 200) stopIcons.clear();
@@ -206,13 +208,14 @@ const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speed
     let zoom = 17;
     let pendingZoom = zoom;
     let pendingSince = 0;
-    const unsubscribe = track.subscribe(({ pos }) => {
+    const unsubscribe = track.subscribe(({ pos, heading }) => {
       if (document.visibilityState === "hidden" || frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
         const candidate = navigationZoom(speedRef.current, zoom);
         if (candidate !== pendingZoom) { pendingZoom = candidate; pendingSince = performance.now(); }
         if (candidate !== zoom && performance.now() - pendingSince > 6000) zoom = candidate;
+        if (heading != null && speedRef.current > 1.2 && Math.abs(headingDelta(map.getBearing(), heading)) > 0.5) map.setBearing(heading);
         const moved = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
         if (last && moved < 0.05 && last.zoom === zoom) return;
         // Pan and puck consume the same sample, avoiding the previous 3–8 m catch-up jumps.
@@ -242,7 +245,7 @@ const DriveMapControls = forwardRef<never, { following: boolean; onFollow: () =>
       <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => { onManualZoom(); map.zoomOut(1); }} aria-label="Zoom ud">
         <Minus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
-      <Button type="button" variant={following ? "default" : "ghost"} size="icon" className="h-12 w-12 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
+      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
         <Crosshair className="h-5 w-5" />
       </Button>
     </div>
@@ -848,16 +851,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Vi bruger en glat "1.4 × accuracy + offset"-formel clamped til
   // [TIGHT_MIN, LOOSE_MAX] i stedet for en hård tærskel — det giver en
   // mere forudsigelig oplevelse end tidligere step-funktion.
-  const TIGHT_MIN_M = 18;
+  const TIGHT_MIN_M = 45;
   const LOOSE_MAX_M = 60;
-  const arrivalThresholdM = useMemo(() => {
-    const acc = userAccuracyM ?? 20;
-    // 1.4× giver ~95% sandsynlighed for at den rigtige position er
-    // indenfor radius (acc er 1-sigma → 2-sigma ≈ 1.96×, vi vælger 1.4
-    // for at være konservative og ikke overlappe naboer).
-    const dynamic = Math.round(acc * 1.4 + 4);
-    return Math.max(TIGHT_MIN_M, Math.min(LOOSE_MAX_M, dynamic));
-  }, [userAccuracyM]);
+  const arrivalThresholdM = arrivalRadius(userAccuracyM);
   // Hysterese: vi træder IND i ankomstzonen ved radius, men træder først
   // UD igen ved 1,8 × radius.  Uden det skifter kortet mellem "fremme" og
   // "kør videre" hver gang GPS sitrer et par meter — præcis den "frem og
@@ -869,20 +865,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       wasInArrivalRef.current = false;
       arrivalStopIdRef.current = nextStop?.id;
     }
-    if (distanceToNextM == null) return false;
+    if (distanceToNextM == null || userSpeedMps > 3 || (userAccuracyM ?? 20) > 65) return false;
     const exit = arrivalThresholdM * 1.8;
     const next = wasInArrivalRef.current
       ? distanceToNextM <= exit
       : distanceToNextM <= arrivalThresholdM;
     wasInArrivalRef.current = next;
     return next;
-  }, [distanceToNextM, arrivalThresholdM, nextStop?.id]);
+  }, [distanceToNextM, arrivalThresholdM, nextStop?.id, userSpeedMps, userAccuracyM]);
 
   // Stabiliseret ankomst — kræv at vi har været inden for radius i et par
   // sekunder før vi flipper "fremme" til true.  Det forhindrer at en enkelt
   // jitter-måling udløser ankomst, men føles stadig øjeblikkeligt når man
   // holder ind foran adressen.
-  const ARRIVAL_DWELL_MS = 5_000;
+  const ARRIVAL_DWELL_MS = 2_000;
   const arrivalEnteredAtRef = useRef<number | null>(null);
   const arrivalStableForStopRef = useRef<string | null>(null);
   const [stableArrival, setStableArrival] = useState<string | null>(null);
@@ -1301,7 +1297,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Når brugeren er tæt på næste stop er turn-by-turn irrelevant — vis kun
   // stop-kortet, ikke et "Du er fremme"-banner oveni der modsiger kortets
   // afstand.  Matcher Google Maps' adfærd.
-  const nearNextStop = distanceToNextM != null && distanceToNextM <= 40;
+  const nearNextStop = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
     && !nearNextStop
@@ -1672,7 +1668,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
       {gpsError && routeStarted && <div role="alert" className="relative z-[1004] border-b border-warning/30 bg-card px-4 py-3 text-sm text-foreground">{gpsError}</div>}
       {/* ─── Map fills everything ─── */}
-      <div className="relative flex-1 min-h-0">
+      <div className={cn("route-map-stage relative flex-1 min-h-0", routeStarted && !allDone && "route-map-stage-driving")}>
         {!hasMapPoint && (isLoading || geocodeState === "idle" || geocodeState === "pending") ? (
           <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
             <div className="space-y-2">
@@ -1714,6 +1710,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <MapContainer
             center={userPos ?? allPoints[0] ?? [56.1, 10.2]}
             zoom={13}
+            rotate
+            rotateControl={false}
+            touchRotate={false}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
             doubleClickZoom
@@ -1904,45 +1903,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Næste manøvre — placeret under den faste kørselsbjælke */}
             {showManeuverBanner && maneuver && nextStop && (
-              <div className="absolute left-2 right-[4.25rem] top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] z-[1000] pointer-events-none sm:left-4 sm:right-[5rem] lg:left-auto lg:right-4 lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-                <Card className="overflow-hidden rounded-md border-border bg-card shadow-lg pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="flex items-stretch">
-                    <div className="flex w-[76px] shrink-0 flex-col items-center justify-center bg-accent px-1 py-3 text-accent-foreground">
-                      <ManeuverIcon
-                        type={maneuver.currentStep.maneuver.type}
-                        modifier={maneuver.currentStep.maneuver.modifier}
-                       className="h-9 w-9"
-                      />
-                      <span className="text-[13px] font-bold tracking-tight mt-1.5 tabular-nums leading-none">
-                        {formatKm(maneuver.distanceToManeuverM)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0 px-3.5 py-3">
-                      <p className="font-bold text-[17px] leading-tight truncate text-foreground">
-                        {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
-                      </p>
-                      {maneuver.currentStep.name && (
-                        <p className="text-[13px] text-muted-foreground truncate mt-0.5">
-                          ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
-                        </p>
-                      )}
-                      {maneuver.nextStep && (
-                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border text-[11px] text-muted-foreground">
-                          <span className="font-semibold uppercase tracking-wide text-[10px]">Derefter</span>
-                          <ManeuverIcon
-                            type={maneuver.nextStep.maneuver.type}
-                            modifier={maneuver.nextStep.maneuver.modifier}
-                            className="h-3.5 w-3.5 text-foreground"
-                          />
-                          <span className="truncate">
-                            {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
-                            {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+              <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+                <div className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-foreground shadow-sm" aria-live="polite">
+                  <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-7 w-7 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{maneuver.currentStep.name || "Følg vejen"}</p>
                   </div>
-                </Card>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</span>
+                </div>
               </div>
             )}
 
@@ -2036,7 +2005,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
+          <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
@@ -2058,17 +2027,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full flex-wrap sm:flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
-                onClick={() => setCollapsed((c) => !c)}
+                className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
+                onClick={() => setSelectedId(nextStop.id)}
                 aria-expanded={!collapsed}
-                aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
+                aria-label="Vis aftalens oplysninger"
               >
                 <span
                    className="flex h-11 w-11 items-center justify-center rounded-md bg-foreground text-background text-base font-bold tabular-nums shrink-0"
                 >
                   {nextStopIdx + 1}
                 </span>
-                <div className="flex-1 basis-[calc(100%-5rem)] sm:basis-auto text-left min-w-0">
+                <div className="flex-1 text-left min-w-0">
                   <p
                     className="font-semibold text-[14px] text-foreground truncate leading-tight"
                     title={nextStop.customer_name || undefined}
@@ -2106,12 +2075,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                           afstand, ellers vejafstanden fra ruten. */}
                       {formatKm(nearNextStop ? distanceToNextM : (directions?.distance_m ?? distanceToNextM))}
                     </p>
-                    {/* Én linje under afstanden: enten "næsten fremme", en
+                    {/* Én linje under afstanden: enten "Ved adressen", en
                         tydelig forsinkelse, eller hvornår du er fremme.
                         Aldrig "96 min i god tid" — det siger intet brugbart. */}
                     {nearNextStop ? (
                     <p className="text-[10px] leading-tight font-semibold text-success">
-                      næsten fremme
+                      Ved adressen
                     </p>
                   ) : directions?.duration_s != null ? (
                     <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
@@ -2166,25 +2135,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       className="h-12 gap-2 rounded-md text-sm font-semibold"
                     >
                       <Navigation className="h-4 w-4" />
-                      Navigér hertil
+                      Følg ruten
                     </Button>
                   )}
-                  <Button
-                    onClick={async () => {
-                      if (activeNextStopEntry || isAtNextStop) { handleNavigate(nextStop); return; }
-                      if (!meEmp?.id) return;
-                      try { await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: meEmp.id }); buzz(22); toast.success("Aftale startet"); }
-                      catch { toast.error("Aftalen kunne ikke startes", { description: "Tjek din forbindelse og prøv igen." }); }
-                    }}
-                    variant="outline"
-                    size="sm"
-                    disabled={!activeNextStopEntry && !isAtNextStop && (routeDateLocked || startStopTime.isPending)}
-                    aria-label={activeNextStopEntry || isAtNextStop ? "Åbn i Maps" : "Jeg er fremme – start aftale"}
-                    title={activeNextStopEntry || isAtNextStop ? "Åbn i Maps" : "Jeg er fremme – start aftale"}
-                    className="h-12 w-12 p-0 rounded-md border-border hover:bg-secondary"
-                  >
-                    {activeNextStopEntry || isAtNextStop ? <Navigation className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                  </Button>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="icon" aria-label="Vis detaljer" title="Vis detaljer" className="h-12 w-12 rounded-md"><Info className="h-5 w-5" /></Button>
                   {nextStop.customer_phone ? (
                     <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-12 w-12 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
