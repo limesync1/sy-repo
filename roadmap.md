@@ -172,3 +172,10 @@
 - [x] Kontrollér mobilflow, navigationstest og fejl
 
 - Mobilkontrol: Min dag, Statistik, profilmenu, notifikationer og stopvindue; Livechat var ikke aktiveret for testmedarbejderen; 29 navigationstests bestod. Isoleret rute med to adresseopslag gennemført med simuleret GPS, testdata fjernet. Fysisk GPS-kørsel er fortsat ikke verificeret.
+
+## Rutevalg, ankomst og ægte natkort
+- [ ] Forenkling af rutevalgsdialog med eksisterende ikoner
+- [ ] Fælles faktisk/beregnet ankomst i guide og tjekliste
+- [ ] Ægte natkort med tydelige veje og fejlhåndtering
+- [ ] Isoleret fortryd-/indtjeningstest og mobilkontrol
+- [ ] Fysisk biltest — kræver brugerens bil og telefon
