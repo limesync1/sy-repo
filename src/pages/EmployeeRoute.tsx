@@ -1757,10 +1757,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             */}
             <TileLayer
               key={night && routeStarted ? "night" : "day"}
-              url={night && routeStarted
-                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
-              attribution={night && routeStarted ? '&copy; OpenStreetMap-bidragydere &copy; CARTO' : '&copy; OpenStreetMap-bidragydere'}
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              className={night && routeStarted ? "route-tiles-night" : undefined}
+              attribution="&copy; OpenStreetMap-bidragydere"
               updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
