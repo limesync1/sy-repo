@@ -53,6 +53,8 @@ import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
 import { ArrowUp, ArrowDown, Zap } from "lucide-react";
+import { useDriveIssues, useWakeLock } from "@/components/employee-route/useDriveSafety";
+import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
