@@ -146,5 +146,6 @@
 ## Fuld rutekontrol 2026-10-03
 - [x] Test start, tre adresseopslag, kørsel, stophandlinger og afslutning med midlertidig indlogget testrute og simuleret GPS
 - [x] Ret kameraryk, zoomuro og misvisende vejlinjer; brug enkle blå gradientlinjer og stopmarkører
-- [ ] Kontrollér adresse-/GPS-fejl, mobil og computer; fjern testdata
+- [x] Kontrollér computerflow: alle tre stop udført, gradientlinjer på alle strækninger og ingen JavaScript-runtimefejl; fjern midlertidige testdata
+- [ ] Kontrollér adresse-/GPS-fejl og mobil under fysisk kørsel
 - [ ] Fysisk GPS-kørsel kræver kontrol på brugerens telefon
