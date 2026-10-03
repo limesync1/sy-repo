@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
@@ -10,12 +10,13 @@ type Props = {
   loading?: boolean;
 };
 
-export const StopDetailsSheetShell = ({ open, onOpenChange, children, loading = false }: Props) => {
+export const StopDetailsSheetShell = forwardRef<HTMLDivElement, Props>(({ open, onOpenChange, children, loading = false }, ref) => {
   const isCompact = useIsBelowBreakpoint(1024);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
+        ref={ref}
         side={isCompact ? "bottom" : "right"}
         className={
           isCompact
@@ -43,6 +44,7 @@ export const StopDetailsSheetShell = ({ open, onOpenChange, children, loading = 
       </SheetContent>
     </Sheet>
   );
-};
+});
+StopDetailsSheetShell.displayName = "StopDetailsSheetShell";
 
 export default StopDetailsSheetShell;
