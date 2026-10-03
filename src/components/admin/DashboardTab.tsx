@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { formatPrice } from "@/lib/price-format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1075,9 +1076,7 @@ const OrdersListSection = ({
         </div>
           <div className="p-3 sm:p-7">
           <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center sm:rounded-2xl sm:p-8">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-sm">
-              <Inbox className="h-5 w-5 text-muted-foreground" />
-            </div>
+            <NoItemsIcon />
             <h4 className="mt-4 text-base font-semibold text-foreground">Ingen bestillinger endnu</h4>
             <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
               {servicesCount === 0

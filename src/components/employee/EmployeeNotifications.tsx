@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { formatDistanceToNow, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { Bell, CheckCheck, MapPin, Route as RouteIcon, Trash2 } from "lucide-react";
@@ -50,7 +51,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, on
       <div className={cn("min-h-0 overflow-y-auto overscroll-contain p-1.5", compact ? "max-h-[min(28rem,calc(100vh-7rem))]" : "max-h-[68dvh]") }>
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center px-4 py-10 text-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-secondary text-muted-foreground"><Bell className="h-5 w-5" /></span>
+            <NoItemsIcon className="h-12 w-12" />
             <p className="mt-3 text-sm font-medium text-foreground">Ingen beskeder endnu</p>
             <p className="mt-1 text-xs text-muted-foreground">Nye beskeder om ruter og aftaler vises her.</p>
           </div>

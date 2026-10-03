@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { formatPrice } from "@/lib/price-format";
 import { useState, useEffect } from "react";
 import BusinessCover from "@/components/shared/media/BusinessCover";
@@ -359,7 +360,7 @@ const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
   if (!orders || orders.length === 0) {
     return (
       <EmptyPanel
-        icon={<ShoppingCart className="h-7 w-7" />}
+        icon={<NoItemsIcon className="h-full w-full" />}
         title="Ingen bestillinger endnu"
         description="Find en virksomhed og bestil en service direkte — eller modtag tilbud fra flere udbydere på én gang."
         primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
@@ -1255,7 +1256,7 @@ const InvoicesView = () => {
     return (
       <Card className="rounded-2xl border-dashed">
         <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center">
-          <Receipt className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <NoItemsIcon className="mb-3" />
           <h3 className="text-base font-semibold">Ingen fakturaer endnu</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Når en virksomhed udsteder en faktura til dig, vil den dukke op her.
@@ -1391,7 +1392,7 @@ const DocumentsView = () => {
     return (
       <Card className="rounded-2xl border-dashed">
         <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center">
-          <FileSignature className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <NoItemsIcon className="mb-3" />
           <h3 className="text-base font-semibold">Ingen dokumenter endnu</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Når en virksomhed deler en kontrakt, et tilbud eller en aftale med dig, vises den her.

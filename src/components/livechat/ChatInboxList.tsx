@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { platformKey, type RegisteredChat } from "./chatRegistry";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
@@ -94,7 +95,7 @@ const ChatInboxList = ({ chats, activeKey, onSelect, onDelete }: Props) => {
             ))}
           </div>
         ) : (
-          <p className="rounded-xl border border-dashed border-border px-3 py-3 text-[12px] text-muted-foreground">Ingen samtaler med virksomheder.</p>
+          <div className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-[12px] text-muted-foreground"><NoItemsIcon className="mb-2 h-10 w-10" />Ingen samtaler med virksomheder.</div>
         )}
       </section>
     </div>
