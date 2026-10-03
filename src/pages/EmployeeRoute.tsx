@@ -1,4 +1,4 @@
-import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival } from "@/components/employee-route/route-run-clock";
+import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival, readArrivalEstimate, saveArrivalEstimate } from "@/components/employee-route/route-run-clock";
 import { runMetrics } from "@/components/employee-route/run-metrics";
 import { RouteRunSummary } from "@/components/employee-route/RouteRunSummary";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
@@ -1102,8 +1102,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const runStart = routeStartedAt ?? getRouteStartedAt(routeId);
   const metrics = runMetrics(runStart, finishedAt ?? Math.max(clockNow, timerNow), nextStopTimeEntries, meEmp?.id);
   const actualArrival = nextStop ? readArrival(routeId, nextStop.id) : null;
+  const [arrivalRevision, setArrivalRevision] = useState(0);
   useEffect(() => {
-    if (isAtNextStop && nextStop && !readArrival(routeId, nextStop.id)) saveArrival(routeId, nextStop.id, Date.now());
+    if (isAtNextStop && nextStop && !readArrival(routeId, nextStop.id)) {
+      saveArrival(routeId, nextStop.id, Date.now());
+      setArrivalRevision(v => v + 1);
+    }
   }, [isAtNextStop, nextStop?.id, routeId]);
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
   useEffect(() => {
@@ -1122,11 +1126,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     playCompleteFanfare();
   }, [allDone, audioEnabled]);
 
-  const etaLabel: string | null = useMemo(() => {
-    if (liveDurationS == null) return null;
-    const eta = new Date(Date.now() + liveDurationS * 1000);
-    return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-  }, [liveDurationS, userPos]);
+  // One stop-scoped estimate survives view switches and reloads. A route's
+  // scheduled time is never substituted for a GPS-based arrival estimate.
+  useEffect(() => {
+    if (!driving || !nextStop || liveDurationS == null || !lastFixAt || Date.now() - lastFixAt > 60_000) return;
+    saveArrivalEstimate(routeId, nextStop.id, Date.now() + liveDurationS * 1000);
+    setArrivalRevision(v => v + 1);
+  }, [driving, routeId, nextStop?.id, liveDurationS, lastFixAt]);
+  const etaLabel = useMemo(() => {
+    const eta = nextStop ? readArrivalEstimate(routeId, nextStop.id) : null;
+    return eta == null ? null : formatClockTime(eta);
+  }, [routeId, nextStop?.id, arrivalRevision, clockNow]);
 
   /* Resterende stop bruges til ruteoptimering og navigation. */
   const remainingStops = useMemo(
