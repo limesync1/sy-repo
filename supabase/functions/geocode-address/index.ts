@@ -2,6 +2,9 @@
 // Bruger struktur=mini for lille payload + fuzzy=1 for typo-tolerance.
 // Falder tilbage til Nominatim hvis DAWA er nede.
 
+import postalTowns from "../_shared/postal-towns.json" with { type: "json" };
+
+const guestRequests = new Map<string, { count: number; until: number }>();
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -71,6 +74,32 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
+    // Guest checkout suggestions use an unmetered address provider, never the
+    // private Google key. Bound input, requests and time spent on the provider.
+    if (body.suggestions === true) {
+      const query = typeof body.address === "string" ? body.address.trim() : "";
+      const reply = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (query.length < 4 || query.length > 300) return reply({ error: "Indtast en gyldig adresse" }, 400);
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+      const now = Date.now();
+      if (guestRequests.size > 1000) for (const [key, entry] of guestRequests) if (entry.until < now) guestRequests.delete(key);
+      if (guestRequests.size > 2000) return reply({ error: "Adresseforslag er travle. Prøv igen om lidt." }, 429);
+      const entry = guestRequests.get(ip);
+      if (entry && entry.until > now && entry.count >= 20) return reply({ error: "Vent lidt før næste adresseopslag." }, 429);
+      guestRequests.set(ip, entry && entry.until > now ? { ...entry, count: entry.count + 1 } : { count: 1, until: now + 60_000 });
+      const url = new URL("https://photon.komoot.io/api/");
+      url.searchParams.set("q", query); url.searchParams.set("limit", "5"); url.searchParams.set("lang", "en");
+      const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!response.ok) return reply({ error: "Adresseforslag kunne ikke hentes. Indtast adressen manuelt." }, 503);
+      const payload = await response.json();
+      const suggestions = (Array.isArray(payload.features) ? payload.features : []).flatMap((hit: any) => {
+        const p = hit.properties ?? {}; const coords = hit.geometry?.coordinates;
+        const city = (postalTowns as Record<string, string>)[p.postcode];
+        if (p.countrycode !== "DK" || !p.street || !p.housenumber || !city || !Array.isArray(coords) || !coords.every(Number.isFinite)) return [];
+        return [{ address: `${p.street} ${p.housenumber}`, zip_code: p.postcode, city, latitude: coords[1], longitude: coords[0] }];
+      });
+      return reply({ suggestions });
+    }
     const address = String(body.address || "").trim();
     const zip = String(body.zip_code || "").trim();
     const city = String(body.city || "").trim();

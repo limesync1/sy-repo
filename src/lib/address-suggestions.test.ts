@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { functions: { invoke } } }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { functions: { invoke }, auth: { getSession: vi.fn().mockResolvedValue({ data: { session: {} } }) } } }));
 import { searchAddresses } from "./address-suggestions";
 
 describe("address suggestions", () => {

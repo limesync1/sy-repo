@@ -13,7 +13,8 @@ export function searchAddresses(query: string): Promise<AddressSuggestion[]> {
   const existing = pending.get(key);
   if (existing) return existing;
   const request = (async () => {
-    const { data, error } = await supabase.functions.invoke("employee-route-geocode", { body: { address: query.trim(), suggestions: true } });
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data, error } = await supabase.functions.invoke(session ? "employee-route-geocode" : "geocode-address", { body: { address: query.trim(), suggestions: true } });
     if (error) {
       let message = "Adresseforslag kunne ikke hentes. Du kan indtaste adressen manuelt.";
       if (error instanceof FunctionsHttpError) {

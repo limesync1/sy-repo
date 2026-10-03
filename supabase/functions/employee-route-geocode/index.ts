@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.25.76";
+import postalTowns from "../_shared/postal-towns.json" with { type: "json" };
 
 const BodySchema = z.object({ address: z.string().trim().min(4).max(300), suggestions: z.boolean().optional() });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -83,10 +84,8 @@ Deno.serve(async (req) => {
         const part = (type: string) => parts.find((p: any) => p.types?.includes(type))?.long_name ?? "";
         const loc = hit.geometry?.location;
         if (!part("route") || !part("street_number") || !part("postal_code") || part("country") !== "Danmark" && part("country") !== "Denmark" || hit.partial_match || hit.geometry?.location_type === "APPROXIMATE" || typeof loc?.lat !== "number" || typeof loc?.lng !== "number") return [];
-        // Retain the user-provided postal town when Google supplies a village
-        // locality, but only if the postcode is an exact match.
-        const enteredTown = parsed.data.address.match(/\b(\d{4})\s+([^,]+)$/);
-        const city = part("postal_town") || (enteredTown?.[1] === part("postal_code") ? enteredTown[2].trim() : part("locality"));
+        // Use exact known mailing towns, never user-supplied town guesses.
+        const city = (postalTowns as Record<string, string>)[part("postal_code")] || part("postal_town") || part("locality");
         return [{ address: `${part("route")} ${part("street_number")}`, zip_code: part("postal_code"), city, latitude: loc.lat, longitude: loc.lng }];
       });
       return json({ suggestions });
