@@ -545,10 +545,10 @@ const DashboardTab = ({
           <Card className="surface-admin overflow-hidden rounded-md border-border/80 shadow-sm">
             <div className="border-b border-border px-4 py-3 sm:px-5">
               <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">Hurtige handlinger</h3>
+                <Zap className="h-4 w-4 text-accent" />
+                <h3 className="text-sm font-semibold text-foreground">Det næste du bør gøre</h3>
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">Prioriteret efter hvad der flytter mest lige nu.</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Det vigtigste står øverst.</p>
             </div>
               <div className="p-3 sm:p-4">
               <div className="grid gap-2">
@@ -559,7 +559,7 @@ const DashboardTab = ({
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
                       className={cn(
                         "group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all",
-                      a.tone === "primary" && "border-foreground/15 bg-foreground text-background hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_hsl(var(--foreground)/0.5)]",
+                      a.tone === "primary" && "brand-blue-action border-transparent text-background hover:-translate-y-0.5",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
                     )}

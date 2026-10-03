@@ -1066,13 +1066,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                 onClick={() => scrollToSection(id)}
                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
                   activeSection === id
-                    ? "border-foreground bg-foreground text-background"
+                    ? "brand-blue-action border-transparent text-background"
                     : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
                 <Icon />
                 {label}
-                {allDone && <CheckCircle2 className={`ml-0.5 h-3 w-3 ${activeSection === id ? "text-emerald-300" : "text-emerald-600"}`} />}
+                {allDone && <CheckCircle2 className={`ml-0.5 h-3 w-3 ${activeSection === id ? "text-background" : "text-success"}`} />}
               </button>
             );
           })}
@@ -1085,7 +1085,19 @@ const SettingsTab = ({ business }: { business: any }) => {
             (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
             mens man scroller. */}
         <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto pr-1">
-          <nav className="rounded-2xl border border-border/60 bg-card/60 p-2.5 shadow-sm backdrop-blur-sm">
+          <nav className="rounded-md border border-border bg-card p-2.5 shadow-sm">
+            <div className="mb-3 rounded-md border border-border bg-secondary/40 px-3 py-2.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[12px] font-semibold text-foreground">Profil udfyldt</span>
+                <span className="text-[12px] font-semibold tabular-nums text-foreground">{completeness.pct}%</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
+                <div className="brand-blue-action h-full rounded-full transition-all" style={{ width: `${completeness.pct}%` }} />
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                {completeness.total - completeness.done === 0 ? "Alt er udfyldt" : `${completeness.total - completeness.done} ting mangler`}
+              </p>
+            </div>
             {(() => {
               const groups: { title: string; ids: string[] }[] = [
                 { title: "Profil",      ids: ["general", "industries", "contact", "branding", "hours"] },
@@ -1110,9 +1122,9 @@ const SettingsTab = ({ business }: { business: any }) => {
                           key={id}
                           type="button"
                           onClick={() => scrollToSection(id)}
-                          className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all ${
+                          className={`group relative flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-all ${
                             isActive
-                              ? "bg-foreground text-background shadow-sm"
+                              ? "brand-blue-action text-background shadow-sm"
                               : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                           }`}
                         >
@@ -1125,9 +1137,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                               {sec.hint}
                             </span>
                           </span>
-                          {sectionDone && (
-                            <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-emerald-300" : "text-emerald-500/80"}`} />
-                          )}
+                          {sectionDone ? (
+                            <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-background" : "text-success"}`} />
+                          ) : sectionChecks.some((c) => !c.done) ? (
+                            <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${isActive ? "bg-background/20 text-background" : "bg-warning/15 text-warning"}`}>
+                              {sectionChecks.filter((c) => !c.done).length}
+                            </span>
+                          ) : null}
                         </button>
                       );
                     })}
