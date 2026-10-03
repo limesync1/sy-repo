@@ -2109,7 +2109,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <span>Start <b className="font-semibold text-foreground">{formatClockTime(routeStartedAt)}</b></span>
                   <span>Kørt <b className="font-semibold text-foreground">{formatRunDuration(Math.max(0, Math.floor((clockNow - routeStartedAt) / 1000)))}</b></span>
                   <span>Ankomst <b className="font-semibold text-foreground">{isAtNextStop ? "nu" : etaLabel ?? "—"}</b></span>
-                  {activeNextStopLabel && <span className="ml-auto">Hos kunden <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
+                  {activeNextStopLabel && <span>Tidsregistrering <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
                 </p>
               )}
               <Button
