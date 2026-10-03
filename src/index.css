@@ -689,6 +689,30 @@
     background: hsl(var(--surface-strong));
   }
 
+  .employee-route-run .route-map-marker { background: transparent; border: 0; }
+  .employee-route-run .route-map-pin {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 2px solid hsl(var(--accent-foreground));
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    box-shadow: 0 2px 6px hsl(var(--foreground) / 0.24);
+  }
+  .employee-route-run .route-map-pin > * { transform: rotate(45deg); font-weight: 700; font-size: 14px; }
+  .employee-route-run .route-map-pin-future { background: hsl(var(--card)); color: hsl(var(--accent)); border-color: hsl(var(--accent)); }
+  .employee-route-run .route-map-pin-done { background: hsl(var(--success)); }
+  .employee-route-run .route-map-pin-start { background: hsl(var(--foreground)); }
+  .employee-route-run .route-map-pin-selected { outline: 3px solid hsl(var(--accent) / 0.28); outline-offset: 2px; }
+  .employee-route-run .leaflet-control-attribution { background: hsl(var(--card) / 0.88); color: hsl(var(--muted-foreground)); font-size: 9px; }
+  .employee-route-run .leaflet-control-attribution a { color: hsl(var(--accent)); }
+
+
   /* Ruteplanlæggeren er et arbejdsbord, ikke en samling små standardkort. */
   .route-planner-workspace {
     --radius: 0.5rem;

@@ -135,3 +135,10 @@
 - [x] Brug fem vedhæftede ikoner i serviceoprettelse og -redigering
 - [x] Kontrollér ikonvalg med 11 tests og tomme kunde-/medarbejdervisninger i browseren
 - [ ] Kontrollér servicevinduer i browseren — den tilgængelige konto har ikke virksomhedsadgang
+
+## Adresseforslag og rutekort 2026-10-03
+- [x] Gendan fælles adresseforslag i bestilling, kunde og indstillinger med tydelige fejl; test fælles felt indlogget og som gæst
+- [x] Brug vedhæftede Dagen afsluttet- og Genopstart dagen-ikoner
+- [x] Gør rutekort, stopmarkører og kamerabevægelse rolige og tydelige
+- [x] Opret testmedarbejderrute og afprøv adresser samt kort i indlogget visning; fjern midlertidig testrute efter testen
+- [ ] Afprøv stabilitet under fysisk kørsel med enhedens GPS; browsertesten brugte fast simuleret position

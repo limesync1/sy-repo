@@ -51,63 +51,23 @@ import { ArrowUp, ArrowDown, Zap } from "lucide-react";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
-  className: "",
-  html: `
-    <div style="position:relative;width:38px;height:46px;">
-      <div style="position:absolute;top:0;left:0;width:38px;height:38px;border-radius:50%;background:hsl(0 0% 13%);display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,.25);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-9-9 18-2-7-7-2z"/></svg>
-      </div>
-      <div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid hsl(0 0% 13%);"></div>
-    </div>`,
-  iconSize: [38, 46],
-  iconAnchor: [19, 44],
+  className: "route-map-marker",
+  html: '<div class="route-map-pin route-map-pin-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 11l18-9-9 18-2-7-7-2z"/></svg></div>',
+  iconSize: [36, 44], iconAnchor: [18, 44],
 });
-
-const stopIcon = (
-  n: number,
-  state: "next" | "done" | "future",
-  color: string,
-  highlighted = false,
-) => {
-  // Admin-panel-stil: neutral foreground for "next", muted-grå for "future",
-  // grøn for "done".  Vi bruger samme palette som AdminShell/StatCard så
-  // medarbejder-appen visuelt er en del af samme design-system — ikke en
-  // separat brand-farve.
-  const bg =
-    state === "done"
-      ? "hsl(var(--success))"
-      : state === "next"
-        ? "hsl(var(--foreground))"
-        : "hsl(var(--muted-foreground))";
-  const opacity = state === "future" ? 0.9 : 1;
-  const ring = state === "next"
-    ? `0 0 0 4px hsl(var(--foreground) / 0.15), 0 0 0 9px hsl(var(--foreground) / 0.06)`
-    : "none";
-  // Highlighted: neutral foreground-ring i stedet for accent.
-  const hlRing = highlighted ? `, 0 0 0 4px hsl(var(--foreground)), 0 0 0 8px hsl(var(--foreground) / 0.18)` : "";
-  const size = highlighted ? 44 : state === "next" ? 42 : 34;
-  const fontSize = state === "next" ? 15 : 12;
-  const inner =
-    state === "done"
-      ? `<svg width="${Math.round(size * 0.5)}" height="${Math.round(size * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-      : `<span style="color:white;font-weight:800;font-size:${fontSize}px;line-height:1;font-feature-settings:'tnum';">${n}</span>`;
-  return L.divIcon({
-    className: "",
-    html: `
-      <div style="position:relative;width:${size}px;height:${Math.round(size * 1.18)}px;opacity:${opacity};">
-        <div style="
-          width:${size}px;height:${size}px;border-radius:50% 50% 50% 50% / 55% 55% 45% 45%;
-          background:${bg};
-          display:flex;align-items:center;justify-content:center;
-          border:2.5px solid white;
-          box-shadow:0 4px 12px rgba(0,0,0,.28)${hlRing};
-          ${ring !== "none" ? `outline-offset:0;box-shadow:0 4px 12px rgba(0,0,0,.28), ${ring}${hlRing};` : ""}
-        ">${inner}</div>
-        <div style="position:absolute;left:50%;top:${size - 4}px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${bg};filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));"></div>
-      </div>`,
-    iconSize: [size, Math.round(size * 1.18)],
-    iconAnchor: [size / 2, Math.round(size * 1.15)],
+const stopIcons = new Map<string, L.DivIcon>();
+const stopIcon = (n: number, state: "next" | "done" | "future", _color: string, highlighted = false) => {
+  const key = `${n}-${state}-${highlighted}`;
+  const existing = stopIcons.get(key);
+  if (existing) return existing;
+  const icon = L.divIcon({
+    className: "route-map-marker",
+    html: `<div class="route-map-pin route-map-pin-${state}${highlighted ? " route-map-pin-selected" : ""}"><span>${state === "done" ? "✓" : n}</span></div>`,
+    iconSize: [36, 44], iconAnchor: [18, 44],
   });
+  if (stopIcons.size > 200) stopIcons.clear();
+  stopIcons.set(key, icon);
+  return icon;
 };
 
 /**
@@ -125,8 +85,8 @@ const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
     <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 420ms cubic-bezier(0.22, 1, 0.36, 1);">
-      <div class="nav-puck-cone" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(217 91% 60% / 0.45);opacity:0;transition:opacity 240ms linear;"></div>
-      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 4px 14px hsl(217 91% 60% / 0.45), 0 2px 6px rgba(0,0,0,.25);"></div>
+      <div class="nav-puck-cone" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(var(--info) / 0.3);opacity:0;transition:opacity 240ms linear;"></div>
+      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(var(--info));border:4px solid hsl(var(--accent-foreground));box-shadow:0 4px 14px hsl(var(--info) / 0.3), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
   iconSize: [64, 64],
   iconAnchor: [32, 32],
@@ -198,7 +158,7 @@ const NavPuckMarker = ({
 
 const userDotIcon = L.divIcon({
   className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(217 91% 60%);border:3px solid white;box-shadow:0 0 0 7px hsl(217 91% 60% / 0.22),0 2px 6px rgba(0,0,0,.25);"></div>`,
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(var(--info));border:3px solid hsl(var(--accent-foreground));box-shadow:0 0 0 7px hsl(var(--info) / 0.18),0 2px 6px rgba(0,0,0,.25);"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
@@ -206,17 +166,14 @@ const userDotIcon = L.divIcon({
 /* ── Helpers ────────────────────────────────────────────────── */
 const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boolean }) => {
   const map = useMap();
+  const key = points.map((p) => p.join(",")).join(";");
   useEffect(() => {
-    if (!enabled || points.length === 0) return;
-    if (points.length === 1) {
-      map.setView(points[0], 15, { animate: true });
-    } else {
-      map.fitBounds(L.latLngBounds(points.map((p) => L.latLng(p[0], p[1]))), {
-        padding: [80, 80], maxZoom: 15, animate: true,
-      });
-    }
-    setTimeout(() => map.invalidateSize(), 100);
-  }, [points, map, enabled]);
+    if (!enabled || !key) return;
+    const coordinates = key.split(";").map((p) => p.split(",").map(Number) as [number, number]);
+    map.stop();
+    map.invalidateSize({ pan: false });
+    map.fitBounds(L.latLngBounds(coordinates), { paddingTopLeft: [48, 65], paddingBottomRight: [48, 190], maxZoom: 16, animate: false });
+  }, [key, map, enabled]);
   return null;
 };
 
@@ -238,7 +195,7 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
  *  - Står bilen stille, sker der ingenting overhovedet ("pause").
  */
 const MIN_NAV_ZOOM = 16;
-const MAX_NAV_ZOOM = 18.5;
+const MAX_NAV_ZOOM = 18;
 const zoomForSpeed = (mps: number): number => {
   const SLOW = 2, FAST = 18;
   if (mps <= SLOW) return MAX_NAV_ZOOM;
@@ -255,47 +212,36 @@ const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speed
 
   useEffect(() => {
     if (!active) return;
-    let init = false;
-    let last: { t: number; lat: number; lng: number; zoom: number } | null = null;
-    let zoom = MAX_NAV_ZOOM;
-
-    return track.subscribe(({ pos }) => {
-      if (document.visibilityState === "hidden") return;
-      if (!init) {
-        zoom = zoomForSpeed(speedRef.current);
-        map.setView(pos, zoom, { animate: false });
-        init = true;
-        last = { t: performance.now(), lat: pos[0], lng: pos[1], zoom };
-        return;
-      }
-      const now = performance.now();
-      if (last && now - last.t < 100) return; // maks ~10 fps kamerabevægelse
-
-      const targetZoom = zoomForSpeed(speedRef.current);
-      zoom = zoom + (targetZoom - zoom) * 0.12;
-      const snapped = Math.round(zoom * 20) / 20;
-
-      const movedM = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
-      const zoomChanged = !last || Math.abs(snapped - last.zoom) >= 0.08;
-      if (movedM < 1.5 && !zoomChanged) return; // står stille → rør ikke kortet
-
-      map.setView(pos, snapped, { animate: false });
-      last = { t: now, lat: pos[0], lng: pos[1], zoom: snapped };
+    let last: { lat: number; lng: number; zoom: number } | null = null;
+    let frame = 0;
+    const unsubscribe = track.subscribe(({ pos }) => {
+      if (document.visibilityState === "hidden" || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const nextZoom = Math.round(zoomForSpeed(speedRef.current));
+        const moved = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
+        // Integer tile zooms avoid constant rescaling and blurred street labels.
+        if (last && moved < (speedRef.current < 1.2 ? 8 : 3) && last.zoom === nextZoom) return;
+        map.stop();
+        map.setView(pos, nextZoom, { animate: false });
+        last = { lat: pos[0], lng: pos[1], zoom: nextZoom };
+      });
     });
+    return () => { unsubscribe(); cancelAnimationFrame(frame); };
   }, [active, map, track]);
 
   return null;
 });
 NavCamera.displayName = "NavCamera";
 
-const DriveMapControls = forwardRef<never, { following: boolean; onFollow: () => void }>(({ following, onFollow }, _ref) => {
+const DriveMapControls = forwardRef<never, { following: boolean; onFollow: () => void; onManualZoom: () => void }>(({ following, onFollow, onManualZoom }, _ref) => {
   const map = useMap();
   return (
     <div className="absolute right-3 top-1/2 z-[1000] flex -translate-y-1/2 flex-col overflow-hidden rounded-md border border-border/80 bg-card/95 shadow-lg backdrop-blur-md sm:right-5">
-      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => map.zoomIn(1)} aria-label="Zoom ind">
+      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => { onManualZoom(); map.zoomIn(1); }} aria-label="Zoom ind">
         <Plus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
-      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => map.zoomOut(1)} aria-label="Zoom ud">
+      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => { onManualZoom(); map.zoomOut(1); }} aria-label="Zoom ud">
         <Minus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
       <Button type="button" variant={following ? "default" : "ghost"} size="icon" className="h-12 w-12 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
@@ -311,14 +257,9 @@ const FlyToStop = forwardRef<never, { target: [number, number] | null }>(({ targ
   const map = useMap();
   useEffect(() => {
     if (!target) return;
-    // easeLinearity tæt på 0.25 giver en mere blød ind-/udfasning end
-    // default 0.5 — føles som Google Maps' "fly to" overgang.
-    map.flyTo(target, Math.max(map.getZoom(), 16), {
-      animate: true,
-      duration: 1.1,
-      easeLinearity: 0.25,
-    });
-  }, [target, map]);
+    map.stop();
+    map.setView(target, Math.max(Math.round(map.getZoom()), 16), { animate: false });
+  }, [target?.[0], target?.[1], map]);
   return null;
 });
 FlyToStop.displayName = "FlyToStop";
@@ -641,6 +582,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const stopId = searchParams.get("stop");
     if (!stopId || !sortedStops.some((stop) => stop.id === stopId)) return;
     setHighlightedId(stopId);
+    setFollowMode(false);
     setSelectedId(stopId);
     const next = new URLSearchParams(searchParams);
     next.delete("stop");
@@ -694,7 +636,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           foundCoordinates = true;
           stopHits.set(stop.id, hit);
         } else {
-          unresolved.push(stop.customer_name || stop.full_address || stop.address || `Stop ${index + 1}`);
+          unresolved.push(stop.full_address || stop.address || stop.customer_name || `Stop ${index + 1}`);
         }
       });
       if (cancelled) return;
@@ -1130,8 +1072,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [allDone, routeStarted, routeId]);
   // Brug Serviceydere accent (dark-blue) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
-  const themeColor = "hsl(206 99% 30%)";
-  const routeBadgeColor = route?.color || "hsl(206 99% 30%)";
+  const themeColor = "hsl(var(--accent))";
+  const routeBadgeColor = route?.color || "hsl(var(--accent))";
 
   /* Fanfare ved dagsfærdig */
   useEffect(() => {
@@ -1724,7 +1666,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <BrandedIllustration name="drivingGuide" className="mx-auto h-16 w-16" alt="" />
               <div>
                 <p className="text-sm font-semibold text-foreground">{geocodeError ? "Korttjenesten er midlertidigt utilgængelig" : "Kortet kunne ikke finde adresserne"}</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">{geocodeError ? "Stoplisten virker stadig. Prøv adresseopslaget igen om et øjeblik." : "Kontrollér, at vej, husnummer, postnummer og by står på aftalen, og prøv igen."}</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{geocodeError ? geocodeError : "Kontrollér, at vej, husnummer, postnummer og by står på aftalen, og prøv igen."}</p>
                 {!geocodeError && unresolvedAddresses.length > 0 && (
                   <ul className="mt-2 space-y-0.5 text-left text-[11px] text-muted-foreground">
                     {unresolvedAddresses.map((addr) => (
@@ -1738,6 +1680,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         ) : (
           <>
+            {geocodeError && <div role="alert" className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card p-3 text-xs shadow-lg"><p className="font-semibold text-destructive">{geocodeError}</p><Button variant="outline" size="sm" className="mt-2" onClick={retryGeocoding}>Prøv adresseopslaget igen</Button></div>}
             {unresolvedAddresses.length > 0 && (
               <div className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card/95 p-2 text-[11px] leading-5 text-muted-foreground shadow-lg backdrop-blur-md sm:inset-x-4">
                 <p className="font-semibold text-destructive">{unresolvedAddresses.length === 1 ? "1 adresse kunne ikke findes" : `${unresolvedAddresses.length} adresser kunne ikke findes`}</p>
@@ -1758,9 +1701,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             boxZoom
             dragging
             zoomControl={false}
-            attributionControl={false}
-            zoomSnap={0.25}
-            zoomDelta={0.5}
+            attributionControl
+            zoomSnap={1}
+            zoomDelta={1}
             wheelDebounceTime={20}
             wheelPxPerZoomLevel={120}
             zoomAnimation={false}
@@ -1782,14 +1725,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               attribution='&copy; OpenStreetMap-bidragydere'
               updateWhenIdle
               updateWhenZooming={false}
-              keepBuffer={2}
+              keepBuffer={4}
               zIndex={1}
               maxZoom={20}
               maxNativeZoom={19}
             />
 
             {/* Fit overview when not started */}
-            <FitTo points={allPoints} enabled={!routeStarted} />
+            <FitTo points={allPoints} enabled={!routeStarted && !highlightedId} />
             {/* Ét samlet kamera: følger positionen og justerer zoom efter farten. */}
             <NavCamera
               active={routeStarted && followMode && pageVisible}
@@ -1799,7 +1742,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {routeStarted && (
               <DriveMapControls
                 following={followMode}
-                onFollow={() => setFollowMode(true)}
+                onFollow={() => { setHighlightedId(null); setFollowMode(true); }}
+                onManualZoom={() => setFollowMode(false)}
               />
             )}
 
@@ -1812,8 +1756,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Polyline
                   positions={previewLine}
                   pathOptions={{
-                    color: "white",
-                    weight: routeStarted ? 8 : 12,
+                    color: "hsl(var(--accent-foreground))",
+                    weight: routeStarted ? 6 : 9,
                     opacity: routeStarted ? 0.6 : 0.9,
                     lineCap: "round",
                     lineJoin: "round",
@@ -1823,11 +1767,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   positions={previewLine}
                   pathOptions={{
                     color: themeColor,
-                    weight: routeStarted ? 4 : 6,
+                    weight: routeStarted ? 3 : 5,
                     opacity: routeStarted ? 0.55 : 0.85,
                     lineCap: "round",
                     lineJoin: "round",
-                    dashArray: "2 10",
+                    
                   }}
                 />
               </>
@@ -1843,17 +1787,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 {/* Outer white casing for contrast */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: "white", weight: 14, opacity: 0.95, lineCap: "round", lineJoin: "round" }}
+                  pathOptions={{ color: "hsl(var(--accent-foreground))", weight: 10, opacity: 0.95, lineCap: "round", lineJoin: "round" }}
                 />
                 {/* Soft outer glow */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: themeColor, weight: 12, opacity: 0.25, lineCap: "round", lineJoin: "round" }}
+                  pathOptions={{ color: themeColor, weight: 8, opacity: 0.18, lineCap: "round", lineJoin: "round" }}
                 />
                 {/* Core route */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: themeColor, weight: 7, opacity: 1, lineCap: "round", lineJoin: "round" }}
+                  pathOptions={{ color: themeColor, weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }}
                 />
               </>
             )}
@@ -1873,7 +1817,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Polyline
                 positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
                 pathOptions={{
-                  color: "hsl(142 70% 45%)",
+                  color: "hsl(var(--success))",
                   weight: 4,
                   opacity: 0.9,
                   dashArray: "2 8",
@@ -1897,7 +1841,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     themeColor,
                     s.id === highlightedId,
                   )}
-                  eventHandlers={{ click: () => { setHighlightedId(s.id); setSelectedId(s.id); } }}
+                  eventHandlers={{ click: () => { setFollowMode(false); setHighlightedId(s.id); setSelectedId(s.id); } }}
                 />
               );
             })}
@@ -1991,7 +1935,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Næste manøvre — placeret under den faste kørselsbjælke */}
             {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute left-2 right-[4.25rem] top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] z-[1000] pointer-events-none sm:left-4 sm:right-[5rem] lg:left-auto lg:right-4 lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-                <Card className="overflow-hidden rounded-md border-border bg-card/97 shadow-xl pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
+                <Card className="overflow-hidden rounded-md border-border bg-card shadow-lg pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
                     <div className="flex w-[76px] shrink-0 flex-col items-center justify-center bg-accent px-1 py-3 text-accent-foreground">
                       <ManeuverIcon
@@ -2123,7 +2067,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
                 {sortedStops.map((s, i) => (
@@ -2133,10 +2077,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     style={{
                       background:
                         s.status === "completed"
-                          ? "hsl(142 70% 45%)"
+                          ? "hsl(var(--success))"
                           : i === nextStopIdx
                             ? themeColor
-                            : "hsl(220 14% 92%)",
+                            : "hsl(var(--muted))",
                     }}
                   />
                 ))}
@@ -2144,7 +2088,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
+                className="group h-auto w-full flex-wrap sm:flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
@@ -2154,7 +2098,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 >
                   {nextStopIdx + 1}
                 </span>
-                <div className="flex-1 text-left min-w-0">
+                <div className="flex-1 basis-[calc(100%-5rem)] sm:basis-auto text-left min-w-0">
                   <p
                     className="font-semibold text-[14px] text-foreground truncate leading-tight"
                     title={nextStop.customer_name || undefined}
@@ -2182,7 +2126,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 )}
                 {isAtNextStop ? (
                   <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-success/15 text-success">
-                    <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500" />
                     Fremme
                   </Badge>
                 ) : distanceToNextM != null ? (
@@ -2228,7 +2171,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       disabled={updateStatus.isPending || routeDateLocked}
                     >
                       {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                      Afslut aftale
+                      Markér udført
                     </Button>
                   ) : isAtNextStop ? (
                     <Button
@@ -2355,7 +2298,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Done state ─── */}
         {allDone && (
           <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-            <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
+            <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card shadow-lg backdrop-blur-md">
               <div className="space-y-3 p-3.5 text-center sm:p-4">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center">
                   <BrandedIllustration name="routeDone" className="h-full w-full" />
