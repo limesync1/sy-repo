@@ -963,17 +963,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => voice(`Du er ankommet til ${name}`), 600);
   }, [isAtNextStop, nextStop?.id, audioEnabled]);
 
-  /* Auto check-in når medarbejder ankommer til stop (geofence) */
-  useEffect(() => {
-    if (!isAtNextStop || !nextStop) return;
-    (async () => {
-      try {
-        if (!meEmp?.id) return;
-        await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: meEmp.id });
-      } catch { /* non-fatal */ }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAtNextStop, nextStop?.id]);
+  // Parking records arrival only. Work time starts with the explicit Start work action.
 
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates || directions.provider === "fallback") return [];
