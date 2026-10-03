@@ -58,6 +58,17 @@ Deno.serve(async (req) => {
     const result = Array.isArray(payload?.results) ? payload.results[0] : null;
     const location = result?.geometry?.location;
     if (!result || typeof location?.lat !== "number" || typeof location?.lng !== "number") return json({ found: false });
+
+    // Google falder tilbage til et løst land-/by-niveau match (fx hele Danmark)
+    // når gade/husnummer ikke findes. Det giver et "fund" med helt forkerte
+    // koordinater, så vi afviser lave præcisionsniveauer og rene administrative
+    // matches i stedet for at vise et misvisende punkt på kortet.
+    const components: Array<{ types?: string[] }> = Array.isArray(result.address_components) ? result.address_components : [];
+    const hasStreetLevelMatch = components.some((c) => Array.isArray(c.types) && (c.types.includes("route") || c.types.includes("street_address") || c.types.includes("premise") || c.types.includes("subpremise")));
+    const locationType = result.geometry?.location_type;
+    const isPreciseEnough = hasStreetLevelMatch && locationType !== "APPROXIMATE";
+    if (!isPreciseEnough) return json({ found: false });
+
     return json({ found: true, latitude: location.lat, longitude: location.lng, matched_address: result.formatted_address ?? parsed.data.address });
   } catch (error) {
     console.error("employee-route-geocode failed", error);
