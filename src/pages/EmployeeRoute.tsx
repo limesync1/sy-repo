@@ -2296,38 +2296,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {allDone && (
           <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card shadow-lg backdrop-blur-md">
-              <div className="space-y-3 p-3.5 text-center sm:p-4">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center">
-                  <BrandedIllustration name="routeDone" className="h-full w-full" />
-                </div>
-                <div>
-                  <p className="text-base font-semibold text-foreground">Ruten er afsluttet</p>
-                  <p className="text-xs text-muted-foreground">
-                    Alle {sortedStops.length} stop udført
-                    {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
-                  </p>
-                </div>
-                {/* Mini-stats */}
-                <div className="grid grid-cols-2 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
-                  <div className="px-2 py-2.5">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">{sortedStops.length}</p>
-                  </div>
-                  <div className="px-2 py-2.5">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1).replace(".", ",")} km` : "—"}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="lg"
-                    className="h-11 w-full gap-2 rounded-md bg-foreground text-background hover:bg-foreground/90"
-                  onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
-                >
-                  Til oversigt
-                </Button>
-              </div>
+              <RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => setSelectedId(latestCompleted?.id ?? null)} />
             </Card>
           </div>
         )}

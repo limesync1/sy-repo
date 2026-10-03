@@ -84,6 +84,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 32% 11%;
     --popover-foreground: 210 40% 98%;
+    --planner-surface: 222 34% 8%;
+    --planner-surface-raised: 220 27% 12%;
     --primary: 210 40% 98%;
     --primary-foreground: 222 47% 11%;
     --secondary: 217 25% 17%;
@@ -703,6 +705,12 @@
 
   /* Natkort: dæmpet mørk version af vejkortet — kræver ingen ekstra kortnøgle. */
   .employee-route-run .route-tiles-night { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6); }
+  .dark .appointment-details-overlay {
+    --planner-surface: 222 34% 8%;
+    --planner-surface-raised: 220 27% 12%;
+    --accent-foreground: 222 47% 8%;
+  }
+  .employee-route-run .route-map-stage-driving .drive-issue-banner ~ .route-maneuver { top: auto; }
   @keyframes route-soft-pulse { 0%, 70%, 100% { transform: scale(1); opacity: 0; } 15% { opacity: 0.45; } 45% { transform: scale(1.7); opacity: 0; } }
   .route-soft-pulse { animation: route-soft-pulse 4s ease-out infinite; }
   @media (prefers-reduced-motion: reduce) { .route-soft-pulse { animation: none; } }

@@ -1,7 +1,7 @@
 import { useNightMode, useRootDark } from "./useDriveSafety";
 import { Moon, Sun } from "lucide-react";
 import { formatClockTime, formatRunDuration } from "./route-run-clock";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowDown,
@@ -57,6 +57,9 @@ type Props = {
   onToggleAudio: () => void;
   startedAt?: number | null;
   etaLabel?: string | null;
+  arrivalLabel?: string | null;
+  driveEstimateSeconds?: number | null;
+  summary?: ReactNode;
 };
 
 const formatElapsed = (seconds: number) => {
@@ -84,6 +87,9 @@ export const RouteChecklistView = ({
   onToggleAudio,
   startedAt = null,
   etaLabel = null,
+  arrivalLabel = null,
+  driveEstimateSeconds = null,
+  summary,
 }: Props) => {
   const employeeId = useMyEmployeeId();
   const { night, toggle: toggleNight } = useNightMode();
@@ -116,11 +122,10 @@ export const RouteChecklistView = ({
   const startNext = async () => {
     if (!employeeId || !next) return;
     unlockAudio();
-    await startStopTime.mutateAsync({ stop_id: next.id, employee_id: employeeId });
-    if (audioEnabled) {
-      playStartChime();
-      speak(`Tidsregistrering startet for ${next.customer_name || "aftalen"}`);
-    }
+    try {
+      await startStopTime.mutateAsync({ stop_id: next.id, employee_id: employeeId });
+      if (audioEnabled) playStartChime();
+    } catch { /* mutation shows the actionable error and rolls back */ }
   };
 
   const remainingIds = remaining.map((s) => s.id);
@@ -139,8 +144,6 @@ export const RouteChecklistView = ({
             <h1 className="truncate text-[15px] font-semibold leading-tight text-foreground">{routeName}</h1>
             <p className="truncate text-xs tabular-nums text-muted-foreground">
               {completed.length}/{stops.length} udført
-              {startedAt ? ` · start ${formatClockTime(startedAt)} · kørt ${formatRunDuration(Math.max(0, Math.floor((now - startedAt) / 1000)))}` : ""}
-              {next ? ` · ankomst ${nextIsStarted ? "nu" : etaLabel ?? (next.planned_arrival ? formatClockTime(new Date(next.planned_arrival).getTime()) : "—")}` : ""}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
@@ -160,6 +163,11 @@ export const RouteChecklistView = ({
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
+        {!allDone && <p className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-muted-foreground">
+          <span>Start <b className="text-foreground">{startedAt ? formatClockTime(startedAt) : "—"}</b></span>
+          <span>Køretid · est. <b className="text-foreground">{driveEstimateSeconds == null ? "—" : formatRunDuration(driveEstimateSeconds)}</b></span>
+          <span>{arrivalLabel ? "Ankommet" : "Ankomst · est."} <b className="text-foreground">{arrivalLabel ?? etaLabel ?? "—"}</b></span>
+        </p>}
         {notification && (
           <div className="mb-3 flex items-start gap-3 rounded-md border border-destructive/25 bg-card p-3 shadow-sm">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
@@ -181,12 +189,7 @@ export const RouteChecklistView = ({
           {/* Nu-kort */}
           <div className="lg:sticky lg:top-[4.75rem]">
             {allDone ? (
-              <section className="service-panel-card rounded-md border border-border bg-card p-6 text-center shadow-sm">
-                <BrandedIllustration name="routeDone" className="mx-auto h-16 w-16" />
-                <h2 className="mt-4 text-xl font-semibold text-foreground">Ruten er kørt færdig</h2>
-                <p className="mt-1.5 text-sm text-muted-foreground">Alle {stops.length} stops er udført. Godt arbejde.</p>
-                <Button className="mt-6 h-12 w-full text-[15px]" onClick={onFinish}>Tilbage til dagens ruter</Button>
-              </section>
+              <section className="service-panel-card rounded-md border border-border bg-card shadow-sm">{summary ?? <Button onClick={onFinish}>Til dagens ruter</Button>}</section>
             ) : next ? (
               <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm">
                 <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
@@ -253,7 +256,7 @@ export const RouteChecklistView = ({
                     <div className={cn("grid gap-2", next.customer_phone ? "grid-cols-2" : "grid-cols-1")}>
                       <Button variant="outline" className="h-11 gap-2" onClick={() => onNavigate(next)}>
                         <Navigation2 className="h-4 w-4" />
-                        Kør dertil
+                        Vis vej på kort
                       </Button>
                       {next.customer_phone ? (
                         <Button variant="outline" className="h-11 gap-2" asChild>
@@ -345,7 +348,7 @@ export const RouteChecklistView = ({
                             size="icon"
                             aria-label="Flyt stoppet tidligere"
                             disabled={reordering || remIdx <= 1}
-                            onClick={() => onMoveStop!(s.id, -1)}
+                            onClick={() => onMoveStop?.(s.id, -1)}
                             className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
                           >
                             <ArrowUp className="h-4 w-4" />
@@ -355,7 +358,7 @@ export const RouteChecklistView = ({
                             size="icon"
                             aria-label="Flyt stoppet senere"
                             disabled={reordering || remIdx >= remaining.length - 1}
-                            onClick={() => onMoveStop!(s.id, 1)}
+                            onClick={() => onMoveStop?.(s.id, 1)}
                             className="h-11 w-11 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
                           >
                             <ArrowDown className="h-4 w-4" />
