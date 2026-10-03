@@ -1912,7 +1912,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && (
           <>
             <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-              <div className="flex h-14 w-full items-center gap-1.5 rounded-md border border-border bg-card/95 px-1.5 text-foreground shadow-lg backdrop-blur-md">
+              <div className="flex h-12 w-full items-center gap-1 rounded-md border border-border bg-card/95 px-1 text-foreground shadow-lg backdrop-blur-md">
                 <Button
                   type="button"
                   variant="ghost"
@@ -1977,9 +1977,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               const longStretch = maneuver.distanceToManeuverM > 2000 || curType === "depart";
               const road = maneuver.currentStep.name;
               return (
-                <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+                <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                   <div className="overflow-hidden rounded-md border border-border bg-card text-foreground shadow-lg" aria-live="polite">
-                    <div className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="flex items-center gap-3 px-3 py-2">
                       {longStretch
                         ? <Navigation className="h-7 w-7 shrink-0 text-foreground" aria-hidden="true" />
                         : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-8 w-8 shrink-0" />}
@@ -1992,7 +1992,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       </div>
                     </div>
                     {showThen && (
-                      <div className="flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
+                      <div className="route-maneuver-then flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
                         <span className="font-medium">Derefter</span>
                         <ManeuverIcon type={thenStep.maneuver.type} modifier={thenStep.maneuver.modifier} className="h-4 w-4 shrink-0" />
                         <span className="truncate">{thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
