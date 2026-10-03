@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     const { data: route } = await supabase
       .from("routes")
-      .select("optimization_suggestions")
+      .select("optimization_suggestions, business_id")
       .eq("id", routeId)
       .maybeSingle();
     if (!route) {
@@ -102,20 +102,38 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Suggestions are owner-editable JSON: bind all targets before any mutation.
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (![stopId, toEmp, ...(fromEmp ? [fromEmp] : [])].every(id => typeof id === "string" && uuid.test(id))) {
+      return new Response(JSON.stringify({ ok: false, error: "Ugyldigt forslag" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: stop, error: stopError } = await supabase.from("route_stops")
+      .select("id").eq("id", stopId).eq("route_id", routeId).maybeSingle();
+    const employeeIds = [...new Set([toEmp, fromEmp].filter(Boolean))];
+    const { data: employees, error: employeeError } = await supabase.from("employees")
+      .select("id").in("id", employeeIds).eq("business_id", route.business_id);
+    if (stopError || employeeError || !stop || employees?.length !== employeeIds.length) {
+      return new Response(JSON.stringify({ ok: false, error: "Forslaget tilhører ikke denne rute eller virksomhed" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Slet from-medarbejder hvis specificeret, ellers slet alle
     if (fromEmp) {
-      await supabase.from("route_stop_assignees")
+      await authClient.from("route_stop_assignees")
         .delete()
         .eq("stop_id", stopId)
         .eq("employee_id", fromEmp);
     } else {
-      await supabase.from("route_stop_assignees")
+      await authClient.from("route_stop_assignees")
         .delete()
         .eq("stop_id", stopId);
     }
 
     // Tilføj to-medarbejder som lead
-    await supabase.from("route_stop_assignees").insert({
+    await authClient.from("route_stop_assignees").insert({
       stop_id: stopId,
       employee_id: toEmp,
       is_lead: true,
