@@ -93,12 +93,12 @@ import workdays from "@/assets/illustrations/employee/arbejdsdage.svg.asset.json
 import worktime from "@/assets/illustrations/employee/arbejdstid.svg.asset.json";
 import distance from "@/assets/illustrations/employee/distance.svg.asset.json";
 import dailyActivityTable from "@/assets/illustrations/employee/daglig-aktivitet-tabel.svg";
-import buildFromScratchAsset from "@/assets/panel-illustrations/byg-fra-bunden.svg.asset.json";
+import buildFromScratchAsset from "@/assets/service-pricing/build-from-scratch.svg.asset.json";
 import conversionAsset from "@/assets/panel-illustrations/konvertering.svg.asset.json";
-import aiCalculatorAsset from "@/assets/panel-illustrations/lad-ai-bygge-prisberegneren.svg.asset.json";
-import calculatorAsset from "@/assets/panel-illustrations/prisberegner.svg.asset.json";
-import fixedPriceAsset from "@/assets/panel-illustrations/specifik-pris.svg.asset.json";
-import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.json";
+import aiCalculatorAsset from "@/assets/service-pricing/ai-calculator.svg.asset.json";
+import calculatorAsset from "@/assets/service-pricing/calculator.svg.asset.json";
+import fixedPriceAsset from "@/assets/service-pricing/fixed-price.svg.asset.json";
+import hourlyPriceAsset from "@/assets/service-pricing/hourly-price.svg.asset.json";
 import startDayIllustration from "@/assets/illustrations/employee/start-dagen.svg.asset.json";
 import dayInProgressIllustration from "@/assets/illustrations/employee/arbejdsdag-i-gang.svg.asset.json";
 import dayEndedIllustration from "@/assets/illustrations/employee/dagen-afsluttet.svg.asset.json";

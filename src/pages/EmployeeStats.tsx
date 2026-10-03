@@ -36,6 +36,7 @@ import { formatKr } from "@/lib/commission";
 import { StatIconTile } from "@/components/admin/shared/AdminUI";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { Section } from "@/components/route-planner/SheetSection";
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
@@ -323,6 +324,7 @@ const EmployeeStats = () => {
             >
                 {s.perDay.length === 0 ? (
                   <div className="p-10 text-center text-sm text-muted-foreground">
+                    <NoItemsIcon className="mb-3" />
                     Ingen aktivitet i denne periode.
                   </div>
                 ) : (
