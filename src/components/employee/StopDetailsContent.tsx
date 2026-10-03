@@ -24,6 +24,7 @@ import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
 import { SheetHeaderBlock, Section } from "@/components/route-planner/SheetSection";
+import { SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { INTERVAL_LABELS } from "@/types/service";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -291,8 +292,6 @@ export const StopDetailsContent = ({
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
       <div className="planner-overlay-header shrink-0 border-b border-border px-4 pb-3 pt-3 pr-14 sm:px-5 sm:pr-14">
         <SheetHeaderBlock
-          accent={accent}
-          badge={isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
           title={<span className="text-base font-semibold">{stop.customer_name || "Stop"}</span>}
           description={
             fullAddress ? (
@@ -304,6 +303,10 @@ export const StopDetailsContent = ({
             )
           }
         >
+          <Badge variant="outline" className="gap-1 text-[10px]">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+            Stop {index + 1}
+          </Badge>
           {isDone ? (
             <Badge variant="outline" className="gap-1 text-[10px] border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground">
               <CheckCircle2 className="h-2.5 w-2.5" />Udført
@@ -545,7 +548,7 @@ export const StopDetailsContent = ({
       </div>
 
       {(!readOnly || canResendInvoice) && (
-        <div className="border-t border-border bg-card p-4 shrink-0">
+        <SheetFooterBar>
           {!readOnly && !isDone ? (
             <div className="space-y-2">
               <Button
@@ -583,7 +586,7 @@ export const StopDetailsContent = ({
               )}
             </div>
           )}
-        </div>
+        </SheetFooterBar>
       )}
     </div>
   );

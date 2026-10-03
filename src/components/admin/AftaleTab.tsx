@@ -68,6 +68,7 @@ import NextStepCard from "@/components/admin/NextStepCard";
 import { AccountingStatusRow, type OrderForStatus } from "@/components/shared/OrderStatusBadges";
 import AftaleStatsStrip from "@/components/admin/AftaleStatsStrip";
 import { PanelIcon } from "@/components/shared/PanelIcon";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
@@ -776,6 +777,7 @@ const AftaleTab = ({
   /** Åbn denne aftale direkte, fx fra virksomhedsforsiden. */
   initialOrderId?: string | null;
 }) => {
+  const isCompact = useIsBelowBreakpoint(1024);
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
   const hasActiveServices = (services || []).some((service) => service.is_active !== false);
