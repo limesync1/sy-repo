@@ -7,7 +7,7 @@ import type { DriveIssue } from "./useDriveSafety";
 export function DriveIssueBanner({ issues, onRetry }: { issues: DriveIssue[]; onRetry: () => void }) {
   if (!issues.length) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-2 top-2 z-[1005] flex flex-col gap-2 sm:inset-x-auto sm:left-1/2 sm:w-[420px] sm:-translate-x-1/2">
+    <div className="drive-issue-banner pointer-events-none absolute inset-x-2 top-2 z-[1005] flex flex-col gap-2 sm:inset-x-auto sm:left-1/2 sm:w-[420px] sm:-translate-x-1/2">
       {issues.slice(0, 2).map((issue) => {
         const Icon = issue.id === "offline" ? WifiOff : issue.tone === "error" ? MapPinOff : AlertTriangle;
         return (

@@ -677,13 +677,13 @@
     .appointment-details-overlay button { min-height: 44px; }
     .appointment-details-overlay .planner-overlay-footer { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
     .employee-route-run { height: 100dvh; }
-    .employee-route-run .route-map-stage-driving { margin-bottom: calc(145px + env(safe-area-inset-bottom)); }
-    .employee-route-run .route-active-stop { bottom: auto; top: 100%; padding: 0; }
+    .employee-route-run .route-active-stop { position: relative; inset: auto; bottom: auto; top: auto; padding: 0; flex-shrink: 0; }
     .employee-route-run .route-active-stop .route-drive-dock { border-radius: 0; box-shadow: none; padding-bottom: env(safe-area-inset-bottom); }
     .employee-route-run .route-maneuver { right: 0.5rem; }
     .employee-route-run .leaflet-control-attribution { max-width: 90%; }
   }
 
+  .employee-route-run .route-map-stage-driving .drive-issue-banner { top: calc(max(0.5rem, env(safe-area-inset-top)) + 4rem); }
   .employee-route-run .route-drive-dock {
     box-shadow: 0 18px 46px -22px hsl(var(--foreground) / 0.58), 0 2px 8px hsl(var(--foreground) / 0.12);
   }
