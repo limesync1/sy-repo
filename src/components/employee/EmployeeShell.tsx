@@ -365,9 +365,12 @@ export const EmployeeShell = ({
         currentBusinessId={workspaceId}
         onSelected={async (id, remember) => {
           setRememberChoice(remember);
+          // Nulstil i stedet for at rydde cachen: `clear()` frakobler de
+          // aktive sider, så Min dag blev stående med den forrige
+          // arbejdsplads (ingen tidsregistrering og "0 ruter").
           await queryClient.cancelQueries();
-          queryClient.clear();
           setWorkspaceId(id);
+          void queryClient.resetQueries();
           setPickerOpen(false);
         }}
       />
