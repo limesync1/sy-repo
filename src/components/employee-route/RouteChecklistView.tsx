@@ -52,6 +52,7 @@ type Props = {
   onMarkNotificationRead?: () => void;
   audioEnabled: boolean;
   onToggleAudio: () => void;
+  startedAt?: number | null;
 };
 
 const formatElapsed = (seconds: number) => {
@@ -77,6 +78,7 @@ export const RouteChecklistView = ({
   onMarkNotificationRead,
   audioEnabled,
   onToggleAudio,
+  startedAt = null,
 }: Props) => {
   const employeeId = useMyEmployeeId();
   const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
@@ -99,10 +101,10 @@ export const RouteChecklistView = ({
   const addressOf = (s: RouteStop) => s.full_address || s.address || null;
 
   useEffect(() => {
-    if (!activeEntry) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    if (!activeEntry && !startedAt) return;
+    const timer = window.setInterval(() => setNow(Date.now()), activeEntry ? 1000 : 15_000);
     return () => window.clearInterval(timer);
-  }, [activeEntry?.id]);
+  }, [activeEntry?.id, startedAt]);
 
   const startNext = async () => {
     if (!employeeId || !next) return;
@@ -128,8 +130,9 @@ export const RouteChecklistView = ({
           </Button>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[15px] font-semibold leading-tight text-foreground">{routeName}</h1>
-            <p className="text-xs tabular-nums text-muted-foreground">
+            <p className="truncate text-xs tabular-nums text-muted-foreground">
               {completed.length} af {stops.length} stop udført
+              {startedAt ? ` · startet ${formatClockTime(startedAt)} · ${formatRunDuration(Math.max(0, Math.floor((now - startedAt) / 1000)))}` : ""}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
@@ -302,21 +305,25 @@ export const RouteChecklistView = ({
                         {done ? <Check className="h-4 w-4" /> : i + 1}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className={cn("truncate text-sm font-medium", done ? "text-muted-foreground line-through" : "text-foreground")}>
+                        <p className={cn("truncate text-sm font-medium", done ? "text-muted-foreground" : "text-foreground")}>
                           {s.customer_name || "Stop"}
                         </p>
-                        {addressOf(s) && <p className="truncate text-xs text-muted-foreground">{addressOf(s)}</p>}
+                        {done && s.completed_at ? (
+                          <p className="truncate text-xs tabular-nums text-success">Udført kl. {formatClockTime(new Date(s.completed_at).getTime())}</p>
+                        ) : addressOf(s) ? (
+                          <p className="truncate text-xs text-muted-foreground">{addressOf(s)}</p>
+                        ) : null}
                       </div>
                       {done && (
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="h-9 shrink-0 gap-1.5 px-2 text-muted-foreground hover:text-destructive"
+                          className="h-10 shrink-0 gap-1.5 px-3 font-medium"
                           onClick={() => onUndo(s)}
-                          aria-label="Fortryd udførsel"
+                          aria-label={`Fortryd udførsel af ${s.customer_name || "stop"}`}
                         >
                           <Undo2 className="h-4 w-4" />
-                          <span className="hidden sm:inline">Fortryd</span>
+                          Fortryd
                         </Button>
                       )}
                       {current && <span className="shrink-0 text-xs font-semibold text-accent">Nu</span>}

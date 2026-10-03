@@ -1537,6 +1537,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         locked={routeDateLocked}
         onComplete={handleComplete}
         onUndo={handleUndo}
+        startedAt={routeStartedAt ?? getRouteStartedAt(routeId)}
         onNavigate={handleNavigate}
         onSwitchToGuide={() => {
           setRunMode("guide");
