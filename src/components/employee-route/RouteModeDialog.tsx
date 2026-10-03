@@ -23,21 +23,18 @@ const options: Array<{
   illustration: BrandedIllustrationName;
   title: string;
   body: string;
-  note: string;
 }> = [
   {
     mode: "list",
     illustration: "checklist",
     title: "Tjekliste",
     body: "Stoppene i rækkefølge — tryk “Udført” ved hvert sted.",
-    note: "Sparer strøm",
   },
   {
     mode: "guide",
     illustration: "drivingGuide",
     title: "Kørselsguide",
     body: "Kort med rute, sving og afstand til næste stop.",
-    note: "Bruger mere strøm",
   },
 ];
 
