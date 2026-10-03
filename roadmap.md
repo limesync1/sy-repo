@@ -92,3 +92,4 @@
 - [x] Opdatér de to mørke forsidesektioner til den nye blå
 - [x] Centrér og forstør ikonerne i servicesøgningen uden ekstra ikonflader
 - [x] Gendan den nye ikonpakke på virksomhedens Overblik og kundeserviceknap
+- [x] Kontrollér og forstør Overblik-, panelhandlings- og kundeserviceikoner

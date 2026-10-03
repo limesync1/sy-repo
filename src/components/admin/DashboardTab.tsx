@@ -360,23 +360,23 @@ const DashboardTab = ({
     const arr: Action[] = [];
     if (pendingOrders > 0) arr.push({
       key: "pending", label: `Svar ${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
-      meta: "Hurtigt svar fordobler konverteringen", icon: Zap, tab: "orders", priority: 100, badge: String(pendingOrders), tone: "primary",
+      meta: "Hurtigt svar fordobler konverteringen", icon: Zap, illustration: "orders", tab: "orders", priority: 100, badge: String(pendingOrders), tone: "primary",
     });
     if (servicesCount === 0) arr.push({
       key: "first-service", label: "Opret din første service",
-      meta: "Kunder kan ikke booke uden services", icon: Briefcase, tab: "services", priority: 95, tone: "primary",
+      meta: "Kunder kan ikke booke uden services", icon: Briefcase, illustration: "addService", tab: "services", priority: 95, tone: "primary",
     });
     if (completeness.pct < 80) arr.push({
       key: "complete", label: "Fuldfør profil",
-      meta: `${completeness.pct}% færdig · ${missingItems.length} ting tilbage`, icon: Target, tab: "settings", priority: 80, tone: "accent",
+      meta: `${completeness.pct}% færdig · ${missingItems.length} ting tilbage`, icon: Target, illustration: "profile", tab: "settings", priority: 80, tone: "accent",
     });
     if (reviewsCount === 0 && ordersCount > 0) arr.push({
       key: "ask-review", label: "Bed kunder om anmeldelse",
-      meta: "Anmeldelser hæver konvertering markant", icon: Star, tab: "reviews", priority: 70, tone: "accent",
+      meta: "Anmeldelser hæver konvertering markant", icon: Star, illustration: "reviewCount", tab: "reviews", priority: 70, tone: "accent",
     });
     if (newReviews > 0) arr.push({
       key: "new-reviews", label: `${newReviews} ${newReviews === 1 ? "ny anmeldelse" : "nye anmeldelser"}`,
-      meta: "Kvittér og vis at I lytter", icon: MessageSquare, tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
+      meta: "Kvittér og vis at I lytter", icon: MessageSquare, illustration: "reviewAverage", tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
     });
     if (shareUrl) arr.push({
       key: "share", label: copied ? "Link kopieret" : "Del din profil", illustration: "shareProfile",
@@ -564,7 +564,7 @@ const DashboardTab = ({
                     )}
                   >
                     <div className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-md p-1.5 [&_img]:h-8 [&_img]:w-8 [&_svg]:h-5 [&_svg]:w-5",
+                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-md p-0.5 [&_img]:h-11 [&_img]:w-11 [&_img]:object-contain [&_svg]:h-6 [&_svg]:w-6",
                       a.tone === "primary" && "bg-background/15 text-background",
                       a.tone === "accent" && "bg-accent/15 text-accent",
                       a.tone === "muted" && "border border-border bg-secondary text-foreground",
@@ -610,7 +610,9 @@ const DashboardTab = ({
                         onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
                     className="flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-secondary/60"
                       >
-                        <a.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                          {a.illustration ? <BrandedIllustration name={a.illustration} className="h-9 w-9" /> : <a.icon className="h-5 w-5 text-muted-foreground" />}
+                        </span>
                         <span className="flex-1 truncate text-xs font-medium text-foreground">{a.label}</span>
                         <ChevronRight className="h-3 w-3 text-muted-foreground" />
                       </button>
@@ -867,7 +869,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Faktureret · {periodLabel}
             </p>
-            <BrandedIllustration name="accountingProgram" className="h-8 w-8" />
+            <BrandedIllustration name="accountingProgram" className="h-10 w-10" />
           </div>
           <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.billed)}</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -886,7 +888,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Betalt · {periodLabel}
             </p>
-            <BrandedIllustration name="revenue" className="h-8 w-8" />
+            <BrandedIllustration name="revenue" className="h-10 w-10" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.paid)}</p>
@@ -912,7 +914,7 @@ const FinanceOverviewCard = ({
             </p>
             {p.overdue > 0
               ? <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-              : <BrandedIllustration name="orders" className="h-8 w-8" />}
+              : <BrandedIllustration name="orders" className="h-10 w-10" />}
           </div>
           <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.outstanding)}</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -933,7 +935,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
-            <BrandedIllustration name="orders" className="h-8 w-8" />
+            <BrandedIllustration name="appointmentCompleted" className="h-10 w-10" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>
