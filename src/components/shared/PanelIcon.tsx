@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 import appointmentsAsset from "@/assets/content-icons/bestillinger.svg.asset.json";
 import appointmentViewAsset from "@/assets/content-icons/visning-af-aftale.svg.asset.json";
+import guideAsset from "@/assets/content-icons/guide-kom-godt-i-gang.svg.asset.json";
 import shareProfileAsset from "@/assets/content-icons/del-din-profil.svg.asset.json";
 import settingsAsset from "@/assets/content-icons/indstillinger.svg.asset.json";
 import customersAsset from "@/assets/content-icons/kunder-i-alt.svg.asset.json";
@@ -30,6 +31,7 @@ import routeOverviewAsset from "@/assets/panel-icons/vis-rute-som-kort.svg.asset
 export const PANEL_ICON_ASSETS = {
   appointments: appointmentsAsset.url,
   appointmentView: appointmentViewAsset.url,
+  guide: guideAsset.url,
   shareProfile: shareProfileAsset.url,
   settings: settingsAsset.url,
   customers: customersAsset.url,

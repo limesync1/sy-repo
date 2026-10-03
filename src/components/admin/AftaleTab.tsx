@@ -2219,8 +2219,7 @@ const AftaleTab = ({
                             </SheetDescription>
                           )}
                         >
-                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
                             {cfg.label}
                           </span>
                           {routePlanningEnabled && routeInfo && (
@@ -2234,14 +2233,7 @@ const AftaleTab = ({
                     <Section icon={<ArrowRight className="h-3.5 w-3.5" />} title="Næste handling">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="min-w-0 flex items-start gap-2.5">
-                            <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
-                              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                            </span>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
-                            </div>
-                          </div>
+                          <p className="min-w-0 truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
                           <div className="flex flex-wrap items-center justify-end gap-1.5">
                             {actions.canRespond && (
                               <>

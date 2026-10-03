@@ -304,8 +304,7 @@ export const StopDetailsContent = ({
             )
           }
         >
-          <Badge variant="outline" className="gap-1 text-[10px]">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+          <Badge variant="outline" className="text-[10px]">
             Stop {index + 1}
           </Badge>
           {isDone ? (
@@ -350,8 +349,7 @@ export const StopDetailsContent = ({
             <div className="rounded-md border bg-card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 {!readOnly && isWorking ? (
-                  <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
-                    <div className="h-2 w-2 rounded-full bg-feature-cool" />
+                  <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground">
                     <span>Tidsregistrering aktiv</span>
                     <span className="font-mono font-semibold tabular-nums text-foreground">{durationLabel}</span>
                   </div>
