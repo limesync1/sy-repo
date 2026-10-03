@@ -513,6 +513,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [isRerouting, setIsRerouting] = useState(false);
   const [geocodeState, setGeocodeState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [geocodeAttempt, setGeocodeAttempt] = useState(0);
+  const [unresolvedAddresses, setUnresolvedAddresses] = useState<string[]>([]);
 
   /* Geolocation permission — husk på tværs af sessioner.
    * Browseren persisterer selv "granted/denied" pr. origin, men hvis
@@ -668,20 +669,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       let foundCoordinates = false;
       let routeHit: Awaited<ReturnType<typeof geocodeAddress>> = null;
       const stopHits = new Map<string, NonNullable<Awaited<ReturnType<typeof geocodeAddress>>>>();
-      if (routeNeedsCoordinates && route?.start_address) {
-        routeHit = await geocodeAddress(route.start_address);
-        if (!cancelled && routeHit) {
+      const [resolvedRoute, ...resolvedStops] = await Promise.all([
+        routeNeedsCoordinates && route?.start_address ? geocodeAddress(route.start_address) : Promise.resolve(null),
+        ...missing.map((stop) => geocodeAddress(stop.full_address || stop.address || "")),
+      ]);
+      routeHit = resolvedRoute;
+      if (routeHit) foundCoordinates = true;
+      const unresolved: string[] = [];
+      missing.forEach((stop, index) => {
+        const hit = resolvedStops[index];
+        if (hit) {
           foundCoordinates = true;
+          stopHits.set(stop.id, hit);
+        } else {
+          unresolved.push(stop.customer_name || stop.full_address || stop.address || `Stop ${index + 1}`);
         }
-      }
-      for (const s of missing) {
-        const addr = s.full_address || s.address || "";
-        const hit = await geocodeAddress(addr);
-        if (cancelled || !hit) continue;
-        foundCoordinates = true;
-        stopHits.set(s.id, hit);
-      }
+      });
       if (cancelled) return;
+      setUnresolvedAddresses(unresolved);
       queryClient.setQueriesData<any>({ queryKey: ["my-route-data", routeId] }, (old: any) =>
         old
           ? {
@@ -717,6 +722,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const retryGeocoding = () => {
     geocodingRef.current.clear();
+    setUnresolvedAddresses([]);
     setGeocodeState("idle");
     setGeocodeAttempt((attempt) => attempt + 1);
   };
@@ -1706,7 +1712,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <BrandedIllustration name="drivingGuide" className="mx-auto h-16 w-16" alt="" />
               <div>
                 <p className="text-sm font-semibold text-foreground">Kortet kunne ikke finde adresserne</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">Kontrollér adresserne på stoppene, eller prøv at hente dem igen.</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Vi prøvede både et præcist opslag og et bredere adresseopslag. Prøv igen, eller bed virksomheden kontrollere adressen.</p>
+                {unresolvedAddresses.length > 0 && (
+                  <p className="mt-2 text-[11px] text-muted-foreground">Kunne ikke finde: {unresolvedAddresses.slice(0, 3).join(", ")}{unresolvedAddresses.length > 3 ? ` og ${unresolvedAddresses.length - 3} flere` : ""}</p>
+                )}
               </div>
               <Button type="button" variant="outline" size="sm" onClick={retryGeocoding}>Prøv igen</Button>
             </div>

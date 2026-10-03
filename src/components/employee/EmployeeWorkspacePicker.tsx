@@ -10,6 +10,7 @@ import { setEmployeeWorkspace } from "@/lib/employee-workspace";
 import { EmployeePage } from "@/components/employee/EmployeePage";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import type { EmployeeWithBusiness } from "@/hooks/useMyEmployee";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 const initialsOf = (name: string) =>
   name
@@ -46,8 +47,8 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
       <div className="grid gap-3 sm:gap-5 lg:grid-cols-[minmax(240px,0.32fr)_minmax(0,1fr)] items-start">
         <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm">
           <div className="flex items-center gap-4 p-4 lg:flex-col lg:items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md bg-accent-soft lg:h-28 lg:w-28">
-              <Building2 className="h-10 w-10 text-accent lg:h-14 lg:w-14" aria-hidden="true" />
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center lg:h-28 lg:w-28">
+              <BrandedIllustration name="chooseWorkspace" className="h-full w-full" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>

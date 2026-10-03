@@ -13,9 +13,9 @@ import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalenda
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { StopDetailsSheetShell } from "@/components/employee/StopDetailsSheetShell";
-import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
+import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import {
-  Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
+  Calendar as CalendarIcon, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon, Info, CalendarCheck, ArrowRight, Lock as LockIcon,
   Unlock as UnlockIcon,
@@ -37,6 +37,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { statusBadgeClass, statusLabel } from "@/lib/statusColors";
+import { stripPrices } from "@/lib/employee-display";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -162,13 +163,39 @@ const EmployeeApp = () => {
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
+  const { data: me } = useMyEmployee();
   const routeDates = useMemo(() => new Set(routes.map((route) => route.route_date).filter(Boolean)), [routes]);
+  const stopsByRoute = useMemo(() => {
+    const grouped = new Map<string, RouteStop[]>();
+    for (const stop of stops) grouped.set(stop.route_id, [...(grouped.get(stop.route_id) || []), stop]);
+    return grouped;
+  }, [stops]);
+  const printableRoutes = useMemo<PrintRoute[]>(() => routes.map((route) => ({
+    id: route.id,
+    date: route.route_date,
+    name: route.name || "Rute",
+    color: route.color,
+    employeeNames: me?.name ? [me.name] : [],
+    startAddress: route.start_address,
+    distanceKm: route.total_distance_km,
+    plannedStartTime: route.planned_start_time,
+    stops: (stopsByRoute.get(route.id) || []).map((stop) => ({
+      id: stop.id,
+      customerName: stop.customer_name || "Aftale",
+      address: stop.full_address || stop.address,
+      phone: stop.customer_phone,
+      notes: stop.notes,
+      serviceSummary: stop.service_summary ? stripPrices(stop.service_summary) : null,
+      plannedArrival: stop.planned_arrival,
+      plannedDeparture: stop.planned_departure,
+      durationMinutes: stop.duration_minutes,
+    })),
+  })), [routes, stopsByRoute, me?.name]);
   const [workdayNow, setWorkdayNow] = useState(() => Date.now());
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
   // Tidlig udførelse — hent medarbejderens egen indstilling og virksomhedens
   // default. Resolver: src/lib/early-completion.ts.
-  const { data: me } = useMyEmployee();
   const employeeMode = ((me as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
   const { data: businessEarlyDefault = false } = useQuery({
     queryKey: ["business-early-default", me?.business_id],
@@ -196,13 +223,6 @@ const EmployeeApp = () => {
     );
   }
   if (!user) return <Navigate to="/log-ind" replace />;
-
-  const stopsByRoute = new Map<string, RouteStop[]>();
-  for (const s of stops) {
-    const arr = stopsByRoute.get(s.route_id) || [];
-    arr.push(s);
-    stopsByRoute.set(s.route_id, arr);
-  }
 
   const totalStops = stops.length;
   const completedStops = stops.filter((s) => s.status === "completed").length;
@@ -408,7 +428,7 @@ const EmployeeApp = () => {
                 tone: "calm",
                 title: "Dagen er afsluttet",
                 description: "Genstart dagen, hvis du skal arbejde videre. Udførte aftaler og registreret tid bevares.",
-                illustration: "dayEnded",
+                illustration: "restartDay",
                 cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             }
@@ -796,11 +816,11 @@ const EmployeeApp = () => {
                         {done > 0 ? (
                           <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute · stop {Math.min(done + 1, total)} af {total}</>
                         ) : (
-                          <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
+                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
                         )}
                       </Link>
                     ) : (
-                      <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Ingen stop</>
+                      <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Ingen stop</>
                     )}
                   </Button>
                 </div>
@@ -834,11 +854,13 @@ const EmployeeApp = () => {
           )}
       </StopDetailsSheetShell>
 
-      {/* Print-forhåndsvisning — vis indholdet af kvitteringen før print */}
-      <RoutePrintPreviewSheet
+      <RoutePrintDialog
         open={!!previewRouteId}
         onOpenChange={(o) => !o && setPreviewRouteId(null)}
-        routeId={previewRouteId}
+        initialDate={date}
+        routes={printableRoutes.filter((route) => !previewRouteId || route.id === previewRouteId)}
+        businessName={me?.business?.name}
+        title="Print rute / kvittering"
       />
     </EmployeeShell>
   );

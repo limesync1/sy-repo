@@ -87,7 +87,6 @@ const Unsubscribe            = lazyRoute("unsubscribe", () => import("./pages/Un
 const RoutePlanner           = lazyRoute("route-planner", () => import("./pages/RoutePlanner"));
 const EmployeeApp            = lazyRoute("employee-app", () => import("./pages/EmployeeApp"));
 const EmployeeRoute          = lazyRoute("employee-route", () => import("./pages/EmployeeRoute"));
-const EmployeeRoutePrint     = lazyRoute("employee-route-print", () => import("./pages/EmployeeRoutePrint"));
 const EmployeeStats          = lazyRoute("employee-stats", () => import("./pages/EmployeeStats"));
 const EmployeeLivechat       = lazyRoute("employee-livechat", () => import("./pages/EmployeeLivechat"));
 const ApproveOrder           = lazyRoute("approve-order", () => import("./pages/ApproveOrder"));
@@ -351,7 +350,6 @@ const App = () => (
               <Route path="/medarbejder/statistik" element={<EmployeeStats />} />
               <Route path="/medarbejder/livechat" element={<EmployeeLivechat />} />
               <Route path="/medarbejder/rute/:routeId" element={<EmployeeRoute />} />
-              <Route path="/medarbejder/rute/:routeId/print" element={<EmployeeRoutePrint />} />
               <Route path="/min-konto" element={<CustomerDashboard />} />
               <Route path="/virksomheder" element={<Search />} />
               <Route path="/tilbud" element={<RequestQuote />} />

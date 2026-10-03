@@ -306,7 +306,7 @@ export const StopDetailsContent = ({
         >
           {isDone ? (
             <Badge variant="outline" className="gap-1 text-[10px] border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground">
-              <CheckCircle2 className="h-2.5 w-2.5" />Færdig
+              <CheckCircle2 className="h-2.5 w-2.5" />Udført
             </Badge>
           ) : null}
           
