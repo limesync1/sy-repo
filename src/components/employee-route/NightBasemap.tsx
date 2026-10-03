@@ -1,0 +1,36 @@
+import { useEffect } from "react";
+import { useMap } from "react-leaflet";
+import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
+import "maplibre-gl/dist/maplibre-gl.css";
+
+/** Vector night style on the rotating tile pane, below existing route layers. */
+export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (failed: boolean) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    let active = true;
+    let layer: ReturnType<typeof maplibreGL> | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const attribution = '© <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © OpenMapTiles · © OpenStreetMap';
+    const fail = () => { if (active) onFailure(true); };
+    try {
+      layer = maplibreGL({ style: "https://tiles.openfreemap.org/styles/dark", interactive: false, attributionControl: false, padding: 0.5 }).addTo(map);
+      const gl = layer.getMaplibreMap();
+      gl.on("error", fail);
+      gl.on("idle", () => {
+        if (active && gl.isStyleLoaded() && gl.areTilesLoaded()) {
+          if (timeout) clearTimeout(timeout);
+          onFailure(false);
+        }
+      });
+      timeout = setTimeout(fail, 15_000);
+      map.attributionControl?.addAttribution(attribution);
+    } catch { fail(); }
+    return () => {
+      active = false;
+      if (timeout) clearTimeout(timeout);
+      if (layer && map.hasLayer(layer)) map.removeLayer(layer);
+      map.attributionControl?.removeAttribution(attribution);
+    };
+  }, [map, retry, onFailure]);
+  return null;
+}

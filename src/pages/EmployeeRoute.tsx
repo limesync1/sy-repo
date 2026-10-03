@@ -2,7 +2,7 @@ import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration
 import { runMetrics } from "@/components/employee-route/run-metrics";
 import { RouteRunSummary } from "@/components/employee-route/RouteRunSummary";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
@@ -59,6 +59,7 @@ import { ArrowUp, ArrowDown, Zap } from "lucide-react";
 import { useDriveIssues, useWakeLock, useNightMode, useRootDark } from "@/components/employee-route/useDriveSafety";
 import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
+import { NightBasemap } from "@/components/employee-route/NightBasemap";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -385,6 +386,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [modeDialogOpen, setModeDialogOpen] = useState(true);
   const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [followMode, setFollowMode] = useState(true);
+  const [nightMapFailed, setNightMapFailed] = useState(false);
+  const [nightMapRetry, setNightMapRetry] = useState(0);
+  const reportNightMapFailure = useCallback((failed: boolean) => setNightMapFailed(failed), []);
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
@@ -1729,7 +1733,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
       {/* ─── Map fills everything ─── */}
       <div className={cn("route-map-stage relative flex-1 min-h-0", routeStarted && !allDone && "route-map-stage-driving")}>
-        <DriveIssueBanner issues={driveIssues} onRetry={retryGps} />
+        <DriveIssueBanner issues={night && nightMapFailed ? [...driveIssues, { id: "night-map", tone: "warning", title: "Natkortet kunne ikke hentes", body: "Et dæmpet reservekort vises. Kontroller forbindelsen, og prøv igen.", action: "retry" }] : driveIssues} onRetry={() => { retryGps(); setNightMapFailed(false); setNightMapRetry(v => v + 1); }} />
         {!hasMapPoint && (isLoading || geocodeState === "idle" || geocodeState === "pending") ? (
           <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
             <div className="space-y-2">
@@ -1793,13 +1797,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             inertiaDeceleration={2400}
             preferCanvas
           >
-            {/*
-              To overlejrede TileLayers + CSS-opacity crossfade:
-              begge er altid mounted (så satellit-fliserne er forhåndshentet
-              og skiftet er instant), men vi fader mellem dem via en wrapper-
-              klasse på .leaflet-tile-pane.  Det giver en blød 320 ms overgang
-              uden at fliserne hak'er ind.
-            */}
+            {/* Day tiles double as a dim reserve while the vector night style loads. */}
             <TileLayer
               key={night && routeStarted ? "night" : "day"}
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -1812,6 +1810,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               maxZoom={20}
               maxNativeZoom={19}
             />
+            {night && routeStarted && <NightBasemap retry={nightMapRetry} onFailure={reportNightMapFailure} />}
 
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted && !highlightedId} />
