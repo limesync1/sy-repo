@@ -11,11 +11,11 @@ export function DriveIssueBanner({ issues, onRetry }: { issues: DriveIssue[]; on
       {issues.slice(0, 2).map((issue) => {
         const Icon = issue.id === "offline" ? WifiOff : issue.tone === "error" ? MapPinOff : AlertTriangle;
         return (
-          <div key={issue.id} role="alert" className={cn("pointer-events-auto flex items-start gap-3 rounded-xl border bg-card p-3 shadow-lg", issue.tone === "error" ? "border-destructive/30" : "border-warning/40")}>
+          <div key={issue.id} role="alert" className={cn("pointer-events-auto flex items-center gap-2.5 rounded-xl border bg-card px-3 py-2 shadow-md", issue.tone === "error" ? "border-destructive/30" : "border-warning/40")}>
             <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", issue.tone === "error" ? "text-destructive" : "text-warning")} aria-hidden />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">{issue.title}</p>
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{issue.body}</p>
+              <p className="truncate text-sm font-semibold text-foreground">{issue.title}</p>
+              <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-muted-foreground">{issue.body}</p>
             </div>
             {issue.action && (
               <Button size="sm" variant="outline" className="h-9 shrink-0 gap-1.5 text-xs" onClick={onRetry}>

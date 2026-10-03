@@ -242,14 +242,14 @@ NavCamera.displayName = "NavCamera";
 const DriveMapControls = forwardRef<never, { following: boolean; onFollow: () => void; onManualZoom: () => void }>(({ following, onFollow, onManualZoom }, _ref) => {
   const map = useMap();
   return (
-    <div className="absolute right-3 top-1/2 z-[1000] flex -translate-y-1/2 flex-col overflow-hidden rounded-md border border-border/80 bg-card/95 shadow-lg backdrop-blur-md sm:right-5">
-      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => { onManualZoom(); map.zoomIn(1); }} aria-label="Zoom ind">
+    <div className="absolute right-3 top-1/2 z-[1000] flex -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-md sm:right-5">
+      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border/60" onClick={() => { onManualZoom(); map.zoomIn(1); }} aria-label="Zoom ind">
         <Plus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
-      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none border-b border-border" onClick={() => { onManualZoom(); map.zoomOut(1); }} aria-label="Zoom ud">
+      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border/60" onClick={() => { onManualZoom(); map.zoomOut(1); }} aria-label="Zoom ud">
         <Minus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
-      <Button type="button" variant="ghost" size="icon" className="h-12 w-12 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
+      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
         <Crosshair className="h-5 w-5" />
       </Button>
     </div>
@@ -1496,7 +1496,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setRouteStarted(true);
     setFollowMode(true);
     setCollapsed(true);
-    toast.success("Rute startet — god tur!");
     if (mode === "guide" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -2113,7 +2112,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       className="h-12 gap-2 rounded-md text-sm font-semibold"
                     >
                       <Navigation className="h-4 w-4" />
-                      Følg ruten
+                      Kør dertil
                     </Button>
                   )}
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="icon" aria-label="Vis detaljer" title="Vis detaljer" className="h-12 w-12 rounded-md"><Info className="h-5 w-5" /></Button>
