@@ -149,7 +149,7 @@ const NavPuckMarker = ({
       const unwrapped = prev == null ? heading : prev + ((heading - prev + 540) % 360) - 180;
       shownHeading.v = unwrapped;
       const rot = m.getElement()?.querySelector<HTMLElement>(".nav-puck-rot");
-      if (rot) rot.style.transform = `rotate(${unwrapped}deg)`;
+      if (rot) rot.style.transform = `rotate(${unwrapped + map.getBearing()}deg)`;
     });
   }, [track]);
 
@@ -215,7 +215,7 @@ const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speed
         const candidate = navigationZoom(speedRef.current, zoom);
         if (candidate !== pendingZoom) { pendingZoom = candidate; pendingSince = performance.now(); }
         if (candidate !== zoom && performance.now() - pendingSince > 6000) zoom = candidate;
-        if (heading != null && speedRef.current > 1.2 && Math.abs(headingDelta(map.getBearing(), heading)) > 0.5) map.setBearing(heading);
+        if (heading != null && speedRef.current > 1.2 && Math.abs(headingDelta(map.getBearing(), -heading)) > 0.5) map.setBearing(-heading);
         const moved = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
         if (last && moved < 0.05 && last.zoom === zoom) return;
         // Pan and puck consume the same sample, avoiding the previous 3–8 m catch-up jumps.
@@ -851,9 +851,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Vi bruger en glat "1.4 × accuracy + offset"-formel clamped til
   // [TIGHT_MIN, LOOSE_MAX] i stedet for en hård tærskel — det giver en
   // mere forudsigelig oplevelse end tidligere step-funktion.
-  const TIGHT_MIN_M = 45;
-  const LOOSE_MAX_M = 60;
-  const arrivalThresholdM = arrivalRadius(userAccuracyM);
+    const arrivalThresholdM = arrivalRadius(userAccuracyM);
   // Hysterese: vi træder IND i ankomstzonen ved radius, men træder først
   // UD igen ved 1,8 × radius.  Uden det skifter kortet mellem "fremme" og
   // "kør videre" hver gang GPS sitrer et par meter — præcis den "frem og
@@ -1861,7 +1859,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 shrink-0"
+                  className="h-11 w-11 shrink-0"
                   aria-label="Tilbage til tjekliste"
                   onClick={() => {
                     setRunMode("list");
@@ -1891,7 +1889,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 shrink-0"
+                  className="h-11 w-11 shrink-0"
                   onClick={() => setAudioEnabled((value) => !value)}
                   aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
                   aria-pressed={!audioEnabled}
@@ -1937,69 +1935,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             )}
 
-            {/* Trafik-banner — Serviceydere amber, kvalitativ severity */}
-            {!isRerouting && trafficAlert && (() => {
-              const sev = trafficAlert.severity;
-              const sevLabel = sev === "let" ? "Let trafik" : sev === "moderat" ? "Moderat trafik" : "Tæt trafik";
-              const sevDots = sev === "let" ? 1 : sev === "moderat" ? 2 : 3;
-              // Farver matcher Serviceydere palette: blød amber for advarsel
-              const tone = {
-                bg: "hsl(38 100% 97%)",
-                border: "hsl(38 90% 78%)",
-                accent: sev === "tæt" ? "hsl(20 90% 50%)" : sev === "moderat" ? "hsl(28 92% 52%)" : "hsl(38 95% 55%)",
-                text: "hsl(28 70% 22%)",
-                sub: "hsl(28 45% 38%)",
-                chip: "hsl(38 100% 90%)",
-              };
-              return (
-                <div className={`absolute ${showManeuverBanner ? "top-[12.5rem]" : "top-[4.75rem]"} left-2 right-[4.25rem] z-[1000] pointer-events-none sm:left-4 sm:right-[5rem] lg:left-auto lg:right-4 lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]`}>
-                  <div
-                    className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
-                    style={{ background: tone.bg, borderColor: tone.border }}
-                  >
-                    <div className="flex items-center gap-3 px-3 py-2.5">
-                      <div
-                        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                        style={{ background: tone.accent, color: "white" }}
-                      >
-                        <TrafficCone className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold leading-tight" style={{ color: tone.text }}>
-                            {sevLabel}
-                          </p>
-                          {/* Severity dots */}
-                          <span className="flex items-center gap-0.5 ml-0.5">
-                            {[0, 1, 2].map((i) => (
-                              <span
-                                key={i}
-                                className="h-1.5 w-1.5 rounded-full transition-opacity"
-                                style={{
-                                  background: tone.accent,
-                                  opacity: i < sevDots ? 1 : 0.25,
-                                }}
-                              />
-                            ))}
-                          </span>
-                        </div>
-                        <p className="text-[11px] leading-tight mt-0.5 tabular-nums" style={{ color: tone.sub }}>
-                          Forsinker ankomst med ca. {trafficAlert.addedMin} min
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setTrafficAlert(null)}
-                        className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg shrink-0 transition-opacity hover:opacity-80"
-                        style={{ color: tone.text, background: tone.chip }}
-                        aria-label="Luk advarsel"
-                      >
-                        OK
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+            {!isRerouting && trafficAlert && (
+              <div role="status" className="absolute left-2 right-2 top-[8.5rem] z-[1000] flex items-center gap-2 rounded-md border border-warning/30 bg-card px-3 py-2 text-xs text-foreground">
+                <TrafficCone className="h-4 w-4 shrink-0 text-warning" />
+                <span className="min-w-0 flex-1">Trafik · ca. {trafficAlert.addedMin} min ekstra</span>
+                <Button variant="ghost" size="sm" className="h-11" onClick={() => setTrafficAlert(null)}>Luk</Button>
+              </div>
+            )}
           </>
         )}
 
@@ -2297,7 +2239,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       </StopDetailsSheetShell>
 
       {/* ─── Persistent collapsible bottom stop-list ─── */}
-      <StopListPanel
+      {(listOpen || !routeStarted || allDone) && <StopListPanel
         open={listOpen}
         onToggle={() => setListOpen((v) => !v)}
         stops={sortedStops}
@@ -2312,7 +2254,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         canReorder={!allDone}
         reordering={reorderStops.isPending}
         onMoveStop={handleMoveStop}
-      />
+      />}
     </div>
   );
 };

@@ -29,7 +29,7 @@ const options: Array<{
     mode: "list",
     illustration: "checklist",
     title: "Tjekliste",
-    body: "Se stoppene i rækkefølge og tryk “Udført”, når du er færdig hvert sted.",
+    body: "Se stoppene i rækkefølge og tryk “Udført”, når arbejdet er udført hvert sted.",
     note: "Bruger næsten ingen strøm — intet kort, ingen GPS.",
   },
   {
@@ -44,7 +44,7 @@ const options: Array<{
 export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay flex w-[calc(100vw-1rem)] max-w-[500px] flex-col gap-0 overflow-hidden rounded-md p-0 sm:w-full">
+      <DialogContent className="planner-overlay flex w-[calc(100vw-1rem)] max-w-[500px] flex-col max-h-[calc(100dvh-1rem)] gap-0 overflow-hidden rounded-md p-0 sm:w-full">
         <DialogHeader className="planner-overlay-header shrink-0 border-b border-border px-4 py-4 pr-12 text-left sm:px-5 sm:py-5 sm:pr-12">
           <SheetHeaderBlock
             icon={<BrandedIllustration name="chooseRouteMode" className="h-10 w-10" alt="" />}

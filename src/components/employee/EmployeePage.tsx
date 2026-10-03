@@ -10,7 +10,7 @@ type EmployeePageProps = {
 
 /** Fælles indholdsramme for medarbejdersider — matcher virksomhedspanelets bredde og rytme. */
 export function EmployeePage({ children, className, transitionKey }: EmployeePageProps) {
-  const classes = cn("w-full min-w-0 max-w-full space-y-3 sm:space-y-5", className);
+  const classes = cn("employee-page w-full min-w-0 max-w-full space-y-3 sm:space-y-5", className);
 
   if (transitionKey !== undefined) {
     return (
