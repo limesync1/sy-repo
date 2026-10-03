@@ -17,16 +17,24 @@ export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (
     let layer: ReturnType<typeof maplibreGL> | undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     const attribution = '© <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © OpenMapTiles · © OpenStreetMap';
-    const fail = () => { if (active) onFailure(true); };
+    const fail = () => {
+      if (!active) return;
+      if (layer) layer.getContainer().style.visibility = "hidden";
+      onFailure(true);
+    };
     try {
       // Plugin-specific overscan is absent from its published option type.
       const options = { style: "https://tiles.openfreemap.org/styles/dark", interactive: false, attributionControl: false as const, padding: 0.5 };
       layer = maplibreGL(options).addTo(map);
+      // Raster GridLayer has z-index 1; otherwise it hides the vector map.
+      layer.getContainer().style.zIndex = "2";
+      layer.getContainer().style.visibility = "hidden";
       const gl = layer.getMaplibreMap();
       gl.on("error", fail);
       gl.on("idle", () => {
         if (active && gl.isStyleLoaded() && gl.areTilesLoaded()) {
           if (timeout) clearTimeout(timeout);
+          if (layer) layer.getContainer().style.visibility = "visible";
           onFailure(false);
         }
       });
