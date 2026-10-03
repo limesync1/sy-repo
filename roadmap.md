@@ -126,6 +126,7 @@
 - [ ] Kontrollér virksomhedens Aftaler og Kom godt i gang i browseren — testkontoen har ikke adgang til et virksomhedspanel
 
 ## Tomme lister og serviceikoner
-- [ ] Ensret tomme lister i medarbejder- og kundepanelet med Ingen emner-ikonet
-- [ ] Brug fem vedhæftede ikoner i serviceoprettelse og -redigering
-- [ ] Kontrollér ikonvalg og visninger med test og browser
+- [x] Ensret tomme lister i medarbejder- og kundepanelet med Ingen emner-ikonet
+- [x] Brug fem vedhæftede ikoner i serviceoprettelse og -redigering
+- [x] Kontrollér ikonvalg med 11 tests og tomme kunde-/medarbejdervisninger i browseren
+- [ ] Kontrollér servicevinduer i browseren — den tilgængelige konto har ikke virksomhedsadgang
