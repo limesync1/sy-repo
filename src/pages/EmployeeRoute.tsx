@@ -2084,12 +2084,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
+                className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-2 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setSelectedId(nextStop.id)}
                 aria-label="Vis aftalens oplysninger"
               >
                 <span
-                   className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-base font-bold tabular-nums shrink-0"
+                   className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-sm font-bold tabular-nums shrink-0"
                 >
                   {nextStopIdx + 1}
                 </span>
@@ -2155,7 +2155,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
               {collapsed && (
-                <div className="flex flex-wrap gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2">
                   {activeNextStopEntry ? (
                     <Button
                       onClick={() => handleComplete(nextStop)}
@@ -2183,9 +2183,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Start aftale
                     </Button>
                   ) : (
-                    <p className="flex w-full items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" />{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)} til næste stop` : "Vejvisning mod næste stop"}</p>
+                    <p className="flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" /><span className="truncate">{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)}` : "Vejvisning mod næste stop"}</span></p>
                   )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Oplysninger</Button>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className={cn("h-11 gap-1.5 rounded-md px-3 text-xs", activeNextStopEntry || isAtNextStop || latestCompleted ? "flex-1" : "shrink-0")}><Info className="h-4 w-4" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
