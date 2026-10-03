@@ -17,8 +17,11 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     const googleMapsApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
+    // Virksomhedens egen Google-servernøgle bruges først, så adresseopslag
+    // virker på det egne domæne; ellers falder vi tilbage til forbindelsen.
+    const ownGoogleKey = Deno.env.get("GOOGLE_API_KEY");
     if (!authHeader || !supabaseUrl || !anonKey) return json({ error: "Ikke logget ind" }, 401);
-    if (!lovableApiKey || !googleMapsApiKey) return json({ error: "Adresseopslaget er ikke konfigureret" }, 503);
+    if (!ownGoogleKey && (!lovableApiKey || !googleMapsApiKey)) return json({ error: "Adresseopslaget er ikke konfigureret" }, 503);
 
     const authClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -30,14 +33,17 @@ Deno.serve(async (req) => {
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) return json({ error: "Indtast en gyldig adresse" }, 400);
 
-    const url = new URL("https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
+    const url = new URL(ownGoogleKey
+      ? "https://maps.googleapis.com/maps/api/geocode/json"
+      : "https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
     url.searchParams.set("address", parsed.data.address);
     url.searchParams.set("region", "dk");
     url.searchParams.set("language", "da");
-    const response = await fetch(url, {
+    if (ownGoogleKey) url.searchParams.set("key", ownGoogleKey);
+    const response = await fetch(url, ownGoogleKey ? undefined : {
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": googleMapsApiKey,
+        "X-Connection-Api-Key": googleMapsApiKey!,
       },
     });
 
@@ -55,6 +61,17 @@ Deno.serve(async (req) => {
     }
 
     const payload = await response.json();
+    // Google svarer 200 med en status-tekst, når selve nøglen afvises.
+    const status = typeof payload?.status === "string" ? payload.status : "OK";
+    if (status === "REQUEST_DENIED") {
+      const message = String(payload?.error_message ?? "");
+      console.error(`Google geocoding denied: ${message}`);
+      if (/referer|referrer/i.test(message)) return json({ error: "Google-nøglen er begrænset til websites — sæt 'Application restrictions' til 'None' for servernøglen" }, 503);
+      if (/not authorized|not activated|not enabled/i.test(message)) return json({ error: "Geocoding API er ikke slået til for Google-nøglen" }, 503);
+      if (/billing/i.test(message)) return json({ error: "Fakturering er ikke slået til i Google Cloud" }, 503);
+      return json({ error: "Google afviste adresseopslaget" }, 503);
+    }
+    if (status === "OVER_QUERY_LIMIT" || status === "UNKNOWN_ERROR") return json({ error: "Adressetjenesten svarer ikke lige nu" }, 503);
     const result = Array.isArray(payload?.results) ? payload.results[0] : null;
     const location = result?.geometry?.location;
     if (!result || typeof location?.lat !== "number" || typeof location?.lng !== "number") return json({ found: false });
