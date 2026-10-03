@@ -701,6 +701,9 @@
     }
   }
 
+  /* Natkort: dæmpet mørk version af vejkortet — kræver ingen ekstra kortnøgle. */
+  .employee-route-run .route-tiles-night { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6); }
+
   .employee-route-run .leaflet-container {
     background: hsl(var(--surface-strong));
   }

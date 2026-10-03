@@ -82,9 +82,9 @@ import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg"
 import routeReady from "@/assets/illustrations/employee/start-rute.svg.asset.json";
 import noItems from "@/assets/content-icons/ingen-emner-generel.svg.asset.json";
 import routeDone from "@/assets/content-icons/ruten-er-koert-faerdig.svg.asset.json";
-import chooseRouteModeSrc from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg";
-import checklistSrc from "@/assets/illustrations/employee/tjekliste.svg";
-import drivingGuideSrc from "@/assets/illustrations/employee/koerselsguide.svg";
+import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg.asset.json";
+import checklist from "@/assets/illustrations/employee/tjekliste.svg.asset.json";
+import drivingGuide from "@/assets/illustrations/employee/koerselsguide.svg.asset.json";
 import startAppointment from "@/assets/illustrations/employee/start-aftale.svg";
 import driveGoogleMaps from "@/assets/illustrations/employee/koer-dertil-google-maps.svg";
 import employeeRoutes from "@/assets/illustrations/employee/ruter.svg";
@@ -157,9 +157,9 @@ export const BRANDED_ILLUSTRATIONS = {
   routeReady: routeReady.url,
   routeDone: routeDone.url,
   noItems: noItems.url,
-  chooseRouteMode: chooseRouteModeSrc,
-  checklist: checklistSrc,
-  drivingGuide: drivingGuideSrc,
+  chooseRouteMode: chooseRouteMode.url,
+  checklist: checklist.url,
+  drivingGuide: drivingGuide.url,
   startAppointment: startAppointment,
   driveGoogleMaps: driveGoogleMaps,
   earnings: revenueNew.url,

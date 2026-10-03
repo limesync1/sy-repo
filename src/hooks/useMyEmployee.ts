@@ -1,11 +1,12 @@
 // useMyEmployee — henter medarbejder-record for nuværende auth-user
 // samt aggregerede statistik-data over en periode.
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { calcEmployeeShare, exclVat } from "@/lib/commission";
-import { getEmployeeWorkspace } from "@/lib/employee-workspace";
+import { getEmployeeWorkspace, subscribeEmployeeWorkspace } from "@/lib/employee-workspace";
 
 export type Employee = Tables<"employees">;
 
@@ -53,7 +54,7 @@ export const useMyEmployees = () => {
  */
 export const useMyEmployee = () => {
   const list = useMyEmployees();
-  const selectedBusinessId = getEmployeeWorkspace();
+  const selectedBusinessId = useSyncExternalStore(subscribeEmployeeWorkspace, getEmployeeWorkspace, () => null);
   const rows = list.data || [];
   const match = selectedBusinessId
     ? rows.find((e) => e.business_id === selectedBusinessId)

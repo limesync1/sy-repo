@@ -28,6 +28,7 @@ export const setEmployeeWorkspace = (businessId: string, remember: boolean) => {
   } catch {
     /* ignore */
   }
+  notifyEmployeeWorkspace();
 };
 
 export const clearEmployeeWorkspace = () => {
@@ -38,4 +39,21 @@ export const clearEmployeeWorkspace = () => {
   } catch {
     /* ignore */
   }
+  notifyEmployeeWorkspace();
+};
+
+// Reaktivt abonnement, så alle hooks skifter medarbejder-record med det
+// samme, når arbejdspladsen vælges — ellers bliver data hentet for den
+// forkerte virksomhed (fx tom tidsregistrering og "0 ruter").
+const EVENT = "sy-employee-workspace";
+export const subscribeEmployeeWorkspace = (cb: () => void) => {
+  window.addEventListener(EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+};
+export const notifyEmployeeWorkspace = () => {
+  try { window.dispatchEvent(new Event(EVENT)); } catch { /* ignore */ }
 };
