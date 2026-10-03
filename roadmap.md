@@ -149,3 +149,8 @@
 - [x] Kontrollér computerflow: alle tre stop udført, gradientlinjer på alle strækninger og ingen JavaScript-runtimefejl; fjern midlertidige testdata
 - [ ] Kontrollér adresse-/GPS-fejl og mobil under fysisk kørsel
 - [ ] Fysisk GPS-kørsel kræver kontrol på brugerens telefon
+
+## Mobilnavigation og rutetildeling
+- [x] Fjern panelernes bundnavigation og den reserverede bundplads; bevar topmenuen
+- [ ] Gør valg af aftaler og medarbejdere lettere på mobil
+- [ ] Kontrollér mobilmenu og rutetildeling i browseren

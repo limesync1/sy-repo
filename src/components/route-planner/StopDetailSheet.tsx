@@ -4,6 +4,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -714,7 +715,7 @@ const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePi
               <div
                 key={id}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border bg-card pl-0.5 pr-1 py-0.5 text-xs",
+                  "max-w-full inline-flex items-center gap-1.5 rounded-md border bg-card pl-0.5 pr-1 py-0.5 text-xs",
                   isLead && "border-foreground/50 ring-1 ring-foreground/10",
                 )}
               >
@@ -735,11 +736,11 @@ const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePi
                   </span>
                 )}
                 <span className="font-medium truncate max-w-[120px]">{emp.name}</span>
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={() => setAsLead(id)}
                   className={cn(
-                    "h-5 w-5 inline-flex items-center justify-center rounded transition-colors",
+                    "h-11 w-11 p-0 shrink-0 sm:h-7 sm:w-7 inline-flex items-center justify-center rounded transition-colors",
                     isLead
                       ? "text-amber-500"
                       : "text-muted-foreground/40 hover:text-amber-500 hover:bg-secondary",
@@ -747,16 +748,16 @@ const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePi
                   title={isLead ? "Lead (primær)" : "Sæt som lead"}
                   aria-label={isLead ? "Lead" : "Sæt som lead"}
                 >
-                  <Crown className="h-3 w-3" fill={isLead ? "currentColor" : "none"} />
-                </button>
-                <button
+                  <Crown className="h-4 w-4" fill={isLead ? "currentColor" : "none"} />
+                </Button>
+                <Button variant="ghost"
                   type="button"
                   onClick={() => toggle(id)}
-                  className="h-5 w-5 inline-flex items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  className="h-11 w-11 p-0 shrink-0 sm:h-7 sm:w-7 inline-flex items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   aria-label={`Fjern ${emp.name}`}
                 >
-                  <XIcon className="h-3 w-3" />
-                </button>
+                  <XIcon className="h-4 w-4" />
+                </Button>
               </div>
             );
           })}
@@ -770,11 +771,11 @@ const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePi
           .map((emp) => {
             const initials = (emp.name || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
             return (
-              <button
+              <Button variant="ghost"
                 key={emp.id}
                 type="button"
                 onClick={() => toggle(emp.id)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-dashed bg-background pl-0.5 pr-2 py-0.5 text-xs hover:border-foreground/40 hover:bg-secondary transition-colors"
+                className="min-h-11 h-auto max-w-full whitespace-normal inline-flex items-center gap-1.5 rounded-md border border-dashed bg-background pl-0.5 pr-2 py-0.5 text-xs hover:border-foreground/40 hover:bg-secondary transition-colors"
               >
                 {emp.avatar_url ? (
                   <img
@@ -793,7 +794,7 @@ const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePi
                   </span>
                 )}
                 <span className="font-medium">+ {emp.name}</span>
-              </button>
+              </Button>
             );
           })}
       </div>

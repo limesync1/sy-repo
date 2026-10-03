@@ -199,8 +199,8 @@ export const SuggestRouteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-md">
-        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
+      <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl overflow-hidden rounded-md flex flex-col gap-0 p-0">
+        <DialogHeader className="planner-overlay-header space-y-0 text-left shrink-0 px-5 py-3 pr-12 border-b">
           <SheetHeaderBlock
             icon={<Sparkles className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Find den bedste rute til {job.customer_name || "aftalen"}</DialogTitle>}
@@ -212,6 +212,7 @@ export const SuggestRouteDialog = ({
           />
         </DialogHeader>
 
+        <div className="min-h-0 overflow-y-auto px-4 py-3 sm:px-5">
         {noCoords ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 flex items-start gap-3">
@@ -364,7 +365,8 @@ export const SuggestRouteDialog = ({
           </div>
         )}
 
-        <DialogFooter className="planner-overlay-footer -mx-6 -mb-6 mt-2 gap-2 border-t px-5 py-3">
+        </div>
+        <DialogFooter className="planner-overlay-footer shrink-0 grid grid-cols-2 gap-2 border-t px-4 py-3 sm:flex sm:px-5">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Annuller
           </Button>
@@ -372,6 +374,7 @@ export const SuggestRouteDialog = ({
             Opdater forslag
           </Button>
           <Button
+            className="col-span-2 h-11 sm:h-10"
             disabled={!chosen}
             onClick={() => {
               if (chosen) {
@@ -403,17 +406,19 @@ const SuggestionCard = ({
     (s.capacity.stops_max != null && s.stop_count + 1 > s.capacity.stops_max);
 
   return (
-    <button
+    <Button
+      variant="ghost"
       type="button"
+      aria-pressed={chosen}
       onClick={onChoose}
       className={cn(
-        "w-full text-left rounded-md border p-3 transition-[background-color,border-color,box-shadow,transform] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        "block h-auto whitespace-normal w-full text-left rounded-md border p-3 transition-[background-color,border-color,box-shadow,transform] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         chosen
           ? "border-foreground bg-foreground/5 ring-2 ring-foreground/10"
           : "border-border bg-card hover:border-foreground/40",
       )}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm text-foreground truncate">
@@ -479,7 +484,7 @@ const SuggestionCard = ({
           pct={s.capacity.km_max ? Math.min(100, (s.km_used / s.capacity.km_max) * 100) : null}
         />
       </div>
-    </button>
+    </Button>
   );
 };
 

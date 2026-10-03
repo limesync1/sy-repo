@@ -3,8 +3,8 @@
 //
 //  - Desktop (lg+): fast, hvid sidebar der kan foldes sammen til en ikon-stribe.
 //  - Mobil/tablet (<lg): sidebaren er en Radix-Sheet-drawer (focus-trap,
-//    scroll-lock, ESC, swipe-to-close) + valgfri bundnavigation.
-//  - Bredder styres af CSS-variabler (--sidebar-w, --bottomnav-h) på wrapperen,
+//    scroll-lock, ESC, swipe-to-close).
+//  - Bredder styres af CSS-variabler (--sidebar-w) på wrapperen,
 //    så aside, topbar og indhold ALDRIG kan drive fra hinanden.
 //  - Collapse er ren CSS/prop — ingen matchMedia i JS, derfor intet flash.
 //
@@ -48,9 +48,6 @@ export type PanelShellProps = {
   topbarRight?: ReactNode;
   /** Ekstra række lige under topbaren (fx handlinger på mobil). */
   topbarExtra?: ReactNode;
-
-  /** Bundnavigation til <lg. Når sat reserveres der plads via --bottomnav-h. */
-  bottomNav?: ReactNode;
 
   contentPadding?: boolean;
   contentClassName?: string;
@@ -133,13 +130,12 @@ const SidebarBody = ({
 export const PanelShell = ({
   storageKey, collapsible = true, animateLayout = true,
   sidebarTop, sidebarNav, sidebarFooter,
-  title, subtitle, topbarRight, topbarExtra, bottomNav,
+  title, subtitle, topbarRight, topbarExtra,
   contentPadding = true, contentClassName, workspaceClassName, children,
 }: PanelShellProps) => {
   const { collapsed: collapsedPref, toggle } = useSidebarCollapsed(storageKey);
   const collapsed = collapsible && collapsedPref;
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const hasBottomNav = !!bottomNav;
 
   useEffect(() => {
     document.body.classList.add("service-panel-open");
@@ -170,7 +166,6 @@ export const PanelShell = ({
         className={cn(
           "service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-clip bg-secondary/30",
           collapsed ? "[--sidebar-w:68px]" : "[--sidebar-w:224px] 2xl:[--sidebar-w:248px]",
-          hasBottomNav ? "[--bottomnav-h:60px] lg:[--bottomnav-h:0px]" : "[--bottomnav-h:0px]",
           workspaceClassName,
         )}
       >
@@ -261,15 +256,14 @@ export const PanelShell = ({
             className={cn(
               "service-panel-content relative z-0 min-w-0 max-w-full flex-1 overflow-x-clip outline-none",
               contentPadding
-                ? "px-3 pt-3 pb-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom)+0.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
-                : "pb-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom))] lg:pb-0",
+                ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
+                : "pb-[calc(env(safe-area-inset-bottom))] lg:pb-0",
               contentClassName,
             )}
           >
             {children}
           </main>
 
-          {bottomNav}
         </div>
       </div>
     </TooltipProvider>

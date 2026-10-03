@@ -702,10 +702,10 @@ const AssigneeToggle = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
+        <Button variant="ghost"
           type="button"
           className={cn(
-            "flex h-8 w-8 rounded-md",
+            "flex h-11 w-11 p-0 rounded-md sm:h-8 sm:w-8",
             ICON_BTN_ACCENT,
             selectedIds.length > 0 && "text-accent",
           )}
@@ -714,9 +714,9 @@ const AssigneeToggle = ({
           onClick={(e) => e.stopPropagation()}
         >
           <UserPlus className="h-4 w-4" />
-        </button>
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-2" align="end" onClick={(e) => e.stopPropagation()}>
+      <PopoverContent className="w-[calc(100vw-2rem)] max-w-sm p-3 sm:w-72" align="end" onClick={(e) => e.stopPropagation()}>
         <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5 px-1 font-semibold">
           Tildel medarbejdere
         </p>
@@ -725,7 +725,7 @@ const AssigneeToggle = ({
             Ingen aktive medarbejdere.
           </p>
         ) : (
-          <div className="space-y-0.5 max-h-64 overflow-y-auto">
+          <div className="space-y-1 max-h-[50dvh] overflow-y-auto overscroll-contain">
             {employees.map((e) => {
               const selected = selectedIds.includes(e.id);
               const isLead = leadId === e.id;
@@ -737,14 +737,15 @@ const AssigneeToggle = ({
                     selected ? "bg-accent/10" : "hover:bg-secondary",
                   )}
                 >
-                  <button
+                  <Button variant="ghost"
                     type="button"
                     onClick={() => toggle(e.id)}
-                    className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                    aria-pressed={selected}
+                    className="h-11 p-0 justify-start flex items-center gap-2 flex-1 min-w-0 text-left"
                   >
                     <span
                       className={cn(
-                        "h-4 w-4 rounded border flex items-center justify-center shrink-0",
+                        "h-5 w-5 rounded border flex items-center justify-center shrink-0",
                         selected ? "border-foreground bg-foreground text-background" : "border-border",
                       )}
                     >
@@ -769,13 +770,13 @@ const AssigneeToggle = ({
                       </span>
                     )}
                     <span className="truncate text-xs flex-1">{e.name}</span>
-                  </button>
+                  </Button>
                   {selected && (
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={() => setLead(e.id)}
                       className={cn(
-                        "shrink-0 h-6 w-6 inline-flex items-center justify-center rounded transition-colors",
+                        "shrink-0 h-11 w-11 p-0 inline-flex items-center justify-center rounded transition-colors",
                         isLead
                           ? "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-500/10"
                           : "text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-300 dark:hover:bg-amber-500/10",
@@ -784,7 +785,7 @@ const AssigneeToggle = ({
                       aria-label="Sæt som lead"
                     >
                       <Crown className="h-3.5 w-3.5" fill={isLead ? "currentColor" : "none"} />
-                    </button>
+                    </Button>
                   )}
                 </div>
               );

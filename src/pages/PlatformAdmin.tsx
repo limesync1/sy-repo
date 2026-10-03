@@ -18,7 +18,6 @@ import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette";
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
-import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import AdminShortcutsHelp from "@/components/platform-admin/AdminShortcutsHelp";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
@@ -383,7 +382,7 @@ const PlatformAdmin = () => {
             </div>
           )}
 
-          <main className="service-panel-content min-w-0 flex-1 overflow-x-hidden px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6">
+          <main className="service-panel-content min-w-0 flex-1 overflow-x-hidden px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-6 sm:pt-6 lg:pb-6">
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>
@@ -414,7 +413,6 @@ const PlatformAdmin = () => {
         </div>
 
         <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} recentTabs={recent} />
-        <AdminBottomTabs tab={tab} onSelectTab={setTab} onOpenMore={() => setSidebarOpen(true)} badges={badges} />
         <AdminShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
       </div>
     </AdminFiltersProvider>
