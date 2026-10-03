@@ -15,7 +15,7 @@
 - Standard employee pages use the shared `EmployeePage` container, keeping their width and vertical rhythm aligned with the business panel while route-driving remains full-screen.
 - Archived routes cannot remain recurrence anchors or enter projection queries, preventing deleted routes from resurfacing as ghost routes.
 - Route printing consumes the loaded calendar route collection and applies date and content selection inside the print workspace, keeping one source of truth for preview and paper output.
-- Employee route geocoding uses an authenticated server function through the linked Google Maps connector, keeping billable credentials off the browser and distinguishing service outages from unmatched addresses.
+- Employee route geocoding uses an authenticated server function that prefers the business-owned Google server key and falls back to the linked Google Maps connector, keeping billable credentials off the browser and distinguishing key, service and unmatched-address failures.
 
 - Business tab fallbacks and data-loading states share eagerly imported skeletons from the common panel registry; employee statistics uses its matching strip skeleton, preventing blank lazy fallbacks and outdated loading layouts.
 - Customer list empty panels always render the shared `NoItemsIcon` instead of accepting per-page icons, keeping favorites, subscriptions, reviews, and orders consistent with employee empty lists.
