@@ -144,7 +144,7 @@
 - [ ] Afprøv stabilitet under fysisk kørsel med enhedens GPS; browsertesten brugte fast simuleret position
 
 ## Fuld rutekontrol 2026-10-03
-- [ ] Test start, tre adresseopslag, kørsel, stophandlinger og afslutning med midlertidig indlogget testrute
-- [ ] Ret kameraryk, zoomuro og misvisende vejlinjer; brug enkle blå gradientlinjer og stopmarkører
+- [x] Test start, tre adresseopslag, kørsel, stophandlinger og afslutning med midlertidig indlogget testrute og simuleret GPS
+- [x] Ret kameraryk, zoomuro og misvisende vejlinjer; brug enkle blå gradientlinjer og stopmarkører
 - [ ] Kontrollér adresse-/GPS-fejl, mobil og computer; fjern testdata
 - [ ] Fysisk GPS-kørsel kræver kontrol på brugerens telefon

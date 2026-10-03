@@ -2318,7 +2318,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           {(() => {
             const s = selectedStop ?? selectedStopRef.current;
             if (!s) return null;
-            const idx = Math.max(0, s.sequence - 1);
+            const idx = Math.max(0, sortedStops.findIndex((stop) => stop.id === s.id));
             return (
               <StopDetailsContent
                 stop={s}
