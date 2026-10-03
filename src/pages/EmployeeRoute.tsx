@@ -1563,6 +1563,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!route) return <RouteViewSkeleton />;
     return (
       <RouteChecklistView
+        routeId={routeId}
         routeName={route.name || "Rute"}
         themeColor={themeColor}
         stops={sortedStops}
@@ -2184,7 +2185,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ) : (
                     <p className="flex w-full items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" />{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)} til næste stop` : "Vejvisning mod næste stop"}</p>
                   )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Stopoplysninger" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Stopoplysninger</Button>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">

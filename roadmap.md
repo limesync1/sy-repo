@@ -1,5 +1,13 @@
 # Roadmap
 
+## Hjemmeskærmsapp og tydelig rutekørsel
+- [ ] Installerbar PWA uden offline-cache
+- [ ] Fælles ankomst i tjekliste og guide, korte knaptekster
+- [ ] Arbejdskvittering med start, tider og indtjening
+- [ ] Dæmpet vektorkort med tydelige veje
+- [ ] Mobil- og regressionstest med isolerede data
+- [ ] Fysisk bil- og lydtest — kræver brugerens telefon og bil
+
 ## Tydeligere rutekørsel i begge temaer
 - [x] Fjern GPS-statuslinjer og oversæt hastegrad-filter
 - [x] Ensret kontrast og handlingsfarver i guide, liste og stopvindue

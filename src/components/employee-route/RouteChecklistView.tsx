@@ -1,5 +1,5 @@
 import { Moon, Sun } from "lucide-react";
-import { formatClockTime, formatRunDuration } from "./route-run-clock";
+import { formatClockTime, formatRunDuration, readArrival, readArrivalEstimate } from "./route-run-clock";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -37,6 +37,7 @@ import { playStartChime, unlockAudio } from "@/lib/employee-audio";
  */
 
 type Props = {
+  routeId?: string;
   routeName: string;
   themeColor: string;
   stops: RouteStop[];
@@ -70,6 +71,7 @@ const formatElapsed = (seconds: number) => {
 };
 
 export const RouteChecklistView = ({
+  routeId,
   routeName,
   stops,
   pendingId,
@@ -300,6 +302,8 @@ export const RouteChecklistView = ({
               {stops.map((s, i) => {
                 const done = s.status === "completed";
                 const current = next?.id === s.id;
+                const arrived = routeId ? readArrival(routeId, s.id) : null;
+                const expected = routeId ? readArrivalEstimate(routeId, s.id, now) : null;
                 const remIdx = remainingIds.indexOf(s.id);
                 const canMove = !!onMoveStop && !done && !current;
                 return (
@@ -327,6 +331,9 @@ export const RouteChecklistView = ({
                         ) : addressOf(s) ? (
                           <p className="truncate text-xs text-muted-foreground">{addressOf(s)}</p>
                         ) : null}
+                        {(arrived || (current && expected)) && <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+                          {arrived ? "Ankommet" : "Ankomst · ca."} <b className="text-foreground">{formatClockTime(arrived ?? expected ?? now)}</b>
+                        </p>}
                       </div>
                       {done && (
                         <Button
