@@ -32,7 +32,8 @@ import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import { useMotionTrack, type MotionTrack } from "@/components/employee-route/motionTrack";
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
-import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
+import { RouteMapLine } from "@/components/employee-route/RouteMapLine";
+import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
@@ -83,11 +84,7 @@ const stopIcon = (n: number, state: "next" | "done" | "future", _color: string, 
  */
 const NAV_PUCK_ICON = L.divIcon({
   className: "",
-  html: `
-    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 420ms cubic-bezier(0.22, 1, 0.36, 1);">
-      <div class="nav-puck-cone" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(var(--info) / 0.3);opacity:0;transition:opacity 240ms linear;"></div>
-      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(var(--info));border:4px solid hsl(var(--accent-foreground));box-shadow:0 4px 14px hsl(var(--info) / 0.3), 0 2px 6px rgba(0,0,0,.25);"></div>
-    </div>`,
+  html: '<div class="nav-puck-rot"><div class="nav-puck-cone"></div><div class="nav-puck-dot"></div></div>',
   iconSize: [64, 64],
   iconAnchor: [32, 32],
 });
@@ -147,9 +144,10 @@ const NavPuckMarker = ({
         const delta = Math.abs(((heading - prev + 540) % 360) - 180);
         if (delta < 2) return;
       }
-      shownHeading.v = heading;
+      const unwrapped = prev == null ? heading : prev + ((heading - prev + 540) % 360) - 180;
+      shownHeading.v = unwrapped;
       const rot = m.getElement()?.querySelector<HTMLElement>(".nav-puck-rot");
-      if (rot) rot.style.transform = `rotate(${heading}deg)`;
+      if (rot) rot.style.transform = `rotate(${unwrapped}deg)`;
     });
   }, [track]);
 
@@ -194,15 +192,6 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
  *    kortet ikke pumper ind og ud.
  *  - Står bilen stille, sker der ingenting overhovedet ("pause").
  */
-const MIN_NAV_ZOOM = 16;
-const MAX_NAV_ZOOM = 18;
-const zoomForSpeed = (mps: number): number => {
-  const SLOW = 2, FAST = 18;
-  if (mps <= SLOW) return MAX_NAV_ZOOM;
-  if (mps >= FAST) return MIN_NAV_ZOOM;
-  return MAX_NAV_ZOOM + (MIN_NAV_ZOOM - MAX_NAV_ZOOM) * ((mps - SLOW) / (FAST - SLOW));
-};
-
 const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speedMps: number }>(({
   active, track, speedMps,
 }, _ref) => {
@@ -214,17 +203,26 @@ const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speed
     if (!active) return;
     let last: { lat: number; lng: number; zoom: number } | null = null;
     let frame = 0;
+    let zoom = 17;
+    let pendingZoom = zoom;
+    let pendingSince = 0;
     const unsubscribe = track.subscribe(({ pos }) => {
       if (document.visibilityState === "hidden" || frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        const nextZoom = Math.round(zoomForSpeed(speedRef.current));
+        const candidate = navigationZoom(speedRef.current, zoom);
+        if (candidate !== pendingZoom) { pendingZoom = candidate; pendingSince = performance.now(); }
+        if (candidate !== zoom && performance.now() - pendingSince > 6000) zoom = candidate;
         const moved = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
-        // Integer tile zooms avoid constant rescaling and blurred street labels.
-        if (last && moved < (speedRef.current < 1.2 ? 8 : 3) && last.zoom === nextZoom) return;
-        map.stop();
-        map.setView(pos, nextZoom, { animate: false });
-        last = { lat: pos[0], lng: pos[1], zoom: nextZoom };
+        if (last && moved < 0.05 && last.zoom === zoom) return;
+        // Pan and puck consume the same sample, avoiding the previous 3–8 m catch-up jumps.
+        if (!last || map.getZoom() !== zoom) {
+          map.stop();
+          map.setView(pos, zoom, { animate: false });
+        } else {
+          map.panTo(pos, { animate: false, noMoveStart: true });
+        }
+        last = { lat: pos[0], lng: pos[1], zoom };
       });
     });
     return () => { unsubscribe(); cancelAnimationFrame(frame); };
@@ -463,6 +461,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
    * tilstanden er "granted" ønsker vi at starte watcheren med det samme,
    * så vi har en position klar når brugeren trykker "Start rute" — uden
    * at vise endnu en prompt. */
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const reportGpsError = (error: GeolocationPositionError) => setGpsError(error.code === 1
+    ? "GPS-adgang er blokeret. Tillad placering i browseren for at følge din position."
+    : error.code === 2 ? "Din position kunne ikke findes. Flyt dig til et sted med bedre GPS-signal."
+    : "GPS svarer ikke lige nu. Kort og stopadresser er stadig tilgængelige.");
   const [geoPermission, setGeoPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
   useEffect(() => {
     if (!("permissions" in navigator)) { setGeoPermission("unknown"); return; }
@@ -519,11 +522,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const shouldWatch = routeStarted;
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
-    const MIN_INTERVAL_MS = 4000;
-    const SIGNIFICANT_MOVE_M = 40;
+    const MIN_INTERVAL_MS = 1500;
+    const SIGNIFICANT_MOVE_M = 15;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+        setGpsError(null);
         const now = pos.timestamp ?? Date.now();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
@@ -546,8 +550,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           t: now,
         });
       },
-      () => {},
-      { enableHighAccuracy: routeStarted, maximumAge: 4000, timeout: 12000 },
+      reportGpsError,
+      { enableHighAccuracy: true, maximumAge: 1500, timeout: 12000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted, geoPermission, runMode, pageVisible]);
@@ -578,6 +582,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const routeDateLocked = !!routeDateKey && routeDateKey > localDateKey() && !earlyAllowedForRoute;
 
   const sortedStops = useMemo(() => [...stops].sort((a, b) => a.sequence - b.sequence), [stops]);
+  // Retain content through the sheet's exit animation and query refreshes.
+  const selectedStopRef = useRef<RouteStop | null>(null);
+  const selectedStop = sortedStops.find((stop) => stop.id === selectedId);
+  if (selectedStop) selectedStopRef.current = selectedStop;
   useEffect(() => {
     const stopId = searchParams.get("stop");
     if (!stopId || !sortedStops.some((stop) => stop.id === stopId)) return;
@@ -814,10 +822,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     businessId: route?.business_id,
   });
   const previewLine: [number, number][] = useMemo(() => {
-    if (!previewDirections?.geometry?.coordinates) return [];
+    if (!previewDirections?.geometry?.coordinates || previewDirections.provider === "fallback") return [];
     const raw = previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
     // Spline-glat ruten så drej og bløde sving fremstår uden "knæk".
-    return smoothPolyline(raw);
+    return raw;
   }, [previewDirections]);
 
   const distanceToNextM: number | null = useMemo(() => {
@@ -855,7 +863,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // "kør videre" hver gang GPS sitrer et par meter — præcis den "frem og
   // tilbage"-opførsel der gør guiden forvirrende at stå med i hånden.
   const wasInArrivalRef = useRef(false);
+  const arrivalStopIdRef = useRef<string | undefined>(undefined);
   const inArrivalRadius = useMemo(() => {
+    if (arrivalStopIdRef.current !== nextStop?.id) {
+      wasInArrivalRef.current = false;
+      arrivalStopIdRef.current = nextStop?.id;
+    }
     if (distanceToNextM == null) return false;
     const exit = arrivalThresholdM * 1.8;
     const next = wasInArrivalRef.current
@@ -863,7 +876,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       : distanceToNextM <= arrivalThresholdM;
     wasInArrivalRef.current = next;
     return next;
-  }, [distanceToNextM, arrivalThresholdM]);
+  }, [distanceToNextM, arrivalThresholdM, nextStop?.id]);
 
   // Stabiliseret ankomst — kræv at vi har været inden for radius i et par
   // sekunder før vi flipper "fremme" til true.  Det forhindrer at en enkelt
@@ -872,14 +885,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const ARRIVAL_DWELL_MS = 5_000;
   const arrivalEnteredAtRef = useRef<number | null>(null);
   const arrivalStableForStopRef = useRef<string | null>(null);
-  const [stableArrival, setStableArrival] = useState(false);
+  const [stableArrival, setStableArrival] = useState<string | null>(null);
 
   useEffect(() => {
     // Skift af stop nulstiller dvælet og den stabile flag.
     arrivalEnteredAtRef.current = null;
     wasInArrivalRef.current = false;
     arrivalStableForStopRef.current = null;
-    setStableArrival(false);
+    setStableArrival(null);
   }, [nextStop?.id]);
 
   useEffect(() => {
@@ -887,7 +900,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!inArrivalRadius) {
       // Ude af radius — nulstil timer og evt. tidligere stabil tilstand.
       arrivalEnteredAtRef.current = null;
-      if (stableArrival) setStableArrival(false);
+      if (stableArrival) setStableArrival(null);
       arrivalStableForStopRef.current = null;
       return;
     }
@@ -900,7 +913,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const elapsed = Date.now() - arrivalEnteredAtRef.current;
     if (elapsed >= ARRIVAL_DWELL_MS) {
       arrivalStableForStopRef.current = nextStop.id;
-      setStableArrival(true);
+      setStableArrival(nextStop.id);
       return;
     }
     // Polling-tjek så vi flipper præcis når dvælet er opfyldt, selv om
@@ -909,13 +922,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const timeout = window.setTimeout(() => {
       if (arrivalEnteredAtRef.current != null && nextStop) {
         arrivalStableForStopRef.current = nextStop.id;
-        setStableArrival(true);
+        setStableArrival(nextStop.id);
       }
     }, remaining + 50);
     return () => window.clearTimeout(timeout);
   }, [inArrivalRadius, nextStop?.id, stableArrival]);
 
-  const isAtNextStop = stableArrival;
+  // An arrival for the previous stop must never start the next appointment.
+  const isAtNextStop = !!nextStop && stableArrival === nextStop.id;
 
   /* Ankomstlyd */
   useEffect(() => {
@@ -940,9 +954,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [isAtNextStop, nextStop?.id]);
 
   const legLine: [number, number][] = useMemo(() => {
-    if (!directions?.geometry?.coordinates) return [];
+    if (!directions?.geometry?.coordinates || directions.provider === "fallback") return [];
     const raw = directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
-    return smoothPolyline(raw);
+    return raw;
   }, [directions]);
 
   /* ── Off-route detection (Google-Maps-stil rerouting) ──────────────
@@ -1258,6 +1272,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos, minStepIndex);
+  // A fresh directions response has its own step indices (even for the same stop).
+  useEffect(() => {
+    minStepIndexRef.current = { stopId: nextStop?.id ?? null, idx: 0 };
+    setMinStepIndex(0);
+  }, [directions]);
   // Fastlås step-pointer: når useCurrentManeuver vælger et nyt højere step,
   // gemmer vi det så vi aldrig går tilbage. Reset når næste stop ændrer sig.
   useEffect(() => {
@@ -1282,7 +1301,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Når brugeren er tæt på næste stop er turn-by-turn irrelevant — vis kun
   // stop-kortet, ikke et "Du er fremme"-banner oveni der modsiger kortets
   // afstand.  Matcher Google Maps' adfærd.
-  const nearNextStop = distanceToNextM != null && distanceToNextM <= 150;
+  const nearNextStop = distanceToNextM != null && distanceToNextM <= 40;
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
     && !nearNextStop
@@ -1360,7 +1379,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         return;
       }
       const res = await optimizeLive.mutateAsync({ routeId, lat: pos[0], lng: pos[1] });
-      if (res.order_changed) {
+      if (res.order_changed && !opts.silent) {
         const savedKm = Math.round(res.saved_km ?? 0);
         const savedMin = Math.round(res.saved_minutes ?? 0);
         toast.success("Rækkefølgen er tilpasset hvor du er nu", {
@@ -1477,7 +1496,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             setUserHeading(pos.coords.heading);
           }
         },
-        () => {},
+        reportGpsError,
         { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
       );
     }
@@ -1651,6 +1670,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
       )}
 
+      {gpsError && routeStarted && <div role="alert" className="relative z-[1004] border-b border-warning/30 bg-card px-4 py-3 text-sm text-foreground">{gpsError}</div>}
       {/* ─── Map fills everything ─── */}
       <div className="relative flex-1 min-h-0">
         {!hasMapPoint && (isLoading || geocodeState === "idle" || geocodeState === "pending") ? (
@@ -1704,7 +1724,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             attributionControl
             zoomSnap={1}
             zoomDelta={1}
-            wheelDebounceTime={20}
+            wheelDebounceTime={80}
             wheelPxPerZoomLevel={120}
             zoomAnimation={false}
             fadeAnimation={false}
@@ -1749,58 +1769,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
-            {/* Preview-route — vist FØR start, så hele turen er synlig.
-                Tegnet under (lavere z) det aktive leg når begge findes. */}
-            {previewLine.length > 1 && (
-              <>
-                <Polyline
-                  positions={previewLine}
-                  pathOptions={{
-                    color: "hsl(var(--accent-foreground))",
-                    weight: routeStarted ? 6 : 9,
-                    opacity: routeStarted ? 0.6 : 0.9,
-                    lineCap: "round",
-                    lineJoin: "round",
-                  }}
-                />
-                <Polyline
-                  positions={previewLine}
-                  pathOptions={{
-                    color: themeColor,
-                    weight: routeStarted ? 3 : 5,
-                    opacity: routeStarted ? 0.55 : 0.85,
-                    lineCap: "round",
-                    lineJoin: "round",
-                    
-                  }}
-                />
-              </>
-            )}
-
-            {/* Route line — aktivt leg.  Skjules når man er fremme:
-                vejgeometrien snapper til vejnetværket og kan slutte
-                lidt fra selve adresse-pin'en (især når pin'en ligger på
-                en bygning væk fra vejen).  Når man er inden for ankomst-
-                zonen er en linje "tilbage til vejen" kun forvirrende. */}
-            {legLine.length > 1 && !isAtNextStop && (
-              <>
-                {/* Outer white casing for contrast */}
-                <Polyline
-                  positions={legLine}
-                  pathOptions={{ color: "hsl(var(--accent-foreground))", weight: 10, opacity: 0.95, lineCap: "round", lineJoin: "round" }}
-                />
-                {/* Soft outer glow */}
-                <Polyline
-                  positions={legLine}
-                  pathOptions={{ color: themeColor, weight: 8, opacity: 0.18, lineCap: "round", lineJoin: "round" }}
-                />
-                {/* Core route */}
-                <Polyline
-                  positions={legLine}
-                  pathOptions={{ color: themeColor, weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }}
-                />
-              </>
-            )}
+            {previewLine.length > 1 && <RouteMapLine points={previewLine} muted={routeStarted} />}
+            {legLine.length > 1 && !isAtNextStop && <RouteMapLine points={legLine} />}
 
             {/* Hvis vejberegningen mangler, vises retningen stadig tydeligt. */}
             {routeStarted && legLine.length < 2 && displayPos && nextStop?.latitude != null && nextStop?.longitude != null && (
@@ -1849,10 +1819,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* User position — Google Maps-stil puck når man kører.
                 NavPuckMarker er stabil: kun CSS-transform ændres ved heading-skift,
                 ingen re-mount af DOM = ingen flicker under reroutes. */}
-            {displayPos && routeStarted && displayHeading != null && (
+            {displayPos && routeStarted && (
               <NavPuckMarker track={motionTrack} fallback={displayPos} moving={isMoving} />
             )}
-            {displayPos && (!routeStarted || displayHeading == null) && (
+            {displayPos && !routeStarted && (
               <Marker position={displayPos} icon={userDotIcon} />
             )}
 
@@ -1871,10 +1841,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </>
         )}
 
-        {routeStarted && directionsError && (
+        {routeStarted && (directionsError || directions?.provider === "fallback") && (
           <div className="absolute left-3 right-[68px] top-[72px] z-[1001] rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
             <p className="text-sm font-semibold text-foreground">Vejvisningen kunne ikke hentes</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Du kan stadig se retningen til næste stop.</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Den stiplede linje viser kun retningen — ikke en kørbar vej.</p>
             <Button type="button" variant="outline" size="sm" className="mt-2 h-9" onClick={() => retryDirections()}>Prøv igen</Button>
           </div>
         )}
@@ -2304,7 +2274,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <BrandedIllustration name="routeDone" className="h-full w-full" />
                 </div>
                 <div>
-                  <p className="text-base font-semibold text-foreground">Rute færdig</p>
+                  <p className="text-base font-semibold text-foreground">Ruten er afsluttet</p>
                   <p className="text-xs text-muted-foreground">
                     Alle {sortedStops.length} stop udført
                     {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
@@ -2346,9 +2316,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }}
       >
           {(() => {
-            const s = sortedStops.find((x) => x.id === selectedId);
+            const s = selectedStop ?? selectedStopRef.current;
             if (!s) return null;
-            const idx = sortedStops.indexOf(s);
+            const idx = Math.max(0, sortedStops.findIndex((stop) => stop.id === s.id));
             return (
               <StopDetailsContent
                 stop={s}
@@ -2410,11 +2380,15 @@ const MapInteractionWatcher = forwardRef<never, { onInteract: () => void }>(({ o
     map.on("zoomstart", handler);
     map.on("mousedown", handler);
     map.on("touchstart", handler);
+    const wheel = () => onInteract();
+    const container = map.getContainer();
+    container.addEventListener("wheel", wheel, { passive: true });
     return () => {
       map.off("dragstart", handler);
       map.off("zoomstart", handler);
       map.off("mousedown", handler);
       map.off("touchstart", handler);
+      container.removeEventListener("wheel", wheel);
     };
   }, [map, onInteract]);
   return null;

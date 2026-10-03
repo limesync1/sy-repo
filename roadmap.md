@@ -142,3 +142,10 @@
 - [x] Gør rutekort, stopmarkører og kamerabevægelse rolige og tydelige
 - [x] Opret testmedarbejderrute og afprøv adresser samt kort i indlogget visning; fjern midlertidig testrute efter testen
 - [ ] Afprøv stabilitet under fysisk kørsel med enhedens GPS; browsertesten brugte fast simuleret position
+
+## Fuld rutekontrol 2026-10-03
+- [x] Test start, tre adresseopslag, kørsel, stophandlinger og afslutning med midlertidig indlogget testrute og simuleret GPS
+- [x] Ret kameraryk, zoomuro og misvisende vejlinjer; brug enkle blå gradientlinjer og stopmarkører
+- [x] Kontrollér computerflow: alle tre stop udført, gradientlinjer på alle strækninger og ingen JavaScript-runtimefejl; fjern midlertidige testdata
+- [ ] Kontrollér adresse-/GPS-fejl og mobil under fysisk kørsel
+- [ ] Fysisk GPS-kørsel kræver kontrol på brugerens telefon
