@@ -28,6 +28,7 @@ import { stripPrices } from "@/lib/employee-display";
 import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playStartChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
+  playTurnCue, playApproachCue, playRerouteCue, playTrafficCue,
 } from "@/lib/employee-audio";
 import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
@@ -1002,7 +1003,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       toast.message("Genberegner rute…", { duration: 2500 });
       if (audioEnabled && rerouteSpokenStopRef.current !== nextStop.id) {
         rerouteSpokenStopRef.current = nextStop.id;
-        voice("Genberegner ruten");
+        playRerouteCue();
       }
       // Auto-skjul "rerouting" indikator efter 3 sek selv hvis der ikke er
       // landet et nyt directions-svar (typisk ankommer det inden for 1-2 sek).
@@ -1254,7 +1255,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const sevText =
       trafficAlert.severity === "let" ? "lidt trafik" :
       trafficAlert.severity === "moderat" ? "moderat trafik" : "tæt trafik";
-    voice(`Bemærk: ${sevText} forude. Forsinkelse på cirka ${trafficAlert.addedMin} minutter.`);
+    void sevText;
+    playTrafficCue();
   }, [trafficAlert?.severity, trafficAlert?.addedMin, audioEnabled, routeStarted, nextStop?.id]);
 
   /* Turn-by-turn */
@@ -1303,10 +1305,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (lastSpokenStepRef.current === stepKey) return;
     if (maneuver.distanceToManeuverM > 250) return;
     lastSpokenStepRef.current = stepKey;
-    const street = maneuver.currentStep.name ? ` ad ${maneuver.currentStep.name}` : "";
-    const action = maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier);
-    voice(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
+    playTurnCue();
   }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
+
+  /* Tæt-på-lyd ca. 300 m før stoppet — én gang pr. stop */
+  const approachCuedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!audioEnabled || !routeStarted || !nextStop || liveDistanceM == null) return;
+    if (liveDistanceM > 300 || liveDistanceM < 80) return;
+    if (approachCuedRef.current.has(nextStop.id)) return;
+    approachCuedRef.current.add(nextStop.id);
+    playApproachCue();
+  }, [liveDistanceM, nextStop?.id, audioEnabled, routeStarted]);
 
   // Chooseren ("Hvordan vil du køre ruten?") må vises med det samme ud fra
   // kun route-id'et — vi venter ikke på hele useMyRouteData-loadet.
