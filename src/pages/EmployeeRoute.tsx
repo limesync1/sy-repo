@@ -12,7 +12,7 @@ import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, TrafficCone,
   Plus, Minus,
-  Info,
+  Info, Check,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
