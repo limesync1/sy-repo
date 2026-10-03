@@ -2013,7 +2013,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 aria-label="Vis aftalens oplysninger"
               >
                 <span
-                   className="flex h-11 w-11 items-center justify-center rounded-md bg-foreground text-background text-base font-bold tabular-nums shrink-0"
+                   className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-base font-bold tabular-nums shrink-0"
                 >
                   {nextStopIdx + 1}
                 </span>
