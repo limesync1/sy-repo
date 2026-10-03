@@ -1306,7 +1306,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
     && !nearNextStop
-    && maneuver.distanceToManeuverM <= 800
+    && maneuver.distanceToManeuverM <= 2000
     && !["depart", "arrive"].includes((maneuver.currentStep.maneuver.type || "").toLowerCase());
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
@@ -1914,19 +1914,35 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             </div>
 
-            {/* Næste manøvre — placeret under den faste kørselsbjælke */}
-            {showManeuverBanner && maneuver && nextStop && (
-              <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
-                <div className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-foreground shadow-sm" aria-live="polite">
-                  <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-7 w-7 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}</p>
-                    <p className="truncate text-xs text-muted-foreground">{maneuver.currentStep.name || "Følg vejen"}</p>
+            {/* Næste manøvre — hvidt HUD-kort i Google Maps-stil */}
+            {showManeuverBanner && maneuver && nextStop && (() => {
+              const thenStep = directions?.steps?.[maneuver.stepIndex + 1];
+              const thenType = (thenStep?.maneuver?.type || "").toLowerCase();
+              const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 400;
+              return (
+                <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+                  <div className="overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-lg" aria-live="polite">
+                    <div className="flex items-center gap-3 px-3.5 py-3">
+                      <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-10 w-10 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-2xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
+                        <p className="mt-1 truncate text-sm font-semibold">
+                          {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                          {maneuver.currentStep.name ? <span className="font-normal text-muted-foreground"> ad {maneuver.currentStep.name}</span> : null}
+                        </p>
+                      </div>
+                    </div>
+                    {showThen && (
+                      <div className="flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
+                        <span className="font-medium">Derefter</span>
+                        <ManeuverIcon type={thenStep.maneuver.type} modifier={thenStep.maneuver.modifier} className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
+                      </div>
+                    )}
                   </div>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</span>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Reroute-banner — Google Maps-stil "genberegner" prompt */}
             {isRerouting && (
@@ -1981,6 +1997,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   />
                 ))}
               </div>
+              {/* Google Maps-stil opsummering: ankomsttid stort, tid og km småt */}
+              {!isAtNextStop && liveDurationS != null && (
+                <div className="flex items-baseline gap-2 px-3.5 pt-2.5">
+                  <span className="text-xl font-bold leading-none tabular-nums text-success">{formatMin(liveDurationS)}</span>
+                  <span className="text-sm tabular-nums text-muted-foreground">
+                    {liveDistanceM != null ? formatKm(liveDistanceM) : ""}{etaLabel ? ` · fremme ${etaLabel}` : ""}
+                  </span>
+                </div>
+              )}
               <Button
                 type="button"
                 variant="ghost"
@@ -2023,7 +2048,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-success/15 text-success">
                     Fremme
                   </Badge>
-                ) : distanceToNextM != null ? (
+                ) : nearNextStop && distanceToNextM != null ? (
                   <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
                       {/* Tæt på stoppet er vejafstanden misvisende (den peger
