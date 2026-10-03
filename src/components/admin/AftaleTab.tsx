@@ -2426,8 +2426,7 @@ const AftaleTab = ({
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                           {routeStop.status && (
-                            <span className="inline-flex items-center gap-1">
-                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />
+                            <span>
                               Stop: <span className="text-foreground font-medium">{formatStopStatus(routeStop.status)}</span>
                             </span>
                           )}
