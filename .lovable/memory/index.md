@@ -17,3 +17,5 @@ Businesses support multiple categories (categories text[]). Services have interv
 - [Route duplicate audit](mem://features/route-duplicates-audit) — Liste over alle kendte duplicate-veje for ruter/rutestop og nødvendige garantier
 - [Hover states](mem://design/hover-states) — Ghost/outline buttons + menu items hover use secondary (gray), never the saturated accent blue
 - [Panel illustrationer](mem://design/panel-illustrations) — Nye illustrationer bruges kun stort og meningsfuldt; navigation og små knapper beholder enkle standardikoner
+
+- [Mobil rutekørsel](mem://features/mobile-navigation) — Retningsvendt kort, kompakt neutral navigator og automatisk nærhedsvisning

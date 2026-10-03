@@ -154,3 +154,9 @@
 - [x] Fjern panelernes bundnavigation og den reserverede bundplads; bevar topmenuen
 - [ ] Gør valg af aftaler og medarbejdere lettere på mobil
 - [ ] Kontrollér mobilmenu og rutetildeling i browseren
+
+## Medarbejdermobil og navigation 2026-10-03
+- [ ] Ensret mobilpanel, vinduer og trykflader
+- [ ] Ret kortrotation, ankomst og løbende vejvisning
+- [ ] Gør navigator og stopkontroller kompakte og neutrale; brug SVG-stopikoner
+- [ ] Kontrollér mobilflow, navigationstest og fejl
