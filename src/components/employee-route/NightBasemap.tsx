@@ -1,7 +1,13 @@
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
+import { setWorkerUrl } from "maplibre-gl";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+// Vite must serve the bundled worker from its actual asset URL, not the
+// dependency optimizer directory (which otherwise returns 404).
+setWorkerUrl(workerUrl);
 
 /** Vector night style on the rotating tile pane, below existing route layers. */
 export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (failed: boolean) => void }) {
