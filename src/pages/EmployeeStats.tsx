@@ -228,8 +228,8 @@ const EmployeeStats = () => {
     </div>
   );
 
-  const isLoading = empLoading || statsLoading;
-  const s = stats;
+  const isLoading = empLoading || (!!employee && statsLoading);
+  const s = employee ? stats : EMPTY_STATS;
   const headerLabel =
     range === "custom" && customRange?.from ? customLabel : RANGE_LABELS[range as Exclude<RangeKey, "custom">];
 
