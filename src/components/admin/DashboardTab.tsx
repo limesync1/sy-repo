@@ -9,13 +9,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Handshake, DollarSign, Star, Briefcase, TrendingUp,
+  DollarSign, Star, Briefcase, TrendingUp,
   ArrowRight, AlertCircle, ChevronRight, Sparkles,
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
   Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
-  HelpCircle, Wallet, FileText, AlertTriangle, ReceiptText,
+  HelpCircle, Wallet, AlertTriangle,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
@@ -867,7 +867,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Faktureret · {periodLabel}
             </p>
-            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+            <BrandedIllustration name="accountingProgram" className="h-8 w-8" />
           </div>
           <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.billed)}</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -886,7 +886,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Betalt · {periodLabel}
             </p>
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+            <BrandedIllustration name="revenue" className="h-8 w-8" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.paid)}</p>
@@ -912,7 +912,7 @@ const FinanceOverviewCard = ({
             </p>
             {p.overdue > 0
               ? <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-              : <ReceiptText className="h-3.5 w-3.5 text-muted-foreground" />}
+              : <BrandedIllustration name="orders" className="h-8 w-8" />}
           </div>
           <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.outstanding)}</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -933,7 +933,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
-            <Handshake className="h-3.5 w-3.5 text-muted-foreground" />
+            <BrandedIllustration name="orders" className="h-8 w-8" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>

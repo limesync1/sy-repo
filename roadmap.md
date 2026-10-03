@@ -91,3 +91,4 @@
 - [x] Forstør kundeserviceikonet og fjern ikonfladen ved Profil, Beskeder og Konto
 - [x] Opdatér de to mørke forsidesektioner til den nye blå
 - [x] Centrér og forstør ikonerne i servicesøgningen uden ekstra ikonflader
+- [x] Gendan den nye ikonpakke på virksomhedens Overblik og kundeserviceknap
