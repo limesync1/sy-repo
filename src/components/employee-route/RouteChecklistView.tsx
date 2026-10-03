@@ -236,7 +236,7 @@ export const RouteChecklistView = ({
                   <div className="mt-3 grid gap-2">
                     {nextIsStarted ? (
                       <Button
-                        className="h-12 w-full gap-2 bg-success text-base font-semibold text-success-foreground hover:bg-success/90"
+                        variant="complete" className="h-12 w-full gap-2 text-base font-semibold"
                         disabled={locked || pendingId === next.id}
                         onClick={() => onComplete(next)}
                       >
@@ -330,7 +330,7 @@ export const RouteChecklistView = ({
                       </div>
                       {done && (
                         <Button
-                          variant="outline"
+                          variant="undo"
                           size="sm"
                           className="h-10 shrink-0 gap-1.5 px-3 font-medium"
                           onClick={() => onUndo(s)}

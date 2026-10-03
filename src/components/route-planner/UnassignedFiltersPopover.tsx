@@ -9,8 +9,8 @@ export type UrgencyKey = "overdue" | "today" | "tomorrow" | "thisweek" | "later"
 
 export const URGENCY_OPTIONS: { key: UrgencyKey; label: string; dot: string }[] = [
   { key: "overdue",  label: "Forsinket",   dot: "bg-destructive" },
-  { key: "today",    label: "I dag",        dot: "bg-orange-500" },
-  { key: "tomorrow", label: "I morgen",     dot: "bg-amber-500" },
+  { key: "today",    label: "I dag",        dot: "bg-warning" },
+  { key: "tomorrow", label: "I morgen",     dot: "bg-feature-warm-foreground" },
   { key: "thisweek", label: "Denne uge",    dot: "bg-primary" },
   { key: "later",    label: "Senere / ukendt", dot: "bg-muted-foreground/40" },
 ];
@@ -85,7 +85,7 @@ export default function UnassignedFiltersPopover({
               : "border-border text-muted-foreground hover:bg-secondary",
           )}
           aria-label={activeCount > 0 ? `Flere filtre (${activeCount} aktive)` : "Flere filtre"}
-          title={activeCount > 0 ? `${activeCount} filter${activeCount === 1 ? "" : "e"} aktive` : "Filtrer på urgency, postnumre eller services"}
+          title={activeCount > 0 ? `${activeCount} filter${activeCount === 1 ? "" : "e"} aktive` : "Filtrer på hastegrad, postnumre eller ydelser"}
         >
           <Filter className="h-3.5 w-3.5" />
           {activeCount > 0 && (
@@ -110,7 +110,7 @@ export default function UnassignedFiltersPopover({
           )}
         </div>
 
-        <Section icon={<Clock className="h-3 w-3" />} title="Urgency">
+        <Section icon={<Clock className="h-3 w-3" />} title="Hastegrad">
           {URGENCY_OPTIONS.map((u) => (
             <Chip
               key={u.key}

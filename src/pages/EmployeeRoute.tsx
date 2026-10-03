@@ -2158,7 +2158,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {activeNextStopEntry ? (
                     <Button
                       onClick={() => handleComplete(nextStop)}
-                      className="h-11 w-full gap-2 rounded-md bg-success text-sm font-semibold text-success-foreground shadow-sm hover:bg-success/90"
+                      variant="complete" className="h-11 w-full gap-2 rounded-md text-sm font-semibold shadow-sm"
                       disabled={updateStatus.isPending || routeDateLocked}
                     >
                       {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
@@ -2184,8 +2184,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ) : (
                     <p className="flex w-full items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" />{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)} til næste stop` : "Vejvisning mod næste stop"}</p>
                   )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Vis detaljer" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Information</Button>
-                  {latestCompleted && <Button variant="outline" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Stopoplysninger" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Stopoplysninger</Button>
+                  {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>

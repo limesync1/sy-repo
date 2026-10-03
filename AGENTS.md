@@ -30,4 +30,4 @@
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Night maps use OpenFreeMap vectors in Leaflet's rotating tile pane, with a dim raster reserve and explicit load errors, avoiding key-gated basemaps.
 
-- Driving timelines share stable-height, explicit selection; no timed popovers or pulses, so GPS refreshes cannot shift the dock.
+- Timelines use stable-height explicit selection, no timed popovers/pulses. Shared semantic action variants distinguish undo from completion in both themes.

@@ -24,8 +24,8 @@ export function RouteRunSummary({ count, startedAt, finishedAt, customerSeconds,
     <p className="flex flex-wrap gap-x-4 text-xs text-muted-foreground"><span>Start <b className="text-foreground">{startedAt ? formatClockTime(startedAt) : "Ikke registreret"}</b></span><span>Slut <b className="text-foreground">{finishedAt ? formatClockTime(finishedAt) : "Ikke registreret"}</b></span></p>
     {error && <p role="alert" className="text-sm text-destructive">Tidsregistrering kunne ikke hentes. Prøv at åbne ruten igen.</p>}
     <div className="flex flex-wrap gap-2">
-      {onInfo && <Button variant="outline" className="h-11 gap-2" onClick={onInfo}><Info className="h-4 w-4" />Information</Button>}
-      {onUndo && <Button variant="outline" className="h-11 gap-2" disabled={pending} onClick={onUndo}><Undo2 className="h-4 w-4" />Fortryd udførsel</Button>}
+      {onInfo && <Button variant="outline" className="h-11 gap-2" onClick={onInfo}><Info className="h-4 w-4" />Stopoplysninger</Button>}
+      {onUndo && <Button variant="undo" className="h-11 gap-2" disabled={pending} onClick={onUndo}><Undo2 className="h-4 w-4" />Fortryd udførsel</Button>}
     </div>
     <Button className="h-11 w-full" onClick={onBack}>Til dagens ruter</Button>
   </section>;
