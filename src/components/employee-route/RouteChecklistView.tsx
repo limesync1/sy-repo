@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
 
 /**
@@ -167,9 +168,7 @@ export const RouteChecklistView = ({
           <div className="lg:sticky lg:top-[4.75rem]">
             {allDone ? (
               <section className="service-panel-card rounded-md border border-border bg-card p-6 text-center shadow-sm">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
-                  <CheckCircle2 className="h-7 w-7" />
-                </span>
+                <BrandedIllustration name="routeDone" className="mx-auto h-16 w-16" />
                 <h2 className="mt-4 text-xl font-semibold text-foreground">Ruten er kørt færdig</h2>
                 <p className="mt-1.5 text-sm text-muted-foreground">Alle {stops.length} stops er udført. Godt arbejde.</p>
                 <Button className="mt-6 h-12 w-full text-[15px]" onClick={onFinish}>Tilbage til dagens ruter</Button>

@@ -275,7 +275,7 @@ const DashboardTab = ({
 
   const statusLabels: Record<string, string> = {
     pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang",
-    completed: "Afsluttet", cancelled: "Annulleret",
+    completed: "Udført", cancelled: "Annulleret",
   };
   const statusColors: Record<string, string> = {
     pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
@@ -369,7 +369,7 @@ const DashboardTab = ({
     });
     if (completeness.pct < 80) arr.push({
       key: "complete", label: "Fuldfør profil",
-      meta: `${completeness.pct}% færdig · ${missingItems.length} ting tilbage`, icon: Target, illustration: "profile", tab: "settings", priority: 80, tone: "accent",
+      meta: `${completeness.pct}% udfyldt · ${missingItems.length} ting tilbage`, icon: Target, illustration: "profile", tab: "settings", priority: 80, tone: "accent",
     });
     if (reviewsCount === 0 && ordersCount > 0) arr.push({
       key: "ask-review", label: "Bed kunder om anmeldelse",
@@ -532,7 +532,7 @@ const DashboardTab = ({
                 <CardContent className="p-4 sm:p-5">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Ingen omsætning registreret på services endnu — så snart en bestilling med en service er afsluttet, dukker top-listen op her.
+                    Ingen omsætning registreret på services endnu — så snart en bestilling med en service er udført, dukker top-listen op her.
                   </p>
                 </CardContent>
               </Card>
@@ -1056,7 +1056,7 @@ const OrdersListSection = ({
     { key: "pending", label: "Afventer" },
     { key: "confirmed", label: "Bekræftet" },
     { key: "in_progress", label: "I gang" },
-    { key: "completed", label: "Afsluttet" },
+    { key: "completed", label: "Udført" },
     { key: "cancelled", label: "Annulleret" },
   ];
 
@@ -1274,7 +1274,7 @@ const OrdersListSection = ({
 
 const chipsLookup = (k: string) => ({
   all: "Alle", pending: "Afventer", confirmed: "Bekræftet",
-  in_progress: "I gang", completed: "Afsluttet", cancelled: "Annulleret",
+  in_progress: "I gang", completed: "Udført", cancelled: "Annulleret",
 }[k] || k);
 
 /* ─────────────────────────────────────────────────────────────────────── */

@@ -1137,7 +1137,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
     finishedAnnouncedRef.current = true;
     playCompleteFanfare();
-    setTimeout(() => voice("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
   /* Auto-retur kun når medarbejderen netop har afsluttet ruten i denne session.
@@ -2357,7 +2356,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card/97 shadow-xl backdrop-blur-md">
               <div className="space-y-3 p-3.5 text-center sm:p-4">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-success/10 text-success">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center">
                   <BrandedIllustration name="routeDone" className="h-full w-full" />
                 </div>
                 <div>
