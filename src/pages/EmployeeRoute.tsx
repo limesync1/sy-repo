@@ -2071,11 +2071,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   const current = i === nextStopIdx;
                   return (
                     <button type="button" key={s.id} onClick={() => setTimelineTip((t) => (t === s.id ? null : s.id))} className="relative flex h-6 w-6 items-center justify-center" aria-label={`Stop ${i + 1}: ${s.customer_name || "Stop"}${done ? ", udført" : current ? ", aktuelt" : ""}`}>
-                      {timelineTip === s.id && (
-                        <span className="absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-medium text-background shadow-md">
-                          {i + 1}. {s.customer_name || "Stop"}{done && s.completed_at ? ` · udført ${formatClockTime(new Date(s.completed_at).getTime())}` : ""}
-                        </span>
-                      )}
                       {current && <span className={cn("absolute inset-0 animate-ping rounded-full", isAtNextStop ? "bg-success/60" : "bg-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
                       <span className={cn(
                         "relative flex items-center justify-center rounded-full",
@@ -2096,6 +2091,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </span>
                 </div>
               )}
+              {timelineTip && (() => {
+                const ti = sortedStops.findIndex((x) => x.id === timelineTip);
+                const ts = sortedStops[ti];
+                if (!ts) return null;
+                return (
+                  <p className="truncate px-3.5 text-center text-xs font-medium text-foreground" role="status">
+                    {ti + 1}. {ts.customer_name || "Stop"} · {ts.status === "completed" ? `udført ${ts.completed_at ? formatClockTime(new Date(ts.completed_at).getTime()) : ""}` : ti === nextStopIdx ? "aktuelt stop" : "kommende"}
+                  </p>
+                );
+              })()}
               {/* Tidsregistrering — én kompakt linje */}
               {routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">

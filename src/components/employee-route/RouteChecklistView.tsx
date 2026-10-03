@@ -135,8 +135,8 @@ export const RouteChecklistView = ({
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[15px] font-semibold leading-tight text-foreground">{routeName}</h1>
             <p className="truncate text-xs tabular-nums text-muted-foreground">
-              {completed.length} af {stops.length} stop udført
-              {startedAt ? ` · startet ${formatClockTime(startedAt)} · ${formatRunDuration(Math.max(0, Math.floor((now - startedAt) / 1000)))}` : ""}
+              {completed.length}/{stops.length} udført
+              {startedAt ? ` · start ${formatClockTime(startedAt)} · ${formatRunDuration(Math.max(0, Math.floor((now - startedAt) / 1000)))}` : ""}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
