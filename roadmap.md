@@ -1,13 +1,13 @@
 # Roadmap
 
 ## Rutekørsel: samlet HUD- og UX-forbedring
-- [ ] Vis samlet afslutningsoversigt og fjern automatisk retur
-- [ ] Ensret køretid, kundetid og ankomst i guide og tjekliste
-- [ ] Tilpas kortets zoom og synlige fokusområde til HUD
-- [ ] Ret mørk tilstand, stopvinduer, fejlbeskeder og defekte nye ikoner
-- [ ] Gør navigation automatisk og tilføj tydelig Fortryd udførsel ved Information
-- [ ] Vis stopoplysninger forankret ved tidslinjen uden at flytte kortet
-- [ ] Test guide, tjekliste, modaler, afslutning og fortryd på mobil med isolerede testdata
+- [x] Vis samlet afslutningsoversigt og fjern automatisk retur
+- [x] Ensret køretid, kundetid og ankomst i guide og tjekliste
+- [x] Tilpas kortets zoom og synlige fokusområde til HUD
+- [x] Ret mørk tilstand, stopvinduer, fejlbeskeder og defekte nye ikoner
+- [x] Gør navigation automatisk og tilføj tydelig Fortryd udførsel ved Information
+- [x] Vis stopoplysninger forankret ved tidslinjen uden at flytte kortet
+- [x] Test guide, tjekliste, modaler, afslutning og fortryd på mobil med isolerede testdata; samme stop 1 og 272 kr. efter genudførsel, 33 tests bestået
 - [ ] Fysisk kontrol i bil og hørbar lyd på telefon — kræver brugerens telefon og kørsel
 
 ## SEO-fund 2026-10-03
