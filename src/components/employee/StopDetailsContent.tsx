@@ -326,7 +326,7 @@ export const StopDetailsContent = ({
             <div className={stop.customer_phone && fullAddress && onNavigate ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
               {fullAddress && onNavigate && (
                 <Button type="button" size="sm" className="brand-blue-action h-11 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
-                  <MapPin className="h-3.5 w-3.5" /> Kør dertil
+                  <MapPin className="h-3.5 w-3.5" /> Vis vej på kort
                 </Button>
               )}
               {stop.customer_phone && (

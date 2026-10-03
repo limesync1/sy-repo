@@ -1,4 +1,6 @@
-import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration } from "@/components/employee-route/route-run-clock";
+import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival } from "@/components/employee-route/route-run-clock";
+import { runMetrics } from "@/components/employee-route/run-metrics";
+import { RouteRunSummary } from "@/components/employee-route/RouteRunSummary";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
@@ -13,7 +15,7 @@ import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, TrafficCone,
   Plus, Minus,
-  Info, Check,
+  Info, Check, Undo2,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
@@ -225,12 +227,15 @@ const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speed
         const moved = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
         if (last && moved < 0.05 && last.zoom === zoom) return;
         // Pan and puck consume the same sample, avoiding the previous 3–8 m catch-up jumps.
-        if (!last || map.getZoom() !== zoom) {
-          map.stop();
-          map.setView(pos, zoom, { animate: false });
-        } else {
-          map.panTo(pos, { animate: false, noMoveStart: true });
-        }
+        // Keep the puck below the actual HUD, in the free map area (including on small phones).
+        const stage = map.getContainer().parentElement;
+        const top = map.getContainer().getBoundingClientRect().top;
+        const bottom = Math.max(0, ...Array.from(stage?.querySelectorAll(".route-maneuver, .drive-issue-banner") ?? []).map(el => el.getBoundingClientRect().bottom - top));
+        const height = map.getSize().y;
+        const offset = Math.max(0, Math.min(height * 0.22, bottom / 2));
+        map.stop();
+        const projected = map.project(pos, zoom).subtract(L.point(0, offset));
+        map.setView(map.unproject(projected, zoom), zoom, { animate: false });
         last = { lat: pos[0], lng: pos[1], zoom };
       });
     });
@@ -403,7 +408,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       return value;
     });
   };
-  const [autoReturn, setAutoReturn] = useState<number | null>(null);
+  const [undoPending, setUndoPending] = useState(false);
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
@@ -597,7 +602,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   useWakeLock(driving && pageVisible);
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
   const { night, toggle: toggleNight } = useNightMode();
-  useRootDark(night && routeStarted);
+  useRootDark(night);
   // Uden centrér-knap: kortet vender selv tilbage til at følge dig kort
   // efter at du har kigget rundt med fingeren.
   useEffect(() => {
@@ -729,7 +734,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
-  const { data: nextStopTimeEntries = [] } = useStopTimeEntries(nextStop ? [nextStop.id] : []);
+  const { data: nextStopTimeEntries = [], isLoading: timeLoading, isError: timeError } = useStopTimeEntries(sortedStops.map(s => s.id));
   const activeNextStopEntry = nextStopTimeEntries.find(
     (entry) => entry.stop_id === nextStop?.id && entry.employee_id === meEmp?.id && !entry.ended_at,
   );
@@ -958,17 +963,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => voice(`Du er ankommet til ${name}`), 600);
   }, [isAtNextStop, nextStop?.id, audioEnabled]);
 
-  /* Auto check-in når medarbejder ankommer til stop (geofence) */
-  useEffect(() => {
-    if (!isAtNextStop || !nextStop) return;
-    (async () => {
-      try {
-        if (!meEmp?.id) return;
-        await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: meEmp.id });
-      } catch { /* non-fatal */ }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAtNextStop, nextStop?.id]);
+  // Parking records arrival only. Work time starts with the explicit Start work action.
 
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates || directions.provider === "fallback") return [];
@@ -1102,6 +1097,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
+  const latestCompleted = sortedStops.filter(s => s.status === "completed").sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""))[0];
+  const finishedAt = allDone && latestCompleted?.completed_at ? new Date(latestCompleted.completed_at).getTime() : null;
+  const runStart = routeStartedAt ?? getRouteStartedAt(routeId);
+  const metrics = runMetrics(runStart, finishedAt ?? Math.max(clockNow, timerNow), nextStopTimeEntries, meEmp?.id);
+  const actualArrival = nextStop ? readArrival(routeId, nextStop.id) : null;
+  useEffect(() => {
+    if (isAtNextStop && nextStop && !readArrival(routeId, nextStop.id)) saveArrival(routeId, nextStop.id, Date.now());
+  }, [isAtNextStop, nextStop?.id, routeId]);
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
   useEffect(() => {
     if (!allDone || !routeStarted) return;
@@ -1118,22 +1121,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     finishedAnnouncedRef.current = true;
     playCompleteFanfare();
   }, [allDone, audioEnabled]);
-
-  /* Auto-retur kun når medarbejderen netop har afsluttet ruten i denne session.
-   * Historiske/allerede udførte ruter skal blive åbne som opsummering, så man
-   * kan se kørslen, statistik og aftaledetaljer uden at blive sendt væk. */
-  useEffect(() => {
-    if (!allDone || !routeStarted) return;
-    setAutoReturn(8);
-    const tick = setInterval(() => {
-      setAutoReturn((n) => {
-        if (n == null) return null;
-        if (n <= 1) { clearInterval(tick); navigate("/medarbejder"); return 0; }
-        return n - 1;
-      });
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [allDone, routeStarted, navigate]);
 
   const etaLabel: string | null = useMemo(() => {
     if (liveDurationS == null) return null;
@@ -1475,7 +1462,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         if (meEmp?.id) {
           await endStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
         }
-      } catch { /* non-fatal */ }
+      } catch {
+        throw new Error("Tidsregistreringen kunne ikke afsluttes");
+      }
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
       const doneNow = completedCount + 1;
       const total = sortedStops.length;
@@ -1514,17 +1503,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleUndo = async (s: RouteStop) => {
+    if (undoPending) return;
+    setUndoPending(true);
     try {
       if (meEmp?.id) {
         await resetStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
       }
       await updateStatus.mutateAsync({ id: s.id, status: "pending" });
+      setRouteStarted(true);
+      setRouteStartedAt(getRouteStartedAt(routeId));
+      finishedAnnouncedRef.current = false;
       toast.success("Markering fortrudt");
     } catch {
       toast.error("Kunne ikke fortryde markeringen", {
         description: "Prøv igen om et øjeblik.",
       });
-    }
+    } finally { setUndoPending(false); }
   };
 
   /** Selve starten — kaldes når tilstanden (tjekliste/guide) er valgt. */
@@ -1565,11 +1559,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onUndo={handleUndo}
         startedAt={routeStartedAt ?? getRouteStartedAt(routeId)}
         etaLabel={etaLabel}
+        arrivalLabel={actualArrival ? formatClockTime(actualArrival) : null}
+        driveEstimateSeconds={timeError || timeLoading ? null : metrics.driveEstimateSeconds}
+        summary={<RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => { setRunMode("guide"); setSelectedId(latestCompleted?.id ?? null); }} />}
         onNavigate={handleNavigate}
         onSwitchToGuide={() => {
           setRunMode("guide");
           writeRunMode("guide", !!readRunMode());
-          toast.success("Skiftet til kørselsguide");
         }}
         onFinish={onBack}
         onMoveStop={handleMoveStop}
@@ -1584,6 +1580,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           ? () => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))
           : undefined}
         audioEnabled={audioEnabled}
+        night={night}
+        onToggleNight={toggleNight}
         onToggleAudio={() => {
           unlockAudio();
           setAudioEnabled((value) => !value);
@@ -1633,7 +1631,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }
 
   return (
-    <div className={cn("employee-route-run fixed inset-0 flex flex-col bg-background overflow-hidden", night && routeStarted && "dark route-night")}>
+    <div className={cn("employee-route-run fixed inset-0 flex flex-col bg-background overflow-hidden", night && "dark route-night")}>
       {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
           synlig før rute starter eller ved færdig.  Lyd-knappen findes
           som floating control under kørsel — ingen dubletter her. ─── */}
@@ -1962,7 +1960,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
 
             {/* Næste manøvre — hvidt HUD-kort i Google Maps-stil */}
-            {showManeuverBanner && maneuver && nextStop && (() => {
+            {driveIssues.length === 0 && !isRerouting && !trafficAlert && showManeuverBanner && maneuver && nextStop && (() => {
               const thenStep = directions?.steps?.[maneuver.stepIndex + 1];
               const thenType = (thenStep?.maneuver?.type || "").toLowerCase();
               const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 500;
@@ -1971,13 +1969,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               const road = maneuver.currentStep.name;
               return (
                 <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
-                  <div className="overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-lg" aria-live="polite">
-                    <div className="flex items-center gap-3 px-3.5 py-3">
+                  <div className="overflow-hidden rounded-md border border-border bg-card text-foreground shadow-lg" aria-live="polite">
+                    <div className="flex items-center gap-3 px-3 py-2.5">
                       {longStretch
-                        ? <Navigation className="h-9 w-9 shrink-0 text-foreground" aria-hidden="true" />
-                        : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-10 w-10 shrink-0" />}
+                        ? <Navigation className="h-7 w-7 shrink-0 text-foreground" aria-hidden="true" />
+                        : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-8 w-8 shrink-0" />}
                       <div className="min-w-0 flex-1">
-                        <p className="text-2xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
+                        <p className="text-xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
                         <p className="mt-1 truncate text-sm font-semibold">
                           {longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
                           {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}
@@ -1997,7 +1995,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             })()}
 
             {/* Ankomst-HUD: parkeret ved kunden */}
-            {isAtNextStop && nextStop && (
+            {driveIssues.length === 0 && isAtNextStop && nextStop && (
               <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                 <div className="overflow-hidden rounded-xl border border-success/40 bg-card text-foreground shadow-lg" role="status" aria-live="polite">
                   <div className="flex items-center gap-3 px-3.5 py-3">
@@ -2019,7 +2017,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         {service && <p className="truncate text-muted-foreground">{service}</p>}
                         {notes && <p className="line-clamp-3 text-foreground">{notes}</p>}
                         {activeNextStopLabel && (
-                          <p className="flex items-center justify-between text-xs text-muted-foreground"><span>Tid hos kunden</span><span className="font-mono text-sm font-semibold text-foreground tabular-nums">{activeNextStopLabel}</span></p>
+                          <p className="flex items-center gap-2 text-xs text-muted-foreground"><span>Tidsregistrering</span><span className="font-mono text-sm font-semibold text-foreground tabular-nums">{activeNextStopLabel}</span></p>
                         )}
                       </div>
                     );
@@ -2066,13 +2064,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
               {/* Segmenteret progress — tynd, diskret */}
               {/* Mini rute-tidslinje: grøn = udført, blå puls = aktuel, grå = kommende */}
-              <div className="route-timeline relative flex items-center justify-between px-4 py-2" aria-label={`${completedCount} af ${sortedStops.length} stop udført`}>
+              <div className="route-timeline relative flex items-center justify-between gap-1 overflow-x-auto px-3 py-1" aria-label={`${completedCount} af ${sortedStops.length} stop udført`}>
                 <span className="absolute left-4 right-4 top-1/2 h-px -translate-y-1/2 bg-border" aria-hidden="true" />
                 {sortedStops.map((s, i) => {
                   const done = s.status === "completed";
                   const current = i === nextStopIdx;
                   return (
-                    <button type="button" key={s.id} onClick={() => setTimelineTip((t) => (t === s.id ? null : s.id))} className="relative flex h-6 w-6 items-center justify-center" aria-label={`Stop ${i + 1}: ${s.customer_name || "Stop"}${done ? ", udført" : current ? ", aktuelt" : ""}`}>
+                    <Button variant="ghost" size="icon" type="button" key={s.id} onClick={() => setTimelineTip((t) => (t === s.id ? null : s.id))} className="relative flex h-9 w-9 shrink-0 items-center justify-center" aria-pressed={timelineTip === s.id} aria-label={`Stop ${i + 1}: ${s.customer_name || "Stop"}${done ? ", udført" : current ? ", aktuelt" : ""}`}>
                       {current && <span className={cn("route-soft-pulse absolute inset-0 rounded-full", isAtNextStop ? "bg-success/60" : "bg-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
                       <span className={cn(
                         "relative flex items-center justify-center rounded-full",
@@ -2080,25 +2078,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       )}>
                         {done && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
                       </span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
-              {/* Google Maps-stil opsummering: ankomsttid stort, tid og km småt */}
-              {!isAtNextStop && liveDurationS != null && (
-                <div className="flex items-baseline gap-2 px-3.5 pt-2.5">
-                  <span className="text-xl font-bold leading-none tabular-nums text-success">{formatMin(liveDurationS)}</span>
-                  <span className="text-sm tabular-nums text-muted-foreground">
-                    {liveDistanceM != null ? formatKm(liveDistanceM) : ""}
-                  </span>
-                </div>
-              )}
               {timelineTip && (() => {
                 const ti = sortedStops.findIndex((x) => x.id === timelineTip);
                 const ts = sortedStops[ti];
                 if (!ts) return null;
                 return (
-                  <p className="truncate px-3.5 text-center text-xs font-medium text-foreground" role="status">
+                  <p className="border-y border-border bg-secondary/50 px-3.5 py-2 text-left text-xs font-medium text-foreground" role="status">
                     {ti + 1}. {ts.customer_name || "Stop"} · {ts.status === "completed" ? `udført ${ts.completed_at ? formatClockTime(new Date(ts.completed_at).getTime()) : ""}` : ti === nextStopIdx ? "aktuelt stop" : "kommende"}
                   </p>
                 );
@@ -2107,8 +2096,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">
                   <span>Start <b className="font-semibold text-foreground">{formatClockTime(routeStartedAt)}</b></span>
-                  <span>Kørt <b className="font-semibold text-foreground">{formatRunDuration(Math.max(0, Math.floor((clockNow - routeStartedAt) / 1000)))}</b></span>
-                  <span>Ankomst <b className="font-semibold text-foreground">{isAtNextStop ? "nu" : etaLabel ?? "—"}</b></span>
+                  <span>Køretid · est. <b className="font-semibold text-foreground">{timeError || timeLoading || metrics.driveEstimateSeconds == null ? "—" : formatRunDuration(metrics.driveEstimateSeconds)}</b></span>
+                  <span>{actualArrival ? "Ankommet" : "Ankomst · est."} <b className="font-semibold text-foreground">{actualArrival ? formatClockTime(actualArrival) : etaLabel ?? "—"}</b></span>
                   {activeNextStopLabel && <span>Tidsregistrering <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
                 </p>
               )}
@@ -2186,11 +2175,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
               {collapsed && (
-                <div className="grid grid-cols-[minmax(0,1fr)_48px_48px] gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
+                <div className="flex flex-wrap gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2.5">
                   {activeNextStopEntry ? (
                     <Button
                       onClick={() => handleComplete(nextStop)}
-                      className="h-12 gap-2 rounded-md bg-success text-sm font-semibold text-success-foreground shadow-sm hover:bg-success/90"
+                      className="h-11 w-full gap-2 rounded-md bg-success text-sm font-semibold text-success-foreground shadow-sm hover:bg-success/90"
                       disabled={updateStatus.isPending || routeDateLocked}
                     >
                       {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
@@ -2207,31 +2196,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                           toast.error("Aftalen kunne ikke startes", { description: "Tjek din forbindelse og prøv igen." });
                         }
                       }}
-                      className="h-12 gap-2 rounded-md text-sm font-semibold"
+                      className="h-11 w-full gap-2 rounded-md text-sm font-semibold"
                       disabled={startStopTime.isPending || routeDateLocked || !meEmp?.id}
                     >
                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                       Start aftale
                     </Button>
                   ) : (
-                    <Button
-                      onClick={() => handleNavigate(nextStop)}
-                      className="h-12 gap-2 rounded-md text-sm font-semibold"
-                    >
-                      <Navigation className="h-4 w-4" />
-                      Kør dertil
-                    </Button>
+                    <p className="flex w-full items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" />{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)} til næste stop` : "Vejvisning mod næste stop"}</p>
                   )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="icon" aria-label="Vis detaljer" title="Vis detaljer" className="h-12 w-12 rounded-md"><Info className="h-5 w-5" /></Button>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Vis detaljer" className="h-11 flex-1 gap-1.5 rounded-md px-2 text-xs"><Info className="h-4 w-4" />Information</Button>
+                  {latestCompleted && <Button variant="outline" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   {nextStop.customer_phone ? (
-                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-12 w-12 p-0 rounded-md border-border hover:bg-secondary">
+                      <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
                         <Phone className="h-4 w-4" />
                       </a>
                     </Button>
-                  ) : (
-                    <span aria-hidden="true" />
-                  )}
+                  ) : null}
                 </div>
               )}
 
@@ -2305,38 +2287,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {allDone && (
           <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card shadow-lg backdrop-blur-md">
-              <div className="space-y-3 p-3.5 text-center sm:p-4">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center">
-                  <BrandedIllustration name="routeDone" className="h-full w-full" />
-                </div>
-                <div>
-                  <p className="text-base font-semibold text-foreground">Ruten er afsluttet</p>
-                  <p className="text-xs text-muted-foreground">
-                    Alle {sortedStops.length} stop udført
-                    {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
-                  </p>
-                </div>
-                {/* Mini-stats */}
-                <div className="grid grid-cols-2 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
-                  <div className="px-2 py-2.5">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">{sortedStops.length}</p>
-                  </div>
-                  <div className="px-2 py-2.5">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1).replace(".", ",")} km` : "—"}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="lg"
-                    className="h-11 w-full gap-2 rounded-md bg-foreground text-background hover:bg-foreground/90"
-                  onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
-                >
-                  Til oversigt
-                </Button>
-              </div>
+              <RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => setSelectedId(latestCompleted?.id ?? null)} />
             </Card>
           </div>
         )}
@@ -2372,7 +2323,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 onUndo={() => handleUndo(s)}
                 onNavigate={() => handleNavigate(s)}
                 isPending={updateStatus.isPending}
-                pendingTimeLabel="Starter automatisk, når du ankommer"
+                pendingTimeLabel="Tryk Start for at registrere arbejdstid"
               />
             );
           })()}

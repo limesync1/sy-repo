@@ -28,6 +28,14 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      // CDN pointers are served by hosting; local Vite needs the same asset path.
+      "/__l5e/assets-v1/": {
+        target: "https://serviceydere.dk",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   plugins: [react(), plannerGuidePlugin(), seoPrerenderHead(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
