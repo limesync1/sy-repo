@@ -1,4 +1,4 @@
-import { useNightMode } from "./useDriveSafety";
+import { useNightMode, useRootDark } from "./useDriveSafety";
 import { Moon, Sun } from "lucide-react";
 import { formatClockTime, formatRunDuration } from "./route-run-clock";
 import { useEffect, useMemo, useState } from "react";
@@ -56,6 +56,7 @@ type Props = {
   audioEnabled: boolean;
   onToggleAudio: () => void;
   startedAt?: number | null;
+  etaLabel?: string | null;
 };
 
 const formatElapsed = (seconds: number) => {
@@ -82,9 +83,11 @@ export const RouteChecklistView = ({
   audioEnabled,
   onToggleAudio,
   startedAt = null,
+  etaLabel = null,
 }: Props) => {
   const employeeId = useMyEmployeeId();
   const { night, toggle: toggleNight } = useNightMode();
+  useRootDark(night);
   const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
   const startStopTime = useStartStopTime();
   const [now, setNow] = useState(() => Date.now());
@@ -136,7 +139,8 @@ export const RouteChecklistView = ({
             <h1 className="truncate text-[15px] font-semibold leading-tight text-foreground">{routeName}</h1>
             <p className="truncate text-xs tabular-nums text-muted-foreground">
               {completed.length}/{stops.length} udført
-              {startedAt ? ` · start ${formatClockTime(startedAt)} · ${formatRunDuration(Math.max(0, Math.floor((now - startedAt) / 1000)))}` : ""}
+              {startedAt ? ` · start ${formatClockTime(startedAt)} · kørt ${formatRunDuration(Math.max(0, Math.floor((now - startedAt) / 1000)))}` : ""}
+              {next ? ` · ankomst ${nextIsStarted ? "nu" : etaLabel ?? (next.planned_arrival ? formatClockTime(new Date(next.planned_arrival).getTime()) : "—")}` : ""}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
@@ -217,19 +221,19 @@ export const RouteChecklistView = ({
                   )}
 
                   {nextIsStarted && (
-                    <div className="mt-4 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-4 py-3">
+                    <div className="mt-3 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-3 py-2">
                       <span className="flex items-center gap-2 text-sm font-medium text-success">
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
+                        <span className="relative h-2 w-2 rounded-full bg-success"><span className="route-soft-pulse absolute inset-0 rounded-full bg-success" /></span>
                         Tid registreres
                       </span>
-                      <span className="font-mono text-2xl font-semibold tabular-nums text-foreground">{formatElapsed(elapsedSeconds)}</span>
+                      <span className="font-mono text-xl font-semibold tabular-nums text-foreground">{formatElapsed(elapsedSeconds)}</span>
                     </div>
                   )}
 
-                  <div className="mt-4 grid gap-2">
+                  <div className="mt-3 grid gap-2">
                     {nextIsStarted ? (
                       <Button
-                        className="h-14 w-full gap-2 bg-success text-base font-semibold text-success-foreground hover:bg-success/90"
+                        className="h-12 w-full gap-2 bg-success text-base font-semibold text-success-foreground hover:bg-success/90"
                         disabled={locked || pendingId === next.id}
                         onClick={() => onComplete(next)}
                       >
@@ -238,7 +242,7 @@ export const RouteChecklistView = ({
                       </Button>
                     ) : (
                       <Button
-                        className="h-14 w-full gap-2 text-base font-semibold"
+                        className="h-12 w-full gap-2 text-base font-semibold"
                         disabled={!employeeId || locked || startStopTime.isPending}
                         onClick={() => void startNext()}
                       >
