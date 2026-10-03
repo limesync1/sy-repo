@@ -179,3 +179,10 @@
 - [x] Ægte natkort med tydelige veje og fejlhåndtering
 - [ ] Isoleret fortryd-/indtjeningstest og mobilkontrol
 - [ ] Fysisk biltest — kræver brugerens bil og telefon
+
+## Stopvindue, stopprikker og medarbejdermobil
+- [ ] Tydelige dørkoder, bemærkninger og tidsregistrering i mørkt stopvindue
+- [ ] Statisk stopmarkering og stabil, trykstyret stopinformation
+- [ ] Mobilprint med adskilte printvalg og forhåndsvisning
+- [ ] Venstrestillet og kompakt Daglig aktivitet
+- [ ] Mobilkontrol af de fire visninger og deres handlinger
