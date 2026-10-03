@@ -11,7 +11,7 @@ export default defineGuidePage({
   heroEyebrow: "Hub · Have",
   heroTitle: "Haveservice i Danmark 2026 — komplet guide",
   heroSubtitle:
-    "Fra græsslåning og hækklipning til store anlæg og snerydning — find pris, firma og guide til hver haveopgave.",
+    "Find lokale havemænd og anlægsgartnere, sammenlign vejledende priser på havearbejde, og få op til 3 gratis, uforpligtende tilbud på din opgave — fra græsslåning og hækklipning til nye haveanlæg.",
   breadcrumbLabel: "Have",
   ctaCategory: "Haveservice",
   publishedAt: "2026-03-20",
