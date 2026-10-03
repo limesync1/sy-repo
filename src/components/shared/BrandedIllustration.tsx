@@ -80,6 +80,7 @@ import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.
 import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg";
 
 import routeReady from "@/assets/illustrations/employee/start-rute.svg.asset.json";
+import noItems from "@/assets/content-icons/ingen-emner-generel.svg.asset.json";
 import routeDone from "@/assets/content-icons/ruten-er-koert-faerdig.svg.asset.json";
 import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg.asset.json";
 import checklist from "@/assets/illustrations/employee/tjekliste.svg.asset.json";
@@ -155,6 +156,7 @@ export const BRANDED_ILLUSTRATIONS = {
   verifiedReviews: verifiedReviewsNew.url,
   routeReady: routeReady.url,
   routeDone: routeDone.url,
+  noItems: noItems.url,
   chooseRouteMode: chooseRouteMode.url,
   checklist: checklist.url,
   drivingGuide: drivingGuide.url,

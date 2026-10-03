@@ -1,3 +1,4 @@
+import noItemsIcon from "@/assets/content-icons/ingen-emner-generel.svg.asset.json";
 // AdminUI — delte UI-byggeklodser så alle admin-faner (Overblik, Services,
 // Aftaler, Kunder, Medarbejdere, Anmeldelser, Indstillinger) deler samme
 // visuelle sprog: ens header-typografi, primær-knap, stat-kort, sektion-kort
@@ -253,9 +254,7 @@ export const EmptyState = React.forwardRef<
 >(({ icon, title, description, action }, ref) => (
   <Card ref={ref} className="service-panel-card rounded-[5px] border-dashed border-border">
     <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-md border border-border/70 bg-secondary/70 p-1.5 [&_img]:h-7 [&_img]:w-7 [&_img]:object-contain [&_svg]:h-7 [&_svg]:w-7 [&_svg]:text-muted-foreground/70">
-        {icon}
-      </div>
+      <img src={noItemsIcon.url} alt="" aria-hidden="true" className="mb-3 h-14 w-14 object-contain" />
       <p className="text-sm font-semibold text-foreground">{title}</p>
       {description && (
         <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>
