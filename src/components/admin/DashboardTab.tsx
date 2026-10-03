@@ -447,10 +447,10 @@ const DashboardTab = ({
 
         {/* Snapshot-pille: i dag */}
          <div className="mt-4 grid min-w-0 grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-4 lg:mt-6">
-          <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort((stats.todayRevenue))}`} onClick={() => setOpenStat("today")} />
-          <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort((stats.revenue7))}`} onClick={() => setOpenStat("orders")} />
-          <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Afventer behandling" : "Ingen i kø"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
-          <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)}★` : "–"} sub={`${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
+          <SnapshotPill label="Aftaler i dag" value={`${stats.todayCount} ${stats.todayCount === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.todayRevenue)} kr. i omsætning`} onClick={() => setOpenStat("today")} />
+          <SnapshotPill label="Aftaler denne uge" value={`${stats.orders7} ${stats.orders7 === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.revenue7)} kr. i omsætning`} onClick={() => setOpenStat("orders")} />
+          <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "forespørgsel" : "forespørgsler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
+          <SnapshotPill label="Kundernes bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
 
