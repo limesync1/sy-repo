@@ -1723,16 +1723,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <div className="max-w-sm space-y-3">
               <BrandedIllustration name="drivingGuide" className="mx-auto h-16 w-16" alt="" />
               <div>
-                <p className="text-sm font-semibold text-foreground">{geocodeError ? "Adresseopslaget er midlertidigt utilgængeligt" : "Kortet kunne ikke finde adresserne"}</p>
+                <p className="text-sm font-semibold text-foreground">{geocodeError ? "Korttjenesten er midlertidigt utilgængelig" : "Kortet kunne ikke finde adresserne"}</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">{geocodeError ? "Stoplisten virker stadig. Prøv adresseopslaget igen om et øjeblik." : "Kontrollér, at vej, husnummer, postnummer og by står på aftalen, og prøv igen."}</p>
-                {unresolvedAddresses.length > 0 && (
-                  <p className="mt-2 text-[11px] text-muted-foreground">Kunne ikke finde: {unresolvedAddresses.slice(0, 3).join(", ")}{unresolvedAddresses.length > 3 ? ` og ${unresolvedAddresses.length - 3} flere` : ""}</p>
+                {!geocodeError && unresolvedAddresses.length > 0 && (
+                  <ul className="mt-2 space-y-0.5 text-left text-[11px] text-muted-foreground">
+                    {unresolvedAddresses.map((addr) => (
+                      <li key={addr}>Adressen kunne ikke findes: {addr}</li>
+                    ))}
+                  </ul>
                 )}
               </div>
               <Button type="button" variant="outline" size="sm" onClick={retryGeocoding}>Prøv igen</Button>
             </div>
           </div>
         ) : (
+          <>
+            {unresolvedAddresses.length > 0 && (
+              <div className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card/95 p-2 text-[11px] leading-5 text-muted-foreground shadow-lg backdrop-blur-md sm:inset-x-4">
+                <p className="font-semibold text-destructive">{unresolvedAddresses.length === 1 ? "1 adresse kunne ikke findes" : `${unresolvedAddresses.length} adresser kunne ikke findes`}</p>
+                <ul className="mt-0.5 space-y-0.5">
+                  {unresolvedAddresses.map((addr) => (
+                    <li key={addr}>Adressen kunne ikke findes: {addr}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           <MapContainer
             center={userPos ?? allPoints[0] ?? [56.1, 10.2]}
             zoom={13}
