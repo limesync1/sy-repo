@@ -1,3 +1,5 @@
+import { useNightMode } from "./useDriveSafety";
+import { Moon, Sun } from "lucide-react";
 import { formatClockTime, formatRunDuration } from "./route-run-clock";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -82,6 +84,7 @@ export const RouteChecklistView = ({
   startedAt = null,
 }: Props) => {
   const employeeId = useMyEmployeeId();
+  const { night, toggle: toggleNight } = useNightMode();
   const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
   const startStopTime = useStartStopTime();
   const [now, setNow] = useState(() => Date.now());
@@ -120,7 +123,7 @@ export const RouteChecklistView = ({
   const remainingIds = remaining.map((s) => s.id);
 
   return (
-    <div className="employee-route-run flex min-h-dvh flex-col bg-secondary/40">
+    <div className={cn("employee-route-run flex min-h-dvh flex-col bg-secondary/40 text-foreground", night && "dark route-night bg-background")}>
       {/* Topbjælke */}
       <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-1.5 px-2 sm:gap-2 sm:px-5">
@@ -139,6 +142,9 @@ export const RouteChecklistView = ({
           <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 px-3" onClick={onSwitchToGuide} aria-label="Skift til kortvisning">
             <MapIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Kortvisning</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={toggleNight} aria-label={night ? "Skift til lys visning" : "Skift til mørk visning"} aria-pressed={night}>
+            {night ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
           <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"} aria-pressed={!audioEnabled}>
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}

@@ -60,7 +60,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 variant="outline"
                 onClick={() => onChoose(o.mode, false)}
                  className={cn(
-                   "group h-auto min-h-[112px] w-full min-w-0 items-center justify-start gap-3 rounded-md border-border bg-card p-3 text-left whitespace-normal shadow-none transition-colors sm:gap-4 sm:p-4",
+                   "group h-auto min-h-[88px] w-full min-w-0 items-center justify-start gap-3 rounded-md border-border bg-card p-3 text-left whitespace-normal shadow-none transition-colors sm:gap-4 sm:p-4",
                    "hover:border-accent/45 hover:bg-secondary/35 focus-visible:ring-2 focus-visible:ring-ring",
                  )}
               >
