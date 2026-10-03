@@ -1,0 +1,1 @@
+ALTER POLICY "Logged in users can read onboarding videos" ON public.onboarding_videos USING (EXISTS (SELECT 1 FROM public.businesses b WHERE b.owner_id = (SELECT auth.uid())));

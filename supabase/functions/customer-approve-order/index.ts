@@ -95,7 +95,10 @@ Deno.serve(async (req) => {
         requires_customer_approval: false,
       })
       .in('id', ids)
-    if (updateErr) return json({ error: 'update_failed', detail: updateErr.message }, 500)
+    if (updateErr) {
+      console.error('customer-approve-order update failed', { code: updateErr.code })
+      return json({ error: 'update_failed' }, 500)
+    }
   }
 
   // Aktivér / synkronisér abonnementer for denne gruppe når kunden accepterer.

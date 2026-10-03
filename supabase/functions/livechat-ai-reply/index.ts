@@ -246,11 +246,25 @@ Deno.serve(async (req) => {
       const messageId = String(body?.messageId || "");
       const played = Number.isFinite(body?.soundPlayed) ? Math.max(0, Math.min(50, Number(body.soundPlayed))) : 0;
       const deduped = Number.isFinite(body?.soundDeduped) ? Math.max(0, Math.min(50, Number(body.soundDeduped))) : 0;
-      if (/^[0-9a-f-]{36}$/i.test(messageId)) {
+      if (!/^[0-9a-f-]{36}$/i.test(messageId)) {
+        return new Response(JSON.stringify({ error: "Ugyldig besked" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: authorizedMessage, error: messageError } = await admin.from("chat_messages")
+        .select("id").eq("id", messageId).eq("conversation_id", conv.id)
+        .eq("sender_type", "admin").contains("metadata", { kind: "ai" }).maybeSingle();
+      if (messageError || !authorizedMessage) {
+        return new Response(JSON.stringify({ error: "Beskeden findes ikke" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (authorizedMessage) {
         await admin
           .from("ai_answer_events")
           .update({ sound_played: played, sound_deduped: deduped })
-          .eq("message_id", messageId);
+          .eq("message_id", messageId)
+          .eq("conversation_id", conv.id);
       }
       return new Response(JSON.stringify({ ok: true }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },

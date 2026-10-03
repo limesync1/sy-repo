@@ -4,6 +4,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { isTrustedUrl, trustedOrigin } from "../_shared/allowed-origins.ts";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { seatQuantity, employeePriceKey } from "./seat-pricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,7 +20,7 @@ function parseBody(raw: any) {
   const basePriceId = String(raw.basePriceId || "");
   const addonPriceIds = Array.isArray(raw.addonPriceIds)
     ? raw.addonPriceIds.map((s: unknown) => String(s)) : [];
-  const extraEmployeeLogins = Math.max(0, Math.min(50, Number(raw.extraEmployeeLogins) || 0));
+  const extraEmployeeLogins = seatQuantity(raw.extraEmployeeLogins, 0, 0, 0);
   const extraEmployeePriceId = raw.extraEmployeePriceId ? String(raw.extraEmployeePriceId) : undefined;
   const returnUrl = String(raw.returnUrl || "");
   const environment = raw.environment === "live" ? "live" : raw.environment === "sandbox" ? "sandbox" : null;
@@ -124,19 +125,27 @@ Deno.serve(async (req) => {
     if (biz.owner_id !== user.id) throw new Error("Forbidden");
 
     // Hent eksisterende plan for at finde Stripe customer hvis den findes
-    const { data: existingPlan } = await supabase
+    const { data: existingPlan, error: planError } = await supabase
       .from("business_plans")
       .select("stripe_customer_id, trial_ends_at, created_at, startup_fee_charged, locked_at, locked_extra_employee_logins, locked_accounting_integration, accounting_integration_enabled, extra_employee_logins")
       .eq("business_id", body.businessId)
       .maybeSingle();
 
+    if (planError) throw new Error("Could not load seat allocation");
+    const { count: activeSeats, error: seatsError } = await supabase.from("employees")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", biz.id).eq("is_active", true).not("user_id", "is", null);
+    if (seatsError || activeSeats === null) throw new Error("Could not load active seats");
+    const serverEmployeePriceKey = employeePriceKey(body.basePriceId);
     const stripe = createStripeClient(body.environment as StripeEnv);
 
     // Hvis planen er låst (3 dage før fakturering), tvinger vi brugen af de
     // låste værdier i stedet for dem klienten sendte med. Det forhindrer
     // virksomheder i at nedjustere tilvalg lige før fornyelse.
     let effectiveAddonPriceIds = body.addonPriceIds;
-    let effectiveExtraEmployeeLogins = body.extraEmployeeLogins;
+    let effectiveExtraEmployeeLogins = seatQuantity(body.extraEmployeeLogins,
+      existingPlan?.extra_employee_logins ?? 0,
+      existingPlan?.locked_extra_employee_logins ?? 0, activeSeats);
     if (existingPlan?.locked_at) {
       const accLocked = !!existingPlan.locked_accounting_integration;
       const ACC_LOOKUP = "accounting_integration_monthly";
@@ -145,15 +154,15 @@ Deno.serve(async (req) => {
       const lockedLogins = Math.max(0, Number(existingPlan.locked_extra_employee_logins) || 0);
       // Tillad altid OPjustering (kunden må gerne købe mere midt i perioden),
       // men ikke nedjustering under låst antal.
-      effectiveExtraEmployeeLogins = Math.max(lockedLogins, body.extraEmployeeLogins);
+      effectiveExtraEmployeeLogins = Math.max(lockedLogins, effectiveExtraEmployeeLogins);
     }
 
     // Find Stripe-priser via lookup_keys
     const lookupKeys = [
       body.basePriceId,
       ...effectiveAddonPriceIds,
-      ...(effectiveExtraEmployeeLogins > 0 && body.extraEmployeePriceId
-        ? [body.extraEmployeePriceId]
+      ...(effectiveExtraEmployeeLogins > 0
+        ? [serverEmployeePriceKey]
         : []),
     ];
     const priceList = await stripe.prices.list({
@@ -178,9 +187,9 @@ Deno.serve(async (req) => {
       lineItems.push({ price: addon.id, quantity: 1 });
     }
 
-    if (effectiveExtraEmployeeLogins > 0 && body.extraEmployeePriceId) {
-      const employeePrice = priceMap.get(body.extraEmployeePriceId);
-      if (!employeePrice) throw new Error(`Employee price not found: ${body.extraEmployeePriceId}`);
+    if (effectiveExtraEmployeeLogins > 0) {
+      const employeePrice = priceMap.get(serverEmployeePriceKey);
+      if (!employeePrice) throw new Error("Employee price not found");
       lineItems.push({ price: employeePrice.id, quantity: effectiveExtraEmployeeLogins });
     }
 
