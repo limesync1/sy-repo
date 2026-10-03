@@ -1137,7 +1137,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
     finishedAnnouncedRef.current = true;
     playCompleteFanfare();
-    setTimeout(() => voice("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
   /* Auto-retur kun når medarbejderen netop har afsluttet ruten i denne session.

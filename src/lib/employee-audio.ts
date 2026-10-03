@@ -1,10 +1,10 @@
 /* Lille lydbibliotek til medarbejder-appen.
-   Bruger Web Audio API til chimes (intet ekstra netværkskald),
-   og Web Speech API til kort talebesked (afspilles kun hvis browseren
-   understøtter det og brugeren har aktiveret lyd ved første interaktion). */
+   Bløde, korte lyde lavet med Web Audio API (intet netværkskald).
+   Der bruges ingen oplæsning/stemme. */
 
 let audioCtx: AudioContext | null = null;
 let unlocked = false;
+let master: GainNode | null = null;
 
 const getCtx = (): AudioContext | null => {
   if (typeof window === "undefined") return null;
@@ -12,84 +12,84 @@ const getCtx = (): AudioContext | null => {
   try {
     const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
     audioCtx = new Ctx();
+    // Blød kompressor + master, så lyde aldrig bliver skarpe eller klipper.
+    const comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.value = -20;
+    comp.ratio.value = 4;
+    master = audioCtx.createGain();
+    master.gain.value = 0.7;
+    master.connect(comp).connect(audioCtx.destination);
     return audioCtx;
   } catch {
     return null;
   }
 };
 
-/** Skal kaldes ved første brugerklik for at låse audio op (autoplay-regler). */
 export const unlockAudio = () => {
   const ctx = getCtx();
   if (!ctx) return;
-  if (ctx.state === "suspended") {
-    ctx.resume().catch(() => {});
-  }
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
   unlocked = true;
 };
 
-const playTone = (freq: number, durationMs: number, volume = 0.18, type: OscillatorType = "sine", delayMs = 0) => {
+/** Klokkeagtig tone: grundtone + svag overtone med eksponentiel udklingning. */
+const bell = (freq: number, delayMs = 0, durationMs = 600, volume = 0.14) => {
   const ctx = getCtx();
-  if (!ctx) return;
-  const start = ctx.currentTime + delayMs / 1000;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, start);
-  gain.gain.setValueAtTime(0, start);
-  gain.gain.linearRampToValueAtTime(volume, start + 0.02);
-  gain.gain.linearRampToValueAtTime(0, start + durationMs / 1000);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(start);
-  osc.stop(start + durationMs / 1000 + 0.05);
+  if (!ctx || !master) return;
+  const t = ctx.currentTime + delayMs / 1000;
+  const end = t + durationMs / 1000;
+  const out = ctx.createGain();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(volume, t + 0.012);
+  out.gain.exponentialRampToValueAtTime(0.0001, end);
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 4200;
+  out.connect(lp).connect(master);
+  [[1, 1], [2, 0.18], [3.01, 0.06]].forEach(([mult, amp]) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(freq * mult, t);
+    g.gain.value = amp;
+    o.connect(g).connect(out);
+    o.start(t);
+    o.stop(end + 0.05);
+  });
 };
 
-/** Kort blød chime (to-tonet) — bruges når medarbejder er ankommet til et stop. */
+/** Ankommet til stop: rolig, opadgående to-tone. */
 export const playArrivalChime = () => {
   if (!unlocked) return;
-  playTone(880, 250, 0.18, "sine", 0);
-  playTone(1320, 350, 0.18, "sine", 180);
+  bell(659.25, 0, 520, 0.12);   // E5
+  bell(987.77, 140, 700, 0.11); // B5
 };
 
-/** Lille positiv "ding" — bruges når et stop markeres som udført. */
+/** Stop udført: kort, lys bekræftelse. */
 export const playSuccessChime = () => {
   if (!unlocked) return;
-  playTone(1046, 120, 0.16, "sine", 0);    // C6
-  playTone(1318, 200, 0.16, "sine", 100);  // E6
+  bell(1046.5, 0, 380, 0.11);  // C6
+  bell(1567.98, 90, 520, 0.09); // G6
 };
 
-/** Rolig bekræftelse når faktisk tidsregistrering starter. */
+/** Tidsregistrering startet: dæmpet enkelt "tik". */
 export const playStartChime = () => {
   if (!unlocked) return;
-  playTone(659, 110, 0.13, "sine", 0);
-  playTone(880, 170, 0.14, "sine", 90);
+  bell(783.99, 0, 420, 0.1); // G5
 };
 
-/** Glad fanfare — bruges når dagens sidste stop er klaret. */
+/** Hele ruten kørt: blid arpeggio der klinger ud. */
 export const playCompleteFanfare = () => {
   if (!unlocked) return;
-  playTone(523, 160, 0.18, "triangle", 0);     // C5
-  playTone(659, 160, 0.18, "triangle", 140);   // E5
-  playTone(784, 160, 0.18, "triangle", 280);   // G5
-  playTone(1046, 380, 0.2, "triangle", 420);   // C6
+  bell(523.25, 0, 900, 0.1);    // C5
+  bell(659.25, 120, 900, 0.1);  // E5
+  bell(783.99, 240, 1000, 0.1); // G5
+  bell(1046.5, 380, 1400, 0.11); // C6
 };
 
-/** Læs en kort dansk besked højt (Web Speech API). Failer stille hvis ikke tilgængeligt. */
-export const speak = (text: string) => {
-  if (!unlocked) return;
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  try {
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "da-DK";
-    u.rate = 1.0;
-    u.pitch = 1.0;
-    u.volume = 0.9;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch { /* ignore */ }
-};
-/** Stop al igangværende/kø-lagt tale med det samme. Bruges når skærmen
- *  slukkes eller guiden genoptages, så gamle instruktioner ikke afspilles. */
+/** Oplæsning er fjernet — beholdes som no-op for kompatibilitet. */
+export const speak = (_text: string) => {};
+
 export const stopSpeaking = () => {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
