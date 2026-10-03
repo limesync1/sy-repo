@@ -14,9 +14,6 @@ import { useEffect, useRef, useState, lazy, Suspense, type ReactNode } from "rea
 import { Sparkles } from "lucide-react";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
-const DashboardSkeleton = lazy(() =>
-  import("@/components/admin/DashboardTab").then((m) => ({ default: m.DashboardSkeleton }))
-);
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
 const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
 const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
@@ -35,7 +32,7 @@ import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { AdminTabFallback as TabFallback, tabFromUrl } from "@/components/admin/shared/AdminTabFallback";
-import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
+import { DashboardSkeleton, ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import TrialBanner from "@/components/admin/TrialBanner";

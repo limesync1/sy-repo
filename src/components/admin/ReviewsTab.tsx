@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, ShieldCheck, BarChart3 } from "lucide-react";
 import { PageHeader, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
-import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { StatGridSkeleton, ListCardSkeleton, PageHeaderSkeleton, Skeleton } from "@/components/admin/shared/Skeletons";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
@@ -54,13 +54,13 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <PageHeader title="Anmeldelser" description="Henter anmeldelser…" />
+        <PageHeaderSkeleton withAction={false} />
         <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
         {/* Filter-chip-rækken vises også her så indholdet ikke hopper når data lander. */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="h-3 w-16 rounded bg-muted/70 animate-pulse" />
+          <Skeleton className="h-3 w-16" />
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-7 w-14 rounded-md bg-muted/70 animate-pulse" />
+            <Skeleton key={i} className="h-7 w-14" />
           ))}
         </div>
         <ListCardSkeleton rows={4} />

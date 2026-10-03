@@ -47,7 +47,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
-import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { ListCardSkeleton, Skeleton } from "@/components/admin/shared/Skeletons";
 import { PanelIcon } from "@/components/shared/PanelIcon";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
@@ -1615,7 +1615,7 @@ const EmployeeTasksDialog = ({
           <Section icon={<CheckCircle2 />} title={tab === "upcoming" ? "Planlagte aftaler" : "Udførte aftaler"}>
             {isLoading ? (
               <div className="space-y-2">
-                {[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-md bg-muted" />)}
+                {[0, 1, 2].map((i) => <Skeleton key={i} className="h-14" />)}
               </div>
             ) : list.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">

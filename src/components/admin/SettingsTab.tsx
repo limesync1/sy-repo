@@ -967,24 +967,10 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* ─── Header — titel, fremskridtsring og hurtige handlinger ─── */}
+      {/* ─── Header — titel, virksomhedsikon og hurtige handlinger ─── */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-4 min-w-0">
-          {/* Cirkulær fremskridtsindikator — viser profil-fuldstændighed */}
-          <div className="relative h-12 w-12 shrink-0">
-            <svg viewBox="0 0 36 36" className="h-12 w-12 -rotate-90">
-              <circle cx="18" cy="18" r="15.915" fill="none" className="stroke-border" strokeWidth="3" />
-              <circle
-                cx="18" cy="18" r="15.915" fill="none" strokeWidth="3" strokeLinecap="round"
-                className={completeness.pct === 100 ? "stroke-emerald-500" : "stroke-foreground"}
-                strokeDasharray={`${completeness.pct} 100`}
-                style={{ transition: "stroke-dasharray 600ms ease-out" }}
-              />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold tabular-nums text-foreground">
-              {completeness.pct}%
-            </span>
-          </div>
+          <BrandedIllustration name="settings" className="h-12 w-12 shrink-0" />
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
             <p className="mt-0.5 text-sm text-muted-foreground">

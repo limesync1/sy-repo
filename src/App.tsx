@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RouteViewSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
+import { EmployeeStatsSkeleton, RouteViewSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { AdminTabFallback, tabFromUrl } from "@/components/admin/shared/AdminTabFallback";
 import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton";
 import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
@@ -227,6 +227,9 @@ const PageFallback = () => {
   if (isEmployeeRoute) return <RouteViewSkeleton />;
   if (/^\/medarbejder\/?$/.test(path)) {
     return <ShellSkeleton variant="employee" navigationItems={3}><MinDagSkeleton /></ShellSkeleton>;
+  }
+  if (/^\/medarbejder\/statistik\/?$/.test(path)) {
+    return <ShellSkeleton variant="employee" navigationItems={3}><EmployeeStatsSkeleton withHeader /></ShellSkeleton>;
   }
   if (/^\/virksomhed\/?$/.test(path)) return <ShellSkeleton><AdminTabFallback tab={tabFromUrl()} /></ShellSkeleton>;
   if (isPanel) return <ShellSkeleton variant={path.startsWith("/medarbejder") ? "employee" : path.startsWith("/admin") ? "platform" : "business"} />;
