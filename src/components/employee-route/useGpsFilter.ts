@@ -197,7 +197,7 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
     const accFactor = Math.max(0.25, Math.min(1, 8 / Math.max(raw.accuracy, 4)));
     // speedFactor: 0.4 ved standstill, 1 ved >12 m/s (~43 km/t).
     const speedFactor = Math.max(0.4, Math.min(1, speed / 12 + 0.4));
-    const alpha = Math.max(0.15, Math.min(0.9, 0.55 * accFactor * speedFactor));
+    const alpha = speed > 3 && raw.accuracy <= 25 ? 0.85 : Math.max(0.25, Math.min(0.8, 0.65 * accFactor * speedFactor));
 
     const filteredLat = prev.pos[0] + (raw.lat - prev.pos[0]) * alpha;
     const filteredLng = prev.pos[1] + (raw.lng - prev.pos[1]) * alpha;
@@ -229,7 +229,7 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
     }
 
     stateRef.current = {
-      ...stateRef.current!,
+      ...(stateRef.current ?? prev),
       pos: filteredPos,
       heading,
       speed,

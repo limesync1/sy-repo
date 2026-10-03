@@ -201,7 +201,7 @@ export const EmployeeShell = ({
     <Button
       variant="ghost"
       size="icon"
-      className="relative h-9 w-9 shrink-0"
+      className="relative h-11 w-11 shrink-0"
       aria-label={`${unreadCount} ulæste notifikationer`}
     >
       <Bell className="h-5 w-5" />
@@ -217,7 +217,7 @@ export const EmployeeShell = ({
     <>
       <span onClick={() => setNotificationsOpen(true)}>{notificationTrigger}</span>
       <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-        <SheetContent side="bottom" className="max-h-[86dvh] gap-0 overflow-hidden rounded-t-2xl p-0 sm:mx-auto sm:max-w-lg" hideCloseButton>
+        <SheetContent side="bottom" className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-y-auto overscroll-contain rounded-md p-0 sm:mx-auto sm:max-w-lg" hideCloseButton>
           <div className="flex justify-center py-2" aria-hidden><span className="h-1 w-10 rounded-full bg-muted-foreground/30" /></div>
           <SheetHeader className="sr-only">
             <SheetTitle>Notifikationer</SheetTitle>
@@ -241,7 +241,7 @@ export const EmployeeShell = ({
     <div className="lg:hidden">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" className="h-10 gap-2 px-1.5" aria-label="Profilmenu">
+          <Button type="button" variant="ghost" className="h-11 gap-2 px-1.5" aria-label="Profilmenu">
             <Avatar className="h-8 w-8 rounded-full ring-1 ring-border" style={{ background: accentColor }}>
               {employee?.avatar_url ? <AvatarImage src={employee.avatar_url} alt={displayName} className="rounded-full object-cover" /> : null}
               <AvatarFallback className="rounded-full text-xs font-bold" style={{ background: accentColor, color: readableOnEmployeeColor(employee?.color) }}>

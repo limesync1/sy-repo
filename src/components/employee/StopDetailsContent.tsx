@@ -291,7 +291,7 @@ export const StopDetailsContent = ({
   return (
     <div className="flex h-full min-h-0 flex-col bg-secondary/20">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
-      <div className="planner-overlay-header shrink-0 border-b border-border px-4 py-3 pr-14 sm:px-5 sm:pr-14">
+      <div className="planner-overlay-header shrink-0 border-b border-border px-4 py-2 pr-14 sm:py-3 sm:px-5 sm:pr-14">
         <AppointmentDetailsHeader
           title={<span className="text-base font-semibold">{stop.customer_name || "Stop"}</span>}
           description={
@@ -313,9 +313,9 @@ export const StopDetailsContent = ({
             </Badge>
           ) : null}
           
-          <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
+          {stop.order_id && paymentStatus !== "unknown" && <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
-          </Badge>
+          </Badge>}
         </AppointmentDetailsHeader>
         
       </div>
@@ -325,12 +325,12 @@ export const StopDetailsContent = ({
           <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kontakt og navigation">
             <div className="grid grid-cols-2 gap-2">
               {fullAddress && onNavigate && (
-                <Button type="button" size="sm" className="brand-blue-action h-10 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
+                <Button type="button" size="sm" className="brand-blue-action h-11 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
                   <MapPin className="h-3.5 w-3.5" /> Kør dertil
                 </Button>
               )}
               {stop.customer_phone && (
-                <Button asChild variant="outline" size="sm" className="h-10 gap-1.5 rounded-md text-xs font-semibold">
+                <Button asChild variant="outline" size="sm" className="h-11 gap-1.5 rounded-md text-xs font-semibold">
                   <a href={`tel:${stop.customer_phone}`}><Phone className="h-3.5 w-3.5" /> Ring</a>
                 </Button>
               )}
@@ -540,7 +540,7 @@ export const StopDetailsContent = ({
             <div className="space-y-2">
               <Button
                 onClick={onComplete}
-                className="h-10 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background shadow-sm hover:bg-foreground/90"
+                className="h-11 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background shadow-sm hover:bg-foreground/90"
                 size="lg"
                 disabled={!!isPending || !canComplete}
               >
@@ -559,14 +559,14 @@ export const StopDetailsContent = ({
                 <Button
                   onClick={handleResendInvoice}
                   disabled={resending}
-                  className="h-10 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background hover:bg-foreground/90"
+                  className="h-11 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background hover:bg-foreground/90"
                 >
                   {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   Send faktura til kunden
                 </Button>
               )}
               {!readOnly && (
-                <Button onClick={onUndo} variant="outline" className="h-10 w-full gap-2 rounded-md text-sm sm:w-auto sm:min-w-40">
+                <Button onClick={onUndo} variant="outline" className="h-11 w-full gap-2 rounded-md text-sm sm:w-auto sm:min-w-40">
                   <Undo2 className="h-4 w-4" />
                   Fortryd udførsel
                 </Button>

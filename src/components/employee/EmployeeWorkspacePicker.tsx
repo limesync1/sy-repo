@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Check, Building2, MapPin, ArrowRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { setEmployeeWorkspace } from "@/lib/employee-workspace";
@@ -52,7 +53,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Dit panel viser kun aftaler, ruter og statistik for den valgte arbejdsplads.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Aftaler, ruter og statistik for din arbejdsplads.</p>
               <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                 <Building2 className="h-4 w-4 shrink-0" />{employees.length} arbejdspladser tilgængelige
               </p>
@@ -72,12 +73,13 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
             const active = currentBusinessId === emp.business_id;
             return (
               <li key={emp.id}>
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => choose(emp.business_id)}
                   disabled={!!pending}
                   className={cn(
-                    "group flex min-h-[72px] w-full items-center gap-3 bg-card px-3 py-3 text-left transition-colors sm:px-5",
+                    "group flex h-auto min-h-[72px] rounded-none whitespace-normal w-full items-center gap-3 bg-card px-3 py-3 text-left transition-colors sm:px-5",
                     "hover:bg-secondary/60 active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
                     active && "bg-accent/5 shadow-[inset_3px_0_0_hsl(var(--accent))]",
                     pending === emp.business_id && "opacity-70",
@@ -119,7 +121,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   ) : (
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
                   )}
-                </button>
+                </Button>
               </li>
             );
           })}

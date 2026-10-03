@@ -3,7 +3,7 @@
  *
  *  "list"  — simpel tjekliste: stoppene i rækkefølge, tryk "Udført".
  *            Intet kort, ingen løbende GPS → nærmest intet strømforbrug.
- *  "guide" — kørselsguide med kort, rutelinje og talte manøvrer.
+ *  "guide" — kørselsguide med kort, rutelinje og stille vejvisning.
  *
  * Valget huskes pr. enhed, så man kun bliver spurgt første gang (og kan
  * skifte undervejs eller nulstille valget).

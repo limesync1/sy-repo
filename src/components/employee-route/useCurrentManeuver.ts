@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { roadProgress } from "./route-progress";
 import { haversineMeters } from "@/lib/geo-distance";
 
 export type Step = {
@@ -20,7 +21,7 @@ export type Step = {
  * Stable turn-by-turn step picker.
  *
  * Designet så banneret IKKE flimrer ved GPS-jitter eller når man cykler langsomt:
- *  - Vi vælger den FØRSTE maneuver der stadig er foran brugeren (>20 m væk).
+ *  - Vejgeometrien afgør, hvilket vejstykke brugeren faktisk kører på.
  *  - Vi advancerer kun fremad — aldrig tilbage til en tidligere maneuver, selv
  *    hvis GPS-fixet hopper. Dette undgår at banneret pludselig hopper til en
  *    "tidligere" instruktion og så tilbage igen.
@@ -45,24 +46,33 @@ export const useCurrentManeuver = (
       };
     }
 
-    // Find første step >= startFrom som stadig er "foran" brugeren (>20 m).
-    // Vi forsøger ikke at vælge "den nærmeste" — det skaber flimren når man
-    // bevæger sig langsomt mellem to maneuvers. I stedet holder vi os til
-    // det tidligst mulige step indtil det er klart passeret (<20 m).
+    // Road geometry identifies the segment actually being driven; being close
+    // to a turn is not evidence it was passed (especially on parallel roads).
     let bestIdx = startFrom;
-    for (let i = startFrom; i < steps.length; i++) {
-      const loc = steps[i].maneuver.location;
-      if (!loc) continue;
-      const d = haversineMeters(userPos[0], userPos[1], loc[1], loc[0]);
-      if (d > 20) {
-        bestIdx = i;
-        break;
+    let closest = Infinity;
+    for (let i = Math.max(0, startFrom - 1); i <= Math.min(startFrom + 2, steps.length - 1); i++) {
+      const coords = steps[i].geometry?.coordinates;
+      if (!coords || coords.length < 2) continue;
+      const line = coords.map(([lng, lat]) => [lat, lng] as [number, number]);
+      const road = roadProgress(userPos, line);
+      if (road.offRoad < closest - 2) {
+        closest = road.offRoad;
+        // OSRM geometry starts at this maneuver and ends at the next.
+        bestIdx = Math.max(startFrom, Math.min(i + 1, steps.length - 1));
       }
-      // Hvis vi er <20 m fra denne maneuver er den passeret/under udførelse → prøv næste.
-      bestIdx = Math.min(i + 1, steps.length - 1);
+    }
+    if (!Number.isFinite(closest)) {
+      // Without provider geometry use a tight threshold, never skipping a turn 20m early.
+      while (bestIdx < steps.length - 1) {
+        const loc = steps[bestIdx].maneuver.location;
+        if (!loc || haversineMeters(userPos[0], userPos[1], loc[1], loc[0]) > 8) break;
+        bestIdx++;
+      }
     }
     const loc = steps[bestIdx].maneuver.location;
-    const bestDist = loc
+    const approach = steps[Math.max(0, bestIdx - 1)].geometry?.coordinates;
+    const road = approach && approach.length > 1 ? roadProgress(userPos, approach.map(([lng, lat]) => [lat, lng] as [number, number])) : null;
+    const bestDist = road && road.offRoad < 40 ? road.remaining : loc
       ? haversineMeters(userPos[0], userPos[1], loc[1], loc[0])
       : steps[bestIdx].distance_m;
 

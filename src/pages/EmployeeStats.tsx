@@ -117,6 +117,7 @@ const PAYMENT_BADGE_OUTLINE: Record<string, string> = {
 const EmployeeStats = () => {
   const { user, loading } = useAuth();
   const { data: employee, isLoading: empLoading } = useMyEmployee();
+  const [openDay, setOpenDay] = useState<string | null>(null);
   const [range, setRange] = useState<RangeKey>("month");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -333,11 +334,12 @@ const EmployeeStats = () => {
                       const max = Math.max(...s.perDay.map((x) => x.stops), 1);
                       const pct = (d.stops / max) * 100;
                       return (
-                        <Collapsible key={d.date} defaultOpen>
+                        <Collapsible key={d.date} open={openDay === d.date} onOpenChange={(open) => setOpenDay(open ? d.date : null)}>
                           <CollapsibleTrigger asChild>
-                            <button
+                            <Button
+                              variant="ghost"
                               type="button"
-                              className="grid w-full gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
+                              className="grid h-auto w-full rounded-none whitespace-normal gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground tracking-tight first-letter:uppercase">
@@ -364,7 +366,7 @@ const EmployeeStats = () => {
                                 </div>
                                 <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
                               </div>
-                            </button>
+                            </Button>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="border-t border-border bg-secondary/30 px-3 py-2 sm:px-5">

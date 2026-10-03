@@ -154,3 +154,11 @@
 - [x] Fjern panelernes bundnavigation og den reserverede bundplads; bevar topmenuen
 - [ ] Gør valg af aftaler og medarbejdere lettere på mobil
 - [ ] Kontrollér mobilmenu og rutetildeling i browseren
+
+## Medarbejdermobil og navigation 2026-10-03
+- [x] Ensret mobilpanel, vinduer og trykflader
+- [x] Ret kortrotation, ankomst og løbende vejvisning
+- [x] Gør navigator og stopkontroller kompakte og neutrale; brug SVG-stopikoner
+- [x] Kontrollér mobilflow, navigationstest og fejl
+
+- Mobilkontrol: Min dag, Statistik, profilmenu, notifikationer og stopvindue; Livechat var ikke aktiveret for testmedarbejderen; 29 navigationstests bestod. Isoleret rute med to adresseopslag gennemført med simuleret GPS, testdata fjernet. Fysisk GPS-kørsel er fortsat ikke verificeret.
