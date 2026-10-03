@@ -749,6 +749,7 @@
   .employee-route-run .nav-puck-cone { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 34px solid hsl(var(--brand-blue-start) / 0.25); opacity: 0; }
   .employee-route-run .leaflet-control-attribution { background: hsl(var(--card) / 0.88); color: hsl(var(--muted-foreground)); font-size: 9px; }
   .employee-route-run .leaflet-control-attribution a { color: hsl(var(--accent)); }
+  .employee-route-run.dark .leaflet-control-attribution { background: hsl(var(--card) / 0.95) !important; color: hsl(var(--muted-foreground)) !important; }
 
 
   .route-action-undo { background: hsl(var(--undo-surface)); color: hsl(var(--undo-ink)); border: 1px solid hsl(var(--undo-border)); }
@@ -758,6 +759,10 @@
   .dark .route-action-undo { --undo-surface: 32 30% 16%; --undo-ink: 38 85% 80%; --undo-border: 35 45% 42%; }
   .dark .route-action-complete { --complete-surface: 149 45% 25%; --complete-ink: 140 30% 95%; }
   .employee-route-run.dark, .dark .appointment-details-overlay {
+    --night-map-land: 215 10% 15%; --night-map-water: 207 24% 20%;
+    --night-map-building: 215 8% 24%; --night-map-park: 160 12% 19%;
+    --night-map-casing: 215 10% 12%; --night-map-road: 215 9% 47%;
+    --night-map-label: 210 12% 78%;
     --background: 220 14% 10%; --card: 220 13% 13%; --popover: 220 13% 16%;
     --foreground: 210 15% 92%; --card-foreground: 210 15% 92%;
     --secondary: 220 12% 18%; --secondary-foreground: 210 15% 92%;

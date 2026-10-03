@@ -1,5 +1,5 @@
 import { Moon, Sun } from "lucide-react";
-import { formatClockTime, formatRunDuration } from "./route-run-clock";
+import { formatClockTime, formatRunDuration, readArrival, readArrivalEstimate } from "./route-run-clock";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -37,6 +37,7 @@ import { playStartChime, unlockAudio } from "@/lib/employee-audio";
  */
 
 type Props = {
+  routeId?: string;
   routeName: string;
   themeColor: string;
   stops: RouteStop[];
@@ -70,6 +71,7 @@ const formatElapsed = (seconds: number) => {
 };
 
 export const RouteChecklistView = ({
+  routeId,
   routeName,
   stops,
   pendingId,
@@ -165,8 +167,8 @@ export const RouteChecklistView = ({
       <main className="mx-auto w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
         {!allDone && <p className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-muted-foreground">
           <span>Start <b className="text-foreground">{startedAt ? formatClockTime(startedAt) : "—"}</b></span>
-          <span>Køretid · est. <b className="text-foreground">{driveEstimateSeconds == null ? "—" : formatRunDuration(driveEstimateSeconds)}</b></span>
-          <span>{arrivalLabel ? "Ankommet" : "Ankomst · est."} <b className="text-foreground">{arrivalLabel ?? etaLabel ?? "—"}</b></span>
+          <span>Køretid · ca. <b className="text-foreground">{driveEstimateSeconds == null ? "—" : formatRunDuration(driveEstimateSeconds)}</b></span>
+          <span>{arrivalLabel ? "Ankommet" : "Ankomst · ca."} <b className="text-foreground">{arrivalLabel ?? etaLabel ?? "—"}</b></span>
         </p>}
         {notification && (
           <div className="mb-3 flex items-start gap-3 rounded-md border border-destructive/25 bg-card p-3 shadow-sm">
@@ -300,6 +302,8 @@ export const RouteChecklistView = ({
               {stops.map((s, i) => {
                 const done = s.status === "completed";
                 const current = next?.id === s.id;
+                const arrived = routeId ? readArrival(routeId, s.id) : null;
+                const expected = routeId ? readArrivalEstimate(routeId, s.id, now) : null;
                 const remIdx = remainingIds.indexOf(s.id);
                 const canMove = !!onMoveStop && !done && !current;
                 return (
@@ -327,17 +331,20 @@ export const RouteChecklistView = ({
                         ) : addressOf(s) ? (
                           <p className="truncate text-xs text-muted-foreground">{addressOf(s)}</p>
                         ) : null}
+                        {(arrived || (current && expected)) && <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+                          {arrived ? "Ankommet" : "Ankomst · ca."} <b className="text-foreground">{formatClockTime(arrived ?? expected ?? now)}</b>
+                        </p>}
                       </div>
                       {done && (
                         <Button
                           variant="undo"
                           size="sm"
-                          className="h-10 shrink-0 gap-1.5 px-3 font-medium"
+                          className="h-auto min-h-10 max-w-[136px] shrink-0 gap-1.5 whitespace-normal px-2 py-2 text-xs font-medium"
                           onClick={() => onUndo(s)}
                           aria-label={`Fortryd udførsel af ${s.customer_name || "stop"}`}
                         >
                           <Undo2 className="h-4 w-4" />
-                          Fortryd
+                          Fortryd udførsel
                         </Button>
                       )}
                       {current && <span className="shrink-0 text-xs font-semibold text-accent">Nu</span>}

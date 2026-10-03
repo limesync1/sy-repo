@@ -1,5 +1,14 @@
 # Roadmap
 
+## Hjemmeskærmsapp og tydelig rutekørsel
+- [x] Manifest og hjemmeskærmsikoner uden offline-cache; installation på telefon afventer
+- [x] Fælles ankomst i tjekliste og guide, korte knaptekster
+- [x] Arbejdskvittering med start, tider og indtjening fra samme kilde som statistik
+- [x] Dæmpet vektorkort med tydelige veje og labels, reservekort og timeout
+- [x] 41 regressionstests og mobilkontrol af natkort, fælles ETA, kvittering og printvalg; ingen browserfejl
+- [ ] Udført/fortryd med stopnummer og beløb på isoleret testrute; ikke verificeret i denne ændring
+- [ ] Fysisk bil- og lydtest — kræver brugerens telefon og bil
+
 ## Tydeligere rutekørsel i begge temaer
 - [x] Fjern GPS-statuslinjer og oversæt hastegrad-filter
 - [x] Ensret kontrast og handlingsfarver i guide, liste og stopvindue
