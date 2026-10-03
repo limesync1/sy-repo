@@ -323,7 +323,7 @@ export const StopDetailsContent = ({
       <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-4 p-4 sm:space-y-5 sm:p-5">
         {!readOnly && (fullAddress || stop.customer_phone) && (
           <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kontakt og navigation">
-            <div className="grid grid-cols-2 gap-2">
+            <div className={stop.customer_phone && fullAddress && onNavigate ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
               {fullAddress && onNavigate && (
                 <Button type="button" size="sm" className="brand-blue-action h-11 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
                   <MapPin className="h-3.5 w-3.5" /> Kør dertil
