@@ -137,7 +137,8 @@
 - [ ] Kontrollér servicevinduer i browseren — den tilgængelige konto har ikke virksomhedsadgang
 
 ## Adresseforslag og rutekort 2026-10-03
-- [ ] Gendan adresseforslag i bestilling, kunde og indstillinger med tydelige fejl
-- [ ] Brug vedhæftede Dagen afsluttet- og Genopstart dagen-ikoner
-- [ ] Gør rutekort, stopmarkører og kamerabevægelse rolige og tydelige
-- [ ] Opret testmedarbejderrute og afprøv adresser samt kort i indlogget visning
+- [x] Gendan fælles adresseforslag i bestilling, kunde og indstillinger med tydelige fejl; test fælles felt indlogget og som gæst
+- [x] Brug vedhæftede Dagen afsluttet- og Genopstart dagen-ikoner
+- [x] Gør rutekort, stopmarkører og kamerabevægelse rolige og tydelige
+- [x] Opret testmedarbejderrute og afprøv adresser samt kort i indlogget visning; fjern midlertidig testrute efter testen
+- [ ] Afprøv stabilitet under fysisk kørsel med enhedens GPS; browsertesten brugte fast simuleret position
