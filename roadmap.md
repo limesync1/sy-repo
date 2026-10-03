@@ -106,4 +106,6 @@
 - [x] Brug samme stopdetaljevindue fra Min dag og aktiv rutekørsel
 - [x] Tilpas Kom godt i gang til den synlige skærmhøjde uden sidescroll
 - [x] Erstat det lukkede danske adresseopslag med loginbeskyttet Google Maps-geokodning
-- [ ] Afprøv kortet på en aktiv medarbejderrute og kontroller de tre vinduer på mobil og computer
+- [x] Afprøv Google Maps-adresseopslag med en dansk adresse og kontroller fælles stopvindue på computer
+- [ ] Afprøv selve kortet på en aktiv medarbejderrute — testmedarbejderen har ingen rute eller stop
+- [ ] Kontrollér virksomhedens Aftaler og Kom godt i gang i browseren — testkontoen har ikke adgang til et virksomhedspanel
