@@ -1158,6 +1158,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_events: {
+        Row: {
+          client_key: string
+          created_at: string
+          fn: string
+          id: number
+        }
+        Insert: {
+          client_key: string
+          created_at?: string
+          fn: string
+          id?: never
+        }
+        Update: {
+          client_key?: string
+          created_at?: string
+          fn?: string
+          id?: never
+        }
+        Relationships: []
+      }
       beta_signups: {
         Row: {
           created_at: string
