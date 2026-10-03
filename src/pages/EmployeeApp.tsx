@@ -428,7 +428,7 @@ const EmployeeApp = () => {
                 tone: "calm",
                 title: "Dagen er afsluttet",
                 description: "Genstart dagen, hvis du skal arbejde videre. Udførte aftaler og registreret tid bevares.",
-                illustration: "dayEnded",
+                illustration: "restartDay",
                 cta: { label: "Genstart dagen", icon: PlayCircle, onClick: () => startDay.mutate(date) },
               };
             }
