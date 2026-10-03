@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.dedupe_order_across_fixed_routes() FROM PUBLIC, anon, authenticated;
