@@ -2,7 +2,7 @@
 
 - Appointment detail surfaces share `AppointmentDetailsHeader` and the self-scoped `appointment-details-overlay` theme so portal rendering and full-screen employee driving cannot lose the planner window design.
 
-- Business and employee surfaces compose navigation through `PanelShell` and shared `SidebarParts`; platform admin retains compatibility exports while using the shared `service-panel-*` visual system, so role-specific logic cannot duplicate layout behavior.
+- Business/employee navigation uses `PanelShell` and `SidebarParts`; admin keeps compatibility exports and the `service-panel-*` system. Do not duplicate layout behavior by role.
 - Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
 - Semantic content illustrations resolve through `BrandedIllustration`, while `PanelIcon` and customer variants reuse those assets when meanings match, preventing stale duplicate icon sets.
@@ -29,3 +29,5 @@
 - Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Night maps use OpenFreeMap vectors in Leaflet's rotating tile pane, with a dim raster reserve and explicit load errors, avoiding key-gated basemaps.
+
+- Driving timelines share stable-height, explicit selection; no timed popovers or pulses, so GPS refreshes cannot shift the dock.

@@ -181,8 +181,10 @@
 - [ ] Fysisk biltest — kræver brugerens bil og telefon
 
 ## Stopvindue, stopprikker og medarbejdermobil
-- [ ] Tydelige dørkoder, bemærkninger og tidsregistrering i mørkt stopvindue
-- [ ] Statisk stopmarkering og stabil, trykstyret stopinformation
-- [ ] Mobilprint med adskilte printvalg og forhåndsvisning
-- [ ] Venstrestillet og kompakt Daglig aktivitet
-- [ ] Mobilkontrol af de fire visninger og deres handlinger
+- [x] Tydelige dørkoder, bemærkninger og tidsregistrering i mørkt stopvindue
+- [x] Statisk stopmarkering og stabil, trykstyret stopinformation
+- [x] Mobilprint med adskilte printvalg og forhåndsvisning
+- [x] Venstrestillet og kompakt Daglig aktivitet
+- [x] Mobilkontrol af de fire visninger og deres handlinger
+
+- Kontrolleret på 393×852 og 360×640: lange noter ruller fri af faste bundknapper; tidsregistreringsknap og stopvindueslukning fungerer; stopinformation forbliver stabil; printvalg og forhåndsvisning adskilt. 39 regressionstests bestod. Kørselskontrollen brugte læsebeskyttede testdata og simuleret GPS uden at ændre stopstatus eller indtjening i databasen.

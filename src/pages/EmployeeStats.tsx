@@ -339,10 +339,10 @@ const EmployeeStats = () => {
                             <Button
                               variant="ghost"
                               type="button"
-                              className="grid h-auto w-full rounded-none whitespace-normal gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
+                              className="grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-stretch rounded-none whitespace-normal gap-3 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:gap-4 sm:px-5 sm:py-3.5"
                             >
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-foreground tracking-tight first-letter:uppercase">
+                                <p className="text-sm font-semibold text-foreground first-letter:uppercase">
                                   {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
                                 </p>
                                 <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
@@ -357,14 +357,14 @@ const EmployeeStats = () => {
                                   />
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between gap-3 rounded-[5px] bg-secondary/50 px-3 py-2 sm:justify-end sm:bg-transparent sm:p-0">
+                              <div className="flex items-center justify-end gap-2 sm:gap-3">
                                 <div className="text-right">
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
                                   </p>
                                   <p className="text-[10px] text-muted-foreground">Min andel ekskl. moms</p>
                                 </div>
-                                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+                                <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", openDay === d.date && "rotate-180")} />
                               </div>
                             </Button>
                           </CollapsibleTrigger>
@@ -379,9 +379,9 @@ const EmployeeStats = () => {
                                   {d.entries.map((e) => (
                                     <li
                                       key={e.stopId}
-                                      className="group rounded-[5px] p-3 transition-colors hover:bg-card/60"
+                                      className="group py-3 transition-colors sm:px-2"
                                     >
-                                      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                                      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                                         <div className="min-w-0 space-y-1.5">
                                           <div className="flex flex-wrap items-center gap-2">
                                             <p className="truncate text-sm font-semibold text-foreground tracking-tight">
@@ -429,26 +429,26 @@ const EmployeeStats = () => {
                                         </div>
                                         <div className="flex items-center justify-between gap-4 rounded-[5px] bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
-                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total inkl. moms</p>
+                                            <p className="text-[10px] text-muted-foreground">Total inkl. moms</p>
                                             <p className="text-xs font-medium tabular-nums text-muted-foreground">
                                               {formatKr(e.orderAmount)}
                                             </p>
                                           </div>
                                           <div className="text-right">
-                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel ekskl. moms</p>
+                                            <p className="text-[10px] text-muted-foreground">Min andel ekskl. moms</p>
                                             <p className="text-sm font-bold tabular-nums text-foreground">
                                               {formatKr(e.share)}
                                             </p>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="mt-3 flex justify-end border-t border-border/50 pt-2">
+                                      <div className="mt-1 flex justify-end">
                                         <Button
                                           type="button"
                                            variant="outline"
                                           size="sm"
                                           onClick={() => setDetailStopId(e.stopId)}
-                                            className="h-9 gap-1.5 rounded-md border-border bg-card px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                                            className="h-11 gap-1.5 rounded-md px-2 text-xs font-semibold text-foreground hover:bg-secondary hover:text-foreground"
                                         >
                                           <Eye className="h-3.5 w-3.5" />
                                           Aftalens oplysninger
