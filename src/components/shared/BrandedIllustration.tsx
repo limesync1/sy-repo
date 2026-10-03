@@ -101,8 +101,8 @@ import fixedPriceAsset from "@/assets/service-pricing/fixed-price.svg.asset.json
 import hourlyPriceAsset from "@/assets/service-pricing/hourly-price.svg.asset.json";
 import startDayIllustration from "@/assets/illustrations/employee/start-dagen.svg.asset.json";
 import dayInProgressIllustration from "@/assets/illustrations/employee/arbejdsdag-i-gang.svg.asset.json";
-import dayEndedIllustration from "@/assets/illustrations/employee/dagen-afsluttet.svg.asset.json";
-import restartDayIllustration from "@/assets/panel-illustrations/genopstart-dagen-2026.svg";
+import dayEndedIllustration from "@/assets/illustrations/employee/dagen-afsluttet-2026.svg.asset.json";
+import restartDayIllustration from "@/assets/illustrations/employee/genopstart-dagen-2.svg.asset.json";
 import chooseWorkspaceIllustration from "@/assets/panel-illustrations/vaelg-arbejdsplads-2.svg";
 
 export const BRANDED_ILLUSTRATIONS = {
@@ -209,7 +209,7 @@ export const BRANDED_ILLUSTRATIONS = {
   startDay: startDayIllustration.url,
   dayInProgress: dayInProgressIllustration.url,
   dayEnded: dayEndedIllustration.url,
-  restartDay: restartDayIllustration,
+  restartDay: restartDayIllustration.url,
   chooseWorkspace: chooseWorkspaceIllustration,
 } as const;
 
