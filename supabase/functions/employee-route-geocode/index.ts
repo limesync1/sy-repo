@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.25.76";
 
-const BodySchema = z.object({ address: z.string().trim().min(4).max(300) });
+const BodySchema = z.object({ address: z.string().trim().min(4).max(300), suggestions: z.boolean().optional() });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const response = await fetch(url, ownGoogleKey ? undefined : {
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": googleMapsApiKey!,
+        "X-Connection-Api-Key": googleMapsApiKey ?? "",
       },
     });
 
@@ -74,7 +74,18 @@ Deno.serve(async (req) => {
     if (status === "OVER_QUERY_LIMIT" || status === "UNKNOWN_ERROR") return json({ error: "Adressetjenesten svarer ikke lige nu" }, 503);
     const result = Array.isArray(payload?.results) ? payload.results[0] : null;
     const location = result?.geometry?.location;
-    if (!result || typeof location?.lat !== "number" || typeof location?.lng !== "number") return json({ found: false });
+    if (!result || typeof location?.lat !== "number" || typeof location?.lng !== "number") return json(parsed.data.suggestions ? { suggestions: [] } : { found: false });
+
+    if (parsed.data.suggestions) {
+      const suggestions = (Array.isArray(payload.results) ? payload.results : []).slice(0, 5).flatMap((hit: any) => {
+        const parts = hit.address_components ?? [];
+        const part = (type: string) => parts.find((p: any) => p.types?.includes(type))?.long_name ?? "";
+        const loc = hit.geometry?.location;
+        if (!part("route") || !part("street_number") || !part("postal_code") || part("country") !== "Danmark" && part("country") !== "Denmark" || hit.partial_match || hit.geometry?.location_type === "APPROXIMATE" || typeof loc?.lat !== "number" || typeof loc?.lng !== "number") return [];
+        return [{ address: `${part("route")} ${part("street_number")}`, zip_code: part("postal_code"), city: part("postal_town") || part("locality"), latitude: loc.lat, longitude: loc.lng }];
+      });
+      return json({ suggestions });
+    }
 
     // Google falder tilbage til et løst land-/by-niveau match (fx hele Danmark)
     // når gade/husnummer ikke findes. Det giver et "fund" med helt forkerte

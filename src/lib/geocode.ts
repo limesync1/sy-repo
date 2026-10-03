@@ -14,7 +14,9 @@ export const geocodeAddress = async (address: string): Promise<GeocodeResult | n
   if (error) {
     const detail = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
     console.error("[geocode] Adresseopslaget fejlede", detail);
-    throw new GeocodeServiceError("Adressetjenesten svarer ikke lige nu");
+    let message = "Adressetjenesten svarer ikke lige nu";
+    try { const payload = JSON.parse(detail); if (typeof payload?.error === "string") message = payload.error; } catch { /* keep fallback */ }
+    throw new GeocodeServiceError(message);
   }
   if (!data?.found) return null;
   return typeof data.latitude === "number" && typeof data.longitude === "number"
