@@ -1,10 +1,10 @@
 # Roadmap
 
 ## Panelikoner og indlæsningsvisninger 2026-10-03
-- [ ] Opdatér ikonet for udførte aftaler og Indstillinger-headeren
-- [ ] Fjern kun Del profil fra Overblik-toppen
-- [ ] Gennemgå og ensret skeletons i virksomheds- og medarbejderpanelet
-- [ ] Kontrollér indlæsningsvisninger og panelændringer i browseren
+- [x] Opdatér ikonet for udførte aftaler og Indstillinger-headeren
+- [x] Fjern kun Del profil fra Overblik-toppen
+- [x] Gennemgå og ensret skeletons i virksomheds- og medarbejderpanelet
+- [x] Kontrollér indlæsningsvisninger og panelændringer i browseren
 
 ## Aftalevinduer og nyt visningsikon
 - [x] Fjern små prikker ved Næste handling og stopstatus i aftalevinduerne
