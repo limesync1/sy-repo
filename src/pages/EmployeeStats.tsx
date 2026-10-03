@@ -26,7 +26,7 @@ import {
 } from "date-fns";
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import type { DateRange } from "react-day-picker";
+import type { DateRange, DayContentProps } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
@@ -136,7 +136,7 @@ const EmployeeStats = () => {
   if (loading) {
     return (
       <EmployeeShell activeTab="stats" title="Statistik">
-        <EmployeePage><StatsSkeleton /></EmployeePage>
+        <EmployeePage><StatsHeaderSkeleton /><StatsSkeleton /></EmployeePage>
       </EmployeeShell>
     );
   }
@@ -198,7 +198,30 @@ const EmployeeStats = () => {
             weekStartsOn={1}
             initialFocus
             className={cn("p-3 pointer-events-auto")}
+            components={{
+              DayContent: ({ date: day }: DayContentProps) => {
+                const iso = fmtDate(day);
+                const activity = stats?.activityDays.find((item) => item.date === iso);
+                return (
+                  <span className="relative flex h-9 w-9 items-center justify-center">
+                    <span>{day.getDate()}</span>
+                    {activity && (
+                      <span className="absolute bottom-0.5 flex items-center gap-0.5" aria-label={`${activity.routes} ruter${activity.hasWorkday ? ", arbejdet" : ""}${activity.earnings > 0 ? ", indtjening" : ""}`}>
+                        {activity.hasWorkday && <span className="h-1 w-1 rounded-full bg-foreground" />}
+                        {activity.routes > 0 && <span className="h-1 w-1 rounded-full bg-accent" />}
+                        {activity.earnings > 0 && <span className="h-1 w-1 rounded-full bg-success" />}
+                      </span>
+                    )}
+                  </span>
+                );
+              },
+            }}
           />
+          <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-foreground" />Arbejdet</span>
+            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Rute</span>
+            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-success" />Indtjening</span>
+          </div>
         </PopoverContent>
       </Popover>
       </div>
@@ -214,7 +237,7 @@ const EmployeeStats = () => {
     <EmployeeShell activeTab="stats" title="Statistik">
       {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
           guidede frem for at "blinke" pludseligt. */}
-      <EmployeePage transitionKey={`${range}|${from}|${to}`}>
+      <EmployeePage>
         <PageHeader
           title={<span className="inline-block first-letter:uppercase">{headerLabel}</span>}
           description={
@@ -492,5 +515,17 @@ function StatsSkeleton() {
               </div>
             </Card>
     </>
+  );
+}
+
+function StatsHeaderSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-hidden="true">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-36" />
+        <Skeleton className="h-4 w-52" />
+      </div>
+      <Skeleton className="h-11 w-full rounded-md sm:w-96" />
+    </div>
   );
 }

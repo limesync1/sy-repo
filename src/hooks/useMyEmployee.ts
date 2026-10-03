@@ -82,6 +82,12 @@ export type EmployeeStats = {
   totalDistanceKm: number;
   revenue: number;        // omsætning fra completede stop (ordrer)
   commission: number;     // medarbejderens andel (commission_pct)
+  activityDays: {
+    date: string;
+    hasWorkday: boolean;
+    routes: number;
+    earnings: number;
+  }[];
   perDay: {
     date: string;
     stops: number;
@@ -126,7 +132,7 @@ export const useMyEmployeeStats = (
         return {
           routesCount: 0, stopsTotal: 0, stopsCompleted: 0,
            workdaysCount: 0, workSeconds: 0, totalDistanceKm: 0,
-          revenue: 0, commission: 0, perDay: [],
+          revenue: 0, commission: 0, activityDays: [], perDay: [],
         };
       }
 
@@ -176,19 +182,13 @@ export const useMyEmployeeStats = (
       [...(linkedRoutes || []), ...extraRouteRows].forEach((r: any) => routeMap.set(r.id, r));
       const routeIds = Array.from(routeMap.keys());
 
-      if (routeIds.length === 0) {
-        return {
-          routesCount: 0, stopsTotal: 0, stopsCompleted: 0,
-           workdaysCount: 0, workSeconds: 0, totalDistanceKm: 0,
-          revenue: 0, commission: 0, perDay: [],
-        };
-      }
-
       // 3) Hent alle stop på de ruter
-      const { data: stops } = await supabase
-        .from("route_stops")
-        .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name, address, notes, service_summary, planned_arrival, duration_minutes")
-        .in("route_id", routeIds);
+      const { data: stops } = routeIds.length > 0
+        ? await supabase
+            .from("route_stops")
+            .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name, address, notes, service_summary, planned_arrival, duration_minutes")
+            .in("route_id", routeIds)
+        : { data: [] };
 
       // Filtrér stop som tilhører medarbejderen (specifik tildeling eller team)
       const myStops = (stops || []).filter((s: any) => {
@@ -362,6 +362,24 @@ export const useMyEmployeeStats = (
         perDayMap.set(d, row);
       });
       const perDay = Array.from(perDayMap.values()).sort((a, b) => b.date.localeCompare(a.date));
+      const activityMap = new Map<string, EmployeeStats["activityDays"][number]>();
+      routeMap.forEach((route) => {
+        const row = activityMap.get(route.route_date) || { date: route.route_date, hasWorkday: false, routes: 0, earnings: 0 };
+        row.routes += 1;
+        activityMap.set(route.route_date, row);
+      });
+      (workdays || []).forEach((workday: any) => {
+        const date = workday.workday_date;
+        const row = activityMap.get(date) || { date, hasWorkday: false, routes: 0, earnings: 0 };
+        row.hasWorkday = true;
+        activityMap.set(date, row);
+      });
+      perDay.forEach((day) => {
+        const row = activityMap.get(day.date) || { date: day.date, hasWorkday: false, routes: 0, earnings: 0 };
+        row.earnings = day.earnings;
+        activityMap.set(day.date, row);
+      });
+      const activityDays = Array.from(activityMap.values()).sort((a, b) => a.date.localeCompare(b.date));
 
       return {
         routesCount: myRouteIds.size,
@@ -372,6 +390,7 @@ export const useMyEmployeeStats = (
         totalDistanceKm,
         revenue,
         commission,
+        activityDays,
         perDay,
       };
     },

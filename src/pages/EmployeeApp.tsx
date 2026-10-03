@@ -13,9 +13,9 @@ import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalenda
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { StopDetailsSheetShell } from "@/components/employee/StopDetailsSheetShell";
-import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
+import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import {
-  Calendar as CalendarIcon, Play, Printer, MapPin, CheckCircle2,
+  Calendar as CalendarIcon, Printer, MapPin, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon, Info, CalendarCheck, ArrowRight, Lock as LockIcon,
   Unlock as UnlockIcon,
@@ -163,6 +163,27 @@ const EmployeeApp = () => {
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
   const routeDates = useMemo(() => new Set(routes.map((route) => route.route_date).filter(Boolean)), [routes]);
+  const printableRoutes = useMemo<PrintRoute[]>(() => routes.map((route) => ({
+    id: route.id,
+    date: route.route_date,
+    name: route.name || "Rute",
+    color: route.color,
+    employeeNames: me?.name ? [me.name] : [],
+    startAddress: route.start_address,
+    distanceKm: route.total_distance_km,
+    plannedStartTime: route.planned_start_time,
+    stops: (stopsByRoute.get(route.id) || []).map((stop) => ({
+      id: stop.id,
+      customerName: stop.customer_name || "Aftale",
+      address: stop.full_address || stop.address,
+      phone: stop.customer_phone,
+      notes: stop.notes,
+      serviceSummary: stop.service_summary ? stripPrices(stop.service_summary) : null,
+      plannedArrival: stop.planned_arrival,
+      plannedDeparture: stop.planned_departure,
+      durationMinutes: stop.duration_minutes,
+    })),
+  })), [routes, stopsByRoute, me?.name]);
   const [workdayNow, setWorkdayNow] = useState(() => Date.now());
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
@@ -796,11 +817,11 @@ const EmployeeApp = () => {
                         {done > 0 ? (
                           <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute · stop {Math.min(done + 1, total)} af {total}</>
                         ) : (
-                          <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
+                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
                         )}
                       </Link>
                     ) : (
-                      <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Ingen stop</>
+                      <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Ingen stop</>
                     )}
                   </Button>
                 </div>
@@ -834,11 +855,13 @@ const EmployeeApp = () => {
           )}
       </StopDetailsSheetShell>
 
-      {/* Print-forhåndsvisning — vis indholdet af kvitteringen før print */}
-      <RoutePrintPreviewSheet
+      <RoutePrintDialog
         open={!!previewRouteId}
         onOpenChange={(o) => !o && setPreviewRouteId(null)}
-        routeId={previewRouteId}
+        initialDate={date}
+        routes={printableRoutes.filter((route) => !previewRouteId || route.id === previewRouteId)}
+        businessName={me?.business?.name}
+        title="Print rute / kvittering"
       />
     </EmployeeShell>
   );

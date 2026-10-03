@@ -19,8 +19,8 @@ export const StopDetailsSheetShell = ({ open, onOpenChange, children, loading = 
         side={isCompact ? "bottom" : "right"}
         className={
           isCompact
-            ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col shadow-premium"
-            : "planner-overlay w-full p-0 flex flex-col shadow-premium sm:max-w-lg"
+            ? "planner-overlay h-[88dvh] w-full !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col shadow-premium"
+            : "planner-overlay w-full p-0 flex flex-col shadow-premium sm:max-w-2xl"
         }
       >
         <SheetTitle className="sr-only">Aftalens oplysninger</SheetTitle>
