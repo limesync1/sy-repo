@@ -162,7 +162,13 @@ const EmployeeApp = () => {
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
+  const { data: me } = useMyEmployee();
   const routeDates = useMemo(() => new Set(routes.map((route) => route.route_date).filter(Boolean)), [routes]);
+  const stopsByRoute = useMemo(() => {
+    const grouped = new Map<string, RouteStop[]>();
+    for (const stop of stops) grouped.set(stop.route_id, [...(grouped.get(stop.route_id) || []), stop]);
+    return grouped;
+  }, [stops]);
   const printableRoutes = useMemo<PrintRoute[]>(() => routes.map((route) => ({
     id: route.id,
     date: route.route_date,
@@ -189,7 +195,6 @@ const EmployeeApp = () => {
   const endDay = useEndWorkday();
   // Tidlig udførelse — hent medarbejderens egen indstilling og virksomhedens
   // default. Resolver: src/lib/early-completion.ts.
-  const { data: me } = useMyEmployee();
   const employeeMode = ((me as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
   const { data: businessEarlyDefault = false } = useQuery({
     queryKey: ["business-early-default", me?.business_id],
@@ -217,13 +222,6 @@ const EmployeeApp = () => {
     );
   }
   if (!user) return <Navigate to="/log-ind" replace />;
-
-  const stopsByRoute = new Map<string, RouteStop[]>();
-  for (const s of stops) {
-    const arr = stopsByRoute.get(s.route_id) || [];
-    arr.push(s);
-    stopsByRoute.set(s.route_id, arr);
-  }
 
   const totalStops = stops.length;
   const completedStops = stops.filter((s) => s.status === "completed").length;
