@@ -336,7 +336,7 @@ const RequestQuote = () => {
             <div>
               <div className="mb-3 flex items-center gap-2">
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${hasLocation ? "opacity-100" : "opacity-45"}`}>1</span>
-                <label className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</label>
+                <h2 className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</h2>
               </div>
               <div className="rounded-2xl border border-border bg-card/80 px-3 py-2.5">
                 <div className="flex flex-wrap items-center gap-2">
@@ -354,7 +354,7 @@ const RequestQuote = () => {
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${category ? "opacity-100" : "opacity-45"}`}>2</span>
-                <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
+                <h2 className="text-sm font-semibold text-foreground">Vælg kategori</h2>
               </div>
               <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
                 <PopoverTrigger asChild>
@@ -450,9 +450,10 @@ const RequestQuote = () => {
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${description.trim() ? "opacity-100" : "opacity-45"}`}>3</span>
-                <label className="text-sm font-semibold text-foreground">Beskriv dit behov</label>
+                <h2 id="quote-description-heading" className="text-sm font-semibold text-foreground">Beskriv dit behov</h2>
               </div>
               <Textarea
+                aria-labelledby="quote-description-heading"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={category ? EXAMPLE_PROMPTS[category] : "Vælg først en kategori ovenfor — så hjælper vi med en god skabelon."}
@@ -488,7 +489,7 @@ const RequestQuote = () => {
             <div className="mt-7">
               <div className="mb-1 flex items-center gap-2">
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${customerName.trim() && customerEmail.trim() ? "opacity-100" : "opacity-45"}`}>4</span>
-                <label className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</label>
+                <h2 className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</h2>
               </div>
               <p className="mb-4 ml-8 text-xs text-muted-foreground">
                 Vi sender de bedste matches til din e-mail med det samme.
