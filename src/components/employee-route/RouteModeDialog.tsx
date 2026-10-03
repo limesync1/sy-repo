@@ -1,4 +1,4 @@
-import { BatteryCharging, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,21 +23,18 @@ const options: Array<{
   illustration: BrandedIllustrationName;
   title: string;
   body: string;
-  note: string;
 }> = [
   {
     mode: "list",
     illustration: "checklist",
     title: "Tjekliste",
     body: "Stoppene i rækkefølge — tryk “Udført” ved hvert sted.",
-    note: "Sparer strøm",
   },
   {
     mode: "guide",
     illustration: "drivingGuide",
     title: "Kørselsguide",
     body: "Kort med rute, sving og afstand til næste stop.",
-    note: "Bruger mere strøm",
   },
 ];
 
@@ -63,7 +60,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 variant="outline"
                 onClick={() => onChoose(o.mode, false)}
                  className={cn(
-                   "group h-auto min-h-[112px] w-full min-w-0 items-center justify-start gap-3 rounded-md border-border bg-card p-3 text-left whitespace-normal shadow-none transition-colors sm:gap-4 sm:p-4",
+                   "group h-auto min-h-[88px] w-full min-w-0 items-center justify-start gap-3 rounded-md border-border bg-card p-3 text-left whitespace-normal shadow-none transition-colors sm:gap-4 sm:p-4",
                    "hover:border-accent/45 hover:bg-secondary/35 focus-visible:ring-2 focus-visible:ring-ring",
                  )}
               >
@@ -77,10 +74,6 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                   </span>
                   <span className="mt-0.5 block text-[13px] leading-5 text-muted-foreground">
                     {o.body}
-                  </span>
-                  <span className="mt-1.5 flex items-start gap-1.5 text-[11.5px] font-medium leading-4 text-muted-foreground">
-                    <BatteryCharging className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>{o.note}</span>
                   </span>
                 </span>
               </Button>
