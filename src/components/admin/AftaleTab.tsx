@@ -49,6 +49,7 @@ import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute, invalidate
 import { ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
+import { AppointmentDetailsHeader } from "@/components/shared/AppointmentDetailsHeader";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -2203,14 +2204,14 @@ const AftaleTab = ({
                     <SheetContent
                       side={isCompact ? "bottom" : "right"}
                       className={cn(
-                        "planner-overlay flex w-full flex-col gap-0 overflow-hidden p-0 shadow-premium",
+                        "planner-overlay appointment-details-overlay flex w-full flex-col gap-0 overflow-hidden p-0 shadow-premium",
                         isCompact
                           ? "h-[min(88dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0"
                           : "h-full sm:max-w-2xl",
                       )}
                     >
-                      <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
-                        <SheetHeaderBlock
+                      <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
+                        <AppointmentDetailsHeader
                           title={<SheetTitle className="text-base">{order.customer_name}</SheetTitle>}
                           description={(
                             <SheetDescription className="text-xs">
@@ -2227,7 +2228,7 @@ const AftaleTab = ({
                               <RouteIcon className="h-2.5 w-2.5" /> {routeDisplayName(routeInfo)}
                             </span>
                           )}
-                        </SheetHeaderBlock>
+                        </AppointmentDetailsHeader>
                       </SheetHeader>
                       <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
                     <Section icon={<ArrowRight className="h-3.5 w-3.5" />} title="Næste handling">

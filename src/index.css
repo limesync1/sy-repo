@@ -582,6 +582,7 @@
     border: 2px solid hsl(var(--background));
   }
 
+  .appointment-details-overlay.planner-overlay,
   .route-planner-open .planner-overlay {
     overflow: hidden;
     border: 1px solid hsl(var(--border));
@@ -589,22 +590,26 @@
     box-shadow: 0 24px 64px -30px hsl(var(--foreground) / 0.48);
   }
 
+  .appointment-details-overlay .planner-overlay-header,
   .route-planner-open .planner-overlay-header {
     background: hsl(var(--card));
     border-color: hsl(var(--border));
   }
 
+  .appointment-details-overlay .planner-overlay-body,
   .route-planner-open .planner-overlay-body {
     background: hsl(var(--secondary) / 0.22);
     scrollbar-gutter: stable;
   }
 
+  .appointment-details-overlay .planner-overlay-footer,
   .route-planner-open .planner-overlay-footer {
     background: hsl(var(--card));
     border-color: hsl(var(--border));
   }
 
   .dark .route-planner-open [role="dialog"],
+  .dark .appointment-details-overlay.planner-overlay,
   .dark .route-planner-open .planner-overlay {
     border-color: hsl(var(--border) / 0.9);
     background: hsl(var(--planner-surface-raised));
@@ -612,11 +617,14 @@
   }
 
   .dark .route-planner-open .planner-overlay-header,
+  .dark .appointment-details-overlay .planner-overlay-header,
+  .dark .appointment-details-overlay .planner-overlay-footer,
   .dark .route-planner-open .planner-overlay-footer {
     background: hsl(var(--planner-surface-raised));
     border-color: hsl(var(--border) / 0.82);
   }
 
+  .dark .appointment-details-overlay .planner-overlay-body,
   .dark .route-planner-open .planner-overlay-body {
     background: hsl(var(--planner-surface));
   }

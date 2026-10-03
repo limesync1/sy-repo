@@ -1,5 +1,7 @@
 # Project architecture rules
 
+- Appointment detail surfaces share `AppointmentDetailsHeader` and the self-scoped `appointment-details-overlay` theme so portal rendering and full-screen employee driving cannot lose the planner window design.
+
 - Business and employee surfaces compose navigation through `PanelShell`, `PanelBottomNav`, and shared `SidebarParts`; platform admin retains compatibility exports while using the shared `service-panel-*` visual system, so role-specific logic cannot duplicate layout behavior.
 - Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
