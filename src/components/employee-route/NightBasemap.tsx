@@ -13,7 +13,9 @@ export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (
     const attribution = '© <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © OpenMapTiles · © OpenStreetMap';
     const fail = () => { if (active) onFailure(true); };
     try {
-      layer = maplibreGL({ style: "https://tiles.openfreemap.org/styles/dark", interactive: false, attributionControl: false, padding: 0.5 }).addTo(map);
+      // Plugin-specific overscan is absent from its published option type.
+      const options = { style: "https://tiles.openfreemap.org/styles/dark", interactive: false, attributionControl: false as const, padding: 0.5 };
+      layer = maplibreGL(options).addTo(map);
       const gl = layer.getMaplibreMap();
       gl.on("error", fail);
       gl.on("idle", () => {
