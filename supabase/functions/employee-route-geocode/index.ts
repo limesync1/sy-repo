@@ -61,6 +61,17 @@ Deno.serve(async (req) => {
     }
 
     const payload = await response.json();
+    // Google svarer 200 med en status-tekst, når selve nøglen afvises.
+    const status = typeof payload?.status === "string" ? payload.status : "OK";
+    if (status === "REQUEST_DENIED") {
+      const message = String(payload?.error_message ?? "");
+      console.error(`Google geocoding denied: ${message}`);
+      if (/referer|referrer/i.test(message)) return json({ error: "Google-nøglen er begrænset til websites — sæt 'Application restrictions' til 'None' for servernøglen" }, 503);
+      if (/not authorized|not activated|not enabled/i.test(message)) return json({ error: "Geocoding API er ikke slået til for Google-nøglen" }, 503);
+      if (/billing/i.test(message)) return json({ error: "Fakturering er ikke slået til i Google Cloud" }, 503);
+      return json({ error: "Google afviste adresseopslaget" }, 503);
+    }
+    if (status === "OVER_QUERY_LIMIT" || status === "UNKNOWN_ERROR") return json({ error: "Adressetjenesten svarer ikke lige nu" }, 503);
     const result = Array.isArray(payload?.results) ? payload.results[0] : null;
     const location = result?.geometry?.location;
     if (!result || typeof location?.lat !== "number" || typeof location?.lng !== "number") return json({ found: false });
