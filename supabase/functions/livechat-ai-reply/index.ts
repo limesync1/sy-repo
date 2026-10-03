@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
         let suggestedTitle: string | null = null;
         let suggestedFix: string | null = null;
         const key = Deno.env.get("LOVABLE_API_KEY");
-        if (key) {
+        if (key && (await consumeAiBudget(admin, "livechat-ai-feedback", req, { perClientPerHour: 10, globalPerHour: 100 }))) {
           try {
             const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
               method: "POST",
