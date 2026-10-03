@@ -8,7 +8,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import { EmployeePage } from "@/components/employee/EmployeePage";
-import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
+import { EMPTY_STATS, useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
