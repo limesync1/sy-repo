@@ -29,3 +29,11 @@ export const formatRunDuration = (seconds: number) => {
   const m = Math.floor((seconds % 3600) / 60);
   return h > 0 ? `${h} t. ${m} min.` : `${m} min.`;
 };
+
+/** Arrival on this device is shared between guide and checklist; no GPS in checklist. */
+export function readArrival(routeId: string, stopId: string): number | null {
+  try { const n = Number(localStorage.getItem(`sy.route.arrival.${routeId}.${stopId}`)); return n > 0 && Number.isFinite(n) ? n : null; } catch { return null; }
+}
+export function saveArrival(routeId: string, stopId: string, time: number) {
+  try { localStorage.setItem(`sy.route.arrival.${routeId}.${stopId}`, String(time)); } catch { /* private mode */ }
+}
