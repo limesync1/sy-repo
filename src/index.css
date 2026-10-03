@@ -677,6 +677,8 @@
     .appointment-details-overlay button { min-height: 44px; }
     .appointment-details-overlay .planner-overlay-footer { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
     .employee-route-run { height: 100dvh; }
+    .employee-route-run .route-map-stage-driving { display: flex; flex-direction: column; }
+    .employee-route-run .route-map-stage-driving > .leaflet-container { flex: 1 1 0; min-height: 0; height: auto !important; }
     .employee-route-run .route-active-stop { position: relative; inset: auto; bottom: auto; top: auto; padding: 0; flex-shrink: 0; }
     .employee-route-run .route-active-stop .route-drive-dock { border-radius: 0; box-shadow: none; padding-bottom: env(safe-area-inset-bottom); }
     .employee-route-run .route-maneuver { right: 0.5rem; }
