@@ -566,7 +566,7 @@ export const StopDetailsContent = ({
                 </Button>
               )}
               {!readOnly && (
-                <Button onClick={onUndo} variant="outline" className="h-11 w-full gap-2 rounded-md text-sm sm:w-auto sm:min-w-40">
+                <Button onClick={onUndo} variant="outline" className="h-11 w-full gap-2 rounded-md text-sm font-semibold">
                   <Undo2 className="h-4 w-4" />
                   Fortryd udførsel
                 </Button>

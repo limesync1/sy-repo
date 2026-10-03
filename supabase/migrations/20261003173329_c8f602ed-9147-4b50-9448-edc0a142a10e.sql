@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.revert_completion_on_undo() FROM PUBLIC, anon, authenticated;

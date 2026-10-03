@@ -1,3 +1,4 @@
+import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration } from "@/components/employee-route/route-run-clock";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
@@ -363,6 +364,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     heading: number | null; speed: number | null; t: number;
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
+  const [routeStartedAt, setRouteStartedAt] = useState<number | null>(null);
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!routeStarted) return;
+    setClockNow(Date.now());
+    const t = window.setInterval(() => setClockNow(Date.now()), 15_000);
+    return () => window.clearInterval(t);
+  }, [routeStarted]);
   // Tjekliste eller kørselsguide. Valget spørges første gang man starter en
   // rute og huskes derefter pr. enhed — men kan altid skiftes undervejs.
   const [runMode, setRunMode] = useState<RouteRunMode>(() => readRunMode() ?? "guide");
@@ -1460,7 +1469,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         finished
           ? `Sidste stop klaret — hele ruten er kørt! 🎉`
           : `${s.customer_name || "Stop"} udført — ${doneNow} af ${total} klaret`,
-        { description: finished ? undefined : `${total - doneNow} stop tilbage på ruten.` },
+        {
+          description: finished ? undefined : `${total - doneNow} stop tilbage på ruten.`,
+          duration: 8000,
+          action: { label: "Fortryd", onClick: () => void handleUndo(s) },
+        },
       );
       setSelectedId(null);
       const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
@@ -1497,6 +1510,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const beginRoute = (mode: RouteRunMode) => {
     setRunMode(mode);
     unlockAudio();
+    setRouteStartedAt(markRouteStarted(routeId));
     setRouteStarted(true);
     setFollowMode(true);
     setCollapsed(true);
@@ -1528,6 +1542,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         locked={routeDateLocked}
         onComplete={handleComplete}
         onUndo={handleUndo}
+        startedAt={routeStartedAt ?? getRouteStartedAt(routeId)}
         onNavigate={handleNavigate}
         onSwitchToGuide={() => {
           setRunMode("guide");
@@ -2044,9 +2059,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <div className="flex items-baseline gap-2 px-3.5 pt-2.5">
                   <span className="text-xl font-bold leading-none tabular-nums text-success">{formatMin(liveDurationS)}</span>
                   <span className="text-sm tabular-nums text-muted-foreground">
-                    {liveDistanceM != null ? formatKm(liveDistanceM) : ""}{etaLabel ? ` · fremme ${etaLabel}` : ""}
+                    {liveDistanceM != null ? formatKm(liveDistanceM) : ""}
                   </span>
                 </div>
+              )}
+              {/* Tidsregistrering for turen: start, køretid, ankomst */}
+              {routeStartedAt && (
+                <dl className="grid grid-cols-3 gap-2 px-3.5 pb-1 pt-2 text-center">
+                  <div className="rounded-md bg-secondary/60 px-1.5 py-1.5">
+                    <dt className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">Startet</dt>
+                    <dd className="text-sm font-semibold tabular-nums text-foreground">{formatClockTime(routeStartedAt)}</dd>
+                  </div>
+                  <div className="rounded-md bg-secondary/60 px-1.5 py-1.5">
+                    <dt className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">Køretid</dt>
+                    <dd className="text-sm font-semibold tabular-nums text-foreground">{formatRunDuration(Math.max(0, Math.floor((clockNow - routeStartedAt) / 1000)))}</dd>
+                  </div>
+                  <div className="rounded-md bg-secondary/60 px-1.5 py-1.5">
+                    <dt className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">Ankomst</dt>
+                    <dd className="text-sm font-semibold tabular-nums text-foreground">{isAtNextStop ? "Fremme" : etaLabel ?? "—"}</dd>
+                  </div>
+                </dl>
               )}
               <Button
                 type="button"
