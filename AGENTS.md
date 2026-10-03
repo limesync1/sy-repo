@@ -28,6 +28,6 @@
 - Live route re-optimization never reorders when the employee is within 250 m of the next stop, so the stop being arrived at cannot be pushed to the end.
 - Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
-- Night maps use OpenFreeMap vectors in Leaflet's rotating tile pane, with a dim raster reserve and explicit load errors, avoiding key-gated basemaps.
+- Night maps use token-themed OpenFreeMap vectors, dim raster fallback and errors. PWA uses manifest only; no offline cache to stale previews.
 
 - Timelines use stable-height explicit selection, no timed popovers/pulses. Shared semantic action variants distinguish undo from completion in both themes.
