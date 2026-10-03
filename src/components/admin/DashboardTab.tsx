@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 interface Props {
   business: Business;
@@ -935,7 +936,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
-            <BrandedIllustration name="appointmentCompleted" className="h-10 w-10" />
+            <PanelIcon name="appointmentCompleted" className="h-10 w-10" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>
