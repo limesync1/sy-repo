@@ -1969,7 +1969,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
 
             {/* Næste manøvre — hvidt HUD-kort i Google Maps-stil */}
-            {showManeuverBanner && maneuver && nextStop && (() => {
+            {driveIssues.length === 0 && !isRerouting && !trafficAlert && showManeuverBanner && maneuver && nextStop && (() => {
               const thenStep = directions?.steps?.[maneuver.stepIndex + 1];
               const thenType = (thenStep?.maneuver?.type || "").toLowerCase();
               const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 500;
@@ -2004,7 +2004,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             })()}
 
             {/* Ankomst-HUD: parkeret ved kunden */}
-            {isAtNextStop && nextStop && (
+            {driveIssues.length === 0 && isAtNextStop && nextStop && (
               <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                 <div className="overflow-hidden rounded-xl border border-success/40 bg-card text-foreground shadow-lg" role="status" aria-live="polite">
                   <div className="flex items-center gap-3 px-3.5 py-3">
