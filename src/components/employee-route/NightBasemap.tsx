@@ -31,6 +31,9 @@ export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (
       const owner = map.getContainer().closest(".employee-route-run") ?? map.getContainer();
       const tokens = getComputedStyle(owner);
       const color = (name: string) => `hsl(${tokens.getPropertyValue(name).trim()})`;
+      // Footpaths, tracks and other dashed minor lines make the night map noisy while driving.
+      style.layers = style.layers.filter((item: { id: string; type: string }) =>
+        !(item.type === "line" && /path|track|pedestrian|footway|cycleway|steps|bridleway|ferry|aerialway|railway|transit|boundary/.test(item.id)));
       for (const item of style.layers) {
         item.paint ??= {};
         if (item.type === "background") item.paint["background-color"] = color("--night-map-land");

@@ -1799,9 +1799,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           >
             {/* Day tiles double as a dim reserve while the vector night style loads. */}
             <TileLayer
-              key={night && routeStarted ? "night" : "day"}
+              key={night ? "night" : "day"}
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              className={night && routeStarted ? "route-tiles-night" : undefined}
+              className={night ? "route-tiles-night" : undefined}
               attribution="&copy; OpenStreetMap-bidragydere"
               updateWhenIdle={false}
               updateWhenZooming={false}
@@ -1810,7 +1810,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               maxZoom={20}
               maxNativeZoom={19}
             />
-            {night && routeStarted && <NightBasemap retry={nightMapRetry} onFailure={reportNightMapFailure} />}
+            {night && <NightBasemap retry={nightMapRetry} onFailure={reportNightMapFailure} />}
 
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted && !highlightedId} />
