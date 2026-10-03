@@ -124,3 +124,8 @@
 - [x] Afprøv Google Maps-adresseopslag med en dansk adresse og kontroller fælles stopvindue på computer
 - [ ] Afprøv selve kortet på en aktiv medarbejderrute — testmedarbejderen har ingen rute eller stop
 - [ ] Kontrollér virksomhedens Aftaler og Kom godt i gang i browseren — testkontoen har ikke adgang til et virksomhedspanel
+
+## Tomme lister og serviceikoner
+- [ ] Ensret tomme lister i medarbejder- og kundepanelet med Ingen emner-ikonet
+- [ ] Brug fem vedhæftede ikoner i serviceoprettelse og -redigering
+- [ ] Kontrollér ikonvalg og visninger med test og browser
