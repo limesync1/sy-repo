@@ -101,7 +101,8 @@ import hourlyPriceAsset from "@/assets/panel-illustrations/timepris.svg.asset.js
 import startDayIllustration from "@/assets/illustrations/employee/start-dagen.svg.asset.json";
 import dayInProgressIllustration from "@/assets/illustrations/employee/arbejdsdag-i-gang.svg.asset.json";
 import dayEndedIllustration from "@/assets/illustrations/employee/dagen-afsluttet.svg.asset.json";
-import restartDayIllustration from "@/assets/panel-illustrations/genopstart-dagen.svg.asset.json";
+import restartDayIllustration from "@/assets/panel-illustrations/genopstart-dagen-2026.svg.asset.json";
+import chooseWorkspaceIllustration from "@/assets/panel-illustrations/vaelg-arbejdsplads-2.svg.asset.json";
 
 export const BRANDED_ILLUSTRATIONS = {
   searchService: searchServiceNew.url,
@@ -207,6 +208,7 @@ export const BRANDED_ILLUSTRATIONS = {
   dayInProgress: dayInProgressIllustration.url,
   dayEnded: dayEndedIllustration.url,
   restartDay: restartDayIllustration.url,
+  chooseWorkspace: chooseWorkspaceIllustration.url,
 } as const;
 
 export type BrandedIllustrationName = keyof typeof BRANDED_ILLUSTRATIONS;

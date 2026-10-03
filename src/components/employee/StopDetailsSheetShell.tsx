@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
@@ -23,6 +23,8 @@ export const StopDetailsSheetShell = ({ open, onOpenChange, children, loading = 
             : "planner-overlay w-full p-0 flex flex-col shadow-premium sm:max-w-lg"
         }
       >
+        <SheetTitle className="sr-only">Aftalens oplysninger</SheetTitle>
+        <SheetDescription className="sr-only">Detaljer for den valgte aftale på ruten.</SheetDescription>
         {loading ? (
           <div className="flex-1 space-y-5 overflow-hidden bg-secondary/20 p-4 sm:p-5" aria-busy="true">
             <div className="flex items-start gap-3 border-b border-border pb-4">

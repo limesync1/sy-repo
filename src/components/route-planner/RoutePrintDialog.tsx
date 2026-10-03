@@ -13,7 +13,7 @@ import {
   Settings2,
   Users,
 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -60,6 +60,7 @@ type Props = {
   initialDate: string;
   routes: PrintRoute[];
   businessName?: string;
+  title?: string;
 };
 
 const STORAGE_KEY = "route-print-options-v2";
@@ -90,7 +91,7 @@ const optionRows: { key: keyof PrintOptions; label: string }[] = [
 const dateLabel = (date: string) => format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da });
 const shortDateLabel = (date: string) => format(parseISO(date), "d. MMM", { locale: da });
 
-export default function RoutePrintDialog({ open, onOpenChange, initialDate, routes, businessName }: Props) {
+export default function RoutePrintDialog({ open, onOpenChange, initialDate, routes, businessName, title = "Print ruter" }: Props) {
   const initial = parseISO(initialDate);
   const [mode, setMode] = useState<"day" | "range">("day");
   const [range, setRange] = useState<DateRange>({ from: initial, to: initial });
@@ -216,8 +217,8 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
       <DialogContent className="planner-overlay flex h-[min(92vh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-md p-0">
         <div className="planner-overlay-header flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3 pr-14 sm:px-5">
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-foreground">Print ruter</h2>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">Vælg periode og indhold, før du printer eller gemmer som PDF.</p>
+            <DialogTitle className="truncate text-sm font-semibold text-foreground">{title}</DialogTitle>
+            <DialogDescription className="mt-0.5 truncate text-xs text-muted-foreground">Vælg periode og indhold, før du printer eller gemmer som PDF.</DialogDescription>
           </div>
           <Button size="sm" onClick={() => window.print()} disabled={selectedRoutes.length === 0} className="shrink-0 gap-2">
             <Printer className="h-4 w-4" />
@@ -270,10 +271,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                   />
                 )}
               </div>
-              <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-0.5 text-[8px] font-bold text-accent-foreground">2</span>
-                Tallet viser antal ruter på dagen
-              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">Tallet viser antal ruter på dagen</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={chooseToday}>I dag</Button>
                 <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={chooseWeek}>Hele ugen</Button>

@@ -2243,7 +2243,7 @@ const AftaleTab = ({
                           )}
                         </SheetHeaderBlock>
                       </SheetHeader>
-                      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto bg-secondary/15">
+                      <div className="planner-overlay-body min-h-0 flex-1 space-y-5 overflow-y-auto bg-secondary/15 p-4 sm:p-5">
                     {/* Fokus-banner — primær anker når kortet foldes ud. Tydeligt
                         accent-tema så øjet straks lander her, før det glider
                         ned til detaljerne nedenunder. */}
@@ -2381,7 +2381,7 @@ const AftaleTab = ({
                       </div>
                     )}
 
-                    <div className="px-3 py-3 space-y-3">
+                    <div className="space-y-4">
                     {/* ── 1) Handling — beslutninger og status der kræver opmærksomhed ── */}
                     {!isResponding && (
                       <NextStepCard
