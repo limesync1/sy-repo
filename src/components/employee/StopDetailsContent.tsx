@@ -326,7 +326,7 @@ export const StopDetailsContent = ({
           <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kontakt og navigation">
             <div className={stop.customer_phone && fullAddress && onNavigate ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
               {fullAddress && onNavigate && (
-                <Button type="button" size="sm" className="brand-blue-action h-11 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
+                <Button type="button" variant="outline" size="sm" className=" h-11 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
                   <MapPin className="h-3.5 w-3.5" /> Vis vej på kort
                 </Button>
               )}
@@ -392,9 +392,9 @@ export const StopDetailsContent = ({
                   disabled={startStopTime.isPending || endStopTime.isPending}
                 >
                   {!readOnly && isWorking ? (
-                    <> <Pause className="h-3.5 w-3.5" /> Stop </>
+                    <> <Pause className="h-3.5 w-3.5" /> Stop tid </>
                   ) : (
-                    <> <Play className="h-3.5 w-3.5" /> Start </>
+                    <> <Play className="h-3.5 w-3.5" /> Start tid </>
                   )}
                 </Button>
               )}
@@ -458,6 +458,9 @@ export const StopDetailsContent = ({
         </Section>
 
 
+        <details className="stop-secondary-details rounded-md border border-border bg-card">
+          <summary className="cursor-pointer px-3 py-3 text-sm font-medium text-foreground">Beløb og rutedetaljer</summary>
+          <div className="space-y-3 p-3 pt-0">
         {orderTotal > 0 && (
           <Section
             icon={<Wallet className="h-3.5 w-3.5" />}
@@ -512,6 +515,9 @@ export const StopDetailsContent = ({
           </Section>
         )}
 
+          </div>
+        </details>
+
         {!readOnly && (
           <Section
             icon={<ClipboardList className="h-3.5 w-3.5" />}
@@ -546,7 +552,7 @@ export const StopDetailsContent = ({
             <div className="space-y-2">
               <Button
                 onClick={onComplete}
-                className="h-11 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background shadow-sm hover:bg-foreground/90"
+                variant="complete" className="h-11 w-full gap-2 rounded-md text-sm font-semibold shadow-sm"
                 size="lg"
                 disabled={!!isPending || !canComplete}
               >
@@ -572,7 +578,7 @@ export const StopDetailsContent = ({
                 </Button>
               )}
               {!readOnly && (
-                <Button onClick={onUndo} variant="outline" className="h-11 w-full gap-2 rounded-md text-sm font-semibold">
+                <Button onClick={onUndo} variant="undo" className="h-11 w-full gap-2 rounded-md text-sm font-semibold">
                   <Undo2 className="h-4 w-4" />
                   Fortryd udførsel
                 </Button>

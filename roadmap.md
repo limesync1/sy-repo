@@ -1,5 +1,11 @@
 # Roadmap
 
+## Tydeligere rutekørsel i begge temaer
+- [ ] Fjern GPS-statuslinjer og oversæt hastegrad-filter
+- [ ] Ensret kontrast og handlingsfarver i guide, liste og stopvindue
+- [ ] Prioritér stopoplysninger og fold sekundære detaljer sammen
+- [ ] Kontrollér begge temaer og visninger på mobil og bred skærm med tests
+
 ## Rutekørsel: samlet HUD- og UX-forbedring
 - [x] Vis samlet afslutningsoversigt og fjern automatisk retur
 - [x] Ensret køretid, kundetid og ankomst i guide og tjekliste

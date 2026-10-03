@@ -37,6 +37,11 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 26 83% 14%;
+    --undo-surface: 38 90% 94%;
+    --undo-ink: 25 85% 25%;
+    --undo-border: 35 65% 60%;
+    --complete-surface: 149 65% 27%;
+    --complete-ink: 0 0% 100%;
     --beige: 38 45% 90%;
     --beige-foreground: 30 30% 22%;
     --info: 217 91% 60%;
@@ -745,6 +750,26 @@
   .employee-route-run .leaflet-control-attribution { background: hsl(var(--card) / 0.88); color: hsl(var(--muted-foreground)); font-size: 9px; }
   .employee-route-run .leaflet-control-attribution a { color: hsl(var(--accent)); }
 
+
+  .route-action-undo { background: hsl(var(--undo-surface)); color: hsl(var(--undo-ink)); border: 1px solid hsl(var(--undo-border)); }
+  .route-action-undo:hover { background: hsl(var(--undo-border) / 0.22); }
+  .route-action-complete { background: hsl(var(--complete-surface)); color: hsl(var(--complete-ink)); border: 1px solid hsl(var(--complete-surface)); }
+  .route-action-complete:hover { filter: brightness(1.08); }
+  .dark .route-action-undo { --undo-surface: 32 30% 16%; --undo-ink: 38 85% 80%; --undo-border: 35 45% 42%; }
+  .dark .route-action-complete { --complete-surface: 149 45% 25%; --complete-ink: 140 30% 95%; }
+  .employee-route-run.dark, .dark .appointment-details-overlay {
+    --background: 220 14% 10%; --card: 220 13% 13%; --popover: 220 13% 16%;
+    --foreground: 210 15% 92%; --card-foreground: 210 15% 92%;
+    --secondary: 220 12% 18%; --secondary-foreground: 210 15% 92%;
+    --muted-foreground: 215 14% 73%; --border: 220 12% 30%; --input: 220 12% 30%;
+    --planner-surface: 220 14% 10%; --planner-surface-raised: 220 13% 15%;
+    --success: 145 45% 64%; --success-foreground: 145 40% 12%;
+  }
+  .employee-route-run.dark .brand-blue-action, .dark .appointment-details-overlay .brand-blue-action {
+    background-image: none; background-color: hsl(var(--accent-soft)); color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--accent) / 0.6); box-shadow: none;
+  }
+  .employee-route-run .route-map-pin-start { color: hsl(var(--background)); }
 
   /* Ruteplanlæggeren er et arbejdsbord, ikke en samling små standardkort. */
   .route-planner-workspace {

@@ -3629,16 +3629,6 @@ const Planner = () => {
                         );
                       }
                       if (canAutoAssign === 0 && !selectionMode) {
-                        // GPS-koordinater hentes automatisk i baggrunden — vi viser
-                        // kun en stille statuslinje når noget mangler, ingen knap.
-                        if (missing > 0) {
-                          return (
-                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-2.5 w-2.5 text-amber-500" />
-                              {missing} aftale{missing === 1 ? "" : "r"} uden GPS — hentes automatisk
-                            </p>
-                          );
-                        }
                         return null;
                       }
                       return (
@@ -3650,12 +3640,6 @@ const Planner = () => {
                               <span>Hvad gør auto-fordel?</span>
                               <HelpTip feature="auto-distribute" />
                             </div>
-                          )}
-                          {missing > 0 && (
-                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-2.5 w-2.5 text-amber-500" />
-                              {missing} uden GPS — hentes automatisk
-                            </p>
                           )}
                           {selectionMode ? (
                             // Selektions-tilstand: knappen fordeler KUN de valgte.
