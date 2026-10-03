@@ -186,7 +186,7 @@ export const RouteChecklistView = ({
 
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-foreground text-base font-bold tabular-nums text-background">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-accent bg-card text-base font-bold tabular-nums text-foreground">
                       {nextNumber}
                     </span>
                     <div className="min-w-0 flex-1">
