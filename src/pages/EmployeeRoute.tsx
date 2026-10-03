@@ -1468,7 +1468,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         finished
           ? `Sidste stop klaret — hele ruten er kørt! 🎉`
           : `${s.customer_name || "Stop"} udført — ${doneNow} af ${total} klaret`,
-        { description: finished ? undefined : `${total - doneNow} stop tilbage på ruten.` },
+        {
+          description: finished ? undefined : `${total - doneNow} stop tilbage på ruten.`,
+          duration: 8000,
+          action: { label: "Fortryd", onClick: () => void handleUndo(s) },
+        },
       );
       setSelectedId(null);
       const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
