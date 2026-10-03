@@ -1924,6 +1924,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               return <FlyToStop target={t} />;
             })()}
           </MapContainer>
+          </>
         )}
 
         {routeStarted && directionsError && (
