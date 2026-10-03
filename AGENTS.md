@@ -24,3 +24,5 @@
 - Driving maps use leaflet-rotate and synchronized motion-track heading/panning, integer zoom dwell and stop-selection suspension; mobile stop actions sit below the map to preserve its usable area.
 - Arrival detection uses bounded accuracy-aware proximity, low-speed gating and short dwell; completing an appointment always remains an explicit action.
 - Driving route lines preserve provider road geometry and render through the shared SVG brand-gradient layer, so decoration never moves a route off the road.
+- Route driving applies the app's dark theme class to the whole driving screen in night mode, and a manual day/night choice lasts only until the next automatic switch, so HUD, dock and map never mix light and dark.
+- Live route re-optimization never reorders when the employee is within 250 m of the next stop, so the stop being arrived at cannot be pushed to the end.

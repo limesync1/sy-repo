@@ -59,18 +59,26 @@ export function useNightMode() {
     return h < 7 || h >= 19 || !!prefersDark;
   };
   const [auto, setAuto] = useState(compute);
-  const [override, setOverride] = useState<boolean | null>(() => {
-    try { const v = localStorage.getItem("route-night-mode"); return v == null ? null : v === "1"; } catch { return null; }
+  // Et manuelt valg gælder kun indtil næste automatiske skift (solopgang/
+  // aften) — så man ikke står med lyst kort kl. 22 pga. et valg fra i går.
+  const [override, setOverride] = useState<{ value: boolean; against: boolean } | null>(() => {
+    try { const v = JSON.parse(localStorage.getItem("route-night-mode-v2") || "null"); return v && typeof v.value === "boolean" ? v : null; } catch { return null; }
   });
   useEffect(() => {
     const id = window.setInterval(() => setAuto(compute()), 60_000);
     return () => window.clearInterval(id);
   }, []);
-  const night = override ?? auto;
+  useEffect(() => {
+    if (override && override.against !== auto) {
+      setOverride(null);
+      try { localStorage.removeItem("route-night-mode-v2"); } catch { /* private mode */ }
+    }
+  }, [auto, override]);
+  const night = override && override.against === auto ? override.value : auto;
   const toggle = () => {
-    const next = !night;
+    const next = { value: !night, against: auto };
     setOverride(next);
-    try { localStorage.setItem("route-night-mode", next ? "1" : "0"); } catch { /* private mode */ }
+    try { localStorage.setItem("route-night-mode-v2", JSON.stringify(next)); } catch { /* private mode */ }
   };
   return { night, toggle };
 }

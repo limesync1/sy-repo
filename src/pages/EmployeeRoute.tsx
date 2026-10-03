@@ -595,6 +595,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   useWakeLock(driving && pageVisible);
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
   const { night, toggle: toggleNight } = useNightMode();
+  // Uden centrér-knap: kortet vender selv tilbage til at følge dig kort
+  // efter at du har kigget rundt med fingeren.
+  useEffect(() => {
+    if (!routeStarted || followMode) return;
+    const t = window.setTimeout(() => { setHighlightedId(null); setFollowMode(true); }, 8000);
+    return () => window.clearTimeout(t);
+  }, [routeStarted, followMode]);
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
@@ -1400,6 +1407,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }
         return;
       }
+      // Står man allerede ved (eller tæt på) næste stop, må rækkefølgen ikke
+      // ændres — ellers flyttes stoppet man er fremme ved bagerst i køen.
+      const head = remaining[0];
+      if (head && head.latitude != null && head.longitude != null) {
+        const dLat = (head.latitude - pos[0]) * 111_320;
+        const dLng = (head.longitude - pos[1]) * 111_320 * Math.cos((pos[0] * Math.PI) / 180);
+        if (Math.hypot(dLat, dLng) < 250) {
+          if (!opts.silent) toast.success("Du er ved næste stop — rækkefølgen er uændret");
+          return;
+        }
+      }
       const res = await optimizeLive.mutateAsync({ routeId, lat: pos[0], lng: pos[1] });
       if (res.order_changed && !opts.silent) {
         const savedKm = Math.round(res.saved_km ?? 0);
@@ -1611,7 +1629,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }
 
   return (
-    <div className="employee-route-run fixed inset-0 flex flex-col bg-background overflow-hidden">
+    <div className={cn("employee-route-run fixed inset-0 flex flex-col bg-background overflow-hidden", night && routeStarted && "dark route-night")}>
       {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
           synlig før rute starter eller ved færdig.  Lyd-knappen findes
           som floating control under kørsel — ingen dubletter her. ─── */}
@@ -1791,13 +1809,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               track={motionTrack}
               speedMps={userSpeedMps}
             />
-            {routeStarted && (
-              <DriveMapControls
-                following={followMode}
-                onFollow={() => { setHighlightedId(null); setFollowMode(true); }}
-                onManualZoom={() => setFollowMode(false)}
-              />
-            )}
+
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
@@ -2043,10 +2055,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   const current = i === nextStopIdx;
                   return (
                     <span key={s.id} className="relative flex h-3.5 w-3.5 items-center justify-center" title={s.customer_name || `Stop ${i + 1}`}>
-                      {current && <span className="absolute inset-0 animate-ping rounded-full bg-accent/50" />}
+                      {current && <span className={cn("absolute inset-0 animate-ping rounded-full", isAtNextStop ? "bg-success/60" : "bg-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
                       <span className={cn(
                         "relative flex items-center justify-center rounded-full",
-                        done ? "h-3.5 w-3.5 bg-success text-success-foreground" : current ? "h-3.5 w-3.5 bg-accent" : "h-2.5 w-2.5 bg-muted-foreground/40",
+                        done ? "h-3.5 w-3.5 bg-success text-success-foreground" : current ? cn("h-3.5 w-3.5", isAtNextStop ? "bg-success" : "bg-accent") : "h-2.5 w-2.5 bg-muted-foreground/40",
                       )}>
                         {done && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
                       </span>
