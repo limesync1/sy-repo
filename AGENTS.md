@@ -1,18 +1,20 @@
 # Project architecture rules
 
-- Appointment detail surfaces share `AppointmentDetailsHeader` and the self-scoped `appointment-details-overlay` theme so portal rendering and full-screen employee driving cannot lose the planner window design.
+- Appointment details share `AppointmentDetailsHeader` and `appointment-details-overlay` so portals retain the planner theme.
+- Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.
+- Validate suggestion stops against the route and employees against its business before RLS-protected writes.
 
 - Business/employee navigation uses `PanelShell` and `SidebarParts`; admin keeps compatibility exports and the `service-panel-*` system. Do not duplicate layout behavior by role.
 - Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
 - Semantic content illustrations resolve through `BrandedIllustration`, while `PanelIcon` and customer variants reuse those assets when meanings match, preventing stale duplicate icon sets.
-- Official external profile URLs are centralized in `src/lib/social-links.ts` so visible links and page-level organization data stay consistent.
+- Official profile URLs share `src/lib/social-links.ts` to keep links and organization data consistent.
 - Public SEO routes get a build-time static <head> (title, description, canonical, og:*) generated from the content registries via the sitemap script and the seo-prerender-head Vite plugin, so non-JS crawlers see page-specific metadata.
 - All lead sources normalize into `quote_requests`/`quote_request_matches`, while provider connections and credentials stay server-side and business-scoped, so the Leads workspace has one secure source of truth.
 - Meta source selection models Facebook Pages as the parent source and surfaces their linked Instagram account and lead forms together, because Meta exposes Instagram lead access through the connected Page.
 - Meta OAuth always uses the public `https://serviceydere.dk/meta/callback` URI, which forwards the authorization response to the server callback so Meta configuration remains stable across preview and production.
 - Restarted employee workdays preserve prior elapsed seconds in `accumulated_seconds` and open a new active interval, so completed appointments and precise time history remain intact.
-- Standard employee pages use the shared `EmployeePage` container, keeping their width and vertical rhythm aligned with the business panel while route-driving remains full-screen.
+- Standard employee pages share `EmployeePage` for panel alignment; route-driving stays full-screen.
 - Archived routes cannot remain recurrence anchors or enter projection queries, preventing deleted routes from resurfacing as ghost routes.
 - Route printing consumes the loaded calendar route collection and applies date and content selection inside the print workspace, keeping one source of truth for preview and paper output.
 - Employee route geocoding uses an authenticated server function that prefers the business-owned Google server key and falls back to the linked Google Maps connector, keeping billable credentials off the browser and distinguishing key, service and unmatched-address failures.

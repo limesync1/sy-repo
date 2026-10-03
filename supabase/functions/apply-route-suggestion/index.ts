@@ -122,22 +122,25 @@ Deno.serve(async (req) => {
 
     // Slet from-medarbejder hvis specificeret, ellers slet alle
     if (fromEmp) {
-      await authClient.from("route_stop_assignees")
+      const { error } = await authClient.from("route_stop_assignees")
         .delete()
         .eq("stop_id", stopId)
         .eq("employee_id", fromEmp);
+      if (error) throw new Error("Tildelingen kunne ikke ændres");
     } else {
-      await authClient.from("route_stop_assignees")
+      const { error } = await authClient.from("route_stop_assignees")
         .delete()
         .eq("stop_id", stopId);
+      if (error) throw new Error("Tildelingen kunne ikke ændres");
     }
 
     // Tilføj to-medarbejder som lead
-    await authClient.from("route_stop_assignees").insert({
+    const { error: assignError } = await authClient.from("route_stop_assignees").insert({
       stop_id: stopId,
       employee_id: toEmp,
       is_lead: true,
     });
+    if (assignError) throw new Error("Medarbejderen kunne ikke tildeles");
 
     // Fjern det anvendte forslag fra listen.
     // VIGTIGT: Når et forslag anvendes, ændrer vi assignees → input-fingerprint
