@@ -236,7 +236,7 @@ export const RouteChecklistView = ({
                         Start aftale
                       </Button>
                     )}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className={cn("grid gap-2", next.customer_phone ? "grid-cols-2" : "grid-cols-1")}>
                       <Button variant="outline" className="h-11 gap-2" onClick={() => onNavigate(next)}>
                         <Navigation2 className="h-4 w-4" />
                         Kør dertil
@@ -248,16 +248,11 @@ export const RouteChecklistView = ({
                             Ring
                           </a>
                         </Button>
-                      ) : (
-                        <Button variant="outline" className="h-11 gap-2" disabled>
-                          <Phone className="h-4 w-4" />
-                          Intet nr.
-                        </Button>
-                      )}
+                      ) : null}
                     </div>
                     {!nextIsStarted && (
                       <details className="group rounded-md text-center">
-                      <summary className="cursor-pointer list-none py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Flere muligheder</summary>
+                      <summary className="mx-auto mt-1 inline-flex h-10 cursor-pointer list-none items-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-secondary">Flere muligheder</summary>
                       <Button
                         variant="ghost"
                         className="h-10 w-full gap-1.5 text-sm text-muted-foreground hover:text-foreground"

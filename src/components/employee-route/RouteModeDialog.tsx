@@ -1,4 +1,4 @@
-import { BatteryCharging, ArrowRight, CheckCircle2 } from "lucide-react";
+import { BatteryCharging, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,15 +29,15 @@ const options: Array<{
     mode: "list",
     illustration: "checklist",
     title: "Tjekliste",
-    body: "Se stoppene i rækkefølge og tryk “Udført”, når arbejdet er udført hvert sted.",
-    note: "Bruger næsten ingen strøm — intet kort, ingen GPS.",
+    body: "Stoppene i rækkefølge — tryk “Udført” ved hvert sted.",
+    note: "Sparer strøm",
   },
   {
     mode: "guide",
     illustration: "drivingGuide",
     title: "Kørselsguide",
-    body: "Kort med rutelinje, afstand til næste stop og stille vejvisning.",
-    note: "Bruger mere strøm — hold gerne telefonen i lader.",
+    body: "Kort med rute, sving og afstand til næste stop.",
+    note: "Bruger mere strøm",
   },
 ];
 
@@ -72,7 +72,7 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2 text-[15px] font-semibold text-foreground">
-                    <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" />{o.title}</span>
+                    <span>{o.title}</span>
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </span>
                   <span className="mt-0.5 block text-[13px] leading-5 text-muted-foreground">
