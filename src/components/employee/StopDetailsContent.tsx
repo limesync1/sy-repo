@@ -318,38 +318,26 @@ export const StopDetailsContent = ({
           </Badge>
         </SheetHeaderBlock>
         
-        {/* Hurtig-handlinger: Maps + Ring direkte i header — ingen scroll nødvendig.
-            Stor touch-target, kompakt layout, samme stil som virksomhedspanelet. */}
-        {!readOnly && (fullAddress || stop.customer_phone) && (
-          <div className="mt-3 flex gap-2">
-            {fullAddress && onNavigate && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex-1 gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary"
-                onClick={onNavigate}
-              >
-                <MapPin className="h-3.5 w-3.5" /> Kør dertil
-              </Button>
-            )}
-            {stop.customer_phone && (
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="flex-1 gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary"
-              >
-                <a href={`tel:${stop.customer_phone}`}>
-                  <Phone className="h-3.5 w-3.5" /> Ring
-                </a>
-              </Button>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-4 p-4 sm:space-y-5 sm:p-5">
+        {!readOnly && (fullAddress || stop.customer_phone) && (
+          <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kontakt og navigation">
+            <div className="grid grid-cols-2 gap-2">
+              {fullAddress && onNavigate && (
+                <Button type="button" size="sm" className="brand-blue-action h-10 gap-1.5 rounded-md text-xs font-semibold" onClick={onNavigate}>
+                  <MapPin className="h-3.5 w-3.5" /> Kør dertil
+                </Button>
+              )}
+              {stop.customer_phone && (
+                <Button asChild variant="outline" size="sm" className="h-10 gap-1.5 rounded-md text-xs font-semibold">
+                  <a href={`tel:${stop.customer_phone}`}><Phone className="h-3.5 w-3.5" /> Ring</a>
+                </Button>
+              )}
+            </div>
+          </Section>
+        )}
+
         {/* Statistik viser kun afsluttet faktisk tidsforbrug. Aktiv status og
             starttid hører alene til medarbejderens aktive rutekørsel. */}
         {(!readOnly || (!isWorking && totalDurationSeconds > 0)) && (
