@@ -161,4 +161,4 @@
 - [x] Gør navigator og stopkontroller kompakte og neutrale; brug SVG-stopikoner
 - [x] Kontrollér mobilflow, navigationstest og fejl
 
-- Mobilkontrol: Min dag, Statistik, Livechat og stopvindue; 29 navigationstests bestod. Isoleret rute med to adresseopslag gennemført med simuleret GPS, testdata fjernet. Fysisk GPS-kørsel er fortsat ikke verificeret.
+- Mobilkontrol: Min dag, Statistik, profilmenu, notifikationer og stopvindue; Livechat var ikke aktiveret for testmedarbejderen; 29 navigationstests bestod. Isoleret rute med to adresseopslag gennemført med simuleret GPS, testdata fjernet. Fysisk GPS-kørsel er fortsat ikke verificeret.
