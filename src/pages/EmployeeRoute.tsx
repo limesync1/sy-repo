@@ -1323,9 +1323,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleNavigate = (s: RouteStop) => {
     // Åbn vores egen kørselsguide på kortet i stedet for at sende
     // medarbejderen ud til Google Maps.
-    setHighlightedId(s.id);
+    setHighlightedId(null);
     setSelectedId(null);
-    setFollowMode(false);
+    setFollowMode(true);
     if (runMode !== "guide") {
       setRunMode("guide");
       writeRunMode("guide", !!readRunMode());
@@ -1964,7 +1964,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 variant="ghost"
                 className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setSelectedId(nextStop.id)}
-                aria-expanded={!collapsed}
                 aria-label="Vis aftalens oplysninger"
               >
                 <span
@@ -1994,8 +1993,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                 </div>
                 {activeNextStopLabel && (
-                  <Badge variant="outline" className="h-7 shrink-0 gap-1.5 border-success/30 bg-success/10 px-2 font-mono text-[11px] font-semibold tabular-nums text-success">
-                    <Clock className="h-3.5 w-3.5" /> {activeNextStopLabel}
+                  <Badge variant="outline" className="hidden h-7 shrink-0 border-success/30 bg-success/10 px-2 font-mono text-[11px] font-semibold tabular-nums text-success sm:inline-flex">
+                    {activeNextStopLabel}
                   </Badge>
                 )}
                 {isAtNextStop ? (
@@ -2028,9 +2027,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                   </div>
                 ) : null}
-                <span className="ml-1 text-muted-foreground/70 group-hover:text-foreground transition-colors">
-                  {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </span>
               </Button>
 
               {/* Altid synlig: kompakt CTA-rad — så medarbejderen kan markere
@@ -2081,9 +2077,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       </a>
                     </Button>
                   ) : (
-                    <Button variant="outline" size="sm" aria-label="Ingen telefon" disabled className="h-11 w-11 p-0 rounded-md border-border">
-                      <Phone className="h-4 w-4" />
-                    </Button>
+                    <span aria-hidden="true" />
                   )}
                 </div>
               )}
