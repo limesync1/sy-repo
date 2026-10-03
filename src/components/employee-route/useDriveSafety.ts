@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 export type DriveIssue = {
-  id: "no-geo" | "denied" | "unavailable" | "timeout" | "stale" | "weak" | "offline" | "insecure";
+  id: "no-geo" | "denied" | "unavailable" | "timeout" | "stale" | "weak" | "offline" | "insecure" | "night-map";
   tone: "error" | "warning";
   title: string;
   body: string;

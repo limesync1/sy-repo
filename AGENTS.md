@@ -26,5 +26,6 @@
 - Driving route lines preserve provider road geometry and render through the shared SVG brand-gradient layer, so decoration never moves a route off the road.
 - One route theme owner controls guide, checklist and portals; manual night choices reset at the next automatic switch, preventing mixed themes.
 - Live route re-optimization never reorders when the employee is within 250 m of the next stop, so the stop being arrived at cannot be pushed to the end.
-- Guide and checklist share route metrics and the completion summary; customer intervals are merged per employee and transport is explicitly estimated, preventing double-counting or automatic exit.
+- Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
+- Night maps use OpenFreeMap vectors in Leaflet's rotating tile pane, with a dim raster reserve and explicit load errors, avoiding key-gated basemaps.
