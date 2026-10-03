@@ -1,4 +1,3 @@
-import { useNightMode, useRootDark } from "./useDriveSafety";
 import { Moon, Sun } from "lucide-react";
 import { formatClockTime, formatRunDuration } from "./route-run-clock";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -26,8 +25,7 @@ import { cn } from "@/lib/utils";
 import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { stripPrices } from "@/lib/employee-display";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
-import { playStartChime, speak, unlockAudio } from "@/lib/employee-audio";
+import { playStartChime, unlockAudio } from "@/lib/employee-audio";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -60,6 +58,8 @@ type Props = {
   arrivalLabel?: string | null;
   driveEstimateSeconds?: number | null;
   summary?: ReactNode;
+  night: boolean;
+  onToggleNight: () => void;
 };
 
 const formatElapsed = (seconds: number) => {
@@ -90,10 +90,10 @@ export const RouteChecklistView = ({
   arrivalLabel = null,
   driveEstimateSeconds = null,
   summary,
+  night,
+  onToggleNight,
 }: Props) => {
   const employeeId = useMyEmployeeId();
-  const { night, toggle: toggleNight } = useNightMode();
-  useRootDark(night);
   const { data: timeEntries = [] } = useStopTimeEntries(stops.map((stop) => stop.id));
   const startStopTime = useStartStopTime();
   const [now, setNow] = useState(() => Date.now());
@@ -150,7 +150,7 @@ export const RouteChecklistView = ({
             <MapIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Kortvisning</span>
           </Button>
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={toggleNight} aria-label={night ? "Skift til lys visning" : "Skift til mørk visning"} aria-pressed={night}>
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleNight} aria-label={night ? "Skift til lys visning" : "Skift til mørk visning"} aria-pressed={night}>
             {night ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
           <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onToggleAudio} aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"} aria-pressed={!audioEnabled}>

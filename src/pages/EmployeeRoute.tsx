@@ -1581,6 +1581,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           ? () => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))
           : undefined}
         audioEnabled={audioEnabled}
+        night={night}
+        onToggleNight={toggleNight}
         onToggleAudio={() => {
           unlockAudio();
           setAudioEnabled((value) => !value);
@@ -2322,7 +2324,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 onUndo={() => handleUndo(s)}
                 onNavigate={() => handleNavigate(s)}
                 isPending={updateStatus.isPending}
-                pendingTimeLabel="Starter automatisk, når du ankommer"
+                pendingTimeLabel="Tryk Start for at registrere arbejdstid"
               />
             );
           })()}
