@@ -313,9 +313,9 @@ export const StopDetailsContent = ({
             </Badge>
           ) : null}
           
-          <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
+          {stop.order_id && paymentStatus !== "unknown" && <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
-          </Badge>
+          </Badge>}
         </AppointmentDetailsHeader>
         
       </div>
