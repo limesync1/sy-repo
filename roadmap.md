@@ -1,6 +1,9 @@
 # Roadmap
 
 ## Aftalevinduer og nyt visningsikon
+- [x] Fjern små prikker ved Næste handling og stopstatus i aftalevinduerne
+- [x] Byg Kom godt i gang som ét panelvindue målt til skærmhøjden med det nye guide-ikon
+- [ ] Kontrollér Kom godt i gang i browseren — testkontoen har ikke adgang til et virksomhedspanel
 - [x] Ensret de faktiske aftalevinduer på Aftaler, Min dag og rutekørsel med samme header og vinduesflader
 - [x] Brug det vedhæftede Visning af aftale-ikon i alle aftaledetaljer
 - [x] Kontrollér Aftaler-vinduet og indlæst ikon på computer og mobil i browseren

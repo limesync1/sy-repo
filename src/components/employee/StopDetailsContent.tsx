@@ -304,8 +304,7 @@ export const StopDetailsContent = ({
             )
           }
         >
-          <Badge variant="outline" className="gap-1 text-[10px]">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
+          <Badge variant="outline" className="text-[10px]">
             Stop {index + 1}
           </Badge>
           {isDone ? (
@@ -350,8 +349,7 @@ export const StopDetailsContent = ({
             <div className="rounded-md border bg-card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 {!readOnly && isWorking ? (
-                  <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground animate-pulse">
-                    <div className="h-2 w-2 rounded-full bg-feature-cool" />
+                  <div className="flex items-center gap-2 text-sm font-medium text-feature-cool-foreground">
                     <span>Tidsregistrering aktiv</span>
                     <span className="font-mono font-semibold tabular-nums text-foreground">{durationLabel}</span>
                   </div>
@@ -542,7 +540,7 @@ export const StopDetailsContent = ({
             <div className="space-y-2">
               <Button
                 onClick={onComplete}
-                className="w-full gap-2 h-12 text-base font-semibold rounded-lg shadow-sm bg-foreground text-background hover:bg-foreground/90"
+                className="h-10 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background shadow-sm hover:bg-foreground/90"
                 size="lg"
                 disabled={!!isPending || !canComplete}
               >
@@ -561,14 +559,14 @@ export const StopDetailsContent = ({
                 <Button
                   onClick={handleResendInvoice}
                   disabled={resending}
-                  className="w-full gap-2 h-11 rounded-lg bg-foreground text-background hover:bg-foreground/90"
+                  className="h-10 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background hover:bg-foreground/90"
                 >
                   {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   Send faktura til kunden
                 </Button>
               )}
               {!readOnly && (
-                <Button onClick={onUndo} variant="outline" className="h-11 w-full gap-2 rounded-lg sm:w-auto sm:min-w-40">
+                <Button onClick={onUndo} variant="outline" className="h-10 w-full gap-2 rounded-md text-sm sm:w-auto sm:min-w-40">
                   <Undo2 className="h-4 w-4" />
                   Fortryd udførsel
                 </Button>
