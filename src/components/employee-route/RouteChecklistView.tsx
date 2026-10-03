@@ -226,7 +226,7 @@ export const RouteChecklistView = ({
                   {nextIsStarted && (
                     <div className="mt-3 flex items-center justify-between rounded-md border border-success/25 bg-success/10 px-3 py-2">
                       <span className="flex items-center gap-2 text-sm font-medium text-success">
-                        <span className="relative h-2 w-2 rounded-full bg-success"><span className="route-soft-pulse absolute inset-0 rounded-full bg-success" /></span>
+                        <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
                         Tid registreres
                       </span>
                       <span className="font-mono text-xl font-semibold tabular-nums text-foreground">{formatElapsed(elapsedSeconds)}</span>

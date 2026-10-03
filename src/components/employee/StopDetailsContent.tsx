@@ -290,7 +290,7 @@ export const StopDetailsContent = ({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-secondary/20">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
       <div className="planner-overlay-header shrink-0 border-b border-border px-4 py-2 pr-14 sm:py-3 sm:px-5 sm:pr-14">
         <AppointmentDetailsHeader
