@@ -2076,8 +2076,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">
                   <span>Start <b className="font-semibold text-foreground">{formatClockTime(routeStartedAt)}</b></span>
-                  <span>Køretid · est. <b className="font-semibold text-foreground">{timeError || timeLoading || metrics.driveEstimateSeconds == null ? "—" : formatRunDuration(metrics.driveEstimateSeconds)}</b></span>
-                  <span>{actualArrival ? "Ankommet" : "Ankomst · est."} <b className="font-semibold text-foreground">{actualArrival ? formatClockTime(actualArrival) : etaLabel ?? "—"}</b></span>
+                  <span>Køretid · ca. <b className="font-semibold text-foreground">{timeError || timeLoading || metrics.driveEstimateSeconds == null ? "—" : formatRunDuration(metrics.driveEstimateSeconds)}</b></span>
+                  <span>{actualArrival ? "Ankommet" : "Ankomst · ca."} <b className="font-semibold text-foreground">{actualArrival ? formatClockTime(actualArrival) : etaLabel ?? "—"}</b></span>
                   {activeNextStopLabel && <span>Tidsregistrering <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
                 </p>
               )}

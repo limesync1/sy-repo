@@ -197,6 +197,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
   };
 
   const totalStops = selectedRoutes.reduce((sum, route) => sum + route.stops.length, 0);
+  const printDisabled = selectedRoutes.length === 0 || selectedRoutes.some(route => route.receipt?.loading || route.receipt?.error);
   const periodLabel = selectedDates.length === 1
     ? dateLabel(selectedDates[0])
     : `${shortDateLabel(selectedDates[0])} – ${shortDateLabel(selectedDates[selectedDates.length - 1])}`;
@@ -228,7 +229,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
             <DialogTitle className="truncate text-sm font-semibold text-foreground">{title}</DialogTitle>
             <DialogDescription className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Vælg periode og indhold, før du printer eller gemmer som PDF.</DialogDescription>
           </div>
-          <Button size="sm" onClick={() => window.print()} disabled={selectedRoutes.length === 0} className="hidden shrink-0 gap-2 lg:inline-flex">
+          <Button size="sm" onClick={() => window.print()} disabled={printDisabled} className="hidden shrink-0 gap-2 lg:inline-flex">
             <Printer className="h-4 w-4" />
             <span className="hidden sm:inline">Print / Gem som PDF</span>
             <span className="sm:hidden">Print</span>
@@ -418,7 +419,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
         </div>
         <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
           <span className="min-w-0 text-xs text-muted-foreground">{selectedRoutes.length} {selectedRoutes.length === 1 ? "rute" : "ruter"} · {totalStops} stop</span>
-          <Button className="h-11 shrink-0 gap-2" onClick={() => window.print()} disabled={selectedRoutes.length === 0}><Printer className="h-4 w-4" />Print / PDF</Button>
+          <Button className="h-11 shrink-0 gap-2" onClick={() => window.print()} disabled={printDisabled}><Printer className="h-4 w-4" />Print / PDF</Button>
         </div>
       </DialogContent>
     </Dialog>

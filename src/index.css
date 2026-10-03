@@ -749,6 +749,7 @@
   .employee-route-run .nav-puck-cone { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 34px solid hsl(var(--brand-blue-start) / 0.25); opacity: 0; }
   .employee-route-run .leaflet-control-attribution { background: hsl(var(--card) / 0.88); color: hsl(var(--muted-foreground)); font-size: 9px; }
   .employee-route-run .leaflet-control-attribution a { color: hsl(var(--accent)); }
+  .employee-route-run.dark .leaflet-control-attribution { background: hsl(var(--card) / 0.95) !important; color: hsl(var(--muted-foreground)) !important; }
 
 
   .route-action-undo { background: hsl(var(--undo-surface)); color: hsl(var(--undo-ink)); border: 1px solid hsl(var(--undo-border)); }
