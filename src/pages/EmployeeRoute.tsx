@@ -42,7 +42,7 @@ import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completi
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
-import { geocodeAddress } from "@/lib/geocode";
+import { GeocodeServiceError, geocodeAddress } from "@/lib/geocode";
 import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
@@ -514,6 +514,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [geocodeState, setGeocodeState] = useState<"idle" | "pending" | "done" | "failed">("idle");
   const [geocodeAttempt, setGeocodeAttempt] = useState(0);
   const [unresolvedAddresses, setUnresolvedAddresses] = useState<string[]>([]);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
 
   /* Geolocation permission — husk på tværs af sessioner.
    * Browseren persisterer selv "granted/denied" pr. origin, men hvis
@@ -649,9 +650,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     [sortedStops],
   );
 
-  // Geokod stop der mangler koordinater, så kortet aldrig viser "ingen
-  // koordinater" — DAWA er gratis og kræver ingen nøgle. Resultatet
-  // forsøges gemt på stoppet, så det kun skal slås op én gang.
+  // Geokod stop der mangler koordinater via appens loginbeskyttede opslag.
+  // Resultatet forsøges gemt på stoppet, så adressen kun slås op én gang.
   const geocodingRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const missing = sortedStops.filter(
@@ -663,16 +663,27 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       return;
     }
     setGeocodeState("pending");
+    setGeocodeError(null);
     missing.forEach((s) => geocodingRef.current.add(s.id));
     let cancelled = false;
     (async () => {
       let foundCoordinates = false;
       let routeHit: Awaited<ReturnType<typeof geocodeAddress>> = null;
       const stopHits = new Map<string, NonNullable<Awaited<ReturnType<typeof geocodeAddress>>>>();
-      const [resolvedRoute, ...resolvedStops] = await Promise.all([
-        routeNeedsCoordinates && route?.start_address ? geocodeAddress(route.start_address) : Promise.resolve(null),
-        ...missing.map((stop) => geocodeAddress(stop.full_address || stop.address || "")),
-      ]);
+      let resolvedRoute: Awaited<ReturnType<typeof geocodeAddress>> = null;
+      let resolvedStops: Array<Awaited<ReturnType<typeof geocodeAddress>>> = [];
+      try {
+        [resolvedRoute, ...resolvedStops] = await Promise.all([
+          routeNeedsCoordinates && route?.start_address ? geocodeAddress(route.start_address) : Promise.resolve(null),
+          ...missing.map((stop) => geocodeAddress(stop.full_address || stop.address || "")),
+        ]);
+      } catch (error) {
+        if (!cancelled) {
+          setGeocodeError(error instanceof GeocodeServiceError ? error.message : "Adresseopslaget mislykkedes");
+          setGeocodeState("failed");
+        }
+        return;
+      }
       routeHit = resolvedRoute;
       if (routeHit) foundCoordinates = true;
       const unresolved: string[] = [];
@@ -723,6 +734,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const retryGeocoding = () => {
     geocodingRef.current.clear();
     setUnresolvedAddresses([]);
+    setGeocodeError(null);
     setGeocodeState("idle");
     setGeocodeAttempt((attempt) => attempt + 1);
   };
@@ -1711,8 +1723,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <div className="max-w-sm space-y-3">
               <BrandedIllustration name="drivingGuide" className="mx-auto h-16 w-16" alt="" />
               <div>
-                <p className="text-sm font-semibold text-foreground">Kortet kunne ikke finde adresserne</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">Vi prøvede både et præcist opslag og et bredere adresseopslag. Prøv igen, eller bed virksomheden kontrollere adressen.</p>
+                <p className="text-sm font-semibold text-foreground">{geocodeError ? "Adresseopslaget er midlertidigt utilgængeligt" : "Kortet kunne ikke finde adresserne"}</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{geocodeError ? "Stoplisten virker stadig. Prøv adresseopslaget igen om et øjeblik." : "Kontrollér, at vej, husnummer, postnummer og by står på aftalen, og prøv igen."}</p>
                 {unresolvedAddresses.length > 0 && (
                   <p className="mt-2 text-[11px] text-muted-foreground">Kunne ikke finde: {unresolvedAddresses.slice(0, 3).join(", ")}{unresolvedAddresses.length > 3 ? ` og ${unresolvedAddresses.length - 3} flere` : ""}</p>
                 )}
