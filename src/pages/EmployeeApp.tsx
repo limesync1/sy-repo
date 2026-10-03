@@ -37,6 +37,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { statusBadgeClass, statusLabel } from "@/lib/statusColors";
+import { stripPrices } from "@/lib/employee-display";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
