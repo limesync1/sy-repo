@@ -9,6 +9,7 @@ Services have subcategories (e.g. Rengøring → Privatrengøring, Erhvervsreng�
 Businesses support multiple categories (categories text[]). Services have interval options.
 
 ## Memories
+- [Telefonapp og letlæselig rutekørsel](mem://features/route-app) — PWA, korte labels, fælles ankomst og kvittering
 - [Platform plan](mem://features/platform-plan) — 6-phase plan: landing, business site template, admin panel, marketplace, database, premium
 - [Price calculator](mem://features/price-calculator) — 3 types: fast pris, timepris, prisberegner with custom units (m², stk, timer, etc.)
 - [Testfase-besked](mem://features/beta-notice) — venteliste, notice på alle sider, adminfane "Venteliste", åbnings-mail
