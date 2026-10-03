@@ -80,7 +80,7 @@ import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.
 import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg";
 
 import routeReady from "@/assets/illustrations/employee/start-rute.svg.asset.json";
-import routeDone from "@/assets/illustrations/employee/ruten-er-koert-faerdig.svg.asset.json";
+import routeDone from "@/assets/content-icons/ruten-er-koert-faerdig.svg.asset.json";
 import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg.asset.json";
 import checklist from "@/assets/illustrations/employee/tjekliste.svg.asset.json";
 import drivingGuide from "@/assets/illustrations/employee/koerselsguide.svg.asset.json";
