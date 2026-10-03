@@ -24,6 +24,7 @@ export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (
       onFailure(true);
     };
     const load = async () => { try {
+      timeout = setTimeout(() => { fail(); controller.abort(); }, 15_000);
       const response = await fetch("https://tiles.openfreemap.org/styles/dark", { signal: controller.signal });
       if (!response.ok) throw new Error("Night style unavailable");
       const style = await response.json();
@@ -57,7 +58,6 @@ export function NightBasemap({ retry, onFailure }: { retry: number; onFailure: (
           onFailure(false);
         }
       });
-      timeout = setTimeout(fail, 15_000);
       map.attributionControl?.addAttribution(attribution);
     } catch { if (active) fail(); } };
     void load();

@@ -1,11 +1,12 @@
 # Roadmap
 
 ## Hjemmeskærmsapp og tydelig rutekørsel
-- [ ] Installerbar PWA uden offline-cache
-- [ ] Fælles ankomst i tjekliste og guide, korte knaptekster
-- [ ] Arbejdskvittering med start, tider og indtjening
-- [ ] Dæmpet vektorkort med tydelige veje
-- [ ] Mobil- og regressionstest med isolerede data
+- [x] Manifest og hjemmeskærmsikoner uden offline-cache; installation på telefon afventer
+- [x] Fælles ankomst i tjekliste og guide, korte knaptekster
+- [x] Arbejdskvittering med start, tider og indtjening fra samme kilde som statistik
+- [x] Dæmpet vektorkort med tydelige veje og labels, reservekort og timeout
+- [x] 41 regressionstests og mobilkontrol af natkort, fælles ETA, kvittering og printvalg; ingen browserfejl
+- [ ] Udført/fortryd med stopnummer og beløb på isoleret testrute; ikke verificeret i denne ændring
 - [ ] Fysisk bil- og lydtest — kræver brugerens telefon og bil
 
 ## Tydeligere rutekørsel i begge temaer

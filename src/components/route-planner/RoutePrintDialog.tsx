@@ -320,7 +320,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                 <section key={date} data-print-day className={cn("overflow-hidden rounded-md border border-border bg-background shadow-sm print:rounded-none print:border-0 print:shadow-none", dayRoutes.length === 0 && "print:hidden")}>
                   <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-3 sm:px-6 print:px-0 print:pt-0">
                     <div>
-                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">Ruteplan</p>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">{dayRoutes.some(route => route.receipt) ? "Arbejdskvittering" : "Ruteplan"}</p>
                       <h1 className="mt-1 text-lg font-semibold capitalize text-foreground">{dateLabel(date)}</h1>
                       {businessName && <p className="mt-0.5 text-xs text-muted-foreground">{businessName}</p>}
                     </div>
