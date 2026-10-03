@@ -1306,7 +1306,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
     && !nearNextStop
-    && maneuver.distanceToManeuverM <= 800
+    && maneuver.distanceToManeuverM <= 2000
     && !["depart", "arrive"].includes((maneuver.currentStep.maneuver.type || "").toLowerCase());
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
@@ -2048,7 +2048,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-success/15 text-success">
                     Fremme
                   </Badge>
-                ) : distanceToNextM != null ? (
+                ) : nearNextStop && distanceToNextM != null ? (
                   <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
                       {/* Tæt på stoppet er vejafstanden misvisende (den peger
