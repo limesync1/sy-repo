@@ -53,7 +53,8 @@ import {
   evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
 import { ArrowUp, ArrowDown, Zap } from "lucide-react";
-import { useDriveIssues, useWakeLock } from "@/components/employee-route/useDriveSafety";
+import { useDriveIssues, useWakeLock, useNightMode } from "@/components/employee-route/useDriveSafety";
+import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 
 /* ── Map icons ──────────────────────────────────────────────── */
@@ -584,6 +585,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const driving = routeStarted && runMode !== "list";
   useWakeLock(driving && pageVisible);
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
+  const { night, toggle: toggleNight } = useNightMode();
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
@@ -905,7 +907,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       arrivalEnteredAtRef.current = Date.now();
     }
     const elapsed = Date.now() - arrivalEnteredAtRef.current;
-    if (elapsed >= ARRIVAL_DWELL_MS) {
+    // Parkeret: under 1 km/t inden for 35 m — genkend ankomst med det samme.
+    const parked = distanceToNextM != null && distanceToNextM <= 35 && userSpeedMps < 0.28;
+    if (parked || elapsed >= ARRIVAL_DWELL_MS) {
       arrivalStableForStopRef.current = nextStop.id;
       setStableArrival(nextStop.id);
       return;
@@ -920,7 +924,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       }
     }, remaining + 50);
     return () => window.clearTimeout(timeout);
-  }, [inArrivalRadius, nextStop?.id, stableArrival]);
+  }, [inArrivalRadius, nextStop?.id, stableArrival, distanceToNextM, userSpeedMps]);
 
   // An arrival for the previous stop must never start the next appointment.
   const isAtNextStop = !!nextStop && stableArrival === nextStop.id;
@@ -1303,11 +1307,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // stop-kortet, ikke et "Du er fremme"-banner oveni der modsiger kortets
   // afstand.  Matcher Google Maps' adfærd.
   const nearNextStop = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
+  // Altid synlig vejvisning undervejs — lange stræk vises som "Fortsæt".
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
     && !nearNextStop
-    && maneuver.distanceToManeuverM <= 2000
-    && !["depart", "arrive"].includes((maneuver.currentStep.maneuver.type || "").toLowerCase());
+    && (maneuver.currentStep.maneuver.type || "").toLowerCase() !== "arrive";
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
     const type = (maneuver.currentStep.maneuver.type || "").toLowerCase();
@@ -1752,8 +1756,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               uden at fliserne hak'er ind.
             */}
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap-bidragydere'
+              key={night && routeStarted ? "night" : "day"}
+              url={night && routeStarted
+                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
+              attribution={night && routeStarted ? '&copy; OpenStreetMap-bidragydere &copy; CARTO' : '&copy; OpenStreetMap-bidragydere'}
               updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
@@ -1904,6 +1911,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   variant="ghost"
                   size="icon"
                   className="h-11 w-11 shrink-0"
+                  onClick={toggleNight}
+                  aria-label={night ? "Skift til dagkort" : "Skift til natkort"}
+                  aria-pressed={night}
+                >
+                  {night ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-11 w-11 shrink-0"
                   onClick={() => setAudioEnabled((value) => !value)}
                   aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
                   aria-pressed={!audioEnabled}
@@ -1917,17 +1935,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {showManeuverBanner && maneuver && nextStop && (() => {
               const thenStep = directions?.steps?.[maneuver.stepIndex + 1];
               const thenType = (thenStep?.maneuver?.type || "").toLowerCase();
-              const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 400;
+              const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 500;
+              const curType = (maneuver.currentStep.maneuver.type || "").toLowerCase();
+              const longStretch = maneuver.distanceToManeuverM > 2000 || curType === "depart";
+              const road = maneuver.currentStep.name;
               return (
                 <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                   <div className="overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-lg" aria-live="polite">
                     <div className="flex items-center gap-3 px-3.5 py-3">
-                      <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-10 w-10 shrink-0" />
+                      {longStretch
+                        ? <Navigation className="h-9 w-9 shrink-0 text-foreground" aria-hidden="true" />
+                        : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-10 w-10 shrink-0" />}
                       <div className="min-w-0 flex-1">
                         <p className="text-2xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
                         <p className="mt-1 truncate text-sm font-semibold">
-                          {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
-                          {maneuver.currentStep.name ? <span className="font-normal text-muted-foreground"> ad {maneuver.currentStep.name}</span> : null}
+                          {longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                          {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}
                         </p>
                       </div>
                     </div>
@@ -1942,6 +1965,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               );
             })()}
+
+            {/* Ankomst-HUD: parkeret ved kunden */}
+            {isAtNextStop && nextStop && (
+              <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+                <div className="overflow-hidden rounded-xl border border-success/40 bg-card text-foreground shadow-lg" role="status" aria-live="polite">
+                  <div className="flex items-center gap-3 px-3.5 py-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><MapPin className="h-5 w-5" /></span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-success">Du er fremme</p>
+                      <p className="truncate text-base font-bold">{nextStop.customer_name || "Stop"}</p>
+                    </div>
+                  </div>
+                  {nextStop.notes ? (
+                    <p className="line-clamp-3 border-t border-border bg-secondary/50 px-3.5 py-2 text-sm text-foreground">{nextStop.notes}</p>
+                  ) : null}
+                </div>
+              </div>
+            )}
 
             {/* Reroute-banner — Google Maps-stil "genberegner" prompt */}
             {isRerouting && (
@@ -1980,21 +2021,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
               {/* Segmenteret progress — tynd, diskret */}
-              <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
-                {sortedStops.map((s, i) => (
-                  <div
-                    key={s.id}
-                    className="flex-1 h-1 rounded-full transition-all"
-                    style={{
-                      background:
-                        s.status === "completed"
-                          ? "hsl(var(--success))"
-                          : i === nextStopIdx
-                            ? themeColor
-                            : "hsl(var(--muted))",
-                    }}
-                  />
-                ))}
+              {/* Mini rute-tidslinje: grøn = udført, blå puls = aktuel, grå = kommende */}
+              <div className="route-timeline relative flex items-center justify-between px-4 py-2" aria-label={`${completedCount} af ${sortedStops.length} stop udført`}>
+                <span className="absolute left-4 right-4 top-1/2 h-px -translate-y-1/2 bg-border" aria-hidden="true" />
+                {sortedStops.map((s, i) => {
+                  const done = s.status === "completed";
+                  const current = i === nextStopIdx;
+                  return (
+                    <span key={s.id} className="relative flex h-3.5 w-3.5 items-center justify-center" title={s.customer_name || `Stop ${i + 1}`}>
+                      {current && <span className="absolute inset-0 animate-ping rounded-full bg-accent/50" />}
+                      <span className={cn(
+                        "relative flex items-center justify-center rounded-full",
+                        done ? "h-3.5 w-3.5 bg-success text-success-foreground" : current ? "h-3.5 w-3.5 bg-accent" : "h-2.5 w-2.5 bg-muted-foreground/40",
+                      )}>
+                        {done && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+                      </span>
+                    </span>
+                  );
+                })}
               </div>
               {/* Google Maps-stil opsummering: ankomsttid stort, tid og km småt */}
               {!isAtNextStop && liveDurationS != null && (
