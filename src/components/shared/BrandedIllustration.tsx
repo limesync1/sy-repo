@@ -70,6 +70,7 @@ import accountingProgramChoiceNew from "@/assets/content-icons/vaelg-dit-regnska
 import unassignedAppointmentsNew from "@/assets/content-icons/aftaler-uden-rute-2026.svg.asset.json";
 import customerServiceNew from "@/assets/content-icons/kundeservice-ikon-2026.svg.asset.json";
 import payoutNew from "@/assets/content-icons/til-udbetaling.svg.asset.json";
+import appointmentCompletedNew from "@/assets/panel-icons/marker-aftale-udfoert.svg.asset.json";
 
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
 import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
@@ -199,6 +200,7 @@ export const BRANDED_ILLUSTRATIONS = {
   verifiedProvider: verifiedProviderNew.url,
   payout: payoutNew.url,
   customerService: customerServiceNew.url,
+  appointmentCompleted: appointmentCompletedNew.url,
   hourlyPrice: hourlyPriceAsset.url,
   unansweredMessages: unansweredNew.url,
   startDay: startDayIllustration.url,
