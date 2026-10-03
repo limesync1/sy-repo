@@ -38,7 +38,6 @@ import {
   SidebarWorkspaceRow, initialsOf, type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
-import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/PanelBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmployeeNotifications, type EmployeeRouteNotification } from "@/components/employee/EmployeeNotifications";
@@ -277,18 +276,6 @@ export const EmployeeShell = ({
     { key: "logout", icon: LogOut, label: "Log ud", onSelect: signOut, danger: true, separatorBefore: multiWorkspace },
   ];
 
-  /* ---------------- Bundnavigation ---------------- */
-  const bottomItems: BottomNavItem[] = visibleNav.map((item) => ({
-    key: item.value,
-    label: item.label,
-    icon: item.icon,
-    active: activeTab === item.value,
-    onSelect: () => navigateWithinEmployeePanel(navigate, item.href),
-    onPrefetch: () => prefetchTab(item.value),
-    badge: item.value === "today" ? unreadCount : null,
-    badgeWarn: item.value === "today" && unreadCount > 0,
-  }));
-
   return (
     <PanelShell
       storageKey="sy.sidebar.collapsed.employee"
@@ -371,7 +358,6 @@ export const EmployeeShell = ({
           />
         </>
       )}
-      bottomNav={visibleNav.length > 1 ? <PanelBottomNav primary={bottomItems} /> : undefined}
     >
       {needsWorkspaceChoice ? (
         <EmployeeWorkspacePicker

@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, type ReactNode } from "react";
 import { ExternalLink, LogOut, Rocket, Truck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
@@ -20,11 +21,10 @@ import {
   type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
-import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/PanelBottomNav";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import {
-  ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminMobilePrimaryKeys, adminNeighbours,
+  ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminNeighbours,
   findAdminNavItem, isAdminNavVisible, prefetchAdminTab,
   type AdminFeatureFlags, type AdminNavItem, type AdminTabKey,
 } from "./adminNav";
@@ -75,6 +75,7 @@ export const AdminShell = ({
 }: AdminShellProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const mobileTopbar = useIsBelowBreakpoint(640);
 
   // Holder plan-data varm i cachen (bruges af faner senere).
   useBusinessPlan(business.id);
@@ -148,26 +149,6 @@ export const AdminShell = ({
   const displayName =
     (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
 
-  /* ---------------- Mobil bundnavigation ---------------- */
-  const toBottomItem = (item: AdminNavItem): BottomNavItem => ({
-    key: item.value,
-    label: item.label,
-    icon: item.icon,
-    active: activeTab === item.value,
-    onSelect: () => go(item),
-    onPrefetch: () => prefetchAdminTab(item.value),
-    badge: item.value === "getting-started" ? gsBadge : null,
-  });
-  const primaryKeys = adminMobilePrimaryKeys(flags);
-  const primaryItems = primaryKeys
-    .map(findAdminNavItem)
-    .filter((i): i is AdminNavItem => !!i)
-    .map(toBottomItem);
-  const moreItems = ADMIN_NAV_ITEMS
-    .filter((i) => isAdminNavVisible(i, flags) && !primaryKeys.includes(i.value))
-    .filter((i) => i.value !== "getting-started" || showGettingStarted)
-    .map(toBottomItem);
-
   /* ---------------- Profil-menu (sidebar-bund) ---------------- */
   const profileItems: ProfileMenuItem[] = [
     { key: "public", icon: ExternalLink, label: "Se din side", href: `/v/${business.slug}` },
@@ -178,7 +159,7 @@ export const AdminShell = ({
   const publicId = (business as any).public_id as string | undefined;
   const topbarActions = (
     <>
-      {topbarRight && !hideActions && (
+      {topbarRight && !hideActions && !mobileTopbar && (
         <div className="hidden min-w-0 items-center gap-2 sm:flex">{topbarRight}</div>
       )}
       {!hideTopbarUtilities && publicId && (
@@ -220,7 +201,7 @@ export const AdminShell = ({
       title={title ?? currentNav?.label}
       topbarRight={topbarActions}
       topbarExtra={
-        topbarRight && !hideActions ? (
+        topbarRight && !hideActions && mobileTopbar ? (
           <div className="sticky top-14 z-20 border-b border-border/60 bg-card px-3 py-2 sm:hidden">
             <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">{topbarRight}</div>
           </div>
@@ -313,22 +294,7 @@ export const AdminShell = ({
           />
         </>
       )}
-      bottomNav={
-        <PanelBottomNav
-          primary={primaryItems}
-          more={moreItems}
-          moreTitle="Mere"
-          moreFooter={
-            <>
-              <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={false} />
-              {isSoloOwnerEmployee && (
-                <RoleSwitchFooterItem icon={Truck} label="Skift til medarbejder" onClick={() => navigate("/medarbejder")} collapsed={false} />
-              )}
-              <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={false} danger />
-            </>
-          }
-        />
-      }
+
     >
       <ImpersonationBanner />
       <DPAGate businessId={business.id} isOwner={isOwner}>

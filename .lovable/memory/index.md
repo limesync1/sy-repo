@@ -1,6 +1,7 @@
 # Project Memory
 
 ## Core
+Ingen bundnavigation i panelerne på mobil; brug menuen i toppen, så indholdet får mere plads.
 Serviceydere platform. Accent hsl(184 90% 42%) — darker teal. Danish language. Light theme with dark hero/footer/CTA sections.
 Primary/foreground is dark (hsl 222 47% 11%). Avoid overusing accent — use foreground for icons/buttons where possible.
 SaaS + marketplace for service providers. React + TypeScript + Tailwind + shadcn/ui.

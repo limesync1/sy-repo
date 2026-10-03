@@ -81,7 +81,7 @@ export const BulkAddToRouteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
-      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<RouteIcon className="h-4 w-4" />}
@@ -94,13 +94,13 @@ export const BulkAddToRouteDialog = ({
           />
         </DialogHeader>
 
-        <div className="planner-overlay-body grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
+        <div className="planner-overlay-body min-h-0 overflow-y-auto grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
           {/* Venstre: valgte aftaler */}
           <div className="border-b sm:border-b-0 sm:border-r p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <span>Valgte aftaler</span>
             </div>
-            <ScrollArea className="h-56">
+            <ScrollArea className="h-24 sm:h-56">
               <div className="space-y-1.5 pr-2">
                 {jobs.map((j) => (
                   <div key={j.id} className="flex items-start gap-2 rounded-md border bg-card px-2 py-1.5 text-xs">
@@ -116,7 +116,7 @@ export const BulkAddToRouteDialog = ({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-1.5 text-[11px] text-muted-foreground"
+                      className="h-11 px-3 text-xs text-muted-foreground sm:h-7 sm:px-1.5"
                       disabled={loading}
                       onClick={() => onRemoveJob(j.id)}
                     >
@@ -138,29 +138,30 @@ export const BulkAddToRouteDialog = ({
                 Vælg rute
               </Label>
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="bulk-route-search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Søg dato, navn eller medarbejder…"
-                  className="h-8 pl-7 text-xs"
+                  className="h-11 pl-9 text-base sm:h-9 sm:text-sm"
                   disabled={loading}
                 />
               </div>
             </div>
-            <ScrollArea className="h-56">
+            <ScrollArea className="h-[min(35dvh,18rem)] sm:h-56">
               <div className="space-y-1 pr-2">
                 {filteredRoutes.map((r) => {
                   const selected = selectedRouteId === r.id;
                   return (
-                    <button
+                    <Button
+                      variant="ghost"
                       type="button"
                       key={r.id}
                       onClick={() => setSelectedRouteId(r.id)}
                       disabled={loading}
                       className={cn(
-                        "w-full min-h-12 text-left rounded-md border bg-card px-2.5 py-2 transition-[background-color,border-color,box-shadow,transform] duration-150",
+                        "block h-auto w-full min-h-14 whitespace-normal text-left rounded-md border bg-card px-2.5 py-2 transition-[background-color,border-color,box-shadow,transform] duration-150",
                         "hover:border-accent/40 hover:bg-secondary/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
                         selected && "border-accent ring-2 ring-accent/25 bg-accent/[0.04]",
                       )}
@@ -193,7 +194,7 @@ export const BulkAddToRouteDialog = ({
                           </div>
                         </div>
                       </div>
-                    </button>
+                    </Button>
                   );
                 })}
                 {filteredRoutes.length === 0 && (
@@ -207,7 +208,7 @@ export const BulkAddToRouteDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="planner-overlay-footer border-t bg-card p-4 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <DialogFooter className="planner-overlay-footer shrink-0 border-t bg-card p-4 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <div className="text-[11px] text-muted-foreground">
             {progress
               ? <span className="tabular-nums">Behandler {progress.done}/{progress.total}…</span>
@@ -215,7 +216,7 @@ export const BulkAddToRouteDialog = ({
                 ? "Aftalerne lægges i bunden af rutens rækkefølge."
                 : "Vælg en rute for at fortsætte."}
           </div>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-[auto_1fr] gap-2 sm:flex">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Annullér
             </Button>
