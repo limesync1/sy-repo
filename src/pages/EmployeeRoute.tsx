@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -2574,7 +2575,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
           style={{ maxHeight: "calc(min(68dvh, 42rem) - 52px)" }}
         >
           {stops.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
+            <div className="py-6 text-center text-sm text-muted-foreground"><NoItemsIcon className="mb-2 h-12 w-12" />Ingen stop på denne rute.</div>
           )}
           {stops.map((s, i) => {
             const isHl = s.id === highlightedId;

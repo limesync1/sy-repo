@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 // BusinessLiveChatTab — virksomhedens egen indbakke for samtaler startet
 // fra deres offentlige side. Bruger samme designsprog som platform-admin
 // versionen, men er filtreret på business_id og uden canned responses.
@@ -531,7 +532,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
           <div className="max-h-[60vh] overflow-y-auto">
             {filtered.length === 0 ? (
               <div className="p-6 text-center text-xs text-muted-foreground">
-                <Inbox className="mx-auto mb-2 h-6 w-6 opacity-50" />
+                <NoItemsIcon className="mb-2 h-12 w-12" />
                 Ingen samtaler endnu.
               </div>
             ) : (

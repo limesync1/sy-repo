@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { formatPrice } from "@/lib/price-format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -429,14 +430,14 @@ const DashboardTab = ({
               </button>
               <a
                 href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3 py-1.5 text-[11px] font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15 sm:px-3.5 sm:py-2 sm:text-xs"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary sm:px-3.5 sm:py-2 sm:text-xs"
               >
                 <Eye className="h-3.5 w-3.5" /> Se din side
               </a>
               <button
                 type="button"
                 onClick={openGuide}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3 py-1.5 text-[11px] font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15 sm:px-3.5 sm:py-2 sm:text-xs"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary sm:px-3.5 sm:py-2 sm:text-xs"
               >
                 <HelpCircle className="h-3.5 w-3.5" /> Se guide
                 <span className="tabular-nums opacity-80">· {guideSignals.done}/{guideSignals.total}</span>
@@ -683,15 +684,18 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "min-w-0 overflow-hidden rounded-md border px-3 py-2.5 text-left backdrop-blur-sm transition-all sm:px-3.5 sm:py-3",
-    accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
-    onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
+    "min-w-0 overflow-hidden rounded-md border bg-card px-3 py-2.5 text-left text-foreground shadow-sm transition-all sm:px-3.5 sm:py-3",
+    accent ? "border-warning/60 ring-1 ring-inset ring-warning/30" : "border-border",
+    onClick && "hover:-translate-y-0.5 hover:shadow-md",
   );
   const content = (
     <>
-      <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-background/70 sm:text-[11px]">{label}</p>
-      <p className="mt-1 min-w-0 truncate text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
-      <p className="mt-0.5 truncate text-[10px] text-background/75 sm:text-xs">{sub}</p>
+      <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted-foreground sm:text-xs">
+        <span className="truncate">{label}</span>
+        {onClick && <ArrowRight className="h-3 w-3 shrink-0 opacity-60" />}
+      </p>
+      <p className="mt-1 min-w-0 truncate text-lg font-semibold tabular-nums text-foreground sm:text-xl">{value}</p>
+      <p className={cn("mt-0.5 truncate text-[11px] sm:text-xs", accent ? "font-medium text-warning" : "text-muted-foreground")}>{sub}</p>
     </>
   );
   if (onClick) {
@@ -1072,9 +1076,7 @@ const OrdersListSection = ({
         </div>
           <div className="p-3 sm:p-7">
           <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center sm:rounded-2xl sm:p-8">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-sm">
-              <Inbox className="h-5 w-5 text-muted-foreground" />
-            </div>
+            <NoItemsIcon />
             <h4 className="mt-4 text-base font-semibold text-foreground">Ingen bestillinger endnu</h4>
             <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
               {servicesCount === 0

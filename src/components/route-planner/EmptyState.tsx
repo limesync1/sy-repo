@@ -1,3 +1,4 @@
+import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 // Genbrugelig tom-tilstand for ruteplanlæggeren.
 // Erstatter spredte "Ingen X" tekster med en pænere illustration + CTA.
 import type { ReactNode } from "react";
@@ -22,18 +23,16 @@ export default function EmptyState({ icon, title, description, action, className
       compact ? "py-6 px-3 gap-2" : "py-10 px-6 gap-3",
       className,
     )}>
-      {icon && (
+      {(
         <div className={cn(
           "relative flex items-center justify-center",
           compact ? "mb-0.5" : "mb-1",
         )}>
           <div className={cn(
-            "relative flex items-center justify-center rounded-full border border-border/70 bg-secondary/70 text-muted-foreground shadow-sm [&_img]:h-full [&_img]:w-full [&_img]:object-contain",
-            compact
-              ? "h-11 w-11 p-2"
-              : "h-16 w-16 p-2.5",
+            "relative flex items-center justify-center",
+            compact ? "h-11 w-11" : "h-16 w-16",
           )}>
-            {icon}
+            <NoItemsIcon className="h-full w-full" />
           </div>
         </div>
       )}
