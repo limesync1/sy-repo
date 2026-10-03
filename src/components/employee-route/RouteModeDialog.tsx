@@ -1,4 +1,4 @@
-import { BatteryCharging, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -77,10 +77,6 @@ export const RouteModeDialog = ({ open, onOpenChange, onChoose }: Props) => {
                   </span>
                   <span className="mt-0.5 block text-[13px] leading-5 text-muted-foreground">
                     {o.body}
-                  </span>
-                  <span className="mt-1.5 flex items-start gap-1.5 text-[11.5px] font-medium leading-4 text-muted-foreground">
-                    <BatteryCharging className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>{o.note}</span>
                   </span>
                 </span>
               </Button>

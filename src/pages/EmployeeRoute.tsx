@@ -364,6 +364,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     heading: number | null; speed: number | null; t: number;
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
+  const [timelineTip, setTimelineTip] = useState<string | null>(null);
+  useEffect(() => { if (!timelineTip) return; const t = window.setTimeout(() => setTimelineTip(null), 3000); return () => window.clearTimeout(t); }, [timelineTip]);
   const [routeStartedAt, setRouteStartedAt] = useState<number | null>(null);
   const [clockNow, setClockNow] = useState(() => Date.now());
   useEffect(() => {
@@ -2003,9 +2005,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <p className="truncate text-base font-bold">{nextStop.customer_name || "Stop"}</p>
                     </div>
                   </div>
-                  {nextStop.notes ? (
-                    <p className="line-clamp-3 border-t border-border bg-secondary/50 px-3.5 py-2 text-sm text-foreground">{nextStop.notes}</p>
-                  ) : null}
+                  {(() => {
+                    const notes = (nextStop.notes || "").trim();
+                    const code = notes.match(/(?:dør|port|gade|nøgle)?\s*kode\s*[:\-]?\s*([0-9A-Za-z#*]{2,12})/i)?.[1] ?? null;
+                    const service = nextStop.service_summary ? stripPrices(nextStop.service_summary) : "";
+                    return (
+                      <div className="space-y-1.5 border-t border-border px-3.5 py-2.5 text-sm">
+                        {code && (
+                          <p className="flex items-center gap-2"><span className="text-xs font-medium text-muted-foreground">Kode</span><span className="rounded bg-secondary px-2 py-0.5 font-mono text-base font-bold tracking-widest">{code}</span></p>
+                        )}
+                        {service && <p className="truncate text-muted-foreground">{service}</p>}
+                        {notes && <p className="line-clamp-3 text-foreground">{notes}</p>}
+                        {activeNextStopLabel && (
+                          <p className="flex items-center justify-between text-xs text-muted-foreground"><span>Tid hos kunden</span><span className="font-mono text-sm font-semibold text-foreground tabular-nums">{activeNextStopLabel}</span></p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -2054,7 +2070,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   const done = s.status === "completed";
                   const current = i === nextStopIdx;
                   return (
-                    <span key={s.id} className="relative flex h-3.5 w-3.5 items-center justify-center" title={s.customer_name || `Stop ${i + 1}`}>
+                    <button type="button" key={s.id} onClick={() => setTimelineTip((t) => (t === s.id ? null : s.id))} className="relative flex h-6 w-6 items-center justify-center" aria-label={`Stop ${i + 1}: ${s.customer_name || "Stop"}${done ? ", udført" : current ? ", aktuelt" : ""}`}>
+                      {timelineTip === s.id && (
+                        <span className="absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-medium text-background shadow-md">
+                          {i + 1}. {s.customer_name || "Stop"}{done && s.completed_at ? ` · udført ${formatClockTime(new Date(s.completed_at).getTime())}` : ""}
+                        </span>
+                      )}
                       {current && <span className={cn("absolute inset-0 animate-ping rounded-full", isAtNextStop ? "bg-success/60" : "bg-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
                       <span className={cn(
                         "relative flex items-center justify-center rounded-full",
@@ -2062,7 +2083,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       )}>
                         {done && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
                       </span>
-                    </span>
+                    </button>
                   );
                 })}
               </div>
@@ -2075,22 +2096,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </span>
                 </div>
               )}
-              {/* Tidsregistrering for turen: start, køretid, ankomst */}
+              {/* Tidsregistrering — én kompakt linje */}
               {routeStartedAt && (
-                <dl className="grid grid-cols-3 gap-2 px-3.5 pb-1 pt-2 text-center">
-                  <div className="rounded-md bg-secondary/60 px-1.5 py-1.5">
-                    <dt className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">Startet</dt>
-                    <dd className="text-sm font-semibold tabular-nums text-foreground">{formatClockTime(routeStartedAt)}</dd>
-                  </div>
-                  <div className="rounded-md bg-secondary/60 px-1.5 py-1.5">
-                    <dt className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">Køretid</dt>
-                    <dd className="text-sm font-semibold tabular-nums text-foreground">{formatRunDuration(Math.max(0, Math.floor((clockNow - routeStartedAt) / 1000)))}</dd>
-                  </div>
-                  <div className="rounded-md bg-secondary/60 px-1.5 py-1.5">
-                    <dt className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">Ankomst</dt>
-                    <dd className="text-sm font-semibold tabular-nums text-foreground">{isAtNextStop ? "Fremme" : etaLabel ?? "—"}</dd>
-                  </div>
-                </dl>
+                <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">
+                  <span>Start <b className="font-semibold text-foreground">{formatClockTime(routeStartedAt)}</b></span>
+                  <span>Kørt <b className="font-semibold text-foreground">{formatRunDuration(Math.max(0, Math.floor((clockNow - routeStartedAt) / 1000)))}</b></span>
+                  <span>Ankomst <b className="font-semibold text-foreground">{isAtNextStop ? "nu" : etaLabel ?? "—"}</b></span>
+                  {activeNextStopLabel && <span className="ml-auto">Hos kunden <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
+                </p>
               )}
               <Button
                 type="button"
