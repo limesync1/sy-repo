@@ -2,7 +2,7 @@
 
 ## SEO-fund 2026-10-03
 - [x] Ret Tilbuds fire trin til semantiske overskrifter uden visuelle ændringer
-- [ ] Kontrollér overskrifter i browseren og registrér rettelsen
+- [x] Kontrollér overskrifter i browseren og registrér rettelsen
 - [ ] Haveguidens introduktion: afventer godkendelse af forbedringsmuligheden; søgeteksten er allerede opdateret
 
 ## Panelikoner og indlæsningsvisninger 2026-10-03
