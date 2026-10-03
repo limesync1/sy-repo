@@ -40,7 +40,7 @@ import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import { useMotionTrack, type MotionTrack } from "@/components/employee-route/motionTrack";
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
-import { RouteMapLine } from "@/components/employee-route/RouteMapLine";
+import { RouteMapLine, resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
@@ -1120,6 +1120,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Brug Serviceydere accent (dark-blue) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
   const themeColor = "hsl(var(--accent))";
+  // Leaflet sætter pathOptions som SVG-attributter, hvor var() ikke opløses —
+  // derfor slås tokens op til konkrete farver til kortlinjerne.
+  const mapAccentColor = resolveMapColor("--accent", "hsl(184 90% 42%)");
+  const mapSuccessColor = resolveMapColor("--success", "hsl(142 71% 38%)");
   const routeBadgeColor = route?.color || "hsl(var(--accent))";
 
   /* Fanfare ved dagsfærdig */
@@ -1831,7 +1835,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {routeStarted && legLine.length < 2 && displayPos && nextStop?.latitude != null && nextStop?.longitude != null && (
               <Polyline
                 positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
-                pathOptions={{ color: themeColor, weight: 6, opacity: 0.75, dashArray: "8 10", lineCap: "round" }}
+                pathOptions={{ color: mapAccentColor, weight: 6, opacity: 0.75, dashArray: "8 10", lineCap: "round" }}
               />
             )}
 
@@ -1842,7 +1846,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Polyline
                 positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
                 pathOptions={{
-                  color: "hsl(var(--success))",
+                  color: mapSuccessColor,
                   weight: 4,
                   opacity: 0.9,
                   dashArray: "2 8",
