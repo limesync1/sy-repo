@@ -1,5 +1,6 @@
 import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival, readArrivalEstimate, saveArrivalEstimate } from "@/components/employee-route/route-run-clock";
 import { runMetrics } from "@/components/employee-route/run-metrics";
+import { StopTimeline } from "@/components/employee-route/StopTimeline";
 import { RouteRunSummary } from "@/components/employee-route/RouteRunSummary";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -370,7 +371,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     heading: number | null; speed: number | null; t: number;
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
-  const [timelineTip, setTimelineTip] = useState<string | null>(null);
   const [routeStartedAt, setRouteStartedAt] = useState<number | null>(null);
   const [clockNow, setClockNow] = useState(() => Date.now());
   useEffect(() => {
@@ -2070,38 +2070,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && nextStop && (
           <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
-              {/* Segmenteret progress — tynd, diskret */}
-              {/* Mini rute-tidslinje: statisk ring ved aktuelt stop; oplysninger kun ved tryk */}
-              <div className="route-timeline relative flex items-center justify-between gap-1 overflow-x-auto px-3 py-1" aria-label={`${completedCount} af ${sortedStops.length} stop udført`}>
-                <span className="absolute left-4 right-4 top-1/2 h-px -translate-y-1/2 bg-border" aria-hidden="true" />
-                {sortedStops.map((s, i) => {
-                  const done = s.status === "completed";
-                  const current = i === nextStopIdx;
-                  return (
-                    <Button variant="ghost" size="icon" type="button" key={s.id} onClick={() => setTimelineTip((t) => (t === s.id ? null : s.id))} className="relative flex h-9 w-9 shrink-0 items-center justify-center" aria-pressed={timelineTip === s.id} aria-label={`Stop ${i + 1}: ${s.customer_name || "Stop"}${done ? ", udført" : current ? ", aktuelt" : ""}`}>
-                      {current && <span className={cn("absolute inset-2 rounded-full border-2", isAtNextStop ? "border-success/50" : "border-accent/50")} data-arrived={isAtNextStop ? "true" : undefined} />}
-                      <span className={cn(
-                        "relative flex items-center justify-center rounded-full",
-                        done ? "h-3.5 w-3.5 bg-success text-success-foreground" : current ? cn("h-3.5 w-3.5", isAtNextStop ? "bg-success" : "bg-accent") : "h-2.5 w-2.5 bg-muted-foreground/40",
-                      )}>
-                        {done && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-              <div className="flex h-9 min-w-0 items-center border-y border-border bg-secondary/30 px-3.5" aria-live="polite">
-              {timelineTip ? (() => {
-                const ti = sortedStops.findIndex((x) => x.id === timelineTip);
-                const ts = sortedStops[ti];
-                if (!ts) return null;
-                return (
-                  <p className="truncate text-left text-xs font-medium text-foreground">
-                    {ti + 1}. {ts.customer_name || "Stop"} · {ts.status === "completed" ? `udført ${ts.completed_at ? formatClockTime(new Date(ts.completed_at).getTime()) : ""}` : ti === nextStopIdx ? "aktuelt stop" : "kommende"}
-                  </p>
-                );
-              })() : <p className="text-xs text-muted-foreground">{completedCount} af {sortedStops.length} stop udført</p>}
-              </div>
+              <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />
               {/* Tidsregistrering — én kompakt linje */}
               {routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">

@@ -29,3 +29,5 @@
 - Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Night maps use OpenFreeMap vectors in Leaflet's rotating tile pane, with a dim raster reserve and explicit load errors, avoiding key-gated basemaps.
+
+- Driving stop timelines own explicit selection in a shared stable-height component without timed popovers or pulse animations, preventing GPS refreshes from shifting the dock.
