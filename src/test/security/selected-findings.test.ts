@@ -6,11 +6,11 @@ import { seatQuantity, employeePriceKey } from '../../../supabase/functions/crea
 
 function loadHandler(name: string, client: any) {
   const source = fs.readFileSync(`supabase/functions/${name}/index.ts`, 'utf8')
-    .replace(/^import .*;\r?\n/gm, '');
+    .replace(/^import .*;?\r?\n/gm, '');
   let handler: (req: Request) => Promise<Response>;
   const context = vm.createContext({
     Deno: { env: { get: () => 'test' }, serve: (fn: any) => { handler = fn; } },
-    createClient: () => client, Response, Request, console: { error() {}, log() {} },
+    exports: {}, createClient: () => client, Response, Request, console: { error() {}, log() {} },
     sendTemplateEmail: async () => {}, URL, fetch: () => { throw new Error('Unexpected outbound call'); },
   });
   vm.runInContext(ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText, context);
@@ -29,7 +29,7 @@ function mockClient(rows: Record<string, any>) {
       const query: any = {
         select: () => query,
         eq: (col: string, val: any) => { (filters[table] ??= []).push([col, val]); return query; },
-        contains: () => query, order: () => query, limit: () => query, in: () => query,
+        contains: () => query, order: () => query, limit: async () => ({ data: [] }), in: () => query,
         maybeSingle: async () => rows[table] ?? { data: null },
         update: () => { writes.push(table); return query; },
         delete: () => { writes.push(table); return query; },
@@ -81,9 +81,9 @@ describe('selected security findings', () => {
   });
   it('does not expose database errors from order approval', async () => {
     const client = mockClient({
-      orders: { data: { id: 'order', order_group_id: null, status: 'pending', customer_approval_token: 'token' }, error: { message: 'secret database schema', code: '23514' } },
+      orders: { data: { id: 'order', order_group_id: null, status: 'pending', customer_approval_token: 'a'.repeat(32), requires_customer_approval: true }, error: { message: 'secret database schema', code: '23514' } },
     });
-    const response = await loadHandler('customer-approve-order', client)({ token: 'token', decision: 'accepted' });
+    const response = await loadHandler('customer-approve-order', client)({ token: 'a'.repeat(32), decision: 'accepted' });
     expect(response.status).toBe(500);
     expect(await response.text()).not.toContain('secret database schema');
   });
