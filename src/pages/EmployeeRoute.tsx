@@ -12,7 +12,7 @@ import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, TrafficCone,
   Plus, Minus,
-  Info,
+  Info, Check,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
@@ -2393,26 +2393,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
           <Badge variant="secondary" className="tabular-nums text-[10px] h-5 px-1.5 font-bold rounded-md">
             {done}/{total}
           </Badge>
-          {/* Mini progress dots — kompakt */}
-          <div className="flex-1 flex gap-0.5 items-center justify-end overflow-hidden">
-            {stops.slice(0, 12).map((s) => (
-              <span
-                key={s.id}
-                className="h-1.5 w-1.5 rounded-full shrink-0"
-                style={{
-                  background:
-                    s.status === "completed"
-                      ? "hsl(142 71% 45%)"
-                      : s.id === nextStopId
-                        ? "hsl(var(--foreground))"
-                        : "hsl(var(--muted-foreground) / 0.35)",
-                }}
-              />
-            ))}
-            {stops.length > 12 && (
-              <span className="text-[9px] text-muted-foreground tabular-nums ml-0.5 font-bold">+{stops.length - 12}</span>
-            )}
-          </div>
+          <span className="flex-1" />
           {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 text-muted-foreground" />}
         </button>
 
@@ -2442,90 +2423,56 @@ const StopListPanel = forwardRef<HTMLDivElement, {
                     onSelectStop(s);
                   }
                 }}
-                className={`flex w-full cursor-pointer items-center gap-2 rounded-md border p-2 text-left transition-colors hover:bg-secondary/50 active:bg-secondary sm:gap-2.5 sm:p-2.5 ${
+                className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-2.5 py-2 text-left transition-colors hover:bg-secondary/50 active:bg-secondary ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
-                } ${isDone ? "opacity-60" : ""} ${
-                  isNext
-                    ? "border-foreground/30 bg-secondary/40 shadow-sm"
-                    : "border-border bg-card"
-                }`}
-                style={{
-                  borderLeftWidth: isNext ? 4 : 1,
-                  borderLeftColor: isNext
-                    ? "hsl(var(--foreground))"
-                    : isDone
-                      ? "hsl(142 71% 45%)"
-                      : "hsl(var(--border))",
-                }}
+                } ${isNext ? "border-accent/50 bg-accent/[0.06]" : "border-border bg-card"}`}
               >
-                {/* Tids-kolonne — kalender-stil */}
-                <div className="flex w-9 shrink-0 flex-col items-center justify-start pt-0.5 sm:w-11">
-                  <span
-                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] text-[12px] font-bold text-background shadow-sm sm:h-9 sm:w-9 sm:text-[13px] ${
-                      isDone
-                        ? "bg-emerald-500"
-                        : isNext
-                          ? "bg-foreground"
-                          : "bg-muted-foreground/70"
-                    }`}
-                  >
-                    {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
-                  </span>
-                  
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold tabular-nums ${
+                    isDone ? "border-success bg-success text-success-foreground" : isNext ? "border-accent bg-card text-foreground" : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {isDone ? <Check className="h-4 w-4" /> : i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate text-sm font-semibold ${isDone ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                    {s.customer_name || "Stop"}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {isNext ? <span className="font-semibold text-accent">Næste · </span> : isDone ? <span className="font-medium text-success">Udført · </span> : null}
+                    {s.full_address || s.address || meta.label}
+                  </p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className={`font-bold text-[14px] truncate ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                      {s.customer_name || "Stop"}
-                    </p>
-                    <Badge
-                      className="text-[9px] h-5 px-2 border-0 font-bold uppercase tracking-wider gap-1 rounded-full"
-                      style={{ background: meta.bg, color: meta.text }}
+                {canReorder && !isDone && (
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      type="button"
+                      aria-label="Flyt stoppet tidligere på ruten"
+                      disabled={reordering || posInRemaining <= 0}
+                      onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, -1); }}
+                      className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-25"
                     >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${isNext ? "animate-pulse" : ""}`}
-                        style={{ background: meta.dot }}
-                      />
-                      {meta.label}
-                    </Badge>
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Flyt stoppet senere på ruten"
+                      disabled={reordering || posInRemaining < 0 || posInRemaining >= remainingIds.length - 1}
+                      onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, 1); }}
+                      className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-25"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
                   </div>
-                  {(s.full_address || s.address) && (
-                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3 shrink-0" />{s.full_address || s.address}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col items-center justify-center gap-1 shrink-0">
-                  {canReorder && !isDone && (
-                    <div className="flex flex-col gap-1">
-                      <button
-                        type="button"
-                        aria-label="Flyt stoppet tidligere på ruten"
-                        disabled={reordering || posInRemaining <= 0}
-                        onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, -1); }}
-                         className="h-11 w-11 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
-                      >
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Flyt stoppet senere på ruten"
-                        disabled={reordering || posInRemaining < 0 || posInRemaining >= remainingIds.length - 1}
-                        onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, 1); }}
-                         className="h-11 w-11 rounded-md border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
-                      >
-                        <ArrowDown className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                    className="min-h-11 text-xs font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-secondary transition-colors"
-                  >
-                    Detaljer
-                  </button>
-                </div>
+                )}
+                <button
+                  type="button"
+                  aria-label="Vis detaljer for stoppet"
+                  onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <Info className="h-4 w-4" />
+                </button>
               </div>
             );
           })}

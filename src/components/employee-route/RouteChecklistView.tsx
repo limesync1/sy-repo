@@ -186,7 +186,7 @@ export const RouteChecklistView = ({
 
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-foreground text-base font-bold tabular-nums text-background">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-accent bg-card text-base font-bold tabular-nums text-foreground">
                       {nextNumber}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -295,7 +295,7 @@ export const RouteChecklistView = ({
                         className={cn(
                           "relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums",
                           done && "border-success bg-success text-success-foreground",
-                          current && "border-foreground bg-foreground text-background",
+                          current && "border-2 border-accent bg-card text-foreground",
                           !done && !current && "border-border bg-card text-muted-foreground",
                         )}
                       >
