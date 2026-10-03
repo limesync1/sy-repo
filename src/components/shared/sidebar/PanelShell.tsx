@@ -168,7 +168,7 @@ export const PanelShell = ({
       <div
         data-sidebar={collapsed ? "collapsed" : "expanded"}
         className={cn(
-          "service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/30",
+          "service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-clip bg-secondary/30",
           collapsed ? "[--sidebar-w:68px]" : "[--sidebar-w:224px] 2xl:[--sidebar-w:248px]",
           hasBottomNav ? "[--bottomnav-h:60px] lg:[--bottomnav-h:0px]" : "[--bottomnav-h:0px]",
           workspaceClassName,
@@ -231,7 +231,7 @@ export const PanelShell = ({
         {/* Indholdskolonne */}
         <div
           className={cn(
-            "flex min-w-0 flex-1 flex-col overflow-x-hidden lg:pl-[var(--sidebar-w)]",
+            "flex min-w-0 flex-1 flex-col overflow-x-clip lg:pl-[var(--sidebar-w)]",
             animateLayout && `transition-[padding-left] duration-200 ${EASE} motion-reduce:transition-none`,
           )}
         >
@@ -259,7 +259,7 @@ export const PanelShell = ({
             id="panel-content"
             tabIndex={-1}
             className={cn(
-              "service-panel-content relative z-0 min-w-0 max-w-full flex-1 overflow-x-hidden outline-none",
+              "service-panel-content relative z-0 min-w-0 max-w-full flex-1 overflow-x-clip outline-none",
               contentPadding
                 ? "px-3 pt-3 pb-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom)+0.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
                 : "pb-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom))] lg:pb-0",
