@@ -18,6 +18,7 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import type { Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
 import "leaflet-rotate";
+import { roadProgress } from "@/components/employee-route/route-progress";
 import { arrivalRadius, headingDelta } from "@/components/employee-route/navigation-policy";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
@@ -962,6 +963,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
    * Reroute = opdater stableOriginRef + invalidér den gamle
    * directions-cache, så useDirections automatisk fetcher nyt geometri.
    */
+  const liveRoadProgress = useMemo(() => userPos && legLine.length > 1 ? roadProgress(userPos, legLine) : null, [userPos, legLine]);
+  const liveDistanceM = liveRoadProgress && liveRoadProgress.offRoad < 60 ? liveRoadProgress.remaining : directions?.distance_m ?? distanceToNextM;
+  const liveDurationS = directions?.duration_s != null && liveRoadProgress && liveRoadProgress.total > 0
+    ? directions.duration_s * Math.min(1, liveRoadProgress.remaining / liveRoadProgress.total)
+    : directions?.duration_s ?? null;
+
   const OFF_ROUTE_THRESHOLD_M = 40;
   const OFF_ROUTE_STREAK = 3;
   const REROUTE_COOLDOWN_MS = 8000;
@@ -2015,7 +2022,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       {/* Tæt på stoppet er vejafstanden misvisende (den peger
                           rundt om bygningen) — der viser vi den direkte
                           afstand, ellers vejafstanden fra ruten. */}
-                      {formatKm(nearNextStop ? distanceToNextM : (directions?.distance_m ?? distanceToNextM))}
+                      {formatKm(nearNextStop ? distanceToNextM : liveDistanceM)}
                     </p>
                     {/* Én linje under afstanden: enten "Ved adressen", en
                         tydelig forsinkelse, eller hvornår du er fremme.
@@ -2026,7 +2033,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </p>
                   ) : directions?.duration_s != null ? (
                     <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
-                      {formatMin(directions.duration_s)}
+                      {formatMin(liveDurationS)}
                     </p>
                   ) : (
                     <p className="text-[10px] text-muted-foreground leading-tight">
