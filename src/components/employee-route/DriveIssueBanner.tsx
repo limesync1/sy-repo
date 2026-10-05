@@ -3,9 +3,29 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DriveIssue } from "./useDriveSafety";
 
-/** Compact white card shown over the map; only the most important issue plus offline. */
-export function DriveIssueBanner({ issues, onRetry }: { issues: DriveIssue[]; onRetry: () => void }) {
+/** Location issues overlay the map; recoverable map-style failures stay in normal flow. */
+export function DriveIssueBanner({ issues, onRetry, placement = "overlay" }: { issues: DriveIssue[]; onRetry: () => void; placement?: "overlay" | "inline" }) {
   if (!issues.length) return null;
+  if (placement === "inline") {
+    return (
+      <div className="drive-map-notice shrink-0 border-b border-warning/40 bg-card px-3 py-1.5 text-foreground">
+        {issues.slice(0, 1).map((issue) => (
+          <div key={issue.id} role="alert" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold">{issue.title}</p>
+              <p className="text-xs text-muted-foreground">{issue.body}</p>
+            </div>
+            {issue.action && (
+              <Button size="icon" variant="outline" className="h-11 w-11 shrink-0" onClick={onRetry} aria-label="Prøv at hente natkortet igen" title="Prøv at hente natkortet igen">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="drive-issue-banner pointer-events-none absolute inset-x-2 top-2 z-[1005] flex flex-col gap-2 sm:inset-x-auto sm:left-1/2 sm:w-[420px] sm:-translate-x-1/2">
       {issues.slice(0, 2).map((issue) => {

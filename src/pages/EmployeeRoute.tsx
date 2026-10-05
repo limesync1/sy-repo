@@ -1735,9 +1735,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
       )}
 
+      {night && nightMapFailed && (
+        <DriveIssueBanner
+          placement="inline"
+          issues={[{ id: "night-map", tone: "warning", title: "Natkortet kunne ikke hentes", body: "Reservekort vises. Vejvisningen fortsætter.", action: "retry" }]}
+          onRetry={() => { setNightMapFailed(false); setNightMapRetry(v => v + 1); }}
+        />
+      )}
+
       {/* ─── Map fills everything ─── */}
       <div className={cn("route-map-stage relative flex-1 min-h-0", routeStarted && !allDone && "route-map-stage-driving")}>
-        <DriveIssueBanner issues={night && nightMapFailed ? [...driveIssues, { id: "night-map", tone: "warning", title: "Natkortet kunne ikke hentes", body: "Et dæmpet reservekort vises. Kontroller forbindelsen, og prøv igen.", action: "retry" }] : driveIssues} onRetry={() => { retryGps(); setNightMapFailed(false); setNightMapRetry(v => v + 1); }} />
+        <DriveIssueBanner issues={driveIssues} onRetry={retryGps} />
         {!hasMapPoint && (isLoading || geocodeState === "idle" || geocodeState === "pending") ? (
           <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
             <div className="space-y-2">
