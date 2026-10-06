@@ -1,5 +1,9 @@
 # Roadmap
 
+## Felter uden automatisk mobilzoom
+- [x] Ensret felter globalt på offentlige sider, i alle paneler og portalvinduer uden at deaktivere almindelig zoom
+- [x] Kontrollér indtastning og 20 feltvarianter ved 390/767/768/1280 px samt større touchskærm; build OK. Fysisk iPhone er ikke afprøvet.
+
 ## SEO og header 2026-10-06
 - [ ] Hold den offentlige header helt hvid ved scroll
 - [ ] Gennemgå og ret fælles crawl-, metadata- og struktureret-datafejl
