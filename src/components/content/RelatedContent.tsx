@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { BLOG_POSTS } from "@/pages/blog/blogPosts";
 import { GUIDES } from "@/pages/guides/guidesRegistry";
+import { CITIES } from "@/pages/cities/cleaningCityData";
 
 interface Props {
   /** Aktuel kategori — vi prioriterer indhold i samme kategori. */
@@ -104,6 +105,23 @@ const RelatedContent = ({ category, currentPath, hideIfEmpty }: Props) => {
           </Link>
         ))}
       </div>
+    
+      {category === "Rengøring" && (
+        <div className="mt-8 border-t border-border pt-8">
+          <h3 className="mb-4 text-lg font-semibold text-foreground">Find lokal hjælp i din by</h3>
+          <div className="flex flex-wrap gap-2">
+            {CITIES.slice(0, 8).map((city) => (
+              <Link
+                key={city.slug}
+                to={`/rengoering/${city.slug}`}
+                className="rounded-full border border-border bg-muted/30 px-3 py-1 text-sm text-muted-foreground transition hover:border-foreground/30 hover:text-foreground"
+              >
+                Rengøring i {city.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

@@ -88,6 +88,27 @@ if (!robots) {
     fail("robots.txt: Sitemap-linjen peger ikke på sitemap-index.xml");
 }
 
+// Google's robots rules use prefix matching; private /virksomhed must not
+// accidentally block public /virksomheder or any other sitemap page.
+const robotsRules = [...(robots ?? "").matchAll(/^\s*(Allow|Disallow):\s*(\S+)\s*$/gim)]
+  .map((m) => ({ allow: m[1].toLowerCase() === "allow", pattern: m[2] }));
+const isBlocked = (url: string) => {
+  const parsed = new URL(url);
+  const path = `${parsed.pathname}${parsed.search}`;
+  let best = -1;
+  let blocked = false;
+  for (const rule of robotsRules) {
+    const pattern = rule.pattern.replace(/[.+?^{}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    if (!new RegExp(`^${pattern}`).test(path)) continue;
+    const specificity = rule.pattern.replace(/[*$]/g, "").length;
+    if (specificity > best || (specificity === best && rule.allow)) {
+      best = specificity;
+      blocked = !rule.allow;
+    }
+  }
+  return blocked;
+};
+
 /* ------------------------------------------------------------------ sitemaps */
 const indexPath = join(PUBLIC, "sitemap-index.xml");
 const indexXml = read(indexPath);
@@ -117,6 +138,7 @@ readdirSync(PUBLIC)
       if (loc.includes("localhost") || loc.includes("lovable.app"))
         fail(`${file}: URL peger ikke på produktionsdomænet (${loc})`);
       const prev = seen.get(loc);
+      if (isBlocked(loc)) fail(`${file}: offentlig URL blokeret af robots.txt (${loc})`);
       if (prev && prev !== file) warn(`Dublet-URL i både ${prev} og ${file}: ${loc}`);
       seen.set(loc, file);
     });

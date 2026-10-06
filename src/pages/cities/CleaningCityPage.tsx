@@ -26,7 +26,8 @@ const CleaningCityPage = () => {
   const jsonLd = [
     {
       "@context": "https://schema.org",
-      "@type": "Service",
+      "@type": "ProfessionalService",
+      geo: { "@type": "GeoCoordinates", latitude: city.lat, longitude: city.lng },
       serviceType: "Rengøring",
       provider: {
         "@type": "Organization",

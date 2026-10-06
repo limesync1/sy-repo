@@ -2,14 +2,14 @@ User-agent: *
 Allow: /
 # Privat / brugerspecifikt — bør ikke indekseres
 Disallow: /admin
-Disallow: /virksomhed
+Disallow: /virksomhed$
+Disallow: /virksomhed/
 Disallow: /min-konto
 Disallow: /medarbejder
 Disallow: /log-ind
 Disallow: /reset-password
 Disallow: /afmeld
 Disallow: /godkend-bestilling
-Disallow: /min-konto
 # Legacy redirect-stier
 Disallow: /auth
 Disallow: /dashboard
