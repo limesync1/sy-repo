@@ -1,5 +1,10 @@
 # Roadmap
 
+## SEO og header 2026-10-06
+- [ ] Hold den offentlige header helt hvid ved scroll
+- [ ] Gennemgå og ret fælles crawl-, metadata- og struktureret-datafejl
+- [ ] Verificér SEO-kontroller og relevante offentlige sider
+
 ## Hjemmeskærmsapp og tydelig rutekørsel
 - [x] Manifest og hjemmeskærmsikoner uden offline-cache; installation på telefon afventer
 - [x] Fælles ankomst i tjekliste og guide, korte knaptekster
