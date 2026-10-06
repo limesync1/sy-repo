@@ -26,7 +26,7 @@ const CleaningCityPage = () => {
   const jsonLd = [
     {
       "@context": "https://schema.org",
-      "@type": "Service",
+      "@type": "ProfessionalService",
       serviceType: "Rengøring",
       provider: {
         "@type": "Organization",
