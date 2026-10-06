@@ -32,4 +32,5 @@
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Night maps use token-themed OpenFreeMap vectors, dim raster fallback and errors. PWA uses manifest only; no offline cache to stale previews.
 
-- Timelines use stable-height explicit selection, no timed popovers/pulses. Shared semantic action variants distinguish undo from completion in both themes.
+- Timelines stay fixed-height with explicit selection; semantic actions distinguish undo and completion.
+- Global mobile/touch field font rules cover portals to prevent focus zoom while preserving pinch zoom.
