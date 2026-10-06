@@ -31,6 +31,7 @@ interface SEOProps {
 }
 
 const SITE_NAME = "Serviceydere";
+const SITE_ORIGIN = "https://serviceydere.dk";
 const DEFAULT_IMAGE =
   "https://storage.googleapis.com/gpt-engineer-file-uploads/sI6LsXTFtPPIEDZVFqH1HMANgG93/social-images/social-1776054724008-serviceydere_(2).webp";
 
@@ -69,27 +70,28 @@ const SEO = ({
   useEffect(() => {
     const prevTitle = document.title;
     const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
-    document.title = fullTitle.length > 60 ? fullTitle.slice(0, 57) + "..." : fullTitle;
+    document.title = fullTitle;
 
-    const desc = description.length > 160 ? description.slice(0, 157) + "..." : description;
+    const desc = description;
     // Hvis virksomheden har et custom domæne, bruger vi det som kanonisk
     // origin så Google indekserer deres egen URL fremfor serviceydere.dk.
     const normalizedOrigin = (() => {
-      if (!canonicalOrigin) return window.location.origin;
+      if (!canonicalOrigin) return SITE_ORIGIN;
       const trimmed = canonicalOrigin.trim().replace(/\/+$/, "");
-      if (!trimmed) return window.location.origin;
+      if (!trimmed) return SITE_ORIGIN;
       return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
     })();
     const path = canonicalOrigin && canonicalAtRoot
       ? "/"
       : (canonicalPath ?? window.location.pathname);
     const url = `${normalizedOrigin}${path}`;
-    const absImage = image.startsWith("http") ? image : `${window.location.origin}${image}`;
+    const absImage = image.startsWith("http") ? image : `${normalizedOrigin}${image}`;
 
     setMeta('meta[name="description"]', "content", desc);
     setMeta('link[rel="canonical"]', "href", url);
     setMeta('meta[name="robots"]', "content", noIndex ? "noindex,nofollow" : "index,follow");
     if (keywords) setMeta('meta[name="keywords"]', "content", keywords);
+    else document.head.querySelector('meta[name="keywords"]')?.remove();
 
     // hreflang — Danmark er primært marked, så vi annoncerer da-DK + x-default
     // pr. side. Vi rydder eksisterende dynamiske hreflang-links før vi indsætter
@@ -148,7 +150,7 @@ const SEO = ({
       // Behold hreflang efter unmount — næste sides SEO-komponent overskriver dem
       // alligevel, men ved fuld navigation væk er det fint at de bliver liggende.
     };
-  }, [title, description, canonicalPath, image, ogType, keywords, noIndex, jsonLd]);
+  }, [title, description, canonicalPath, image, ogType, keywords, noIndex, jsonLd, canonicalOrigin, canonicalAtRoot]);
 
   return null;
 };

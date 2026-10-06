@@ -9,7 +9,7 @@
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
 - Semantic content illustrations resolve through `BrandedIllustration`, while `PanelIcon` and customer variants reuse those assets when meanings match, preventing stale duplicate icon sets.
 - Official profile URLs share `src/lib/social-links.ts` to keep links and organization data consistent.
-- Public SEO routes get a build-time static <head> (title, description, canonical, og:*) generated from the content registries via the sitemap script and the seo-prerender-head Vite plugin, so non-JS crawlers see page-specific metadata.
+- Public SEO heads use content registries and seo-prerender-head for non-JS crawlers; client tags preserve full text and canonicalize to the public origin unless a business supplies its own domain.
 - All lead sources normalize into `quote_requests`/`quote_request_matches`, while provider connections and credentials stay server-side and business-scoped, so the Leads workspace has one secure source of truth.
 - Meta source selection models Facebook Pages as the parent source and surfaces their linked Instagram account and lead forms together, because Meta exposes Instagram lead access through the connected Page.
 - Meta OAuth always uses the public `https://serviceydere.dk/meta/callback` URI, which forwards the authorization response to the server callback so Meta configuration remains stable across preview and production.

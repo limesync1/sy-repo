@@ -28,7 +28,7 @@ const CategoryCard = ({
 }) => (
   <Link
     key={cat.key}
-    to={`/search?category=${encodeURIComponent(cat.key)}`}
+    to={HUB_BY_KEY[cat.label] || `/search?category=${encodeURIComponent(cat.key)}`}
     className={`group relative isolate flex flex-col justify-between rounded-xl border border-border bg-card p-4 text-foreground shadow-premium transition-[border-color,box-shadow,transform] duration-300 motion-safe:hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-premium-lg 2xl:p-5 ${className ?? ""}`}
   >
     <div className="relative flex items-start justify-between">

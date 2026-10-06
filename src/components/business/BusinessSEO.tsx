@@ -143,7 +143,10 @@ const BusinessSEO = ({
       ...(categories?.[0]
         ? [{ "@type": "ListItem", position: 3, name: categories[0], item: `${fallbackOrigin}/virksomheder?category=${encodeURIComponent(categories[0])}` }]
         : []),
-      { "@type": "ListItem", position: categories?.[0] ? 4 : 3, name, item: businessUrl },
+      ...(categories?.[0] === "Rengøring" && city
+        ? [{ "@type": "ListItem", position: 4, name: `Rengøring i ${city}`, item: `${fallbackOrigin}/rengoering/${city.toLowerCase().replace("æ", "ae").replace("ø", "oe").replace("å", "aa")}` }]
+        : []),
+      { "@type": "ListItem", position: (categories?.[0] === "Rengøring" && city) ? 5 : (categories?.[0] ? 4 : 3), name, item: businessUrl },
     ],
   };
 
