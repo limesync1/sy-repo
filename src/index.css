@@ -1634,3 +1634,18 @@ img[loading="lazy"].is-error {
     background-image: linear-gradient(180deg, #38a6cc 0%, #16658a 100%);
   }
 }
+
+/* Prevent iOS focus zoom across pages and portals despite compact field
+   utilities. Preserve viewport scaling and accessible pinch-to-zoom. */
+@media (max-width: 767px), (any-pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]),
+  textarea,
+  select,
+  [role="combobox"],
+  [contenteditable="true"],
+  [contenteditable=""],
+  [contenteditable="plaintext-only"] {
+    font-size: 16px !important;
+    touch-action: manipulation;
+  }
+}

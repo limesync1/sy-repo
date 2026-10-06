@@ -1,5 +1,9 @@
 # Roadmap
 
+## Felter uden automatisk mobilzoom
+- [x] Ensret felter globalt på offentlige sider, i alle paneler og portalvinduer uden at deaktivere almindelig zoom
+- [ ] Kontrollér feltfokus og skriftstørrelser i mobil- og computerbrowser
+
 ## SEO og header 2026-10-06
 - [ ] Hold den offentlige header helt hvid ved scroll
 - [ ] Gennemgå og ret fælles crawl-, metadata- og struktureret-datafejl
