@@ -6,6 +6,7 @@ import { ALL_INDUSTRIES, TOP_CATEGORY_KEYS } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
 import { SectionLabelMark, UiArtwork } from "@/components/shared/UiArtwork";
+const HUB_BY_KEY: Record<string, string> = { "Rengøring": "/guides/rengoering", "Flyttehjælp": "/guides/flytning", "Håndværker": "/guides/haandvaerker", "Haveservice": "/guides/have" };
 
 const categories = ALL_INDUSTRIES.map((ind) => ({
   key: ind.key,

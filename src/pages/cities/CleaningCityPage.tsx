@@ -27,6 +27,7 @@ const CleaningCityPage = () => {
     {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
+      geo: { "@type": "GeoCoordinates", latitude: city.lat, longitude: city.lng },
       serviceType: "Rengøring",
       provider: {
         "@type": "Organization",
