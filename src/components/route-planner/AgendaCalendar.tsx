@@ -22,6 +22,7 @@ import { memo, useMemo } from "react";
 import type { CalendarRoute } from "./MonthWeekCalendar";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import type { StopCapacity } from "./lib/stop-capacity";
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
@@ -274,7 +275,7 @@ const DayRowInner = ({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-border hover:bg-card hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="h-11 w-11 inline-flex items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-border hover:bg-card hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               aria-label="Opret rute denne dag"
               title="Opret rute"
             >
@@ -390,12 +391,13 @@ type AgendaRoutePillProps = {
 };
 
 const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast, hasAssigneeConflict }: AgendaRoutePillProps) => {
+  const compactLayout = useIsBelowBreakpoint(1100);
   const isVirtual = !!route.isVirtual;
   const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
-    disabled: isVirtual || !!busy,
+    disabled: compactLayout || isVirtual || !!busy,
   });
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({
@@ -469,11 +471,11 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
       )}
       <div
-        {...(isVirtual ? {} : listeners)}
-        {...(isVirtual ? {} : attributes)}
+        {...(isVirtual || compactLayout ? {} : listeners)}
+        {...(isVirtual || compactLayout ? {} : attributes)}
         className={cn(
           "flex-1 min-w-0",
-          isVirtual ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+          isVirtual || compactLayout ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="text-xs font-semibold leading-tight flex items-center gap-1">

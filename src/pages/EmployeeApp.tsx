@@ -168,7 +168,6 @@ const EmployeeApp = () => {
   // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
   const [previewRouteId, setPreviewRouteId] = useState<string | null>(null);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
-  const sortedRoutes = useMemo(() => orderDayRoutes(routes), [routes]);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
   const { data: me } = useMyEmployee();
@@ -180,6 +179,10 @@ const EmployeeApp = () => {
     for (const stop of stops) grouped.set(stop.route_id, [...(grouped.get(stop.route_id) || []), stop]);
     return grouped;
   }, [stops]);
+  const sortedRoutes = useMemo(() => orderDayRoutes(routes, new Set(routes.filter(r => {
+    const routeStops = stopsByRoute.get(r.id) || [];
+    return routeStops.length > 0 && routeStops.every(s => s.status === "completed");
+  }).map(r => r.id))), [routes, stopsByRoute]);
   const firstActiveId = sortedRoutes.find(r => (stopsByRoute.get(r.id) || []).some(s => s.status !== "completed"))?.id ?? null;
   const printableRoutes = useMemo<PrintRoute[]>(() => routes.map((route) => ({
     id: route.id,

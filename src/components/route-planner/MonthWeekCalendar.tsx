@@ -1593,25 +1593,6 @@ const RoutePillInner = ({
               >
                 <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
               </DropdownMenuItem>
-              {canOptimize && (
-                <DropdownMenuItem
-                  disabled={optimizing}
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    requestAnimationFrame(() => {
-                      try { onOptimize(); } catch (err) {
-                        console.error(err);
-                        toast.error("Kunne ikke optimere ruten");
-                      }
-                    });
-                  }}
-                >
-                  {optimizing
-                    ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                    : <Sparkles className="h-3.5 w-3.5 mr-2" />}
-                  {optimizing ? "Optimerer …" : "Optimér rækkefølge"}
-                </DropdownMenuItem>
-              )}
               {canHistory && (
                 <DropdownMenuItem
                   onSelect={(e) => {

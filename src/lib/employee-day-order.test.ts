@@ -7,6 +7,9 @@ describe("employee route order", () => {
     expect(orderDayRoutes(routes).map(r => r.id)).toEqual(["early", "late"]);
     expect(routes[0].id).toBe("late");
   });
+  it("puts completed routes after pending routes", () => {
+    expect(orderDayRoutes([{ id: "done", planned_start_time: "08:00" }, { id: "pending", planned_start_time: "10:00" }], new Set(["done"])).map(r => r.id)).toEqual(["pending", "done"]);
+  });
   it("puts untimed routes last with stable ties", () => {
     expect(orderDayRoutes([{ id: "b" }, { id: "a" }, { id: "timed", planned_start_time: "09:00" }]).map(r => r.id)).toEqual(["timed", "a", "b"]);
   });
