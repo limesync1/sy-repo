@@ -616,12 +616,6 @@ const Planner = () => {
   );
 
 
-  // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
-  // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
-  // Vi henter altid maks. forecast (i dag → +15 dage) så vejret allerede er
-  // cached når brugeren bladrer en uge eller måned frem — der er ingen
-  // ekstra omkostning ved at hente flere dage på én gang.
-  const { weatherByDate, isLoading: loadingWeather, isError: weatherError } = useRouteWeather(calendarRoutesRaw, calendarStops);
 
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
@@ -1537,6 +1531,8 @@ const Planner = () => {
     },
     [calendarRoutes, virtualCalendarRoutes, filtersActive, routeOccurrenceExceptions],
   );
+  // Gennemsnit af stopprognoser; forventede ruter bruger basisrutens adresser.
+  const { weatherByDate, isLoading: loadingWeather, isError: weatherError } = useRouteWeather(calendarRoutesAll, calendarStops);
 
   // Konflikt-detektion: ruter hvis stops har en medarbejder der er booket
   // til to ting samtidig på samme dato. Vi markerer KUN egentlige tids-

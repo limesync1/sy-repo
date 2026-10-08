@@ -250,7 +250,7 @@ export const RouteStopsPanel = ({
             />
             <SheetTitle className="flex items-center gap-2 text-base leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
-                Stops på ruten
+                 Stop på ruten
               </span>
               <span
                 className="shrink-0 inline-flex h-[18px] min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums bg-foreground/[0.08] text-foreground/80 ring-1 ring-inset ring-foreground/10"
@@ -264,7 +264,7 @@ export const RouteStopsPanel = ({
               <span className="truncate">
                 {isProjection
                   ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
-                  : "Træk for at omrangere · klik for detaljer"}
+                   : isCompact ? "Brug pilene til at flytte · tryk på navnet for detaljer" : "Træk for at omrangere · klik for detaljer"}
               </span>
             </SheetDescription>
           </SheetHeader>
@@ -275,8 +275,8 @@ export const RouteStopsPanel = ({
                 <EmptyState
                   compact
                   icon={<Inbox className="h-5 w-5" />}
-                  title="Ingen stops endnu"
-                  description="Træk aftaler fra aftalepoolen ind på ruten."
+                   title="Ingen stop endnu"
+                   description={isCompact ? "Vælg en aftale og tryk på Vælg rute." : "Træk aftaler fra aftalepoolen ind på ruten."}
                 />
               </div>
             ) : (
@@ -450,7 +450,7 @@ const SortableStopRow = ({
           </button>
         ) : (
           <span
-            className="flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7"
+            className={cn("flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7", compact && !isProjection && "hidden")}
             aria-hidden
             title="Forventet besøg — låst rækkefølge"
           >
@@ -543,9 +543,9 @@ const SortableStopRow = ({
                   <Check className="h-3 w-3" /> Udført
                 </Badge>
                 {!isProjection && (
-                  <Button type="button" variant="outline" size="sm" className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium" disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udført" title="Fortryd udført">
+                  <Button type="button" variant="outline" size="sm" className={cn("h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium", compact && "h-11")} disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
                     {undoPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Undo2 className="h-3 w-3" />}
-                    <span className="truncate">Fortryd udført</span>
+                    <span className="truncate">Fortryd udførsel</span>
                   </Button>
                 )}
               </span>
@@ -555,7 +555,7 @@ const SortableStopRow = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium border-success/35 text-success hover:bg-success/10 hover:text-success"
+                  className={cn("h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium border-success/35 text-success hover:bg-success/10 hover:text-success", compact && "h-11")}
                   disabled={markCompletedPending}
                   onClick={(event) => { event.stopPropagation(); onMarkCompleted(); }}
                   aria-label="Markér som udført"
@@ -605,7 +605,7 @@ const SortableStopRow = ({
               type="button"
               onClick={onRemove}
               className={cn(
-                "flex h-8 w-8 rounded-md",
+                "flex h-11 w-11 lg:h-8 lg:w-8 rounded-md",
                 ICON_BTN_DESTRUCTIVE,
               )}
               aria-label="Fjern stop"
@@ -722,7 +722,7 @@ const AssigneeToggle = ({
         <Button variant="ghost"
           type="button"
           className={cn(
-            "flex h-11 w-11 p-0 rounded-md sm:h-8 sm:w-8",
+            "flex h-11 w-11 p-0 rounded-md lg:h-8 lg:w-8",
             ICON_BTN_ACCENT,
             selectedIds.length > 0 && "text-accent",
           )}
