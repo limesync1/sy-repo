@@ -1,7 +1,8 @@
 // Bulk-handlingsbjælke for "Aftaler uden rute".
 // Sticky i bunden af aftalepoolen så den ikke spiser plads fra listen og
 // ikke overlapper kort i toppen. Vises kun når mindst én aftale er valgt.
-import { X, Trash2, CalendarDays, Eye, Route as RouteIcon } from "lucide-react";
+import { X, Trash2, CalendarDays, Eye } from "lucide-react";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 
 type Props = {
   selectedCount: number;
@@ -92,7 +93,7 @@ export default function UnassignedBulkBar({
             className="flex h-9 min-w-[110px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
             title="Læg de valgte aftaler ind på en eksisterende rute"
           >
-            <RouteIcon className="h-3.5 w-3.5 text-muted-foreground" />
+            <UiArtwork name="addAppointmentToRoute" className="h-4 w-4" />
             <span>Tilføj til rute</span>
           </button>
         )}

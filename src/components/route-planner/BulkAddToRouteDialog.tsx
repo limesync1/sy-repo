@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { ArrowRight, CalendarDays, Loader2, MapPin, Route as RouteIcon, Search, User } from "lucide-react";
+import { CalendarDays, Loader2, MapPin, Search, User } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 
 /**
  * Bulk-tilføj valgte aftaler til en eksisterende rute med ét tryk.
@@ -84,7 +85,7 @@ export const BulkAddToRouteDialog = ({
       <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
-            icon={<RouteIcon className="h-4 w-4" />}
+            icon={<UiArtwork name="addAppointmentToRoute" className="h-6 w-6" />}
             title={<DialogTitle className="text-base">Tilføj {jobs.length} {jobs.length === 1 ? "aftale" : "aftaler"} til rute</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
@@ -233,7 +234,9 @@ export const BulkAddToRouteDialog = ({
                 </>
               ) : (
                 <>
-                  <ArrowRight className="h-4 w-4" />
+                  <span className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-white/95">
+                    <UiArtwork name="addAppointmentToRoute" className="h-3.5 w-3.5" />
+                  </span>
                   Tilføj {jobs.length} {jobs.length === 1 ? "aftale" : "aftaler"}
                 </>
               )}
