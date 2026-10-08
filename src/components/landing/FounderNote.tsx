@@ -58,19 +58,19 @@ const FounderNote = () => {
           <div className="mt-5 flex flex-wrap justify-center gap-2.5 lg:justify-start">
             <Button
               type="button"
+              variant="heroLight"
               onClick={openSupport}
-              className="group h-11 gap-2 rounded-lg bg-ocean-foreground px-4 text-sm font-semibold text-ocean hover:bg-ocean-foreground/90"
+              className="group h-11 gap-2 rounded-lg px-4 text-sm font-semibold"
             >
               <MessageCircle className="h-4 w-4" />
               Skriv til mig
             </Button>
-            <SmartLink
-              to="/om-os"
-              className="group inline-flex items-center gap-2 rounded-lg border border-ocean-foreground/35 bg-ocean-foreground/5 px-4 py-2.5 text-sm font-semibold text-ocean-foreground transition-colors hover:bg-ocean-foreground/15"
-            >
+            <Button asChild variant="heroDark" className="group h-11 rounded-lg px-4 font-semibold">
+            <SmartLink to="/om-os">
               Læs historien
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </SmartLink>
+            </Button>
           </div>
         </div>
 

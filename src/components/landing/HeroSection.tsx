@@ -51,8 +51,9 @@ const HeroSection = () => {
             <SmartLink to="/tilbud" className="sm:w-auto">
 
               <Button
+                variant="heroLight"
                 size="lg"
-                className="group h-12 w-full gap-2 rounded-full bg-background px-5 text-sm sm:px-7 font-semibold text-foreground shadow-lg transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto"
+                className="group h-12 w-full gap-2 rounded-lg px-5 text-sm sm:px-7 font-semibold sm:w-auto"
               >
                 Indhent 3 tilbud
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -61,8 +62,8 @@ const HeroSection = () => {
             <SmartLink to="/virksomheder" className="sm:w-auto">
               <Button
                 size="lg"
-                variant="outline"
-                className="group h-12 w-full gap-2 rounded-full border-background/30 bg-transparent px-5 text-sm sm:px-7 font-semibold text-background transition-all duration-200 hover:bg-background/10 hover:text-background active:scale-[0.98] sm:w-auto"
+                variant="heroDark"
+                className="group h-12 w-full gap-2 rounded-lg px-5 text-sm sm:px-7 font-semibold sm:w-auto"
               >
                 Find services
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />

@@ -3,6 +3,7 @@ import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
 import BlueFlowBackground from "./BlueFlowBackground";
+import { Button } from "@/components/ui/button";
 
 /**
  * En enkel, sammenhængende proces frem for tre løsrevne salgskort.
@@ -66,20 +67,18 @@ const HowItWorks = () => {
         </ol>
 
         <div className="mt-8 flex flex-col gap-3 sm:mt-12 sm:flex-row sm:flex-wrap sm:items-center">
-          <SmartLink
-            to="/tilbud"
-            className="group inline-flex items-center justify-center gap-2 rounded-lg bg-ocean-foreground px-6 py-3 text-sm font-semibold text-ocean transition-all hover:-translate-y-0.5"
-          >
+          <Button asChild variant="heroLight" className="group h-12 rounded-lg px-6 font-semibold">
+          <SmartLink to="/tilbud">
             Indhent 3 gratis tilbud
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </SmartLink>
-          <SmartLink
-            to="/virksomheder"
-            className="group inline-flex items-center justify-center gap-2 rounded-lg border border-ocean-foreground/25 px-6 py-3 text-sm font-semibold text-ocean-foreground transition-all hover:-translate-y-0.5 hover:bg-ocean-foreground/10"
-          >
+          </Button>
+          <Button asChild variant="heroDark" className="group h-12 rounded-lg px-6 font-semibold">
+          <SmartLink to="/virksomheder">
             Find virksomheder
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </SmartLink>
+          </Button>
         </div>
       </div>
     </section>

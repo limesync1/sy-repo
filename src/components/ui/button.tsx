@@ -10,6 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "brand-blue-action",
+        heroLight: "hero-action-light",
+        heroDark: "hero-action-dark",
         undo: "route-action-undo",
         complete: "route-action-complete",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
