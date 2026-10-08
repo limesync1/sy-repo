@@ -1584,6 +1584,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         driveEstimateSeconds={timeError || timeLoading ? null : metrics.driveEstimateSeconds}
         summary={<RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => { setRunMode("guide"); setSelectedId(latestCompleted?.id ?? null); }} />}
         onNavigate={handleNavigate}
+        onOpenDetails={(stop) => setSelectedId(stop.id)}
         onSwitchToGuide={() => {
           setRunMode("guide");
           writeRunMode("guide", !!readRunMode());
@@ -1608,7 +1609,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           setAudioEnabled((value) => !value);
           if (!audioEnabled) playStartChime();
         }}
-      />
+      >
+      </RouteChecklistView>
     );
   }
 

@@ -18,6 +18,7 @@ import {
   Volume2,
   VolumeX,
   Map as MapIcon,
+  Info,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ type Props = {
   onComplete: (stop: RouteStop) => void;
   onUndo: (stop: RouteStop) => void;
   onNavigate: (stop: RouteStop) => void;
+  onOpenDetails: (stop: RouteStop) => void;
   onSwitchToGuide: () => void;
   onFinish: () => void;
   onMoveStop?: (stopId: string, dir: -1 | 1) => void;
@@ -80,6 +82,7 @@ export const RouteChecklistView = ({
   onComplete,
   onUndo,
   onNavigate,
+  onOpenDetails,
   onSwitchToGuide,
   onFinish,
   onMoveStop,
@@ -258,19 +261,18 @@ export const RouteChecklistView = ({
                         Start aftale
                       </Button>
                     )}
-                    <div className={cn("grid gap-2", next.customer_phone ? "grid-cols-2" : "grid-cols-1")}>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button variant="outline" className="h-11 gap-2" onClick={() => onNavigate(next)}>
                         <Navigation2 className="h-4 w-4" />
-                        Vis vej på kort
+                        Vis vej
                       </Button>
-                      {next.customer_phone ? (
-                        <Button variant="outline" className="h-11 gap-2" asChild>
-                          <a href={`tel:${next.customer_phone}`}>
-                            <Phone className="h-4 w-4" />
-                            Ring
-                          </a>
-                        </Button>
-                      ) : null}
+                      <Button variant="outline" className="h-11 gap-2" onClick={() => onOpenDetails(next)}>
+                        <Info className="h-4 w-4" />
+                        Oplysninger
+                      </Button>
+                      {next.customer_phone ? <Button variant="outline" className="col-span-2 h-11 gap-2" asChild>
+                        <a href={`tel:${next.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunden</a>
+                      </Button> : null}
                     </div>
                     {!nextIsStarted && (
                       <details className="group rounded-md text-center">
@@ -350,7 +352,18 @@ export const RouteChecklistView = ({
                           Fortryd udførsel
                         </Button>
                       )}
-                      {current && <span className="shrink-0 text-xs font-semibold text-accent">Nu</span>}
+                      {!done && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-11 w-11 shrink-0 text-muted-foreground hover:text-foreground"
+                          onClick={() => onOpenDetails(s)}
+                          aria-label={`Åbn oplysninger for ${s.customer_name || "stoppet"}`}
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {current && <span className="hidden shrink-0 text-xs font-semibold text-accent sm:inline">Nu</span>}
                       {canMove && (
                         <div className="flex shrink-0 gap-1">
                           <Button
