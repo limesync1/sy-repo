@@ -1913,7 +1913,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         )}
 
         {routeStarted && (directionsError || directions?.provider === "fallback") && (
-          <div className="absolute left-3 right-[68px] top-[72px] z-[1001] rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
+          <div className="absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1001] rounded-md border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
             <p className="text-sm font-semibold text-foreground">Vejvisningen kunne ikke hentes</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Den stiplede linje viser kun retningen — ikke en kørbar vej.</p>
             <Button type="button" variant="outline" size="sm" className="mt-2 h-9" onClick={() => retryDirections()}>Prøv igen</Button>
@@ -1985,7 +1985,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
 
             {/* Næste manøvre — hvidt HUD-kort i Google Maps-stil */}
-            {!isRerouting && showManeuverBanner && maneuver && nextStop && (() => {
+            {!isRerouting && !trafficAlert && showManeuverBanner && maneuver && nextStop && (() => {
               const thenStep = directions?.steps?.[maneuver.stepIndex + 1];
               const thenType = (thenStep?.maneuver?.type || "").toLowerCase();
               const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 500;
@@ -2021,7 +2021,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Ankomst-HUD: parkeret ved kunden */}
             {isAtNextStop && nextStop && (
-              <div className="route-maneuver absolute left-2 right-2 top-[4.5rem] z-[1000] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+              <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                 <div className="overflow-hidden rounded-xl border border-success/40 bg-card text-foreground shadow-lg" role="status" aria-live="polite">
                   <div className="flex items-center gap-3 px-3.5 py-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><MapPin className="h-5 w-5" /></span>
@@ -2053,7 +2053,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Reroute-banner — Google Maps-stil "genberegner" prompt */}
             {isRerouting && (
-              <div className="absolute top-[68px] left-3 right-[68px] z-[1001] pointer-events-none">
+              <div className="pointer-events-none absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1001] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                 <div
                   className="flex items-center gap-3 rounded-md border bg-background/95 px-3 py-2.5 shadow-xl backdrop-blur animate-in fade-in slide-in-from-top-2 duration-200"
                 >
@@ -2074,7 +2074,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             )}
 
             {!isRerouting && trafficAlert && (
-              <div role="status" className="absolute left-2 right-2 top-[8.5rem] z-[1000] flex items-center gap-2 rounded-md border border-warning/30 bg-card px-3 py-2 text-xs text-foreground">
+              <div role="status" className="absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] flex items-center gap-2 rounded-md border border-warning/30 bg-card px-3 py-2 text-xs text-foreground sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                 <TrafficCone className="h-4 w-4 shrink-0 text-warning" />
                 <span className="min-w-0 flex-1">Trafik · ca. {trafficAlert.addedMin} min ekstra</span>
                 <Button variant="ghost" size="sm" className="h-11" onClick={() => setTrafficAlert(null)}>Luk</Button>
