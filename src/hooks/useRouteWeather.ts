@@ -34,10 +34,10 @@ export function useRouteWeather(routes: WeatherRoute[], stops: Point[]) {
       if (!res.ok) throw new Error("Vejret kunne ikke hentes");
       const { daily: d } = await res.json();
       if (!Array.isArray(d?.time)) throw new Error("Vejrudsigten mangler");
-      return d.time.map((date: string, i: number) => {
+      return d.time.flatMap((date: string, i: number) => {
         const values = [d.weather_code?.[i], d.temperature_2m_max?.[i], d.temperature_2m_min?.[i], d.precipitation_sum?.[i], d.precipitation_probability_max?.[i], d.precipitation_hours?.[i], d.wind_speed_10m_max?.[i], d.wind_gusts_10m_max?.[i]];
-        if (values.some(v => v == null || !Number.isFinite(v))) throw new Error("Vejrudsigten er ufuldstændig");
-        return { date, weatherCode: values[0], tempMax: values[1], tempMin: values[2], precipitationMm: values[3], precipitationProbability: values[4], precipitationHours: values[5], windSpeedMax: values[6], windGustMax: values[7], sunrise: d.sunrise?.[i] ?? null, sunset: d.sunset?.[i] ?? null };
+        if (values.some(v => v == null || !Number.isFinite(v))) return [];
+        return [{ date, weatherCode: values[0], tempMax: values[1], tempMin: values[2], precipitationMm: values[3], precipitationProbability: values[4], precipitationHours: values[5], windSpeedMax: values[6], windGustMax: values[7], sunrise: d.sunrise?.[i] ?? null, sunset: d.sunset?.[i] ?? null }];
       });
     },
   })) });
@@ -45,7 +45,8 @@ export function useRouteWeather(routes: WeatherRoute[], stops: Point[]) {
   const byDate = new Map<string, WeatherDay[]>();
   for (const route of routes) {
     const date = route.route_date.slice(0, 10);
-    const routeStops = stops.filter(s => s.route_id === route.id || s.route_id === (route.base_route_id ?? route.baseRouteId));
+    const ownStops = stops.filter(s => s.route_id === route.id);
+    const routeStops = ownStops.length ? ownStops : stops.filter(s => s.route_id === (route.base_route_id ?? route.baseRouteId));
     const forecasts: WeatherDay[] = [];
     for (const s of routeStops) {
       if (s.latitude == null || s.longitude == null) continue;

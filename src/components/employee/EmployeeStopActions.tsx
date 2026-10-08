@@ -157,7 +157,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
           <MessageSquarePlus className="h-4 w-4" />Note
         </Button>
       ) : (<>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
         <Button variant="outline" className="h-12 justify-center gap-2" onClick={openEditor} disabled={completed || !order}>
           <Pencil className="h-4 w-4" /> Ret ydelser
         </Button>
@@ -192,9 +192,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <ul className="space-y-2">
               {lines.map((l) => (
-                <li key={l.key} className="flex items-center gap-2 rounded-md border border-border bg-card p-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{l.name}</p>
+                <li key={l.key} className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-card p-2.5">
+                  <div className="w-full min-w-0 sm:w-auto sm:flex-1">
+                    <p className="break-words text-sm font-medium">{l.name}</p>
                     {l.unit && <p className="text-[11px] text-muted-foreground">{l.unit}</p>}
                   </div>
                   <Button size="icon" variant="outline" className="h-11 w-11" aria-label="Færre" onClick={() => setQty(l.key, -1)} disabled={l.quantity <= 1}>
