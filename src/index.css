@@ -684,12 +684,15 @@
     .employee-page button:not([role=checkbox]):not([role=radio]):not([role=switch]) { min-height: 44px; }
     .appointment-details-overlay button:not([role=checkbox]):not([role=radio]):not([role=switch]) { min-height: 44px; }
     .appointment-details-overlay .planner-overlay-footer { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
-    .employee-route-run { height: 100dvh; }
+    .employee-route-run { min-height: 100svh; height: 100dvh; max-height: 100dvh; }
     .employee-route-run .route-map-stage-driving { display: flex; flex-direction: column; }
     .employee-route-run .route-map-stage-driving > .leaflet-container { flex: 1 1 0; min-height: 0; height: auto !important; }
     .employee-route-run .route-active-stop { position: relative; inset: auto; bottom: auto; top: auto; padding: 0; flex-shrink: 0; }
     .employee-route-run .route-active-stop .route-drive-dock { border-radius: 0; box-shadow: none; padding-bottom: env(safe-area-inset-bottom); }
     .employee-route-run .route-maneuver { right: 0.5rem; }
+    .employee-route-run .route-maneuver > * { max-height: min(34dvh, 15rem); overflow-y: auto; overscroll-behavior: contain; }
+    .employee-route-run .drive-route-notification { bottom: 0.5rem; }
+    .employee-route-run:has(.drive-route-notification) .route-map-stage-driving .drive-issue-banner { bottom: 4.75rem; }
     .employee-route-run .leaflet-control-attribution { max-width: 90%; }
   }
 

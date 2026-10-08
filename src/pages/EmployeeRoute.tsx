@@ -1741,7 +1741,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <div className={cn(
           "z-[1003]",
           routeStarted && !allDone
-            ? "absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]"
+            ? "drive-route-notification absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]"
             : "relative border-b border-destructive/25 bg-destructive/5 px-3 py-2",
         )}>
           <div className={cn("mx-auto flex max-w-3xl items-start gap-2", routeStarted && !allDone && "rounded-md border border-destructive/25 bg-card/95 p-2.5 shadow-lg backdrop-blur-md")}>
