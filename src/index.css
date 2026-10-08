@@ -703,9 +703,11 @@
 
   /* GPS-/forbindelsesfejl må aldrig skjule dreje-HUD'en. Advarslen ligger
      nederst på selve kortfladen, lige over det faste stop-panel. */
-  .employee-route-run .route-map-stage-driving .drive-issue-banner {
-    top: auto;
-    bottom: 0.5rem;
+  @media (min-width: 768px) {
+    .employee-route-run .route-map-stage-driving .drive-issue-banner {
+      top: auto;
+      bottom: 0.5rem;
+    }
   }
   /* Browser address bars leave a short viewport: keep the map visible. */
   @media (max-height: 720px) {
