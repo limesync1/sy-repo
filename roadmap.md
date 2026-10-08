@@ -1,10 +1,12 @@
 # Roadmap
 
 ## Rutevejr og mobilpaneler 2026-10-08
-- [ ] Beregn vejr på rutens stop og vis det i kalender og medarbejderpanel
-- [ ] Gennemgå medarbejdersider og vinduer; ret arbejdspladsvalg og vis alle rutestop
-- [ ] Ret mobil/tablet-ruteplanlægning med trykbaseret rækkefølge og tilgængelige aftale-/rutehandlinger
+- [x] Beregn vejr på rutens stop og vis det i kalender og medarbejderpanel
+- [x] Ret arbejdspladsvalg og vis alle rutestop; gennemgå centrale medarbejdervinduer
+- [x] Ret mobil/tablet-ruteplanlægning med trykbaseret rækkefølge og tilgængelige aftale-/rutehandlinger
 - [ ] Kontrollér indloggede sider og centrale vinduer på mobil/tablet samt regressionstests
+
+Kontrolleret som Patrick på desktop og responsive 390×844/820×844 visninger: alle otte teststop kan åbnes, rutevejret viser 14°/4,9 mm/7,0 m/s, stoplisten har flyttepile, medarbejdervalg og rutetildeling åbner. Offline-flytning viser fejl og bevarer rækkefølgen. Tabletstatistik har ingen vandret overflow. Fysiske telefoner, alle øvrige virksomhedssider, samtlige modaler og fuld rutekørsel er endnu ikke gennemtestet.
 
 ## Felter uden automatisk mobilzoom
 - [x] Ensret felter globalt på offentlige sider, i alle paneler og portalvinduer uden at deaktivere almindelig zoom
