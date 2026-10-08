@@ -113,8 +113,9 @@ const Testimonials = () => {
         .is("hidden_at", null)
         .order("created_at", { ascending: false })
         .limit(40);
+      // Virksomhedslinket er valgfrit — en anmeldelse uden tilknyttet virksomhed skal stadig vises.
       const rows = ((data as unknown as Review[]) ?? []).filter(
-        (r) => r.comment && r.comment.length > 20 && r.businesses,
+        (r) => r.comment && r.comment.length > 20,
       );
       // Hent profilbilleder for de anmeldere der har en profil.
       const ids = Array.from(new Set(rows.map((r) => r.customer_id).filter(Boolean))) as string[];
