@@ -46,6 +46,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute, invalidateRouteSyncQueries } from "@/hooks/useRoutes";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 import { ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
@@ -2571,7 +2572,8 @@ const AftaleTab = ({
                           </div>
                         </div>
                         {isOver && (
-                          <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
+                          <p className="mt-2 flex items-center justify-center gap-1.5 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
+                            <UiArtwork name="addAppointmentToRoute" className="h-3.5 w-3.5" />
                             Slip her for at lægge aftalen på ruten
                           </p>
                         )}
