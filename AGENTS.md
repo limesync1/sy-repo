@@ -9,7 +9,7 @@
 - Header/session icons use monochrome `PanelIcon`; compact artwork uses `UiArtwork`. Filled-button artwork uses a light contrast chip.
 - Illustrations use `BrandedIllustration`; `PanelIcon`/customer variants reuse assets to avoid duplicates.
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
-- Public SEO heads use content registries and seo-prerender-head for non-JS crawlers; client tags preserve full text and canonicalize to the public origin unless a business supplies its own domain.
+- Public SEO uses registries and seo-prerender-head; client tags preserve full text and public-origin canonicals unless a business supplies its domain.
 - All lead sources normalize into `quote_requests`/`quote_request_matches`, while provider connections and credentials stay server-side and business-scoped, so the Leads workspace has one secure source of truth.
 - Meta source selection models Facebook Pages as the parent source and surfaces their linked Instagram account and lead forms together, because Meta exposes Instagram lead access through the connected Page.
 - Meta OAuth always uses the public `https://serviceydere.dk/meta/callback` URI, which forwards the authorization response to the server callback so Meta configuration remains stable across preview and production.
@@ -33,9 +33,10 @@
 - Night maps use token-themed OpenFreeMap vectors, dim raster fallback and errors. PWA uses manifest only; no offline cache to stale previews.
 
 - Timelines stay fixed-height with explicit selection; semantic actions distinguish undo and completion.
-- Global mobile/touch field font rules cover portals to prevent focus zoom while preserving pinch zoom.
+- Mobile/touch field font rules cover portals; prevent focus zoom, preserve pinch zoom.
 
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses tap assignment/reorder. Dialogs reuse names/employees and native scrolling. Density/card detail persist independently; scoped sizing beats overrides.
-- Employee edits/new orders send pricing inputs only; server RPCs recompute prices and send recurring orders to the unassigned pool, preventing underpricing and misplaced series.
+- Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
+- Blue sections share lazy BlueFlowBackground; token colors, visibility pauses and static fallback protect performance and accessibility.

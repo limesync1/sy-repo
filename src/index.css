@@ -1651,6 +1651,18 @@ img[loading="lazy"].is-error {
     linear-gradient(118deg, hsl(var(--hero-bg)) 0%, hsl(var(--brand-blue-end)) 100%);
 }
 
+/* The blue fallback remains readable with no GPU or reduced motion. */
+.blue-flow-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: hsl(var(--hero-bg));
+}
+.blue-flow-background canvas { display: block; width: 100%; height: 100%; }
+.blue-flow-background canvas[hidden] { display: none; }
+
 .panel-overview-hero {
   background:
     linear-gradient(105deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg)) 48%, hsl(var(--brand-blue-end)) 100%);
