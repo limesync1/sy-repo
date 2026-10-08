@@ -8,6 +8,13 @@
       "when": 1791455165179,
       "tag": "0000_employee_stop_edits_and_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791460022951,
+      "tag": "0001_fix_employee_stop_services_errors",
+      "breakpoints": true
     }
   ]
 }
