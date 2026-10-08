@@ -78,6 +78,9 @@ export type DragEndDeps = {
   // RoutePlanner-helpers
   serviceSummaryForJob: (job: any) => string;
   todayStr: () => string;
+  /** Øvrige markerede aftaler der følger med, når et markeret kort trækkes. */
+  getDragCompanions?: (jobId: string) => any[];
+  onCompanionsPlaced?: () => void;
 };
 
 export function useRoutePlannerDragEnd(deps: DragEndDeps) {
@@ -89,8 +92,19 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
     setActiveDragId, setActiveDragData, setRouteDragPoint, setDragOverTargetId, setTargetBusy,
     activeDragPointRef, activeDragOriginRef, activeRouteDragPointRef, activeRouteDragOriginRef,
     inFlightDropsRef, detectAssigneeConflicts,
-    serviceSummaryForJob, todayStr,
+    serviceSummaryForJob, todayStr, getDragCompanions, onCompanionsPlaced,
   } = deps;
+
+  const stopPayload = (job: any, routeId: string, sequence: number) => ({
+    route_id: routeId, order_id: job.id, sequence,
+    customer_name: job.customer_name, customer_phone: job.customer_phone,
+    address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+    latitude: job.latitude, longitude: job.longitude,
+    service_summary: serviceSummaryForJob(job),
+    duration_minutes: Number(job.estimated_duration_minutes) || 30,
+    time_window_start: job.preferred_time_start || null,
+    time_window_end: job.preferred_time_end || null,
+  });
 
   return useCallback(async (e: DragEndEvent) => {
     const { active, over } = e;
