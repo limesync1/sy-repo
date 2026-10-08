@@ -64,11 +64,11 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, on
               role="button"
               tabIndex={0}
               className={cn(
-                "mb-1 flex w-full items-start gap-2.5 rounded-[5px] border px-2.5 py-2.5 text-left transition-colors",
-                item.read_at ? "border-transparent bg-transparent" : "border-accent/25 bg-accent/5",
+                "mb-1 flex w-full cursor-pointer items-start gap-2.5 rounded-[5px] border px-2.5 py-2.5 text-left transition-colors hover:bg-secondary hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:bg-muted",
+                item.read_at ? "border-transparent bg-transparent" : "border-accent/25 bg-accent/5 dark:bg-accent/15",
               )}
               onClick={() => onOpen(item)}
-              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onOpen(item); }}
+              onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen(item); } }}
             >
               <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]", item.read_at ? "bg-secondary text-muted-foreground" : "bg-accent/12 text-accent")}>
                 {isStop ? <MapPin className="h-4 w-4" /> : <RouteIcon className="h-4 w-4" />}

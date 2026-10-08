@@ -285,14 +285,8 @@ const Planner = () => {
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
-  const [density, setDensity] = useDensity();
-  // Bagudkompatibel afledt værdi — `compactCards` styrer kompakt-render i
-  // aftalekortene. Den følger nu tæthedsvælgeren, så ét sted styrer alt.
-  const compactCards = density === "compact";
-  const setCompactCards = (v: boolean | ((p: boolean) => boolean)) => {
-    const next = typeof v === "function" ? (v as (p: boolean) => boolean)(compactCards) : v;
-    setDensity(next ? "compact" : "cozy");
-  };
+  const [density] = useDensity();
+  const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
   const retainedHistoryRoute = useRetainedValue(historyRoute);
@@ -3367,7 +3361,7 @@ const Planner = () => {
                       className="h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold"
                     >
                       <Plus className="h-4 w-4" />
-                      Ny bestilling
+                      Opret bestilling
                     </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -3451,7 +3445,7 @@ const Planner = () => {
                          </Select>
                          <Tooltip>
                            <TooltipTrigger asChild>
-                             <button
+                             <Button variant="outline" size="icon"
                                type="button"
                                onClick={() => setCompactCards((v) => !v)}
                                aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
@@ -3459,7 +3453,7 @@ const Planner = () => {
                                className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
                              >
                                {compactCards ? <Rows3 className="h-3.5 w-3.5" /> : <LayoutGrid className="h-3.5 w-3.5" />}
-                             </button>
+                             </Button>
                            </TooltipTrigger>
                            <TooltipContent side="bottom" className="text-xs">
                              {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
@@ -4463,7 +4457,7 @@ const Planner = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <Button className="h-11 w-full gap-1.5 rounded-[4px] text-sm" onClick={requestCreateOrder}>
                       <ShoppingBag className="h-4 w-4" />
-                      Ny bestilling
+                      Opret bestilling
                     </Button>
                     <Button className="h-11 w-full gap-1.5 rounded-[4px] text-sm" onClick={() => setCreateOpen(true)}>
                       <RouteIcon className="h-4 w-4" />

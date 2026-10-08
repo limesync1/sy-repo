@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Search } from "lucide-react";
 import SEO from "@/components/SEO";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 const NotFound = () => {
   const location = useLocation();
@@ -19,7 +20,7 @@ const NotFound = () => {
         noIndex
       />
       {/* Nav */}
-      <nav className="border-b border-border bg-card/95 backdrop-blur">
+      <nav className="border-b border-border bg-site-header-background">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <Link to="/" className="flex items-center gap-3">
             <ArrowLeft className="h-4 w-4 text-muted-foreground" />
@@ -37,10 +38,7 @@ const NotFound = () => {
       </nav>
 
       <div className="flex flex-1 flex-col items-center justify-center px-4 pb-20">
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-secondary mb-6">
-          <Search className="h-9 w-9 text-muted-foreground/30" />
-        </div>
-        <p className="mb-1 text-6xl font-extrabold text-foreground">404</p>
+        <BrandedIllustration name="notFound" alt="404" className="h-40 w-72 object-cover mb-2" />
         <h1 className="mb-2 text-xl font-bold text-foreground">Siden blev ikke fundet</h1>
         <p className="mb-8 max-w-sm text-center text-sm text-muted-foreground">
           Den side du leder efter findes ikke eller er blevet flyttet.
