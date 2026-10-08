@@ -16,14 +16,14 @@ import BlueFlowBackground from "./BlueFlowBackground";
 const HeroSection = () => {
   return (
     <header
-      className="relative z-30 isolate text-background"
+      className="relative z-30 isolate text-ocean-foreground"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
       <BlueFlowBackground />
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:pb-14 lg:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in max-w-[21rem] text-[2.15rem] font-semibold leading-[1.04] text-background sm:max-w-none sm:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
+          <h1 className="animate-fade-in max-w-[21rem] text-[2.15rem] font-semibold leading-[1.04] text-ocean-foreground sm:max-w-none sm:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
@@ -31,7 +31,7 @@ const HeroSection = () => {
             <br className="hidden sm:block" /> til opgaven.
           </h1>
 
-          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-lg text-[15px] leading-[1.65] text-background/75 sm:mt-5 sm:text-base 2xl:mt-6 2xl:text-[17px]">
+          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-lg text-[15px] leading-[1.65] text-ocean-foreground/75 sm:mt-5 sm:text-base 2xl:mt-6 2xl:text-[17px]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
@@ -42,7 +42,7 @@ const HeroSection = () => {
               showNearLabel={false}
               placeholder="Søg efter service, virksomhed eller by…"
             />
-            <div className="mt-2.5 flex flex-wrap items-center gap-2 px-1 text-xs text-background/70">
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 px-1 text-xs text-ocean-foreground/70">
               <LocationChip />
             </div>
           </div>

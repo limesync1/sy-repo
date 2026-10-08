@@ -178,7 +178,7 @@ const SiteNav = ({ active, right }: Props) => {
   };
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-border bg-[hsl(var(--site-header-background))]">
+    <nav className="site-nav-light sticky top-0 z-40 border-b border-border bg-[hsl(var(--site-header-background))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 py-3 sm:py-3.5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
