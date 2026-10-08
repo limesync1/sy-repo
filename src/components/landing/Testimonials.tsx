@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import HorizontalScroller from "./HorizontalScroller";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 type Review = {
   id: string;
@@ -71,12 +70,9 @@ const Testimonials = () => {
               <SectionLabelMark />
               Anmeldelser
             </span>
-            <div className="mt-4 flex items-center gap-4 2xl:mt-5">
-              <BrandedIllustration name="realReviews" className="h-16 w-16" />
-              <h2 className="min-w-0 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:text-[2.75rem]">
-                Det siger kunderne
-              </h2>
-            </div>
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] text-foreground sm:text-[2.2rem] lg:text-[2.4rem] 2xl:mt-5 2xl:text-[2.75rem]">
+              Det siger kunderne
+            </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
               Kun kunder med en bekræftet booking kan anmelde. Derfor er stjernerne her erfaringer
               fra opgaver, der faktisk er blevet udført.
