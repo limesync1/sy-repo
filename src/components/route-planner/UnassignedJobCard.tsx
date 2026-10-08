@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, SEGMENT_BTN } from "./lib/card-styles";
 import { IndustryIcon } from "@/components/IndustryIcon";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 
 /** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
