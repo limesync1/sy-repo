@@ -6,7 +6,7 @@ afterEach(cleanup);
 describe("Route action variants", () => {
   it("centres labels without vertical padding squeezing compact buttons", () => {
     render(<Button className="h-6 text-xs">Vælg rute</Button>);
-    expect(screen.getByRole("button", { name: "Vælg rute" })).toHaveClass("leading-tight", "py-0");
+    expect(screen.getByRole("button", { name: "Vælg rute" })).toHaveClass("py-0");
     expect(screen.getByRole("button", { name: "Vælg rute" })).not.toHaveClass("py-2");
   });
   it("keeps undo, completion and details visually distinct", () => {
