@@ -6,7 +6,7 @@
 
 - Business/employee navigation shares `PanelShell`/`SidebarParts`; admin keeps compatibility exports and `service-panel-*`. Never duplicate role layouts.
 - Resolve checklist versus map guide before mounting Leaflet or continuous GPS to prevent map flashes and battery waste.
-- Header role and session icons resolve through `PanelIcon` (monochrome assets); compact custom UI artwork resolves through `UiArtwork`. Fixed-color artwork on filled buttons sits in a light chip for contrast.
+- Header/session icons use monochrome `PanelIcon`; compact artwork uses `UiArtwork`. Filled-button artwork uses a light contrast chip.
 - Semantic illustrations use `BrandedIllustration`; `PanelIcon` and customer variants reuse matching assets to avoid duplicates.
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
 - Public SEO heads use content registries and seo-prerender-head for non-JS crawlers; client tags preserve full text and canonicalize to the public origin unless a business supplies its own domain.
@@ -37,5 +37,5 @@
 
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
-- Compact planning uses tap assignment/reorder for safe scrolling.
+- Compact planning uses tap assignment/reorder. Route dialogs reuse calendar names/attached employees and bounded native scrolling to avoid clipping.
 - Employee edits/new orders send pricing inputs only; server RPCs recompute prices and send recurring orders to the unassigned pool, preventing underpricing and misplaced series.

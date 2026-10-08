@@ -1,5 +1,11 @@
 # Roadmap
 
+## Nærmere mobilgennemgang 2026-10-08
+- [ ] Kontrollér Min dag, ruter, Statistik/timer, arbejdspladsvalg og bestillingsvinduer indlogget på mobil/tablet
+- [ ] Ret konkrete layout-, valg- og dialogproblemer uden at ændre tidsregistrering eller prisregler
+- [ ] Kontrollér rutelistens og kortets fælles aftalehandlinger og fejlvisninger
+- [ ] Kør målrettede tests og kontrollér aktuelle fejl
+
 ## Ikon ved "Tilføj aftale til rute" 2026-10-08
 - [x] Upload det vedhæftede ikon og vis det gennem UiArtwork
 - [x] Brug ikonet på aftalekort, bundbjælke, dialoghoved og bekræftelsesknap

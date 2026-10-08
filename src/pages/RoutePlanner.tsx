@@ -5026,8 +5026,8 @@ const Planner = () => {
                 name: r.name || "Rute",
                 currentDate: r.route_date,
                 color: r.color,
-                stopCount: (r as any).stops?.length ?? 0,
-                employeeName: (r as any).employees?.[0]?.name ?? null,
+                stopCount: calendarRoutes.find((route) => route.id === r.id)?.stops?.length ?? 0,
+                employeeName: calendarRoutes.find((route) => route.id === r.id)?.attachedEmployees?.map((employee) => employee.name).join(", ") || null,
               });
             }
             return items;
@@ -5252,10 +5252,10 @@ const Planner = () => {
               const stops = calendarStops.filter((s) => s.route_id === r.id);
               items.push({
                 id: r.id,
-                name: r.name,
+                name: calendarRoutes.find((route) => route.id === r.id)?.name ?? r.name,
                 route_date: r.route_date,
                 color: r.color,
-                employeeName: (r as any).employees?.[0]?.name ?? null,
+                employeeName: calendarRoutes.find((route) => route.id === r.id)?.attachedEmployees?.map((employee) => employee.name).join(", ") || null,
                 stopCount: stops.length,
               });
             }
