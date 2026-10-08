@@ -4244,23 +4244,41 @@ const Planner = () => {
                           <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
                             <Printer className="h-3.5 w-3.5" /> Print / PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
-                            <ListOrdered className="h-3.5 w-3.5" /> Vis dag som tidslinje
+                          <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
+                            <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuLabel className="text-xs">Visning</DropdownMenuLabel>
-                          <div className="px-2 py-1 flex items-center justify-between gap-2">
-                            <span className="text-xs text-muted-foreground">Tæthed</span>
-                            <DensityToggle />
-                          </div>
-                          <div className="px-2 py-1 flex items-center justify-between gap-2">
-                            <span className="text-xs text-muted-foreground">Tema</span>
-                            <ThemeToggle />
-                          </div>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setShortcutsOpen(true)} className="text-xs gap-2">
                             <Keyboard className="h-3.5 w-3.5" /> Tastatur-genveje
                             <kbd className="ml-auto px-1 rounded bg-secondary text-[10px]">?</kbd>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-semibold" aria-label="Visning">
+                            <LayoutGrid className="h-4 w-4" />Visning
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-64 p-2">
+                          <DropdownMenuLabel className="px-1 text-[10px] uppercase tracking-wider text-muted-foreground">Kalender</DropdownMenuLabel>
+                          <div className="grid grid-cols-2 gap-1 px-1 pb-2">
+                            {([["month", "Måned"], ["week", "Uge"]] as const).map(([v, l]) => (
+                              <Button key={v} size="sm" variant={view === v ? "default" : "outline"} className="h-8 text-xs" onClick={() => setView(v)} aria-pressed={view === v}>{l}</Button>
+                            ))}
+                          </div>
+                          <DropdownMenuSeparator />
+                          <div className="flex items-center justify-between gap-2 px-1 py-1.5">
+                            <span className="text-xs text-muted-foreground">Tæthed</span>
+                            <DensityToggle />
+                          </div>
+                          <div className="flex items-center justify-between gap-2 px-1 py-1.5">
+                            <span className="text-xs text-muted-foreground">Mørk tilstand</span>
+                            <ThemeToggle />
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
+                            <ListOrdered className="h-3.5 w-3.5" /> Vis dagen som tidslinje
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
