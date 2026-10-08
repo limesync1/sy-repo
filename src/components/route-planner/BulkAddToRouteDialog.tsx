@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { CalendarDays, CalendarPlus, Loader2, MapPin, Search, User } from "lucide-react";
+import { Check, CalendarPlus, ListOrdered, Loader2, MapPin, Search, User, X } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
 import { UiArtwork } from "@/components/shared/UiArtwork";
 
@@ -99,17 +99,17 @@ export const BulkAddToRouteDialog = ({
           {/* Venstre: valgte aftaler */}
           <div className="border-b sm:border-b-0 sm:border-r p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              <span>Valgte aftaler</span>
+              <span>Valgte aftaler</span><span className="tabular-nums normal-case font-medium">{jobs.length}</span>
             </div>
             <ScrollArea className="h-[min(22dvh,10rem)] sm:h-56">
               <div className="space-y-1.5 pr-2">
                 {jobs.map((j) => (
-                  <div key={j.id} className="flex items-start gap-2 rounded-md border bg-card px-2 py-1.5 text-xs">
+                  <div key={j.id} className="flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 text-xs">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate">{j.customer_name || "Uden navn"}</p>
+                      <p className="text-sm font-semibold leading-tight truncate">{j.customer_name || "Uden navn"}</p>
                       {j.address && (
                         <p className="text-[11px] text-muted-foreground truncate flex items-center gap-0.5 mt-0.5">
-                          <MapPin className="h-2.5 w-2.5" />{j.address}
+                          <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{j.address}</span>
                         </p>
                       )}
                     </div>
@@ -117,11 +117,12 @@ export const BulkAddToRouteDialog = ({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-8 px-2 text-xs text-muted-foreground sm:h-7 sm:px-1.5"
+                      aria-label={`Fjern ${j.customer_name || "aftale"}`}
+                      className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                       disabled={loading}
                       onClick={() => onRemoveJob(j.id)}
                     >
-                      Fjern
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
@@ -151,7 +152,7 @@ export const BulkAddToRouteDialog = ({
               </div>
             </div>
             <ScrollArea className="h-[min(35dvh,18rem)] sm:h-56">
-              <div className="space-y-1 pr-2">
+              <div className="space-y-1.5 pr-2">
                 {filteredRoutes.map((r) => {
                   const selected = selectedRouteId === r.id;
                   return (
@@ -162,38 +163,34 @@ export const BulkAddToRouteDialog = ({
                       onClick={() => setSelectedRouteId(r.id)}
                       disabled={loading}
                       className={cn(
-                        "block h-auto w-full min-h-14 whitespace-normal text-left rounded-md border bg-card px-2.5 py-2 transition-[background-color,border-color,box-shadow,transform] duration-150",
+                        "block h-auto w-full min-h-16 whitespace-normal text-left rounded-md border bg-card px-3 py-2.5 transition-[background-color,border-color,box-shadow,transform] duration-150",
                         "hover:border-accent/40 hover:bg-secondary/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
-                        selected && "border-accent ring-2 ring-accent/25 bg-accent/[0.04]",
+                        selected && "border-foreground bg-secondary/50 ring-1 ring-foreground/20",
                       )}
                     >
-                      <div className="flex items-center gap-2">
-                        <span
-                          aria-hidden
-                          className="h-7 w-1 shrink-0 rounded-full"
-                          style={{ background: r.color || "var(--muted-foreground)" }}
-                        />
+                      <div className="flex items-center gap-3">
+                        <span aria-hidden className="h-10 w-1.5 shrink-0 rounded-full" style={{ background: r.color || "hsl(var(--muted-foreground))" }} />
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <CalendarDays className="h-3 w-3 text-muted-foreground shrink-0" />
-                            <p className="text-xs font-semibold truncate">
-                              {format(parseISO(r.route_date), "EEE d. MMM", { locale: da })}
-                            </p>
-                            <span className="w-full break-words text-xs font-semibold text-foreground sm:w-auto">
-                              · {r.name || "Uden navn"}
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            {format(parseISO(r.route_date), "EEEE d. MMMM", { locale: da })}
+                          </p>
+                          <p className="truncate text-sm font-semibold leading-tight text-foreground">{r.name || "Uden navn"}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
+                            <span className="inline-flex items-center gap-1 rounded-[5px] bg-secondary px-1.5 py-0.5">
+                              <ListOrdered className="h-3 w-3" />{r.stopCount} stop → {r.stopCount + jobs.length}
                             </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
-                            <span className="inline-flex items-center gap-0.5">
-                              <MapPin className="h-2.5 w-2.5" />{r.stopCount} stop
-                            </span>
-                            {r.employeeName && (
-                              <span className="inline-flex items-center gap-0.5 truncate">
-                                <User className="h-2.5 w-2.5" />{r.employeeName}
+                            {r.employeeName ? (
+                              <span className="inline-flex min-w-0 items-center gap-1 truncate rounded-[5px] bg-secondary px-1.5 py-0.5">
+                                <User className="h-3 w-3 shrink-0" /><span className="truncate">{r.employeeName}</span>
                               </span>
+                            ) : (
+                              <span className="rounded-[5px] border border-dashed border-border px-1.5 py-0.5">Ingen medarbejder</span>
                             )}
                           </div>
                         </div>
+                        <span aria-hidden className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border", selected ? "border-foreground bg-foreground text-background" : "border-border")}>
+                          {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                        </span>
                       </div>
                     </Button>
                   );
