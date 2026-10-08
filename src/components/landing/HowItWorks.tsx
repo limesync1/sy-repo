@@ -49,7 +49,7 @@ const HowItWorks = () => {
                     {i + 1}
                   </span>
                   <h3 className="min-w-0 flex-1 text-[17px] font-semibold md:hidden">{step.title}</h3>
-                  <span className="icon-tile h-16 w-16 shrink-0 sm:h-20 sm:w-20">
+                  <span className="icon-tile-glass h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                     <BrandedIllustration name={step.icon} className="h-full w-full" />
                   </span>
                 </div>

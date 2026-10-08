@@ -68,24 +68,24 @@ const CookieConsent = () => {
       )}
       style={{ animationDelay: "100ms" }}
     >
-      <div className="mx-auto flex max-w-2xl flex-col gap-3 rounded-xl border border-background/10 bg-foreground/95 px-3.5 py-3 text-background shadow-xl backdrop-blur sm:flex-row sm:items-center sm:gap-4">
-        <div className="flex items-start gap-2.5 sm:items-center">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background/10">
+      <div className="mx-auto flex max-w-2xl items-center gap-2.5 rounded-xl border border-background/10 bg-foreground/95 px-3.5 py-3 text-background shadow-xl backdrop-blur sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex hidden h-7 w-7 shrink-0 items-center sm:flex justify-center rounded-full bg-background/10">
             <Cookie className="h-3.5 w-3.5" aria-hidden />
           </div>
           <div className="text-[12px] leading-5 text-background/85">
-            Vi bruger cookies til at forbedre din oplevelse. Læs mere i vores{" "}
+            <span className="sm:hidden">Vi bruger </span><span className="hidden sm:inline">Vi bruger cookies til at forbedre din oplevelse. Læs mere i vores </span>
             <Link
               to="/cookies"
               className="font-medium text-background underline underline-offset-2 hover:text-background/80"
             >
-              cookiepolitik
+              <span className="sm:hidden">cookies</span><span className="hidden sm:inline">cookiepolitik</span>
             </Link>
             .
           </div>
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5">
           <Button
             variant="ghost"
             size="sm"
