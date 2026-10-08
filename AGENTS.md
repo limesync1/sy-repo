@@ -20,8 +20,8 @@
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
 - Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
 
-- Business tab fallbacks and data-loading states share eagerly imported skeletons from the common panel registry; employee statistics uses its matching strip skeleton, preventing blank lazy fallbacks and outdated loading layouts.
-- Customer list empty panels always render the shared `NoItemsIcon` instead of accepting per-page icons, keeping favorites, subscriptions, reviews, and orders consistent with employee empty lists.
+- Business tab fallbacks/loading states share eagerly imported registry skeletons (employee stats uses its strip skeleton), preventing blank lazy fallbacks.
+- Customer list empty panels always use shared `NoItemsIcon` for consistency with employee lists.
 
 - Driving maps use leaflet-rotate and synchronized motion-track heading/panning, integer zoom dwell and stop-selection suspension; mobile stop actions sit below the map to preserve its usable area.
 - Arrival uses bounded accuracy-aware proximity, low-speed gating and dwell; work timers and completion require explicit actions to avoid false hours.
@@ -38,3 +38,4 @@
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses tap assignment/reorder for safe scrolling.
+- Employee edits/new orders send pricing inputs only; server RPCs recompute prices and send recurring orders to the unassigned pool, preventing underpricing and misplaced series.
