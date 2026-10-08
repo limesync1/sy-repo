@@ -11,7 +11,6 @@ import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 // stadig så initial JS-bundle bliver markant mindre.
 import Categories from "@/components/landing/Categories";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
-const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
 const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
 const FounderNote       = lazy(() => import("@/components/landing/FounderNote"));
 const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
@@ -114,9 +113,6 @@ const Index = () => {
         </Suspense>
         <Suspense fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-40" />}>
           <Reveal><WhyUs /></Reveal>
-        </Suspense>
-        <Suspense fallback={<SectionSkeleton cards={3} cardClassName="h-56" />}>
-          <Reveal><Testimonials /></Reveal>
         </Suspense>
         <Suspense fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-64" dark className="bg-ocean" />}>
           <Reveal><FounderNote /></Reveal>
