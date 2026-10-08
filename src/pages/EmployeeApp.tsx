@@ -1,4 +1,5 @@
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 import { RouteWeatherStatus } from "@/components/employee/RouteWeatherStatus";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -812,18 +813,18 @@ const EmployeeApp = () => {
                 {/* Den vigtigste handling står alene. Print ligger diskret i kortets header. */}
                 <div className="pt-0.5 sm:pt-1">
                   <Button
-                    asChild={total > 0}
+                    asChild={total > 0 && !isLocked}
                     size="lg"
                     className="h-11 w-full gap-2 rounded-[4px] bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >
                     {isLocked ? (
-                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <><UiArtwork name="dayLocked" className="h-5 w-6 sm:h-6 sm:w-7" />
                         {dateLocked
                           ? `Låst indtil ${format(dateObj, "d. MMM", { locale: da })}`
                           : needsStartDay
-                            ? "Start dag først"
+                            ? "Låst — start dagen først"
                             : "Låst — afslut forrige"}
                       </>
                     ) : total > 0 ? (
