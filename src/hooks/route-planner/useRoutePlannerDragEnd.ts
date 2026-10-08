@@ -161,6 +161,26 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       qc.invalidateQueries({ queryKey: ["pending-occurrences"] });
     };
 
+
+    const placeCompanions = async (mainJob: any, routeId: string, startSeq: number) => {
+      const companions = getDragCompanions?.(mainJob.id) ?? [];
+      if (companions.length === 0) return;
+      let seq = startSeq;
+      let ok = 0; let failed = 0;
+      for (const c of companions) {
+        const dup = calendarStops.some((s: any) => s.route_id === routeId && s.order_id === c.id);
+        if (dup) continue;
+        try {
+          await addStop.mutateAsync(stopPayload(c, routeId, seq++));
+          ok++;
+          void linkAgreementToRoute(c.id, routeId);
+        } catch (err) { failed++; console.warn("Kunne ikke tilføje valgt aftale", err); }
+      }
+      if (ok > 0) toast.success(`${ok + 1} valgte aftaler lagt på ruten`);
+      if (failed > 0) toast.error(`${failed} aftale${failed === 1 ? "" : "r"} kunne ikke tilføjes`, { description: "Prøv at trække dem ind igen." });
+      onCompanionsPlaced?.();
+      invalidateRouteSyncQueries(qc);
+    };
     const jobStartDate = (job: any): string | null => {
       const raw = job?.preferred_date || job?.next_service_date;
       return raw ? String(raw).slice(0, 10) : null;
@@ -292,6 +312,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
           key: "rp-add-to-route", successWord: "aftaler tilføjet", errorWord: "fejlede",
         });
         void linkAgreementToRoute(job.id, targetRouteId);
+        await placeCompanions(job, targetRouteId, sequence + 1);
       };
       if (targetDate && !ensureStartDateMatches(
         job, targetDate, targetLabel,
@@ -356,6 +377,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
           { key: "rp-create-route", successWord: "nye ruter oprettet", errorWord: "fejlede" },
         );
         void linkAgreementToRoute(job.id, created.id);
+        await placeCompanions(job, created.id, 1);
       };
       if (!ensureStartDateMatches(
         job, newDate,
