@@ -169,13 +169,6 @@ const Testimonials = () => {
               fra opgaver, der faktisk er blevet udført.
             </p>
           </div>
-          <SmartLink
-            to="/virksomheder"
-            className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto"
-          >
-            Find virksomheder
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </SmartLink>
         </div>
 
         {/* Mobil/tablet: vandret scroller man kan stryge i. */}
