@@ -2073,7 +2073,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             )}
 
-            {!isRerouting && trafficAlert && (
+            {!isRerouting && !isAtNextStop && trafficAlert && (
               <div role="status" className="absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] flex items-center gap-2 rounded-md border border-warning/30 bg-card px-3 py-2 text-xs text-foreground sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
                 <TrafficCone className="h-4 w-4 shrink-0 text-warning" />
                 <span className="min-w-0 flex-1">Trafik · ca. {trafficAlert.addedMin} min ekstra</span>
