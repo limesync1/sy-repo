@@ -410,6 +410,7 @@ export const useStartStopTime = () => {
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.previous?.forEach(([key, value]) => qc.setQueryData(key, value));
+      if (e?.message === "__cancelled__") return;
       toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" });
     },
     onSettled: () => {
