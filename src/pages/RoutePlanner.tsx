@@ -5338,8 +5338,16 @@ const Planner = () => {
                     </strong>{" "}
                     ({pendingStartDateChange?.targetLabel}).
                   </p>
+                  {(pendingStartDateChange?.groupCount ?? 1) > 1 && (
+                    <p className="rounded-md border border-border bg-secondary/40 px-2.5 py-2 text-foreground">
+                      Du flytter <strong>{pendingStartDateChange.groupCount} valgte aftaler</strong> på én gang.
+                      {pendingStartDateChange.companionMismatches > 0 && (
+                        <> {pendingStartDateChange.companionMismatches} af de andre får også ny opstartsdato.</>
+                      )}
+                    </p>
+                  )}
                   <p className="text-muted-foreground">
-                    Vil du flytte aftalens opstartsdato til den nye dato? Det opdaterer også
+                    Vil du flytte opstartsdatoen til den nye dato? Det opdaterer også
                     fremtidige forekomster og evt. tilknyttet abonnement.
                   </p>
                 </div>
