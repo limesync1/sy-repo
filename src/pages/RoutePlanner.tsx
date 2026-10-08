@@ -94,7 +94,7 @@ import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-plan
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import HelpTip from "@/components/route-planner/HelpTip";
-import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
+import { useRouteWeather } from "@/hooks/useRouteWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
@@ -621,37 +621,7 @@ const Planner = () => {
   // Vi henter altid maks. forecast (i dag → +15 dage) så vejret allerede er
   // cached når brugeren bladrer en uge eller måned frem — der er ingen
   // ekstra omkostning ved at hente flere dage på én gang.
-  const weatherCenter = useMemo(() => {
-    const coords = calendarStops
-      .filter((s) => s.latitude != null && s.longitude != null)
-      .map((s) => [Number(s.latitude), Number(s.longitude)] as [number, number]);
-    if (coords.length === 0) return { lat: 56.0, lng: 10.5 }; // Danmark
-    const lat = coords.reduce((a, [la]) => a + la, 0) / coords.length;
-    const lng = coords.reduce((a, [, lo]) => a + lo, 0) / coords.length;
-    return { lat, lng };
-  }, [calendarStops]);
-
-  // Bredt og stabilt vejr-interval: altid i dag → +15 dage. Så genbruger
-  // kalenderen samme cache på tværs af måned/uge-navigation i stedet for at
-  // starte et nyt vejrkald for hvert synligt interval.
-  const weatherRange = useMemo(() => {
-    const today = todayStr();
-    const farFuture = format(addDays(new Date(), 15), "yyyy-MM-dd");
-    return { start: today, end: farFuture };
-  }, []);
-
-  const { data: weatherDays = [], isLoading: loadingWeather, isError: weatherError } = useWeatherForecast({
-    startDate: weatherRange.start,
-    endDate: weatherRange.end,
-    latitude: weatherCenter.lat,
-    longitude: weatherCenter.lng,
-  });
-
-  const weatherByDate = useMemo(() => {
-    const m = new Map<string, WeatherDay>();
-    for (const d of weatherDays) m.set(d.date, d);
-    return m;
-  }, [weatherDays]);
+  const { weatherByDate, isLoading: loadingWeather, isError: weatherError } = useRouteWeather(calendarRoutesRaw, calendarStops);
 
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
@@ -4465,11 +4435,11 @@ const Planner = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-1.5">
-                    <Button className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={() => setCreateOpen(true)}>
+                    <Button className="h-11 gap-1.5 rounded-[4px] text-sm" onClick={() => setCreateOpen(true)}>
                       <Plus className="h-4 w-4" />
                       Opret rute
                     </Button>
-                    <Button variant="outline" className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={requestCreateOrder}>
+                    <Button variant="outline" className="h-11 gap-1.5 rounded-[4px] text-sm" onClick={requestCreateOrder}>
                       <ShoppingBag className="h-4 w-4" />
                       Bestilling
                     </Button>

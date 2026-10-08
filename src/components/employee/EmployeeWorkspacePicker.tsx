@@ -43,17 +43,16 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
     <EmployeePage>
       <PageHeader
         title="Vælg arbejdsplads"
-        description={`Du har adgang til ${employees.length} virksomheder. Vælg hvor du arbejder i dag — du kan altid skifte igen.`}
+        description="Hvor arbejder du i dag?"
       />
-      <div className="grid gap-3 sm:gap-5 lg:grid-cols-[minmax(240px,0.32fr)_minmax(0,1fr)] items-start">
-        <section className="service-panel-card overflow-hidden rounded-md border border-border bg-card shadow-sm">
-          <div className="flex items-center gap-4 p-4 lg:flex-col lg:items-start">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center lg:h-28 lg:w-28">
+      <div className="mx-auto grid max-w-3xl gap-3 sm:gap-5 items-start">
+        <section className="hidden lg:block">
+          <div className="flex items-center gap-4 py-2">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center">
               <BrandedIllustration name="chooseWorkspace" className="h-full w-full" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Aftaler, ruter og statistik for din arbejdsplads.</p>
               <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                 <Building2 className="h-4 w-4 shrink-0" />{employees.length} arbejdspladser tilgængelige
               </p>
@@ -95,7 +94,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground tracking-tight">{name}</p>
+                    <p className="break-words text-sm font-semibold text-foreground">{name}</p>
                     <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
                       {biz?.city ? (
                         <>

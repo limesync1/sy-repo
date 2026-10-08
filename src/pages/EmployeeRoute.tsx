@@ -51,6 +51,7 @@ import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
 import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
+import { RouteWeatherStatus } from "@/components/employee/RouteWeatherStatus";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
 import { GeocodeServiceError, geocodeAddress } from "@/lib/geocode";
@@ -1570,6 +1571,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       <RouteChecklistView
         routeId={routeId}
         routeName={route.name || "Rute"}
+        weather={<RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} />}
         themeColor={themeColor}
         stops={sortedStops}
         pendingId={pendingStopId}
@@ -1682,6 +1684,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <p className="text-[11px] text-muted-foreground tabular-nums">
                 {completedCount} af {sortedStops.length} stop udført
               </p>
+              <RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} />
             </div>
 
             <Button
