@@ -173,7 +173,7 @@ export const RouteChecklistView = ({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
+      <main className="mx-auto min-w-0 w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
         {weather && <div className="mb-3">{weather}</div>}
         {!allDone && <p className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-muted-foreground">
           <span>Start <b className="text-foreground">{startedAt ? formatClockTime(startedAt) : "—"}</b></span>
@@ -197,9 +197,9 @@ export const RouteChecklistView = ({
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
           {/* Nu-kort */}
-          <div className="lg:sticky lg:top-[4.75rem]">
+          <div className="min-w-0 lg:sticky lg:top-[4.75rem]">
             {allDone ? (
               <section className="service-panel-card rounded-md border border-border bg-card shadow-sm">{summary ?? <Button onClick={onFinish}>Til dagens ruter</Button>}</section>
             ) : next ? (
@@ -219,11 +219,11 @@ export const RouteChecklistView = ({
                       {nextNumber}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-xl font-semibold leading-tight text-foreground">{next.customer_name || "Stop"}</h2>
+                      <h2 className="break-words text-xl font-semibold leading-tight text-foreground">{next.customer_name || "Stop"}</h2>
                       {addressOf(next) && (
                         <p className="mt-1 flex items-start gap-1.5 text-sm leading-snug text-muted-foreground">
                           <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                          <span>{addressOf(next)}</span>
+                          <span className="min-w-0 break-words">{addressOf(next)}</span>
                         </p>
                       )}
                     </div>
@@ -241,7 +241,7 @@ export const RouteChecklistView = ({
                         <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
                         Tid registreres
                       </span>
-                      <span className="font-mono text-xl font-semibold tabular-nums text-foreground">{formatElapsed(elapsedSeconds)}</span>
+                      <span className="shrink-0 font-mono text-base font-semibold tabular-nums text-foreground sm:text-xl">{formatElapsed(elapsedSeconds)}</span>
                     </div>
                   )}
 
@@ -274,7 +274,7 @@ export const RouteChecklistView = ({
                         <Info className="h-4 w-4" />
                         Oplysninger
                       </Button>
-                      <div className="col-span-2 flex flex-wrap gap-2 [&>*]:flex-1"><ChecklistStopActions stop={next} routeDate={routeDate} /></div>
+                      <div className="col-span-2 min-w-0"><ChecklistStopActions stop={next} routeDate={routeDate} /></div>
                       {next.customer_phone ? <Button variant="outline" className="col-span-2 h-11 gap-2" asChild>
                         <a href={`tel:${next.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunden</a>
                       </Button> : null}
@@ -305,7 +305,7 @@ export const RouteChecklistView = ({
           {/* Tidslinje over hele dagen */}
           <section className="service-panel-card rounded-md border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <h3 className="text-sm font-semibold text-foreground">Dagens stops</h3>
+              <h3 className="text-sm font-semibold text-foreground">Dagens stop</h3>
               <span className="text-xs tabular-nums text-muted-foreground">{remaining.length} tilbage</span>
             </div>
             <ol className="relative px-2 py-2">
