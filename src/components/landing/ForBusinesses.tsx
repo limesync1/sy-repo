@@ -217,11 +217,11 @@ const ForBusinesses = () => {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className={`rounded-2xl p-5 ${
+                  className={`flex h-full min-w-0 flex-col rounded-2xl p-5 ${
                     item.strong ? "bg-foreground text-background" : "border border-border bg-background"
                   }`}
                 >
-                  <div className="text-2xl font-semibold tabular-nums tracking-tight">{item.value}</div>
+                  <div className="whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight sm:text-[1.35rem] lg:text-2xl">{item.value}</div>
                   <div className={`mt-0.5 text-[12px] ${item.strong ? "text-background/70" : "text-muted-foreground"}`}>
                     {item.unit}
                   </div>
