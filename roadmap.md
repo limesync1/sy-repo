@@ -1,5 +1,9 @@
 # Roadmap
 
+## Roligere WebGL
+- [ ] Fjern markørreaktion og skift striber til bløde, langsomme blå silkefolder
+- [ ] Kontrollér bevægelse, uændret markør og reservevisning på computer og mobil
+
 ## Blå forside og WebGL
 - [x] Gendan udvalgte blå baggrunde med lyse mellemsektioner og tydelig ikonkontrast
 - [x] Tilføj diskret WebGL med reduceret bevægelse og reservebaggrund
