@@ -223,6 +223,7 @@ const DayRowInner = ({
   return (
     <li
       ref={setNodeRef}
+      data-density-target="agenda-day"
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
         "relative px-3 py-2.5 transition-colors",
@@ -296,7 +297,7 @@ const DayRowInner = ({
       )}
 
       {/* Rute-piller — fuld bredde, stort touch-mål */}
-      <div className="mt-2 flex flex-col gap-1.5">
+      <div className="mt-2 flex flex-col gap-1.5" data-density-target="agenda-routes">
         {loadingRoutes && routes.length === 0 && (
           <div className="flex items-center gap-2 rounded-md border border-border/60 bg-card/80 px-3 py-2">
             <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
@@ -430,6 +431,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       data-route-pill=""
+      data-density-target="agenda-route"
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
         "relative flex min-h-[64px] items-center gap-2 rounded-[5px] border border-border/70 bg-card px-2.5 py-2 cursor-pointer transition-colors overflow-hidden",

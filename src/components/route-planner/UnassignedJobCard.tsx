@@ -261,6 +261,7 @@ export const UnassignedJobCard = ({
   return (
     <div
       ref={setNodeRef}
+      data-card-layout={compact ? "compact" : "full"}
       {...(isPending || isCompact ? {} : listeners)}
       {...(isPending || isCompact ? {} : attributes)}
       style={isDragging ? { opacity: 0.62 } : undefined}
@@ -291,7 +292,7 @@ export const UnassignedJobCard = ({
           type="button"
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onToggleSelect!(e); }}
+          onClick={(e) => { e.stopPropagation(); onToggleSelect?.(e); }}
           aria-label={selected ? `Fravælg ${job.customer_name}` : `Vælg ${job.customer_name}`}
           aria-pressed={selected}
           title={selected ? "Fravælg" : "Vælg flere aftaler"}
@@ -324,7 +325,8 @@ export const UnassignedJobCard = ({
             "aria-label": `Åbn detaljer for ${job.customer_name}`,
           })}
           className={cn(
-            "flex-1 py-2.5 pr-3 space-y-1",
+            "flex-1 pr-3",
+            compact ? "py-1.5 space-y-0.5" : "py-3 space-y-1.5",
             canSelect ? "pl-0" : "pl-3",
             !isPending && "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none",
           )}
@@ -345,7 +347,7 @@ export const UnassignedJobCard = ({
 
           {/* Linje 2: ydelse */}
           {serviceLine && (
-            <p className="truncate text-xs leading-4 text-foreground/75">{serviceLine}</p>
+            <p className={cn("text-xs leading-4 text-foreground/75", compact ? "truncate" : "break-words")}>{serviceLine}</p>
           )}
 
           {/* Linje 3: adresse */}
@@ -355,7 +357,7 @@ export const UnassignedJobCard = ({
               title={hasGps ? fullAddress : `${fullAddress} — adressen kunne ikke placeres på kortet`}
             >
               <MapPin className={cn("h-3 w-3 shrink-0", hasGps ? "text-muted-foreground/60" : "text-orange-500")} />
-              <span className="truncate">{fullAddress}</span>
+              <span className={cn("min-w-0", compact ? "truncate" : "break-words")}>{fullAddress}</span>
             </p>
           )}
 
@@ -378,6 +380,9 @@ export const UnassignedJobCard = ({
             </div>
           )}
 
+          {!compact && !isPending && job.notes && (
+            <p className="line-clamp-2 break-words text-xs leading-4 text-muted-foreground">{job.notes}</p>
+          )}
           {isPending && (
             <div className="space-y-1 pt-0.5">
               <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-200">

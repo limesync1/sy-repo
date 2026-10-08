@@ -1,5 +1,11 @@
 # Roadmap
 
+## Ikoner, visningsvalg og mørk rutekørsel 2026-10-08
+- [x] Brug alle fem vedhæftede ikoner gennem det fælles register
+- [x] Ret kompakte/fulde aftalekort og kalenderens tæthed
+- [x] Ensret “Opret bestilling”
+- [x] Ret mørke notifikationer og interaktive tilstande; afprøv indlogget og med regressionstests
+
 ## Nærmere mobilgennemgang 2026-10-08
 - [ ] Kontrollér Min dag, ruter, Statistik/timer, arbejdspladsvalg og bestillingsvinduer indlogget på mobil/tablet
 - [ ] Ret konkrete layout-, valg- og dialogproblemer uden at ændre tidsregistrering eller prisregler

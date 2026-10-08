@@ -6,9 +6,10 @@ import bookOrQuoteNew from "@/assets/content-icons/book-eller-hent-tilbud.svg.as
 import localEasyNew from "@/assets/content-icons/lokalt-skal-vaere-let.svg.asset.json";
 import fairBusinessesNew from "@/assets/content-icons/fair-for-virksomhederne.svg.asset.json";
 import humanHelpNew from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
-import localCustomersNew from "@/assets/content-icons/flere-kunder-i-dit-omraade.svg.asset.json";
-import routePlanningNew from "@/assets/content-icons/ruteplanlaegning-inkluderet.svg.asset.json";
-import priceCalculatorNew from "@/assets/content-icons/indbygget-prisberegner.svg.asset.json";
+import localCustomersNew from "@/assets/content-icons/flere-kunder-animated.svg.asset.json";
+import routePlanningNew from "@/assets/content-icons/ruteplanlaegning-animated.svg.asset.json";
+import priceCalculatorNew from "@/assets/content-icons/prisberegner-animated.svg.asset.json";
+import notFoundNew from "@/assets/content-icons/404-animated.svg.asset.json";
 import routePlannerNew from "@/assets/content-icons/ruteplanlaegger.svg.asset.json";
 import employeeAppNew from "@/assets/content-icons/medarbejder-app.svg.asset.json";
 import bookingsNew from "@/assets/content-icons/bestillinger.svg.asset.json";
@@ -60,7 +61,7 @@ import howItWorksNew from "@/assets/content-icons/saadan-fungerer-det.svg.asset.
 import independentNew from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
 import verifiedProviderNew from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
 import fairPricesNew from "@/assets/content-icons/fair-priser.svg.asset.json";
-import noMatchesNew from "@/assets/content-icons/ingen-matches-lige-nu.svg.asset.json";
+import noMatchesNew from "@/assets/content-icons/ingen-virksomheder-matcher-animated.svg.asset.json";
 import matchingLoaderNew from "@/assets/content-icons/loader-matches.svg.asset.json";
 import localRootsNew from "@/assets/content-icons/lokal-forankring.svg.asset.json";
 import plannedMonthNew from "@/assets/content-icons/planlagt-denne-maaned.svg.asset.json";
@@ -106,6 +107,7 @@ import restartDayIllustration from "@/assets/illustrations/employee/genopstart-d
 import chooseWorkspaceIllustration from "@/assets/panel-illustrations/vaelg-arbejdsplads-2.svg";
 
 export const BRANDED_ILLUSTRATIONS = {
+  notFound: notFoundNew.url,
   searchService: searchServiceNew.url,
   compareProviders: compareProvidersNew.url,
   bookOrQuote: bookOrQuoteNew.url,
