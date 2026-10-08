@@ -1,3 +1,4 @@
+import { ConfirmDialogHost } from "@/components/ConfirmDialogHost";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -321,6 +322,7 @@ const App = () => (
             <TooltipProvider>
             <Toaster />
             <Sonner />
+            <ConfirmDialogHost />
             {/* Scroller automatisk til toppen når ruten ændres. */}
             <ScrollToTop />
             {/* Global bestillings-sheet + flydende genåbn-knap — lazy-loadede,

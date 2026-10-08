@@ -1,3 +1,4 @@
+import { askConfirm } from "@/components/ConfirmDialogHost";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
@@ -341,6 +342,29 @@ export const useStartStopTime = () => {
         .maybeSingle();
       if (existing) return existing as StopTimeEntry;
 
+      // To aftaler tæt på hinanden: tid må aldrig tælle dobbelt. Spørg.
+      const { data: others } = await supabase
+        .from("stop_time_entries")
+        .select("id, stop_id, route_stops(customer_name)")
+        .eq("employee_id", employee_id)
+        .is("ended_at", null)
+        .neq("stop_id", stop_id);
+      if (others && others.length > 0) {
+        const name = (others[0] as any).route_stops?.customer_name || "en anden aftale";
+        const ok = await askConfirm({
+          title: "Tidsregistrering kører allerede",
+          description: `Du registrerer stadig tid hos ${name}. Skal den stoppes, så tiden hos den nye aftale starter nu?`,
+          confirmLabel: "Stop og start ny",
+        });
+        if (!ok) throw new Error("__cancelled__");
+        const { error: endErr } = await supabase
+          .from("stop_time_entries")
+          .update({ ended_at: new Date().toISOString() })
+          .in("id", others.map((o) => o.id));
+        if (endErr) throw endErr;
+      }
+
+
       const { data, error } = await supabase
         .from("stop_time_entries")
         .insert({
@@ -386,6 +410,7 @@ export const useStartStopTime = () => {
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.previous?.forEach(([key, value]) => qc.setQueryData(key, value));
+      if (e?.message === "__cancelled__") return;
       toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" });
     },
     onSettled: () => {
