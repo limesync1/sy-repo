@@ -5,6 +5,19 @@ import type { WeatherDay } from "./useWeather";
 
 type Point = { latitude: number | null; longitude: number | null; route_id: string };
 type WeatherRoute = { id: string; route_date: string; base_route_id?: string | null; baseRouteId?: string | null };
+export function parseRouteForecast(d: Record<string, unknown[]>): WeatherDay[] {
+  if (!Array.isArray(d?.time)) throw new Error("Vejrudsigten mangler");
+  const fields = ["weather_code", "temperature_2m_max", "temperature_2m_min", "precipitation_sum", "precipitation_probability_max", "precipitation_hours", "wind_speed_10m_max", "wind_gusts_10m_max"];
+  const days = d.time.flatMap((date, i) => {
+    const values = fields.map(field => d[field]?.[i]);
+    // Forecastets yderste dag kan være null; behold de øvrige gyldige dage.
+    if (typeof date !== "string" || values.some(v => typeof v !== "number" || !Number.isFinite(v))) return [];
+    const numbers = values as number[];
+    return [{ date, weatherCode: numbers[0], tempMax: numbers[1], tempMin: numbers[2], precipitationMm: numbers[3], precipitationProbability: numbers[4], precipitationHours: numbers[5], windSpeedMax: numbers[6], windGustMax: numbers[7], sunrise: typeof d.sunrise?.[i] === "string" ? d.sunrise[i] as string : null, sunset: typeof d.sunset?.[i] === "string" ? d.sunset[i] as string : null }];
+  });
+  if (!days.length) throw new Error("Vejrudsigten er ufuldstændig");
+  return days;
+}
 export function averageWeather(days: WeatherDay[]): WeatherDay | null {
   if (!days.length) return null;
   const mean = (key: keyof WeatherDay) => Math.round(days.reduce((sum, d) => sum + Number(d[key]), 0) / days.length * 10) / 10;
@@ -30,15 +43,20 @@ export function useRouteWeather(routes: WeatherRoute[], stops: Point[]) {
     queryKey: ["route-weather-cell", key, today], staleTime: 2 * 60 * 60 * 1000, retry: 1,
     queryFn: async ({ signal }: { signal: AbortSignal }): Promise<WeatherDay[]> => {
       const params = new URLSearchParams({ latitude: String(point.lat), longitude: String(point.lng), timezone: "Europe/Copenhagen", start_date: today, end_date: end, wind_speed_unit: "ms", daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,sunrise,sunset" });
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, { signal: AbortSignal.any([signal, AbortSignal.timeout(12000)]) });
-      if (!res.ok) throw new Error("Vejret kunne ikke hentes");
-      const { daily: d } = await res.json();
-      if (!Array.isArray(d?.time)) throw new Error("Vejrudsigten mangler");
-      return d.time.flatMap((date: string, i: number) => {
-        const values = [d.weather_code?.[i], d.temperature_2m_max?.[i], d.temperature_2m_min?.[i], d.precipitation_sum?.[i], d.precipitation_probability_max?.[i], d.precipitation_hours?.[i], d.wind_speed_10m_max?.[i], d.wind_gusts_10m_max?.[i]];
-        if (values.some(v => v == null || !Number.isFinite(v))) return [];
-        return [{ date, weatherCode: values[0], tempMax: values[1], tempMin: values[2], precipitationMm: values[3], precipitationProbability: values[4], precipitationHours: values[5], windSpeedMax: values[6], windGustMax: values[7], sunrise: d.sunrise?.[i] ?? null, sunset: d.sunset?.[i] ?? null }];
-      });
+      const controller = new AbortController();
+      const abort = () => controller.abort();
+      signal.addEventListener("abort", abort, { once: true });
+      if (signal.aborted) abort();
+      const timer = setTimeout(abort, 12000);
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, { signal: controller.signal });
+        if (!res.ok) throw new Error("Vejret kunne ikke hentes");
+        const { daily } = await res.json();
+        return parseRouteForecast(daily);
+      } finally {
+        clearTimeout(timer);
+        signal.removeEventListener("abort", abort);
+      }
     },
   })) });
   const weatherByRoute = new Map<string, WeatherDay>();
