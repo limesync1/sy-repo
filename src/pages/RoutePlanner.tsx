@@ -3557,10 +3557,10 @@ const Planner = () => {
                             && (j.preferred_date || j.next_service_date),
                           ).length
                         : 0;
-                      if (geocoding) {
+                      if (geocoding && canAutoAssign === 0 && !selectionMode) {
                         return (
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater…
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1" title="Nye adresser placeres på kortet, så de kan lægges på ruter">
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />Placerer nye adresser på kortet…
                           </p>
                         );
                       }

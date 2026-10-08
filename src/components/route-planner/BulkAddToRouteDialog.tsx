@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { CalendarDays, Loader2, MapPin, Search, User } from "lucide-react";
+import { CalendarDays, CalendarPlus, Loader2, MapPin, Search, User } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
 import { UiArtwork } from "@/components/shared/UiArtwork";
 
@@ -101,7 +101,7 @@ export const BulkAddToRouteDialog = ({
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <span>Valgte aftaler</span>
             </div>
-            <ScrollArea className="h-24 sm:h-56">
+            <ScrollArea className="h-[min(22dvh,10rem)] sm:h-56">
               <div className="space-y-1.5 pr-2">
                 {jobs.map((j) => (
                   <div key={j.id} className="flex items-start gap-2 rounded-md border bg-card px-2 py-1.5 text-xs">
@@ -117,7 +117,7 @@ export const BulkAddToRouteDialog = ({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-11 px-3 text-xs text-muted-foreground sm:h-7 sm:px-1.5"
+                      className="h-8 px-2 text-xs text-muted-foreground sm:h-7 sm:px-1.5"
                       disabled={loading}
                       onClick={() => onRemoveJob(j.id)}
                     >
@@ -234,9 +234,7 @@ export const BulkAddToRouteDialog = ({
                 </>
               ) : (
                 <>
-                  <span className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-white/95">
-                    <UiArtwork name="addAppointmentToRoute" className="h-3.5 w-3.5" />
-                  </span>
+                  <CalendarPlus className="h-4 w-4" />
                   Tilføj {jobs.length} {jobs.length === 1 ? "aftale" : "aftaler"}
                 </>
               )}

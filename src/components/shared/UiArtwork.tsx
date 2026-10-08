@@ -5,9 +5,10 @@ import searchIcon from "@/assets/content-icons/soeg.svg.asset.json";
 import animatedLine from "@/assets/ui/Streg_animeret.webp.asset.json";
 import dayLocked from "@/assets/ui/laast-start-dagen.png.asset.json";
 import addAppointmentToRoute from "@/assets/ui/tilfoej-aftale-til-rute.svg.asset.json";
+import appointmentInfo from "@/assets/ui/mere-info-om-aftalen.svg.asset.json";
 import { cn } from "@/lib/utils";
 
-type ArtworkName = "search" | "recentSearch" | "categoryArrow" | "dayLocked" | "addAppointmentToRoute";
+type ArtworkName = "search" | "recentSearch" | "categoryArrow" | "dayLocked" | "addAppointmentToRoute" | "appointmentInfo";
 
 const ARTWORK: Record<ArtworkName, string> = {
   search: searchIcon.url,
@@ -15,6 +16,7 @@ const ARTWORK: Record<ArtworkName, string> = {
   categoryArrow: animatedArrow.url,
   dayLocked: dayLocked.url,
   addAppointmentToRoute: addAppointmentToRoute.url,
+  appointmentInfo: appointmentInfo.url,
 };
 
 export const UiArtwork = ({ name, className, alt = "", ...props }: ImgHTMLAttributes<HTMLImageElement> & { name: ArtworkName }) => (

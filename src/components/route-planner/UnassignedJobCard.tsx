@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, SEGMENT_BTN } from "./lib/card-styles";
 import { IndustryIcon } from "@/components/IndustryIcon";
-import { UiArtwork } from "@/components/shared/UiArtwork";
+import { CalendarPlus } from "lucide-react";
 
 /** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
@@ -444,7 +444,7 @@ export const UnassignedJobCard = ({
               className={cn("h-auto min-h-11 flex-1 gap-1.5 rounded-none px-2 py-2 text-xs font-semibold", !isCompact && SEGMENT_BTN)}
               title="Vælg selv hvilken rute aftalen skal lægges på"
             >
-              <UiArtwork name="addAppointmentToRoute" className="h-4 w-4" />
+              <CalendarPlus className="h-3.5 w-3.5" />
               Vælg rute
             </Button>
           )}
