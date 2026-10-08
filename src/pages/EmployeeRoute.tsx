@@ -1587,6 +1587,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         summary={<RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => { setRunMode("guide"); setSelectedId(latestCompleted?.id ?? null); }} />}
         onNavigate={handleNavigate}
         onOpenDetails={(stop) => setSelectedId(stop.id)}
+        routeDate={route.route_date}
         onSwitchToGuide={() => {
           setRunMode("guide");
           writeRunMode("guide", !!readRunMode());

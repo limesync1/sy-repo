@@ -1,3 +1,5 @@
+import { EmployeeStopActions } from "@/components/employee/EmployeeStopActions";
+import { useOrderForStop } from "@/hooks/useRoutes";
 import { Moon, Sun } from "lucide-react";
 import { formatClockTime, formatRunDuration, readArrival, readArrivalEstimate } from "./route-run-clock";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -48,6 +50,7 @@ type Props = {
   onUndo: (stop: RouteStop) => void;
   onNavigate: (stop: RouteStop) => void;
   onOpenDetails: (stop: RouteStop) => void;
+  routeDate?: string | null;
   onSwitchToGuide: () => void;
   onFinish: () => void;
   onMoveStop?: (stopId: string, dir: -1 | 1) => void;
@@ -83,6 +86,7 @@ export const RouteChecklistView = ({
   onUndo,
   onNavigate,
   onOpenDetails,
+  routeDate,
   onSwitchToGuide,
   onFinish,
   onMoveStop,
@@ -270,6 +274,7 @@ export const RouteChecklistView = ({
                         <Info className="h-4 w-4" />
                         Oplysninger
                       </Button>
+                      <div className="col-span-2 flex flex-wrap gap-2 [&>*]:flex-1"><ChecklistStopActions stop={next} routeDate={routeDate} /></div>
                       {next.customer_phone ? <Button variant="outline" className="col-span-2 h-11 gap-2" asChild>
                         <a href={`tel:${next.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunden</a>
                       </Button> : null}
@@ -401,3 +406,8 @@ export const RouteChecklistView = ({
 };
 
 export default RouteChecklistView;
+
+function ChecklistStopActions({ stop, routeDate }: { stop: RouteStop; routeDate?: string | null }) {
+  const { data: order } = useOrderForStop(stop.order_id ?? null);
+  return <EmployeeStopActions stopId={stop.id} order={order ?? null} completed={stop.status === "completed"} noteOnly={!order} routeDate={routeDate ?? null} />;
+}
