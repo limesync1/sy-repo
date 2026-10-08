@@ -293,7 +293,7 @@ export const UnassignedJobCard = ({
           aria-label={selected ? `Fravælg ${job.customer_name}` : `Vælg ${job.customer_name}`}
           aria-pressed={selected}
           title={selected ? "Fravælg" : "Vælg flere aftaler"}
-          className="flex w-10 shrink-0 items-center justify-center touch-manipulation focus-visible:outline-none group/check"
+          className="flex w-10 shrink-0 items-center justify-center border-0 bg-transparent p-0 shadow-none outline-none ring-0 touch-manipulation group/check"
         >
           <span
             className={cn(
@@ -360,7 +360,7 @@ export const UnassignedJobCard = ({
           {/* Linje 4: dato + interval */}
           {!isPending && (
             <div className="flex items-center gap-2 pt-0.5 text-[11px] leading-4">
-              <span className={cn("inline-flex items-center gap-1 font-semibold tabular-nums", urgency.pillText)}>
+              <span className={cn("inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-semibold tabular-nums", urgency.pillText)}>
                 <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", urgency.rail)} />
                 {urgency.label}
               </span>
