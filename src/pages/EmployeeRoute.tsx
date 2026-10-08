@@ -8,7 +8,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "r
 import { Navigate, useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useStartStopTime, useEndStopTime, useResetStopTime, useOptimizeRouteFromPosition, useReorderStops, useStopTimeEntries } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime, useResetStopTime, useOptimizeRouteFromPosition, useReorderStops, useStopTimeEntries, useOrderForStop } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -739,6 +739,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
+  const { data: nextStopOrder } = useOrderForStop(nextStop?.order_id ?? null);
   const { data: nextStopTimeEntries = [], isLoading: timeLoading, isError: timeError } = useStopTimeEntries(sortedStops.map(s => s.id));
   const activeNextStopEntry = nextStopTimeEntries.find(
     (entry) => entry.stop_id === nextStop?.id && entry.employee_id === meEmp?.id && !entry.ended_at,
@@ -2224,7 +2225,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className={cn("h-11 gap-1.5 rounded-md px-3 text-xs", activeNextStopEntry || isAtNextStop || latestCompleted ? "flex-1" : "shrink-0")}><Info className="h-4 w-4" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
-                  <EmployeeStopActions stopId={nextStop.id} order={null} completed={nextStop.status === "completed"} noteOnly />
+                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} />
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
