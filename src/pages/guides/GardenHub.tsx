@@ -91,6 +91,7 @@ export default defineGuidePage({
     ]},
   ],
   faq: [
+    { q: "Hvor finder jeg flere svar om havemand?", a: "Se vores samlede havemand FAQ på serviceydere.dk/guides/have/faq med svar om pris, fradrag, haveaffald og faste aftaler." },
     { q: "Hvad er gartner priser i 2026?", a: "En havemand/gartner koster typisk 400–700 kr. i timen inkl. moms. En anlægsgartner tager ofte 600–900 kr./t eller 2.495–5.495 kr. pr. m² for terrasse og belægning. Indhent 3 gratis tilbud for at sammenligne." },
     { q: "Skal jeg vælge abonnement eller engangsbesøg?", a: "Abonnement (typisk 18–24 besøg/år) er 20–30% billigere pr. besøg og giver fast personale. Engangsbesøg er bedst til specifikke opgaver." },
     { q: "Er haveservice BoligJob-fradragsberettiget?", a: "Ja — løbende haveservice falder under servicefradraget (12.300 kr./voksen). Anlæg af fx terrasse kan falde under håndværkerfradraget." },
