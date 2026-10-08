@@ -1,5 +1,11 @@
 # Roadmap
 
+## Mobilplanlægning og tydelig Min dag
+- [ ] Fjern Find den bedste rute uden at fjerne manuel rutetildeling
+- [ ] Ensret visningsrækkefølge, næste rute og låsning i Min dag
+- [ ] Forenkle Start dag/Start rute samt mobilhandlingers størrelse og farver
+- [ ] Kontrollér mobilplanlægning og Min dag indlogget med tests og skærmbilleder
+
 ## Ny Haderup–Herning-rute 2026-10-08
 - [x] Opret Patricks rute i angivet rækkefølge med ti kundestop og Jem & Fix på Åvænget 4 som mål
 - [x] Opret realistiske rengøringsydelser og tydeligt markerede testaftaler uden kundeudsendelser
