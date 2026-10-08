@@ -1,5 +1,12 @@
 # Roadmap
 
+## Ikon ved "Tilføj aftale til rute" 2026-10-08
+- [x] Upload det vedhæftede ikon og vis det gennem UiArtwork
+- [x] Brug ikonet på aftalekort, bundbjælke, dialoghoved og bekræftelsesknap
+- [x] Kontrollér ikonet indlogget i ruteplanlæggeren
+
+Ikonet vises på "Vælg rute" på aftalekort, "Tilføj til rute" i bundbjælken, dialoghovedet "Tilføj X aftale(r) til rute" og bekræftelsesknappen, hvor det sidder i en hvid brik på den blå knap for at holde kontrasten. Typecheck ren. Fysisk telefon er ikke afprøvet.
+
 ## Mobilplanlægning og tydelig Min dag
 - [x] Fjern Find den bedste rute uden at fjerne manuel rutetildeling
 - [x] Ensret visningsrækkefølge, næste rute og låsning i Min dag
