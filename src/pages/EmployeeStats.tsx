@@ -153,15 +153,16 @@ const EmployeeStats = () => {
 
   const rangePicker = (
     <div className="w-full overflow-hidden rounded-md border border-border bg-card shadow-sm sm:w-auto">
-      <div className="flex gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex flex-wrap gap-1 p-1">
       {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
           key={k}
           size="sm"
                                            variant="outline"
           onClick={() => { setRange(k); setCustomRange(undefined); }}
+          aria-pressed={range === k}
           className={cn(
-            "h-9 shrink-0 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
+            "h-11 flex-1 shrink-0 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:h-9 sm:flex-none",
             range === k
               ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -176,7 +177,7 @@ const EmployeeStats = () => {
             size="sm"
             variant="ghost"
             className={cn(
-              "h-9 shrink-0 gap-1.5 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
+              "h-11 flex-1 shrink-0 gap-1.5 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:h-9 sm:flex-none",
               range === "custom"
                 ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -300,7 +301,7 @@ const EmployeeStats = () => {
                 <div
                   key={label}
                   className={cn(
-                    "flex min-h-[76px] items-center gap-3 p-3.5",
+                    "flex min-w-0 min-h-[76px] flex-col items-start gap-2 p-3 sm:flex-row sm:items-center sm:gap-3 sm:p-3.5",
                     "border-b border-border odd:border-r lg:border-b-0 lg:border-r",
                     index === 4 && "col-span-2 border-b-0 odd:border-r-0 lg:col-span-1 lg:border-r-0",
                   )}
@@ -310,7 +311,7 @@ const EmployeeStats = () => {
                   </StatIconTile>
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-                    <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-foreground">{value}</p>
+                    <p className="mt-0.5 break-words text-lg font-bold tabular-nums text-foreground">{value}</p>
                   </div>
                 </div>
               ))}

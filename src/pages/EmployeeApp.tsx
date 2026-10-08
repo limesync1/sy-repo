@@ -126,7 +126,7 @@ const RouteMiniMap = ({
   const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
 
   return (
-    <div className="relative z-0 h-32 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
+    <div aria-hidden="true" className="pointer-events-none relative z-0 h-32 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
       <MapContainer
         bounds={bounds}
         boundsOptions={{ padding: [20, 20] }}
@@ -280,7 +280,7 @@ const EmployeeApp = () => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-9 w-9 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] sm:h-9 sm:w-9"
           onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
           aria-label="Forrige dag"
         >
@@ -318,7 +318,7 @@ const EmployeeApp = () => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-9 w-9 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] sm:h-9 sm:w-9"
           onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
           aria-label="Næste dag"
         >
@@ -333,7 +333,7 @@ const EmployeeApp = () => {
               onClick={() => setDate(todayStr())}
               aria-label="Gå til i dag"
               title="Gå til i dag"
-              className="h-9 w-9 shrink-0 rounded-[4px] bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+              className="h-11 w-11 shrink-0 rounded-[4px] bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] sm:h-9 sm:w-9"
             >
               <CalendarCheck className="h-4 w-4" />
             </Button>

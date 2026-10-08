@@ -318,11 +318,11 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Ret aftale */}
       <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="border-b border-border p-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
             <SheetTitle>Ret aftale</SheetTitle>
             <SheetDescription>Tilpas pris, antal, timer, beregnertrin og interval.</SheetDescription>
           </SheetHeader>
-          <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
             {servicesProblem}
             <ul className="space-y-2">
               {lines.map((l) => {
@@ -357,7 +357,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilføj ydelse</p>
                 <div className="flex flex-wrap gap-2">
                   {addable.map((s) => (
-                    <Button key={s.id} variant="secondary" className="h-11 gap-1.5"
+                    <Button key={s.id} variant="secondary" className="h-auto min-h-11 max-w-full gap-1.5 whitespace-normal py-2 text-left"
                       onClick={() => setLines((ls) => [...ls, { key: `new-${s.id}`, item_id: null, service_id: s.id, name: s.name, quantity: 1, unit: s.unit, pricing: defaultPricing(s) }])}>
                       <Plus className="h-4 w-4" /> {s.name}
                     </Button>
@@ -379,17 +379,17 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 { v: true, t: "Dette og kommende besøg", d: "Forventede besøg på aftalen opdateres også." },
                 { v: false, t: "Kun dette besøg", d: "Kommende besøg forbliver uændrede." },
               ].map((o) => (
-                <button key={String(o.v)} type="button" onClick={() => setApplyFuture(o.v)}
-                  className={cn("w-full rounded-md border p-3 text-left transition-colors",
+                <Button key={String(o.v)} variant="outline" type="button" onClick={() => setApplyFuture(o.v)}
+                  className={cn("block h-auto w-full whitespace-normal rounded-md border p-3 text-left transition-colors",
                     applyFuture === o.v ? "border-primary bg-primary/5" : "border-border bg-card")}
                   aria-pressed={applyFuture === o.v}>
                   <p className="text-sm font-medium">{o.t}</p>
                   <p className="text-[12px] text-muted-foreground">{o.d}</p>
-                </button>
+                </Button>
               ))}
             </fieldset>
           </div>
-          <div className="border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="shrink-0 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {editTotal > 0 && <p className="mb-2 flex justify-between text-sm"><span className="text-muted-foreground">Ca. pris pr. besøg</span><span className="font-semibold tabular-nums">{formatPrice(editTotal)}</span></p>}
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" className="h-12" onClick={() => void closeEditor()} disabled={save.isPending}>Annullér</Button>
@@ -404,11 +404,11 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Ny aftale hos kunden */}
       <Sheet open={newOpen} onOpenChange={(o) => { if (!createNew.isPending) setNewOpen(o); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="border-b border-border p-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
             <SheetTitle>Ny aftale hos {order?.customer_name || "kunden"}</SheetTitle>
             <SheetDescription>Kundens navn og adresse udfyldes automatisk.</SheetDescription>
           </SheetHeader>
-          <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
             {servicesProblem}
             {!servicesError && !loadingServices && (
               services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive ydelser.</p> : (
@@ -416,7 +416,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ydelse</p>
                   <div className="flex flex-wrap gap-2">
                     {services.map((s) => (
-                      <Button key={s.id} variant={newServiceId === s.id ? "default" : "outline"} className="h-11" onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
+                      <Button key={s.id} variant={newServiceId === s.id ? "default" : "outline"} className="h-auto min-h-11 max-w-full whitespace-normal py-2 text-left" onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
                         {s.name}
                       </Button>
                     ))}
@@ -435,7 +435,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               </label>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="outline" className="h-12" onClick={() => setNewOpen(false)} disabled={createNew.isPending}>Annullér</Button>
             <Button className="h-12" onClick={() => void submitNew()} disabled={!newService || createNew.isPending}>
               {createNew.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Opret aftale"}
@@ -447,11 +447,11 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Note til kontoret */}
       <Sheet open={noteOpen} onOpenChange={setNoteOpen}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="border-b border-border p-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
             <SheetTitle>Note til kontoret</SheetTitle>
             <SheetDescription>Noten vises på aftalen i virksomhedspanelet.</SheetDescription>
           </SheetHeader>
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
             <div className="flex flex-wrap gap-2">
               {QUICK_NOTES.map((q) => (
                 <Button key={q} variant="secondary" size="sm" className="h-10"
@@ -462,7 +462,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={5} maxLength={2000}
               placeholder="Skriv kort, hvad kontoret skal vide…" autoFocus={!isCompact} />
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="outline" className="h-12" onClick={() => setNoteOpen(false)}>Annullér</Button>
             <Button className="h-12 gap-2" onClick={() => sendNote.mutate()} disabled={!note.trim() || sendNote.isPending}>
               {sendNote.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> Send</>}

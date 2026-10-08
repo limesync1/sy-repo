@@ -7,7 +7,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Check, CalendarPlus, ListOrdered, Loader2, MapPin, Search, User, X } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
@@ -101,7 +100,7 @@ export const BulkAddToRouteDialog = ({
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <span>Valgte aftaler</span><span className="tabular-nums normal-case font-medium">{jobs.length}</span>
             </div>
-            <ScrollArea className="h-[min(22dvh,10rem)] sm:h-56">
+            <div className="max-h-[min(22dvh,10rem)] overflow-y-auto overscroll-contain sm:max-h-56">
               <div className="space-y-1.5 pr-2">
                 {jobs.map((j) => (
                   <div key={j.id} className="flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 text-xs">
@@ -118,7 +117,7 @@ export const BulkAddToRouteDialog = ({
                       variant="ghost"
                       size="sm"
                       aria-label={`Fjern ${j.customer_name || "aftale"}`}
-                      className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+                      className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-foreground"
                       disabled={loading}
                       onClick={() => onRemoveJob(j.id)}
                     >
@@ -130,7 +129,7 @@ export const BulkAddToRouteDialog = ({
                   <p className="text-xs text-muted-foreground text-center py-6">Ingen aftaler valgt.</p>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Højre: rute-vælger */}
@@ -151,7 +150,7 @@ export const BulkAddToRouteDialog = ({
                 />
               </div>
             </div>
-            <ScrollArea className="h-[min(35dvh,18rem)] sm:h-56">
+            <div className="max-h-[min(45dvh,22rem)] overflow-y-auto overscroll-contain sm:max-h-56">
               <div className="space-y-1.5 pr-2">
                 {filteredRoutes.map((r) => {
                   const selected = selectedRouteId === r.id;
@@ -161,9 +160,10 @@ export const BulkAddToRouteDialog = ({
                       type="button"
                       key={r.id}
                       onClick={() => setSelectedRouteId(r.id)}
+                      aria-pressed={selected}
                       disabled={loading}
                       className={cn(
-                        "block h-auto w-full min-h-16 whitespace-normal text-left rounded-md border bg-card px-3 py-2.5 transition-[background-color,border-color,box-shadow,transform] duration-150",
+                        "block h-auto w-full min-w-0 min-h-16 whitespace-normal text-left rounded-md border bg-card px-3 py-2.5 transition-[background-color,border-color,box-shadow,transform] duration-150",
                         "hover:border-accent/40 hover:bg-secondary/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
                         selected && "border-foreground bg-secondary/50 ring-1 ring-foreground/20",
                       )}
@@ -201,7 +201,7 @@ export const BulkAddToRouteDialog = ({
                   </p>
                 )}
               </div>
-            </ScrollArea>
+            </div>
 
           </div>
         </div>
