@@ -3592,7 +3592,7 @@ const Planner = () => {
                           return (
                             <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-200 flex items-start gap-1.5 rounded-[4px] bg-amber-50 dark:bg-amber-500/10 px-2 py-1.5">
                               <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                              {missing === 1 ? "1 adresse" : `${missing} adresser`} kunne ikke findes på kortet. Ret adressen under "Mere info" — du kan stadig trække aftalen ind på en dag.
+                              {missing === 1 ? "1 adresse" : `${missing} adresser`} mangler postnummer eller by (orange nål). Klik på aftalen for at rette adressen — den kan stadig lægges på en rute.
                             </p>
                           );
                         }
