@@ -177,7 +177,7 @@ export const BulkAddToRouteDialog = ({
                           <p className="truncate text-sm font-semibold leading-tight text-foreground">{r.name || "Uden navn"}</p>
                           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
                             <span className="inline-flex items-center gap-1 rounded-[5px] bg-secondary px-1.5 py-0.5">
-                              <ListOrdered className="h-3 w-3" />{r.stopCount} {r.stopCount === 1 ? "stop" : "stop"} → {r.stopCount + jobs.length}
+                              <ListOrdered className="h-3 w-3" />{r.stopCount} stop → {r.stopCount + jobs.length}
                             </span>
                             {r.employeeName ? (
                               <span className="inline-flex min-w-0 items-center gap-1 truncate rounded-[5px] bg-secondary px-1.5 py-0.5">
