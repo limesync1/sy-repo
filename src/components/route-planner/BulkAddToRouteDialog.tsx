@@ -234,7 +234,9 @@ export const BulkAddToRouteDialog = ({
                 </>
               ) : (
                 <>
-                  <UiArtwork name="addAppointmentToRoute" className="h-4 w-4" />
+                  <span className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-white/95">
+                    <UiArtwork name="addAppointmentToRoute" className="h-3.5 w-3.5" />
+                  </span>
                   Tilføj {jobs.length} {jobs.length === 1 ? "aftale" : "aftaler"}
                 </>
               )}
