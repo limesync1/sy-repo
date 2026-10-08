@@ -51,21 +51,6 @@ const WhyUs = () => {
               Få et bedre grundlag for dit valg med tydelige profiler, relevante oplysninger og anmeldelser fra gennemførte bookinger.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2.5">
-            <SmartLink
-              to="/virksomheder"
-              className="group inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90"
-            >
-              Find virksomheder
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </SmartLink>
-            <SmartLink
-              to="/tilbud"
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:bg-muted"
-            >
-              Indhent 3 gratis tilbud
-            </SmartLink>
-          </div>
         </div>
 
         <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:mt-10">
