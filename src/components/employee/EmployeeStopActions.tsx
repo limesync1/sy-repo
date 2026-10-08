@@ -200,7 +200,11 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     },
     onSuccess: (res) => {
       toast.success(res?.added_to_route ? "Opgaven er tilføjet til din rute" : "Aftalen er oprettet", {
-        description: res?.added_to_route ? "Den ligger sidst på dagens rute." : "Den ligger i Aftaler uden rute, så kontoret kan planlægge den.",
+        description: res?.added_to_route ? "Den ligger sidst på dagens rute."
+          : res?.reason === "date_mismatch" ? "Datoen er ikke i dag, så den ligger i Aftaler uden rute til kontoret."
+          : res?.reason === "recurring" ? "Faste aftaler placeres af kontoret, så den ligger i Aftaler uden rute."
+          : res?.reason === "route_closed" ? "Ruten er afsluttet, så den ligger i Aftaler uden rute."
+          : "Den ligger i Aftaler uden rute, så kontoret kan planlægge den.",
       });
       setNewOpen(false);
       qc.invalidateQueries({ queryKey: ["routes"] });
