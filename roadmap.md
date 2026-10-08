@@ -1,5 +1,13 @@
 # Roadmap
 
+## Ny Haderup–Herning-rute 2026-10-08
+- [x] Opret Patricks rute i angivet rækkefølge med ti kundestop og Jem & Fix på Åvænget 4 som mål
+- [x] Opret realistiske rengøringsydelser og tydeligt markerede testaftaler uden kundeudsendelser
+- [x] Brug vedhæftet låseikon og ret småknappers linjehøjde
+- [x] Kontrollér rutens stop, ydelser og låseikon i medarbejderpanelet
+
+Verificeret indlogget som Patrick: 11 stop i korrekt rækkefølge i Min dag og Tjekliste, ydelsen læses tilbage i stop 10. Alle 12 adresser fundet via adresseopslag. Originalt PDF-ikon beskåret uden ændring af artwork; browseren bekræfter indlæst ikon. Smal 390×710 visning: stopvindue 374 px uden vandret overflow. Syv tests bestod; build OK. Fysisk bilkørsel er ikke afprøvet. Priser og kundedata er forslag/testdata, ikke virksomhedens godkendte prisliste.
+
 ## Rutevejr og mobilpaneler 2026-10-08
 - [x] Beregn vejr på rutens stop og vis det i kalender og medarbejderpanel
 - [x] Ret arbejdspladsvalg og vis alle rutestop; gennemgå centrale medarbejdervinduer

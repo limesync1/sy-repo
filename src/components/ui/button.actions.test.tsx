@@ -4,6 +4,11 @@ import { Button } from "./button";
 
 afterEach(cleanup);
 describe("Route action variants", () => {
+  it("centres labels without vertical padding squeezing compact buttons", () => {
+    render(<Button className="h-6 text-xs">Vælg rute</Button>);
+    expect(screen.getByRole("button", { name: "Vælg rute" })).toHaveClass("py-0");
+    expect(screen.getByRole("button", { name: "Vælg rute" })).not.toHaveClass("py-2");
+  });
   it("keeps undo, completion and details visually distinct", () => {
     render(<><Button variant="undo">Fortryd udførsel</Button><Button variant="complete">Markér som udført</Button><Button variant="outline">Stopoplysninger</Button></>);
     expect(screen.getByRole("button", { name: "Fortryd udførsel" })).toHaveClass("route-action-undo");

@@ -1506,6 +1506,7 @@ img[loading="lazy"].is-error {
   .service-panel-content :is(.text-xs) { font-size: 0.6875rem; }
   .service-panel-content :is(button, [role="combobox"], input:not([type="checkbox"]):not([type="radio"])):is(.h-10, .h-11) { height: 2.125rem; }
   .service-panel-content :is(button, [role="combobox"], input:not([type="checkbox"]):not([type="radio"])).h-9 { height: 2rem; }
+  .service-panel-content button.whitespace-normal:is(.h-9, .h-10, .h-11) { height: auto; min-height: 2.125rem; padding-block: 0.375rem; }
   .service-panel-content :is(.h-10.w-10, .h-11.w-11, .h-12.w-12) { width: 2.25rem; height: 2.25rem; }
   .service-panel-content :is(.h-5.w-5) { width: 1.125rem; height: 1.125rem; }
   .service-panel-card { border-radius: 0.5rem; }
