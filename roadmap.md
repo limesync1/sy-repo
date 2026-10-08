@@ -268,3 +268,8 @@ Kontrolleret som Patrick på desktop og responsive 390×844/820×844 visninger: 
 - [x] "Opret ny rute med X" i bjælken for valgte aftaler; pænere knaplayout
 - [x] "Ny bestilling"-knap direkte i "Aftaler uden rute"
 - [ ] Fysisk telefon ikke afprøvet
+
+## Rutekørsel: synligt HUD ved fejl 2026-10-08
+- [x] GPS- og forbindelsesadvarsler skjuler ikke længere dreje- eller ankomst-HUD
+- [x] Advarsler vises separat nederst på kortfladen
+- [ ] Fysisk kørsel på telefon ikke afprøvet
