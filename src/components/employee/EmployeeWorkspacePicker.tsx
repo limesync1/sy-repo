@@ -52,8 +52,8 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
               <BrandedIllustration name="chooseWorkspace" className="h-full w-full" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Medarbejderpanel</p>
-              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejderpanel</p>
+              <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                 <Building2 className="h-4 w-4 shrink-0" />{employees.length} arbejdspladser tilgængelige
               </p>
             </div>
@@ -125,11 +125,12 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
             );
           })}
           </ul>
-        <label className="flex min-h-12 cursor-pointer items-center gap-3 border-t border-border bg-secondary/35 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5">
+        <label className="flex cursor-pointer items-center gap-3 border-t border-border bg-secondary/35 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5">
           <Checkbox
             checked={remember}
             onCheckedChange={(v) => setRemember(v === true)}
             aria-label="Husk mit valg"
+            className="h-5 w-5 shrink-0"
           />
           <span className="text-sm leading-5 text-foreground">Husk mit valg på denne enhed</span>
         </label>

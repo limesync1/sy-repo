@@ -681,8 +681,8 @@
   }
 
   @media (max-width: 767px) {
-    .employee-page button { min-height: 44px; }
-    .appointment-details-overlay button { min-height: 44px; }
+    .employee-page button:not([role=checkbox]):not([role=radio]):not([role=switch]) { min-height: 44px; }
+    .appointment-details-overlay button:not([role=checkbox]):not([role=radio]):not([role=switch]) { min-height: 44px; }
     .appointment-details-overlay .planner-overlay-footer { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
     .employee-route-run { height: 100dvh; }
     .employee-route-run .route-map-stage-driving { display: flex; flex-direction: column; }
