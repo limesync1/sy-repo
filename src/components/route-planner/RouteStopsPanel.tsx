@@ -25,7 +25,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, Loader2, Undo2,
-  Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio,
+  Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -130,11 +130,12 @@ export const RouteStopsPanel = ({
   // som klik på Windows-pegefelter og Android. Keyboard for tilgængelighed.
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 10 } }),
     useSensor(KeyboardSensor),
   );
 
   const handleDragEnd = async (e: DragEndEvent) => {
+    if (reorder.isPending) return;
     if (isProjection) {
       toast.info("Rækkefølgen redigeres på den faste rute", {
         description: "Åbn den faste rute for at ændre rækkefølgen — forventede ruter er låste visninger.",
@@ -146,9 +147,13 @@ export const RouteStopsPanel = ({
     const oldIdx = items.findIndex((s) => s.id === active.id);
     const newIdx = items.findIndex((s) => s.id === over.id);
     if (oldIdx === -1 || newIdx === -1) return;
-    const next = arrayMove(items, oldIdx, newIdx);
+    await saveOrder(arrayMove(items, oldIdx, newIdx));
+  };
+
+  const saveOrder = async (next: RouteStop[]) => {
     setItems(next); // optimistisk
     try {
+      if (!navigator.onLine) throw new Error("Ingen internetforbindelse. Prøv igen, når du har dækning.");
       await reorder.mutateAsync(next.map((s, i) => ({ id: s.id, sequence: i })));
       toast.success("Rækkefølge opdateret");
     } catch (err: any) {
@@ -288,6 +293,11 @@ export const RouteStopsPanel = ({
                         livePositions={livePositions.filter((position) => position.current_stop_id === stop.id)}
                         firstSeenAtStop={firstSeenAtStopRef.current}
                         isProjection={isProjection}
+                        compact={isCompact}
+                        reorderPending={reorder.isPending}
+                        canMoveUp={idx > 0}
+                        canMoveDown={idx < items.length - 1}
+                        onMove={(direction) => { if (!reorder.isPending && !isProjection) void saveOrder(arrayMove(items, idx, idx + direction)); }}
                         onSetAssignees={(ids, lead) =>
                           setAssignees.mutate({ stop_id: stop.id, employee_ids: ids, lead_id: lead })
                         }
@@ -380,14 +390,19 @@ type RowProps = {
   undoPending: boolean;
   onMarkCompleted: () => void;
   markCompletedPending: boolean;
+  compact: boolean;
+  reorderPending: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMove: (direction: -1 | 1) => void;
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false, compact, reorderPending, canMoveUp, canMoveDown, onMove,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
-    disabled: isProjection,
+    disabled: isProjection || compact || reorderPending,
   });
 
   // Brug Translate i stedet for Transform — Transform inkluderer scale-justering
@@ -423,12 +438,12 @@ const SortableStopRow = ({
       />
       <div className="flex items-stretch min-h-[3rem] pl-1">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
-        {!isProjection ? (
+        {!isProjection && !compact ? (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex shrink-0 items-center justify-center w-6 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground transition-colors sm:w-7"
+            className="flex shrink-0 items-center justify-center touch-none w-7 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground transition-colors sm:w-7"
             aria-label="Træk for at omrangere"
           >
             <GripVertical className="h-4 w-4" />
@@ -454,10 +469,8 @@ const SortableStopRow = ({
           </span>
         </div>
 
-        {/* Content — clickable */}
-        <button
-          type="button"
-          onClick={onSelect}
+        {/* Content */}
+        <div
           className="min-w-0 flex-1 text-left pr-2 py-2 space-y-0.5"
         >
           {/* Header: branche-ikon + kundenavn (primær) + medarbejder-avatars + åbn-pil */}
@@ -478,9 +491,9 @@ const SortableStopRow = ({
                 />
               </span>
             )}
-            <p className="text-xs font-semibold truncate flex-1 text-foreground leading-tight sm:text-sm">
+            <Button variant="ghost" onClick={onSelect} className="h-auto min-h-10 min-w-0 flex-1 justify-start whitespace-normal p-0 text-left text-sm font-semibold text-foreground">
               {stop.customer_name || "Ukendt kunde"}
-            </p>
+            </Button>
             {assigneeEmps.length > 0 && (
               <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
             )}
@@ -567,7 +580,7 @@ const SortableStopRow = ({
               </Badge>
             )}
           </div>
-        </button>
+        </div>
 
         {/* Live-status ligger uden for det klikbare stopindhold, så triggeren
             er gyldig på både mus, tastatur og touch. */}
@@ -577,6 +590,10 @@ const SortableStopRow = ({
 
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
         <div className="flex shrink-0 flex-col items-center justify-center gap-1 px-1.5">
+          {compact && !isProjection && <>
+            <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>
+          </>}
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}

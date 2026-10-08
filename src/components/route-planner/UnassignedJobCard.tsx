@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 import { useDraggable } from "@dnd-kit/core";
 import {
   MapPin, Phone,
@@ -133,11 +135,12 @@ export const UnassignedJobCard = ({
   selected, anySelected, onToggleSelect, compact = false,
 }: Props) => {
   const [expanded, setExpanded] = useState(false);
+  const isCompact = useIsBelowBreakpoint(1024);
   const isPending = job.status === "pending";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `job-${job.id}`,
     data: { type: "job", job },
-    disabled: isPending,
+    disabled: isPending || isCompact,
   });
 
   // Hvis kunden har godkendt et tilpasset forslag, så er adjusted_details
@@ -252,8 +255,8 @@ export const UnassignedJobCard = ({
   return (
     <div
       ref={setNodeRef}
-      {...(isPending ? {} : listeners)}
-      {...(isPending ? {} : attributes)}
+      {...(isPending || isCompact ? {} : listeners)}
+      {...(isPending || isCompact ? {} : attributes)}
       style={isDragging ? { opacity: 0.62 } : undefined}
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
@@ -263,7 +266,7 @@ export const UnassignedJobCard = ({
       className={cn(
         CARD_BASE,
         "planner-job-card flex min-h-[76px] 2xl:min-h-[84px]",
-        isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
+        isPending || isCompact ? "touch-pan-y" : "cursor-grab active:cursor-grabbing touch-none",
         isPending ? "" : "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
         isDragging
           ? "border-dashed border-accent bg-accent/[0.06] shadow-lg ring-2 ring-accent/20"
@@ -430,19 +433,19 @@ export const UnassignedJobCard = ({
              selv vælger blandt forslag (modsat header-knappens auto-fordel).
              Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
-      {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
+      {(!compact || isCompact) && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
         <div className="flex border-t border-border divide-x divide-border bg-secondary/20">
           {onSuggestRoute && (
-            <button
+            <Button variant={isCompact ? "default" : "ghost"}
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`flex-1 px-2 py-1.5 text-[10.5px] font-semibold ${SEGMENT_BTN}`}
+              className={cn("h-auto min-h-11 flex-1 gap-1.5 rounded-none px-2 py-2 text-xs font-semibold", !isCompact && SEGMENT_BTN)}
               title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
             >
               <RouteIcon className="h-3 w-3" />
               Vælg rute
-            </button>
+            </Button>
           )}
           {(job.customer_phone || itemCount > 1 || job.notes) && (
             <button
