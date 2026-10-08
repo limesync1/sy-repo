@@ -3086,14 +3086,8 @@ const Planner = () => {
                 </Tooltip>
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Handlinger</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={requestCreateOrder} className="text-xs gap-2">
-                    <ShoppingBag className="h-4 w-4" /> Opret bestilling manuelt
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
                     <Printer className="h-3.5 w-3.5" /> Print / PDF af dagen
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
-                    <ListOrdered className="h-3.5 w-3.5" /> Vis dag som tidslinje
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
                     <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
