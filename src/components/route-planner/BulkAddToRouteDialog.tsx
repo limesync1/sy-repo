@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { ArrowRight, CalendarDays, Loader2, MapPin, Search, User } from "lucide-react";
+import { CalendarDays, Loader2, MapPin, Search, User } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
 import { UiArtwork } from "@/components/shared/UiArtwork";
 
