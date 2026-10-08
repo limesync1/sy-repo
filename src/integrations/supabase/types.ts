@@ -2266,6 +2266,51 @@ export type Database = {
           },
         ]
       }
+      employee_appointment_notes: {
+        Row: {
+          agreement_id: string | null
+          author_user_id: string
+          body: string
+          business_id: string
+          created_at: string
+          employee_id: string | null
+          id: string
+          kind: string
+          order_id: string | null
+          read_at: string | null
+          route_id: string | null
+          stop_id: string | null
+        }
+        Insert: {
+          agreement_id?: string | null
+          author_user_id: string
+          body: string
+          business_id: string
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          kind?: string
+          order_id?: string | null
+          read_at?: string | null
+          route_id?: string | null
+          stop_id?: string | null
+        }
+        Update: {
+          agreement_id?: string | null
+          author_user_id?: string
+          body?: string
+          business_id?: string
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          kind?: string
+          order_id?: string | null
+          read_at?: string | null
+          route_id?: string | null
+          stop_id?: string | null
+        }
+        Relationships: []
+      }
       employee_completed_stops: {
         Row: {
           address: string | null
@@ -4864,6 +4909,18 @@ export type Database = {
         Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
         Returns: undefined
       }
+      _employee_stop_context: {
+        Args: { _stop_id: string }
+        Returns: {
+          agreement_id: string
+          business_id: string
+          employee_id: string
+          order_id: string
+          route_id: string
+          stop_id: string
+          stop_status: string
+        }[]
+      }
       _ensure_subscription_order_for_occurrence: {
         Args: {
           _occurrence_date: string
@@ -4932,6 +4989,10 @@ export type Database = {
       }
       accounting_health_check_run: { Args: never; Returns: Json }
       accounting_health_summary: { Args: never; Returns: Json }
+      add_employee_stop_note: {
+        Args: { _body: string; _stop_id: string }
+        Returns: string
+      }
       add_route_stop_idempotent: {
         Args: { _payload: Json }
         Returns: {
@@ -5270,6 +5331,10 @@ export type Database = {
       dismiss_dlq_job: {
         Args: { _dlq_id: string; _note?: string }
         Returns: undefined
+      }
+      employee_update_stop_services: {
+        Args: { _apply_future?: boolean; _items: Json; _stop_id: string }
+        Returns: Json
       }
       enqueue_monthly_consolidated_invoices: {
         Args: { _business_id: string; _month: number; _year: number }

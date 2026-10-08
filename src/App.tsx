@@ -129,6 +129,7 @@ const WindowCleaningHub      = lazyRoute("/guides/vinduespudsning", () => import
 const PrivateCleaningHub     = lazyRoute("/guides/privatrengoering", () => import("./pages/guides/PrivateCleaningHub"));
 const BusinessCleaningHub    = lazyRoute("/guides/erhvervsrengoering", () => import("./pages/guides/BusinessCleaningHub"));
 const GardenHub              = lazyRoute("/guides/have", () => import("./pages/guides/GardenHub"));
+const GardenFaq              = lazyRoute("/guides/have/faq", () => import("./pages/guides/GardenFaq"));
 const PricesHub              = lazyRoute("/guides/priser-2026", () => import("./pages/guides/PricesHub"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 // ── Offentligt produktunivers (/software) ────────────────────────────────
@@ -416,6 +417,7 @@ const App = () => (
               <Route path="/guides/flytning" element={<MovingHub />} />
               <Route path="/guides/haandvaerker" element={<HandymanHub />} />
               <Route path="/guides/have" element={<GardenHub />} />
+              <Route path="/guides/have/faq" element={<GardenFaq />} />
               <Route path="/guides/vinduespudsning" element={<WindowCleaningHub />} />
               <Route path="/guides/privatrengoering" element={<PrivateCleaningHub />} />
               <Route path="/guides/erhvervsrengoering" element={<BusinessCleaningHub />} />

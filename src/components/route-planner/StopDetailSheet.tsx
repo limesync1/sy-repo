@@ -36,6 +36,7 @@ import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
+import { EmployeeNotesSection } from "./EmployeeNotesSection";
 
 type Props = {
   stop: RouteStop | null;
@@ -366,6 +367,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               {!readOnly && stopRoute && (
                 <RouteCommunicationPanel route={stopRoute} stops={[stop]} employees={activeEmployees} stop={stop} />
               )}
+
+              {stop.order_id && <EmployeeNotesSection orderId={stop.order_id} />}
 
               {/* Customer */}
               <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">

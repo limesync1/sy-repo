@@ -30,6 +30,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { EmployeeStopActions } from "./EmployeeStopActions";
 
 type RouteContext = {
   name: string | null;
@@ -456,6 +457,11 @@ export const StopDetailsContent = ({
             </div>
           )}
         </Section>
+
+        {!readOnly && stop.order_id && (
+          <EmployeeStopActions stopId={stop.id} order={order} completed={stop.status === "completed"} />
+        )}
+
 
 
         <details className="stop-secondary-details rounded-md border border-border bg-card">

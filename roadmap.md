@@ -212,3 +212,10 @@
 - [x] Mobilkontrol af de fire visninger og deres handlinger
 
 - Kontrolleret på 393×852 og 360×640: lange noter ruller fri af faste bundknapper; tidsregistreringsknap og stopvindueslukning fungerer; stopinformation forbliver stabil; printvalg og forhåndsvisning adskilt. 39 regressionstests bestod. Kørselskontrollen brugte læsebeskyttede testdata og simuleret GPS uden at ændre stopstatus eller indtjening i databasen.
+
+## Medarbejder retter aftaler, havemand FAQ og mobilzoom 2026-10-08
+- [x] Zoomkontrol på iPhone 14 og Pixel 7 (offentlige sider, virksomheds-, medarbejder-, kunde- og adminpanel + åbnede vinduer): ingen felter under 16px
+- [x] Medarbejder kan rette ydelser (dette eller også kommende besøg) og sende note til kontoret
+- [x] Noter vises under "Fra medarbejdere" i virksomhedens stopvindue
+- [x] Havemand FAQ-side /guides/have/faq + sitemap; publiceret
+- [ ] Afprøv "Ret ydelser" på en rigtig rute med testmedarbejder
