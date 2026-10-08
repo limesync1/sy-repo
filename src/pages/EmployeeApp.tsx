@@ -44,6 +44,7 @@ import { BrandedIllustration, type BrandedIllustrationName } from "@/components/
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { statusBadgeClass, statusLabel } from "@/lib/statusColors";
 import { stripPrices } from "@/lib/employee-display";
+import { orderDayRoutes } from "@/lib/employee-day-order";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -178,6 +179,11 @@ const EmployeeApp = () => {
     for (const stop of stops) grouped.set(stop.route_id, [...(grouped.get(stop.route_id) || []), stop]);
     return grouped;
   }, [stops]);
+  const sortedRoutes = useMemo(() => orderDayRoutes(routes, new Set(routes.filter(r => {
+    const routeStops = stopsByRoute.get(r.id) || [];
+    return routeStops.length > 0 && routeStops.every(s => s.status === "completed");
+  }).map(r => r.id))), [routes, stopsByRoute]);
+  const firstActiveId = sortedRoutes.find(r => (stopsByRoute.get(r.id) || []).some(s => s.status !== "completed"))?.id ?? null;
   const printableRoutes = useMemo<PrintRoute[]>(() => routes.map((route) => ({
     id: route.id,
     date: route.route_date,
@@ -232,6 +238,15 @@ const EmployeeApp = () => {
     },
   });
 
+  const dayStarted = !!workday?.started_at && !workday?.ended_at;
+  const dayEnded = !!workday?.ended_at;
+  useEffect(() => {
+    if (!dayStarted) return;
+    setWorkdayNow(Date.now());
+    const timer = window.setInterval(() => setWorkdayNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [dayStarted, workday?.started_at]);
+
   if (loading) {
     // Vis shell med skeleton fra første millisekund — ingen blank
     // spinner-skærm. Layoutet føles "fyldt" med det samme.
@@ -250,14 +265,6 @@ const EmployeeApp = () => {
   const dateObj = parseISO(date);
   const isCurrentDay = isToday(dateObj);
   const isFutureDay = date > todayStr();
-  const dayStarted = !!workday?.started_at && !workday?.ended_at;
-  const dayEnded = !!workday?.ended_at;
-  useEffect(() => {
-    if (!dayStarted) return;
-    setWorkdayNow(Date.now());
-    const timer = window.setInterval(() => setWorkdayNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [dayStarted, workday?.started_at]);
   const actualWorkSeconds = Math.max(0, Number(workday?.accumulated_seconds || 0)) + (workday?.started_at
     ? Math.max(0, Math.floor(((workday.ended_at ? new Date(workday.ended_at).getTime() : workdayNow) - new Date(workday.started_at).getTime()) / 1000))
     : 0);
@@ -375,10 +382,6 @@ const EmployeeApp = () => {
             afslutter dagen, eller printer kvitteringer. */}
         {!routesLoading && !stopsLoading && isCurrentDay && (() => {
           // Find næste ikke-udførte stop på tværs af dagens ruter.
-          const sortedRoutes = [...routes].sort((a, b) => {
-            const created = (a.created_at || "").localeCompare(b.created_at || "");
-            return created || (a.name || "").localeCompare(b.name || "", "da");
-          });
           let nextStop: RouteStop | null = null;
           let nextRoute: typeof routes[number] | null = null;
           for (const r of sortedRoutes) {
@@ -407,11 +410,11 @@ const EmployeeApp = () => {
               illustration: "startDay",
               cta: { label: "Start dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
             };
-          } else if (dayStarted && nextStop && nextRoute) {
+          } else if (dayStarted && !dayEnded && nextStop && nextRoute) {
             suggestion = {
               tone: "primary",
-              title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
-              description: nextStop.full_address || nextStop.address || "",
+              title: nextRoute.name || "Din næste rute",
+              description: `Næste stop: ${nextStop.customer_name || "Stop"} · ${nextStop.full_address || nextStop.address || ""}`,
               illustration: "dayInProgress",
               cta: (stopsByRoute.get(nextRoute.id) || []).some((s) => s.status === "completed")
                 ? { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` }
@@ -487,7 +490,7 @@ const EmployeeApp = () => {
                   onClick={Cta.onClick}
                   disabled={startDay.isPending || endDay.isPending}
                   size="lg"
-                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-[4px] bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  className={cn("h-11 w-full shrink-0 gap-2 rounded-[4px] px-4 sm:px-5 text-sm font-semibold shadow-sm focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto", Cta.label === "Stop dag" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-foreground text-background hover:bg-foreground/90 hover:text-background")}
                 >
                   {Cta.to ? (
                     <Link to={Cta.to}>
@@ -521,40 +524,15 @@ const EmployeeApp = () => {
         )}
 
         <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-        {(() => {
-          // ─── Sekventiel låsning ──────────────────────────────────────────
-          // Medarbejderen skal kun kunne starte ÉN rute ad gangen i dag.
-          // Vi bruger ruternes stabile oprettelsesrækkefølge og finder den
-          // første rute der ikke er færdig — alle senere ikke-færdige
-          // ruter rendes som "låst" (CTA disabled + lås-badge).
-          const ord = [...routes].sort((a, b) => {
-            const created = (a.created_at || "").localeCompare(b.created_at || "");
-            return created || (a.name || "").localeCompare(b.name || "", "da");
-          });
-          const firstActiveId = ord.find((r) => {
-            const rs = stopsByRoute.get(r.id) || [];
-            return rs.some((s) => s.status !== "completed");
-          })?.id ?? null;
-          return ord;
-        })().map((r) => {
+        {sortedRoutes.map((r, routeIndex) => {
           const myStops = (stopsByRoute.get(r.id) || []).sort((a, b) => a.sequence - b.sequence);
           const done = myStops.filter((s) => s.status === "completed").length;
           const total = myStops.length;
           const allDone = total > 0 && done === total;
-          // Beregn om ruten er låst (en tidligere rute mangler stadig stop).
-          // Vi rebygger samme orden her for at tjekke uden prop-drilling.
-          const sortedAll = [...routes].sort((a, b) => {
-            const created = (a.created_at || "").localeCompare(b.created_at || "");
-            return created || (a.name || "").localeCompare(b.name || "", "da");
-          });
-          const firstActiveId = sortedAll.find((rt) => {
-            const rs = stopsByRoute.get(rt.id) || [];
-            return rs.some((s) => s.status !== "completed");
-          })?.id ?? null;
           // Lås ruten hvis (a) en tidligere rute samme dag ikke er færdig
           // ELLER (b) brugeren endnu ikke har trykket "Start dag".
-          // Vi tillader stadig start hvis dagen er afsluttet (efter-arbejde).
-          const needsStartDay = isCurrentDay && !dayStarted && !dayEnded;
+          // En afsluttet dag skal genstartes før ruten fortsættes.
+          const needsStartDay = isCurrentDay && !dayStarted;
           // Datolås: ruter kan kun udføres på selve dagen — medmindre
           // virksomhed/medarbejder/rute har låst tidlig udførelse op.
           const earlyAllowed = canCompleteEarly({
@@ -575,7 +553,7 @@ const EmployeeApp = () => {
                 businessDefault: businessEarlyDefault,
               })
             : needsStartDay
-              ? "Tryk \"Start dag\" øverst før du kan starte en rute"
+              ? dayEnded ? "Tryk \"Genstart dagen\" øverst, før du starter ruten" : "Tryk \"Start dag\" øverst, før du starter ruten"
               : "Tilgængelig efter forrige rute er gennemført";
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
           const color = r.color || "hsl(var(--accent))";
@@ -608,7 +586,8 @@ const EmployeeApp = () => {
                     <BrandedIllustration name="routeDone" className="h-full w-full" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold text-foreground">
+                    <p className="text-xs font-medium text-muted-foreground">Rute {routeIndex + 1} af {sortedRoutes.length}{r.planned_start_time ? ` · kl. ${r.planned_start_time.slice(0, 5)}` : ""}</p>
+                   <h3 className="break-words text-sm font-semibold text-foreground">
                       {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
                     </h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -624,7 +603,7 @@ const EmployeeApp = () => {
                     size="icon"
                     variant="ghost"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-8 w-8 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    className="h-11 w-11 sm:h-8 sm:w-8 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Vis og udskriv ruten"
                     title="Vis og udskriv"
                   >
@@ -660,7 +639,8 @@ const EmployeeApp = () => {
                    <BrandedIllustration name="routeReady" className="h-full w-full" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-semibold text-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">Rute {routeIndex + 1} af {sortedRoutes.length}{r.planned_start_time ? ` · kl. ${r.planned_start_time.slice(0, 5)}` : ""}</p>
+                   <h3 className="break-words text-sm font-semibold text-foreground">
                     {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
                   </h3>
                    <p className="mt-0.5 inline-flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -689,7 +669,7 @@ const EmployeeApp = () => {
                   size="icon"
                   variant="ghost"
                   onClick={() => setPreviewRouteId(r.id)}
-                  className="h-8 w-8 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  className="h-11 w-11 sm:h-8 sm:w-8 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
                   aria-label="Vis og udskriv ruten"
                   title="Vis og udskriv"
                 >
@@ -815,7 +795,7 @@ const EmployeeApp = () => {
                   <Button
                     asChild={total > 0 && !isLocked}
                     size="lg"
-                    className="h-11 w-full gap-2 rounded-[4px] bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className={cn("h-11 w-full gap-2 rounded-[4px] text-sm sm:text-base font-semibold shadow-sm focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]", isLocked ? "border border-border bg-secondary text-muted-foreground disabled:opacity-100" : "bg-foreground text-background hover:bg-foreground/90 hover:text-background")}
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >
@@ -824,7 +804,7 @@ const EmployeeApp = () => {
                         {dateLocked
                           ? `Låst indtil ${format(dateObj, "d. MMM", { locale: da })}`
                           : needsStartDay
-                            ? "Låst — start dagen først"
+                            ? dayEnded ? "Låst — genstart dagen først" : "Låst — start dagen først"
                             : "Låst — afslut forrige"}
                       </>
                     ) : total > 0 ? (

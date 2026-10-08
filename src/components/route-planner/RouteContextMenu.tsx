@@ -33,11 +33,6 @@ export default function RouteContextMenu({ children, onAction, hide }: Props) {
             <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
           </ContextMenuItem>
         )}
-        {!hide?.optimize && (
-          <ContextMenuItem onSelect={defer("optimize")}>
-            <Sparkles className="h-3.5 w-3.5 mr-2" /> Optimér rækkefølge
-          </ContextMenuItem>
-        )}
         {!hide?.["show-on-map"] && (
           <ContextMenuItem onSelect={defer("show-on-map")}>
             <MapPin className="h-3.5 w-3.5 mr-2" /> Vis på kort

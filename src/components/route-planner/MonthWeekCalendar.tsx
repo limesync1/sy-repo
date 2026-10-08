@@ -1543,20 +1543,6 @@ const RoutePillInner = ({
             ikoner spredt langs højre kant. */}
         {(canOptimize || canDelete || canHistory) && (
           <div className="absolute bottom-1 right-1 z-[3] flex items-center">
-        {false && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onOptimize(); }}
-            disabled={optimizing}
-            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] disabled:opacity-50 transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-            aria-label="Optimér rækkefølge"
-            title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
-          >
-            {optimizing
-              ? <Loader2 className="h-3 w-3 animate-spin" />
-              : <Sparkles className="h-3 w-3" />}
-          </button>
-        )}
         {/* ⋯-menu: synlig hurtig-handlingstrigger så brugeren ikke skal højre-
             klikke. Samme handlinger som højreklik-menuen. */}
         <DropdownMenu>
@@ -1593,25 +1579,6 @@ const RoutePillInner = ({
               >
                 <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
               </DropdownMenuItem>
-              {canOptimize && (
-                <DropdownMenuItem
-                  disabled={optimizing}
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    requestAnimationFrame(() => {
-                      try { onOptimize(); } catch (err) {
-                        console.error(err);
-                        toast.error("Kunne ikke optimere ruten");
-                      }
-                    });
-                  }}
-                >
-                  {optimizing
-                    ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                    : <Sparkles className="h-3.5 w-3.5 mr-2" />}
-                  {optimizing ? "Optimerer …" : "Optimér rækkefølge"}
-                </DropdownMenuItem>
-              )}
               {canHistory && (
                 <DropdownMenuItem
                   onSelect={(e) => {

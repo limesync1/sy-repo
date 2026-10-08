@@ -4,8 +4,8 @@
 - Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.
 - Validate suggestion stops against the route and employees against its business before RLS-protected writes.
 
-- Business/employee navigation shares `PanelShell` and `SidebarParts`; admin retains compatibility exports and `service-panel-*`. Never duplicate layouts by role.
-- Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
+- Business/employee navigation shares `PanelShell`/`SidebarParts`; admin keeps compatibility exports and `service-panel-*`. Never duplicate role layouts.
+- Resolve checklist versus map guide before mounting Leaflet or continuous GPS to prevent map flashes and battery waste.
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
 - Semantic illustrations use `BrandedIllustration`; `PanelIcon` and customer variants reuse matching assets to avoid duplicates.
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
@@ -35,5 +35,6 @@
 - Timelines stay fixed-height with explicit selection; semantic actions distinguish undo and completion.
 - Global mobile/touch field font rules cover portals to prevent focus zoom while preserving pinch zoom.
 
-- Route weather averages stop forecasts from shared geographic-cell queries, never a country fallback, so staff and calendar agree.
-- Compact planning uses explicit assignment and reorder buttons, keeping touch scrolling reliable.
+- Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
+- Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
+- Compact planning uses tap assignment/reorder for safe scrolling.
