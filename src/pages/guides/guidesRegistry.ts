@@ -62,6 +62,7 @@ export const GUIDES: GuideMeta[] = [
   { href: "/guides/privatrengoering", title: "Privatrengøring 2026 — pris, fradrag & rengøringshjælp", desc: "Privatrengøring fra 250 kr. i timen, fast aftale vs. engangsrengøring, BoligJob-fradrag og 3 gratis tilbud.", category: "Rengøring", tag: "How-to", priority: "0.9", updatedAt: "2026-10-02" },
   { href: "/guides/erhvervsrengoering", title: "Erhvervsrengøring 2026 — pris pr. m² & rengøringsfirma", desc: "Erhvervsrengøring fra 8 kr. pr. m² pr. måned, aftalens indhold og 3 gratis tilbud fra rengøringsfirmaer.", category: "Rengøring", tag: "How-to", priority: "0.9", updatedAt: "2026-10-02" },
   { href: "/guides/have", title: "Haveservice priser 2026 — find havehjælp & få 3 gratis tilbud", desc: "Find havehjælp nær dig: se haveservice priser (græsslåning fra 250 kr., havemand fra 400 kr./t.) og få 3 gratis tilbud fra topbedømte, lokale havefirmaer.", category: "Haveservice", tag: "How-to", priority: "0.9", updatedAt: "2026-10-01" },
+  { href: "/guides/have/faq", title: "Havemand FAQ 2026 — pris, fradrag og opgaver", desc: "Svar på de mest stillede spørgsmål om havemand: timepris, græsslåning, hækklipning, haveaffald og servicefradrag.", category: "Haveservice", tag: "FAQ", priority: "0.7", updatedAt: "2026-10-08" },
   { href: "/guides/priser-2026", title: "Priser 2026 — master prisindeks", desc: "Komplet oversigt over alle serviceydelser i Danmark i 2026 — 50+ prisguides samlet ét sted.", category: "Økonomi", tag: "Prisguide", priority: "0.95", updatedAt: "2026-07-27" },
 ];
 
