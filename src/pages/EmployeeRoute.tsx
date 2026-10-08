@@ -1,3 +1,4 @@
+import { EmployeeStopActions } from "@/components/employee/EmployeeStopActions";
 import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival, readArrivalEstimate, saveArrivalEstimate } from "@/components/employee-route/route-run-clock";
 import { runMetrics } from "@/components/employee-route/run-metrics";
 import { StopTimeline } from "@/components/employee-route/StopTimeline";
@@ -2199,6 +2200,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className={cn("h-11 gap-1.5 rounded-md px-3 text-xs", activeNextStopEntry || isAtNextStop || latestCompleted ? "flex-1" : "shrink-0")}><Info className="h-4 w-4" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
+                  <EmployeeStopActions stopId={nextStop.id} order={null} completed={nextStop.status === "completed"} noteOnly />
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
