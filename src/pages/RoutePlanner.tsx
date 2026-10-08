@@ -3589,13 +3589,7 @@ const Planner = () => {
                             && (j.preferred_date || j.next_service_date),
                           ).length
                         : 0;
-                      if (geocoding && canAutoAssign === 0 && !selectionMode) {
-                        return (
-                          <p className="text-[11px] text-muted-foreground flex items-center gap-1.5" title="Nye adresser placeres på kortet, så de kan lægges på ruter">
-                            <Loader2 className="h-3 w-3 animate-spin" />Placerer nye adresser på kortet…
-                          </p>
-                        );
-                      }
+                      if (geocoding && canAutoAssign === 0 && !selectionMode) return null;
                       if (canAutoAssign === 0 && !selectionMode) {
                         if (missing > 0) {
                           return (
