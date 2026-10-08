@@ -46,7 +46,7 @@ const FounderNote = () => {
             </span>
           </div>
           <span className="mt-8 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
-            Manden bag Serviceydere
+            PERSONEN BAG SERVICEYDERE
           </span>
           <h2 className="mt-3 text-[1.85rem] font-semibold leading-[1.1] text-ocean-foreground sm:text-[2.2rem]">
             Hej, jeg hedder William
