@@ -308,6 +308,9 @@ const Planner = () => {
   // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
   const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
   const [geocoding, setGeocoding] = useState(false);
+  // Adresser vi allerede har forsøgt at placere — så en ukendt adresse ikke
+  // giver en evig "Placerer…"-spinner eller gentagne opslag.
+  const geocodeAttemptedRef = useRef<Set<string>>(new Set());
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
@@ -1722,12 +1725,14 @@ const Planner = () => {
   useEffect(() => {
     if (!businessId || geocoding) return;
     const needsGeocode = unassigned.filter((j: any) =>
-      (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
+      (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null)
+      && !geocodeAttemptedRef.current.has(j.id),
     );
     if (needsGeocode.length === 0) return;
     setGeocoding(true);
     (async () => {
       for (const job of needsGeocode.slice(0, 25)) {
+        geocodeAttemptedRef.current.add(job.id);
         try {
           const res = await geocode.mutateAsync({
             address: job.address || undefined,
@@ -3577,12 +3582,25 @@ const Planner = () => {
                         : 0;
                       if (geocoding && canAutoAssign === 0 && !selectionMode) {
                         return (
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1" title="Nye adresser placeres på kortet, så de kan lægges på ruter">
-                            <Loader2 className="h-2.5 w-2.5 animate-spin" />Placerer nye adresser på kortet…
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1.5" title="Nye adresser placeres på kortet, så de kan lægges på ruter">
+                            <Loader2 className="h-3 w-3 animate-spin" />Placerer nye adresser på kortet…
                           </p>
                         );
                       }
                       if (canAutoAssign === 0 && !selectionMode) {
+                        if (missing > 0) {
+                          return (
+                            <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-200 flex items-start gap-1.5 rounded-[4px] bg-amber-50 dark:bg-amber-500/10 px-2 py-1.5">
+                              <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+                              {missing === 1 ? "1 adresse" : `${missing} adresser`} kunne ikke findes på kortet. Ret adressen under "Mere info" — du kan stadig trække aftalen ind på en dag.
+                            </p>
+                          );
+                        }
+                        return null;
+                      }
+                      // Ingen valgte er klar til auto-fordeling → vis intet, så
+                      // listen ikke hopper når man markerer aftaler.
+                      if (selectionMode && selectedReady === 0) {
                         return null;
                       }
                       return (
