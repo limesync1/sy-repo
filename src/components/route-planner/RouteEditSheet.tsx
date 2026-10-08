@@ -1024,18 +1024,6 @@ export const RouteEditSheet = ({
 
           {/* Footer actions */}
           <SheetFooterBar className="space-y-2 bg-card">
-            {!isProjection && stopCount >= 2 && (
-              <Button
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
-                onClick={handleOptimize}
-                disabled={optimize.isPending}
-              >
-                {optimize.isPending
-                  ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  : <Sparkles className="h-4 w-4 mr-2" />}
-                Optimér rækkefølge
-              </Button>
-            )}
             {!isProjection && (stopCount >= 1 || true) && (
               <div className="grid grid-cols-2 gap-2">
                 {stopCount >= 1 && (

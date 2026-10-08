@@ -554,21 +554,6 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
       )}
 
-      {!isVirtual && stopCount >= 2 && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onOptimize(); }}
-          disabled={optimizing}
-           className="shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-md border border-transparent hover:border-border hover:bg-secondary text-muted-foreground hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
-          aria-label="Optimér rækkefølge"
-          title="Optimér rækkefølge"
-        >
-          {optimizing
-            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            : <Sparkles className="h-3.5 w-3.5" />}
-        </button>
-      )}
-
       <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground shrink-0" />
       {stopCount > 0 && !showAsCompleted && completedCount > 0 && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-secondary">
