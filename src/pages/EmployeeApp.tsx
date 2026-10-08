@@ -553,7 +553,7 @@ const EmployeeApp = () => {
                 businessDefault: businessEarlyDefault,
               })
             : needsStartDay
-              ? "Tryk \"Start dag\" øverst før du kan starte en rute"
+              ? dayEnded ? "Tryk \"Genstart dagen\" øverst, før du starter ruten" : "Tryk \"Start dag\" øverst, før du starter ruten"
               : "Tilgængelig efter forrige rute er gennemført";
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
           const color = r.color || "hsl(var(--accent))";

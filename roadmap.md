@@ -1,10 +1,12 @@
 # Roadmap
 
 ## Mobilplanlægning og tydelig Min dag
-- [ ] Fjern Find den bedste rute uden at fjerne manuel rutetildeling
-- [ ] Ensret visningsrækkefølge, næste rute og låsning i Min dag
-- [ ] Forenkle Start dag/Start rute samt mobilhandlingers størrelse og farver
-- [ ] Kontrollér mobilplanlægning og Min dag indlogget med tests og skærmbilleder
+- [x] Fjern Find den bedste rute uden at fjerne manuel rutetildeling
+- [x] Ensret visningsrækkefølge, næste rute og låsning i Min dag
+- [x] Forenkle Start dag/Start rute samt mobilhandlingers størrelse og farver
+- [x] Kontrollér mobilplanlægning og Min dag indlogget med tests og skærmbilleder
+
+Kontrolleret indlogget i responsive browserrammer 390×710 og 820×710: aktive ruter før udførte, starttid og rutenummer synlige, næste skridt viser rute og næste stop. Manuel rutetildeling har søgning og synlig bundhandling; optimeringsknapper og optimeringsprompter er fjernet. Kalenderens mobile rutekort kan scrolles uden trækaktivering; rækkefølge ændres med stoplistens pile. Ingen vandret overflow eller JavaScript-sidefejl i de afprøvede visninger. Fysiske telefoner og samtlige øvrige paneler er ikke gennemtestet.
 
 ## Ny Haderup–Herning-rute 2026-10-08
 - [x] Opret Patricks rute i angivet rækkefølge med ti kundestop og Jem & Fix på Åvænget 4 som mål
