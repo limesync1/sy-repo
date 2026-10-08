@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Quote, Building2, ArrowRight, BadgeCheck } from "lucide-react";
+import { Star, Quote, Building2, BadgeCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import SmartLink from "@/components/SmartLink";
 import HorizontalScroller from "./HorizontalScroller";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
 

@@ -1,9 +1,6 @@
-import { ArrowRight } from "lucide-react";
-import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
 import BlueFlowBackground from "./BlueFlowBackground";
-import { Button } from "@/components/ui/button";
 
 /**
  * En enkel, sammenhængende proces frem for tre løsrevne salgskort.
