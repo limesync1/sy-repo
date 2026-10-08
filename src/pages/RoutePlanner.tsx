@@ -3109,17 +3109,10 @@ const Planner = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-md font-semibold" aria-label="Visning">
-                    <LayoutGrid className="h-4 w-4" />Visning
+                    <LayoutGrid className="h-4 w-4" /><span className="hidden min-[1440px]:inline">Visning</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 p-2">
-                  <DropdownMenuLabel className="px-1 text-[10px] uppercase tracking-wider text-muted-foreground">Kalender</DropdownMenuLabel>
-                  <div className="grid grid-cols-2 gap-1 px-1 pb-2">
-                    {([["month", "Måned"], ["week", "Uge"]] as const).map(([v, l]) => (
-                      <Button key={v} size="sm" variant={view === v ? "default" : "outline"} className="h-8 text-xs" onClick={() => setView(v)} aria-pressed={view === v}>{l}</Button>
-                    ))}
-                  </div>
-                  <DropdownMenuSeparator />
                   <div className="flex items-center justify-between gap-2 px-1 py-1.5">
                     <span className="text-xs text-muted-foreground">Tæthed</span>
                     <DensityToggle />
@@ -4251,17 +4244,10 @@ const Planner = () => {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-semibold" aria-label="Visning">
-                            <LayoutGrid className="h-4 w-4" />Visning
+                            <LayoutGrid className="h-4 w-4" /><span className="hidden min-[1440px]:inline">Visning</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-64 p-2">
-                          <DropdownMenuLabel className="px-1 text-[10px] uppercase tracking-wider text-muted-foreground">Kalender</DropdownMenuLabel>
-                          <div className="grid grid-cols-2 gap-1 px-1 pb-2">
-                            {([["month", "Måned"], ["week", "Uge"]] as const).map(([v, l]) => (
-                              <Button key={v} size="sm" variant={view === v ? "default" : "outline"} className="h-8 text-xs" onClick={() => setView(v)} aria-pressed={view === v}>{l}</Button>
-                            ))}
-                          </div>
-                          <DropdownMenuSeparator />
                           <div className="flex items-center justify-between gap-2 px-1 py-1.5">
                             <span className="text-xs text-muted-foreground">Tæthed</span>
                             <DensityToggle />
