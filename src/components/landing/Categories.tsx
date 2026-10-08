@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import HorizontalScroller from "./HorizontalScroller";
 import { ALL_INDUSTRIES, TOP_CATEGORY_KEYS } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ const CategoryCard = ({
       <span className="flex h-16 w-16 items-center justify-center">
         <IndustryIcon category={cat.key} className="h-14 w-14" alt={cat.label} />
       </span>
-      <UiArtwork name="categoryArrow" className="h-9 w-9 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100" />
+      <UiArtwork name="categoryArrow" className="h-9 w-9 -translate-x-1 opacity-0 transition-all duration-300 [@media(hover:none)]:opacity-60 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100" />
     </div>
     <div className="relative mt-4 min-w-0">
       <div className="break-words text-[15px] font-semibold leading-snug">{cat.label}</div>
@@ -101,16 +100,31 @@ const Categories = () => {
           </div>
         )}
 
-        {/* Mobil — vandret scroll med alle brancher */}
+        {/* Mobil — kompakt 2-kolonnet gitter, så flere brancher ses på én gang */}
         <div className="sm:hidden">
-          <HorizontalScroller ariaLabel="Servicebrancher — stryg vandret for at se flere" fadeEdges={false}>
-            {sorted.map((cat) => (
-              <CategoryCard key={cat.key} cat={cat} className="min-h-[168px] w-[calc(100vw-4rem)] max-w-[300px] shrink-0 snap-start" />
+          <div id="mobile-service-categories" className="grid grid-cols-2 gap-2.5">
+            {(expanded ? sorted : sorted.slice(0, 6)).map((cat) => (
+              <Link
+                key={cat.key}
+                to={HUB_BY_KEY[cat.label] || `/search?category=${encodeURIComponent(cat.key)}`}
+                className="flex min-h-[112px] min-w-0 flex-col justify-between rounded-xl border border-border bg-card p-3 text-foreground shadow-sm transition-colors active:border-foreground/30"
+              >
+                <IndustryIcon category={cat.key} className="h-10 w-10" alt="" />
+                <span className="mt-2 break-words text-[14px] font-semibold leading-snug">{cat.label}</span>
+              </Link>
             ))}
-          </HorizontalScroller>
-          <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            Stryg for at se alle {sorted.length} brancher <ArrowRight className="h-3.5 w-3.5" />
-          </p>
+          </div>
+          <Button
+            variant="outline"
+            type="button"
+            aria-expanded={expanded}
+            aria-controls="mobile-service-categories"
+            onClick={() => setExpanded((c) => !c)}
+            className="mt-4 h-11 w-full rounded-lg"
+          >
+            {expanded ? "Vis færre brancher" : `Vis alle ${sorted.length} brancher`}
+            <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+          </Button>
         </div>
       </div>
     </section>
