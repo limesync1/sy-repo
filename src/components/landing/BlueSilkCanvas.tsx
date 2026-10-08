@@ -9,25 +9,25 @@ const fragmentShader = `
   uniform vec3 uBase, uBlue, uLight;
   void main() {
     vec2 p = vUv;
-    float t = uTime * 0.32;
-    // Continuous satin ribbons: broad shadows and soft moving crests.
-    // No pointer input, noisy texture, particles, or flashing highlights.
+    float t = uTime * 0.09;
+    // Slow, overlapping fabric folds. Quiet left side protects the content;
+    // fine secondary folds add depth without bright stripes or pulsing.
     vec3 col = uBase;
     float light = 0.0;
     float body = 0.0;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
       float n = float(i);
-      float bend = sin(p.x * 3.4 + t * (0.7 + n * 0.12) + n * 1.9) * 0.16
-        + sin(p.x * 5.2 - t * 0.6 + n * 2.3) * 0.055;
-      float center = -0.18 + n * 0.32 + p.x * 0.34 + bend;
+      float bend = sin(p.x * 2.6 + t + n * 1.7) * 0.12
+        + sin(p.x * 4.1 - t * 0.4 + n * 1.3) * 0.035;
+      float center = -0.22 + n * 0.23 + p.x * 0.3 + bend;
       float d = p.y - center;
-      body += exp(-d * d * 32.0) * 0.38;
-      float crest = exp(-pow(d - 0.06, 2.0) * 260.0);
-      light += crest * (0.11 + 0.045 * sin(p.x * 4.0 + t + n));
+      body += exp(-d * d * 45.0) * 0.16;
+      float crest = exp(-pow(d - 0.055, 2.0) * 180.0);
+      light += crest * 0.026;
     }
-    float readability = 0.55 + 0.45 * smoothstep(0.0, 0.85, p.x);
-    col = mix(col, uBlue, clamp(body * readability, 0.0, 0.85));
-    col = mix(col, uLight, clamp(light * readability, 0.0, 0.26));
+    float readability = 0.15 + 0.6 * smoothstep(0.15, 1.0, p.x);
+    col = mix(col, uBlue, clamp(body * readability, 0.0, 0.38));
+    col = mix(col, uLight, clamp(light * readability, 0.0, 0.065));
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
   }
