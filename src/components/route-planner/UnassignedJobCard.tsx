@@ -443,7 +443,7 @@ export const UnassignedJobCard = ({
               className={cn("h-auto min-h-11 flex-1 gap-1.5 rounded-none px-2 py-2 text-xs font-semibold", !isCompact && SEGMENT_BTN)}
               title="Vælg selv hvilken rute aftalen skal lægges på"
             >
-              <RouteIcon className="h-3 w-3" />
+              <UiArtwork name="addAppointmentToRoute" className="h-4 w-4" />
               Vælg rute
             </Button>
           )}
