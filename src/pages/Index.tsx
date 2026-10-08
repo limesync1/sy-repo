@@ -118,7 +118,7 @@ const Index = () => {
         <Suspense fallback={<SectionSkeleton cards={3} cardClassName="h-56" />}>
           <Reveal><Testimonials /></Reveal>
         </Suspense>
-        <Suspense fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-64" />}>
+        <Suspense fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-64" dark className="bg-ocean" />}>
           <Reveal><FounderNote /></Reveal>
         </Suspense>
         <Suspense fallback={<SectionSkeleton cards={6} cardClassName="h-40" />}>

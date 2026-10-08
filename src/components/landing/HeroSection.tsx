@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 import heroImage from "@/assets/hero-window-cleaning.webp";
+import BlueFlowBackground from "./BlueFlowBackground";
 
 /**
  * Forsidens hero — redaktionelt split-layout.
@@ -18,29 +19,7 @@ const HeroSection = () => {
       className="relative z-30 isolate text-background"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
-      {/* Baggrundslag i egen overflow-wrapper, så søge-dropdownen kan trække
-          ud over hero-kanten uden at blive klippet. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(120% 90% at 12% 0%, hsl(var(--hero-mid) / 0.45) 0%, transparent 55%), radial-gradient(90% 80% at 100% 100%, hsl(var(--hero-cyan) / 0.18) 0%, transparent 60%)",
-          }}
-        />
-        {/* Fint rudenet — refererer diskret til vinduespudsning/håndværk. */}
-        <div
-          className="absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, hsl(var(--hero-cyan) / 0.6) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--hero-cyan) / 0.6) 1px, transparent 1px)",
-            backgroundSize: "72px 72px",
-            maskImage: "radial-gradient(80% 70% at 50% 30%, #000 0%, transparent 85%)",
-            WebkitMaskImage: "radial-gradient(80% 70% at 50% 30%, #000 0%, transparent 85%)",
-          }}
-        />
-        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
-      </div>
+      <BlueFlowBackground />
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:pb-14 lg:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="max-w-2xl">
