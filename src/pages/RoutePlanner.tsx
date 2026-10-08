@@ -70,7 +70,6 @@ import { createPortal } from "react-dom";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { UnassignedJobCard, UnassignedJobCardSkeleton } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
-import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { ConflictBanner } from "@/components/route-planner/ConflictBanner";
@@ -306,7 +305,6 @@ const Planner = () => {
   >("route-planner:unassignedGroupBy", "none");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
-  const [suggestJob, setSuggestJob] = useState<any | null>(null);
   // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
   const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
   const [geocoding, setGeocoding] = useState(false);
@@ -3644,7 +3642,7 @@ const Planner = () => {
                                   : "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
                               )}
                               title={canAutoAssign === 1
-                                ? "Lad systemet finde den bedste rute til denne aftale"
+                                ? "Fordel aftalen automatisk efter dato og ledig plads"
                                 : "Fordel alle klar-aftaler til de bedst matchende ruter"}
                             >
                               {autoAssigning
@@ -3744,7 +3742,7 @@ const Planner = () => {
                         key={job.id}
                         job={job}
                         onClick={() => setSelectedJob(job)}
-                        onSuggestRoute={() => setSuggestJob(job)}
+                        onChooseRoute={() => { setSelectedJobIds(new Set([job.id])); setBulkAddToRouteOpen(true); }}
                         selected={selectedJobIds.has(job.id)}
                         anySelected={selectedJobIds.size > 0}
                         onToggleSelect={(e) => {
@@ -4031,7 +4029,7 @@ const Planner = () => {
           );
 
           return (
-              <div className="planner-canvas flex-1 overflow-hidden p-2 2xl:p-3" style={{ height: "calc(100vh - 56px)" }}>
+              <div className="planner-canvas flex-1 overflow-hidden p-2 2xl:p-3" style={{ height: "calc(100dvh - 56px)" }}>
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
@@ -4278,7 +4276,7 @@ const Planner = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0 rounded-[4px]"
+                      className="h-11 w-11 shrink-0 rounded-[4px]"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                       }
@@ -4299,7 +4297,7 @@ const Planner = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0 rounded-[4px]"
+                      className="h-11 w-11 shrink-0 rounded-[4px]"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                       }
@@ -4311,9 +4309,9 @@ const Planner = () => {
 
                   <div className="grid grid-cols-[1fr_auto_auto] items-center gap-1.5">
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                      <TabsList className="grid h-10 w-full grid-cols-2 rounded-md border border-border bg-secondary/50 p-1">
-                        <TabsTrigger value="month" className="h-8 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
-                        <TabsTrigger value="week" className="h-8 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Uge</TabsTrigger>
+                      <TabsList className="grid h-11 w-full grid-cols-2 rounded-md border border-border bg-secondary/50 p-1">
+                        <TabsTrigger value="month" className="h-9 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-9 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     <Sheet>
@@ -4321,7 +4319,7 @@ const Planner = () => {
                         <Button
                           variant={filtersActive ? "default" : "outline"}
                           size="sm"
-                          className="h-8 shrink-0 gap-1.5 rounded-[4px] px-2.5 text-xs"
+                          className="h-11 shrink-0 gap-1.5 rounded-[4px] px-2.5 text-xs"
                           aria-label="Filtre"
                         >
                           <Filter className="h-4 w-4" />
@@ -4425,7 +4423,7 @@ const Planner = () => {
                         </div>
                       </SheetContent>
                     </Sheet>
-                    <Button variant="outline" size="sm" className="h-8 rounded-[4px] px-2.5 text-xs" onClick={() => setDate(todayStr())}>
+                    <Button variant="outline" size="sm" className="h-11 rounded-[4px] px-2.5 text-xs" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>
                   </div>
@@ -4443,7 +4441,7 @@ const Planner = () => {
 
                 </div>
                 <div className="planner-mobile-board min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-background">
-                  <section className={cn("border-b border-border", unassigned.length > 0 && "min-h-[22rem]")} aria-label="Aftaler uden rute">
+                  <section className="border-b border-border max-h-[45dvh] overflow-y-auto" aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
                   <section className="min-h-[32rem]" aria-label="Rutekalender">
@@ -4733,51 +4731,6 @@ const Planner = () => {
           open={!!selectedJob}
           onOpenChange={(o) => !o && setSelectedJob(null)}
         />
-
-        {suggestJob && businessId && (
-          <SuggestRouteDialog
-            open={!!suggestJob}
-            onOpenChange={(o) => !o && setSuggestJob(null)}
-            businessId={businessId}
-            job={{
-              id: suggestJob.id,
-              customer_name: suggestJob.customer_name,
-              latitude: suggestJob.latitude,
-              longitude: suggestJob.longitude,
-              zip_code: suggestJob.zip_code,
-              estimated_duration_minutes: Number(suggestJob.estimated_duration_minutes) || 30,
-              preferred_date: suggestJob.preferred_date,
-              next_service_date: suggestJob.next_service_date,
-              service_id: suggestJob.order_items?.[0]?.service_id ?? null,
-              weather_sensitive: suggestJob.order_items?.some?.((it: any) => it?.weather_sensitive) ?? false,
-            }}
-            weatherBad={false}
-            onAssignToRoute={async (routeId) => {
-              try {
-                const sequence = calendarStops.filter((s: any) => s.route_id === routeId).length;
-                await addStop.mutateAsync({
-                  route_id: routeId,
-                  order_id: suggestJob.id,
-                  sequence,
-                  customer_name: suggestJob.customer_name,
-                  customer_phone: suggestJob.customer_phone,
-                  address: suggestJob.address || [suggestJob.zip_code, suggestJob.city].filter(Boolean).join(" "),
-                  latitude: suggestJob.latitude,
-                  longitude: suggestJob.longitude,
-                  service_summary: serviceSummaryForJob(suggestJob),
-                  duration_minutes: Number(suggestJob.estimated_duration_minutes) || 30,
-                  time_window_start: null,
-                  time_window_end: null,
-                });
-                toast.success("Aftalen tildelt valgt rute");
-              } catch (e: any) {
-                toast.error(e?.message || "Kunne ikke tildele rute");
-              } finally {
-                setSuggestJob(null);
-              }
-            }}
-          />
-        )}
 
         {(() => {
           // Stops for den aktive rute. Når sheet'et er åbnet via en projiceret

@@ -72,7 +72,7 @@ type Props = {
     completed_cycles?: number | null;
   };
   onClick?: () => void;
-  onSuggestRoute?: () => void;
+  onChooseRoute?: () => void;
   /** Hopper kalenderen til første dag med ledig kapacitet. */
   onFindFreeSlot?: () => void;
   /** Multi-select: aktuel valg-tilstand for dette kort. */
@@ -131,7 +131,7 @@ const getSchedule = (d?: string | null) => {
 };
 
 export const UnassignedJobCard = ({
-  job, onClick, onSuggestRoute, onFindFreeSlot,
+  job, onClick, onChooseRoute, onFindFreeSlot,
   selected, anySelected, onToggleSelect, compact = false,
 }: Props) => {
   const [expanded, setExpanded] = useState(false);
@@ -430,35 +430,35 @@ export const UnassignedJobCard = ({
 
       {/* ───────────────────────────────────────────────────────────────────
           3) ACTION-BÅND — "Vælg rute" åbner dialog hvor brugeren
-             selv vælger blandt forslag (modsat header-knappens auto-fordel).
+             selv vælger blandt eksisterende ruter (modsat header-knappens auto-fordel).
              Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
-      {(!compact || isCompact) && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
+      {(!compact || isCompact) && !isPending && (onChooseRoute || job.customer_phone || itemCount > 1 || job.notes) && (
         <div className="flex border-t border-border divide-x divide-border bg-secondary/20">
-          {onSuggestRoute && (
+          {onChooseRoute && (
             <Button variant={isCompact ? "default" : "ghost"}
               type="button"
-              onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
+              onClick={(e) => { e.stopPropagation(); onChooseRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
               className={cn("h-auto min-h-11 flex-1 gap-1.5 rounded-none px-2 py-2 text-xs font-semibold", !isCompact && SEGMENT_BTN)}
-              title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
+              title="Vælg selv hvilken rute aftalen skal lægges på"
             >
               <RouteIcon className="h-3 w-3" />
               Vælg rute
             </Button>
           )}
           {(job.customer_phone || itemCount > 1 || job.notes) && (
-            <button
+            <Button variant="ghost"
               type="button"
               onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
               onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
               title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
-              className={`flex-1 px-2 py-1.5 text-[10.5px] font-semibold ${SEGMENT_BTN}`}
+              className={`h-auto min-h-11 flex-1 rounded-none px-2 py-2 text-xs font-semibold ${SEGMENT_BTN}`}
             >
               {expanded ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronRight className="h-2.5 w-2.5" />}
               {expanded ? "Skjul" : "Mere info"}
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -94,7 +94,7 @@ export const BulkAddToRouteDialog = ({
           />
         </DialogHeader>
 
-        <div className="planner-overlay-body min-h-0 overflow-y-auto grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
           {/* Venstre: valgte aftaler */}
           <div className="border-b sm:border-b-0 sm:border-r p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -178,7 +178,7 @@ export const BulkAddToRouteDialog = ({
                             <p className="text-xs font-semibold truncate">
                               {format(parseISO(r.route_date), "EEE d. MMM", { locale: da })}
                             </p>
-                            <span className="text-[11px] text-muted-foreground truncate">
+                            <span className="w-full break-words text-xs font-semibold text-foreground sm:w-auto">
                               · {r.name || "Uden navn"}
                             </span>
                           </div>
@@ -217,12 +217,13 @@ export const BulkAddToRouteDialog = ({
                 : "Vælg en rute for at fortsætte."}
           </div>
           <div className="grid grid-cols-[auto_1fr] gap-2 sm:flex">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            <Button type="button" variant="outline" className="h-11" onClick={() => onOpenChange(false)} disabled={loading}>
               Annullér
             </Button>
             <Button
               type="button"
-              onClick={() => selectedRouteId && onConfirm(selectedRouteId)}
+              className="h-11"
+               onClick={() => selectedRouteId && onConfirm(selectedRouteId)}
               disabled={loading || !selectedRouteId || jobs.length === 0}
             >
               {loading ? (
