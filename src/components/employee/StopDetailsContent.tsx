@@ -459,7 +459,7 @@ export const StopDetailsContent = ({
         </Section>
 
         {!readOnly && stop.order_id && (
-          <EmployeeStopActions stopId={stop.id} order={order} completed={stop.status === "completed"} />
+          <EmployeeStopActions stopId={stop.id} order={order} completed={stop.status === "completed"} routeDate={route?.date ?? null} />
         )}
 
 

@@ -4909,6 +4909,10 @@ export type Database = {
         Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
         Returns: undefined
       }
+      _employee_price_item: {
+        Args: { _business_id: string; _item: Json; _service_id: string }
+        Returns: Record<string, unknown>
+      }
       _employee_stop_context: {
         Args: { _stop_id: string }
         Returns: {
@@ -5331,6 +5335,15 @@ export type Database = {
       dismiss_dlq_job: {
         Args: { _dlq_id: string; _note?: string }
         Returns: undefined
+      }
+      employee_create_order_from_stop: {
+        Args: {
+          _add_to_route?: boolean
+          _item: Json
+          _start_date: string
+          _stop_id: string
+        }
+        Returns: Json
       }
       employee_update_stop_services: {
         Args: { _apply_future?: boolean; _items: Json; _stop_id: string }

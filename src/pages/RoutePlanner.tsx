@@ -4264,17 +4264,12 @@ const Planner = () => {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      <Button size="sm" className="h-8 gap-1 text-xs" onClick={requestCreateOrder}>
+                        <Plus className="h-4 w-4" /> Opret bestilling
+                      </Button>
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
                         <Plus className="h-4 w-4" /> Opret rute
                       </Button>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-[4px]" aria-label="Ny bestilling" onClick={requestCreateOrder}>
-                            <ShoppingBag className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Opret ny bestilling manuelt</TooltipContent>
-                      </Tooltip>
                     </div>
                   </div>
                 </div>
