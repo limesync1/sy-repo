@@ -20,7 +20,7 @@ const QUICK_NOTES = ["Kunden var ikke hjemme", "Ekstra arbejde udført", "Adgang
 
 const errText = (e: unknown) => (e as any)?.message || "Noget gik galt. Prøv igen.";
 
-export function EmployeeStopActions({ stopId, order, completed }: { stopId: string; order: any; completed: boolean }) {
+export function EmployeeStopActions({ stopId, order, completed, noteOnly = false }: { stopId: string; order: any; completed: boolean; noteOnly?: boolean }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
   const [editOpen, setEditOpen] = useState(false);
@@ -120,7 +120,12 @@ export function EmployeeStopActions({ stopId, order, completed }: { stopId: stri
   );
 
   return (
-    <div className="space-y-2">
+    <div className={noteOnly ? "contents" : "space-y-2"}>
+      {noteOnly ? (
+        <Button variant="outline" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
+          <MessageSquarePlus className="h-4 w-4" />Note
+        </Button>
+      ) : (<>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="outline" className="h-12 justify-center gap-2" onClick={openEditor} disabled={completed || !order}>
           <Pencil className="h-4 w-4" /> Ret ydelser
@@ -145,6 +150,7 @@ export function EmployeeStopActions({ stopId, order, completed }: { stopId: stri
       )}
 
       {/* Rediger ydelser */}
+      </>)}
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent side={sheetSide} className={sheetClass}>
           <SheetHeader className="border-b border-border p-4 text-left">
