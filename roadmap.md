@@ -1,5 +1,11 @@
 # Roadmap
 
+## Rutevejr og mobilpaneler 2026-10-08
+- [ ] Beregn vejr på rutens stop og vis det i kalender og medarbejderpanel
+- [ ] Gennemgå medarbejdersider og vinduer; ret arbejdspladsvalg og vis alle rutestop
+- [ ] Ret mobil/tablet-ruteplanlægning med trykbaseret rækkefølge og tilgængelige aftale-/rutehandlinger
+- [ ] Kontrollér indloggede sider og centrale vinduer på mobil/tablet samt regressionstests
+
 ## Felter uden automatisk mobilzoom
 - [x] Ensret felter globalt på offentlige sider, i alle paneler og portalvinduer uden at deaktivere almindelig zoom
 - [x] Kontrollér indtastning og 20 feltvarianter ved 390/767/768/1280 px samt større touchskærm; build OK. Fysisk iPhone er ikke afprøvet.
