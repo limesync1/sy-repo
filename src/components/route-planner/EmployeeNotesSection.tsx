@@ -15,12 +15,17 @@ export function EmployeeNotesSection({ orderId }: { orderId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employee_appointment_notes")
-        .select("id, body, kind, created_at, read_at, employees:employee_id ( name )")
+        .select("id, body, kind, created_at, read_at, employee_id")
         .eq("order_id", orderId)
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return (data || []) as any[];
+      const ids = [...new Set((data || []).map((n) => n.employee_id).filter(Boolean))] as string[];
+      const { data: emps } = ids.length
+        ? await supabase.from("employees").select("id, name").in("id", ids)
+        : { data: [] as any[] };
+      const names = new Map((emps || []).map((e: any) => [e.id, e.name]));
+      return (data || []).map((n) => ({ ...n, employee_name: names.get(n.employee_id) })) as any[];
     },
   });
 
@@ -39,7 +44,7 @@ export function EmployeeNotesSection({ orderId }: { orderId: string }) {
         {notes.map((n) => (
           <li key={n.id} className="rounded-md border border-border bg-card p-3">
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-              <span className="font-medium text-foreground">{n.employees?.name || "Medarbejder"}</span>
+              <span className="font-medium text-foreground">{n.employee_name || "Medarbejder"}</span>
               <span>{format(new Date(n.created_at), "d. MMM HH:mm", { locale: da })}</span>
               {n.kind === "services_changed" && <Badge variant="outline" className="h-4 px-1.5 text-[10px]">Ydelser ændret</Badge>}
               {!n.read_at && <Badge className="h-4 px-1.5 text-[10px]">Ny</Badge>}
