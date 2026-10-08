@@ -2355,7 +2355,6 @@ const Planner = () => {
       setPendingRouteMove(null);
       // Klogt: spørg KUN om optimering hvis vores estimat viser at der
       // reelt er noget at vinde. Ellers pester vi ikke brugeren.
-      tryPromptOptimize(movedRouteId, route.name, "moved");
   };
 
   // Flet alle aftaler fra én rute over i en anden ved ét enkelt, atomisk
@@ -2485,7 +2484,6 @@ const Planner = () => {
       // Efter en flet er målruten næsten altid blevet større. Spørg om vi
       // skal optimere stop-rækkefølgen så den nye samlede rute kører
       // geografisk korrekt.
-      tryPromptOptimize(target.id, target.name, "merged");
     } catch (err: any) {
       // Rul optimistisk cache-patch tilbage hvis fletningen fejlede.
       calSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
@@ -2545,33 +2543,7 @@ const Planner = () => {
     setOptimizingRouteId(null);
   };
 
-  /**
-   * Klog gatekeeper: kun spørg brugeren om auto-optimering hvis der reelt er
-   * noget at vinde. Bruger `estimateOptimizationGain` til at sammenligne
-   * den nuværende rækkefølge med en nearest-neighbour heuristik. Hvis
-   * besparelsen er for lille (eller brugeren nylig har sagt "nej tak" til
-   * denne rute) viser vi ingenting — så undgår vi nag.
-   */
-  const tryPromptOptimize = (routeId: string, routeName: string | null, reason: "moved" | "merged") => {
-    if (!routeId) return;
-    // Ekstra defensiv: hent stops fra cachen så vi aldrig viser prompten
-    // for en rute uden data (fx hvis kald sker mellem invalidate og refetch).
-    const stops = calendarStops.filter((s: any) => s.route_id === routeId);
-    if (stops.length === 0) return;
-    const est = estimateOptimizationGain(routeId, stops as any[]);
-    if (!est.worth) return;
-    setPendingOptimizePrompt({
-      routeId,
-      routeName: routeName || "Rute",
-      reason,
-      estimate: {
-        savingsKm: est.savingsKm,
-        savingsPct: est.savingsPct,
-        currentKm: est.currentKm,
-        suggestedKm: est.suggestedKm,
-      },
-    });
-  };
+
 
   const handleCreateRoute = async () => {
     if (!businessId) return;
@@ -4926,83 +4898,6 @@ const Planner = () => {
           onConfirm={handleConfirmMoveRoute}
         />
 
-        {/* Klog auto-optimering: efter en flytning/merge spørger vi om
-            brugeren vil have stop-rækkefølgen optimeret automatisk.
-            Aldrig uden bekræftelse — så brugeren bevarer fuld kontrol. */}
-        <AlertDialog
-          open={!!pendingOptimizePrompt}
-          onOpenChange={(o) => {
-            if (!o) {
-              // Markér at brugeren dismisset denne rute — vi spørger ikke
-              // igen indenfor 1 time, så vi ikke pester. Samme effekt som
-              // "Nej tak"-knappen.
-              if (pendingOptimizePrompt) markOptimizeDismissed(pendingOptimizePrompt.routeId);
-              setPendingOptimizePrompt(null);
-            }
-          }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
-                Spar {pendingOptimizePrompt?.estimate.savingsKm ?? 0} km på {pendingOptimizePrompt?.routeName ?? "ruten"}?
-              </AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>
-                    {pendingOptimizePrompt?.reason === "merged"
-                      ? "Efter fletningen er rækkefølgen ikke længere optimal — kører lidt frem og tilbage."
-                      : "Rækkefølgen er ikke længere optimal på den nye dato — kører lidt frem og tilbage."}
-                  </p>
-                  {pendingOptimizePrompt && (
-                    <div className="rounded-md border bg-muted/40 px-3 py-2 text-foreground tabular-nums">
-                      <div className="flex items-center justify-between">
-                        <span>Nu</span>
-                        <span className="font-semibold">{pendingOptimizePrompt.estimate.currentKm} km</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Efter optimering</span>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          ≈ {pendingOptimizePrompt.estimate.suggestedKm} km
-                        </span>
-                      </div>
-                      <div className="mt-1 border-t pt-1 flex items-center justify-between text-xs">
-                        <span>Besparelse</span>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          {pendingOptimizePrompt.estimate.savingsKm} km ({pendingOptimizePrompt.estimate.savingsPct}%)
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-[11px]">
-                    Estimat — du kan altid optimere manuelt senere via knappen på rute-pillen.
-                  </p>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel
-                onClick={() => {
-                  if (pendingOptimizePrompt) markOptimizeDismissed(pendingOptimizePrompt.routeId);
-                }}
-              >
-                Nej tak
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => {
-                  e.preventDefault();
-                  const p = pendingOptimizePrompt;
-                  setPendingOptimizePrompt(null);
-                  if (p) void handleOptimize(p.routeId, p.routeName);
-                }}
-              >
-                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                Ja, optimér nu
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
         {/* ─── Bulk-flyt: selection-bar + dialog ─────────────────────────
             Når ≥1 rute er valgt vises en flydende bar nederst med "Flyt N
             ruter" + "Ryd". Klik åbner BulkMoveRoutesDialog hvor brugeren
@@ -5366,7 +5261,6 @@ const Planner = () => {
               // optimering hvis vi kan udlede en konkret rute fra resultatet.
               const newRouteId: string | undefined = (result as any)?.target_route_id ?? (result as any)?.route_id;
               if (newRouteId) {
-                tryPromptOptimize(newRouteId, pendingProjectedMove.routeName, "moved");
               }
           }}
         />
