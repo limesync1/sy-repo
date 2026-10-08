@@ -281,6 +281,7 @@ const Planner = () => {
     return () => document.documentElement.classList.remove("route-planner-open");
   }, []);
   const [date, setDate] = useState<string>(todayStr());
+  const [mobileWorkspace, setMobileWorkspace] = useState<"appointments" | "calendar">("appointments");
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
@@ -4471,14 +4472,24 @@ const Planner = () => {
                   </div>
 
                 </div>
-                <div className="planner-mobile-board min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-background">
-                  <section className="border-b border-border" aria-label="Aftaler uden rute">
+                <Tabs value={mobileWorkspace} onValueChange={(value) => setMobileWorkspace(value as "appointments" | "calendar")} className="min-h-0 flex flex-1 flex-col gap-2">
+                  <TabsList className="grid h-11 w-full shrink-0 grid-cols-2 rounded-md border border-border bg-secondary/50 p-1">
+                    <TabsTrigger value="appointments" className="h-9 rounded-[4px] text-xs font-semibold data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                      Aftaler {unassigned.length > 0 ? `(${unassigned.length})` : ""}
+                    </TabsTrigger>
+                    <TabsTrigger value="calendar" className="h-9 rounded-[4px] text-xs font-semibold data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                      Kalender
+                    </TabsTrigger>
+                  </TabsList>
+                  <div className="planner-mobile-board min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-background">
+                  <section className={cn("h-full overflow-hidden", mobileWorkspace !== "appointments" && "hidden")} aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
-                  <section className="min-h-[32rem]" aria-label="Rutekalender">
+                  <section className={cn("h-full min-h-0", mobileWorkspace !== "calendar" && "hidden")} aria-label="Rutekalender">
                     {mobileCalendarBlock}
                   </section>
-                </div>
+                  </div>
+                </Tabs>
               </div>
             </div>
           );

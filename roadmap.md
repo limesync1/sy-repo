@@ -279,4 +279,6 @@ Kontrolleret som Patrick på desktop og responsive 390×844/820×844 visninger: 
 - [x] Genbrug Ret aftale, Ny aftale, noter, datokontrol og fejlhåndtering i listevisningen
 - [x] Adskil kørsels-HUD, driftsfejl og kontorbeskeder på korte mobilskærme
 - [x] Tilføj mobil Visning samt lige tydelige Ny bestilling og Ny rute
+- [x] Vis Aftaler og Kalender som separate mobilfaner, så kalenderen ikke ligger under en lang aftaleliste
+- [x] Aktivér telefonens sikre skærmkanter i installeret app og almindelig mobilbrowser
 - [ ] Kontrollér indlogget på mobil/tablet og kør målrettede regressionstests
