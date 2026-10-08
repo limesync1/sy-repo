@@ -298,7 +298,7 @@ export const UnassignedJobCard = ({
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
           title={selected ? "Fravælg aftale" : "Vælg flere aftaler"}
-          className={`absolute top-1.5 left-1.5 z-10 h-6 w-6 rounded-[4px] border flex items-center justify-center transition-colors cursor-pointer touch-manipulation focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
+          className={`self-start mt-2.5 ml-2 shrink-0 z-10 h-5 w-5 rounded-[4px] border flex items-center justify-center transition-colors cursor-pointer touch-manipulation focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
             selected
               ? "bg-accent border-accent text-accent-foreground opacity-100"
               : anySelected
