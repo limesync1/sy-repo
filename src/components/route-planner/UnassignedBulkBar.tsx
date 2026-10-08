@@ -1,8 +1,7 @@
 // Bulk-handlingsbjælke for "Aftaler uden rute".
 // Sticky i bunden af aftalepoolen så den ikke spiser plads fra listen og
 // ikke overlapper kort i toppen. Vises kun når mindst én aftale er valgt.
-import { X, Trash2, CalendarDays, Eye } from "lucide-react";
-import { UiArtwork } from "@/components/shared/UiArtwork";
+import { X, Trash2, CalendarDays, Eye, CalendarPlus, Plus } from "lucide-react";
 
 type Props = {
   selectedCount: number;
@@ -19,12 +18,14 @@ type Props = {
   onShiftDate?: () => void;
   /** Åbn dialog der lægger de valgte aftaler ind på en eksisterende rute. */
   onAddToRoute?: () => void;
+  /** Opret en ny rute med de valgte aftaler som stop. */
+  onCreateRoute?: () => void;
   busy?: boolean;
 };
 
 export default function UnassignedBulkBar({
   selectedCount, visibleCount, hiddenCount, totalCount, onClear, onSelectAll, onShowHidden,
-  onCancel, onShiftDate, onAddToRoute, busy,
+  onCancel, onShiftDate, onAddToRoute, onCreateRoute, busy,
 }: Props) {
   if (selectedCount === 0) return null;
   const allSelected = selectedCount >= totalCount;
@@ -84,16 +85,31 @@ export default function UnassignedBulkBar({
           )}
         </div>
       )}
-      <div className="flex flex-wrap divide-x divide-border/60">
+      <p className="px-2.5 pt-1.5 text-[10.5px] leading-snug text-muted-foreground">
+        Tip: Træk et af de valgte kort ind på en dag eller rute — alle valgte følger med.
+      </p>
+      <div className="grid grid-cols-2 gap-1 p-1.5">
+        {onCreateRoute && (
+          <button
+            type="button"
+            onClick={onCreateRoute}
+            disabled={busy}
+            className="col-span-2 flex h-9 items-center justify-center gap-1.5 rounded-[4px] bg-primary px-2 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            title="Opret en ny rute med de valgte aftaler"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Opret ny rute med {selectedCount}</span>
+          </button>
+        )}
         {onAddToRoute && (
           <button
             type="button"
             onClick={onAddToRoute}
             disabled={busy}
-            className="flex h-9 min-w-[110px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            className="flex h-9 min-w-0 items-center rounded-[4px] border border-border justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
             title="Læg de valgte aftaler ind på en eksisterende rute"
           >
-            <UiArtwork name="addAppointmentToRoute" className="h-4 w-4" />
+            <CalendarPlus className="h-3.5 w-3.5 text-muted-foreground" />
             <span>Tilføj til rute</span>
           </button>
         )}
@@ -101,7 +117,7 @@ export default function UnassignedBulkBar({
           type="button"
           onClick={onShiftDate}
           disabled={busy || !onShiftDate}
-            className="flex h-9 min-w-[110px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            className="flex h-9 min-w-0 items-center rounded-[4px] border border-border justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
           title="Flyt opstartsdato for de valgte aftaler"
         >
           <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
@@ -111,7 +127,7 @@ export default function UnassignedBulkBar({
           type="button"
           onClick={onCancel}
           disabled={busy || !onCancel}
-            className="flex h-9 min-w-[90px] flex-1 items-center justify-center gap-1.5 px-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-inset"
+            className="col-span-2 flex h-8 min-w-0 items-center rounded-[4px] justify-center gap-1.5 px-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-inset"
           title="Annullér de valgte aftaler"
         >
           <Trash2 className="h-3.5 w-3.5" />
