@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Color, ShaderMaterial, SRGBColorSpace } from "three";
 
@@ -50,20 +50,19 @@ function SilkSurface({ animate, colors }: Pick<Props, "animate" | "colors">) {
 }
 
 export default function BlueSilkCanvas({ animate, colors, onFailure, onReady }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
     if (!canvas) return;
     const lost = (event: Event) => { event.preventDefault(); onFailure(); };
     canvas.addEventListener("webglcontextlost", lost);
     return () => canvas.removeEventListener("webglcontextlost", lost);
-  }, [onFailure]);
+  }, [canvas, onFailure]);
   return (
     <Canvas flat dpr={[1, 1.5]} frameloop={animate ? "always" : "demand"}
       gl={{ antialias: false, powerPreference: "low-power" }}
       fallback={null}
       onCreated={({ gl, events }) => {
-        canvasRef.current = gl.domElement;
+        setCanvas(gl.domElement);
         events.disconnect?.();
         onReady();
       }}>

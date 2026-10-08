@@ -39,4 +39,4 @@
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses tap assignment/reorder. Dialogs reuse names/employees and native scrolling. Density/card detail persist independently; scoped sizing beats overrides.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
-- Blue sections share lazy BlueFlowBackground; token colors, visibility pauses and static fallback protect performance and accessibility.
+- Blue sections use lazy R3F BlueFlowBackground: token shaders, no pointer events, visibility pauses and static fallback protect accessibility.
