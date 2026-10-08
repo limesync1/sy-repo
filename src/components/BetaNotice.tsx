@@ -77,6 +77,8 @@ const BetaNotice = () => {
     }
     // Vent med popup'en til cookievalget er truffet — ellers blokerer
     // popup'ens mørke baggrund cookie-bjælken nederst på skærmen.
+    // På mobil er striben øverst nok — en popup dækker indholdet.
+    if (window.matchMedia("(max-width: 767px)").matches) return;
     let t: number | undefined;
     const openWhenReady = () => {
       try {
