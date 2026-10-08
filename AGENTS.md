@@ -38,3 +38,4 @@
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses tap assignment/reorder for safe scrolling.
+- Employee appointment edits and new orders send pricing inputs only; server RPCs recompute prices from the service model and route recurring new orders to the unassigned pool, so employees cannot underprice or misplace series.
