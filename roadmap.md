@@ -218,4 +218,13 @@
 - [x] Medarbejder kan rette ydelser (dette eller også kommende besøg) og sende note til kontoret
 - [x] Noter vises under "Fra medarbejdere" i virksomhedens stopvindue
 - [x] Havemand FAQ-side /guides/have/faq + sitemap; publiceret
-- [ ] Afprøv "Ret ydelser" på en rigtig rute med testmedarbejder
+- [x] Afprøv "Ret ydelser" på en rigtig rute med testmedarbejder
+
+## Rutekørsel 100 m, noter i guiden og testrute 2026-10-08
+- [x] Ca. 100 m fra adressen tæller som "hos kunden"
+- [x] Tidsregistrering altid manuel; spørgsmål hvis en anden aftale stadig registrerer tid
+- [x] "Note" synlig i kørselsguidens bundpanel
+- [x] Testrute Patrick Nissen Haderup → Herning (7 aftaler + Jem & Fix, nabo-aftaler stop 2-3)
+- [x] Ret ydelser afprøvet: antal gemt og besked vist for kontoret
+- [ ] Kommende besøg på en fast aftale — testaftalerne er engangsbestillinger
+- [ ] Jem & Fix' præcise adresse i Herning — afventer brugeren
