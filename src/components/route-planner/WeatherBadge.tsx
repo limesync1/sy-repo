@@ -40,12 +40,12 @@ const codeToIconLabel = (
 
 /** Farve-tokens i HSL — matcher resten af appen. */
 const TONE_BG: Record<string, string> = {
-  sun: "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/25",
-  cloud: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:ring-slate-500/25",
-  rain: "bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/25",
-  snow: "bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/25",
-  storm: "bg-purple-100 text-purple-700 ring-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:ring-purple-500/25",
-  fog: "bg-zinc-100 text-zinc-600 ring-zinc-200 dark:bg-zinc-500/15 dark:text-zinc-300 dark:ring-zinc-500/25",
+  sun: "bg-feature-warm/15 text-feature-warm-foreground ring-feature-warm/30",
+  cloud: "bg-secondary text-foreground ring-border",
+  rain: "bg-feature-cool/15 text-feature-cool-foreground ring-feature-cool/30",
+  snow: "bg-secondary text-foreground ring-border",
+  storm: "bg-destructive/10 text-destructive ring-destructive/30",
+  fog: "bg-secondary text-muted-foreground ring-border",
 };
 
 type Props = {
@@ -79,7 +79,7 @@ export const WeatherBadge = ({ weather, size = "compact", className }: Props) =>
             </span>
           )}
           {isFrost && size === "compact" && (
-          <Snowflake className="h-2.5 w-2.5 text-blue-600 dark:text-blue-300" strokeWidth={2.5} />
+          <Snowflake className="h-2.5 w-2.5 text-foreground" strokeWidth={2.5} />
           )}
         </div>
       </TooltipTrigger>

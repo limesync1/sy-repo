@@ -1,4 +1,5 @@
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
+import { RouteWeatherStatus } from "@/components/employee/RouteWeatherStatus";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -661,7 +662,7 @@ const EmployeeApp = () => {
                   <h3 className="truncate text-sm font-semibold text-foreground">
                     {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
                   </h3>
-                  <p className="mt-0.5 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                   <p className="mt-0.5 inline-flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
                     {isTeamRoute ? (
                       <><Users className="h-3 w-3" /> Team-rute</>
                     ) : (
@@ -700,6 +701,7 @@ const EmployeeApp = () => {
 
               {/* Body */}
               <div className="space-y-3 sm:space-y-4 p-3 sm:p-5">
+                <RouteWeatherStatus routeId={r.id} date={r.route_date} stops={myStops} />
                 {/* Meta-grid — strukturerede tal-felter ligesom statskort i
                     virksomhedspanelet. Tre faste kolonner = forudsigelig
                     visuel rytme på alle skærmstørrelser. */}
@@ -748,15 +750,16 @@ const EmployeeApp = () => {
                 {total > 0 && (
                   <div className="overflow-hidden rounded-[4px] border border-border bg-card">
                     <div className="divide-y divide-border">
-                      {myStops.slice(0, 3).map((s, i) => {
+                      {myStops.map((s, i) => {
                         const isNext = s.id === firstPendingId;
                         const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status, !isCurrentDay && !isFutureDay);
                         return (
-                          <button
+                          <Button
                             key={s.id}
                             type="button"
                             onClick={() => setDetailsStop({ stop: s, index: i, routeName: r.name, routeColor: r.color, routeDate: r.route_date })}
-                            className={`flex items-center gap-3 px-3 py-2.5 ${
+                            variant="ghost"
+                            className={`flex h-auto min-h-14 items-center justify-start gap-3 rounded-none whitespace-normal px-3 py-2.5 ${
                               isNext ? "bg-secondary/60" : ""
                             } w-full text-left transition-colors hover:bg-secondary/80`}
                             aria-label={`Vis detaljer for ${s.customer_name || "stop"}`}
@@ -799,14 +802,9 @@ const EmployeeApp = () => {
                               </div>
                             </div>
                             <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          </button>
+                          </Button>
                         );
                       })}
-                      {myStops.length > 3 && (
-                        <div className="px-3 py-2 text-[11px] text-muted-foreground">
-                          +{myStops.length - 3} flere stop
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -816,7 +814,7 @@ const EmployeeApp = () => {
                   <Button
                     asChild={total > 0}
                     size="lg"
-                    className="h-10 sm:h-11 flex-1 gap-2 rounded-[4px] bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-11 w-full gap-2 rounded-[4px] bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >

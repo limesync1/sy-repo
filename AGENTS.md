@@ -7,7 +7,7 @@
 - Business/employee navigation shares `PanelShell` and `SidebarParts`; admin retains compatibility exports and `service-panel-*`. Never duplicate layouts by role.
 - Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
-- Semantic content illustrations resolve through `BrandedIllustration`, while `PanelIcon` and customer variants reuse those assets when meanings match, preventing stale duplicate icon sets.
+- Semantic illustrations use `BrandedIllustration`; `PanelIcon` and customer variants reuse matching assets to avoid duplicates.
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
 - Public SEO heads use content registries and seo-prerender-head for non-JS crawlers; client tags preserve full text and canonicalize to the public origin unless a business supplies its own domain.
 - All lead sources normalize into `quote_requests`/`quote_request_matches`, while provider connections and credentials stay server-side and business-scoped, so the Leads workspace has one secure source of truth.
@@ -17,8 +17,8 @@
 - Standard employee pages share `EmployeePage` for panel alignment; route-driving stays full-screen.
 - Archived routes cannot remain recurrence anchors or enter projection queries, preventing deleted routes from resurfacing as ghost routes.
 - Route printing consumes the loaded calendar route collection and applies date and content selection inside the print workspace, keeping one source of truth for preview and paper output.
-- Employee route geocoding uses an authenticated server function that prefers the business-owned Google server key and falls back to the linked Google Maps connector, keeping billable credentials off the browser and distinguishing key, service and unmatched-address failures.
-- Address forms share server-resolved suggestions with debouncing, in-flight deduplication and short-lived bounded caching; signed-in users use the private Google proxy, while guest checkout uses an unmetered provider with bounded requests and exact known postal towns.
+- Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
+- Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
 
 - Business tab fallbacks and data-loading states share eagerly imported skeletons from the common panel registry; employee statistics uses its matching strip skeleton, preventing blank lazy fallbacks and outdated loading layouts.
 - Customer list empty panels always render the shared `NoItemsIcon` instead of accepting per-page icons, keeping favorites, subscriptions, reviews, and orders consistent with employee empty lists.
@@ -34,3 +34,6 @@
 
 - Timelines stay fixed-height with explicit selection; semantic actions distinguish undo and completion.
 - Global mobile/touch field font rules cover portals to prevent focus zoom while preserving pinch zoom.
+
+- Route weather averages stop forecasts from shared geographic-cell queries, never a country fallback, so staff and calendar agree.
+- Compact planning uses explicit assignment and reorder buttons, keeping touch scrolling reliable.

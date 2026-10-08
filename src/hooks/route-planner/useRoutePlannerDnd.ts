@@ -137,7 +137,7 @@ export function useRoutePlannerDnd(opts: {
   // ─── Sensors ───
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 10 } }),
     useSensor(KeyboardSensor),
   );
 

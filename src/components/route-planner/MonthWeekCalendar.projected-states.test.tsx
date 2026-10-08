@@ -60,16 +60,16 @@ const renderRoute = (route: CalendarRoute) =>
 describe("MonthWeekCalendar — projected route states", () => {
   it("FUTURE: viser ét 'Forventet'-mærke", () => {
     renderRoute(makeRoute(ymd(addDays(new Date(), 14))));
-    expect(screen.getAllByLabelText(/^Forventet besøg fra en fast rute$/)).toHaveLength(1);
+    expect(screen.getAllByLabelText(/^Forventet — den faste rute kører igen denne dag$/)).toHaveLength(1);
   });
 
   it("TODAY: viser 'Forventet i dag'", () => {
     renderRoute(makeRoute(ymd(new Date())));
-    expect(screen.getByLabelText(/i dag fra en fast rute/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Forventet i dag — den faste rute kører igen i dag$/)).toBeInTheDocument();
   });
 
   it("PAST: viser tidligere forventet besøg", () => {
     renderRoute(makeRoute(ymd(addDays(new Date(), -10))));
-    expect(screen.getByLabelText(/tidligere forventet/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Forventet besøg der er passeret$/)).toBeInTheDocument();
   });
 });

@@ -51,6 +51,7 @@ import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { useEmployeeRouteNotifications, useMarkRouteNotificationRead } from "@/hooks/useEmployeeRouteNotifications";
 import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
 import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
+import { RouteWeatherStatus } from "@/components/employee/RouteWeatherStatus";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
 import { GeocodeServiceError, geocodeAddress } from "@/lib/geocode";
@@ -1570,6 +1571,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       <RouteChecklistView
         routeId={routeId}
         routeName={route.name || "Rute"}
+        weather={<RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} />}
         themeColor={themeColor}
         stops={sortedStops}
         pendingId={pendingStopId}
@@ -1682,6 +1684,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <p className="text-[11px] text-muted-foreground tabular-nums">
                 {completedCount} af {sortedStops.length} stop udført
               </p>
+              <RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} />
             </div>
 
             <Button
@@ -2085,6 +2088,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
               <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />
+              <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>
               {/* Tidsregistrering — én kompakt linje */}
               {routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">

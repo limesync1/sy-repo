@@ -52,6 +52,7 @@ import { formatDistanceToNow } from "date-fns";
 import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 import { RouteLivePositionDialog } from "./RouteLivePositionDialog";
 import { useRouteLivePositions } from "@/hooks/useRouteLivePositions";
+import { RouteWeatherStatus } from "@/components/employee/RouteWeatherStatus";
 import editRouteIllustration from "@/assets/content-icons/rediger-rute.svg.asset.json";
 
 export type RouteEmployeeOption = {
@@ -857,6 +858,7 @@ export const RouteEditSheet = ({
           </SheetHeader>
 
           <div className="planner-overlay-body flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-secondary/20">
+            <RouteWeatherStatus routeId={route.id} date={effectiveRouteDate || route.route_date} stops={stops} />
             {/* Tidslinje: viser udførte kørsler + næste planlagte for tilbagevendende
                 aftaler på basisruten. Skjules på projektioner (de viser kun én dag). */}
             {!isProjection && route?.id && (seriesInfo?.recurringAppointmentCount ?? 0) > 0 && (

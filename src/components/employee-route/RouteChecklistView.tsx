@@ -59,6 +59,7 @@ type Props = {
   arrivalLabel?: string | null;
   driveEstimateSeconds?: number | null;
   summary?: ReactNode;
+  weather?: ReactNode;
   night: boolean;
   onToggleNight: () => void;
 };
@@ -92,6 +93,7 @@ export const RouteChecklistView = ({
   arrivalLabel = null,
   driveEstimateSeconds = null,
   summary,
+  weather,
   night,
   onToggleNight,
 }: Props) => {
@@ -165,6 +167,7 @@ export const RouteChecklistView = ({
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
+        {weather && <div className="mb-3">{weather}</div>}
         {!allDone && <p className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-muted-foreground">
           <span>Start <b className="text-foreground">{startedAt ? formatClockTime(startedAt) : "—"}</b></span>
           <span>Køretid · ca. <b className="text-foreground">{driveEstimateSeconds == null ? "—" : formatRunDuration(driveEstimateSeconds)}</b></span>
