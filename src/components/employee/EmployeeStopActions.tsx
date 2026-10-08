@@ -1,7 +1,7 @@
 // Medarbejderens hurtige handlinger på en aftale under rutekørsel:
 // redigér ydelser (kan også gælde kommende "forventede" besøg) og send en
 // note til virksomhedspanelet. Optimeret til mobil/tablet med store trykflader.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -13,12 +13,17 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toDanishError } from "@/lib/danish-errors";
+import { askConfirm } from "@/components/ConfirmDialogHost";
 
 type Line = { key: string; item_id: string | null; service_id: string | null; name: string; quantity: number; unit?: string | null };
 
 const QUICK_NOTES = ["Kunden var ikke hjemme", "Ekstra arbejde udført", "Adgang besværlig", "Kunden ønsker at blive ringet op"];
 
-const errText = (e: unknown) => (e as any)?.message || "Noget gik galt. Prøv igen.";
+const errText = (e: unknown) => toDanishError(e, "Noget gik galt. Prøv igen om lidt.");
+const OFFLINE = "Ingen internetforbindelse. Prøv igen, når du har dækning.";
+const assertOnline = () => { if (typeof navigator !== "undefined" && navigator.onLine === false) throw new Error(OFFLINE); };
+const draftKey = (stopId: string) => `employee-note-draft:${stopId}`;
 
 export function EmployeeStopActions({ stopId, order, completed, noteOnly = false }: { stopId: string; order: any; completed: boolean; noteOnly?: boolean }) {
   const qc = useQueryClient();
@@ -27,10 +32,13 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const [noteOpen, setNoteOpen] = useState(false);
   const [lines, setLines] = useState<Line[]>([]);
   const [applyFuture, setApplyFuture] = useState(true);
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(() => { try { return localStorage.getItem(draftKey(stopId)) || ""; } catch { return ""; } });
+  const [initialLines, setInitialLines] = useState("");
+  // Kladden overlever fejl, dårlig dækning og genindlæsning.
+  useEffect(() => { try { note ? localStorage.setItem(draftKey(stopId), note) : localStorage.removeItem(draftKey(stopId)); } catch { /* privat tilstand */ } }, [note, stopId]);
   const businessId: string | undefined = order?.business_id;
 
-  const { data: notes = [] } = useQuery({
+  const { data: notes = [], isError: notesError } = useQuery({
     queryKey: ["employee-stop-notes", stopId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -44,7 +52,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     },
   });
 
-  const { data: services = [], isLoading: loadingServices } = useQuery({
+  const { data: services = [], isLoading: loadingServices, isError: servicesError, refetch: refetchServices } = useQuery({
     queryKey: ["employee-business-services", businessId],
     enabled: editOpen && !!businessId,
     queryFn: async () => {
@@ -61,10 +69,13 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const openEditor = () => {
     const items = ((order?.order_items || []) as any[]).filter((i) => i.id);
-    setLines(items.map((i) => ({
-      key: i.id, item_id: i.id, service_id: i.service_id, name: i.service_name,
+    if (!items.length) { toast.error("Aftalen har ingen ydelser at rette", { description: "Kontakt kontoret, eller skriv en note." }); return; }
+    const next = items.map((i) => ({
+      key: i.id, item_id: i.id, service_id: i.service_id, name: i.service_name || "Ydelse",
       quantity: Number(i.quantity) || 1, unit: i.services?.unit,
-    })));
+    }));
+    setLines(next);
+    setInitialLines(JSON.stringify(next.map((l) => [l.service_id, l.quantity])));
     setApplyFuture(true);
     setEditOpen(true);
   };
@@ -74,8 +85,17 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     [services, lines],
   );
 
+  const dirty = JSON.stringify(lines.map((l) => [l.service_id, l.quantity])) !== initialLines;
+  const closeEditor = async () => {
+    if (save.isPending) return;
+    if (dirty && !(await askConfirm({ title: "Kassér ændringer?", description: "Dine ændringer af ydelserne er ikke gemt.", confirmLabel: "Kassér", cancelLabel: "Bliv her" }))) return;
+    setEditOpen(false);
+  };
+
   const save = useMutation({
     mutationFn: async () => {
+      assertOnline();
+      if (!lines.length) throw new Error("Aftalen skal have mindst én ydelse.");
       const { data, error } = await supabase.rpc("employee_update_stop_services" as any, {
         _stop_id: stopId,
         _items: lines.map((l) => ({ item_id: l.item_id, service_id: l.service_id, quantity: l.quantity })),
@@ -85,20 +105,29 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       return data as any;
     },
     onSuccess: (res) => {
-      toast.success(applyFuture ? "Ydelser opdateret — også for kommende besøg" : "Ydelser opdateret for dette besøg", {
-        description: res?.summary,
-      });
+      const n = Number(res?.future_orders) || 0;
+      const future = !applyFuture ? "Kun dette besøg er ændret."
+        : res?.agreement_updated ? "Den faste aftale og kommende besøg er opdateret."
+        : n > 0 ? `${n} kommende besøg er også opdateret.`
+        : "Der var ingen kommende besøg at opdatere.";
+      toast.success("Ydelserne er gemt", { description: [res?.summary, future].filter(Boolean).join(" · ") });
       setEditOpen(false);
       qc.invalidateQueries({ queryKey: ["order-for-stop"] });
       qc.invalidateQueries({ queryKey: ["employee-stop-notes", stopId] });
       qc.invalidateQueries({ queryKey: ["routes"] });
     },
-    onError: (e) => toast.error("Kunne ikke gemme ændringen", { description: errText(e) }),
+    onError: (e) => toast.error("Ydelserne blev ikke gemt", {
+      description: errText(e), action: { label: "Prøv igen", onClick: () => save.mutate() },
+    }),
   });
 
   const sendNote = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("add_employee_stop_note" as any, { _stop_id: stopId, _body: note.trim() });
+      assertOnline();
+      const body = note.trim();
+      if (!body) throw new Error("Skriv en note, før du sender.");
+      if (body.length > 2000) throw new Error("Noten må højst være 2000 tegn.");
+      const { error } = await supabase.rpc("add_employee_stop_note" as any, { _stop_id: stopId, _body: body });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -107,7 +136,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       setNoteOpen(false);
       qc.invalidateQueries({ queryKey: ["employee-stop-notes", stopId] });
     },
-    onError: (e) => toast.error("Noten blev ikke sendt", { description: errText(e) }),
+    onError: (e) => toast.error("Noten blev ikke sendt", {
+      description: `${errText(e)} Din tekst er gemt.`, action: { label: "Prøv igen", onClick: () => sendNote.mutate() },
+    }),
   });
 
   const setQty = (key: string, delta: number) =>
@@ -136,6 +167,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       </div>
       {completed && <p className="text-[11px] text-muted-foreground">Fortryd udførsel for at rette ydelserne.</p>}
 
+      {notesError && <p className="text-[11px] text-muted-foreground">Tidligere noter kunne ikke hentes lige nu.</p>}
       {notes.length > 0 && (
         <ul className="space-y-1.5">
           {notes.map((n: any) => (
@@ -151,7 +183,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
       {/* Rediger ydelser */}
       </>)}
-      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+      <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
           <SheetHeader className="border-b border-border p-4 text-left">
             <SheetTitle>Ret ydelser</SheetTitle>
@@ -182,7 +214,12 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilføj ydelse</p>
-              {loadingServices ? (
+              {servicesError ? (
+                <div className="flex items-center gap-2 rounded-md border border-warning/40 p-2.5 text-sm">
+                  <span className="flex-1 text-muted-foreground">Ydelserne kunne ikke hentes.</span>
+                  <Button size="sm" variant="outline" className="h-10" onClick={() => refetchServices()}>Prøv igen</Button>
+                </div>
+              ) : loadingServices ? (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter ydelser…</p>
               ) : addable.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Alle ydelser er allerede på aftalen.</p>
@@ -215,8 +252,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             </fieldset>
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <Button variant="outline" className="h-12" onClick={() => setEditOpen(false)}>Annullér</Button>
-            <Button className="h-12" onClick={() => save.mutate()} disabled={save.isPending || lines.length === 0}>
+            <Button variant="outline" className="h-12" onClick={() => void closeEditor()} disabled={save.isPending}>Annullér</Button>
+            <Button className="h-12" onClick={() => save.mutate()} disabled={save.isPending || lines.length === 0 || !dirty}>
               {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gem ændringer"}
             </Button>
           </div>
@@ -237,6 +274,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                   onClick={() => setNote((n) => (n.trim() ? `${n.trim()}\n${q}` : q))}>{q}</Button>
               ))}
             </div>
+            {note.length > 1800 && <p className="text-[11px] text-muted-foreground">{2000 - note.length} tegn tilbage</p>}
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={5} maxLength={2000}
               placeholder="Skriv kort, hvad kontoret skal vide…" autoFocus={!isCompact} />
           </div>
