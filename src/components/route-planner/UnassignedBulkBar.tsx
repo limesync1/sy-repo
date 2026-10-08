@@ -85,54 +85,57 @@ export default function UnassignedBulkBar({
           )}
         </div>
       )}
-      <p className="px-2.5 pt-1.5 text-[10.5px] leading-snug text-muted-foreground">
-        Tip: Træk et af de valgte kort ind på en dag eller rute — alle valgte følger med.
-      </p>
-      <div className="grid grid-cols-2 gap-1 p-1.5">
+      <div className="space-y-1.5 p-2">
         {onCreateRoute && (
           <button
             type="button"
             onClick={onCreateRoute}
             disabled={busy}
-            className="col-span-2 flex h-9 items-center justify-center gap-1.5 rounded-[4px] bg-primary px-2 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            title="Opret en ny rute med de valgte aftaler"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Opret ny rute med {selectedCount}</span>
+            <Plus className="h-4 w-4" />
+            Opret ny rute med {selectedCount}
           </button>
         )}
-        {onAddToRoute && (
-          <button
-            type="button"
-            onClick={onAddToRoute}
-            disabled={busy}
-            className="flex h-9 min-w-0 items-center rounded-[4px] border border-border justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-            title="Læg de valgte aftaler ind på en eksisterende rute"
-          >
-            <CalendarPlus className="h-3.5 w-3.5 text-muted-foreground" />
-            <span>Tilføj til rute</span>
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={onShiftDate}
-          disabled={busy || !onShiftDate}
-            className="flex h-9 min-w-0 items-center rounded-[4px] border border-border justify-center gap-1.5 px-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-          title="Flyt opstartsdato for de valgte aftaler"
-        >
-          <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Flyt opstartsdato</span>
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={busy || !onCancel}
-            className="col-span-2 flex h-8 min-w-0 items-center rounded-[4px] justify-center gap-1.5 px-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-inset"
-          title="Annullér de valgte aftaler"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          <span>Annullér</span>
-        </button>
+        <div className="flex gap-1.5">
+          {onAddToRoute && (
+            <button
+              type="button"
+              onClick={onAddToRoute}
+              disabled={busy}
+              className="flex h-9 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <CalendarPlus className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Føj til rute</span>
+            </button>
+          )}
+          {onShiftDate && (
+            <button
+              type="button"
+              onClick={onShiftDate}
+              disabled={busy}
+              className="flex h-9 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Flyt dato</span>
+            </button>
+          )}
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+              aria-label="Annullér valgte aftaler"
+              title="Annullér valgte aftaler"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-card text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        <p className="text-center text-[11px] leading-snug text-muted-foreground">
+          Eller træk et valgt kort ind i kalenderen — alle valgte følger med.
+        </p>
       </div>
     </div>
   );
