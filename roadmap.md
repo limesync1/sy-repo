@@ -1,9 +1,9 @@
 # Roadmap
 
 ## Blå forside og WebGL
-- [ ] Gendan udvalgte blå baggrunde med lyse mellemsektioner og tydelig ikonkontrast
-- [ ] Tilføj diskret WebGL med reduceret bevægelse og reservebaggrund
-- [ ] Kontrollér læsbarhed og bevægelse på computer og mobil
+- [x] Gendan udvalgte blå baggrunde med lyse mellemsektioner og tydelig ikonkontrast
+- [x] Tilføj diskret WebGL med reduceret bevægelse og reservebaggrund
+- [x] Kontrollér læsbarhed og bevægelse på computer og mobil
 
 ## Ikoner, visningsvalg og mørk rutekørsel 2026-10-08
 - [x] Brug alle fem vedhæftede ikoner gennem det fælles register
