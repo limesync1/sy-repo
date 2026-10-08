@@ -266,9 +266,11 @@ export const UnassignedJobCard = ({
       style={isDragging ? { opacity: 0.62 } : undefined}
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
-        : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
-      aria-roledescription={isPending ? undefined : "Aftalekort — kan trækkes"}
-      aria-describedby={isPending ? undefined : "unassigned-drag-instructions"}
+        : isCompact
+          ? `${job.customer_name} — tryk for detaljer eller vælg Læg på rute`
+          : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
+      aria-roledescription={isPending ? undefined : isCompact ? "Aftalekort" : "Aftalekort — kan trækkes"}
+      aria-describedby={isPending || isCompact ? undefined : "unassigned-drag-instructions"}
       className={cn(
         CARD_BASE,
         "planner-job-card group flex",

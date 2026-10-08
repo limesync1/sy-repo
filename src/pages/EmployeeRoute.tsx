@@ -1568,6 +1568,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   if (routeStarted && runMode === "list") {
     if (!route) return <RouteViewSkeleton />;
     return (
+      <>
       <RouteChecklistView
         routeId={routeId}
         routeName={route.name || "Rute"}
@@ -1584,6 +1585,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         driveEstimateSeconds={timeError || timeLoading ? null : metrics.driveEstimateSeconds}
         summary={<RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => { setRunMode("guide"); setSelectedId(latestCompleted?.id ?? null); }} />}
         onNavigate={handleNavigate}
+        onOpenDetails={(stop) => setSelectedId(stop.id)}
         onSwitchToGuide={() => {
           setRunMode("guide");
           writeRunMode("guide", !!readRunMode());
@@ -1609,6 +1611,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           if (!audioEnabled) playStartChime();
         }}
       />
+      <StopDetailsSheetShell open={!!selectedId} onOpenChange={(open) => { if (!open) setSelectedId(null); }}>
+        {selectedStop ? (
+          <StopDetailsContent
+            stop={selectedStop}
+            index={Math.max(0, sortedStops.findIndex((stop) => stop.id === selectedStop.id))}
+            themeColor={themeColor}
+            route={{ name: route.name, color: route.color, date: route.route_date, allowEarly: earlyAllowedForRoute }}
+            noteDraft={noteDraft[selectedStop.id] ?? selectedStop.notes ?? ""}
+            onNoteChange={(value) => setNoteDraft((drafts) => ({ ...drafts, [selectedStop.id]: value }))}
+            onComplete={() => handleComplete(selectedStop)}
+            onUndo={() => handleUndo(selectedStop)}
+            onNavigate={() => handleNavigate(selectedStop)}
+            isPending={updateStatus.isPending}
+            pendingTimeLabel="Tryk Start for at registrere arbejdstid"
+          />
+        ) : null}
+      </StopDetailsSheetShell>
+      </>
     );
   }
 
@@ -1721,7 +1741,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <div className={cn(
           "z-[1003]",
           routeStarted && !allDone
-            ? "absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+4rem)] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]"
+            ? "drive-route-notification absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]"
             : "relative border-b border-destructive/25 bg-destructive/5 px-3 py-2",
         )}>
           <div className={cn("mx-auto flex max-w-3xl items-start gap-2", routeStarted && !allDone && "rounded-md border border-destructive/25 bg-card/95 p-2.5 shadow-lg backdrop-blur-md")}>
