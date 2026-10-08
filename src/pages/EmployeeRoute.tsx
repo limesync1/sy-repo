@@ -761,7 +761,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const liveStopId = useMemo(() => {
     if (!filtered) return null;
     const accuracyAllowance = Math.min(Math.max(filtered.accuracyM, 0), 40);
-    const arrivalRadiusM = 55 + accuracyAllowance;
+    const arrivalRadiusM = Math.max(100, 60 + accuracyAllowance);
     let nearest: { id: string; distanceM: number } | null = null;
     for (const stop of sortedStops) {
       if (stop.status === "completed" || stop.latitude == null || stop.longitude == null) continue;
@@ -892,8 +892,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       wasInArrivalRef.current = false;
       arrivalStopIdRef.current = nextStop?.id;
     }
-    if (distanceToNextM == null || userSpeedMps > 3 || (userAccuracyM ?? 20) > 65) return false;
-    const exit = arrivalThresholdM * 1.8;
+    if (distanceToNextM == null || userSpeedMps > 3 || (userAccuracyM ?? 20) > 100) return false;
+    const exit = arrivalThresholdM * 1.4;
     const next = wasInArrivalRef.current
       ? distanceToNextM <= exit
       : distanceToNextM <= arrivalThresholdM;
