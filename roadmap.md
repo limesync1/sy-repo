@@ -259,3 +259,12 @@ Kontrolleret som Patrick på desktop og responsive 390×844/820×844 visninger: 
 - [x] Ret ydelser afprøvet: antal gemt og besked vist for kontoret
 - [ ] Kommende besøg på en fast aftale — testaftalerne er engangsbestillinger
 - [ ] Jem & Fix' præcise adresse i Herning — afventer brugeren
+
+## Ruteplanlægger: flere aftaler, ny bestilling og rene knapper 2026-10-08
+- [x] Nyt "Mere info om aftalen"-ikon i aftaleoplysningernes overskrift
+- [x] "Finder GPS-koordinater…" erstattet af forståelig tekst, blokerer ikke knapper
+- [x] Ingen specialikoner inde i knapper i aftalepuljen
+- [x] Træk et markeret kort → alle markerede aftaler følger med (dag = ny rute, rute = tilføj)
+- [x] "Opret ny rute med X" i bjælken for valgte aftaler; pænere knaplayout
+- [x] "Ny bestilling"-knap direkte i "Aftaler uden rute"
+- [ ] Fysisk telefon ikke afprøvet

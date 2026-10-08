@@ -78,6 +78,9 @@ export type DragEndDeps = {
   // RoutePlanner-helpers
   serviceSummaryForJob: (job: any) => string;
   todayStr: () => string;
+  /** Øvrige markerede aftaler der følger med, når et markeret kort trækkes. */
+  getDragCompanions?: (jobId: string) => any[];
+  onCompanionsPlaced?: () => void;
 };
 
 export function useRoutePlannerDragEnd(deps: DragEndDeps) {
@@ -89,8 +92,19 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
     setActiveDragId, setActiveDragData, setRouteDragPoint, setDragOverTargetId, setTargetBusy,
     activeDragPointRef, activeDragOriginRef, activeRouteDragPointRef, activeRouteDragOriginRef,
     inFlightDropsRef, detectAssigneeConflicts,
-    serviceSummaryForJob, todayStr,
+    serviceSummaryForJob, todayStr, getDragCompanions, onCompanionsPlaced,
   } = deps;
+
+  const stopPayload = (job: any, routeId: string, sequence: number) => ({
+    route_id: routeId, order_id: job.id, sequence,
+    customer_name: job.customer_name, customer_phone: job.customer_phone,
+    address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+    latitude: job.latitude, longitude: job.longitude,
+    service_summary: serviceSummaryForJob(job),
+    duration_minutes: Number(job.estimated_duration_minutes) || 30,
+    time_window_start: job.preferred_time_start || null,
+    time_window_end: job.preferred_time_end || null,
+  });
 
   return useCallback(async (e: DragEndEvent) => {
     const { active, over } = e;
@@ -147,6 +161,26 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       qc.invalidateQueries({ queryKey: ["pending-occurrences"] });
     };
 
+
+    const placeCompanions = async (mainJob: any, routeId: string, startSeq: number) => {
+      const companions = getDragCompanions?.(mainJob.id) ?? [];
+      if (companions.length === 0) return;
+      let seq = startSeq;
+      let ok = 0; let failed = 0;
+      for (const c of companions) {
+        const dup = calendarStops.some((s: any) => s.route_id === routeId && s.order_id === c.id);
+        if (dup) continue;
+        try {
+          await addStop.mutateAsync(stopPayload(c, routeId, seq++));
+          ok++;
+          void linkAgreementToRoute(c.id, routeId);
+        } catch (err) { failed++; console.warn("Kunne ikke tilføje valgt aftale", err); }
+      }
+      if (ok > 0) toast.success(`${ok + 1} valgte aftaler lagt på ruten`);
+      if (failed > 0) toast.error(`${failed} aftale${failed === 1 ? "" : "r"} kunne ikke tilføjes`, { description: "Prøv at trække dem ind igen." });
+      onCompanionsPlaced?.();
+      invalidateRouteSyncQueries(qc);
+    };
     const jobStartDate = (job: any): string | null => {
       const raw = job?.preferred_date || job?.next_service_date;
       return raw ? String(raw).slice(0, 10) : null;
@@ -278,6 +312,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
           key: "rp-add-to-route", successWord: "aftaler tilføjet", errorWord: "fejlede",
         });
         void linkAgreementToRoute(job.id, targetRouteId);
+        await placeCompanions(job, targetRouteId, sequence + 1);
       };
       if (targetDate && !ensureStartDateMatches(
         job, targetDate, targetLabel,
@@ -342,6 +377,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
           { key: "rp-create-route", successWord: "nye ruter oprettet", errorWord: "fejlede" },
         );
         void linkAgreementToRoute(job.id, created.id);
+        await placeCompanions(job, created.id, 1);
       };
       if (!ensureStartDateMatches(
         job, newDate,

@@ -312,6 +312,8 @@ const Planner = () => {
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
   const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
+  // Valgte aftaler der skal forudvælges når "Opret rute" åbnes fra bulk-bjælken.
+  const pendingCreateJobIdsRef = useRef<string[] | null>(null);
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [editingRoutePreview, setEditingRoutePreview] = useState<Partial<Route> | null>(null);
@@ -2181,7 +2183,8 @@ const Planner = () => {
       .filter((r) => r.route_date === newRouteDate)
       .map((r) => r.color);
     setNewRouteColor(pickAvailableColor(usedColorsThisDay));
-    setNewRouteJobIds([]);
+    setNewRouteJobIds(pendingCreateJobIdsRef.current ?? []);
+    pendingCreateJobIdsRef.current = null;
     setNewRouteJobSearch("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createOpen, newRouteDate]);
@@ -2242,6 +2245,13 @@ const Planner = () => {
     detectAssigneeConflicts,
     serviceSummaryForJob,
     todayStr,
+    getDragCompanions: (jobId: string) => {
+      if (!selectedJobIds.has(jobId) || selectedJobIds.size < 2) return [];
+      return (unassigned as any[]).filter(
+        (j: any) => j.id !== jobId && selectedJobIds.has(j.id) && j.status !== "pending",
+      );
+    },
+    onCompanionsPlaced: () => { setSelectedJobIds(new Set()); lastSelectedJobIdRef.current = null; },
   });
   const retainedRouteMove = useRetainedValue(pendingRouteMove);
 
@@ -3349,6 +3359,14 @@ const Planner = () => {
                         </span>
                       )}
                     </div>
+                    <Button
+                      type="button"
+                      onClick={requestCreateOrder}
+                      className="h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Ny bestilling
+                    </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
@@ -3557,10 +3575,10 @@ const Planner = () => {
                             && (j.preferred_date || j.next_service_date),
                           ).length
                         : 0;
-                      if (geocoding) {
+                      if (geocoding && canAutoAssign === 0 && !selectionMode) {
                         return (
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater…
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1" title="Nye adresser placeres på kortet, så de kan lægges på ruter">
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />Placerer nye adresser på kortet…
                           </p>
                         );
                       }
@@ -3874,6 +3892,12 @@ const Planner = () => {
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
                       onAddToRoute={() => setBulkAddToRouteOpen(true)}
+                      onCreateRoute={() => {
+                        pendingCreateJobIdsRef.current = (unassigned as any[])
+                          .filter((j: any) => selectedJobIds.has(j.id) && j.status !== "pending")
+                          .map((j: any) => j.id);
+                        setCreateOpen(true);
+                      }}
                       busy={bulkBusy}
                     />
                   </div>
@@ -4553,6 +4577,11 @@ const Planner = () => {
               }}
             >
               <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
+              {selectedJobIds.has(activeDragData.job.id) && selectedJobIds.size > 1 && (
+                <p className="mb-1 inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                  Flytter {selectedJobIds.size} aftaler
+                </p>
+              )}
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[12px] font-bold truncate text-foreground capitalize">{activeDragData.job.customer_name}</p>
                 <span className="text-[11px] font-bold text-accent shrink-0 tabular-nums">

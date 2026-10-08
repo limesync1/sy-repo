@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { PanelIcon } from "@/components/shared/PanelIcon";
+import { UiArtwork } from "@/components/shared/UiArtwork";
 
 type Props = {
   title: ReactNode;
@@ -11,7 +11,7 @@ type Props = {
 export function AppointmentDetailsHeader({ title, description, children }: Props) {
   return (
     <div className="flex items-start gap-3 text-left">
-      <PanelIcon name="appointmentView" className="h-12 w-12" />
+      <UiArtwork name="appointmentInfo" className="h-12 w-12" />
       <div className="min-w-0 flex-1">
         <div className="text-base font-semibold leading-tight text-foreground">{title}</div>
         {description && <div className="mt-1 text-xs leading-snug text-muted-foreground">{description}</div>}
