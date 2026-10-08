@@ -1218,7 +1218,26 @@
   /* Ensartet lys flise bag illustrationer — sikrer kontrast på både lyse og mørke sektioner. */
   .icon-tile {
     @apply flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-border/70 bg-card p-2.5;
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.9), 0 6px 16px -8px hsl(var(--foreground) / 0.22);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.9), 0 6px 16px -8px hsl(222 47% 11% / 0.22);
+  }
+  /* Illustrationerne er mørkeblå — flisen forbliver lys i mørk tilstand. */
+  .dark .icon-tile {
+    @apply border-ocean-foreground/40 bg-ocean-foreground;
+  }
+  /* Headeren er altid hvid; lås lyse temafarver indeni, så tekst/ikoner aldrig bliver hvide på hvidt. */
+  .dark .site-nav-light {
+    --foreground: 222 47% 11%;
+    --background: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 40%;
+    --accent-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    color: hsl(var(--foreground));
   }
   /* Lys kontrastflade holder de mørkeblå illustrationer synlige på mørke sektioner. */
   .icon-tile-glass {
