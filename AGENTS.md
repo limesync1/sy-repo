@@ -4,8 +4,8 @@
 - Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.
 - Validate suggestion stops against the route and employees against its business before RLS-protected writes.
 
-- Business/employee navigation shares `PanelShell` and `SidebarParts`; admin retains compatibility exports and `service-panel-*`. Never duplicate layouts by role.
-- Employee route driving must resolve checklist versus map guide before mounting Leaflet or continuous GPS, preventing map flashes and unnecessary battery use.
+- Business/employee navigation shares `PanelShell`/`SidebarParts`; admin keeps compatibility exports and `service-panel-*`. Never duplicate role layouts.
+- Resolve checklist versus map guide before mounting Leaflet or continuous GPS to prevent map flashes and battery waste.
 - Header role and session icons resolve through `PanelIcon` and the simple monochrome asset set; compact custom UI artwork resolves through `UiArtwork`, keeping icon sizing and contrast consistent.
 - Semantic illustrations use `BrandedIllustration`; `PanelIcon` and customer variants reuse matching assets to avoid duplicates.
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
