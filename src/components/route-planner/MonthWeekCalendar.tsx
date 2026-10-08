@@ -16,7 +16,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Wallet, Lock, GitMerge, History, MoreHorizontal, ChevronDown, Eye, Trash2, ArrowRightLeft, CalendarArrowDown } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
-import { CloudOff } from "lucide-react";
+import { CloudOff, Clock } from "lucide-react";
+
+/** Rutens samlede tid fra start til slut (kørsel + arbejde), fx "7t 52m". */
+export function routeTimeSpan(totalMinutes: number | null | undefined, plannedStart?: string | null) {
+  const mins = Math.round(Number(totalMinutes ?? 0));
+  if (!Number.isFinite(mins) || mins <= 0) return null;
+  const h = Math.floor(mins / 60), m = mins % 60;
+  const label = h > 0 ? `${h}t${m ? ` ${m}m` : ""}` : `${m} min`;
+  let range = "";
+  const match = plannedStart?.match(/^(\d{1,2}):(\d{2})/);
+  if (match) {
+    const start = Number(match[1]) * 60 + Number(match[2]);
+    const end = (start + mins) % (24 * 60);
+    const fmt = (v: number) => `${String(Math.floor(v / 60)).padStart(2, "0")}:${String(v % 60).padStart(2, "0")}`;
+    range = ` (${fmt(start)}–${fmt(end)})`;
+  }
+  return { label, title: `Samlet tid fra start til slut, kørsel og arbejde: ${label}${range}` };
+}
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, eachDayOfInterval, getISOWeek, isSameMonth, isToday, isSameDay,
@@ -1292,6 +1309,7 @@ const RoutePillInner = ({
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  const routeSpan = routeTimeSpan(route.total_duration_minutes, route.planned_start_time);
   // Hele ruten markeret som udført (server-side status). Vises med grønt
   // badge så brugeren straks kan se den ikke skal udføres igen. Den
   // forbliver i kalenderen — vi fjerner den IKKE.
@@ -1517,6 +1535,15 @@ const RoutePillInner = ({
                   {completedCount > 0 ? `${completedCount}/` : ""}{stopCount} stop
                 </span>
               </>
+            )}
+            {routeSpan && (
+              <span
+                className="inline-flex shrink-0 items-center gap-0.5 font-semibold text-foreground/80"
+                title={routeSpan.title}
+                aria-label={routeSpan.title}
+              >
+                <Clock className="h-3 w-3" />{routeSpan.label}
+              </span>
             )}
             {!isVirtual && (hasAssigneeConflict || hasSkillMismatch) && (
               <AlertTriangle
