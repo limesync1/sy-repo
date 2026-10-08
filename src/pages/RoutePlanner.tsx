@@ -3598,6 +3598,11 @@ const Planner = () => {
                         }
                         return null;
                       }
+                      // Ingen valgte er klar til auto-fordeling → vis intet, så
+                      // listen ikke hopper når man markerer aftaler.
+                      if (selectionMode && selectedReady === 0) {
+                        return null;
+                      }
                       return (
                         <div className="space-y-1.5">
                           {/* Kontekstuel forklaring af auto-fordeling — samme tekst
