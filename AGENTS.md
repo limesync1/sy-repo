@@ -35,5 +35,6 @@
 - Timelines stay fixed-height with explicit selection; semantic actions distinguish undo and completion.
 - Global mobile/touch field font rules cover portals to prevent focus zoom while preserving pinch zoom.
 
-- Route weather averages stop forecasts from shared geographic-cell queries, never a country fallback, so staff and calendar agree.
-- Compact planning uses explicit assignment and reorder buttons, keeping touch scrolling reliable.
+- Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
+- Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
+- Compact planning uses tap assignment/reorder for safe scrolling.
