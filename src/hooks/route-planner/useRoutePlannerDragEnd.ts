@@ -162,9 +162,15 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
     };
 
 
-    const placeCompanions = async (mainJob: any, routeId: string, startSeq: number) => {
+    const placeCompanions = async (mainJob: any, routeId: string, startSeq: number, targetDate?: string | null) => {
       const companions = getDragCompanions?.(mainJob.id) ?? [];
       if (companions.length === 0) return;
+      // Brugeren har bekræftet datoen for hele gruppen — ret afvigende opstartsdatoer.
+      if (targetDate) {
+        await Promise.all(companions
+          .filter((c: any) => { const st = jobStartDate(c); return st && st !== targetDate; })
+          .map((c: any) => shiftJobStartDate(c.id, targetDate)));
+      }
       let seq = startSeq;
       let ok = 0; let failed = 0;
       for (const c of companions) {
@@ -207,9 +213,14 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       job: any, targetDate: string, targetLabel: string, execute: () => Promise<void>,
     ): boolean => {
       const start = jobStartDate(job);
-      if (!start || start === targetDate) return true;
+      const companions = getDragCompanions?.(job.id) ?? [];
+      const companionMismatches = companions.filter((c: any) => {
+        const st = jobStartDate(c); return st && st !== targetDate;
+      }).length;
+      if ((!start || start === targetDate) && companionMismatches === 0) return true;
       setPendingStartDateChange({
-        job, currentStart: start, targetDate,
+        job, currentStart: start || targetDate, targetDate,
+        groupCount: companions.length + 1, companionMismatches,
         isBefore: targetDate < start, targetLabel, execute,
       });
       return false;
@@ -312,7 +323,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
           key: "rp-add-to-route", successWord: "aftaler tilføjet", errorWord: "fejlede",
         });
         void linkAgreementToRoute(job.id, targetRouteId);
-        await placeCompanions(job, targetRouteId, sequence + 1);
+        await placeCompanions(job, targetRouteId, sequence + 1, targetDate);
       };
       if (targetDate && !ensureStartDateMatches(
         job, targetDate, targetLabel,
@@ -377,7 +388,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
           { key: "rp-create-route", successWord: "nye ruter oprettet", errorWord: "fejlede" },
         );
         void linkAgreementToRoute(job.id, created.id);
-        await placeCompanions(job, created.id, 1);
+        await placeCompanions(job, created.id, 1, newDate);
       };
       if (!ensureStartDateMatches(
         job, newDate,

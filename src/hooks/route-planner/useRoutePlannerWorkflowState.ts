@@ -49,6 +49,8 @@ export function useRoutePlannerWorkflowState() {
     currentStart: string;
     targetDate: string;
     isBefore: boolean;
+    groupCount?: number;
+    companionMismatches?: number;
     targetLabel: string;
     execute: () => Promise<void>;
   } | null>(null);

@@ -4442,20 +4442,14 @@ const Planner = () => {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <Button className="h-11 gap-1.5 rounded-[4px] text-sm" onClick={() => setCreateOpen(true)}>
-                      <Plus className="h-4 w-4" />
-                      Opret rute
-                    </Button>
-                    <Button variant="outline" className="h-11 gap-1.5 rounded-[4px] text-sm" onClick={requestCreateOrder}>
-                      <ShoppingBag className="h-4 w-4" />
-                      Bestilling
-                    </Button>
-                  </div>
+                  <Button className="h-11 w-full gap-1.5 rounded-[4px] text-sm" onClick={() => setCreateOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Opret rute
+                  </Button>
 
                 </div>
                 <div className="planner-mobile-board min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-background">
-                  <section className="border-b border-border max-h-[45dvh] overflow-y-auto" aria-label="Aftaler uden rute">
+                  <section className="border-b border-border" aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
                   <section className="min-h-[32rem]" aria-label="Rutekalender">
@@ -5344,8 +5338,16 @@ const Planner = () => {
                     </strong>{" "}
                     ({pendingStartDateChange?.targetLabel}).
                   </p>
+                  {(pendingStartDateChange?.groupCount ?? 1) > 1 && (
+                    <p className="rounded-md border border-border bg-secondary/40 px-2.5 py-2 text-foreground">
+                      Du flytter <strong>{pendingStartDateChange.groupCount} valgte aftaler</strong> på én gang.
+                      {(pendingStartDateChange.companionMismatches ?? 0) > 0 && (
+                        <> {pendingStartDateChange.companionMismatches} af de andre får også ny opstartsdato.</>
+                      )}
+                    </p>
+                  )}
                   <p className="text-muted-foreground">
-                    Vil du flytte aftalens opstartsdato til den nye dato? Det opdaterer også
+                    Vil du flytte opstartsdatoen til den nye dato? Det opdaterer også
                     fremtidige forekomster og evt. tilknyttet abonnement.
                   </p>
                 </div>
