@@ -1568,6 +1568,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   if (routeStarted && runMode === "list") {
     if (!route) return <RouteViewSkeleton />;
     return (
+      <>
       <RouteChecklistView
         routeId={routeId}
         routeName={route.name || "Rute"}
@@ -1609,8 +1610,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           setAudioEnabled((value) => !value);
           if (!audioEnabled) playStartChime();
         }}
-      >
-      </RouteChecklistView>
+      />
+      <StopDetailsSheetShell open={!!selectedId} onOpenChange={(open) => { if (!open) setSelectedId(null); }}>
+        {selectedStop ? (
+          <StopDetailsContent
+            stop={selectedStop}
+            index={Math.max(0, sortedStops.findIndex((stop) => stop.id === selectedStop.id))}
+            themeColor={themeColor}
+            route={{ name: route.name, color: route.color, date: route.route_date, allowEarly: earlyAllowedForRoute }}
+            noteDraft={noteDraft[selectedStop.id] ?? selectedStop.notes ?? ""}
+            onNoteChange={(value) => setNoteDraft((drafts) => ({ ...drafts, [selectedStop.id]: value }))}
+            onComplete={() => handleComplete(selectedStop)}
+            onUndo={() => handleUndo(selectedStop)}
+            onNavigate={() => handleNavigate(selectedStop)}
+            isPending={updateStatus.isPending}
+            pendingTimeLabel="Tryk Start for at registrere arbejdstid"
+          />
+        ) : null}
+      </StopDetailsSheetShell>
+      </>
     );
   }
 
