@@ -45,7 +45,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin, Clock,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, MapPin, Clock,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
@@ -328,7 +328,6 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
   const { data: businessServices = [] } = useServices(businessId);
@@ -3358,7 +3357,7 @@ const Planner = () => {
                     <Button
                       type="button"
                       onClick={requestCreateOrder}
-                      className="h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold"
+                      className="hidden h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold [@media(min-width:1100px)]:inline-flex"
                     >
                       <Plus className="h-4 w-4" />
                       Opret bestilling
@@ -3410,7 +3409,7 @@ const Planner = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all" className="text-xs">Vis alle</SelectItem>
-                            <SelectItem value="ready" className="text-xs">Klar til auto-fordel</SelectItem>
+                            <SelectItem value="ready" className="text-xs">Klar til planlægning</SelectItem>
                             <SelectItem value="pending" className="text-xs">Afventer godkendelse</SelectItem>
                           </SelectContent>
                         </Select>
