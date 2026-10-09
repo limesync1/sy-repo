@@ -3474,7 +3474,7 @@ const Planner = () => {
                       } : undefined}
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
-                      onAddToRoute={() => setBulkAddToRouteOpen(true)}
+                      onAddToRoute={() => { setAppointmentsOpen(false); setBulkAddToRouteOpen(true); }}
                       onCreateRoute={() => {
                         pendingCreateJobIdsRef.current = (unassigned as any[])
                           .filter((j: any) => selectedJobIds.has(j.id) && j.status !== "pending")

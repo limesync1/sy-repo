@@ -565,7 +565,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       )}
 
       {onAddAppointment && !isVirtual && !isPast && !showAsCompleted && (
-        <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" disabled={busy} onClick={(e) => { e.stopPropagation(); onAddAppointment(); }}>
+        <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" aria-label={`Tilføj aftale til ${route.name || "ruten"}`} disabled={busy} onKeyDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onAddAppointment(); }}>
           <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">Tilføj aftale</span><span className="sm:hidden">Tilføj</span>
         </Button>
       )}
