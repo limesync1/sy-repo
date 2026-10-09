@@ -11,7 +11,7 @@
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
 - Public SEO uses registries and seo-prerender-head; client tags preserve full text and public-origin canonicals unless a business supplies its domain.
 - All lead sources normalize into `quote_requests`/`quote_request_matches`, while provider connections and credentials stay server-side and business-scoped, so the Leads workspace has one secure source of truth.
-- Meta source selection models Facebook Pages as the parent source and surfaces their linked Instagram account and lead forms together, because Meta exposes Instagram lead access through the connected Page.
+- Meta source selection groups linked Instagram and lead forms under Facebook Pages, since Meta exposes Instagram leads through the Page.
 - Meta OAuth always uses the public `https://serviceydere.dk/meta/callback` URI, which forwards the authorization response to the server callback so Meta configuration remains stable across preview and production.
 - Restarted employee workdays preserve prior elapsed seconds in `accumulated_seconds` and open a new active interval, so completed appointments and precise time history remain intact.
 - Employee pages share `EmployeePage`; driving is full-screen; self-profile edits only name/avatar.
@@ -32,7 +32,7 @@
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Night maps use token-themed OpenFreeMap vectors, dim raster fallback and errors. PWA uses manifest only; no offline cache to stale previews.
 
-- Timelines stay fixed-height with explicit selection; semantic actions distinguish undo and completion.
+- HUD stacks maneuvers above one arrival/action dock; expandable overview preserves map space. Timelines keep explicit selection; undo stays visible and timing manual.
 - Mobile/touch field font rules cover portals; prevent focus zoom, preserve pinch zoom.
 
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
