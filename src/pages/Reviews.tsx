@@ -4,15 +4,8 @@ import Footer from "@/components/landing/Footer";
 import SmartLink from "@/components/SmartLink";
 import PageHero from "@/components/landing/PageHero";
 import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
-import { IndustryIcon } from "@/components/IndustryIcon";
 import { ShieldCheck, MessageSquare, BadgeCheck, Star, ArrowRight, ArrowUpRight } from "lucide-react";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
-
-const PREVIEW_REVIEWS = [
-  { category: "Rengøring", city: "Aarhus", initials: "—", placeholder: true },
-  { category: "Tømrer", city: "København", initials: "—", placeholder: true },
-  { category: "Haveservice", city: "Odense", initials: "—", placeholder: true },
-];
 
 const Reviews = () => {
   const jsonLd = [
