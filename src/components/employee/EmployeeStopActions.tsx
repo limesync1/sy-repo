@@ -26,6 +26,7 @@ import {
   CompactPricingEditor, defaultPricing, estimateTotal, toPricingPayload,
   type PricedService, type PricingState,
 } from "./CompactPricingEditor";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
 
 type Line = {
   key: string; item_id: string | null; service_id: string | null; name: string;
@@ -319,8 +320,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
           <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
-            <SheetTitle>Ret aftale</SheetTitle>
-            <SheetDescription>Tilpas pris, antal, timer, beregnertrin og interval.</SheetDescription>
+            <SheetTitle>Ret den nuværende aftale</SheetTitle>
+            <SheetDescription>Vælg services og tilpas de prisfelter, virksomheden bruger.</SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
             {servicesProblem}
@@ -409,8 +410,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       <Sheet open={newOpen} onOpenChange={(o) => { if (!createNew.isPending) setNewOpen(o); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
           <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
-            <SheetTitle>Ny aftale hos {order?.customer_name || "kunden"}</SheetTitle>
-            <SheetDescription>Kundens navn og adresse udfyldes automatisk.</SheetDescription>
+            <SheetTitle>Opret ny aftale hos {order?.customer_name || "kunden"}</SheetTitle>
+            <SheetDescription>Kunden genbruges. Du vælger service, prisopsætning, interval og foreløbig dato.</SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
             {servicesProblem}
@@ -418,11 +419,12 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive services.</p> : (
                 <div>
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Service</p>
-                  <div className="flex flex-wrap gap-2">
+                   <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card">
                     {services.map((s) => (
-                      <Button key={s.id} variant={newServiceId === s.id ? "default" : "outline"} className="h-auto min-h-11 max-w-full whitespace-normal py-2 text-left" onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
-                        {s.name}
-                      </Button>
+                       <button key={s.id} type="button" className={cn("flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary/60", newServiceId === s.id && "bg-primary/5 text-foreground ring-1 ring-inset ring-primary/30")} onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
+                         <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug">{s.name}</span><span className="block text-[11px] text-muted-foreground">{s.pricing_type === "timepris" ? "Timepris" : s.pricing_type === "prisberegner" ? "Prisberegner" : "Fast pris"}</span></span>
+                         {newServiceId === s.id ? <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" /> : <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                       </button>
                     ))}
                   </div>
                 </div>
@@ -434,9 +436,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               </div>
             )}
             {newService && (
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Opstartsdato
-                <Input type="date" value={newStart} min={todayStr()} onChange={(e) => setNewStart(e.target.value)} className="h-11 normal-case" />
-              </label>
+               <div className="space-y-1.5"><label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Foreløbig opstartsdato</label><DatePickerField value={newStart} minDate={todayStr()} onChange={setNewStart} className="h-11 text-base" /><p className="text-xs leading-snug text-muted-foreground">Kontoret kan justere datoen, før aftalen lægges på en rute.</p></div>
             )}
           </div>
           <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">

@@ -29,10 +29,13 @@ export default function PlannerSkeleton() {
           </div>
           <Skeleton className="h-8 w-8 rounded-[4px]" />
         </div>
-        <div className="grid grid-cols-[1fr_auto_auto] gap-1.5">
+        <div className="grid grid-cols-2 gap-2">
+          <Skeleton className="h-11 rounded-[4px]" />
+          <Skeleton className="h-11 rounded-[4px]" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <Skeleton className="h-10 rounded-md" />
-          <Skeleton className="h-8 w-20 rounded-[4px]" />
-          <Skeleton className="h-8 w-20 rounded-[4px]" />
+          <Skeleton className="h-10 rounded-md" />
         </div>
       </div>
 

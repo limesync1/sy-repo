@@ -429,7 +429,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
             {/* Status chips */}
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
-              <div className="-mx-1 flex w-[calc(100%+0.5rem)] snap-x items-center gap-x-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:flex-wrap sm:gap-y-2 sm:overflow-visible sm:px-0 sm:pb-0">
+              <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-y-2">
               {(() => {
                 type Chip = { key: string; label: string; count: number; tone?: "danger" | "warn" };
                 const groups: Chip[][] = [
@@ -449,8 +449,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   ],
                 ].filter((g) => g.length > 0);
                 return groups.map((group, gi) => (
-                  <div key={gi} className="flex shrink-0 items-center gap-1.5 sm:flex-wrap">
-                    {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
+                  <div key={gi} className="contents sm:flex sm:shrink-0 sm:items-center sm:gap-1.5 sm:flex-wrap">
+                    {gi > 0 && <span aria-hidden className="mx-1 hidden h-5 w-px bg-border/80 sm:block" />}
                     {group.map(({ key, label, count, tone }) => {
                       const isActive = filter === key;
                       const dotCls = tone === "danger" ? "before:bg-destructive" : tone === "warn" ? "before:bg-orange-500" : "";
@@ -459,7 +459,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                         <button
                           key={key}
                           onClick={() => setFilter(key)}
-                          className={`relative inline-flex min-h-10 shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs sm:min-h-0 font-medium transition-colors ${
+                           className={`relative inline-flex min-h-10 min-w-0 items-center justify-between gap-1.5 whitespace-nowrap rounded-md border px-3 py-2 text-xs sm:min-h-0 sm:shrink-0 sm:justify-start font-medium transition-colors ${
                             showDot ? `before:absolute before:left-2 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${dotCls} pl-5` : ""
                           } ${
                             isActive

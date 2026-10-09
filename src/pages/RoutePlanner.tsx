@@ -45,7 +45,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin, Clock,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, MapPin, Clock,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
@@ -95,7 +95,7 @@ import { AdminShell } from "@/components/admin/shared/AdminShell";
 import HelpTip from "@/components/route-planner/HelpTip";
 import { useRouteWeather } from "@/hooks/useRouteWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
-import { useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
+import { useRouteSkillMismatch } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
@@ -328,7 +328,6 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
   const { data: businessServices = [] } = useServices(businessId);
@@ -798,7 +797,7 @@ const Planner = () => {
       list = list.filter((j: any) => {
         const hasGps = j.latitude != null && j.longitude != null;
         if (unassignedStatusFilter === "pending") return j.status === "pending";
-        // "ready" = klar til auto-fordel: ikke pending, har GPS, har dato.
+        // "ready" = klar til manuel planlægning: ikke pending, har GPS og dato.
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
     }
@@ -1747,234 +1746,8 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
 
-  // Auto-fordel: lægger valgte/alle aftaler ind på den bedst matchende
-  // eksisterende rute. Bruger samme RPC som "Foreslå rute"-dialogen, men
-  // holder selv styr på kapacitet og sequence-numre LOKALT under kørslen
-  // — så to aftaler ikke ender på samme plads og en rute ikke fyldes ud
-  // over kapacitet bare fordi RPC'en ikke ved at vi lige har lagt noget på.
-  const [autoAssigning, setAutoAssigning] = useState(false);
-
-  type SkipReason =
-    | "no-gps" | "no-date" | "pending"
-    | "no-route" | "full" | "rpc-error" | "save-error";
-  // Returnerer en hel sætning med korrekt ental/flertal, så fx "1 aftale
-  // mangler adresse" og "3 aftaler mangler adresse" begge giver mening.
-  const skipPhrase = (reason: SkipReason, n: number): string => {
-    const aftale = n === 1 ? "aftale" : "aftaler";
-    switch (reason) {
-      case "no-gps":     return `${n} ${aftale} mangler adresse`;
-      case "no-date":    return `${n} ${aftale} mangler dato`;
-      case "pending":    return `${n} ${aftale} afventer godkendelse`;
-      case "no-route":   return `${n} ${aftale} havde ingen rute på dagen`;
-      case "full":       return `${n} ${aftale} kunne ikke få plads`;
-      case "rpc-error":  return `${n} ${aftale} kunne ikke hentes forslag for`;
-      case "save-error": return `${n} ${aftale} kunne ikke gemmes`;
-    }
-  };
-
-  const runAutoAssignCore = async (
-    jobs: any[],
-    opts: { setBusy: (b: boolean) => void; sourceLabel: "alle" | "valgte" },
-  ) => {
-    if (!businessId) return;
-    opts.setBusy(true);
-    // Lokale akkumulatorer pr. rute — opdateres efter hver succes så næste
-    // job ser den korrekte kapacitet i samme batch.
-    const usage = new Map<string, { minutes: number; stops: number }>();
-    const seqByRoute = new Map<string, number>();
-    const getUsage = (id: string) => usage.get(id) ?? { minutes: 0, stops: 0 };
-    const getSeq = (id: string) => {
-      const cur = seqByRoute.get(id);
-      if (cur != null) return cur;
-      const base = (calendarStops as any[]).filter((s) => s.route_id === id).length;
-      seqByRoute.set(id, base);
-      return base;
-    };
-
-    let assigned = 0;
-    const skipped: { job: any; reason: SkipReason }[] = [];
-    // Tracker: stop-ids vi har oprettet (til Fortryd) + hvor mange aftaler
-    // der røg på hver rute (til læselig per-rute opsummering).
-    const createdStopIds: string[] = [];
-    const perRouteCount = new Map<string, { name: string; date: string; n: number }>();
-
-    try {
-      // Forslagene er uafhængige netværksopslag. Hent dem samtidig, mens
-      // selve tildelingen fortsat sker i rækkefølge af hensyn til kapacitet.
-      const suggestionResults = new Map<string, { suggestions: any[]; error?: SkipReason }>();
-      const suggestionJobs = jobs.filter((job) =>
-        job.status !== "pending"
-        && job.latitude != null
-        && job.longitude != null
-        && (job.preferred_date || job.next_service_date),
-      );
-      await Promise.all(suggestionJobs.map(async (job) => {
-        const jobDate = String(job.preferred_date || job.next_service_date).slice(0, 10);
-        const duration = Number(job.estimated_duration_minutes) || 30;
-        try {
-          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
-            _business_id: businessId,
-            _date: jobDate,
-            _latitude: job.latitude,
-            _longitude: job.longitude,
-            _service_id: job.order_items?.[0]?.service_id ?? null,
-            _duration_minutes: duration,
-            _zone_key: deriveZoneKey(job.zip_code),
-            _weather_bad: false,
-            _skill_key: null,
-          });
-          suggestionResults.set(job.id, error
-            ? { suggestions: [], error: "rpc-error" }
-            : { suggestions: (rpc as any)?.suggestions || [] });
-        } catch {
-          suggestionResults.set(job.id, { suggestions: [], error: "rpc-error" });
-        }
-      }));
-
-      for (const job of jobs) {
-        if (job.status === "pending") { skipped.push({ job, reason: "pending" }); continue; }
-        if (job.latitude == null || job.longitude == null) { skipped.push({ job, reason: "no-gps" }); continue; }
-        const jobDateRaw = job.preferred_date || job.next_service_date;
-        if (!jobDateRaw) { skipped.push({ job, reason: "no-date" }); continue; }
-        const jobDate = String(jobDateRaw).slice(0, 10);
-        const duration = Number(job.estimated_duration_minutes) || 30;
-
-        const suggestionResult = suggestionResults.get(job.id);
-        if (suggestionResult?.error) { skipped.push({ job, reason: suggestionResult.error }); continue; }
-        const suggestions = suggestionResult?.suggestions ?? [];
-
-        if (suggestions.length === 0) { skipped.push({ job, reason: "no-route" }); continue; }
-
-        // Find første forslag der HAR plads INKL. det vi lige har akkumuleret
-        // på samme rute i denne kørsel.
-        const top = suggestions.find((s: any) => {
-          const extra = getUsage(s.route_id);
-          const minutesAfter = s.minutes_used + extra.minutes + duration;
-          const stopsAfter = s.stop_count + extra.stops + 1;
-          const overHours = s.capacity?.hours_max != null && minutesAfter / 60 > s.capacity.hours_max;
-          const overStops = s.capacity?.stops_max != null && stopsAfter > s.capacity.stops_max;
-          return !overHours && !overStops;
-        });
-        if (!top) { skipped.push({ job, reason: "full" }); continue; }
-
-        const seq = getSeq(top.route_id);
-        try {
-          const newStop = await addStop.mutateAsync({
-            route_id: top.route_id,
-            order_id: job.id,
-            sequence: seq,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: duration,
-            time_window_start: null,
-            time_window_end: null,
-          });
-          if (newStop?.id) createdStopIds.push(newStop.id);
-          const prev = perRouteCount.get(top.route_id);
-          perRouteCount.set(top.route_id, {
-            name: top.route_name || prev?.name || "Rute",
-            date: top.route_date || prev?.date || jobDate,
-            n: (prev?.n ?? 0) + 1,
-          });
-          const cur = getUsage(top.route_id);
-          usage.set(top.route_id, { minutes: cur.minutes + duration, stops: cur.stops + 1 });
-          seqByRoute.set(top.route_id, seq + 1);
-          assigned++;
-        } catch {
-          skipped.push({ job, reason: "save-error" });
-        }
-      }
-
-      invalidateRouteSyncQueries(qc);
-
-      // Lav læselig opsummering: hvis flere blev sprunget over af samme
-      // årsag — skriv "X mangler adresse, Y ruterne fyldte" i stedet for
-      // bare et tal.
-      const reasonCounts = new Map<SkipReason, number>();
-      for (const s of skipped) reasonCounts.set(s.reason, (reasonCounts.get(s.reason) ?? 0) + 1);
-      const reasonSummary = Array.from(reasonCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .map(([r, n]) => skipPhrase(r, n))
-        .join(" · ");
-
-      // Per-rute opsummering: "2 til Mandagsrute · 1 til Torsdagsrute"
-      const routeSummary = (() => {
-        if (perRouteCount.size === 0) return "";
-        const entries = Array.from(perRouteCount.values()).sort((a, b) => b.n - a.n);
-        const top3 = entries.slice(0, 3).map((e) => `${e.n} til ${e.name}`).join(" · ");
-        const rest = entries.length - 3;
-        return rest > 0 ? `${top3} · +${rest} ruter mere` : top3;
-      })();
-
-      if (assigned > 0) {
-        const total = assigned + skipped.length;
-        const parts: string[] = [];
-        if (routeSummary) parts.push(routeSummary);
-        if (skipped.length > 0) parts.push(`Sprunget over: ${reasonSummary}`);
-        toast.success(
-          `Fordelt ${assigned} af ${total} aftale${total === 1 ? "" : "r"}`,
-          {
-            description: parts.join(" — ") || "Kapacitetsbjælkerne i kalenderen er opdateret.",
-            duration: 10000,
-            action: createdStopIds.length > 0 ? {
-              label: "Fortryd",
-              onClick: async () => {
-                let ok = 0;
-                for (const id of createdStopIds) {
-                  try { await deleteStop.mutateAsync(id); ok++; } catch { /* ignorer */ }
-                }
-                invalidateRouteSyncQueries(qc);
-                if (ok === createdStopIds.length) {
-                  toast.success(`Fortrudt — ${ok} aftale${ok === 1 ? "" : "r"} fjernet fra ruterne`);
-                } else if (ok > 0) {
-                  toast.warning(`Fortrudt delvist — ${ok} af ${createdStopIds.length} fjernet`);
-                } else {
-                  toast.error("Kunne ikke fortryde", { description: "Aftalerne er måske allerede ændret." });
-                }
-              },
-            } : undefined,
-          },
-        );
-        if (opts.sourceLabel === "valgte") setSelectedJobIds(new Set());
-      } else {
-        toast.error("Ingen aftaler kunne fordeles", {
-          description: skipped.length > 0
-            ? reasonSummary + ". Opret en rute på dagen eller flyt opstartsdatoen."
-            : "Opret en rute på den ønskede dag først, eller flyt opstartsdatoen.",
-          duration: 8000,
-        });
-      }
-    } finally {
-      opts.setBusy(false);
-    }
-  };
-
-  const runAutoAssign = async () => {
-    if (autoAssigning) return;
-    const candidates = (unassigned as any[]).filter(
-      (j) => j.status !== "pending"
-        && j.latitude != null && j.longitude != null
-        && (j.preferred_date || j.next_service_date),
-    );
-    if (candidates.length === 0) {
-      toast.info("Ingen aftaler kan auto-fordeles", {
-        description: "Aftaler skal have adresse på kortet og en ønsket dato.",
-      });
-      return;
-    }
-    // Tidligere skar vi listen ned til 25 — det er forvirrende når brugeren
-    // ser "Auto-fordel 40 aftaler" og kun 25 bliver kørt. Vi tager nu hele
-    // listen; tunge batches sker stadig sekventielt så DB ikke overbelastes.
-    await runAutoAssignCore(candidates, { setBusy: setAutoAssigning, sourceLabel: "alle" });
-  };
-
-  // Hold refs synkroniseret så keyboard-shortcuts altid kalder seneste closure.
+  // Hold søgereferencen synkroniseret til tastaturgenvejen.
   useEffect(() => {
-    runAutoAssignRef.current = runAutoAssign;
     focusSearchRef.current = () => {
       const el = unassignedSearchRef.current;
       if (!el) return;
@@ -1982,16 +1755,6 @@ const Planner = () => {
       try { el.select(); } catch { /* select kan kaste på read-only inputs */ }
     };
   });
-
-  const runBulkAutoAssign = async () => {
-    if (bulkBusy || selectedJobIds.size === 0) return;
-    const candidates = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
-    if (candidates.length === 0) {
-      toast.info("Ingen valgte aftaler at fordele");
-      return;
-    }
-    await runAutoAssignCore(candidates, { setBusy: setBulkBusy, sourceLabel: "valgte" });
-  };
 
   /** Annullér de valgte aftaler — sætter status til 'cancelled' så de
    *  forsvinder fra "Aftaler uden rute". Vi henter forrige status først så
@@ -2149,7 +1912,6 @@ const Planner = () => {
   const optimizeRouteRef = useRef<(id: string) => void>(() => {});
   // Refs så keyboard-shortcuts kan kalde de senest definerede handlers
   // uden at vi skal hejse hele runAutoAssign op før effekten.
-  const runAutoAssignRef = useRef<() => void | Promise<void>>(() => {});
   const focusSearchRef = useRef<() => void>(() => {});
   useRoutePlannerKeyboard({
     history,
@@ -2168,7 +1930,6 @@ const Planner = () => {
     setPrintOpen,
     setDayDetailOpen,
     focusSearchRef,
-    runAutoAssignRef,
     optimizeRouteRef,
     selectedRouteIds,
     clearRouteSelection,
@@ -2656,90 +2417,6 @@ const Planner = () => {
       setNewRouteJobIds([]);
       setCreateOpen(false);
     } catch { /* toast handled in hook */ }
-  };
-
-  /* ─── Auto-fordel: opretter/finder ruter pr. kundens ønskede dato og lægger jobs der ─── */
-  const handleAutoDistribute = async () => {
-    if (!businessId) return;
-    const jobsWithDate = unassigned
-      .filter((j: any) => j.status !== "pending")
-      .map((j: any) => ({ job: j, date: effectiveJobDate(j) }))
-      .filter((x) => !!x.date) as { job: any; date: string }[];
-
-    if (jobsWithDate.length === 0) {
-      toast.info("Ingen godkendte aftaler med ønsket dato at fordele");
-      return;
-    }
-
-    const byDate = new Map<string, any[]>();
-    for (const { job, date: d } of jobsWithDate) {
-      const arr = byDate.get(d) || [];
-      arr.push(job);
-      byDate.set(d, arr);
-    }
-
-    setDistributing(true);
-    try {
-      const allDates = Array.from(byDate.keys()).sort();
-      const minDate = allDates[0];
-      const maxDate = allDates[allDates.length - 1];
-      const { data: existingRoutes } = await supabase
-        .from("routes")
-        .select("id, route_date, name")
-        .eq("business_id", businessId)
-        .gte("route_date", minDate)
-        .lte("route_date", maxDate);
-
-      let totalAssigned = 0;
-      let routesCreated = 0;
-
-      for (const [d, jobs] of byDate.entries()) {
-        let routeId = (existingRoutes || []).find((r: any) => r.route_date === d)?.id || null;
-        if (!routeId) {
-          const created = await createRoute.mutateAsync({
-            business_id: businessId,
-            route_date: d,
-            name: null,
-          });
-          routeId = created.id;
-          routesCreated++;
-        }
-
-        const { data: stopsOnRoute } = await supabase
-          .from("route_stops")
-          .select("id")
-          .eq("route_id", routeId);
-        let seq = (stopsOnRoute || []).length;
-
-        for (const job of jobs) {
-          await addStop.mutateAsync({
-            route_id: routeId,
-            order_id: job.id,
-            sequence: seq++,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: null,
-            time_window_end: null,
-          });
-          totalAssigned++;
-        }
-      }
-
-      toast.success(
-        `${totalAssigned} aftaler fordelt på ${byDate.size} dage` +
-        (routesCreated > 0 ? ` (${routesCreated} nye ruter oprettet)` : ""),
-        { description: "Klik på en rute og 'Optimér' for bedste rækkefølge." },
-      );
-    } catch (e: any) {
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke auto-fordele aftaler" });
-    } finally {
-      setDistributing(false);
-    }
   };
 
   return (
@@ -3358,7 +3035,7 @@ const Planner = () => {
                     <Button
                       type="button"
                       onClick={requestCreateOrder}
-                      className="h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold"
+                      className="hidden h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold [@media(min-width:1100px)]:inline-flex"
                     >
                       <Plus className="h-4 w-4" />
                       Opret bestilling
@@ -3410,7 +3087,7 @@ const Planner = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all" className="text-xs">Vis alle</SelectItem>
-                            <SelectItem value="ready" className="text-xs">Klar til auto-fordel</SelectItem>
+                            <SelectItem value="ready" className="text-xs">Klar til planlægning</SelectItem>
                             <SelectItem value="pending" className="text-xs">Afventer godkendelse</SelectItem>
                           </SelectContent>
                         </Select>
@@ -3546,108 +3223,7 @@ const Planner = () => {
                         </span>
                       </div>
                     )}
-                    {(() => {
-                       // Tallet i auto-fordel-knappen skal altid matche det
-                       // brugeren faktisk ser i listen — ellers kan der stå
-                       // "Auto-fordel 5" uden at en eneste aftale er synlig
-                       // (når andre filtre — urgency/postnr/ydelse — gemmer dem).
-                       const scope: any[] = filteredUnassigned as any[];
-                      const missing = scope.filter(
-                        (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
-                      ).length;
-                      const canAutoAssign = scope.filter(
-                        (j) => j.status !== "pending" && j.latitude != null && j.longitude != null && (j.preferred_date || j.next_service_date),
-                      ).length;
-                      // Når brugeren har valgt aftaler bliver knappen kontekstuel:
-                      // den fordeler kun de valgte (samme som bulk-baren tidligere).
-                      // Det fjerner duplikatet hvor 3 knapper konkurrerede om samme handling.
-                      const selectedCount = selectedJobIds.size;
-                      const selectionMode = selectedCount > 0;
-                      const selectedReady = selectionMode
-                        ? (unassigned as any[]).filter((j: any) =>
-                            selectedJobIds.has(j.id)
-                            && j.status !== "pending"
-                            && j.latitude != null && j.longitude != null
-                            && (j.preferred_date || j.next_service_date),
-                          ).length
-                        : 0;
-                      if (geocoding && canAutoAssign === 0 && !selectionMode) return null;
-                      if (canAutoAssign === 0 && !selectionMode) {
-                        if (missing > 0) {
-                          return (
-                            <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-200 flex items-start gap-1.5 rounded-[4px] bg-amber-50 dark:bg-amber-500/10 px-2 py-1.5">
-                              <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                              {missing === 1 ? "1 adresse" : `${missing} adresser`} mangler postnummer eller by (orange nål). Klik på aftalen for at rette adressen — den kan stadig lægges på en rute.
-                            </p>
-                          );
-                        }
-                        return null;
-                      }
-                      // Ingen valgte er klar til auto-fordeling → vis intet, så
-                      // listen ikke hopper når man markerer aftaler.
-                      if (selectionMode && selectedReady === 0) {
-                        return null;
-                      }
-                      return (
-                        <div className="space-y-1.5">
-                          {/* Kontekstuel forklaring af auto-fordeling — samme tekst
-                              som i funktionsguiden og PDF-guiden. */}
-                          {(selectionMode || canAutoAssign > 0) && (
-                            <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
-                              <span>Hvad gør auto-fordel?</span>
-                              <HelpTip feature="auto-distribute" />
-                            </div>
-                          )}
-                          {selectionMode ? (
-                            // Selektions-tilstand: knappen fordeler KUN de valgte.
-                            // Disabled hvis ingen valgte aftaler opfylder kravene.
-                            <button
-                              type="button"
-                              onClick={runBulkAutoAssign}
-                              disabled={bulkBusy || selectedReady === 0}
-                              className={cn(
-                                "w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
-                                selectedReady > 0
-                                  ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
-                                  : "border border-border bg-background text-muted-foreground",
-                              )}
-                              title={selectedReady === 0
-                                ? "Valgte aftaler mangler adresse på kortet eller ønsket dato"
-                                : `Fordel ${selectedReady} valgte aftale${selectedReady === 1 ? "" : "r"} til de bedst matchende ruter`}
-                            >
-                              {bulkBusy
-                                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {selectedReady}…</>
-                                : selectedReady === 0
-                                  ? <><Sparkles className="h-3.5 w-3.5" />Ingen valgte er klar</>
-                                  : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {selectedReady} valgte</>}
-                            </button>
-                          ) : canAutoAssign > 0 && (
-                            // Ingen valgt: fordeler ALLE klar-aftaler i listen.
-                            // Ved 1 aftale er knappen diskret outline — træk/per-kort er ofte hurtigere.
-                            <button
-                              type="button"
-                              onClick={runAutoAssign}
-                              disabled={autoAssigning}
-                              className={cn(
-                                "w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
-                                canAutoAssign === 1
-                                  ? "border border-border bg-background text-foreground hover:bg-secondary"
-                                  : "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
-                              )}
-                              title={canAutoAssign === 1
-                                ? "Fordel aftalen automatisk efter dato og ledig plads"
-                                : "Fordel alle klar-aftaler til de bedst matchende ruter"}
-                            >
-                              {autoAssigning
-                                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {canAutoAssign}…</>
-                                : canAutoAssign === 1
-                                  ? <><Sparkles className="h-3.5 w-3.5 text-accent" />Auto-fordel 1 aftale</>
-                                  : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel alle {canAutoAssign}</>}
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })()}
+                    {(() => { const missing = (filteredUnassigned as any[]).filter((job) => (job.address || job.zip_code || job.city) && (job.latitude == null || job.longitude == null)).length; return missing > 0 ? <p className="flex items-start gap-1.5 rounded-[4px] bg-warning/10 px-2 py-1.5 text-[11px] leading-snug text-warning-foreground"><MapPin className="mt-0.5 h-3 w-3 shrink-0" />{missing === 1 ? "1 adresse" : `${missing} adresser`} kan ikke vises på kortet. Åbn aftalen for at rette adressen.</p> : null; })()}
                   </div>
 
                   <div
@@ -3675,7 +3251,7 @@ const Planner = () => {
                         const hasFilter = unassignedStatusFilter !== "all";
                         const filterLabel: Record<typeof unassignedStatusFilter, string> = {
                           all: "alle",
-                          ready: "klar til auto-fordel",
+                          ready: "klar til planlægning",
                           pending: "afventer godkendelse",
                         } as any;
                         if (search) {
@@ -3811,7 +3387,7 @@ const Planner = () => {
                       const keyFor = (job: any): { key: string; label: string } => {
                         if (unassignedGroupBy === "status") {
                           if (job.status === "pending") return { key: "1-pending", label: "Afventer godkendelse" };
-                          if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til auto-fordel" };
+                          if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til planlægning" };
                           return { key: "3-other", label: "Andet" };
                         }
                         if (unassignedGroupBy === "route") {

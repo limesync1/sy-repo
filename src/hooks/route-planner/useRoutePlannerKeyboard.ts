@@ -27,7 +27,6 @@ export function useRoutePlannerKeyboard(opts: {
   setPrintOpen: (b: boolean) => void;
   setDayDetailOpen: (b: boolean) => void;
   focusSearchRef: MutableRefObject<() => void>;
-  runAutoAssignRef: MutableRefObject<() => void | Promise<void>>;
   optimizeRouteRef: MutableRefObject<(id: string) => void>;
   /** Valgte ruter i kalenderen (bulk-flyt-tilstand). Esc rydder dem. */
   selectedRouteIds?: Set<string>;
@@ -60,7 +59,6 @@ export function useRoutePlannerKeyboard(opts: {
         setPrintOpen,
         setDayDetailOpen,
         focusSearchRef,
-        runAutoAssignRef,
         optimizeRouteRef,
         selectedRouteIds,
         clearRouteSelection,
@@ -97,9 +95,6 @@ export function useRoutePlannerKeyboard(opts: {
         setDate(todayStr());
       } else if (e.key.toLowerCase() === "n") {
         setCreateOpen(true);
-      } else if (e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        void runAutoAssignRef.current();
       } else if (e.key === "Escape") {
         if (selectedRouteIds && selectedRouteIds.size > 0) {
           clearRouteSelection?.();

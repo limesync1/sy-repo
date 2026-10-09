@@ -301,7 +301,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
     <div className="space-y-5">
 
       <Dialog open={isFocusMode} onOpenChange={(open) => { if (!open) { setShowForm(false); setEditingId(null); } }}>
-        <DialogContent className="max-w-5xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
+        <DialogContent className="inset-x-0 bottom-0 top-auto h-[96dvh] max-h-[96dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-b-none rounded-t-md p-0 gap-0 flex flex-col sm:left-[50%] sm:top-[50%] sm:h-auto sm:max-h-[calc(100dvh-1rem)] sm:max-w-5xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-md">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
             <DialogTitle className="text-base">
               {editingService ? `Rediger ${editingService.name}` : "Ny service"}
@@ -312,7 +312,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
                 : "Opret en ny service i fire korte trin."}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto bg-secondary/20 p-4 sm:p-5">
+           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20 p-3 sm:p-5">
             {showForm && !hasIndustries && (
               <Card className="mb-4 surface-admin rounded-[5px] border-warning/30 bg-warning/10 shadow-sm">
                 <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1186,7 +1186,7 @@ const ServiceForm = ({
   };
 
   return (
-    <div ref={formRootRef} className="space-y-6">
+    <div ref={formRootRef} className="space-y-4 sm:space-y-6">
       {/* Step Progress Bar — kompakt, tydelig nuværende fase + lille hint
           om hvad der mangler i alt. */}
       <div className="surface-admin rounded-xl border border-border/80 p-3 sm:p-4">
@@ -1918,7 +1918,7 @@ const ServiceForm = ({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-border">
+      <div className="sticky bottom-0 z-10 -mx-3 flex items-center justify-between border-t border-border bg-card px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4">
         <div className="flex gap-2">
           {currentStep > 1 && (
             <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-10 px-4 text-sm font-medium">
