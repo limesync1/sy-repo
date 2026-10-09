@@ -771,7 +771,7 @@ const Planner = () => {
 
   const serviceSummaryForJob = (job: any) => effectiveJobItems(job)
     .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-    .join(", ") || "Ingen ydelser angivet";
+    .join(", ") || "Ingen services angivet";
 
   /** Vis ALLE aftaler uden rute i poolen — ingen dato-vinduesfiltrering.
       Brugeren foretrækker at se hele listen ad gangen, fremfor at skulle
@@ -1910,8 +1910,7 @@ const Planner = () => {
   // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
   // dens definition-rækkefølge (den er defineret længere nede).
   const optimizeRouteRef = useRef<(id: string) => void>(() => {});
-  // Refs så keyboard-shortcuts kan kalde de senest definerede handlers
-  // uden at vi skal hejse hele runAutoAssign op før effekten.
+  // Ref så keyboard-shortcuts kan kalde den senest definerede søgehandler.
   const focusSearchRef = useRef<() => void>(() => {});
   useRoutePlannerKeyboard({
     history,
