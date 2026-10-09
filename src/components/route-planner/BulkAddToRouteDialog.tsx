@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Check, CalendarPlus, ListOrdered, Loader2, MapPin, Search, User, X } from "lucide-react";
+import { Check, CalendarPlus, Loader2, Search, X } from "lucide-react";
 import { SheetHeaderBlock } from "./SheetSection";
 import { UiArtwork } from "@/components/shared/UiArtwork";
 
@@ -102,14 +102,13 @@ export const BulkAddToRouteDialog = ({
             </div>
             <div className="max-h-[min(22dvh,10rem)] overflow-y-auto overscroll-contain sm:max-h-56">
               <div className="space-y-1.5 pr-2">
-                {jobs.map((j) => (
-                  <div key={j.id} className="flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 text-xs">
+                {jobs.map((j, idx) => (
+                  <div key={j.id} className="flex items-center gap-2.5 rounded-md border bg-card py-1.5 pl-2.5 pr-1 text-xs">
+                    <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold tabular-nums text-foreground">{idx + 1}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold leading-tight truncate">{j.customer_name || "Uden navn"}</p>
                       {j.address && (
-                        <p className="text-[11px] text-muted-foreground truncate flex items-center gap-0.5 mt-0.5">
-                          <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{j.address}</span>
-                        </p>
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{j.address}</p>
                       )}
                     </div>
                     <Button
@@ -169,24 +168,18 @@ export const BulkAddToRouteDialog = ({
                       )}
                     >
                       <div className="flex items-center gap-3">
-                        <span aria-hidden className="h-10 w-1.5 shrink-0 rounded-full" style={{ background: r.color || "hsl(var(--muted-foreground))" }} />
+                        <span aria-hidden className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border text-foreground" style={{ borderColor: r.color || undefined, boxShadow: r.color ? `inset 0 3px 0 ${r.color}` : undefined }}>
+                          <span className="text-[9px] font-semibold uppercase leading-none text-muted-foreground">{format(parseISO(r.route_date), "EEE", { locale: da })}</span>
+                          <span className="text-base font-bold leading-tight tabular-nums">{format(parseISO(r.route_date), "d")}</span>
+                        </span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                            {format(parseISO(r.route_date), "EEEE d. MMMM", { locale: da })}
-                          </p>
                           <p className="truncate text-sm font-semibold leading-tight text-foreground">{r.name || "Uden navn"}</p>
-                          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
-                            <span className="inline-flex items-center gap-1 rounded-[5px] bg-secondary px-1.5 py-0.5">
-                              <ListOrdered className="h-3 w-3" />{r.stopCount} stop → {r.stopCount + jobs.length}
-                            </span>
-                            {r.employeeName ? (
-                              <span className="inline-flex min-w-0 items-center gap-1 truncate rounded-[5px] bg-secondary px-1.5 py-0.5">
-                                <User className="h-3 w-3 shrink-0" /><span className="truncate">{r.employeeName}</span>
-                              </span>
-                            ) : (
-                              <span className="rounded-[5px] border border-dashed border-border px-1.5 py-0.5">Ingen medarbejder</span>
-                            )}
-                          </div>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {format(parseISO(r.route_date), "d. MMMM", { locale: da })} · {r.employeeName || "Ingen medarbejder"}
+                          </p>
+                          <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
+                            {r.stopCount} stop <span aria-hidden>→</span> <span className="font-semibold text-foreground">{r.stopCount + jobs.length} stop</span>
+                          </p>
                         </div>
                         <span aria-hidden className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border", selected ? "border-foreground bg-foreground text-background" : "border-border")}>
                           {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
