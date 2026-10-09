@@ -2080,7 +2080,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[min(32rem,calc(100vw-2rem))] md:p-0 lg:bottom-[60px] lg:w-[34rem] xl:w-[38rem] 2xl:w-[42rem]">
-            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg md:max-w-none">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg sm:max-md:max-w-none md:max-w-none">
               {!collapsed && <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />}
               {!collapsed && <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>}
               <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border px-3 text-xs tabular-nums">
@@ -2098,7 +2098,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {activeNextStopLabel && <span>Tidsregistrering <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
                 </p>
               )}
-              <div className="route-dock-body sm:max-md:grid sm:max-md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] sm:max-md:items-center">
+              <div className="route-dock-body sm:max-md:grid sm:max-md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] sm:max-md:items-center">
               <Button
                 type="button"
                 variant="ghost"
