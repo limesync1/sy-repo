@@ -13,4 +13,4 @@
 - [x] Stabil offentlig navigation og indlæsningsvisninger uden headerskift
 - [x] Matchende planlæggerskeleton og oprydning i forældede indlæsningsvisninger
 - [x] Erstat hjælpecentrets fire ikoner med de vedhæftede PDF-illustrationer
-- [ ] Indlogget browserkontrol på mobil, tablet og computer
+- [x] Indlogget browserkontrol på mobil, tablet og computer (DK Renfyn; aftalevalg og bekræftelse uden ændring af kundeaftaler)

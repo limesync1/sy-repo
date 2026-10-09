@@ -69,7 +69,11 @@ export const BulkAddToRouteDialog = ({
 
   const filteredRoutes = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const list = routes.slice().sort((a, b) => a.route_date.localeCompare(b.route_date));
+    const list = routes.slice().sort((a, b) => {
+      if (a.id === initialRouteId) return -1;
+      if (b.id === initialRouteId) return 1;
+      return a.route_date.localeCompare(b.route_date);
+    });
     if (!q) return list;
     return list.filter((r) => {
       return (
@@ -78,7 +82,7 @@ export const BulkAddToRouteDialog = ({
         r.route_date.includes(q)
       );
     });
-  }, [routes, search]);
+  }, [routes, search, initialRouteId]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
