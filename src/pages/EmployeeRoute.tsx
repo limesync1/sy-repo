@@ -2015,7 +2015,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               const longStretch = maneuver.distanceToManeuverM > 2000 || curType === "depart";
               const road = maneuver.currentStep.name;
               return (
-                <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] pointer-events-none sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+                <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] pointer-events-none sm:left-4 sm:right-4 md:left-auto md:w-[min(32rem,calc(100vw-2rem))] lg:w-[34rem] xl:w-[38rem]">
                   <div className="overflow-hidden rounded-md border border-border bg-card text-foreground shadow-lg" aria-live="polite">
                     <div className="flex items-center gap-3 px-3 py-2">
                       {longStretch
@@ -2043,7 +2043,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Ankomst-HUD: parkeret ved kunden */}
             {isAtNextStop && nextStop && (
-              <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+              <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] sm:left-4 sm:right-4 md:left-auto md:w-[min(32rem,calc(100vw-2rem))] lg:w-[34rem] xl:w-[38rem]">
                 <div className="overflow-hidden rounded-xl border border-success/40 bg-card text-foreground shadow-lg" role="status" aria-live="polite">
                   <div className="flex items-center gap-3 px-3.5 py-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><MapPin className="h-5 w-5" /></span>
@@ -2107,8 +2107,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
-            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border/80 bg-card shadow-lg">
+          <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[min(32rem,calc(100vw-2rem))] md:p-0 lg:bottom-[60px] lg:w-[34rem] xl:w-[38rem] 2xl:w-[42rem]">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg md:max-w-none">
               <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />
               <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>
               {/* Tidsregistrering — én kompakt linje */}
