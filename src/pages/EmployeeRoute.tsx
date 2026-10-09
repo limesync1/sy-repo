@@ -363,7 +363,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [searchParams, setSearchParams] = useSearchParams();
   // Default: kompakt (kun header) — så medarbejderen ALTID kan se kortet/ruten.
   // Detaljer kan udvides med ét tap på kortet.
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(() => typeof window === "undefined" || window.innerWidth < 1024);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number | null>(null);
   // Rå GPS-fix fra browseren — sendes gennem useGpsFilter som udjævner
@@ -1548,7 +1548,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setRouteStartedAt(markRouteStarted(routeId));
     setRouteStarted(true);
     setFollowMode(true);
-    setCollapsed(true);
+    setCollapsed(window.innerWidth < 1024);
     if (mode === "guide" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {

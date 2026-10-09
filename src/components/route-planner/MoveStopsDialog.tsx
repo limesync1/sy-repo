@@ -31,6 +31,7 @@ import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
 import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
 import { IndustryIcon } from "@/components/IndustryIcon";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -398,10 +399,12 @@ export const MoveStopsDialog = ({ open, onOpenChange, route: routeProp, stops, d
       <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
+            icon={<BrandedIllustration name="calendarWeek" className="h-8 w-8" />}
+            iconClassName="h-11 w-11 rounded-md bg-card border border-border"
             title={<DialogTitle className="text-base">Flyt aftaler</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vælg aftaler og hvor de skal hen.
+                Vælg aftaler, ny dato eller rute, og om kun dette besøg eller også de kommende skal flyttes.
               </DialogDescription>
             }
           />
