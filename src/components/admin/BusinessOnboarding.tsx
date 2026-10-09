@@ -370,27 +370,10 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         }
       />
 
-      {/* Fakta-stribe — samme design og bredde som på /software */}
-      <div className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-7 gap-y-2 px-4 py-4 sm:px-6 lg:px-8">
-          {[
-            "CVR-verificeret onboarding",
-            "Ingen binding — opsig når som helst",
-            "Dansk support på hverdage",
-          ].map((f) => (
-            <span key={f} className="inline-flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
-              <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
-              {f}
-            </span>
-          ))}
-        </div>
-      </div>
-
-
-      <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         {breadcrumb}
         {/* Layout: form til venstre, sticky pris-summary til højre */}
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.75fr)] xl:gap-8">
           {/* ─── VENSTRE: form-sektioner ─── */}
           <div className="space-y-6">
             {/* 1. CVR */}
@@ -480,7 +463,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                            : "border-border bg-card hover:border-foreground/20"
                        }`}
                     >
-                       <div className="flex h-16 w-16 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px]">
+                       <div className="flex h-12 w-12 shrink-0 items-center justify-center sm:h-14 sm:w-14">
                          <BrandedIllustration name={illustration} className="h-full w-full" alt="" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -623,7 +606,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           </div>
 
           {/* ─── HØJRE: Sticky pris-summary ─── */}
-          <aside className="lg:sticky lg:top-6 lg:self-start">
+          <aside className="xl:sticky xl:top-6 xl:self-start">
             <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.12)]">
               {/* Accentstribe i toppen — gør kortet til "the main event" på siden */}
               <div
@@ -772,7 +755,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           ikke se prisen mens de scroller. Denne bar viser totalen og en
           shortcut til "Start gratis prøve" eller scroll-til-konto. */}
       {pricing && breakdown && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.25)] backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-12px_30px_-18px_hsl(var(--foreground)/0.25)] backdrop-blur xl:hidden">
           <div
             aria-hidden
             className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent via-foreground to-accent"
@@ -803,7 +786,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         </div>
       )}
       {/* Spacer så sticky-bar ikke dækker footer-indhold på mobil */}
-      <div className="h-20 lg:hidden" aria-hidden />
+      <div className="h-24 xl:hidden" aria-hidden />
 
       <Footer />
     </div>
@@ -817,7 +800,7 @@ const Section = ({
   number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
   <section
-    className={`relative rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md sm:p-6 ${
+    className={`relative rounded-lg border bg-card p-4 shadow-sm transition-all sm:p-6 ${
       done ? "border-accent/40" : "border-border"
     }`}
   >
