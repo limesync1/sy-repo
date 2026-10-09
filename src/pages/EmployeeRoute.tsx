@@ -1548,7 +1548,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setRouteStartedAt(markRouteStarted(routeId));
     setRouteStarted(true);
     setFollowMode(true);
-    setCollapsed(true);
+    setCollapsed(window.innerWidth < 1024);
     if (mode === "guide" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
