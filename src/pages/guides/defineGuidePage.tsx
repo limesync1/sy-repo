@@ -147,8 +147,8 @@ export function defineGuidePage(cfg: GuideConfig) {
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <article className="article-content prose prose-neutral dark:prose-invert">
-          <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
-            <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
+          <div className="my-6 rounded-lg border border-border bg-muted/40 p-4 sm:my-8 sm:p-5">
+            <p className="sr-only">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
               {cfg.quickFacts.map((f, i) => (
                 <li key={i}>{f}</li>
@@ -162,7 +162,7 @@ export function defineGuidePage(cfg: GuideConfig) {
             heading={`Få 3 gratis tilbud${cfg.ctaCategory ? ` på ${cfg.ctaCategory.toLowerCase()}` : ""}`}
           />
 
-          <div className="not-prose my-8 overflow-x-auto rounded-lg border border-border">
+          <div className="not-prose guide-price-table my-8 overflow-hidden rounded-lg border border-border">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/60 text-foreground">
                 <tr>
@@ -210,7 +210,7 @@ export function defineGuidePage(cfg: GuideConfig) {
             </Fragment>
           ))}
 
-          <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
+          <div className="not-prose my-10 rounded-lg border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">{cfg.cta.heading}</h2>
             <p className="mt-2 text-foreground/80">{cfg.cta.body}</p>
             <div className="mt-5 flex flex-wrap gap-3">

@@ -11,9 +11,9 @@ const ITEMS: { title: string; body: string }[] = [
 ];
 
 const TrustBar = () => (
-  <div className="not-prose my-8 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-4 shadow-panel sm:grid-cols-2 lg:grid-cols-4">
+  <div className="not-prose my-8 grid grid-cols-2 gap-2 rounded-lg border border-border bg-card p-3 shadow-panel sm:gap-3 sm:p-4 lg:grid-cols-4">
     {ITEMS.map((s) => (
-      <div key={s.title} className="rounded-xl bg-muted/35 px-4 py-4">
+      <div key={s.title} className="rounded-md bg-muted/35 px-3 py-3 sm:px-4 sm:py-4">
         <p className="text-sm font-semibold tracking-tight text-foreground">{s.title}</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{s.body}</p>
       </div>

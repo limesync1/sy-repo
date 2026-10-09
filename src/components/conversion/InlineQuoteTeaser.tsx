@@ -39,13 +39,12 @@ const InlineQuoteTeaser = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="not-prose my-8 rounded-2xl border border-border bg-card p-5 shadow-panel sm:p-6"
+      className="not-prose my-8 rounded-lg border border-border bg-card p-5 shadow-panel sm:p-6"
       aria-label="Start tilbudsforespørgsel"
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Gratis tilbud</p>
-          <p className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{heading}</p>
+          <p className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{heading}</p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Indtast dit postnummer — vi finder relevante udbydere på under 24 timer.
           </p>
