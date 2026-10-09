@@ -15,7 +15,7 @@ import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton"
 import { MinDagSkeleton } from "@/components/employee/MinDagSkeleton";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
-import BetaNotice from "@/components/BetaNotice";
+import { PublicNavigation } from "@/components/PublicNavigation";
 import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
 import StickyMobileCTA from "@/components/conversion/StickyMobileCTA";
 import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
@@ -237,9 +237,6 @@ const PageFallback = () => {
   if (isPanel) return <ShellSkeleton variant={path.startsWith("/medarbejder") ? "employee" : path.startsWith("/admin") ? "platform" : "business"} />;
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
-      <div className="flex h-16 items-center justify-between border-b border-border px-4 sm:px-8">
-        <Skeleton className="h-8 w-36" /><Skeleton className="h-9 w-28 rounded-full" />
-      </div>
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-8">
         <Skeleton className="h-10 w-2/3 max-w-xl" />
         <Skeleton className="mt-4 h-4 w-1/2 max-w-md" />
@@ -339,8 +336,7 @@ const App = () => (
             <IdlePrefetcher />
             <DeployVersionWatcher />
             <StickyMobileCTA />
-            {/* Testfase-besked øverst på alle offentlige sider. */}
-            <BetaNotice />
+            <PublicNavigation>
             <ChunkErrorBoundary>
             <Suspense fallback={<PageFallback />}>
             <Routes>
@@ -463,6 +459,7 @@ const App = () => (
             </Routes>
             </Suspense>
             </ChunkErrorBoundary>
+            </PublicNavigation>
             </TooltipProvider>
           </CartProvider>
         </BrowserRouter>

@@ -10,7 +10,7 @@ export default function PlannerSkeleton() {
   return (
     <div className="planner-canvas flex h-full w-full flex-col gap-2 p-2 lg:p-3" aria-busy="true">
       {/* Topbar */}
-      <div className="planner-toolbar hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1.5 [@media(min-width:1100px)]:flex 2xl:hidden">
+      <div className="planner-toolbar hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1.5 [@media(min-width:1100px)]:flex">
         <Skeleton className="h-8 w-8 rounded-md" />
         <Skeleton className="h-8 w-40 rounded-md" />
         <Skeleton className="h-8 w-8 rounded-md" />
@@ -29,13 +29,14 @@ export default function PlannerSkeleton() {
           </div>
           <Skeleton className="h-8 w-8 rounded-[4px]" />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Skeleton className="h-11 rounded-[4px]" />
-          <Skeleton className="h-11 rounded-[4px]" />
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-28 rounded-[4px]" />
+          <Skeleton className="ml-auto h-9 w-16 rounded-[4px]" />
+          <Skeleton className="h-9 w-9 rounded-[4px]" />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Skeleton className="h-10 rounded-md" />
-          <Skeleton className="h-10 rounded-md" />
+          <Skeleton className="h-11 rounded-md" />
+          <Skeleton className="h-11 rounded-md" />
         </div>
       </div>
 
@@ -72,13 +73,13 @@ export default function PlannerSkeleton() {
 
         {/* Kalender */}
         <main className="flex min-w-0 flex-col overflow-hidden bg-background">
-          <div className="flex shrink-0 items-center gap-2 border-b border-border bg-card px-3 py-2">
+          <div className="hidden shrink-0 items-center gap-2 border-b border-border bg-card px-3 py-2 [@media(min-width:1100px)]:flex">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-6 w-24 rounded-full" />
             <Skeleton className="h-6 w-24 rounded-full" />
             <Skeleton className="ml-auto h-4 w-16" />
           </div>
-          <div className="hidden shrink-0 border-b border-border bg-card sm:grid" style={{ gridTemplateColumns: "var(--planner-week-col, 44px) repeat(7, minmax(0, 1fr))" }}>
+          <div className="hidden shrink-0 border-b border-border bg-card [@media(min-width:1100px)]:grid" style={{ gridTemplateColumns: "var(--planner-week-col, 44px) repeat(7, minmax(0, 1fr))" }}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex items-center justify-center border-r border-border/70 p-2 last:border-r-0">
                 <Skeleton className="h-2.5 w-8" />
@@ -87,7 +88,7 @@ export default function PlannerSkeleton() {
           </div>
           <div className="min-h-0 flex-1 overflow-hidden">
             {/* Desktop: 7-kolonners grid. Mobil: agenda-liste. */}
-            <div className="hidden h-full sm:block">
+            <div className="hidden h-full [@media(min-width:1100px)]:block">
               {Array.from({ length: 5 }).map((_, w) => (
                 <div
                   key={w}
@@ -106,7 +107,7 @@ export default function PlannerSkeleton() {
                 </div>
               ))}
             </div>
-            <div className="space-y-2 p-2 sm:hidden">
+            <div className="space-y-2 p-2 [@media(min-width:1100px)]:hidden">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="space-y-2 rounded-lg border border-border bg-card p-3">
                   <div className="flex items-center gap-2">
@@ -121,6 +122,7 @@ export default function PlannerSkeleton() {
           </div>
         </main>
       </div>
+      <Skeleton className="h-12 w-full shrink-0 rounded-md [@media(min-width:1100px)]:hidden" />
     </div>
   );
 }

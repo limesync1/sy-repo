@@ -75,10 +75,10 @@ import appointmentCompletedNew from "@/assets/panel-icons/marker-aftale-udfoert.
 
 import economicIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/e-conomic-integration.svg?inline";
 import dineroIntegrationAsset from "@/assets/section-icons/virksomhed-regnskab/dinero-integration.svg?inline";
-import helpFindProviderAsset from "@/assets/section-icons/hjaelp/find-en-serviceudbyder.svg";
-import helpQuotesAsset from "@/assets/section-icons/hjaelp/indhent-3-tilbud.svg";
-import helpBecomeProviderAsset from "@/assets/section-icons/hjaelp/bliv-udbyder.svg";
-import helpGuidesAsset from "@/assets/section-icons/hjaelp/guides-og-priser.svg";
+import helpFindProviderAsset from "@/assets/help-center/find-en-serviceyder.webp.asset.json";
+import helpQuotesAsset from "@/assets/help-center/indhent-3-tilbud.webp.asset.json";
+import helpBecomeProviderAsset from "@/assets/help-center/bliv-udbyder.webp.asset.json";
+import helpGuidesAsset from "@/assets/help-center/guides-og-priser.webp.asset.json";
 
 import routeReady from "@/assets/illustrations/employee/start-rute.svg.asset.json";
 import noItems from "@/assets/content-icons/ingen-emner-generel.svg.asset.json";
@@ -135,10 +135,10 @@ export const BRANDED_ILLUSTRATIONS = {
   unassignedAppointments: unassignedAppointmentsNew.url,
   economicIntegration: economicIntegrationAsset,
   dineroIntegration: dineroIntegrationAsset,
-  helpFindProvider: helpFindProviderAsset,
-  helpQuotes: helpQuotesAsset,
-  helpBecomeProvider: helpBecomeProviderAsset,
-  helpGuides: helpGuidesAsset,
+  helpFindProvider: helpFindProviderAsset.url,
+  helpQuotes: helpQuotesAsset.url,
+  helpBecomeProvider: helpBecomeProviderAsset.url,
+  helpGuides: helpGuidesAsset.url,
   shareProfile: shareProfileNew.url,
   addService: addServiceNew.url,
   team: employeesNew.url,

@@ -46,13 +46,14 @@ type Props = {
   jobs: BulkAddJobItem[];
   routes: BulkAddRouteOption[];
   loading: boolean;
+  initialRouteId?: string | null;
   progress?: { done: number; total: number } | null;
   onRemoveJob: (id: string) => void;
   onConfirm: (routeId: string) => void;
 };
 
 export const BulkAddToRouteDialog = ({
-  open, onOpenChange, jobs, routes, loading, progress, onRemoveJob, onConfirm,
+  open, onOpenChange, jobs, routes, loading, progress, onRemoveJob, onConfirm, initialRouteId,
 }: Props) => {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -61,10 +62,10 @@ export const BulkAddToRouteDialog = ({
   // forrige session lander på en rute der ikke længere er synlig.
   useEffect(() => {
     if (open) {
-      setSelectedRouteId(null);
+      setSelectedRouteId(initialRouteId ?? null);
       setSearch("");
     }
-  }, [open]);
+  }, [open, initialRouteId]);
 
   const filteredRoutes = useMemo(() => {
     const q = search.trim().toLowerCase();

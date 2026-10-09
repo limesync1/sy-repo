@@ -199,8 +199,8 @@ const HelpCenter = () => {
                   to={t.to}
                   className="group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
                 >
-                  <div className="relative flex h-20 w-20 items-center justify-center">
-                    <BrandedIllustration name={t.illustration} className="h-full w-full" alt="" />
+                  <div className="relative flex h-20 w-20 items-center justify-center rounded-lg bg-site-header-background p-2">
+                    <BrandedIllustration name={t.illustration} className="h-full w-full" alt="" width={64} height={64} />
                   </div>
                   <div className="relative mt-6">
                     <h3 className="text-[16px] font-semibold leading-tight tracking-tight">{t.title}</h3>

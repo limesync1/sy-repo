@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
+import { usePersistentPublicNavigation } from "./PublicNavigation";
+import BetaNotice from "./BetaNotice";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -20,6 +22,7 @@ import logoutIcon from "@/assets/header-simple/Log_ud_simpel.svg.asset.json";
 import loginIcon from "@/assets/header-simple/Log_ind_simpel.svg.asset.json";
 
 interface Props {
+  persistent?: boolean;
   active?: "search" | "quote" | "business" | "software" | null;
   right?: React.ReactNode;
 }
@@ -72,7 +75,8 @@ const PanelIcon = ({ role, selected, size = "md" }: { role: PanelRole; selected:
   );
 };
 
-const SiteNav = ({ active, right }: Props) => {
+const SiteNav = ({ active, right, persistent = false }: Props) => {
+  const hasPersistentNavigation = usePersistentPublicNavigation();
   const [open, setOpen] = useState(false);
   // Læs præference synkront ved første render — så panel-knappen aldrig
   // "popper" fra tom → admin når brugeren navigerer mellem sider.
@@ -99,10 +103,11 @@ const SiteNav = ({ active, right }: Props) => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user!.id);
+        .eq("user_id", user.id);
       if (error) throw error;
       return (data || []).map((entry) => entry.role);
     },
@@ -177,8 +182,13 @@ const SiteNav = ({ active, right }: Props) => {
     navigate("/");
   };
 
+  useEffect(() => { setOpen(false); }, [pathname]);
+  if (hasPersistentNavigation && !persistent) return null;
+
   return (
-    <nav className="site-nav-light sticky top-0 z-40 border-b border-border bg-[hsl(var(--site-header-background))]">
+    <header className="site-nav-light sticky top-0 z-40 bg-site-header-background" data-public-navigation>
+    <BetaNotice />
+    <nav aria-label="Serviceydere navigation" className="border-b border-border bg-site-header-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 py-3 sm:py-3.5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
@@ -390,6 +400,7 @@ const SiteNav = ({ active, right }: Props) => {
         )}
       </div>
     </nav>
+    </header>
   );
 };
 
