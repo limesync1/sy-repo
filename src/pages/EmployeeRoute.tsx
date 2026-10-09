@@ -2098,6 +2098,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {activeNextStopLabel && <span>Tidsregistrering <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span>}
                 </p>
               )}
+              <div className="route-dock-body sm:max-md:grid sm:max-md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] sm:max-md:items-center">
               <Button
                 type="button"
                 variant="ghost"
@@ -2168,11 +2169,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 ) : null}
               </Button>
 
-              {isAtNextStop && nextStop.notes?.trim() && <p className="max-h-16 overflow-y-auto border-t border-border px-3 py-2 text-xs leading-5 text-foreground">{nextStop.notes}</p>}
               {/* Altid synlig: kompakt CTA-rad — så medarbejderen kan markere
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
-                <div className="border-t border-border/60 bg-secondary/25 px-3 py-2">
+                <div className="border-t border-border/60 bg-secondary/25 px-3 py-2 sm:max-md:h-full sm:max-md:border-l sm:max-md:border-t-0">
                   {activeNextStopEntry ? (
                     <Button
                       onClick={() => handleComplete(nextStop)}
@@ -2193,7 +2193,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                           toast.error("Aftalen kunne ikke startes", { description: "Tjek din forbindelse og prøv igen." });
                         }
                       }}
-                      className="h-11 w-full gap-2 rounded-md text-sm font-semibold"
+                      className="brand-blue-action h-11 w-full gap-2 rounded-md text-sm font-semibold shadow-sm"
                       disabled={startStopTime.isPending || routeDateLocked || !meEmp?.id}
                     >
                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -2201,8 +2201,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </Button>
                   ) : null}
                   <div className={cn("flex items-center gap-2", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 min-w-0 flex-1 gap-1 rounded-md px-2 text-[11px] sm:text-xs"><Info className="h-4 w-4 shrink-0" />Oplysninger</Button>
-                  {latestCompleted && <Button variant="undo" className="h-11 min-w-0 flex-1 gap-1 whitespace-normal px-2 text-[11px] leading-tight sm:text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 min-w-0 flex-1 gap-1.5 rounded-md px-2 text-xs font-semibold"><Info className="h-4 w-4 shrink-0" />Oplysninger</Button>
+                  {latestCompleted && <Button variant="undo" className="h-11 min-w-0 flex-1 gap-1.5 rounded-md px-2 text-xs font-semibold leading-tight" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
@@ -2213,7 +2213,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ) : null}
                   </div>
                 </div>
-
+              </div>
+              {isAtNextStop && nextStop.notes?.trim() && <p className="max-h-16 overflow-y-auto border-t border-border px-3 py-2 text-xs leading-5 text-foreground">{nextStop.notes}</p>}
             </Card>
           </div>
         )}
