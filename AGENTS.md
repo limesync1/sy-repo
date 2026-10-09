@@ -40,3 +40,4 @@
 - Compact planning uses tap assignment/reorder. Dialogs reuse names/employees and native scrolling. Density/card detail persist independently; scoped sizing beats overrides.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
+- Panel page headers share `PageHeader`/`.panel-page-hero` ocean styling, so every panel page inherits the front-page visual language from one place.
