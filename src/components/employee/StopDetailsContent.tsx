@@ -405,8 +405,8 @@ export const StopDetailsContent = ({
 
         <Section
           icon={<Package className="h-3.5 w-3.5" />}
-          title="Bestilte ydelser"
-          hint={tasks.length > 0 ? `${tasks.length} ${tasks.length === 1 ? "ydelse" : "ydelser"}` : undefined}
+          title="Bestilte services"
+          hint={tasks.length > 0 ? `${tasks.length} ${tasks.length === 1 ? "service" : "services"}` : undefined}
         >
           {loadingOrder && tasks.length === 0 && !fallbackSummary ? (
             <div className="rounded-md border bg-secondary/30 p-3 flex items-center gap-2 text-sm text-muted-foreground">
