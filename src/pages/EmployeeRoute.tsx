@@ -1743,7 +1743,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <div className={cn(
           "z-[1003]",
           routeStarted && !allDone
-            ? "drive-route-notification absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]"
+            ? "drive-route-notification relative shrink-0 border-b border-border bg-card px-3 py-2 max-h-[18dvh] overflow-y-auto"
             : "relative border-b border-destructive/25 bg-destructive/5 px-3 py-2",
         )}>
           <div className={cn("mx-auto flex max-w-3xl items-start gap-2", routeStarted && !allDone && "rounded-md border border-destructive/25 bg-card/95 p-2.5 shadow-lg backdrop-blur-md")}>
@@ -1768,6 +1768,27 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           onRetry={() => { setNightMapFailed(false); setNightMapRetry(v => v + 1); }}
         />
       )}
+
+      <div className="shrink-0 max-h-[18dvh] overflow-y-auto">
+            {geocodeError && <div role="alert" className="relative shrink-0 rounded-md border border-destructive/25 bg-card p-3 text-xs shadow-lg"><p className="font-semibold text-destructive">{geocodeError}</p><Button variant="outline" size="sm" className="mt-2" onClick={retryGeocoding}>Prøv adresseopslaget igen</Button></div>}
+            {unresolvedAddresses.length > 0 && (
+              <div className="relative shrink-0 rounded-md border border-destructive/25 bg-card/95 p-2 text-[11px] leading-5 text-muted-foreground shadow-lg backdrop-blur-md ">
+                <p className="font-semibold text-destructive">{unresolvedAddresses.length === 1 ? "1 adresse kunne ikke findes" : `${unresolvedAddresses.length} adresser kunne ikke findes`}</p>
+                <ul className="mt-0.5 space-y-0.5">
+                  {unresolvedAddresses.slice(0, 3).map((addr) => (
+                    <li key={addr}>Adressen kunne ikke findes: {addr}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+      </div>
+        {routeStarted && (directionsError || directions?.provider === "fallback") && (
+          <div className="relative shrink-0 rounded-md border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md ">
+            <p className="text-sm font-semibold text-foreground">Vejvisningen kunne ikke hentes</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Den stiplede linje viser kun retningen — ikke en kørbar vej.</p>
+            <Button type="button" variant="outline" size="sm" className="mt-2 h-9" onClick={() => retryDirections()}>Prøv igen</Button>
+          </div>
+        )}
 
       {/* ─── Map fills everything ─── */}
       <div className={cn("route-map-stage relative flex-1 min-h-0", routeStarted && !allDone && "route-map-stage-driving")}>
@@ -1799,17 +1820,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         ) : (
           <>
-            {geocodeError && <div role="alert" className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card p-3 text-xs shadow-lg"><p className="font-semibold text-destructive">{geocodeError}</p><Button variant="outline" size="sm" className="mt-2" onClick={retryGeocoding}>Prøv adresseopslaget igen</Button></div>}
-            {unresolvedAddresses.length > 0 && (
-              <div className="absolute inset-x-2 top-2 z-[1002] rounded-md border border-destructive/25 bg-card/95 p-2 text-[11px] leading-5 text-muted-foreground shadow-lg backdrop-blur-md sm:inset-x-4">
-                <p className="font-semibold text-destructive">{unresolvedAddresses.length === 1 ? "1 adresse kunne ikke findes" : `${unresolvedAddresses.length} adresser kunne ikke findes`}</p>
-                <ul className="mt-0.5 space-y-0.5">
-                  {unresolvedAddresses.map((addr) => (
-                    <li key={addr}>Adressen kunne ikke findes: {addr}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           <MapContainer
             center={userPos ?? allPoints[0] ?? [56.1, 10.2]}
             zoom={13}
@@ -1934,14 +1944,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </>
         )}
 
-        {routeStarted && (directionsError || directions?.provider === "fallback") && (
-          <div className="absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1001] rounded-md border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
-            <p className="text-sm font-semibold text-foreground">Vejvisningen kunne ikke hentes</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Den stiplede linje viser kun retningen — ikke en kørbar vej.</p>
-            <Button type="button" variant="outline" size="sm" className="mt-2 h-9" onClick={() => retryDirections()}>Prøv igen</Button>
-          </div>
-        )}
-
         {/* ─── "Ruten kan køres hurtigere" — vises kun når der reelt er
              minutter at hente i en anden rækkefølge. ─── */}
 
@@ -1949,7 +1951,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Aktiv kørselsbjælke: alle primære kontroller samlet ét sted ─── */}
         {routeStarted && !allDone && (
           <>
-            <div className="absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
+            <div className="route-hud-stack pointer-events-none absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] flex flex-col gap-2 sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
+            <div className="pointer-events-auto">
               <div className="flex h-12 w-full items-center gap-1 rounded-md border border-border bg-card/95 px-1 text-foreground shadow-lg backdrop-blur-md">
                 <Button
                   type="button"
@@ -1976,7 +1979,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   size="icon"
                   className={cn("h-10 w-10 shrink-0", listOpen && "bg-secondary")}
                   onClick={() => setListOpen((value) => !value)}
-                  aria-label="Vis alle stops"
+                  aria-label="Vis alle stop" title="Vis alle stop"
                   aria-pressed={listOpen}
                 >
                   <List className="h-5 w-5" />
@@ -2007,7 +2010,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
 
             {/* Næste manøvre — hvidt HUD-kort i Google Maps-stil */}
-            {!isRerouting && !trafficAlert && showManeuverBanner && maneuver && nextStop && (() => {
+            {!isRerouting && !directionsError && directions?.provider !== "fallback" && showManeuverBanner && maneuver && nextStop && (() => {
               const thenStep = directions?.steps?.[maneuver.stepIndex + 1];
               const thenType = (thenStep?.maneuver?.type || "").toLowerCase();
               const showThen = thenStep && thenType !== "arrive" && maneuver.distanceToManeuverM < 500;
@@ -2015,7 +2018,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               const longStretch = maneuver.distanceToManeuverM > 2000 || curType === "depart";
               const road = maneuver.currentStep.name;
               return (
-                <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] pointer-events-none sm:left-4 sm:right-4 md:left-auto md:w-[min(32rem,calc(100vw-2rem))] lg:w-[34rem] xl:w-[38rem]">
+                <div className="route-maneuver relative">
                   <div className="overflow-hidden rounded-md border border-border bg-card text-foreground shadow-lg" aria-live="polite">
                     <div className="flex items-center gap-3 px-3 py-2">
                       {longStretch
@@ -2023,7 +2026,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-8 w-8 shrink-0" />}
                       <div className="min-w-0 flex-1">
                         <p className="text-xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
-                        <p className="mt-1 truncate text-sm font-semibold">
+                        <p className="mt-1 whitespace-normal break-words text-sm font-semibold leading-snug">
                           {longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
                           {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}
                         </p>
@@ -2041,41 +2044,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               );
             })()}
 
-            {/* Ankomst-HUD: parkeret ved kunden */}
-            {isAtNextStop && nextStop && (
-              <div className="route-maneuver absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] sm:left-4 sm:right-4 md:left-auto md:w-[min(32rem,calc(100vw-2rem))] lg:w-[34rem] xl:w-[38rem]">
-                <div className="overflow-hidden rounded-xl border border-success/40 bg-card text-foreground shadow-lg" role="status" aria-live="polite">
-                  <div className="flex items-center gap-3 px-3.5 py-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><MapPin className="h-5 w-5" /></span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-success">Du er fremme</p>
-                      <p className="truncate text-base font-bold">{nextStop.customer_name || "Stop"}</p>
-                    </div>
-                  </div>
-                  {(() => {
-                    const notes = (nextStop.notes || "").trim();
-                    const code = notes.match(/(?:dør|port|gade|nøgle)?\s*kode\s*[:\-]?\s*([0-9A-Za-z#*]{2,12})/i)?.[1] ?? null;
-                    const service = nextStop.service_summary ? stripPrices(nextStop.service_summary) : "";
-                    return (
-                      <div className="space-y-1.5 border-t border-border px-3.5 py-2.5 text-sm">
-                        {code && (
-                          <p className="flex items-center gap-2"><span className="text-xs font-medium text-muted-foreground">Kode</span><span className="rounded bg-secondary px-2 py-0.5 font-mono text-base font-bold tracking-widest">{code}</span></p>
-                        )}
-                        {service && <p className="truncate text-muted-foreground">{service}</p>}
-                        {notes && <p className="line-clamp-3 text-foreground">{notes}</p>}
-                        {activeNextStopLabel && (
-                          <p className="flex items-center gap-2 text-xs text-muted-foreground"><span>Tidsregistrering</span><span className="font-mono text-sm font-semibold text-foreground tabular-nums">{activeNextStopLabel}</span></p>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-
             {/* Reroute-banner — Google Maps-stil "genberegner" prompt */}
             {isRerouting && (
-              <div className="pointer-events-none absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1001] sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+              <div className="relative">
                 <div
                   className="flex items-center gap-3 rounded-md border bg-background/95 px-3 py-2.5 shadow-xl backdrop-blur animate-in fade-in slide-in-from-top-2 duration-200"
                 >
@@ -2096,12 +2067,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             )}
 
             {!isRerouting && !isAtNextStop && trafficAlert && (
-              <div role="status" className="absolute left-2 right-2 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[1000] flex items-center gap-2 rounded-md border border-warning/30 bg-card px-3 py-2 text-xs text-foreground sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem]">
+              <div role="status" className="pointer-events-auto relative flex items-center gap-2 rounded-md border border-warning/30 bg-card px-3 py-1 text-xs text-foreground">
                 <TrafficCone className="h-4 w-4 shrink-0 text-warning" />
                 <span className="min-w-0 flex-1">Trafik · ca. {trafficAlert.addedMin} min ekstra</span>
                 <Button variant="ghost" size="sm" className="h-11" onClick={() => setTrafficAlert(null)}>Luk</Button>
               </div>
             )}
+            </div>
           </>
         )}
 
@@ -2109,10 +2081,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && nextStop && (
           <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[min(32rem,calc(100vw-2rem))] md:p-0 lg:bottom-[60px] lg:w-[34rem] xl:w-[38rem] 2xl:w-[42rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg md:max-w-none">
-              <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />
-              <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>
+              {!collapsed && <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />}
+              {!collapsed && <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>}
+              <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border px-3 text-xs tabular-nums">
+                <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground" role="status">
+                  {activeNextStopLabel ? <><Clock className="h-4 w-4 text-success" /><span>Arbejder <b className="font-semibold text-success">{activeNextStopLabel}</b></span></> : isAtNextStop ? <><CheckCircle2 className="h-4 w-4 text-success" /><span className="font-semibold text-success">Hos kunden{actualArrival ? ` · ${formatClockTime(actualArrival)}` : ""}</span></> : <><Navigation className="h-4 w-4" /><span>Ankomst · ca. <b className="text-foreground">{etaLabel ?? "—"}</b></span>{liveDurationS != null && <span>· {formatMin(liveDurationS)}</span>}</>}
+                </p>
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" aria-label={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} title={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}>{collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</Button>
+              </div>
               {/* Tidsregistrering — én kompakt linje */}
-              {routeStartedAt && (
+              {!collapsed && routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">
                   <span>Start <b className="font-semibold text-foreground">{formatClockTime(routeStartedAt)}</b></span>
                   <span>Køretid · ca. <b className="font-semibold text-foreground">{timeError || timeLoading || metrics.driveEstimateSeconds == null ? "—" : formatRunDuration(metrics.driveEstimateSeconds)}</b></span>
@@ -2190,10 +2168,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 ) : null}
               </Button>
 
+              {isAtNextStop && nextStop.notes?.trim() && <p className="max-h-16 overflow-y-auto border-t border-border px-3 py-2 text-xs leading-5 text-foreground">{nextStop.notes}</p>}
               {/* Altid synlig: kompakt CTA-rad — så medarbejderen kan markere
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
-              {collapsed && (
+              {true && (
                 <div className="flex flex-wrap items-center gap-2 border-t border-border/60 bg-secondary/25 px-3 py-2">
                   {activeNextStopEntry ? (
                     <Button
@@ -2221,12 +2200,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       {startStopTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                       Start aftale
                     </Button>
-                  ) : (
-                    <p className="flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm text-muted-foreground" role="status"><Navigation className="h-4 w-4 shrink-0" /><span className="truncate">{liveDurationS != null ? `${formatMin(liveDurationS)} · ${formatKm(liveDistanceM)}` : "Vejvisning mod næste stop"}</span></p>
-                  )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className={cn("h-11 gap-1.5 rounded-md px-3 text-xs", activeNextStopEntry || isAtNextStop || latestCompleted ? "flex-1" : "shrink-0")}><Info className="h-4 w-4" />Oplysninger</Button>
+                  ) : null}
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className={cn("h-11 gap-1.5 rounded-md px-3 text-xs", "flex-1")}><Info className="h-4 w-4" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 flex-1 gap-1.5 px-2 text-xs" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
-                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} />
+                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
                       <a href={`tel:${nextStop.customer_phone}`}>
@@ -2237,68 +2214,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               )}
 
-              {!collapsed && (
-                <div className="p-3 pt-2 space-y-2.5 border-t border-border/60">
-                  {/* Adresse + service */}
-                  {((nextStop.full_address || nextStop.address) || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
-                    <div className="rounded-md bg-secondary/40 border border-border/60 p-2.5 space-y-1.5">
-                      {(nextStop.full_address || nextStop.address) && (
-                        <p
-                          className="text-[13px] flex items-start gap-1.5 leading-snug"
-                          title={nextStop.full_address || nextStop.address || undefined}
-                        >
-                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
-                          <span className="font-semibold text-foreground">{nextStop.full_address || nextStop.address}</span>
-                        </p>
-                      )}
-                      {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
-                        <p className="text-[12px] text-muted-foreground line-clamp-2 pl-5">
-                          {stripPrices(nextStop.service_summary)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Info-grid: km, tid, ETA */}
-                  {(directions || etaLabel) && (
-                    <div className="grid grid-cols-3 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Distance</p>
-                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
-                            {liveDistanceM != null ? formatKm(liveDistanceM) : "—"}
-                          </p>
-                        </div>
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Køretid</p>
-                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
-                            {(() => {
-                              const d = liveDurationS;
-                              return d != null ? formatMin(d) : "—";
-                            })()}
-                          </p>
-                        </div>
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Ankomst</p>
-                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
-                            {etaLabel || "—"}
-                          </p>
-                        </div>
-                    </div>
-                  )}
-
-                  {/* Sekundær handling — kun "Detaljer" (Maps/Ring/Markér udført
-                      ligger allerede i den altid-synlige action-rad ovenfor, så
-                      vi undgår dobbeltvisning og holder kortet kompakt). */}
-                  <Button
-                    onClick={() => setSelectedId(nextStop.id)}
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-1.5 h-10 rounded-md text-xs font-semibold border-border hover:bg-secondary transition-colors"
-                  >
-                    <Info className="h-3.5 w-3.5" /> Aftalens oplysninger
-                  </Button>
-                </div>
-              )}
             </Card>
           </div>
         )}

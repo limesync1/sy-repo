@@ -7,10 +7,11 @@
 // Prisen regnes altid endeligt på serveren. Optimeret til mobil/tablet.
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle } from "lucide-react";
+import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -55,8 +56,8 @@ const pricingFromItem = (item: any): PricingState => {
   };
 };
 
-export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, routeDate = null }: {
-  stopId: string; order: any; completed: boolean; noteOnly?: boolean; routeDate?: string | null;
+export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, routeDate = null, compact = false }: {
+  stopId: string; order: any; completed: boolean; noteOnly?: boolean; routeDate?: string | null; compact?: boolean;
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
@@ -282,8 +283,17 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   ) : null;
 
   return (
-    <div className={noteOnly ? "contents" : "space-y-2"}>
-      {noteOnly ? (
+    <div className={compact || noteOnly ? "contents" : "space-y-2"}>
+      {compact ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="Flere aftalehandlinger" title="Flere aftalehandlinger"><MoreHorizontal className="h-5 w-5" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="z-[1200] min-w-52 bg-card text-foreground">
+            {!noteOnly && <DropdownMenuItem className="min-h-11 gap-2" onSelect={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4" />Ret aftale</DropdownMenuItem>}
+            {!noteOnly && <DropdownMenuItem className="min-h-11 gap-2" onSelect={openNew} disabled={!order}><CalendarPlus className="h-4 w-4" />Ny aftale</DropdownMenuItem>}
+            <DropdownMenuItem className="min-h-11 gap-2" onSelect={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4" />Note til kontoret</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : noteOnly ? (
         <Button variant="outline" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
           <MessageSquarePlus className="h-4 w-4" />Note
         </Button>
