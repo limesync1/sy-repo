@@ -24,6 +24,7 @@ import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-
 import RouteContextMenu from "./RouteContextMenu";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import type { StopCapacity } from "./lib/stop-capacity";
+import { Button } from "@/components/ui/button";
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 const readableTokenOn = (color?: string | null) => {
@@ -37,6 +38,7 @@ type Props = {
   view: "month" | "week";
   anchorDate: string;
   routes: CalendarRoute[];
+  onAddAppointment?: (route: CalendarRoute) => void;
   onSelectRoute: (route: Route) => void;
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
@@ -61,7 +63,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate, conflictedRouteIds,
+  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate, conflictedRouteIds, onAddAppointment,
 }: Props) => {
   const anchor = parseISO(anchorDate);
   const todayIso = format(new Date(), "yyyy-MM-dd");
@@ -117,7 +119,7 @@ export const AgendaCalendar = ({
   }, [visibleDays]);
 
   return (
-    <div className="h-full overflow-y-auto rounded-lg border bg-background">
+    <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y rounded-lg bg-background">
       {grouped.map((grp) => (
         <div key={grp.week}>
           <div className="sticky top-0 z-10 border-b bg-secondary/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
@@ -135,6 +137,7 @@ export const AgendaCalendar = ({
                   todayIso={todayIso}
                   routes={dayRoutes}
                   onSelectRoute={onSelectRoute}
+                  onAddAppointment={onAddAppointment}
                   onSelectStop={onSelectStop}
                   onCreateRoute={onCreateRoute}
                   onOptimizeRoute={onOptimizeRoute}
@@ -169,6 +172,7 @@ export const AgendaCalendar = ({
 };
 
 type DayRowProps = {
+  onAddAppointment?: (route: CalendarRoute) => void;
   date: Date;
   dateStr: string;
   todayIso: string;
@@ -195,7 +199,7 @@ type DayRowProps = {
 const DayRowInner = ({
   date, dateStr, todayIso, routes,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId,
-  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, capacity, conflictedRouteIds,
+  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, capacity, conflictedRouteIds, onAddAppointment,
 }: DayRowProps) => {
   const isPast = dateStr < todayIso;
   const today = isToday(date);
@@ -310,6 +314,7 @@ const DayRowInner = ({
             key={r.id}
             route={r}
             onSelect={() => onSelectRoute(r)}
+            onAddAppointment={onAddAppointment ? () => onAddAppointment(r) : undefined}
             onSelectStop={onSelectStop}
             onOptimize={() => onOptimizeRoute(r.id)}
             onDelete={onDeleteRoute ? () => onDeleteRoute(r) : undefined}
@@ -377,6 +382,7 @@ const DayRow = memo(DayRowInner);
 
 /* ─── Rute-pille (agenda-variant: fuld bredde, mere plads) ─── */
 type AgendaRoutePillProps = {
+  onAddAppointment?: () => void;
   route: CalendarRoute;
   onSelect: () => void;
   onSelectStop: (stop: RouteStop) => void;
@@ -391,7 +397,7 @@ type AgendaRoutePillProps = {
   hasAssigneeConflict?: boolean;
 };
 
-const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast, hasAssigneeConflict }: AgendaRoutePillProps) => {
+const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast, hasAssigneeConflict, onAddAppointment }: AgendaRoutePillProps) => {
   const compactLayout = useIsBelowBreakpoint(1100);
   const isVirtual = !!route.isVirtual;
   const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
@@ -521,7 +527,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground tabular-nums">
-            <span className="inline-flex items-center gap-0.5 font-semibold text-foreground/80"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>
+            <span className="font-semibold text-foreground/80">{stopCount} stop</span>
           {completedCount > 0 && !showAsCompleted && (
             <span className="text-emerald-600 dark:text-emerald-400">{completedCount}/{stopCount}</span>
           )}
@@ -558,6 +564,11 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
       )}
 
+      {onAddAppointment && !isVirtual && !isPast && !showAsCompleted && (
+        <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" disabled={busy} onClick={(e) => { e.stopPropagation(); onAddAppointment(); }}>
+          <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">Tilføj aftale</span><span className="sm:hidden">Tilføj</span>
+        </Button>
+      )}
       <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground shrink-0" />
       {stopCount > 0 && !showAsCompleted && completedCount > 0 && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-secondary">

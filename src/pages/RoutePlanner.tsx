@@ -51,7 +51,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
 import { RouteCalendarHintsProvider } from "@/components/route-planner/route-calendar-hints-context";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -281,7 +281,8 @@ const Planner = () => {
     return () => document.documentElement.classList.remove("route-planner-open");
   }, []);
   const [date, setDate] = useState<string>(todayStr());
-  const [mobileWorkspace, setMobileWorkspace] = useState<"appointments" | "calendar">("appointments");
+  const [appointmentsOpen, setAppointmentsOpen] = useState(false);
+  const [appointmentTarget, setAppointmentTarget] = useState<CalendarRoute | null>(null);
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
@@ -3004,7 +3005,7 @@ const Planner = () => {
                       selectedJobIds.size > 0 && "ring-2 ring-inset ring-accent/25",
                    )}
                  >
-                    <div className="planner-inbox-header relative px-4 pt-4 pb-3 border-b border-border space-y-3">
+                      <div className="planner-inbox-header relative shrink-0 px-4 pt-4 pb-3 border-b border-border space-y-3">
                     <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
                     <div className="flex items-start gap-3 pr-10 xl:pr-0">
                        <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center">
@@ -3227,7 +3228,7 @@ const Planner = () => {
 
                   <div
                     data-density-target="list"
-                    className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-secondary/25"
+                    className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y p-3 space-y-2.5 bg-secondary/25"
                   >
                     {unassignedError && (
                       <EmptyState
@@ -3310,7 +3311,11 @@ const Planner = () => {
                         key={job.id}
                         job={job}
                         onClick={() => setSelectedJob(job)}
-                        onChooseRoute={() => { setSelectedJobIds(new Set([job.id])); setBulkAddToRouteOpen(true); }}
+                        onChooseRoute={() => {
+                          setSelectedJobIds(new Set([job.id]));
+                          setAppointmentsOpen(false);
+                          setBulkAddToRouteOpen(true);
+                        }}
                         selected={selectedJobIds.has(job.id)}
                         anySelected={selectedJobIds.size > 0}
                         onToggleSelect={(e) => {
@@ -3581,6 +3586,11 @@ const Planner = () => {
                   view={view}
                   anchorDate={date}
                   routes={calendarRoutesAll}
+                  onAddAppointment={(route) => {
+                    setAppointmentTarget(route);
+                    setSelectedJobIds(new Set());
+                    setAppointmentsOpen(true);
+                  }}
                   onSelectRoute={handleCalendarSelectRoute}
                   onSelectStop={handleCalendarSelectStop}
                   onCreateRoute={handleCalendarCreateRoute}
@@ -4036,29 +4046,41 @@ const Planner = () => {
                     </Button>
                     <Button className="h-11 w-full gap-1.5 rounded-[4px] text-sm" onClick={() => setCreateOpen(true)}>
                       <RouteIcon className="h-4 w-4" />
-                      Ny rute
+                      Opret rute
                     </Button>
                   </div>
 
                 </div>
-                <Tabs value={mobileWorkspace} onValueChange={(value) => setMobileWorkspace(value as "appointments" | "calendar")} className="min-h-0 flex flex-1 flex-col gap-2">
-                  <TabsList className="grid h-11 w-full shrink-0 grid-cols-2 rounded-md border border-border bg-secondary/50 p-1">
-                    <TabsTrigger value="appointments" className="h-9 rounded-[4px] text-xs font-semibold data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                      Aftaler {unassigned.length > 0 ? `(${unassigned.length})` : ""}
-                    </TabsTrigger>
-                    <TabsTrigger value="calendar" className="h-9 rounded-[4px] text-xs font-semibold data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                      Kalender
-                    </TabsTrigger>
-                  </TabsList>
                   <div className="planner-mobile-board min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-background">
-                  <section className={cn("h-full overflow-hidden", mobileWorkspace !== "appointments" && "hidden")} aria-label="Aftaler uden rute">
-                    {unassignedCard}
-                  </section>
-                  <section className={cn("h-full min-h-0", mobileWorkspace !== "calendar" && "hidden")} aria-label="Rutekalender">
+                  <section className="h-full min-h-0" aria-label="Rutekalender">
                     {mobileCalendarBlock}
                   </section>
                   </div>
-                </Tabs>
+                  <Sheet open={appointmentsOpen} onOpenChange={(open) => { if (!bulkBusy) setAppointmentsOpen(open); }}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" className="h-12 w-full shrink-0 justify-between gap-2 rounded-md bg-card" onClick={() => setAppointmentTarget(null)}>
+                        <span className="flex items-center gap-2"><Inbox className="h-4 w-4" />Aftaler uden rute</span>
+                        <Badge variant="secondary">{unassigned.length}</Badge>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="planner-overlay flex h-[88dvh] max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-t-lg p-0 pb-[env(safe-area-inset-bottom)]">
+                      <div className="shrink-0 border-b px-4 py-3 pr-12">
+                        <SheetTitle className="text-base">{appointmentTarget ? `Tilføj aftaler · ${appointmentTarget.name || "Rute"}` : "Aftaler uden rute"}</SheetTitle>
+                        <SheetDescription className="mt-1 text-xs">{appointmentTarget ? format(parseISO(appointmentTarget.route_date), "EEEE d. MMMM", { locale: da }) : "Vælg aftaler og læg dem på en rute."}</SheetDescription>
+                      </div>
+                      <div className="min-h-0 flex-1">{unassignedCard}</div>
+                      {appointmentTarget && (
+                        <div className="shrink-0 border-t bg-card p-3">
+                          <Button className="h-11 w-full" disabled={bulkBusy || selectedJobIds.size === 0} onClick={() => {
+                            setAppointmentsOpen(false);
+                            setBulkAddToRouteOpen(true);
+                          }}>
+                            <Plus className="h-4 w-4" />Tilføj {selectedJobIds.size || "valgte"} aftaler til ruten
+                          </Button>
+                        </div>
+                      )}
+                    </SheetContent>
+                  </Sheet>
               </div>
             </div>
           );
@@ -4802,6 +4824,7 @@ const Planner = () => {
           open={bulkAddToRouteOpen}
           onOpenChange={(o) => { if (!bulkBusy) setBulkAddToRouteOpen(o); }}
           loading={bulkBusy}
+          initialRouteId={appointmentTarget?.id}
           jobs={(() => {
             const items: BulkAddJobItem[] = [];
             for (const j of (unassigned as any[])) {
