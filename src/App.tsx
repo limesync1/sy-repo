@@ -235,12 +235,20 @@ const PageFallback = () => {
   }
   if (/^\/virksomhed\/?$/.test(path)) return <ShellSkeleton><AdminTabFallback tab={tabFromUrl()} /></ShellSkeleton>;
   if (isPanel) return <ShellSkeleton variant={path.startsWith("/medarbejder") ? "employee" : path.startsWith("/admin") ? "platform" : "business"} />;
+  const hasPublicHero = /^\/(hjaelp|om-os|kontakt|software|priser|guides|blog|anmeldelser)(\/|$)/.test(path);
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-8">
-        <Skeleton className="h-10 w-2/3 max-w-xl" />
-        <Skeleton className="mt-4 h-4 w-1/2 max-w-md" />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40" />)}</div>
+      <div className={hasPublicHero ? "bg-ocean text-ocean-foreground" : "bg-background"}>
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-8 sm:py-20">
+          <Skeleton className="h-9 w-3/4 max-w-xl bg-current/10" />
+          <Skeleton className="mt-5 h-4 w-full max-w-md bg-current/10" />
+          <Skeleton className="mt-2 h-4 w-2/3 max-w-sm bg-current/10" />
+          <div className="mt-8 flex flex-wrap gap-3"><Skeleton className="h-11 w-40 bg-current/10" /><Skeleton className="h-11 w-32 bg-current/10" /></div>
+        </div>
+      </div>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
+        <Skeleton className="h-6 w-48" />
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="space-y-4 rounded-lg border p-5"><Skeleton className="h-16 w-16" /><Skeleton className="h-5 w-3/4" /><Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-2/3" /></div>)}</div>
       </div>
     </div>
   );

@@ -22,17 +22,18 @@ export default function PlannerSkeleton() {
       {/* Mobil/tablet-topbar */}
       <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-lg border border-border bg-card p-2.5 [@media(min-width:1100px)]:hidden">
         <div className="flex items-center gap-1.5">
-          <Skeleton className="h-8 w-8 rounded-[4px]" />
+          <Skeleton className="h-11 w-11 rounded-[4px]" />
           <div className="flex-1 space-y-1.5 px-2">
             <Skeleton className="mx-auto h-4 w-32" />
             <Skeleton className="mx-auto h-2.5 w-24" />
           </div>
-          <Skeleton className="h-8 w-8 rounded-[4px]" />
+          <Skeleton className="h-11 w-11 rounded-[4px]" />
         </div>
         <div className="flex gap-2">
-          <Skeleton className="h-9 w-28 rounded-[4px]" />
-          <Skeleton className="ml-auto h-9 w-16 rounded-[4px]" />
-          <Skeleton className="h-9 w-9 rounded-[4px]" />
+          <Skeleton className="h-11 flex-1 rounded-[4px]" />
+          <Skeleton className="h-11 w-16 rounded-[4px]" />
+          <Skeleton className="h-11 w-11 rounded-[4px]" />
+          <Skeleton className="h-11 w-14 rounded-[4px]" />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Skeleton className="h-11 rounded-md" />
