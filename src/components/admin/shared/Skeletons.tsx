@@ -296,37 +296,6 @@ export const FilterBarSkeleton = ({
 
 /* ─────────── Dialog skeletons ─────────── */
 /**
- * Generisk skeleton der matcher en åben Dialog/Sheet med titel + form.
- * Brug i stedet for at vise en blank dialog mens detaljer hentes.
- */
-export const DialogFormSkeleton = ({ fields = 5 }: { fields?: number }) => (
-  <div className="space-y-5">
-    {/* Header */}
-    <div className="flex items-start gap-3">
-      <Skeleton className="h-12 w-12 rounded-lg" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-5 w-1/2" />
-        <Skeleton className="h-3 w-1/3" />
-      </div>
-    </div>
-    {/* Felter */}
-    <div className="space-y-3">
-      {Array.from({ length: fields }).map((_, i) => (
-        <div key={i} className="space-y-2">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-9 w-full rounded-md" />
-        </div>
-      ))}
-    </div>
-    {/* Footer */}
-    <div className="flex justify-end gap-2 pt-2">
-      <Skeleton className="h-9 w-24 rounded-md" />
-      <Skeleton className="h-9 w-28 rounded-md" />
-    </div>
-  </div>
-);
-
-/**
  * Detalje-skeleton — bruges i Sheets der viser kunde/lead/ordre detaljer:
  * sektioner med små header-labels og rækker med ikon + tekst.
  */

@@ -21,9 +21,10 @@ import { CalendarPlus } from "lucide-react";
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className="relative rounded-[5px] border border-border/60 bg-card overflow-hidden flex">
+  <div className="planner-job-card relative rounded-[5px] border border-border/60 bg-card overflow-hidden flex">
     <div className="w-[3px] bg-secondary shrink-0" />
-    <div className={`flex-1 ${compact ? "p-2 pl-7" : "p-2.5 pl-8"} space-y-1.5`}>
+    <div className="flex w-10 shrink-0 items-center justify-center"><Skeleton className="h-[18px] w-[18px] rounded-[4px]" /></div>
+    <div className={`min-w-0 flex-1 ${compact ? "p-2" : "p-2.5"} space-y-1.5`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0 space-y-1.5">
           <Skeleton className="h-4 w-32 rounded" />

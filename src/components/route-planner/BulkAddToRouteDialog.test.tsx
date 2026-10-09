@@ -9,6 +9,11 @@ const route = { id: "route-1", name: "Herning", route_date: "2026-10-08", employ
 const job = { id: "job-1", customer_name: "Kunde", address: "Skolegade 7" };
 
 describe("route selection", () => {
+  it("preselects the route chosen directly in the calendar", () => {
+    render(<BulkAddToRouteDialog open initialRouteId="route-1" onOpenChange={vi.fn()} jobs={[job]} routes={[route]} loading={false} onRemoveJob={vi.fn()} onConfirm={vi.fn()} />);
+    expect(screen.getByRole("button", { name: /Herning/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Tilføj 1 aftale" })).toBeEnabled();
+  });
   it("shows stop totals and employee, and confirms an explicit selection", () => {
     const confirm = vi.fn();
     render(<BulkAddToRouteDialog open onOpenChange={vi.fn()} jobs={[job]} routes={[route]} loading={false} onRemoveJob={vi.fn()} onConfirm={confirm} />);
