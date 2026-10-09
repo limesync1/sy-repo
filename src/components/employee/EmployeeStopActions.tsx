@@ -109,9 +109,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const openEditor = () => {
     const items = ((order?.order_items || []) as any[]).filter((i) => i.id);
-    if (!items.length) { toast.error("Aftalen har ingen ydelser at rette", { description: "Kontakt kontoret, eller skriv en note." }); return; }
+    if (!items.length) { toast.error("Aftalen har ingen services at rette", { description: "Kontakt kontoret, eller skriv en note." }); return; }
     const next: Line[] = items.map((i) => ({
-      key: i.id, item_id: i.id, service_id: i.service_id, name: i.service_name || "Ydelse",
+      key: i.id, item_id: i.id, service_id: i.service_id, name: i.service_name || "Service",
       quantity: Number(i.quantity) || 1, unit: i.services?.unit,
       pricing: i.service_id ? pricingFromItem(i) : null, currentInterval: i.details?.interval,
     }));
@@ -134,7 +134,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const save = useMutation({
     mutationFn: async () => {
       assertOnline();
-      if (!lines.length) throw new Error("Aftalen skal have mindst én ydelse.");
+      if (!lines.length) throw new Error("Aftalen skal have mindst én service.");
       const items = lines.map((l) => {
         const svc = l.service_id ? serviceById.get(l.service_id) : undefined;
         if (svc && l.pricing) return { item_id: l.item_id, service_id: l.service_id, ...toPricingPayload(svc, l.pricing) };
@@ -187,7 +187,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const createNew = useMutation({
     mutationFn: async (addToRoute: boolean) => {
       assertOnline();
-      if (!newService || !newPricing) throw new Error("Vælg en ydelse.");
+      if (!newService || !newPricing) throw new Error("Vælg en service.");
       if (!newStart) throw new Error("Vælg en opstartsdato.");
       const { data, error } = await supabase.rpc("employee_create_order_from_stop" as any, {
         _stop_id: stopId,
@@ -214,7 +214,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   });
 
   const submitNew = async () => {
-    if (!newService || !newPricing) { toast.error("Vælg en ydelse først"); return; }
+    if (!newService || !newPricing) { toast.error("Vælg en service først"); return; }
     const once = newPricing.interval === "engangskøb";
     const sameDay = newStart === runDate;
     if (once && sameDay) {
@@ -273,11 +273,11 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const servicesProblem = servicesError ? (
     <div className="flex items-center gap-2 rounded-md border border-warning/40 p-2.5 text-sm">
-      <span className="flex-1 text-muted-foreground">Ydelserne kunne ikke hentes.</span>
+      <span className="flex-1 text-muted-foreground">Services kunne ikke hentes.</span>
       <Button size="sm" variant="outline" className="h-10" onClick={() => refetchServices()}>Prøv igen</Button>
     </div>
   ) : loadingServices ? (
-    <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter ydelser…</p>
+    <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter services…</p>
   ) : null;
 
   return (
@@ -341,7 +341,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                         onChange={(p) => setLines((ls) => ls.map((x) => (x.key === l.key ? { ...x, pricing: p, quantity: p.quantity } : x)))} />
                     ) : (
                       <div className="flex items-center gap-2">
-                        {!loadingServices && <p className="flex-1 text-[11px] text-muted-foreground">Ydelsen er ikke længere aktiv — kun antal kan ændres.</p>}
+                        {!loadingServices && <p className="flex-1 text-[11px] text-muted-foreground">Servicen er ikke længere aktiv — kun antal kan ændres.</p>}
                         <Button size="icon" variant="outline" className="h-11 w-11" aria-label="Færre" onClick={() => setQty(l.key, -1)} disabled={l.quantity <= 1}><Minus className="h-4 w-4" /></Button>
                         <span className="w-8 text-center text-base font-semibold tabular-nums">{l.quantity}</span>
                         <Button size="icon" variant="outline" className="h-11 w-11" aria-label="Flere" onClick={() => setQty(l.key, 1)}><Plus className="h-4 w-4" /></Button>
@@ -354,7 +354,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
             {!servicesError && !loadingServices && addable.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilføj ydelse</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilføj service</p>
                 <div className="flex flex-wrap gap-2">
                   {addable.map((s) => (
                     <Button key={s.id} variant="secondary" className="h-auto min-h-11 max-w-full gap-1.5 whitespace-normal py-2 text-left"
@@ -411,9 +411,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
             {servicesProblem}
             {!servicesError && !loadingServices && (
-              services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive ydelser.</p> : (
+              services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive services.</p> : (
                 <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ydelse</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Service</p>
                   <div className="flex flex-wrap gap-2">
                     {services.map((s) => (
                       <Button key={s.id} variant={newServiceId === s.id ? "default" : "outline"} className="h-auto min-h-11 max-w-full whitespace-normal py-2 text-left" onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
