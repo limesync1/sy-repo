@@ -354,7 +354,8 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
       />
 
       <div data-tour="services-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Services</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{services?.length || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{activeServices}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Bestillinger</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{totalOrders}</p></div></div>
+        <div className="hidden gap-3 sm:grid sm:grid-cols-3">
           <StatCard label="Services i alt" value={services?.length || 0} icon={<BrandedIllustration name="servicesTotal" />} />
           <StatCard label="Aktive" value={activeServices} icon={<BrandedIllustration name="activeServices" />} tone="ok" />
           <StatCard label="Bestillinger" value={totalOrders} icon={<BrandedIllustration name="orders" />} />
