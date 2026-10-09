@@ -12,7 +12,7 @@ describe("route selection", () => {
   it("shows stop totals and employee, and confirms an explicit selection", () => {
     const confirm = vi.fn();
     render(<BulkAddToRouteDialog open onOpenChange={vi.fn()} jobs={[job]} routes={[route]} loading={false} onRemoveJob={vi.fn()} onConfirm={confirm} />);
-    expect(screen.getByText("5 stop → 6")).toBeInTheDocument();
+    expect(screen.getByText((_, el) => el?.tagName === "P" && /5 stop\s*→\s*6 stop/.test(el.textContent || ""))).toBeInTheDocument();
     expect(screen.getByText("Patrick")).toBeInTheDocument();
     const submit = screen.getByRole("button", { name: "Tilføj 1 aftale" });
     expect(submit).toBeDisabled();
