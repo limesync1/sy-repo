@@ -355,12 +355,16 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             {!servicesError && !loadingServices && addable.length > 0 && (
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilføj service</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card">
                   {addable.map((s) => (
-                    <Button key={s.id} variant="secondary" className="h-auto min-h-11 max-w-full gap-1.5 whitespace-normal py-2 text-left"
+                    <button type="button" key={s.id} className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary/60 active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                       onClick={() => setLines((ls) => [...ls, { key: `new-${s.id}`, item_id: null, service_id: s.id, name: s.name, quantity: 1, unit: s.unit, pricing: defaultPricing(s) }])}>
-                      <Plus className="h-4 w-4" /> {s.name}
-                    </Button>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium leading-snug text-foreground">{s.name}</span>
+                        <span className="block text-[11px] text-muted-foreground">{s.pricing_type === "timepris" ? "Timepris" : s.pricing_type === "prisberegner" ? "Prisberegner" : "Fast pris"}</span>
+                      </span>
+                      <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
                   ))}
                 </div>
               </div>

@@ -1679,8 +1679,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           synlig før rute starter eller ved færdig.  Lyd-knappen findes
           som floating control under kørsel — ingen dubletter her. ─── */}
       {(!routeStarted || allDone) && (
-        <header className="relative shrink-0 z-30 bg-card border-b border-border">
-          <div className="flex h-14 items-center gap-3 px-4">
+        <header className="relative shrink-0 z-30 bg-card border-b border-border pt-[env(safe-area-inset-top)]">
+          <div className="flex min-h-14 items-center gap-3 px-4 py-2">
             <Button
               asChild
               variant="ghost"
