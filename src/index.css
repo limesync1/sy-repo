@@ -1798,3 +1798,23 @@ img[loading="lazy"].is-error {
     touch-action: manipulation;
   }
 }
+
+/* Panelernes sidehoved genbruger forsidens dybe havblå sektionsstil (uden WebGL). */
+.panel-page-hero {
+  position: relative; overflow: hidden; border-radius: var(--radius);
+  padding: 1rem 1.125rem; color: hsl(var(--ocean-foreground));
+  background:
+    radial-gradient(120% 140% at 100% 0%, hsl(var(--accent) / 0.38), transparent 55%),
+    radial-gradient(90% 120% at 0% 100%, hsl(var(--brand-blue-start) / 0.28), transparent 60%),
+    hsl(var(--ocean));
+  border: 1px solid hsl(var(--ocean-foreground) / 0.12);
+  box-shadow: 0 12px 30px -20px hsl(var(--ocean) / 0.7);
+}
+@media (min-width: 640px) { .panel-page-hero { padding: 1.25rem 1.5rem; } }
+.panel-page-hero .text-muted-foreground { color: hsl(var(--ocean-foreground) / 0.78); }
+.panel-page-hero .text-foreground { color: hsl(var(--ocean-foreground)); }
+.panel-page-hero .border-input, .panel-page-hero button.bg-secondary {
+  background: hsl(var(--ocean-foreground)); color: hsl(var(--ocean)); border-color: hsl(var(--ocean-foreground));
+}
+.panel-page-hero .border-input:hover, .panel-page-hero button.bg-secondary:hover { background: hsl(var(--ocean-foreground) / 0.9); color: hsl(var(--ocean)); }
+.panel-page-hero .brand-blue-action { box-shadow: 0 0 0 1px hsl(var(--ocean-foreground) / 0.35); }

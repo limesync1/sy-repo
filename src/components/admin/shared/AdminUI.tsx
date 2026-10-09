@@ -26,14 +26,14 @@ export const PageHeader = ({
 }) => (
   // Stille indgang: hele headeren fader ind sammen — ingen staggered jitter
   // af titel/beskrivelse/action på hver navigation. Det føles roligt.
-  <div className={cn("flex items-start justify-between gap-3 flex-wrap", className)}>
-    <div className="min-w-0">
-      <h2 className="text-lg font-semibold text-foreground tracking-tight">{title}</h2>
+  <div className={cn("panel-page-hero flex items-center justify-between gap-3 flex-wrap", className)}>
+    <div className="relative min-w-0">
+      <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{title}</h2>
       {description && (
-        <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-0.5 text-sm opacity-80">{description}</p>
       )}
     </div>
-    {action && <div className="w-full sm:w-auto sm:shrink-0">{action}</div>}
+    {action && <div className="relative w-full sm:w-auto sm:shrink-0">{action}</div>}
   </div>
 );
 

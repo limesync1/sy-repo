@@ -20,8 +20,7 @@
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
 - Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
 
-- Business tab fallbacks/loading states share eagerly imported registry skeletons (employee stats uses its strip skeleton), preventing blank lazy fallbacks.
-- Customer list empty panels always use shared `NoItemsIcon` for consistency with employee lists.
+- Business tab fallbacks share eagerly imported registry skeletons, preventing blank lazy fallbacks; empty customer lists use shared `NoItemsIcon`.
 
 - Driving maps use leaflet-rotate and synchronized motion-track heading/panning, integer zoom dwell and stop-selection suspension; mobile stop actions sit below the map to preserve its usable area.
 - Arrival uses bounded accuracy-aware proximity, low-speed gating and dwell; work timers and completion require explicit actions to avoid false hours.
@@ -40,3 +39,4 @@
 - Compact planning uses tap assignment/reorder. Dialogs reuse names/employees and native scrolling. Density/card detail persist independently; scoped sizing beats overrides.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
+- Panel headers share `PageHeader`/`.panel-page-hero` so panels inherit front-page styling from one place.
