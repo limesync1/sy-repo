@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
 
 /** Beholdes i komponentens API, så eksisterende sider ikke skal ændres.
  *  Det visuelle udtryk er bevidst samlet i én rolig brandtone. */
@@ -12,7 +11,7 @@ const HERO_ACCENT = {
 };
 
 interface PageHeroProps {
-  /** Small uppercase eyebrow label rendered with an accent dot. */
+  /** Legacy label kept in the API; decorative hero labels are intentionally omitted. */
   eyebrow?: string;
   /** Main headline. Supports rich content (e.g. <span> for accent words). */
   title: ReactNode;
@@ -133,10 +132,6 @@ const PageHero = ({
 
         </div>
 
-        {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
-        <div aria-hidden className="pointer-events-none mt-6 flex justify-center sm:hidden">
-          <ChevronDown className="h-5 w-5 animate-bounce text-background/45" />
-        </div>
       </div>
     </section>
 

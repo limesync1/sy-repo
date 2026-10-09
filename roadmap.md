@@ -14,3 +14,8 @@
 - [x] Matchende planlæggerskeleton og oprydning i forældede indlæsningsvisninger
 - [x] Erstat hjælpecentrets fire ikoner med de vedhæftede PDF-illustrationer
 - [x] Indlogget browserkontrol på mobil, tablet og computer (DK Renfyn; aftalevalg og bekræftelse uden ændring af kundeaftaler)
+- [x] Fælles offentligt design for heroer, sektioner, kort og indlæsning
+- [x] Redesign Bliv udbyder og hele Systemet-universet
+- [x] Redesign Anmeldelser, Om os, Hjælpecenter og Kontakt
+- [x] Redesign Guides, blogartikler og juridiske sider
+- [x] Kontroller alle footer-sider på mobil, tablet og computer

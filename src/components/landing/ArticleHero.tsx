@@ -74,16 +74,8 @@ const ArticleHero = ({ breadcrumbs, eyebrow, title, subtitle }: ArticleHeroProps
         </nav>
 
         <div className="mt-5 max-w-3xl">
-          {eyebrow && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur sm:text-xs">
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
-              />
-              {eyebrow}
-            </span>
-          )}
-          <h1 className="mt-3 text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.025em] text-background sm:text-[2.45rem] lg:text-[2.95rem]">
+          {eyebrow ? <span className="sr-only">{eyebrow}</span> : null}
+          <h1 className="text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.025em] text-background sm:text-[2.45rem] lg:text-[2.95rem]">
             {title}
           </h1>
           {subtitle && (

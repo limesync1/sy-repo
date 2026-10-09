@@ -8,7 +8,7 @@ export const usePersistentPublicNavigation = () => useContext(NavigationContext)
 /** Keep the public navigation outside route suspense, including its menu state. */
 export function PublicNavigation({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const publicPage = /^\/(?:$|index\/?$|virksomheder(?:\/|$)|tilbud(?:\/|$)|software(?:\/|$)|priser(?:\/|$)|guides(?:\/|$)|blog(?:\/|$)|rengoering(?:\/|$)|flyttehjaelp\/|haandvaerker\/|haveservice\/|hjaelp\/?$|om-os\/?$|anmeldelser\/?$|kontakt\/?$|privatlivspolitik\/?$|vilkaar\/?$|cookies\/?$|databehandleraftale\/?$|underdatabehandlere\/?$|slet-data\/?$|godkend-bestilling\/)/.test(pathname);
+  const publicPage = /^\/(?:$|index\/?$|virksomheder(?:\/|$)|tilbud(?:\/|$)|opret-virksomhed\/?$|software(?:\/|$)|priser(?:\/|$)|guides(?:\/|$)|blog(?:\/|$)|rengoering(?:\/|$)|flyttehjaelp\/|haandvaerker\/|haveservice\/|hjaelp\/?$|om-os\/?$|anmeldelser\/?$|kontakt\/?$|privatlivspolitik\/?$|vilkaar\/?$|cookies\/?$|databehandleraftale\/?$|underdatabehandlere\/?$|slet-data\/?$|godkend-bestilling\/)/.test(pathname);
   return (
     <NavigationContext.Provider value={publicPage}>
       {publicPage && <SiteNav persistent />}

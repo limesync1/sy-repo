@@ -4,16 +4,8 @@ import Footer from "@/components/landing/Footer";
 import SmartLink from "@/components/SmartLink";
 import PageHero from "@/components/landing/PageHero";
 import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
-import { IndustryIcon } from "@/components/IndustryIcon";
-import { ShieldCheck, MessageSquare, BadgeCheck, Star, ArrowRight, ArrowUpRight, Quote, Sparkles } from "lucide-react";
+import { ShieldCheck, MessageSquare, BadgeCheck, Star, ArrowRight, ArrowUpRight } from "lucide-react";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
-import { SectionLabelMark } from "@/components/shared/UiArtwork";
-
-const PREVIEW_REVIEWS = [
-  { category: "Rengøring", city: "Aarhus", initials: "—", placeholder: true },
-  { category: "Tømrer", city: "København", initials: "—", placeholder: true },
-  { category: "Haveservice", city: "Odense", initials: "—", placeholder: true },
-];
 
 const Reviews = () => {
   const jsonLd = [
@@ -70,56 +62,6 @@ const Reviews = () => {
           }
         />
 
-        {/* PREVIEW — sådan vil anmeldelser se ud */}
-        <section className="bg-background pt-16 md:pt-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 flex flex-col gap-3">
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <SectionLabelMark />
-                Forhåndsvisning
-              </span>
-              <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
-                Sådan vil anmeldelser se ud
-              </h2>
-              <p className="max-w-xl text-[15px] leading-7 text-muted-foreground">
-                Et eksempel på formatet — placeholders indtil de første verificerede anmeldelser kommer ind.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {PREVIEW_REVIEWS.map((r, i) => (
-                <div
-                  key={i}
-                  className="relative flex flex-col rounded-[24px] border border-dashed border-border bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-                >
-                  <span className="absolute right-5 top-5 rounded-full bg-secondary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Eksempel
-                  </span>
-                  <Quote className="h-6 w-6 text-muted-foreground/40" aria-hidden />
-                  <div className="mt-3 space-y-1.5">
-                    <div className="h-2.5 w-11/12 rounded-full bg-secondary" />
-                    <div className="h-2.5 w-10/12 rounded-full bg-secondary" />
-                    <div className="h-2.5 w-7/12 rounded-full bg-secondary" />
-                  </div>
-                  <div className="mt-6 flex items-center gap-2 text-muted-foreground/40">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="h-4 w-4" />
-                    ))}
-                  </div>
-                  <div className="mt-6 flex items-center gap-3 border-t border-border/60 pt-4">
-                    <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-secondary ring-1 ring-border">
-                      <IndustryIcon category={r.category} className="h-6 w-6" alt={r.category} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-semibold text-foreground">{r.category}</div>
-                      <div className="text-[12px] text-muted-foreground">{r.city}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* PROMISE BAND */}
         <section className="bg-background pt-12 md:pt-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -146,14 +88,10 @@ const Reviews = () => {
         </section>
 
         {/* TRUST */}
-        <section className="bg-background py-20 md:py-28">
+        <section className="bg-background py-14 sm:py-18 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <SectionLabelMark />
-                Kvalitetsfilter
-              </span>
-              <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+              <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Sådan sikrer vi kvaliteten
               </h2>
               <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -183,14 +121,10 @@ const Reviews = () => {
         </section>
 
         {/* STEPS */}
-        <section className="bg-secondary py-20 md:py-28">
+        <section className="bg-secondary py-14 sm:py-18 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <SectionLabelMark />
-                Sådan virker anmeldelser
-              </span>
-              <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+              <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Knyttet til en reel opgave
               </h2>
               <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -207,14 +141,11 @@ const Reviews = () => {
               ].map((s) => (
                 <div
                   key={s.n}
-                  className="group relative flex flex-col rounded-[28px] border border-border/70 bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
+                  className="group relative flex flex-col rounded-lg border border-border/70 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:p-8"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background font-semibold">
                       {s.n}
-                    </div>
-                    <div className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">
-                      Trin {s.n}
                     </div>
                   </div>
                   <h3 className="mt-8 text-xl font-semibold tracking-tight text-foreground">{s.title}</h3>

@@ -182,17 +182,19 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
         subtitle={subtitle}
       />
 
-      {/* Dokument-skifter — gør det tydeligt at de fem juridiske dokumenter
-          hænger sammen, og at man kan hoppe imellem dem. */}
-      <div className="border-b border-border bg-secondary/40 print:hidden">
-        <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8">
+      <details className="border-b border-border bg-secondary/40 print:hidden sm:hidden">
+        <summary className="mx-auto flex min-h-12 max-w-7xl cursor-pointer list-none items-center justify-between px-4 text-sm font-semibold text-foreground">
+          Andre juridiske dokumenter
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </summary>
+        <div className="grid gap-1 border-t border-border px-4 py-2">
           {DOCS.map((d) => {
             const active = pathname === d.to;
             return (
               <Link
                 key={d.to}
                 to={d.to}
-                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                className={`inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors ${
                   active
                     ? "border-transparent bg-foreground text-background"
                     : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
@@ -200,6 +202,18 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
               >
                 <d.icon className="h-3.5 w-3.5" />
                 {d.label}
+              </Link>
+            );
+          })}
+        </div>
+      </details>
+      <div className="hidden border-b border-border bg-secondary/40 print:hidden sm:block">
+        <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 py-3 lg:px-8">
+          {DOCS.map((d) => {
+            const active = pathname === d.to;
+            return (
+              <Link key={d.to} to={d.to} className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${active ? "border-transparent bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"}`}>
+                <d.icon className="h-3.5 w-3.5" />{d.label}
               </Link>
             );
           })}
@@ -253,7 +267,7 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
           <div className="border-t border-border p-2">{toc}</div>
         </details>
 
-        <div className="grid gap-10 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <div className="grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden lg:block print:hidden">
             <div className="sticky top-24">
               <p className="mb-2 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -294,7 +308,7 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
                     </button>
                   </h2>
                 </div>
-                <div className="mt-3 space-y-3 rounded-xl border border-border bg-card p-4 text-[15px] leading-7 text-muted-foreground sm:ml-9 sm:p-5">
+                <div className="mt-3 space-y-3 rounded-lg border border-border bg-card p-4 text-[15px] leading-7 text-muted-foreground sm:ml-9 sm:p-5">
                   {s.body}
                 </div>
               </section>

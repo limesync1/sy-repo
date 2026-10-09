@@ -33,13 +33,6 @@ const PARTS = [
     body: "Samme system til rengøring, vinduespudsning, have, håndværk, flytning og autoservice." },
 ];
 
-const FACTS = [
-  "Ruteplanlægning inkluderet i basisprisen",
-  "Dansk system, dansk support",
-  "Virker på computer, tablet og telefon",
-  "Ingen binding — opsig når som helst",
-];
-
 const PRICE_POINTS = [
   { label: "Prøveperiode", value: "14 dage", note: "Gratis, uden betalingskort" },
   { label: "Basis", value: "289 kr./md.", note: "Ekskl. moms — ruteplanlægning inkluderet" },
@@ -167,19 +160,6 @@ const SoftwareHub = () => {
       </PageHero>
 
       <main id="main">
-        {/* Fakta-stribe direkte under heroen — korte signaler, ingen brødtekst */}
-        <div className="border-b border-border bg-surface">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-7 gap-y-2 px-4 py-4 sm:px-6 lg:px-8">
-            {FACTS.map((f) => (
-              <span key={f} className="inline-flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
-                <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
-                {f}
-              </span>
-            ))}
-          </div>
-        </div>
-
-
         {/* Systemets dele */}
         <SectionShell
           eyebrow="Overblik"
@@ -193,7 +173,7 @@ const SoftwareHub = () => {
                 to={href}
                 className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-md"
               >
-                <span className="inline-flex h-16 w-16 items-center justify-center sm:h-20 sm:w-20">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-md bg-site-header-background p-1 sm:h-14 sm:w-14">
                   <BrandedIllustration name={icon} className="h-full w-full" alt="" />
                 </span>
                 <h3 className="mt-4 flex items-center gap-1.5 text-base font-semibold tracking-tight text-foreground">

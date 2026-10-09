@@ -1378,6 +1378,19 @@
   .article-content .not-prose tbody tr td:nth-child(2) {
     @apply font-semibold text-foreground;
   }
+
+  @media (max-width: 639px) {
+    .article-content .guide-price-table table { min-width: 0; }
+    .article-content .guide-price-table thead { @apply sr-only; }
+    .article-content .guide-price-table tbody,
+    .article-content .guide-price-table tr,
+    .article-content .guide-price-table td { display: block; width: 100%; }
+    .article-content .guide-price-table tr { @apply border-b border-border p-4 last:border-b-0; }
+    .article-content .guide-price-table td { @apply border-0 p-0; }
+    .article-content .guide-price-table td:first-child { @apply font-semibold text-foreground; }
+    .article-content .guide-price-table td:nth-child(2) { @apply mt-1 text-base; }
+    .article-content .guide-price-table td:nth-child(3) { @apply mt-1 text-xs text-muted-foreground; }
+  }
 }
 
 /* ─── Respektér brugerens motion-præferencer ───

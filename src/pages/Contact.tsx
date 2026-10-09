@@ -4,9 +4,8 @@ import Footer from "@/components/landing/Footer";
 import SmartLink from "@/components/SmartLink";
 import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 import PageHero from "@/components/landing/PageHero";
-import { Mail, MapPin, Clock, ArrowUpRight, ArrowRight, Sparkles } from "lucide-react";
+import { Mail, MapPin, Clock, ArrowUpRight, ArrowRight } from "lucide-react";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
-import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const Contact = () => {
   const jsonLd = [
@@ -137,11 +136,7 @@ const Contact = () => {
         <section className="bg-secondary py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 max-w-2xl">
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <SectionLabelMark />
-                Søger du en udbyder?
-              </span>
-              <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.5rem]">
+              <h2 className="text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.5rem]">
                 Få 3 tilbud i stedet
               </h2>
               <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
@@ -163,11 +158,7 @@ const Contact = () => {
               <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-feature-lilac/40 blur-3xl" />
               <div className="relative grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-center">
                 <div>
-                  <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Selvbetjening
-                  </span>
-                  <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground md:text-[2.25rem]">
+                  <h2 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground md:text-[2.25rem]">
                     Find svar på almindelige spørgsmål
                   </h2>
                   <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground">

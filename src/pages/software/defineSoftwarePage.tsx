@@ -139,7 +139,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <nav aria-label="Brødkrumme" className="mb-8 text-sm text-muted-foreground">
+        <nav aria-label="Brødkrumme" className="mb-6 text-sm text-muted-foreground sm:mb-8">
           <Link to="/" className="hover:text-foreground">Forside</Link>
           <span className="px-2">/</span>
           {isHub ? (
@@ -153,7 +153,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
           )}
         </nav>
 
-        <div className="grid gap-8 lg:grid-cols-[1.35fr_0.65fr] lg:items-start">
+        <div className="grid gap-8 xl:grid-cols-[1.35fr_0.65fr] xl:items-start">
           <article className="article-content prose prose-neutral max-w-none dark:prose-invert">
             <p className="lead text-lg leading-8 text-foreground">{cfg.answer}</p>
 
@@ -175,7 +175,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
             ))}
           </article>
 
-          <aside className="lg:sticky lg:top-24">
+          <aside className="xl:sticky xl:top-24">
             <div className="rounded-2xl border border-border bg-card p-6 shadow-panel">
               <p className="text-sm font-semibold tracking-tight text-foreground">Kort fortalt</p>
               <ul className="mt-4 space-y-3">
@@ -188,7 +188,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
               </ul>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-border bg-muted/35 p-6">
+            <div className="mt-4 rounded-lg border border-border bg-muted/35 p-5 sm:p-6">
               <p className="text-sm font-semibold tracking-tight text-foreground">Resten af systemet</p>
               <ul className="mt-4 space-y-2">
                 {related.map((r) => (
@@ -209,7 +209,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
             </div>
 
             {industries.length > 0 && (
-              <div className="mt-4 rounded-2xl border border-border bg-muted/35 p-6">
+              <div className="mt-4 rounded-lg border border-border bg-muted/35 p-5 sm:p-6">
                 <p className="text-sm font-semibold tracking-tight text-foreground">Samme system i din branche</p>
                 <ul className="mt-4 space-y-2">
                   {industries.map((r) => (
@@ -229,7 +229,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
           </aside>
         </div>
 
-        <div className="mt-12 rounded-2xl border border-border bg-card p-6 shadow-panel sm:p-8">
+        <div className="mt-12 rounded-lg border border-border bg-card p-6 shadow-panel sm:p-8">
           <h2 className="m-0 text-2xl font-semibold tracking-tight text-foreground">
             {cfg.cta?.heading ?? "Prøv Serviceydere med din egen virksomhed"}
           </h2>

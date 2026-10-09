@@ -40,4 +40,4 @@
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
 - Panel headers share `PageHeader`/`.panel-page-hero` styling.
-- Public navigation/beta persist outside suspense; local headers defer to avoid duplicates.
+- Public navigation persists outside suspense; local headers defer to avoid duplicates.

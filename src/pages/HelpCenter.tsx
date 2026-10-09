@@ -6,7 +6,6 @@ import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
-import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -178,14 +177,10 @@ const HelpCenter = () => {
 
       <main id="main">
         {/* TOPICS */}
-        <section aria-labelledby="topics" className="bg-background py-20 md:py-28">
+        <section aria-labelledby="topics" className="bg-background py-14 sm:py-18 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-12 max-w-2xl">
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <SectionLabelMark />
-                Genveje
-              </span>
-              <h2 id="topics" className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+            <div className="mb-8 max-w-2xl sm:mb-10">
+              <h2 id="topics" className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Populære emner
               </h2>
               <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -197,10 +192,10 @@ const HelpCenter = () => {
                 <Link
                   key={t.to}
                   to={t.to}
-                  className="group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
+                  className="group relative flex min-h-[180px] flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md sm:min-h-[200px] sm:p-6"
                 >
-                  <div className="relative flex h-20 w-20 items-center justify-center rounded-lg bg-site-header-background p-2">
-                    <BrandedIllustration name={t.illustration} className="h-full w-full" alt="" width={64} height={64} />
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-md border border-border bg-site-header-background p-1.5 sm:h-16 sm:w-16">
+                    <BrandedIllustration name={t.illustration} className="h-full w-full" alt="" width={56} height={56} />
                   </div>
                   <div className="relative mt-6">
                     <h3 className="text-[16px] font-semibold leading-tight tracking-tight">{t.title}</h3>
@@ -217,15 +212,11 @@ const HelpCenter = () => {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="scroll-mt-24 bg-secondary py-20 md:py-28">
+        <section id="faq" className="scroll-mt-24 bg-secondary py-14 sm:py-18 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <SectionLabelMark />
-                  FAQ
-                </span>
-                <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+                <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Ofte stillede spørgsmål
                 </h2>
               </div>
@@ -280,7 +271,7 @@ const HelpCenter = () => {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <div className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm">
               {filteredFaq.length === 0 && (
                 <div className="px-6 py-10 text-center text-sm text-muted-foreground sm:px-8">
                   Ingen FAQ matcher “{query}”. Prøv et andet søgeord, eller{" "}
@@ -295,8 +286,7 @@ const HelpCenter = () => {
                   className={`group px-6 py-5 sm:px-8 sm:py-6 ${i > 0 ? "border-t border-border/60" : ""} [&_summary::-webkit-details-marker]:hidden`}
                 >
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-8 text-left">
-                    <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{item.cat}</span>
+                      <span className="flex min-w-0 flex-1 flex-col gap-1.5">
                       <span className="text-[15px] font-semibold tracking-tight text-foreground sm:text-base">{item.q}</span>
                     </span>
                     <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground transition-transform group-open:rotate-45">

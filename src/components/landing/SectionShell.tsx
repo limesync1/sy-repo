@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 /**
  * SectionShell — den fælles ramme om alle sektioner på de offentlige sider.
@@ -62,22 +61,11 @@ const SectionShell = ({
             )}
           >
             <div className={cn("max-w-2xl", align === "center" && "text-center")}>
-              {eyebrow && (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em]",
-                    dark ? "text-ocean-foreground/70" : "text-muted-foreground",
-                    align === "center" && "justify-center",
-                  )}
-                >
-                  <SectionLabelMark />
-                  {eyebrow}
-                </span>
-              )}
+              {eyebrow ? <span className="sr-only">{eyebrow}</span> : null}
               {title && (
                 <h2
                   className={cn(
-                    "mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]",
+                    "text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]",
                     dark ? "text-ocean-foreground" : "text-foreground",
                   )}
                 >

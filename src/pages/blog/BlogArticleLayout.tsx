@@ -99,7 +99,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
 
           <RelatedContent category={post.category} currentPath={canonical} />
 
-          <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
+          <div className="not-prose my-10 rounded-lg border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Klar til at få tilbud?</h2>
             <p className="mt-2 text-foreground/80">
               Beskriv opgaven én gang og modtag op til 3 uforpligtende tilbud fra verificerede serviceudbydere.
