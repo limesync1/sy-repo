@@ -95,7 +95,7 @@ import { AdminShell } from "@/components/admin/shared/AdminShell";
 import HelpTip from "@/components/route-planner/HelpTip";
 import { useRouteWeather } from "@/hooks/useRouteWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
-import { useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
+import { useRouteSkillMismatch } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
@@ -797,7 +797,7 @@ const Planner = () => {
       list = list.filter((j: any) => {
         const hasGps = j.latitude != null && j.longitude != null;
         if (unassignedStatusFilter === "pending") return j.status === "pending";
-        // "ready" = klar til auto-fordel: ikke pending, har GPS, har dato.
+        // "ready" = klar til manuel planlægning: ikke pending, har GPS og dato.
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
     }
@@ -3251,7 +3251,7 @@ const Planner = () => {
                         const hasFilter = unassignedStatusFilter !== "all";
                         const filterLabel: Record<typeof unassignedStatusFilter, string> = {
                           all: "alle",
-                          ready: "klar til auto-fordel",
+                          ready: "klar til planlægning",
                           pending: "afventer godkendelse",
                         } as any;
                         if (search) {
@@ -3387,7 +3387,7 @@ const Planner = () => {
                       const keyFor = (job: any): { key: string; label: string } => {
                         if (unassignedGroupBy === "status") {
                           if (job.status === "pending") return { key: "1-pending", label: "Afventer godkendelse" };
-                          if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til auto-fordel" };
+                          if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til planlægning" };
                           return { key: "3-other", label: "Andet" };
                         }
                         if (unassignedGroupBy === "route") {
