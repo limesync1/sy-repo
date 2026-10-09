@@ -26,7 +26,7 @@
 - Arrival uses bounded accuracy-aware proximity, low-speed gating and dwell; work timers and completion require explicit actions to avoid false hours.
 - Driving route lines preserve provider road geometry and render through the shared SVG brand-gradient layer, so decoration never moves a route off the road.
 - Route theme owns guide/checklist/portals; toasts observe root. Manual choices reset at automatic switch, avoiding mixed themes.
-- Live route re-optimization never reorders when the employee is within 250 m of the next stop, so the stop being arrived at cannot be pushed to the end.
+- Re-optimization never reorders within 250 m of the next stop to protect arrival.
 - Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Night maps use token-themed OpenFreeMap vectors, dim raster fallback and errors. PWA uses manifest only; no offline cache to stale previews.
@@ -36,7 +36,8 @@
 
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
-- Compact planning uses tap assignment/reorder. Dialogs reuse names/employees and native scrolling. Density/card detail persist independently; scoped sizing beats overrides.
+- Compact planning uses a bounded calendar, scrollable drawer and tap assignment; desktop retains drag. Dialogs share names/employees and scrolling; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
-- Panel headers share `PageHeader`/`.panel-page-hero` so panels inherit front-page styling from one place.
+- Panel headers share `PageHeader`/`.panel-page-hero` styling.
+- Public navigation/beta persist outside suspense; local headers defer to avoid duplicates.

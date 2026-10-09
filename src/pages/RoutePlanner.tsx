@@ -3613,7 +3613,7 @@ const Planner = () => {
           );
 
           return (
-              <div className="planner-canvas flex-1 overflow-hidden p-2 2xl:p-3" style={{ height: "calc(100dvh - 56px)" }}>
+              <div className="planner-canvas min-h-0 w-full shrink-0 overflow-hidden p-2 2xl:p-3" style={{ height: "calc(100dvh - 73px)", maxHeight: "calc(100dvh - 73px)" }}>
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
@@ -3860,7 +3860,7 @@ const Planner = () => {
               {/* Mobil/tablet/narrow desktop (<xl, <1280px): dedikeret toolbar + agenda-kalender fuld
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
-              <div className="flex h-full flex-col gap-2 [@media(min-width:1100px)]:hidden">
+              <div className="flex h-full min-h-0 flex-col gap-2 [@media(min-width:1100px)]:hidden">
                 <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-lg border border-border bg-card p-2.5">
                   <div className="flex items-center gap-1.5">
                     <Button
@@ -4075,7 +4075,7 @@ const Planner = () => {
                             setAppointmentsOpen(false);
                             setBulkAddToRouteOpen(true);
                           }}>
-                            <Plus className="h-4 w-4" />Tilføj {selectedJobIds.size || "valgte"} aftaler til ruten
+                            <Plus className="h-4 w-4" />Tilføj {selectedJobIds.size || "valgte"} {selectedJobIds.size === 1 ? "aftale" : "aftaler"} til ruten
                           </Button>
                         </div>
                       )}
