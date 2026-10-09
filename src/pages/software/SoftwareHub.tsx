@@ -33,13 +33,6 @@ const PARTS = [
     body: "Samme system til rengøring, vinduespudsning, have, håndværk, flytning og autoservice." },
 ];
 
-const FACTS = [
-  "Ruteplanlægning inkluderet i basisprisen",
-  "Dansk system, dansk support",
-  "Virker på computer, tablet og telefon",
-  "Ingen binding — opsig når som helst",
-];
-
 const PRICE_POINTS = [
   { label: "Prøveperiode", value: "14 dage", note: "Gratis, uden betalingskort" },
   { label: "Basis", value: "289 kr./md.", note: "Ekskl. moms — ruteplanlægning inkluderet" },
