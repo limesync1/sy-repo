@@ -9,3 +9,8 @@
 - [x] Kompakt HUD, samlet ankomst, stopmenu og sikre fejlzoner
 - [x] Indlogget kontrol af HUD på mobil, tablet og computer
 - [x] Ensartede knapfarver og tabletlayout i rutekørsel
+- [ ] Samlet mobilkalender med rulbar aftaleskuffe og direkte aftaletildeling
+- [ ] Stabil offentlig navigation og indlæsningsvisninger uden headerskift
+- [ ] Matchende planlæggerskeleton og oprydning i forældede indlæsningsvisninger
+- [ ] Erstat hjælpecentrets fire ikoner med de vedhæftede PDF-illustrationer
+- [ ] Indlogget browserkontrol på mobil, tablet og computer
