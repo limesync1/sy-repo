@@ -354,7 +354,8 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
       />
 
       <div data-tour="services-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Services</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{services?.length || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{activeServices}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Bestillinger</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{totalOrders}</p></div></div>
+        <div className="hidden gap-3 sm:grid sm:grid-cols-3">
           <StatCard label="Services i alt" value={services?.length || 0} icon={<BrandedIllustration name="servicesTotal" />} />
           <StatCard label="Aktive" value={activeServices} icon={<BrandedIllustration name="activeServices" />} tone="ok" />
           <StatCard label="Bestillinger" value={totalOrders} icon={<BrandedIllustration name="orders" />} />
@@ -547,7 +548,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
             </div>
 
             {/* Hovedstats — pris stort, resten kompakte celler */}
-            <div className="mt-2.5 grid items-stretch gap-1.5 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
+            <div className="mt-2.5 grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
               <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
                 <p className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
                 <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums truncate">{priceSummary}</p>
