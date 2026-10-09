@@ -18,7 +18,6 @@ import iconOmraade from "@/assets/content-icons/omraade.svg.asset.json";
 import iconPlatform from "@/assets/content-icons/platform.svg.asset.json";
 import iconUafhaengig from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
 import iconVerificeret from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
-import { SectionLabelMark } from "@/components/shared/UiArtwork";
 
 const PRINCIPLES = [
   { icon: iconVerificeret.url, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
@@ -143,11 +142,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-16">
               <div>
-                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <SectionLabelMark />
-                  Mission
-                </span>
-                <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+                <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Tryghed, gennemsigtighed og lokal kvalitet
                 </h2>
                 <p className="mt-5 max-w-md text-[15px] leading-7 text-muted-foreground">
@@ -182,11 +177,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
-                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <SectionLabelMark />
-                  Brancher
-                </span>
-                <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+                  <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   25+ kategorier, ét sted
                 </h2>
                 <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground">
@@ -229,11 +220,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-16">
               <div className="max-w-md shrink-0">
-                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <SectionLabelMark />
-                  Geografi
-                </span>
-                <h2 className="mt-5 text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
+                <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
                   Lokale udbydere i hele Danmark
                 </h2>
                 <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
@@ -266,11 +253,7 @@ const AboutUs = () => {
         <section className="bg-background py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <SectionLabelMark />
-                Principper
-              </span>
-              <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+              <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Sådan arbejder vi
               </h2>
               <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -299,11 +282,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  <SectionLabelMark />
-                  Kontakt
-                </span>
-                <h2 className="mt-5 text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
+                <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
                   Kontakt &amp; virksomhedsinfo
                 </h2>
                 <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
@@ -317,7 +296,7 @@ const AboutUs = () => {
                   { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
                 ].map(({ icon, label, value, sub, href }) => (
                   <div key={label} className="rounded-[20px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-border/60 bg-secondary/80 p-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md border border-border/60 bg-site-header-background p-1.5">
                       <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                     </div>
                     <dt className="mt-4 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{label}</dt>

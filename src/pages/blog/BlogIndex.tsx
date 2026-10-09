@@ -72,13 +72,11 @@ const BlogIndex = () => {
             <Link
               key={p.slug}
               to={`/blog/${p.slug}`}
-              className="group flex flex-col rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40 hover:shadow-sm"
+              className="group flex min-h-[180px] flex-col rounded-lg border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-sm"
             >
-              <span className="mb-2 inline-flex w-fit rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                {p.category} · {p.readingMinutes} min
-              </span>
               <h2 className="text-lg font-semibold text-foreground group-hover:underline">{p.title}</h2>
               <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
+              <span className="mt-auto pt-5 text-xs font-medium text-muted-foreground">{p.category} · {p.readingMinutes} min læsning</span>
             </Link>
           ))}
         </div>
