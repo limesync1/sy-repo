@@ -1746,234 +1746,8 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
 
-  // Auto-fordel: lægger valgte/alle aftaler ind på den bedst matchende
-  // eksisterende rute. Bruger samme RPC som "Foreslå rute"-dialogen, men
-  // holder selv styr på kapacitet og sequence-numre LOKALT under kørslen
-  // — så to aftaler ikke ender på samme plads og en rute ikke fyldes ud
-  // over kapacitet bare fordi RPC'en ikke ved at vi lige har lagt noget på.
-  const [autoAssigning, setAutoAssigning] = useState(false);
-
-  type SkipReason =
-    | "no-gps" | "no-date" | "pending"
-    | "no-route" | "full" | "rpc-error" | "save-error";
-  // Returnerer en hel sætning med korrekt ental/flertal, så fx "1 aftale
-  // mangler adresse" og "3 aftaler mangler adresse" begge giver mening.
-  const skipPhrase = (reason: SkipReason, n: number): string => {
-    const aftale = n === 1 ? "aftale" : "aftaler";
-    switch (reason) {
-      case "no-gps":     return `${n} ${aftale} mangler adresse`;
-      case "no-date":    return `${n} ${aftale} mangler dato`;
-      case "pending":    return `${n} ${aftale} afventer godkendelse`;
-      case "no-route":   return `${n} ${aftale} havde ingen rute på dagen`;
-      case "full":       return `${n} ${aftale} kunne ikke få plads`;
-      case "rpc-error":  return `${n} ${aftale} kunne ikke hentes forslag for`;
-      case "save-error": return `${n} ${aftale} kunne ikke gemmes`;
-    }
-  };
-
-  const runAutoAssignCore = async (
-    jobs: any[],
-    opts: { setBusy: (b: boolean) => void; sourceLabel: "alle" | "valgte" },
-  ) => {
-    if (!businessId) return;
-    opts.setBusy(true);
-    // Lokale akkumulatorer pr. rute — opdateres efter hver succes så næste
-    // job ser den korrekte kapacitet i samme batch.
-    const usage = new Map<string, { minutes: number; stops: number }>();
-    const seqByRoute = new Map<string, number>();
-    const getUsage = (id: string) => usage.get(id) ?? { minutes: 0, stops: 0 };
-    const getSeq = (id: string) => {
-      const cur = seqByRoute.get(id);
-      if (cur != null) return cur;
-      const base = (calendarStops as any[]).filter((s) => s.route_id === id).length;
-      seqByRoute.set(id, base);
-      return base;
-    };
-
-    let assigned = 0;
-    const skipped: { job: any; reason: SkipReason }[] = [];
-    // Tracker: stop-ids vi har oprettet (til Fortryd) + hvor mange aftaler
-    // der røg på hver rute (til læselig per-rute opsummering).
-    const createdStopIds: string[] = [];
-    const perRouteCount = new Map<string, { name: string; date: string; n: number }>();
-
-    try {
-      // Forslagene er uafhængige netværksopslag. Hent dem samtidig, mens
-      // selve tildelingen fortsat sker i rækkefølge af hensyn til kapacitet.
-      const suggestionResults = new Map<string, { suggestions: any[]; error?: SkipReason }>();
-      const suggestionJobs = jobs.filter((job) =>
-        job.status !== "pending"
-        && job.latitude != null
-        && job.longitude != null
-        && (job.preferred_date || job.next_service_date),
-      );
-      await Promise.all(suggestionJobs.map(async (job) => {
-        const jobDate = String(job.preferred_date || job.next_service_date).slice(0, 10);
-        const duration = Number(job.estimated_duration_minutes) || 30;
-        try {
-          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
-            _business_id: businessId,
-            _date: jobDate,
-            _latitude: job.latitude,
-            _longitude: job.longitude,
-            _service_id: job.order_items?.[0]?.service_id ?? null,
-            _duration_minutes: duration,
-            _zone_key: deriveZoneKey(job.zip_code),
-            _weather_bad: false,
-            _skill_key: null,
-          });
-          suggestionResults.set(job.id, error
-            ? { suggestions: [], error: "rpc-error" }
-            : { suggestions: (rpc as any)?.suggestions || [] });
-        } catch {
-          suggestionResults.set(job.id, { suggestions: [], error: "rpc-error" });
-        }
-      }));
-
-      for (const job of jobs) {
-        if (job.status === "pending") { skipped.push({ job, reason: "pending" }); continue; }
-        if (job.latitude == null || job.longitude == null) { skipped.push({ job, reason: "no-gps" }); continue; }
-        const jobDateRaw = job.preferred_date || job.next_service_date;
-        if (!jobDateRaw) { skipped.push({ job, reason: "no-date" }); continue; }
-        const jobDate = String(jobDateRaw).slice(0, 10);
-        const duration = Number(job.estimated_duration_minutes) || 30;
-
-        const suggestionResult = suggestionResults.get(job.id);
-        if (suggestionResult?.error) { skipped.push({ job, reason: suggestionResult.error }); continue; }
-        const suggestions = suggestionResult?.suggestions ?? [];
-
-        if (suggestions.length === 0) { skipped.push({ job, reason: "no-route" }); continue; }
-
-        // Find første forslag der HAR plads INKL. det vi lige har akkumuleret
-        // på samme rute i denne kørsel.
-        const top = suggestions.find((s: any) => {
-          const extra = getUsage(s.route_id);
-          const minutesAfter = s.minutes_used + extra.minutes + duration;
-          const stopsAfter = s.stop_count + extra.stops + 1;
-          const overHours = s.capacity?.hours_max != null && minutesAfter / 60 > s.capacity.hours_max;
-          const overStops = s.capacity?.stops_max != null && stopsAfter > s.capacity.stops_max;
-          return !overHours && !overStops;
-        });
-        if (!top) { skipped.push({ job, reason: "full" }); continue; }
-
-        const seq = getSeq(top.route_id);
-        try {
-          const newStop = await addStop.mutateAsync({
-            route_id: top.route_id,
-            order_id: job.id,
-            sequence: seq,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: duration,
-            time_window_start: null,
-            time_window_end: null,
-          });
-          if (newStop?.id) createdStopIds.push(newStop.id);
-          const prev = perRouteCount.get(top.route_id);
-          perRouteCount.set(top.route_id, {
-            name: top.route_name || prev?.name || "Rute",
-            date: top.route_date || prev?.date || jobDate,
-            n: (prev?.n ?? 0) + 1,
-          });
-          const cur = getUsage(top.route_id);
-          usage.set(top.route_id, { minutes: cur.minutes + duration, stops: cur.stops + 1 });
-          seqByRoute.set(top.route_id, seq + 1);
-          assigned++;
-        } catch {
-          skipped.push({ job, reason: "save-error" });
-        }
-      }
-
-      invalidateRouteSyncQueries(qc);
-
-      // Lav læselig opsummering: hvis flere blev sprunget over af samme
-      // årsag — skriv "X mangler adresse, Y ruterne fyldte" i stedet for
-      // bare et tal.
-      const reasonCounts = new Map<SkipReason, number>();
-      for (const s of skipped) reasonCounts.set(s.reason, (reasonCounts.get(s.reason) ?? 0) + 1);
-      const reasonSummary = Array.from(reasonCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .map(([r, n]) => skipPhrase(r, n))
-        .join(" · ");
-
-      // Per-rute opsummering: "2 til Mandagsrute · 1 til Torsdagsrute"
-      const routeSummary = (() => {
-        if (perRouteCount.size === 0) return "";
-        const entries = Array.from(perRouteCount.values()).sort((a, b) => b.n - a.n);
-        const top3 = entries.slice(0, 3).map((e) => `${e.n} til ${e.name}`).join(" · ");
-        const rest = entries.length - 3;
-        return rest > 0 ? `${top3} · +${rest} ruter mere` : top3;
-      })();
-
-      if (assigned > 0) {
-        const total = assigned + skipped.length;
-        const parts: string[] = [];
-        if (routeSummary) parts.push(routeSummary);
-        if (skipped.length > 0) parts.push(`Sprunget over: ${reasonSummary}`);
-        toast.success(
-          `Fordelt ${assigned} af ${total} aftale${total === 1 ? "" : "r"}`,
-          {
-            description: parts.join(" — ") || "Kapacitetsbjælkerne i kalenderen er opdateret.",
-            duration: 10000,
-            action: createdStopIds.length > 0 ? {
-              label: "Fortryd",
-              onClick: async () => {
-                let ok = 0;
-                for (const id of createdStopIds) {
-                  try { await deleteStop.mutateAsync(id); ok++; } catch { /* ignorer */ }
-                }
-                invalidateRouteSyncQueries(qc);
-                if (ok === createdStopIds.length) {
-                  toast.success(`Fortrudt — ${ok} aftale${ok === 1 ? "" : "r"} fjernet fra ruterne`);
-                } else if (ok > 0) {
-                  toast.warning(`Fortrudt delvist — ${ok} af ${createdStopIds.length} fjernet`);
-                } else {
-                  toast.error("Kunne ikke fortryde", { description: "Aftalerne er måske allerede ændret." });
-                }
-              },
-            } : undefined,
-          },
-        );
-        if (opts.sourceLabel === "valgte") setSelectedJobIds(new Set());
-      } else {
-        toast.error("Ingen aftaler kunne fordeles", {
-          description: skipped.length > 0
-            ? reasonSummary + ". Opret en rute på dagen eller flyt opstartsdatoen."
-            : "Opret en rute på den ønskede dag først, eller flyt opstartsdatoen.",
-          duration: 8000,
-        });
-      }
-    } finally {
-      opts.setBusy(false);
-    }
-  };
-
-  const runAutoAssign = async () => {
-    if (autoAssigning) return;
-    const candidates = (unassigned as any[]).filter(
-      (j) => j.status !== "pending"
-        && j.latitude != null && j.longitude != null
-        && (j.preferred_date || j.next_service_date),
-    );
-    if (candidates.length === 0) {
-      toast.info("Ingen aftaler kan auto-fordeles", {
-        description: "Aftaler skal have adresse på kortet og en ønsket dato.",
-      });
-      return;
-    }
-    // Tidligere skar vi listen ned til 25 — det er forvirrende når brugeren
-    // ser "Auto-fordel 40 aftaler" og kun 25 bliver kørt. Vi tager nu hele
-    // listen; tunge batches sker stadig sekventielt så DB ikke overbelastes.
-    await runAutoAssignCore(candidates, { setBusy: setAutoAssigning, sourceLabel: "alle" });
-  };
-
-  // Hold refs synkroniseret så keyboard-shortcuts altid kalder seneste closure.
+  // Hold søgereferencen synkroniseret til tastaturgenvejen.
   useEffect(() => {
-    runAutoAssignRef.current = runAutoAssign;
     focusSearchRef.current = () => {
       const el = unassignedSearchRef.current;
       if (!el) return;
@@ -1981,16 +1755,6 @@ const Planner = () => {
       try { el.select(); } catch { /* select kan kaste på read-only inputs */ }
     };
   });
-
-  const runBulkAutoAssign = async () => {
-    if (bulkBusy || selectedJobIds.size === 0) return;
-    const candidates = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
-    if (candidates.length === 0) {
-      toast.info("Ingen valgte aftaler at fordele");
-      return;
-    }
-    await runAutoAssignCore(candidates, { setBusy: setBulkBusy, sourceLabel: "valgte" });
-  };
 
   /** Annullér de valgte aftaler — sætter status til 'cancelled' så de
    *  forsvinder fra "Aftaler uden rute". Vi henter forrige status først så
@@ -2148,7 +1912,6 @@ const Planner = () => {
   const optimizeRouteRef = useRef<(id: string) => void>(() => {});
   // Refs så keyboard-shortcuts kan kalde de senest definerede handlers
   // uden at vi skal hejse hele runAutoAssign op før effekten.
-  const runAutoAssignRef = useRef<() => void | Promise<void>>(() => {});
   const focusSearchRef = useRef<() => void>(() => {});
   useRoutePlannerKeyboard({
     history,
@@ -2167,7 +1930,6 @@ const Planner = () => {
     setPrintOpen,
     setDayDetailOpen,
     focusSearchRef,
-    runAutoAssignRef,
     optimizeRouteRef,
     selectedRouteIds,
     clearRouteSelection,
