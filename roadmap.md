@@ -1,8 +1,8 @@
 # Roadmap
-- [ ] Responsive rutekørsel, tjekliste og stopoplysninger
-- [ ] Ensartet ret/ny aftale med custom kalender
-- [ ] Medarbejderprofil og mobilnavigation
-- [ ] Offentlig navigation og designsprog
-- [ ] Forenklet ruteplanlægger uden autofordeling
-- [ ] Responsive Leads og services
-- [ ] Test centrale flows og skærmstørrelser
+- [x] Responsive rutekørsel, tjekliste og stopoplysninger
+- [x] Ensartet ret/ny aftale med custom kalender
+- [x] Medarbejderprofil og mobilnavigation
+- [x] Offentlig navigation og designsprog
+- [x] Forenklet ruteplanlægger uden autofordeling
+- [x] Responsive Leads og services
+- [x] Test centrale flows og skærmstørrelser
