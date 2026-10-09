@@ -801,7 +801,7 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`group fixed z-40 flex items-center gap-2 overflow-hidden rounded-full bg-foreground py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(var(--foreground)/0.6)] transition-all hover:scale-[1.03] active:scale-[0.97] ${fabBottomClass} ${fabPositionClass}`}
+          className={`group fixed z-40 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-foreground text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(var(--foreground)/0.6)] transition-all hover:scale-[1.03] active:scale-[0.97] sm:h-auto sm:w-auto sm:gap-2 sm:py-2 sm:pl-2.5 sm:pr-4 ${fabBottomClass} ${fabPositionClass}`}
         >
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
@@ -814,7 +814,7 @@ const LiveChatWidget = () => {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
             </span>
           </span>
-          <span className="relative">Kundeservice</span>
+           <span className="relative hidden sm:inline">Kundeservice</span>
         </button>
       )}
 

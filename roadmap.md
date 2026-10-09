@@ -18,4 +18,4 @@
 - [x] Redesign Bliv udbyder og hele Systemet-universet
 - [x] Redesign Anmeldelser, Om os, Hjælpecenter og Kontakt
 - [x] Redesign Guides, blogartikler og juridiske sider
-- [ ] Kontroller alle footer-sider på mobil, tablet og computer
+- [x] Kontroller alle footer-sider på mobil, tablet og computer
