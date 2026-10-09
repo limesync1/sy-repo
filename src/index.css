@@ -848,7 +848,9 @@
   .route-action-undo:hover { background: hsl(var(--undo-border) / 0.22); }
   .route-action-complete { background: hsl(var(--complete-surface)); color: hsl(var(--complete-ink)); border: 1px solid hsl(var(--complete-surface)); }
   .route-action-complete:hover { filter: brightness(1.08); }
-  .dark .route-action-undo { --undo-surface: 32 30% 16%; --undo-ink: 38 85% 80%; --undo-border: 35 45% 42%; }
+  .dark .route-action-undo { --undo-surface: 34 42% 17%; --undo-ink: 42 96% 84%; --undo-border: 38 60% 50%; }
+  .route-action-undo:active, .route-action-complete:active { filter: brightness(0.94); }
+  .route-action-undo:focus-visible, .route-action-complete:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
   .dark .route-action-complete { --complete-surface: 149 45% 25%; --complete-ink: 140 30% 95%; }
   .employee-route-run.dark, .dark .appointment-details-overlay {
     --night-map-land: 215 10% 15%; --night-map-water: 207 24% 20%;
