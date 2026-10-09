@@ -548,7 +548,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
             </div>
 
             {/* Hovedstats — pris stort, resten kompakte celler */}
-            <div className="mt-2.5 grid items-stretch gap-1.5 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
+            <div className="mt-2.5 grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
               <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
                 <p className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
                 <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums truncate">{priceSummary}</p>
