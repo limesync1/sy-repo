@@ -6,3 +6,5 @@
 - [x] Forenklet ruteplanlægger uden autofordeling
 - [x] Responsive Leads og services
 - [x] Test centrale flows og skærmstørrelser
+- [x] Kompakt HUD, samlet ankomst, stopmenu og sikre fejlzoner
+- [x] Indlogget kontrol af HUD på mobil, tablet og computer
