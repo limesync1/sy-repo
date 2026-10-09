@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { SheetHeaderBlock } from "./SheetSection";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -139,7 +140,8 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
       <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
-            icon={<CalendarDays className="h-4 w-4" />}
+            icon={<BrandedIllustration name="calendarWeek" className="h-8 w-8" />}
+            iconClassName="h-11 w-11 rounded-md bg-card border border-border"
             title={<DialogTitle className="text-base">Flyt opstartsdato for {jobs.length} aftale{jobs.length === 1 ? "" : "r"}</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
