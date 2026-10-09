@@ -18,15 +18,18 @@ export const PageHeader = ({
   description,
   action,
   className,
+  variant = "hero",
 }: {
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
+  /** "plain" giver en rolig header uden blå flade — til arbejdssider som Min dag. */
+  variant?: "hero" | "plain";
 }) => (
   // Stille indgang: hele headeren fader ind sammen — ingen staggered jitter
   // af titel/beskrivelse/action på hver navigation. Det føles roligt.
-  <div className={cn("panel-page-hero flex items-center justify-between gap-3 flex-wrap", className)}>
+  <div className={cn(variant === "hero" ? "panel-page-hero" : "pb-1", "flex items-center justify-between gap-3 flex-wrap", className)}>
     <div className="relative min-w-0">
       <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{title}</h2>
       {description && (

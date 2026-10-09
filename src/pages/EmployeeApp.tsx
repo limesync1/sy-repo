@@ -354,6 +354,7 @@ const EmployeeApp = () => {
           så det føles som en blød navigation frem for et hårdt re-render. */}
       <EmployeePage transitionKey={date} className="employee-day sm:space-y-4">
         <PageHeader
+          variant="plain"
           title={<span className="inline-block first-letter:uppercase">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={(
             <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
