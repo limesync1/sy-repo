@@ -8,7 +8,7 @@ import { da } from "date-fns/locale";
 import { CalendarDays, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
