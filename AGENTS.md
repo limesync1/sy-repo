@@ -31,7 +31,7 @@
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
 - Driving: vector Google map (runtime key/Map ID) and Google Routes only for signed-in nav legs; OSRM/Leaflet fallbacks bound cost. PWA: manifest only.
 
-- HUD stacks maneuvers above one content-sized dock (one tile row, left column from tablet) so it never scrolls; portaled overlays use shared z-tokens above HUD. Undo stays visible and timing manual.
+- HUD stacks maneuvers above one sized dock (one tile row, left column from tablet) so it never scrolls; portaled overlays use shared z-tokens above HUD. Undo stays visible and timing manual.
 - Mobile/touch field font rules cover portals; prevent focus zoom, preserve pinch zoom.
 
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
