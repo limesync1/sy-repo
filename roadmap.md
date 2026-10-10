@@ -1,4 +1,5 @@
 ## Aktuel samlet forbedring
+- [ ] Gør Centrér og kørselsknapper mere kompakte; kontrollér mobil, tablet og computer
 - [x] Fjern Kortinfo og stabilisér responsiv HUD/kort
 - [x] Færdiggør responsiv HUD på tablet/computer og robust Advanced Marker-håndtering
 - [x] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter
