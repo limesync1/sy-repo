@@ -140,7 +140,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     return () => {
       cancelled = true; offAuth(); ro?.disconnect();
       markersRef.current.forEach(({ marker }) => marker.setMap(null)); markersRef.current.clear();
-      startMarkerRef.current?.setMap(null); puckRef.current?.setMap(null); trafficRef.current?.setMap(null);
+      startMarkerRef.current?.setMap(null); puckRef.current?.setMap(null); haloRef.current?.setMap(null); trafficRef.current?.setMap(null);
       if (mapRef.current) google.maps.event.clearInstanceListeners(mapRef.current);
       mapRef.current = null;
     };
