@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-const FAILURE_KEY = "serviceydere:gmaps-failed";
+const FAILURE_KEY = "serviceydere:gmaps-failed:v2";
 const CALLBACK = "__serviceydereGmapsReady";
 let loadPromise: Promise<typeof google> | null = null;
 const authListeners = new Set<() => void>();

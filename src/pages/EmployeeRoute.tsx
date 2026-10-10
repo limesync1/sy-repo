@@ -64,7 +64,7 @@ import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 import { NightBasemap } from "@/components/employee-route/NightBasemap";
 import { GoogleRouteMap, type GoogleRouteStop } from "@/components/employee-route/GoogleRouteMap";
-import { googleMapsBrowserKey, googleMapsPreviouslyFailed, rememberGoogleMapsFailure, type GoogleMapsLoadError } from "@/lib/google-maps-loader";
+import { googleMapsPreviouslyFailed, rememberGoogleMapsFailure, type GoogleMapsLoadError } from "@/lib/google-maps-loader";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
