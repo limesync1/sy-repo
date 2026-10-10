@@ -1,3 +1,4 @@
+import navigationCar from "@/assets/navigation-car.svg.asset.json";
 import { EmployeeStopActions } from "@/components/employee/EmployeeStopActions";
 import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival, readArrivalEstimate, saveArrivalEstimate } from "@/components/employee-route/route-run-clock";
 import { runMetrics } from "@/components/employee-route/run-metrics";
@@ -24,7 +25,7 @@ import type { Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
 import "leaflet-rotate";
 import { roadProgress } from "@/components/employee-route/route-progress";
-import { arrivalRadius, headingDelta } from "@/components/employee-route/navigation-policy";
+import { arrivalRadius, arrivalDwellMs, headingDelta } from "@/components/employee-route/navigation-policy";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -100,7 +101,7 @@ const stopIcon = (n: number, state: "next" | "done" | "future", _color: string, 
  */
 const NAV_PUCK_ICON = L.divIcon({
   className: "",
-  html: '<div class="nav-puck-rot"><div class="nav-puck-cone"></div><div class="nav-puck-dot"></div></div>',
+  html: `<div class="nav-puck-rot"><img class="route-navigation-car" src="${navigationCar.url}" width="64" height="64" alt="Din bil" /></div>`,
   iconSize: [64, 64],
   iconAnchor: [32, 32],
 });
@@ -571,7 +572,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const shouldWatch = routeStarted;
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
-    const MIN_INTERVAL_MS = 1500;
+    const MIN_INTERVAL_MS = 750;
     const SIGNIFICANT_MOVE_M = 15;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -601,7 +602,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         });
       },
       reportGpsError,
-      { enableHighAccuracy: true, maximumAge: 1500, timeout: 12000 },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted, geoPermission, runMode, pageVisible, gpsRetry]);
@@ -922,7 +923,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // sekunder før vi flipper "fremme" til true.  Det forhindrer at en enkelt
   // jitter-måling udløser ankomst, men føles stadig øjeblikkeligt når man
   // holder ind foran adressen.
-  const ARRIVAL_DWELL_MS = 2_000;
+  const ARRIVAL_DWELL_MS = arrivalDwellMs(distanceToNextM, userSpeedMps, userAccuracyM);
   const arrivalEnteredAtRef = useRef<number | null>(null);
   const arrivalStableForStopRef = useRef<string | null>(null);
   const [stableArrival, setStableArrival] = useState<string | null>(null);
@@ -952,7 +953,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     }
     const elapsed = Date.now() - arrivalEnteredAtRef.current;
     // Parkeret: under 1 km/t inden for 35 m — genkend ankomst med det samme.
-    const parked = distanceToNextM != null && distanceToNextM <= 35 && userSpeedMps < 0.28;
+    const parked = ARRIVAL_DWELL_MS === 0;
     if (parked || elapsed >= ARRIVAL_DWELL_MS) {
       arrivalStableForStopRef.current = nextStop.id;
       setStableArrival(nextStop.id);
@@ -968,7 +969,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       }
     }, remaining + 50);
     return () => window.clearTimeout(timeout);
-  }, [inArrivalRadius, nextStop?.id, stableArrival, distanceToNextM, userSpeedMps]);
+  }, [inArrivalRadius, nextStop?.id, stableArrival, distanceToNextM, userSpeedMps, ARRIVAL_DWELL_MS]);
 
   // An arrival for the previous stop must never start the next appointment.
   const isAtNextStop = !!nextStop && stableArrival === nextStop.id;
@@ -1145,7 +1146,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Brug Serviceydere accent (dark-blue) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
   const googleStops: GoogleRouteStop[] = useMemo(() => sortedStops.flatMap((s, i) => s.latitude == null || s.longitude == null ? [] : [{
-    id: s.id, n: i + 1, pos: [Number(s.latitude), Number(s.longitude)] as [number, number],
+    id: s.id, name: s.customer_name || undefined, n: i + 1, pos: [Number(s.latitude), Number(s.longitude)] as [number, number],
     state: (s.status === "completed" ? "done" : s.id === nextStop?.id ? "next" : "future") as GoogleRouteStop["state"],
     highlighted: s.id === highlightedId,
   }]), [sortedStops, nextStop?.id, highlightedId]);
@@ -1494,9 +1495,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const from = list.findIndex((s) => s.id === stopId);
     const to = from + dir;
     if (from < 0 || to < 0 || to >= list.length) return;
-    const ev = evaluateMove(list, from, to, flexOrigin, minutesNow());
+    const reordered = [...list];
+    const [moved] = reordered.splice(from, 1);
+    if (!moved) return;
+    reordered.splice(to, 0, moved);
     const completed = sortedStops.filter((s) => s.status === "completed");
-    const updates = [...completed, ...ev.order].map((s, i) => ({ id: s.id, sequence: i + 1 }));
+    const updates = [...completed, ...reordered].map((s, i) => ({ id: s.id, sequence: i + 1 }));
     try {
       await reorderStops.mutateAsync(updates);
       buzz(14);
@@ -1942,7 +1946,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
-            {previewLine.length > 1 && <RouteMapLine points={previewLine} muted={routeStarted} />}
+            {!routeStarted && previewLine.length > 1 && <RouteMapLine points={previewLine} />}
             {legLine.length > 1 && !isAtNextStop && <RouteMapLine points={legLine} />}
 
             {/* Hvis vejberegningen mangler, vises retningen stadig tydeligt. */}
@@ -2282,7 +2286,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       man har brug for; Ret/Ny aftale vises når man er hos kunden. */}
                   <div className={cn("route-dock-actions flex min-w-0 gap-1", (activeNextStopEntry || isAtNextStop) && "mt-1.5")}>
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" title="Oplysninger" className="route-dock-tile"><Info className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Info</span></Button>
-                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder || !(isAtNextStop || activeNextStopEntry)} routeDate={route?.route_date ?? null} compact />
+                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
                     <Button asChild variant="outline" aria-label="Ring til kunde" title="Ring til kunde" className="route-dock-tile">
                       <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ring</span></a>
