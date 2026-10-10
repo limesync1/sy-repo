@@ -445,7 +445,7 @@ const DashboardTab = ({
           <SnapshotPill label="Aftaler i dag" value={`${stats.todayCount} ${stats.todayCount === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.todayRevenue)} kr. i omsætning`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Aftaler denne uge" value={`${stats.orders7} ${stats.orders7 === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.revenue7)} kr. i omsætning`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "forespørgsel" : "forespørgsler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
-          <SnapshotPill label="Kundernes bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
+          <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
 
