@@ -57,6 +57,13 @@
       "when": 1791647068621,
       "tag": "0007_undo_completion_resets_time_entries",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791651766311,
+      "tag": "0008_route_drive_traces",
+      "breakpoints": true
     }
   ]
 }

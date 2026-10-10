@@ -3626,6 +3626,39 @@ export type Database = {
         }
         Relationships: []
       }
+      route_drive_traces: {
+        Row: {
+          business_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          points: Json
+          route_id: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          points?: Json
+          route_id: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          points?: Json
+          route_id?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       route_employees: {
         Row: {
           created_at: string
@@ -5217,6 +5250,10 @@ export type Database = {
           _interval: Database["public"]["Enums"]["agreement_interval"]
         }
         Returns: number
+      }
+      append_drive_trace: {
+        Args: { _points: Json; _route_id: string; _session_id: string }
+        Returns: undefined
       }
       assert_route_safely_deleted: {
         Args: { _route_id: string }
