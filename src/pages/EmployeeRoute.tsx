@@ -991,6 +991,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const raw = directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
     return raw;
   }, [directions]);
+  // Google traffic intervals (index ranges on the leg geometry) → coloured segments like Google Maps.
+  const trafficSegments = useMemo(() => {
+    const t = (directions as { traffic?: { start: number; end: number; speed: string }[] } | undefined)?.traffic;
+    if (!t?.length || legLine.length < 2) return [];
+    return t.filter((x) => x.speed !== "NORMAL" && x.end > x.start)
+      .map((x) => ({ speed: x.speed as "SLOW" | "TRAFFIC_JAM", points: legLine.slice(x.start, x.end + 1) }))
+      .filter((x) => x.points.length > 1);
+  }, [directions, legLine]);
 
   /* ── Off-route detection (Google-Maps-stil rerouting) ──────────────
    * Når brugeren afviger >40 m fra ruten i 3+ konsekutive GPS-fixes
@@ -1873,6 +1881,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             flyTo={highlightedPoint}
             night={night}
             maneuverDistanceM={maneuver?.distanceToManeuverM ?? null}
+            trafficSegments={!isAtNextStop ? trafficSegments : []}
             onInteract={breakFollow}
             onRecenter={() => { setHighlightedId(null); setFollowMode(true); }}
             onSelectStop={(id) => { setFollowMode(false); setHighlightedId(id); setSelectedId(id); }}

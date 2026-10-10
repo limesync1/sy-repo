@@ -31,6 +31,8 @@ interface Props {
   night: boolean;
   /** Metres to the next turn — the camera zooms in before junctions, like Google Maps. */
   maneuverDistanceM?: number | null;
+  /** Slow/jammed parts of the current leg from Google Routes. */
+  trafficSegments?: { speed: "SLOW" | "TRAFFIC_JAM"; points: [number, number][] }[];
   onInteract: () => void;
   onRecenter: () => void;
   onSelectStop: (id: string) => void;
@@ -94,7 +96,7 @@ function hudPadding(container: HTMLElement) {
 }
 
 export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleRouteMap(props, _ref) {
-  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, onInteract, onRecenter, onSelectStop, onFailure } = props;
+  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, trafficSegments, onInteract, onRecenter, onSelectStop, onFailure } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [ready, setReady] = useState(false);
@@ -113,7 +115,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const legRef = useRef(legLine); legRef.current = legLine;
   const [northUp, setNorthUp] = useState(() => { try { return localStorage.getItem("serviceydere:gmaps-northup") === "1"; } catch { return false; } });
   const northUpRef = useRef(northUp); northUpRef.current = northUp;
+  const vectorRef = useRef(true);
   const [mapHeading, setMapHeading] = useState(0);
+  const [vector, setVector] = useState(true);
+  vectorRef.current = vector;
 
   // Load + create the map once the container has a real size.
   useEffect(() => {
@@ -142,6 +147,8 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         if (!programmatic.current && map.getTilt()) interactRef.current();
       });
       mapRef.current = map;
+      // Without WebGL Google silently renders raster (no rotation/tilt): stay on Google, just north-up.
+      google.maps.event.addListenerOnce(map, "idle", () => setVector(map.getRenderingType() !== g.maps.RenderingType.RASTER));
       setReady(true);
     }).catch((err: unknown) => {
       if (!cancelled) failRef.current(err instanceof GoogleMapsLoadError ? err : new GoogleMapsLoadError("network", "Google Maps kunne ikke indlæses"));
@@ -231,8 +238,26 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       lines.push(new google.maps.Polyline({ map, path: hintLine.points.map(ll), strokeOpacity: 0, clickable: false, zIndex: 5,
         icons: [{ icon: { path: "M 0,-1 0,1", strokeOpacity: 0.9, strokeColor: color, strokeWeight: hintLine.kind === "arrival" ? 4 : 6, scale: 3 }, offset: "0", repeat: hintLine.kind === "arrival" ? "10px" : "18px" }] }));
     }
+    // Traffic on the route line (orange = slow, red = queue), shown with the traffic toggle like Google Maps.
+    if (prefs.traffic) for (const seg of trafficSegments ?? []) {
+      lines.push(new google.maps.Polyline({ map, path: seg.points.map(ll), strokeColor: seg.speed === "TRAFFIC_JAM" ? "#d93025" : "#f29900", strokeOpacity: 1, strokeWeight: 5, clickable: false, zIndex: 6 }));
+    }
     return () => lines.forEach((l) => l.setMap(null));
-  }, [previewLine, legLine, hintLine, routeStarted, ready, night]);
+  }, [previewLine, legLine, hintLine, routeStarted, ready, night, trafficSegments, prefs.traffic]);
+
+  // Driven part turns grey behind the car, like Google Maps.
+  useEffect(() => {
+    const map = mapRef.current; if (!map || !routeStarted) return;
+    const trail = new google.maps.Polyline({ map, path: [], strokeColor: night ? "#5f6368" : "#9aa0a6", strokeOpacity: 0.9, strokeWeight: 5, clickable: false, zIndex: 2 });
+    let last: [number, number] | null = null;
+    const off = track.subscribe(({ pos }) => {
+      if (last && haversineMeters(last[0], last[1], pos[0], pos[1]) < 8) return;
+      last = pos;
+      const path = trail.getPath(); path.push(new google.maps.LatLng(pos[0], pos[1]));
+      if (path.getLength() > 600) path.removeAt(0);
+    });
+    return () => { off(); trail.setMap(null); };
+  }, [routeStarted, track, ready, night]);
 
   // One Google-style car puck: blue chevron while moving (smoothed heading), blue dot when still.
   // Position is updated per frame; the icon only changes when the smoothed heading moves ≥ 4°,
@@ -300,14 +325,15 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         if (heading != null && speedRef.current > 2) {
           camHeading = camHeading == null ? heading : camHeading + ((((heading - camHeading) % 360) + 540) % 360 - 180) * 0.2;
         }
-        const h = northUpRef.current ? 0 : camHeading ?? map.getHeading() ?? 0;
+        const flat = northUpRef.current || !vectorRef.current;
+        const h = flat ? 0 : camHeading ?? map.getHeading() ?? 0;
         // Push the car below the HUD by moving the camera centre ahead along the heading.
         const mpp = (156543.03392 * Math.cos((pos[0] * Math.PI) / 180)) / 2 ** zoom;
         const ahead = (offset + 40) * mpp;
         const rad = (h * Math.PI) / 180;
         const center = { lat: pos[0] + (ahead * Math.cos(rad)) / 111320, lng: pos[1] + (ahead * Math.sin(rad)) / (111320 * Math.cos((pos[0] * Math.PI) / 180)) };
         programmatic.current = true;
-        map.moveCamera({ center, zoom, heading: Math.round(h), tilt: northUpRef.current ? 0 : 45 });
+        map.moveCamera({ center, zoom, heading: Math.round(h), tilt: flat ? 0 : 45 });
         programmatic.current = false;
         last = { lat: pos[0], lng: pos[1], zoom };
       });
@@ -363,9 +389,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
               <Crosshair className="h-5 w-5" />
             </Button>
           )}
-          <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={() => setNorthUp((v) => { const n = !v; try { localStorage.setItem("serviceydere:gmaps-northup", n ? "1" : "0"); } catch { /* private mode */ } return n; })} aria-label={northUp ? "Kør med retning op" : "Vis nord op"} title={northUp ? "Nord op" : "Retning op"}>
+          {vector && <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={() => setNorthUp((v) => { const n = !v; try { localStorage.setItem("serviceydere:gmaps-northup", n ? "1" : "0"); } catch { /* private mode */ } return n; })} aria-label={northUp ? "Kør med retning op" : "Vis nord op"} title={northUp ? "Nord op" : "Retning op"}>
             <Compass className="h-5 w-5 transition-transform duration-300" style={{ transform: `rotate(${-mapHeading - 45}deg)` }} />
-          </Button>
+          </Button>}
           {routeStarted && overview.length > 1 && (
             <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={showOverview} aria-label="Vis hele ruten">
               <Route className="h-5 w-5" />
