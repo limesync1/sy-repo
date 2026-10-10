@@ -213,9 +213,18 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const existing = markersRef.current.get(s.id);
       if (existing?.key === key) continue;
       const title = `${s.name || `Stop ${s.n}`}${s.state === "done" ? " (udført)" : ""}`;
+      const content = () => {
+        const pin = pinContent(String(s.n), s.state, s.highlighted);
+        if (!s.name || (!overviewMode && routeStarted && s.state !== "next" && !s.highlighted)) return pin;
+        const wrap = document.createElement("div");
+        wrap.className = "route-stop-label-anchor";
+        const label = document.createElement("span");
+        label.className = "route-stop-map-label"; label.textContent = s.name;
+        wrap.append(pin, label); return wrap;
+      };
       const zIndex = s.highlighted ? 40 : s.state === "next" ? 30 : s.state === "done" ? 5 : 10;
       if (existing) {
-        existing.marker.replaceChildren(pinContent(String(s.n), s.state, s.highlighted));
+        existing.marker.replaceChildren(content());
         existing.marker.position = ll(s.pos);
         existing.marker.zIndex = zIndex;
         existing.marker.title = title;
@@ -226,7 +235,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
           anchorLeft: "-22px", anchorTop: "-52px",
           collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
         });
-        marker.replaceChildren(pinContent(String(s.n), s.state, s.highlighted));
+        marker.replaceChildren(content());
         const select = () => selectRef.current(s.id);
         if (typeof marker.addEventListener === "function") marker.addEventListener("gmp-click", select);
         else marker.addListener("click", select);
@@ -234,7 +243,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       }
     }
     for (const [id, { marker }] of markersRef.current) if (!seen.has(id)) { removePin(marker); markersRef.current.delete(id); }
-  }, [stops, ready, night]);
+  }, [stops, ready, night, overviewMode, routeStarted]);
 
   useEffect(() => {
     const map = mapRef.current; const library = markerLibraryRef.current;

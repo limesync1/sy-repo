@@ -333,7 +333,7 @@ const EmployeeRoute = () => {
 const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
   const topHudRef = useRef<HTMLDivElement>(null);
   const bottomHudRef = useRef<HTMLDivElement>(null);
-  const { data, isLoading } = useMyRouteData(routeId);
+  const { data, isLoading, isError: routeLoadError, refetch: retryRoute } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
@@ -1405,7 +1405,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   if (!isLoading && !route) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-muted-foreground">
-        <p>Rute ikke fundet eller du har ikke adgang.</p>
+        <p>{routeLoadError ? "Ruten kunne ikke hentes. Tjek forbindelsen og prøv igen." : "Rute ikke fundet eller du har ikke adgang."}</p>
+        {routeLoadError && <Button onClick={() => void retryRoute()}>Prøv igen</Button>}
         <Button variant="outline" onClick={onBack}>Tilbage</Button>
       </div>
     );
