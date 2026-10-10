@@ -4,13 +4,13 @@
 - [ ] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter
 - [ ] Gør Ret aftale, Ny aftale og Note trinvise og ens med fælles overlay-primitiver
 - [ ] Ensret Føj til rute og Flyt dato helt med Rediger rute/Opret bestilling
-- [ ] Implementér eksplicit smart aftaleplacering: dagens rute, næste ruteforekomst, anden rute eller uden rute
+- [x] Implementér eksplicit smart aftaleplacering: dagens rute, næste ruteforekomst, anden rute eller uden rute
 - [ ] Vis konsekvensen af Ret aftale for dette besøg, fremtidige besøg og serien før gem
 - [x] Gør tidsregistrering atomisk og uden gentagne konfliktdialoger
 - [ ] Saml aktiv timerstatus på tværs af HUD og detaljeark og test fejl/dobbeltklik
 - [x] Ensret Note til kontoret
 - [x] Ensret medarbejderprofil og tilføj virksomhedsprofil
-- [ ] Ret offentlig mobilmenus dubletter, pressed/focus/active og tilgængelighed
+- [x] Ret offentlig mobilmenus dubletter, pressed/focus/active og tilgængelighed
 - [ ] Tilføj de lovede integrationstests for aftalelogik, profiler, navigation, HUD og timer
 - [ ] Test de centrale flows som relevante roller på mobil, tablet og computer i lyst/mørkt tema samt fejltilstande
-- [ ] Fjern aktuelle runtime-advarsler i aftaledetaljer
+- [x] Fjern aktuelle runtime-advarsler i aftaledetaljer
