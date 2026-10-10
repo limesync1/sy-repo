@@ -1897,7 +1897,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         ) : (
           <>
           {googleMapError && (
-            <div className={cn("absolute left-3 right-3 z-[1001] flex items-center justify-between gap-2 rounded-md border border-border bg-card/95 p-2 pl-3 text-[11px] text-foreground shadow-md sm:left-auto sm:max-w-sm", routeStarted && !allDone ? "bottom-3" : "top-3")} role="status">
+            <div className={cn("route-google-fallback absolute left-3 right-3 z-[1001] flex items-center justify-between gap-2 rounded-md border border-border bg-card/95 p-2 pl-3 text-[11px] text-foreground shadow-md sm:left-auto sm:max-w-sm", routeStarted && !allDone ? "bottom-3" : "top-3")} role="status">
               <span className="line-clamp-2">{googleMapError}</span>
               <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={retryGoogleMap} aria-label="Prøv Google-kortet igen" title="Prøv Google-kortet igen"><Crosshair className="h-4 w-4" /></Button>
             </div>
