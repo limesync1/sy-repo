@@ -63,8 +63,8 @@ function snapToLine(pos: [number, number], line: [number, number][]): [number, n
   return best;
 }
 
-/** SVG pin matching the Leaflet pins: numbered / check for done / navigation arrow for start. */
-function pinIcon(label: string, state: GoogleStopState | "start", highlighted: boolean): google.maps.Icon {
+/** Geographic pin artwork projected by Google alongside its rotating map. */
+function pinContent(label: string, state: GoogleStopState | "start", highlighted: boolean): HTMLImageElement {
   const accent = resolveMapColor("--accent", "hsl(184 90% 42%)");
   const success = resolveMapColor("--success", "hsl(142 71% 38%)");
   const fg = resolveMapColor("--foreground", "hsl(222 47% 11%)");
@@ -79,13 +79,17 @@ function pinIcon(label: string, state: GoogleStopState | "start", highlighted: b
       ? `<path d="M15 21l7-6 7 6v7h-4.5v-4.5h-5V28H15z" fill="${text}"/>`
       : `<text x="22" y="25" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="${text}">${label}</text>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 44 54">${ring}<path d="M22 52c-1-6-15-15-15-31a15 15 0 0 1 30 0c0 16-14 25-15 31z" fill="${fill}" stroke="${stroke}" stroke-width="2.5" opacity="${state === "done" ? 0.85 : 1}"/>${inner}</svg>`;
-  return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
-    scaledSize: new google.maps.Size(44, 54),
-    anchor: new google.maps.Point(22, 52),
-  };
+  const image = document.createElement("img");
+  image.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  image.width = 44; image.height = 54; image.alt = ""; image.draggable = false;
+  return image;
 }
 
+
+function removePin(marker: google.maps.marker.AdvancedMarkerElement) {
+  google.maps.event.clearInstanceListeners(marker);
+  marker.map = null;
+}
 
 /** Measures how much of the map the top HUD covers, so the car/next stop stays visible. */
 function hudPadding(container: HTMLElement) {
@@ -101,8 +105,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const mapRef = useRef<google.maps.Map | null>(null);
   const [ready, setReady] = useState(false);
   const [prefs, setPrefs] = useState(readPrefs);
-  const markersRef = useRef(new Map<string, { marker: google.maps.Marker; key: string }>());
-  const startMarkerRef = useRef<google.maps.Marker | null>(null);
+  const markersRef = useRef(new Map<string, { marker: google.maps.marker.AdvancedMarkerElement; key: string }>());
+  const startMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const markerLibraryRef = useRef<google.maps.MarkerLibrary | null>(null);
   const puckRef = useRef<google.maps.Marker | null>(null);
   const haloRef = useRef<google.maps.Marker | null>(null);
   const trafficRef = useRef<google.maps.TrafficLayer | null>(null);
@@ -128,8 +133,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     const el = containerRef.current;
     if (!el) return;
     const offAuth = onGoogleMapsAuthFailure(() => failRef.current(new GoogleMapsLoadError("auth", "Google Maps afviste nøglen på dette domæne")));
-    const create = () => loadGoogleMaps().then((g) => {
+    const create = () => loadGoogleMaps().then(async (g) => {
+      const markerLibrary = await g.maps.importLibrary("marker") as google.maps.MarkerLibrary;
       if (cancelled || mapRef.current || !containerRef.current) return;
+      markerLibraryRef.current = markerLibrary;
       const first = userPos ?? start ?? stops[0]?.pos ?? [56.1, 10.2];
       const map = new g.maps.Map(containerRef.current, {
         center: ll(first), zoom: 13, disableDefaultUI: true, clickableIcons: false,
@@ -163,8 +170,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     }
     return () => {
       cancelled = true; offAuth(); ro?.disconnect();
-      markersRef.current.forEach(({ marker }) => marker.setMap(null)); markersRef.current.clear();
-      startMarkerRef.current?.setMap(null); puckRef.current?.setMap(null); haloRef.current?.setMap(null); trafficRef.current?.setMap(null);
+      markersRef.current.forEach(({ marker }) => removePin(marker)); markersRef.current.clear();
+      if (startMarkerRef.current) removePin(startMarkerRef.current);
+      startMarkerRef.current = null; markerLibraryRef.current = null;
+      puckRef.current?.setMap(null); haloRef.current?.setMap(null); trafficRef.current?.setMap(null);
       if (mapRef.current) google.maps.event.clearInstanceListeners(mapRef.current);
       mapRef.current = null;
     };
@@ -189,33 +198,53 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* ignore */ }
   }, [prefs, ready]);
 
-  // Stop markers, diffed by id so done/undo only swaps the icon.
+  // Geographic anchors stay at addresses while Google moves/rotates the map beneath the car.
+  // Diff by id: status changes never recreate the marker or its click listener.
   useEffect(() => {
-    const map = mapRef.current; if (!map) return;
+    const map = mapRef.current; const library = markerLibraryRef.current;
+    if (!map || !library) return;
     const seen = new Set<string>();
     for (const s of stops) {
       seen.add(s.id);
       const key = `${s.n}|${s.state}|${s.highlighted}|${s.pos.join(",")}|${night}`;
       const existing = markersRef.current.get(s.id);
       if (existing?.key === key) continue;
+      const title = `Stop ${s.n}${s.state === "done" ? " (udført)" : ""}`;
+      const zIndex = s.highlighted ? 40 : s.state === "next" ? 30 : s.state === "done" ? 5 : 10;
       if (existing) {
-        existing.marker.setIcon(pinIcon(String(s.n), s.state, s.highlighted));
-        existing.marker.setPosition(ll(s.pos));
-        existing.marker.setZIndex(s.state === "next" ? 30 : s.state === "done" ? 5 : 10);
+        existing.marker.replaceChildren(pinContent(String(s.n), s.state, s.highlighted));
+        existing.marker.position = ll(s.pos);
+        existing.marker.zIndex = zIndex;
+        existing.marker.title = title;
         existing.key = key;
       } else {
-        const marker = new google.maps.Marker({ map, position: ll(s.pos), icon: pinIcon(String(s.n), s.state, s.highlighted), zIndex: s.state === "next" ? 30 : s.state === "done" ? 5 : 10, title: `Stop ${s.n}${s.state === "done" ? " (udført)" : ""}` });
+        const marker = new library.AdvancedMarkerElement({
+          map, position: ll(s.pos), zIndex, title, gmpClickable: true,
+          anchorLeft: "-22px", anchorTop: "-52px",
+          collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
+        });
+        marker.replaceChildren(pinContent(String(s.n), s.state, s.highlighted));
         marker.addListener("click", () => selectRef.current(s.id));
         markersRef.current.set(s.id, { marker, key });
       }
     }
-    for (const [id, { marker }] of markersRef.current) if (!seen.has(id)) { marker.setMap(null); markersRef.current.delete(id); }
+    for (const [id, { marker }] of markersRef.current) if (!seen.has(id)) { removePin(marker); markersRef.current.delete(id); }
   }, [stops, ready, night]);
 
   useEffect(() => {
-    const map = mapRef.current; if (!map) return;
-    startMarkerRef.current?.setMap(null); startMarkerRef.current = null;
-    if (start) startMarkerRef.current = new google.maps.Marker({ map, position: ll(start), icon: pinIcon("", "start", false), zIndex: 4, title: "Start" });
+    const map = mapRef.current; const library = markerLibraryRef.current;
+    if (!map || !library) return;
+    if (!start) {
+      if (startMarkerRef.current) removePin(startMarkerRef.current);
+      startMarkerRef.current = null;
+      return;
+    }
+    startMarkerRef.current ??= new library.AdvancedMarkerElement({
+      map, zIndex: 4, title: "Start", anchorLeft: "-22px", anchorTop: "-52px",
+      collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
+    });
+    startMarkerRef.current.position = ll(start);
+    startMarkerRef.current.replaceChildren(pinContent("", "start", false));
   }, [start?.[0], start?.[1], ready, night]);
 
   // Route lines: casing + brand line for overview/leg, dashed hint when geometry is missing.

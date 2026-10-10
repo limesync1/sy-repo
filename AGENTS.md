@@ -22,7 +22,7 @@
 
 - Business tab fallbacks share eagerly imported registry skeletons, preventing blank lazy fallbacks; empty customer lists use shared `NoItemsIcon`.
 
-- Driving maps use leaflet-rotate and synchronized motion-track heading/panning, integer zoom dwell and stop-selection suspension; mobile stop actions sit below the map to preserve its usable area.
+- Leaflet reserve uses synchronized motion/rotation; mobile actions stay below the map. Google stop/start pins use imported AdvancedMarkerElement with geographic anchors and id-based updates to move with the camera, not the car.
 - Arrival uses bounded accuracy-aware proximity, low-speed gating and dwell; work timers and completion require explicit actions to avoid false hours.
 - Driving route lines preserve provider road geometry and render through the shared SVG brand-gradient layer, so decoration never moves a route off the road.
 - Route theme owns guide/checklist/portals; toasts observe root. Manual choices reset at automatic switch, avoiding mixed themes.
