@@ -38,3 +38,5 @@
 - [x] Tilføj Bauhaus Herning og jem & fix Herning som kunder og sidste stop på Haderup–Herning
 - [x] Fjern hvid sidebaggrund i mørk tilstand (ses ved scroll)
 - [x] Centrér/positionér lander direkte på bilen; ingen "spoling" efter app-skift
+- [x] Fortryd udførsel sletter også aftalens tidsregistrering
+- [x] Optimér dagen: hurtigste rækkefølge for alle dagens ruter med køretid pr. medarbejder
