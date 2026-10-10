@@ -29,6 +29,8 @@ interface Props {
   fitEnabled: boolean;
   flyTo: [number, number] | null;
   night: boolean;
+  /** Metres to the next turn — the camera zooms in before junctions, like Google Maps. */
+  maneuverDistanceM?: number | null;
   onInteract: () => void;
   onRecenter: () => void;
   onSelectStop: (id: string) => void;
@@ -41,6 +43,23 @@ const readPrefs = (): { traffic: boolean; satellite: boolean } => {
 };
 
 const ll = (p: [number, number]) => ({ lat: p[0], lng: p[1] });
+
+/** Pulls the car onto the route line when within 25 m, so it never drives beside the road. */
+function snapToLine(pos: [number, number], line: [number, number][]): [number, number] {
+  if (line.length < 2) return pos;
+  const k = Math.cos((pos[0] * Math.PI) / 180) * 111320; const m = 111320;
+  let best: [number, number] = pos; let bestD = 25;
+  const n = Math.min(line.length - 1, 400);
+  for (let i = 0; i < n; i++) {
+    const a = line[i], b = line[i + 1];
+    const ax = (a[1] - pos[1]) * k, ay = (a[0] - pos[0]) * m, bx = (b[1] - pos[1]) * k, by = (b[0] - pos[0]) * m;
+    const dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy;
+    const t = len ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len)) : 0;
+    const px = ax + dx * t, py = ay + dy * t, d = Math.hypot(px, py);
+    if (d < bestD) { bestD = d; best = [pos[0] + py / m, pos[1] + px / k]; }
+  }
+  return best;
+}
 
 /** SVG pin matching the Leaflet pins: numbered / check for done / navigation arrow for start. */
 function pinIcon(label: string, state: GoogleStopState | "start", highlighted: boolean): google.maps.Icon {
@@ -92,7 +111,7 @@ function hudPadding(container: HTMLElement) {
 }
 
 export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleRouteMap(props, _ref) {
-  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, onInteract, onRecenter, onSelectStop, onFailure } = props;
+  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, onInteract, onRecenter, onSelectStop, onFailure } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [ready, setReady] = useState(false);
@@ -107,6 +126,11 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const failRef = useRef(onFailure); failRef.current = onFailure;
   const speedRef = useRef(speedMps); speedRef.current = speedMps;
   const programmatic = useRef(false);
+  const maneuverRef = useRef(maneuverDistanceM ?? null); maneuverRef.current = maneuverDistanceM ?? null;
+  const legRef = useRef(legLine); legRef.current = legLine;
+  const [northUp, setNorthUp] = useState(() => { try { return localStorage.getItem("serviceydere:gmaps-northup") === "1"; } catch { return false; } });
+  const northUpRef = useRef(northUp); northUpRef.current = northUp;
+  const [mapHeading, setMapHeading] = useState(0);
 
   // Load + create the map once the container has a real size.
   useEffect(() => {
@@ -130,7 +154,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       // A manual drag/zoom breaks follow mode, just like the open map.
       map.addListener("dragstart", () => interactRef.current());
       map.addListener("zoom_changed", () => { if (!programmatic.current) interactRef.current(); });
-      map.addListener("heading_changed", () => { if (!programmatic.current && map.getTilt()) interactRef.current(); });
+      map.addListener("heading_changed", () => {
+        setMapHeading(Math.round(map.getHeading() ?? 0));
+        if (!programmatic.current && map.getTilt()) interactRef.current();
+      });
       mapRef.current = map;
       setReady(true);
     }).catch((err: unknown) => {
@@ -202,8 +229,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   // Route lines: casing + brand line for overview/leg, dashed hint when geometry is missing.
   useEffect(() => {
     const map = mapRef.current; if (!map) return;
-    const casing = resolveMapColor("--route-line-casing", "hsl(0 0% 100%)");
-    const brand = resolveMapColor("--brand-blue-end", "hsl(198 71% 35%)");
+    // Google Maps navigation look: bright blue line with a darker blue edge.
+    const brand = resolveMapColor("--info", "hsl(217 91% 60%)");
+    const casing = night ? "#0b3a8a" : "#1a56c4";
     const accent = resolveMapColor("--accent", "hsl(184 90% 42%)");
     const success = resolveMapColor("--success", "hsl(142 71% 38%)");
     const lines: google.maps.Polyline[] = [];
@@ -251,7 +279,8 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     apply(null);
     if (!routeStarted) { puckRef.current.setPosition(ll(userPos)); haloRef.current.setPosition(ll(userPos)); return; }
     return track.subscribe(({ pos, heading }) => {
-      puckRef.current?.setPosition(ll(pos)); haloRef.current?.setPosition(ll(pos));
+      const p = snapToLine(pos, legRef.current);
+      puckRef.current?.setPosition(ll(p)); haloRef.current?.setPosition(ll(p));
       apply(speedRef.current > 1.5 ? heading : shown != null && shown >= 0 ? shown : null);
     });
   }, [userPos == null, routeStarted, moving, track, ready, night]);
@@ -272,9 +301,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       if (document.visibilityState === "hidden" || frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        const c = navigationZoom(speedRef.current, zoom);
+        const turn = maneuverRef.current;
+        const c = turn != null && turn < 220 && speedRef.current < 22 ? 18 : navigationZoom(speedRef.current, zoom);
         if (c !== pending) { pending = c; since = performance.now(); }
-        if (c !== zoom && performance.now() - since > 6000) zoom = c;
+        if (c !== zoom && (c === 18 || zoom === 18 ? performance.now() - since > 1200 : performance.now() - since > 6000)) zoom = c;
         if (last && last.zoom === zoom && haversineMeters(last.lat, last.lng, pos[0], pos[1]) < 1.2) return;
         const now = performance.now();
         if (now - offsetAt > 2000) {
@@ -287,14 +317,14 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         if (heading != null && speedRef.current > 2) {
           camHeading = camHeading == null ? heading : camHeading + ((((heading - camHeading) % 360) + 540) % 360 - 180) * 0.2;
         }
-        const h = camHeading ?? map.getHeading() ?? 0;
+        const h = northUpRef.current ? 0 : camHeading ?? map.getHeading() ?? 0;
         // Push the car below the HUD by moving the camera centre ahead along the heading.
         const mpp = (156543.03392 * Math.cos((pos[0] * Math.PI) / 180)) / 2 ** zoom;
         const ahead = (offset + 40) * mpp;
         const rad = (h * Math.PI) / 180;
         const center = { lat: pos[0] + (ahead * Math.cos(rad)) / 111320, lng: pos[1] + (ahead * Math.sin(rad)) / (111320 * Math.cos((pos[0] * Math.PI) / 180)) };
         programmatic.current = true;
-        map.moveCamera({ center, zoom, heading: Math.round(h), tilt: 45 });
+        map.moveCamera({ center, zoom, heading: Math.round(h), tilt: northUpRef.current ? 0 : 45 });
         programmatic.current = false;
         last = { lat: pos[0], lng: pos[1], zoom };
       });
@@ -329,6 +359,15 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     window.setTimeout(() => { programmatic.current = false; }, 400);
   }, [flyTo?.[0], flyTo?.[1], ready]);
 
+  const showOverview = () => {
+    const map = mapRef.current; const el = containerRef.current; if (!map || !el) return;
+    interactRef.current();
+    programmatic.current = true;
+    map.moveCamera({ heading: 0, tilt: 0 });
+    const b = new google.maps.LatLngBounds(); overview.forEach((p) => b.extend(ll(p))); if (userPos) b.extend(ll(userPos));
+    map.fitBounds(b, { ...hudPadding(el), bottom: Math.min(190, el.clientHeight * 0.3) });
+    window.setTimeout(() => { programmatic.current = false; }, 400);
+  };
   const ctrl = "h-11 w-11 rounded-none border-b border-border/60 last:border-b-0";
   return (
     <div className="relative h-full w-full">
@@ -339,6 +378,14 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
           {!followActive && userPos && (
             <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={onRecenter} aria-label="Centrér på min position">
               <Crosshair className="h-5 w-5" />
+            </Button>
+          )}
+          <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={() => setNorthUp((v) => { const n = !v; try { localStorage.setItem("serviceydere:gmaps-northup", n ? "1" : "0"); } catch { /* private mode */ } return n; })} aria-label={northUp ? "Kør med retning op" : "Vis nord op"} title={northUp ? "Nord op" : "Retning op"}>
+            <Compass className="h-5 w-5 transition-transform duration-300" style={{ transform: `rotate(${-mapHeading - 45}deg)` }} />
+          </Button>
+          {routeStarted && overview.length > 1 && (
+            <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={showOverview} aria-label="Vis hele ruten">
+              <Route className="h-5 w-5" />
             </Button>
           )}
           <Button type="button" variant="ghost" size="icon" aria-pressed={prefs.traffic} className={cn(ctrl, prefs.traffic && "bg-accent/15 text-accent")} onClick={() => setPrefs((p) => ({ ...p, traffic: !p.traffic }))} aria-label={prefs.traffic ? "Skjul trafik" : "Vis trafik"}>
