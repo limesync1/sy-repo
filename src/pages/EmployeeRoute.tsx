@@ -1735,7 +1735,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               asChild
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground shrink-0"
+              className="h-11 w-11 shrink-0 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
             >
               <Link to="/medarbejder" aria-label="Tilbage">
                 <ArrowLeft className="h-4 w-4" />
@@ -1762,7 +1762,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button
               size="icon"
               variant="ghost"
-              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              className="h-11 w-11 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
               onClick={() => setListOpen((v) => !v)}
               aria-label="Vis liste"
             >
@@ -1771,7 +1771,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button
               size="icon"
               variant="ghost"
-              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              className="h-11 w-11 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
               onClick={() => setAudioEnabled((v) => !v)}
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
               aria-pressed={!audioEnabled}
@@ -1791,9 +1791,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       )}
       {routeNotifications.length > 0 && (
         <div className={cn(
-          "z-[1003]",
+          "z-[1003] shrink-0",
           routeStarted && !allDone
-            ? "drive-route-notification relative shrink-0 border-b border-border bg-card px-3 py-2 max-h-[18dvh] overflow-y-auto"
+            ? "drive-route-notification relative border-b border-border bg-card px-3 py-2 max-h-[14dvh] overflow-y-auto overscroll-contain"
             : "relative border-b border-destructive/25 bg-destructive/5 px-3 py-2",
         )}>
           <div className={cn("mx-auto flex max-w-3xl items-start gap-2", routeStarted && !allDone && "rounded-md border border-destructive/25 bg-card/95 p-2.5 shadow-lg backdrop-blur-md")}>
@@ -1804,7 +1804,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ? `Aftale · ${routeNotifications[0].route_stops.customer_name}`
                   : `Rute · ${routeNotifications[0].routes?.name || route.name || "Dagens rute"}`}
               </p>
-              <p className="text-xs font-medium text-foreground">{routeNotifications[0].message}</p>
+              <p className="line-clamp-3 break-words text-xs font-medium text-foreground">{routeNotifications[0].message}</p>
             </div>
             <Button size="sm" variant="outline" className="h-8 shrink-0 text-xs" onClick={() => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))}>Markér som læst</Button>
           </div>
@@ -1819,7 +1819,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         />
       )}
 
-      <div className="shrink-0 max-h-[18dvh] overflow-y-auto">
+      <div className="shrink-0 max-h-[14dvh] overflow-y-auto overscroll-contain">
             {geocodeError && <div role="alert" className="relative shrink-0 rounded-md border border-destructive/25 bg-card p-3 text-xs shadow-lg"><p className="font-semibold text-destructive">{geocodeError}</p><Button variant="outline" size="sm" className="mt-2" onClick={retryGeocoding}>Prøv adresseopslaget igen</Button></div>}
             {unresolvedAddresses.length > 0 && (
               <div className="relative shrink-0 rounded-md border border-destructive/25 bg-card/95 p-2 text-[11px] leading-5 text-muted-foreground shadow-lg backdrop-blur-md ">
@@ -2108,7 +2108,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         : <ManeuverIcon type={maneuver.currentStep.maneuver.type} modifier={maneuver.currentStep.maneuver.modifier} className="h-8 w-8 shrink-0" />}
                       <div className="min-w-0 flex-1">
                         <p className="text-xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
-                        <p className="mt-1 whitespace-normal break-words text-sm font-semibold leading-snug">
+                        <p className="mt-1 line-clamp-3 break-words text-sm font-semibold leading-snug">
                           {maneuver.currentStep.maneuver.instruction && !longStretch
                             ? maneuver.currentStep.maneuver.instruction
                             : <>{longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
@@ -2217,7 +2217,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                 </div>
                 {activeNextStopLabel && (
-                  <Badge variant="outline" className="hidden h-7 shrink-0 border-success/30 bg-success/10 px-2 font-mono text-[11px] font-semibold tabular-nums text-success sm:inline-flex">
+                  <Badge variant="outline" className="inline-flex h-7 shrink-0 border-success/30 bg-success/10 px-2 font-mono text-[11px] font-semibold tabular-nums text-success">
                     {activeNextStopLabel}
                   </Badge>
                 )}
@@ -2284,9 +2284,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Start aftale
                     </Button>
                   ) : null}
-                  <div className={cn("grid grid-cols-3 gap-2 sm:grid-cols-6", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 min-w-0 flex-1 gap-1.5 rounded-md px-2 text-xs font-semibold"><Info className="h-4 w-4 shrink-0" />Oplysninger</Button>
-                  {latestCompleted && <Button variant="undo" className="h-11 min-w-0 flex-1 gap-1.5 rounded-md px-2 text-xs font-semibold leading-tight" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
+                  <div className={cn("grid grid-cols-2 gap-2 min-[430px]:grid-cols-3 sm:grid-cols-4", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-auto min-h-11 min-w-0 gap-1.5 whitespace-normal rounded-md px-2 py-2 text-center text-xs font-semibold"><Info className="h-4 w-4 shrink-0" />Oplysninger</Button>
+                  {latestCompleted && <Button variant="undo" className="h-auto min-h-11 min-w-0 gap-1.5 whitespace-normal rounded-md px-2 py-2 text-center text-xs font-semibold leading-tight" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
@@ -2458,10 +2458,11 @@ const StopListPanel = forwardRef<HTMLDivElement, {
         }}
       >
         {/* Kompakt rail — kun 46px høj når lukket */}
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onToggle}
-          className="relative flex h-[52px] w-full items-center gap-2.5 rounded-t-md px-4 transition-colors hover:bg-secondary/60 active:bg-secondary"
+          className="relative flex h-[52px] w-full items-center justify-start gap-2.5 rounded-t-md px-4 transition-colors hover:bg-secondary/60 active:bg-secondary"
           aria-expanded={open}
           aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
@@ -2473,7 +2474,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
           </Badge>
           <span className="flex-1" />
           {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 text-muted-foreground" />}
-        </button>
+        </Button>
 
         <div
           className="space-y-1.5 overflow-y-auto border-t bg-secondary/20 p-2 sm:p-2.5"
@@ -2523,34 +2524,40 @@ const StopListPanel = forwardRef<HTMLDivElement, {
                 </div>
                 {canReorder && !isDone && (
                   <div className="flex shrink-0 items-center">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       aria-label="Flyt stoppet tidligere på ruten"
                       disabled={reordering || posInRemaining <= 0}
                       onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, -1); }}
-                      className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-25"
+                      className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-25"
                     >
                       <ArrowUp className="h-4 w-4" />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       aria-label="Flyt stoppet senere på ruten"
                       disabled={reordering || posInRemaining < 0 || posInRemaining >= remainingIds.length - 1}
                       onClick={(e) => { e.stopPropagation(); onMoveStop(s.id, 1); }}
-                      className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-25"
+                      className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-25"
                     >
                       <ArrowDown className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </div>
                 )}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   aria-label="Vis detaljer for stoppet"
                   onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  className="h-11 w-11 shrink-0 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 >
                   <Info className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             );
           })}

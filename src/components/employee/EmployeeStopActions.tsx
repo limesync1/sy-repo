@@ -298,7 +298,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const sheetSide = isCompact ? "bottom" : "right";
   const sheetClass = cn(
     "planner-overlay appointment-details-overlay flex flex-col gap-0 p-0 overflow-hidden shadow-premium",
-    isCompact ? "h-[min(90dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0" : "w-full sm:max-w-md h-full",
+    isCompact ? "h-[min(92dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0" : "h-full w-full sm:max-w-md",
   );
 
   const servicesProblem = servicesError ? (
@@ -383,7 +383,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                   <li key={l.key} className="space-y-3 rounded-md border border-border bg-card p-3 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <p className="min-w-0 break-words text-sm font-semibold">{l.name}</p>
-                      <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0 text-destructive hover:bg-destructive/10" aria-label={`Fjern ${l.name}`}
+                      <Button size="icon" variant="ghost" className="h-11 w-11 shrink-0 text-destructive hover:bg-destructive/10" aria-label={`Fjern ${l.name}`}
                         onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} disabled={lines.length <= 1}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
