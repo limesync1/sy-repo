@@ -759,15 +759,19 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const activeNextStopEntry = nextStopTimeEntries.find(
     (entry) => entry.stop_id === nextStop?.id && entry.employee_id === meEmp?.id && !entry.ended_at,
   );
+  const activeRouteEntry = nextStopTimeEntries.find(
+    (entry) => entry.employee_id === meEmp?.id && !entry.ended_at,
+  );
+  const activeRouteStop = activeRouteEntry ? sortedStops.find((stop) => stop.id === activeRouteEntry.stop_id) : undefined;
   const [timerNow, setTimerNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!activeNextStopEntry) return;
+    if (!activeRouteEntry) return;
     setTimerNow(Date.now());
     const timer = window.setInterval(() => setTimerNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [activeNextStopEntry?.id]);
-  const activeNextStopSeconds = activeNextStopEntry
-    ? Math.max(0, Math.floor((timerNow - new Date(activeNextStopEntry.started_at).getTime()) / 1000))
+  }, [activeRouteEntry?.id]);
+  const activeNextStopSeconds = activeRouteEntry
+    ? Math.max(0, Math.floor((timerNow - new Date(activeRouteEntry.started_at).getTime()) / 1000))
     : null;
   const activeNextStopLabel = activeNextStopSeconds == null
     ? null
@@ -1893,9 +1897,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         ) : (
           <>
           {googleMapError && (
-            <div className={cn("absolute left-3 right-3 z-[1001] flex items-center justify-between gap-2 rounded-md border border-border bg-card/95 p-2 pl-3 text-xs text-foreground shadow-md sm:left-auto sm:max-w-sm", routeStarted && !allDone ? "bottom-3" : "top-3")} role="status">
-              <span>{googleMapError}</span>
-              <Button type="button" variant="outline" size="sm" className="h-8 shrink-0" onClick={retryGoogleMap}>Prøv Google igen</Button>
+            <div className={cn("route-google-fallback absolute left-3 right-3 z-[1001] flex items-center justify-between gap-2 rounded-md border border-border bg-card/95 p-2 pl-3 text-[11px] text-foreground shadow-md sm:left-auto sm:max-w-sm", routeStarted && !allDone ? "bottom-3" : "top-3")} role="status">
+              <span className="line-clamp-2">{googleMapError}</span>
+              <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={retryGoogleMap} aria-label="Prøv Google-kortet igen" title="Prøv Google-kortet igen"><Crosshair className="h-4 w-4" /></Button>
             </div>
           )}
           <MapContainer
@@ -2159,13 +2163,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div ref={bottomHudRef} className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:bottom-[calc(60px+env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[min(34rem,calc(100vw-2rem))] sm:p-0 lg:w-[min(38rem,calc(55vw-2rem))] xl:w-[40rem]">
+          <div ref={bottomHudRef} className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:bottom-[calc(60px+env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[min(34rem,calc(100vw-2rem))] sm:p-0 lg:left-4 lg:right-auto lg:w-[min(30rem,calc(42vw-2rem))] xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg sm:max-md:max-w-none md:max-w-none">
               {!collapsed && <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />}
               {!collapsed && <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>}
               <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border px-3 text-xs tabular-nums">
                 <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground" role="status">
-                  {activeNextStopLabel ? <><Clock className="h-4 w-4 text-success" /><span>Arbejder <b className="font-semibold text-success">{activeNextStopLabel}</b></span></> : isAtNextStop ? <><CheckCircle2 className="h-4 w-4 text-success" /><span className="font-semibold text-success">Hos kunden{actualArrival ? ` · ${formatClockTime(actualArrival)}` : ""}</span></> : <><Navigation className="h-4 w-4" /><span>Ankomst · ca. <b className="text-foreground">{etaLabel ?? "—"}</b></span>{liveDurationS != null && <span>· {formatMin(liveDurationS)}</span>}</>}
+                  {activeNextStopLabel ? <><Clock className="h-4 w-4 text-success" /><span>Tid hos <b className="font-semibold text-foreground">{activeRouteStop?.customer_name || "kunden"}</b> · <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span></> : isAtNextStop ? <><CheckCircle2 className="h-4 w-4 text-success" /><span className="font-semibold text-success">Hos kunden{actualArrival ? ` · ${formatClockTime(actualArrival)}` : ""}</span></> : <><Navigation className="h-4 w-4" /><span>Ankomst · ca. <b className="text-foreground">{etaLabel ?? "—"}</b></span>{liveDurationS != null && <span>· {formatMin(liveDurationS)}</span>}</>}
                 </p>
                 <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" aria-label={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} title={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}>{collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</Button>
               </div>
@@ -2280,7 +2284,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Start aftale
                     </Button>
                   ) : null}
-                  <div className={cn("flex items-center gap-2", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
+                  <div className={cn("grid grid-cols-3 gap-2 sm:grid-cols-6", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-11 min-w-0 flex-1 gap-1.5 rounded-md px-2 text-xs font-semibold"><Info className="h-4 w-4 shrink-0" />Oplysninger</Button>
                   {latestCompleted && <Button variant="undo" className="h-11 min-w-0 flex-1 gap-1.5 rounded-md px-2 text-xs font-semibold leading-tight" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
                   <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} compact />

@@ -10,6 +10,7 @@ import {
   ArrowUp,
   Check,
   CheckCircle2,
+  Clock,
   MapPin,
   Navigation2,
   Phone,
@@ -112,10 +113,10 @@ export const RouteChecklistView = ({
   const completed = useMemo(() => stops.filter((s) => s.status === "completed"), [stops]);
   const remaining = useMemo(() => stops.filter((s) => s.status !== "completed"), [stops]);
   const next = remaining[0];
-  const activeEntry = next
-    ? timeEntries.find((entry) => entry.stop_id === next.id && entry.employee_id === employeeId && !entry.ended_at)
-    : undefined;
-  const nextIsStarted = !!activeEntry;
+  const activeEntry = timeEntries.find((entry) => entry.employee_id === employeeId && !entry.ended_at);
+  const activeStop = activeEntry ? stops.find((stop) => stop.id === activeEntry.stop_id) : undefined;
+  const activeNextEntry = activeEntry?.stop_id === next?.id ? activeEntry : undefined;
+  const nextIsStarted = !!activeNextEntry;
   const elapsedSeconds = activeEntry
     ? Math.max(0, Math.floor((now - new Date(activeEntry.started_at).getTime()) / 1000))
     : 0;
@@ -176,6 +177,12 @@ export const RouteChecklistView = ({
 
       <main className="mx-auto min-w-0 w-full max-w-5xl flex-1 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pt-5">
         {weather && <div className="mb-3">{weather}</div>}
+        {activeEntry && activeStop && activeStop.id !== next?.id && (
+          <div className="mb-3 flex items-center gap-3 rounded-md border border-warning/35 bg-warning/10 p-3 text-sm" role="status">
+            <Clock className="h-4 w-4 shrink-0 text-warning" />
+            <p className="min-w-0 flex-1">Tid registreres stadig hos <strong>{activeStop.customer_name || "forrige stop"}</strong> · <span className="font-mono tabular-nums">{formatElapsed(elapsedSeconds)}</span>. Når du starter næste aftale, afsluttes den automatisk.</p>
+          </div>
+        )}
         {!allDone && <p className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-muted-foreground">
           <span>Start <b className="text-foreground">{startedAt ? formatClockTime(startedAt) : "—"}</b></span>
           <span>Køretid · ca. <b className="text-foreground">{driveEstimateSeconds == null ? "—" : formatRunDuration(driveEstimateSeconds)}</b></span>
