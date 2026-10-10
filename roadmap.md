@@ -30,3 +30,4 @@
 - [x] Fjern konkurrerende notehandling i aftaledetaljerne og ensret teksten
 - [x] Verificér indlogget på mobil, tablet og computer i lyst/mørkt tema
 - [x] Tilføj og kør målrettede komponenttests samt kontrollér fejl- og konsollog
+- [x] Placer Ret aftale og Ny aftale øverst i opgavedetaljens modal med notathistorik nederst
