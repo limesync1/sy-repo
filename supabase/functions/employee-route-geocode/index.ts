@@ -34,20 +34,35 @@ Deno.serve(async (req) => {
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) return json({ error: "Indtast en gyldig adresse" }, 400);
 
-    const url = new URL(ownGoogleKey
-      ? "https://maps.googleapis.com/maps/api/geocode/json"
-      : "https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
-    url.searchParams.set("address", parsed.data.address);
-    url.searchParams.set("region", "dk");
-    url.searchParams.set("components", "country:DK");
-    url.searchParams.set("language", "da");
-    if (ownGoogleKey) url.searchParams.set("key", ownGoogleKey);
-    const response = await fetch(url, ownGoogleKey ? undefined : {
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "X-Connection-Api-Key": googleMapsApiKey ?? "",
-      },
-    });
+    // Prøv virksomhedens egen nøgle først; er den afvist (fx referrer-begrænset),
+    // falder vi tilbage til Lovable-forbindelsen i stedet for at fejle opslaget.
+    const callGoogle = async (useOwnKey: boolean) => {
+      const url = new URL(useOwnKey
+        ? "https://maps.googleapis.com/maps/api/geocode/json"
+        : "https://connector-gateway.lovable.dev/google_maps/maps/api/geocode/json");
+      url.searchParams.set("address", parsed.data.address);
+      url.searchParams.set("region", "dk");
+      url.searchParams.set("components", "country:DK");
+      url.searchParams.set("language", "da");
+      if (useOwnKey) url.searchParams.set("key", ownGoogleKey ?? "");
+      return fetch(url, useOwnKey ? undefined : {
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "X-Connection-Api-Key": googleMapsApiKey ?? "",
+        },
+      });
+    };
+
+    let response = ownGoogleKey ? await callGoogle(true) : await callGoogle(false);
+    // Egen nøgle afvist af Google (fx REQUEST_DENIED pga. referrer-begrænsning):
+    // brug forbindelsen i stedet, så adresseopslag stadig virker.
+    if (ownGoogleKey && response.ok && lovableApiKey && googleMapsApiKey) {
+      const probe = await response.clone().json().catch(() => null);
+      if (probe?.status === "REQUEST_DENIED") {
+        console.warn("Own Google key denied, falling back to connector:", probe?.error_message);
+        response = await callGoogle(false);
+      }
+    }
 
     if (response.status === 403) {
       const details = await response.json().catch(() => ({}));
