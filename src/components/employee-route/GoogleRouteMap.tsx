@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { Crosshair, Layers, TrafficCone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -91,7 +91,7 @@ function hudPadding(container: HTMLElement) {
   return { top: Math.min(hudBottom + 16, container.clientHeight * 0.45), bottom: 48, left: 32, right: 64 };
 }
 
-export function GoogleRouteMap(props: Props) {
+export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleRouteMap(props, _ref) {
   const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, onInteract, onRecenter, onSelectStop, onFailure } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -314,4 +314,4 @@ export function GoogleRouteMap(props: Props) {
       )}
     </div>
   );
-}
+});
