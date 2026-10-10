@@ -398,7 +398,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       if (k < 1) frame = requestAnimationFrame(tick);
     };
     const retarget = (pos: [number, number], gpsHeading: number | null, jump = false) => {
-      if (document.visibilityState === "hidden" || gestureRef.current.active || performance.now() < gestureRef.current.until) return;
+      if (document.visibilityState === "hidden" || gestureRef.current.active || (!jump && performance.now() < gestureRef.current.until)) return;
       const flat = flatRef.current;
       heading = nextHeading(heading, gpsHeading, speedRef.current);
       setPuckHeading(heading);
