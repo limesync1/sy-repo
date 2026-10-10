@@ -26,9 +26,30 @@ export class GoogleMapsLoadError extends Error {
   }
 }
 
+/** Build-time key from the Maps connection (only valid on lovable.app). */
 export function googleMapsBrowserKey(): string | undefined {
   const key = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as string | undefined;
   return key?.trim() || undefined;
+}
+
+let runtimeKeyPromise: Promise<string | undefined> | null = null;
+/**
+ * The business's own referrer-restricted browser key, served to signed-in
+ * users at runtime so it works on the custom domain. Falls back to the
+ * connection key when not configured or unreachable.
+ */
+export function resolveGoogleMapsBrowserKey(): Promise<string | undefined> {
+  if (!runtimeKeyPromise) {
+    runtimeKeyPromise = supabase.functions
+      .invoke<{ key?: string | null }>("google-maps-browser-key", { body: {} })
+      .then(({ data, error }) => {
+        if (error) console.warn("Google Maps-nøgle kunne ikke hentes, bruger forbindelsens nøgle:", error.message);
+        return data?.key?.trim() || googleMapsBrowserKey();
+      })
+      .catch(() => googleMapsBrowserKey())
+      .then((key) => { if (!key) runtimeKeyPromise = null; return key; });
+  }
+  return runtimeKeyPromise;
 }
 
 export function googleMapsPreviouslyFailed(): boolean {
@@ -47,8 +68,16 @@ export function onGoogleMapsAuthFailure(listener: () => void): () => void {
 export function loadGoogleMaps(timeoutMs = 8000): Promise<typeof google> {
   if (window.google?.maps?.Map) return Promise.resolve(window.google);
   if (loadPromise) return loadPromise;
-  const key = googleMapsBrowserKey();
-  if (!key) return Promise.reject(new GoogleMapsLoadError("missing-key", "Google Maps-nøglen mangler"));
+  loadPromise = resolveGoogleMapsBrowserKey().then((key) => {
+    if (!key) throw new GoogleMapsLoadError("missing-key", "Google Maps-nøglen mangler");
+    return injectScript(key, timeoutMs);
+  }).catch((err) => { loadPromise = null; throw err; });
+  return loadPromise;
+}
+
+function injectScript(key: string, timeoutMs: number): Promise<typeof google> {
+  if (window.google?.maps?.Map) return Promise.resolve(window.google);
+
 
   loadPromise = new Promise<typeof google>((resolve, reject) => {
     let settled = false;
