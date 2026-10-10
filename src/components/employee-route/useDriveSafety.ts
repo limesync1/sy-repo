@@ -52,11 +52,25 @@ export const WEAK_GPS_M = 250;
 export const WEAK_GPS_GRACE_MS = 20_000;
 
 /** Night map: before 07:00, after 19:00, or when the device prefers dark. */
+/** Sun below the horizon (Denmark-centred approximation) — the same trigger Google Maps uses for night. */
+export function isAfterSunset(now = new Date(), lat = 56.2, lng = 9.5): boolean {
+  const rad = Math.PI / 180;
+  const day = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - Date.UTC(now.getUTCFullYear(), 0, 0)) / 86400000);
+  const decl = -23.44 * Math.cos(rad * (360 / 365) * (day + 10));
+  const cosH = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(decl * rad)) / (Math.cos(lat * rad) * Math.cos(decl * rad));
+  if (cosH > 1) return true; if (cosH < -1) return false;
+  const h = Math.acos(cosH) / rad / 15; // hours from solar noon
+  const b = rad * (360 / 365) * (day - 81);
+  const eot = (9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b)) / 60;
+  const noonUtc = 12 - lng / 15 - eot;
+  const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+  return utcHours < noonUtc - h || utcHours > noonUtc + h;
+}
+
 export function useNightMode() {
   const compute = () => {
-    const h = new Date().getHours();
     const prefersDark = typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    return h < 7 || h >= 19 || !!prefersDark;
+    return isAfterSunset() || !!prefersDark;
   };
   const [auto, setAuto] = useState(compute);
   // Et manuelt valg gælder kun indtil næste automatiske skift (solopgang/
