@@ -187,9 +187,15 @@ export const Field = ({
   optional?: boolean;
   hint?: React.ReactNode;
   children: React.ReactNode;
-}) => (
+}) => {
+  const generatedId = React.useId();
+  const controlId = React.isValidElement<{ id?: string }>(children) && children.props.id ? children.props.id : generatedId;
+  const control = React.isValidElement<{ id?: string }>(children)
+    ? React.cloneElement(children, { id: controlId })
+    : children;
+  return (
   <div className="space-y-1.5">
-    <label className={cn("flex flex-wrap items-center gap-1.5 text-[13px] font-medium text-foreground")}>
+    <label htmlFor={controlId} className={cn("flex flex-wrap items-center gap-1.5 text-[13px] font-medium text-foreground")}>
       <span>{label}</span>
       {required && (
         <span className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal text-accent">
@@ -202,10 +208,11 @@ export const Field = ({
         </span>
       ) : null}
     </label>
-    {children}
+    {control}
     {hint && <p className="text-xs leading-snug text-muted-foreground">{hint}</p>}
   </div>
-);
+  );
+};
 
 /* ───────── SheetFooterBar ─────────
    Standard sticky footer-stribe.
