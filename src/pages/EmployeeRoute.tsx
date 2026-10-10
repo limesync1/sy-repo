@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { stripPrices } from "@/lib/employee-display";
-import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
+import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playStartChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
   playTurnCue, playApproachCue, playRerouteCue, playTrafficCue,
@@ -1018,7 +1018,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     ? directions.duration_s * Math.min(1, liveRoadProgress.remaining / liveRoadProgress.total)
     : directions?.duration_s ?? null;
 
-  const OFF_ROUTE_THRESHOLD_M = 40;
   const OFF_ROUTE_STREAK = 3;
   const REROUTE_COOLDOWN_MS = 8000;
   useEffect(() => {
@@ -1083,7 +1082,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Er vi reelt i bevægelse?  Bruges til at fastfryse pilen når bilen
    * holder stille — ellers snurrer den rundt på ren GPS-støj. */
-  const isMoving = userSpeedMps > 1.2; // ~4 km/t
+  const isMoving = engineState?.moving ?? false;
   const lastHeadingRef = useRef<number | null>(null);
   const derivedHeading = useMemo(() => {
     // 1) Filtreret GPS-heading er altid bedst når den findes.
