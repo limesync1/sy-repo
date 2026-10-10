@@ -28,5 +28,5 @@
 - [x] Saml virksomhedens og medarbejderens Rediger profil i samme vindueslayout
 - [x] Giv Ret aftale, Ny aftale og Note til kontoret tydelige semantiske farver
 - [x] Fjern konkurrerende notehandling i aftaledetaljerne og ensret teksten
-- [ ] Verificér indlogget på mobil, tablet og computer i lyst/mørkt tema
-- [ ] Tilføj og kør målrettede komponenttests samt kontrollér fejl- og konsollog
+- [x] Verificér indlogget på mobil, tablet og computer i lyst/mørkt tema
+- [x] Tilføj og kør målrettede komponenttests samt kontrollér fejl- og konsollog
