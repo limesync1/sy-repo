@@ -21,3 +21,12 @@
 - [x] Ensret Føj til rute og Flyt dato med de fælles vinduesprimitiver
 - [x] Kontrollér rutekørsels-HUD uden overlap på mobil, tablet og computer
 - [x] Test lyst/mørkt tema, lange tekster, scroll og fejltilstande
+
+## Overblik, profil og aftalehandlinger
+- [x] Giv heroens nøgletalskort en lys sølv-gradient med mørk variant
+- [x] Fjern dobbeltikonet ved Udført og ensret overblikkets kort/handlingstilstande
+- [x] Saml virksomhedens og medarbejderens Rediger profil i samme vindueslayout
+- [x] Giv Ret aftale, Ny aftale og Note til kontoret tydelige semantiske farver
+- [x] Fjern konkurrerende notehandling i aftaledetaljerne og ensret teksten
+- [x] Verificér indlogget på mobil, tablet og computer i lyst/mørkt tema
+- [x] Tilføj og kør målrettede komponenttests samt kontrollér fejl- og konsollog

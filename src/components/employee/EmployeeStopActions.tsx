@@ -57,8 +57,8 @@ const pricingFromItem = (item: any): PricingState => {
   };
 };
 
-export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, routeDate = null, compact = false }: {
-  stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; routeDate?: string | null; compact?: boolean;
+export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, routeDate = null, compact = false }: {
+  stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; hideNoteAction?: boolean; routeDate?: string | null; compact?: boolean;
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
@@ -323,28 +323,28 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     <div className={compact ? "employee-stop-quick-actions col-span-full grid min-w-0 grid-cols-3 gap-2" : noteOnly ? "contents" : "space-y-2"}>
       {compact ? (
         <div className="contents">
-          {!noteOnly && <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret aftale</span></Button>}
-          {!noteOnly && <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny aftale</span></Button>}
-          <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note til kontoret</span></Button>
+          {!noteOnly && <Button variant="appointmentEdit" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret aftale</span></Button>}
+          {!noteOnly && <Button variant="appointmentCreate" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny aftale</span></Button>}
+          {!hideNoteAction && <Button variant="appointmentNote" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note til kontoret</span></Button>}
         </div>
-      ) : noteOnly ? (
-        <Button variant="outline" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
-          <MessageSquarePlus className="h-4 w-4" />Note
+      ) : noteOnly && !hideNoteAction ? (
+        <Button variant="appointmentNote" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
+          <MessageSquarePlus className="h-4 w-4" />Note til kontoret
         </Button>
       ) : (<>
       <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
-        <Button variant="outline" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openEditor} disabled={completed || !order}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><Pencil className="h-4 w-4" /></span>
+        <Button variant="appointmentEdit" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openEditor} disabled={completed || !order}>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-current/10"><Pencil className="h-4 w-4" /></span>
           <span><span className="block text-sm font-semibold">Ret aftale</span><span className="block text-[11px] font-normal text-muted-foreground">Services og interval</span></span>
         </Button>
-        <Button variant="outline" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openNew} disabled={!order}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><CalendarPlus className="h-4 w-4" /></span>
+        <Button variant="appointmentCreate" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openNew} disabled={!order}>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-current/10"><CalendarPlus className="h-4 w-4" /></span>
           <span><span className="block text-sm font-semibold">Ny aftale</span><span className="block text-[11px] font-normal text-muted-foreground">Hos samme kunde</span></span>
         </Button>
-        <Button variant="outline" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={() => setNoteOpen(true)}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><MessageSquarePlus className="h-4 w-4" /></span>
-          <span><span className="block text-sm font-semibold">Note</span><span className="block text-[11px] font-normal text-muted-foreground">Send til kontoret</span></span>
-        </Button>
+        {!hideNoteAction && <Button variant="appointmentNote" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={() => setNoteOpen(true)}>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-current/10"><MessageSquarePlus className="h-4 w-4" /></span>
+          <span><span className="block text-sm font-semibold">Note til kontoret</span><span className="block text-[11px] font-normal opacity-75">Send intern besked</span></span>
+        </Button>}
       </div>
       {completed && <p className="text-[11px] text-muted-foreground">Fortryd udførsel for at rette aftalen.</p>}
 
