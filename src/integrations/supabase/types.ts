@@ -5345,6 +5345,14 @@ export type Database = {
         }
         Returns: Json
       }
+      employee_start_stop_time: {
+        Args: {
+          _employee_id: string
+          _is_team_fallback?: boolean
+          _stop_id: string
+        }
+        Returns: Json
+      }
       employee_update_stop_services: {
         Args: { _apply_future?: boolean; _items: Json; _stop_id: string }
         Returns: Json

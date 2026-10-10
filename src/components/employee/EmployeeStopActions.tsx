@@ -7,13 +7,12 @@
 // Prisen regnes altid endeligt på serveren. Optimeret til mobil/tablet.
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, MoreHorizontal } from "lucide-react";
+import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, MoreHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { format } from "date-fns";
@@ -28,7 +27,9 @@ import {
   type PricedService, type PricingState,
 } from "./CompactPricingEditor";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
-import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
+import { Field, Section, SheetFooterBar } from "@/components/route-planner/SheetSection";
+import { AppointmentDetailsHeader } from "@/components/shared/AppointmentDetailsHeader";
+import type { Order } from "@/hooks/useDatabase";
 
 type Line = {
   key: string; item_id: string | null; service_id: string | null; name: string;
@@ -58,7 +59,7 @@ const pricingFromItem = (item: any): PricingState => {
 };
 
 export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, routeDate = null, compact = false }: {
-  stopId: string; order: any; completed: boolean; noteOnly?: boolean; routeDate?: string | null; compact?: boolean;
+  stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; routeDate?: string | null; compact?: boolean;
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
@@ -69,12 +70,19 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const [applyFuture, setApplyFuture] = useState(true);
   const [note, setNote] = useState(() => { try { return localStorage.getItem(draftKey(stopId)) || ""; } catch { return ""; } });
   const [initialLines, setInitialLines] = useState("");
+  
   // Ny aftale
   const [newServiceId, setNewServiceId] = useState<string>("");
   const [newPricing, setNewPricing] = useState<PricingState | null>(null);
   const [newStart, setNewStart] = useState(todayStr());
 
-  useEffect(() => { try { note ? localStorage.setItem(draftKey(stopId), note) : localStorage.removeItem(draftKey(stopId)); } catch { /* privat tilstand */ } }, [note, stopId]);
+  useEffect(() => { 
+    try { 
+      if (note) localStorage.setItem(draftKey(stopId), note); 
+      else localStorage.removeItem(draftKey(stopId)); 
+    } catch { /* privat tilstand */ } 
+  }, [note, stopId]);
+
   const businessId: string | undefined = order?.business_id;
   const runDate = routeDate || todayStr();
 
@@ -112,7 +120,10 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const openEditor = () => {
     const items = ((order?.order_items || []) as any[]).filter((i) => i.id);
-    if (!items.length) { toast.error("Aftalen har ingen services at rette", { description: "Kontakt kontoret, eller skriv en note." }); return; }
+    if (!items.length) { 
+      toast.error("Aftalen har ingen services at rette", { description: "Kontakt kontoret, eller skriv en note." }); 
+      return; 
+    }
     const next: Line[] = items.map((i) => ({
       key: i.id, item_id: i.id, service_id: i.service_id, name: i.service_name || "Service",
       quantity: Number(i.quantity) || 1, unit: i.services?.unit,
@@ -130,7 +141,12 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const closeEditor = async () => {
     if (save.isPending) return;
-    if (dirty && !(await askConfirm({ title: "Kassér ændringer?", description: "Dine ændringer af aftalen er ikke gemt.", confirmLabel: "Kassér", cancelLabel: "Bliv her" }))) return;
+    if (dirty && !(await askConfirm({ 
+      title: "Kassér ændringer?", 
+      description: "Dine ændringer af aftalen er ikke gemt.", 
+      confirmLabel: "Kassér", 
+      cancelLabel: "Bliv her" 
+    }))) return;
     setEditOpen(false);
   };
 
@@ -270,14 +286,14 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const sheetSide = isCompact ? "bottom" : "right";
   const sheetClass = cn(
-    "planner-overlay appointment-details-overlay flex flex-col gap-0 p-0",
-    isCompact ? "max-h-[92dvh] !rounded-t-md" : "w-full sm:max-w-md",
+    "planner-overlay appointment-details-overlay flex flex-col gap-0 p-0 overflow-hidden shadow-premium",
+    isCompact ? "h-[min(90dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0" : "w-full sm:max-w-md h-full",
   );
 
   const servicesProblem = servicesError ? (
     <div className="flex items-center gap-2 rounded-md border border-warning/40 p-2.5 text-sm">
       <span className="flex-1 text-muted-foreground">Services kunne ikke hentes.</span>
-      <Button size="sm" variant="outline" className="h-10" onClick={() => refetchServices()}>Prøv igen</Button>
+      <Button size="sm" variant="outline" className="h-10" onClick={() => void refetchServices()}>Prøv igen</Button>
     </div>
   ) : loadingServices ? (
     <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter services…</p>
@@ -333,20 +349,23 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Ret aftale */}
       <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="planner-overlay-header shrink-0 border-b border-border p-4 pr-12 text-left">
+          <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
             <SheetTitle className="sr-only">Ret aftale</SheetTitle><SheetDescription className="sr-only">Ret services og vælg hvilke besøg ændringen gælder.</SheetDescription>
-            <SheetHeaderBlock icon={<Pencil className="h-4 w-4" />} title="Ret aftale" description="Ret services og vælg tydeligt, hvilke besøg ændringen gælder." />
+            <AppointmentDetailsHeader 
+              title="Ret aftale" 
+              description="Ret services og vælg tydeligt, hvilke besøg ændringen gælder." 
+            />
           </SheetHeader>
-          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 sm:p-5">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-5 sm:p-5">
             {servicesProblem}
             <ul className="space-y-2">
               {lines.map((l) => {
                 const svc = l.service_id ? serviceById.get(l.service_id) : undefined;
                 return (
-                  <li key={l.key} className="space-y-3 rounded-md border border-border bg-card p-3">
+                  <li key={l.key} className="space-y-3 rounded-md border border-border bg-card p-3 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <p className="min-w-0 break-words text-sm font-semibold">{l.name}</p>
-                      <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0 text-destructive" aria-label={`Fjern ${l.name}`}
+                      <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0 text-destructive hover:bg-destructive/10" aria-label={`Fjern ${l.name}`}
                         onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} disabled={lines.length <= 1}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -369,8 +388,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
             {!servicesError && !loadingServices && addable.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilføj service</p>
-                <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1">Tilføj service</p>
+                <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card shadow-sm">
                   {addable.map((s) => (
                     <button type="button" key={s.id} className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary/60 active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                       onClick={() => setLines((ls) => [...ls, { key: `new-${s.id}`, item_id: null, service_id: s.id, name: s.name, quantity: 1, unit: s.unit, pricing: defaultPricing(s) }])}>
@@ -386,7 +405,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             )}
 
             {intervalChanged && (
-              <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2.5 text-[12px]">
+              <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2.5 text-[12px] text-warning-foreground">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 Du har ændret intervallet. Kontoret får besked, så kommende besøg kommer på den rigtige rute.
               </p>
@@ -400,16 +419,16 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               ].map((o) => (
                 <Button key={String(o.v)} variant="outline" type="button" onClick={() => setApplyFuture(o.v)}
                   className={cn("block h-auto w-full whitespace-normal rounded-md border p-3 text-left transition-colors",
-                    applyFuture === o.v ? "border-primary bg-primary/5" : "border-border bg-card")}
+                    applyFuture === o.v ? "border-primary bg-primary/5 ring-1 ring-inset ring-primary/20" : "border-border bg-card")}
                   aria-pressed={applyFuture === o.v}>
-                  <p className="text-sm font-medium">{o.t}</p>
+                  <p className="text-sm font-semibold">{o.t}</p>
                   <p className="text-[12px] text-muted-foreground">{o.d}</p>
                 </Button>
               ))}
             </fieldset>
             </Section>
           </div>
-          <SheetFooterBar className="pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetFooterBar className="px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
             {editTotal > 0 && <p className="mb-2 flex justify-between text-sm"><span className="text-muted-foreground">Ca. pris pr. besøg</span><span className="font-semibold tabular-nums">{formatPrice(editTotal)}</span></p>}
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" className="h-12" onClick={() => void closeEditor()} disabled={save.isPending}>Annullér</Button>
@@ -424,17 +443,20 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Ny aftale hos kunden */}
       <Sheet open={newOpen} onOpenChange={(o) => { if (!createNew.isPending) setNewOpen(o); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="planner-overlay-header shrink-0 border-b border-border p-4 pr-12 text-left">
+          <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
             <SheetTitle className="sr-only">Ny aftale</SheetTitle><SheetDescription className="sr-only">Opret en aftale hos samme kunde.</SheetDescription>
-            <SheetHeaderBlock icon={<CalendarPlus className="h-4 w-4" />} title={`Ny aftale hos ${order?.customer_name || "kunden"}`} description="Kunden genbruges. Vælg service, interval og hvor aftalen skal planlægges." />
+            <AppointmentDetailsHeader 
+              title={`Ny aftale hos ${order?.customer_name || "kunden"}`} 
+              description="Kunden genbruges. Vælg service, interval og hvor aftalen skal planlægges." 
+            />
           </SheetHeader>
-          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 sm:p-5">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-5 sm:p-5">
             {servicesProblem}
             {!servicesError && !loadingServices && (
               services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive services.</p> : (
                 <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Service</p>
-                   <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1">Service</p>
+                   <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card shadow-sm">
                     {services.map((s) => (
                        <button key={s.id} type="button" className={cn("flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary/60", newServiceId === s.id && "bg-primary/5 text-foreground ring-1 ring-inset ring-primary/30")} onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
                          <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug">{s.name}</span><span className="block text-[11px] text-muted-foreground">{s.pricing_type === "timepris" ? "Timepris" : s.pricing_type === "prisberegner" ? "Prisberegner" : "Fast pris"}</span></span>
@@ -446,15 +468,23 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               )
             )}
             {newService && newPricing && (
-              <div className="rounded-md border border-border bg-card p-3">
+              <div className="rounded-md border border-border bg-card p-3 shadow-sm">
                 <CompactPricingEditor service={newService} value={newPricing} onChange={setNewPricing} />
               </div>
             )}
             {newService && (
-               <Section icon={<CalendarPlus className="h-4 w-4" />} title="Planlægning" tone="sky"><Field label="Foreløbig opstartsdato" required hint={newPricing?.interval === "engangskøb" && newStart === runDate ? "Du vælger ved oprettelse, om den skal sidst på dagens rute eller til kontoret." : newPricing?.interval !== "engangskøb" ? `Første besøg er ${newStart}. Kontoret placerer den faste aftale på den rigtige rute.` : "En fremtidig aftale lægges i Aftaler uden rute, så kontoret kan vælge den rigtige rute."}><DatePickerField value={newStart} minDate={todayStr()} onChange={setNewStart} className="h-11 text-base" /></Field></Section>
+               <Section icon={<CalendarPlus className="h-4 w-4" />} title="Planlægning" tone="sky">
+                 <Field 
+                  label="Foreløbig opstartsdato" 
+                  required 
+                  hint={newPricing?.interval === "engangskøb" && newStart === runDate ? "Du vælger ved oprettelse, om den skal sidst på dagens rute eller til kontoret." : newPricing?.interval !== "engangskøb" ? `Første besøg er ${newStart}. Kontoret placerer den faste aftale på den rigtige rute.` : "En fremtidig aftale lægges i Aftaler uden rute, så kontoret kan vælge den rigtige rute."}
+                 >
+                   <DatePickerField value={newStart} minDate={todayStr()} onChange={setNewStart} className="h-11 text-base" />
+                 </Field>
+               </Section>
             )}
           </div>
-          <SheetFooterBar className="grid grid-cols-2 gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetFooterBar className="grid grid-cols-2 gap-2 px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
             <Button variant="outline" className="h-12" onClick={() => setNewOpen(false)} disabled={createNew.isPending}>Annullér</Button>
             <Button className="h-12" onClick={() => void submitNew()} disabled={!newService || createNew.isPending}>
               {createNew.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Opret aftale"}
@@ -466,24 +496,27 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Note til kontoret */}
       <Sheet open={noteOpen} onOpenChange={setNoteOpen}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="planner-overlay-header shrink-0 border-b border-border p-4 pr-12 text-left">
+          <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
             <SheetTitle className="sr-only">Note til kontoret</SheetTitle><SheetDescription className="sr-only">Send en intern note om besøget.</SheetDescription>
-            <SheetHeaderBlock icon={<MessageSquarePlus className="h-4 w-4" />} title="Note til kontoret" description="Noten gemmes på aftalen og bliver synlig for kontoret." />
+            <AppointmentDetailsHeader 
+              title="Note til kontoret" 
+              description="Noten gemmes på aftalen og bliver synlig for kontoret." 
+            />
           </SheetHeader>
-          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 sm:p-5">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-4 sm:p-5">
             <div className="flex flex-wrap gap-2">
               {QUICK_NOTES.map((q) => (
-                <Button key={q} variant="secondary" size="sm" className="h-10"
+                <Button key={q} variant="secondary" size="sm" className="h-10 text-xs shadow-sm hover:shadow-none"
                   onClick={() => setNote((n) => (n.trim() ? `${n.trim()}\n${q}` : q))}>{q}</Button>
               ))}
             </div>
             {note.length > 1800 && <p className="text-[11px] text-muted-foreground">{2000 - note.length} tegn tilbage</p>}
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={5} maxLength={2000}
-              placeholder="Skriv kort, hvad kontoret skal vide…" autoFocus={!isCompact} />
+            <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={6} maxLength={2000}
+              placeholder="Skriv kort, hvad kontoret skal vide…" autoFocus={!isCompact} className="shadow-sm focus:ring-1 focus:ring-primary/20" />
           </div>
-          <SheetFooterBar className="grid grid-cols-2 gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetFooterBar className="grid grid-cols-2 gap-2 px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
             <Button variant="outline" className="h-12" onClick={() => setNoteOpen(false)}>Annullér</Button>
-            <Button className="h-12 gap-2" onClick={() => sendNote.mutate()} disabled={!note.trim() || sendNote.isPending}>
+            <Button className="h-12 gap-2" onClick={() => void sendNote.mutate()} disabled={!note.trim() || sendNote.isPending}>
               {sendNote.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> Send</>}
             </Button>
           </SheetFooterBar>

@@ -13,6 +13,8 @@ export type GoogleStopState = "next" | "done" | "future";
 export interface GoogleRouteStop { id: string; n: number; pos: [number, number]; state: GoogleStopState; highlighted: boolean }
 
 interface Props {
+  topOverlayRef?: React.RefObject<HTMLElement>;
+  bottomOverlayRef?: React.RefObject<HTMLElement>;
   stops: GoogleRouteStop[];
   start: [number, number] | null;
   overview: [number, number][];
@@ -91,16 +93,20 @@ function removePin(marker: google.maps.marker.AdvancedMarkerElement) {
   marker.map = null;
 }
 
-/** Measures how much of the map the top HUD covers, so the car/next stop stays visible. */
-function hudPadding(container: HTMLElement) {
-  const stage = container.parentElement;
-  const top = container.getBoundingClientRect().top;
-  const hudBottom = Math.max(0, ...Array.from(stage?.querySelectorAll(".route-maneuver, .drive-issue-banner, .route-hud-stack") ?? []).map((el) => el.getBoundingClientRect().bottom - top));
-  return { top: Math.min(hudBottom + 16, container.clientHeight * 0.45), bottom: 48, left: 32, right: 64 };
+function getElementPadding(container: HTMLElement, topRef?: React.RefObject<HTMLElement>, bottomRef?: React.RefObject<HTMLElement>) {
+  const containerRect = container.getBoundingClientRect();
+  const top = containerRect.top;
+  const hudBottom = topRef?.current ? Math.max(0, topRef.current.getBoundingClientRect().bottom - top) : 0;
+  const dockTop = bottomRef?.current ? Math.max(0, containerRect.bottom - bottomRef.current.getBoundingClientRect().top) : 0;
+  return {
+    top: Math.min(hudBottom + 16, container.clientHeight * 0.45),
+    bottom: Math.max(48, dockTop + 12),
+    left: 32, right: 64
+  };
 }
 
 export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleRouteMap(props, _ref) {
-  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, trafficSegments, onInteract, onRecenter, onSelectStop, onFailure } = props;
+  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, trafficSegments, onInteract, onRecenter, onSelectStop, onFailure, topOverlayRef, bottomOverlayRef } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [ready, setReady] = useState(false);
@@ -333,26 +339,26 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       window.removeEventListener("mouseup", onMouseUp); el.removeEventListener("wheel", onWheel, true);
     };
   }, [ready]);
-
-  // ── HUD insets, measured only when the layout changes ──
-  const insetRef = useRef({ top: 0, bottom: 0 });
+  const insetRef = useRef({ top: 0, bottom: 48 });
   const [anchorY, setAnchorY] = useState<number | null>(null);
   useEffect(() => {
     const el = containerRef.current; if (!el) return;
     const measure = () => {
-      const pad = hudPadding(el);
+      const pad = getElementPadding(el, topOverlayRef, bottomOverlayRef);
       insetRef.current = { top: pad.top, bottom: pad.bottom };
-      const h = el.clientHeight;
-      // Car sits ~72 % down the free area, like Google Maps navigation.
-      setAnchorY(Math.round(pad.top + (h - pad.top - pad.bottom) * 0.72));
+      setAnchorY(Math.round(pad.top + (el.clientHeight - pad.top - pad.bottom) * 0.72));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    el.parentElement?.querySelectorAll(".route-maneuver, .drive-issue-banner, .route-hud-stack").forEach((n) => ro.observe(n));
-    const id = window.setInterval(measure, 3000); // HUD blocks mount/unmount
-    return () => { ro.disconnect(); window.clearInterval(id); };
-  }, [ready]);
+    const attach = window.requestAnimationFrame(() => {
+      measure();
+      if (topOverlayRef?.current) ro.observe(topOverlayRef.current);
+      if (bottomOverlayRef?.current) ro.observe(bottomOverlayRef.current);
+    });
+    window.addEventListener("resize", measure);
+    return () => { ro.disconnect(); window.cancelAnimationFrame(attach); window.removeEventListener("resize", measure); };
+  }, [ready, topOverlayRef, bottomOverlayRef]);
 
   const following = followActive && routeStarted && !!userPos;
   const flatRef = useRef(false); flatRef.current = northUp || !vector;
@@ -430,7 +436,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     if (overview.length === 1) { map.setCenter(ll(overview[0])); map.setZoom(15); }
     else {
       const b = new google.maps.LatLngBounds(); overview.forEach((p) => b.extend(ll(p)));
-      const pad = hudPadding(el);
+      const pad = getElementPadding(el, topOverlayRef, bottomOverlayRef);
       map.fitBounds(b, { ...pad, bottom: Math.min(190, el.clientHeight * 0.3) });
       google.maps.event.addListenerOnce(map, "idle", () => { if ((map.getZoom() ?? 0) > 16) map.setZoom(16); });
     }
@@ -451,7 +457,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     programmatic.current = true;
     map.moveCamera({ heading: 0, tilt: 0 });
     const b = new google.maps.LatLngBounds(); overview.forEach((p) => b.extend(ll(p))); if (userPos) b.extend(ll(userPos));
-    map.fitBounds(b, { ...hudPadding(el), bottom: Math.min(190, el.clientHeight * 0.3) });
+    map.fitBounds(b, { ...getElementPadding(el, topOverlayRef, bottomOverlayRef), bottom: Math.min(190, el.clientHeight * 0.3) });
     window.setTimeout(() => { programmatic.current = false; }, 400);
   };
   const ctrl = "h-11 w-11 rounded-none border-b border-border/60 last:border-b-0";

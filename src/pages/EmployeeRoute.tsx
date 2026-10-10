@@ -208,9 +208,7 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
  *    kortet ikke pumper ind og ud.
  *  - Står bilen stille, sker der ingenting overhovedet ("pause").
  */
-const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speedMps: number }>(({
-  active, track, speedMps,
-}, _ref) => {
+const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speedMps: number; topHudRef?: React.RefObject<HTMLElement>; bottomHudRef?: React.RefObject<HTMLElement>; }>(({ active, track, speedMps, topHudRef, bottomHudRef }, _ref) => {
   const map = useMap();
   const speedRef = useRef(speedMps);
   speedRef.current = speedMps;
@@ -236,7 +234,8 @@ const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speed
         // Keep the puck below the actual HUD, in the free map area (including on small phones).
         const stage = map.getContainer().parentElement;
         const top = map.getContainer().getBoundingClientRect().top;
-        const bottom = Math.max(0, ...Array.from(stage?.querySelectorAll(".route-maneuver, .drive-issue-banner") ?? []).map(el => el.getBoundingClientRect().bottom - top));
+        const hudBottom = topHudRef?.current ? topHudRef.current.getBoundingClientRect().bottom - top : 0;
+        const bottom = Math.max(0, hudBottom);
         const height = map.getSize().y;
         const offset = Math.max(0, Math.min(height * 0.22, bottom / 2));
         map.stop();
@@ -331,6 +330,8 @@ const EmployeeRoute = () => {
 };
 
 const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
+  const topHudRef = useRef<HTMLDivElement>(null);
+  const bottomHudRef = useRef<HTMLDivElement>(null);
   const { data, isLoading } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
   const startStopTime = useStartStopTime();
@@ -1865,6 +1866,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         ) : mapProvider === "google" ? (
           <GoogleRouteMap key={night ? "gmap-night" : "gmap-day"}
+            topOverlayRef={topHudRef}
+            bottomOverlayRef={bottomHudRef}
             stops={googleStops}
             start={startCoord ?? null}
             overview={allPoints}
@@ -1938,7 +1941,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted && !highlightedId} />
             {/* Ét samlet kamera: følger positionen og justerer zoom efter farten. */}
-            <NavCamera
+            <NavCamera topHudRef={topHudRef} bottomHudRef={bottomHudRef}
               active={routeStarted && followMode && pageVisible}
               track={motionTrack}
               speedMps={userSpeedMps}
@@ -2026,7 +2029,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Aktiv kørselsbjælke: alle primære kontroller samlet ét sted ─── */}
         {routeStarted && !allDone && (
           <>
-            <div className="route-hud-stack pointer-events-none absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] flex flex-col gap-2 sm:left-4 sm:right-auto sm:w-[min(30rem,calc(100vw-2rem))] lg:w-[min(28rem,calc(42vw-2rem))] xl:w-[30rem]">
+            <div ref={topHudRef} className="route-hud-stack pointer-events-none absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] flex flex-col gap-2 sm:left-4 sm:right-auto sm:w-[min(30rem,calc(100vw-2rem))] lg:w-[min(28rem,calc(42vw-2rem))] xl:w-[30rem]">
             <div className="pointer-events-auto">
               <div className="flex h-12 w-full items-center gap-1 rounded-md border border-border bg-card/95 px-1 text-foreground shadow-lg backdrop-blur-md">
                 <Button
@@ -2156,7 +2159,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:bottom-[calc(60px+env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[min(34rem,calc(100vw-2rem))] sm:p-0 lg:w-[min(38rem,calc(55vw-2rem))] xl:w-[40rem]">
+          <div ref={bottomHudRef} className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:bottom-[calc(60px+env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[min(34rem,calc(100vw-2rem))] sm:p-0 lg:w-[min(38rem,calc(55vw-2rem))] xl:w-[40rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg sm:max-md:max-w-none md:max-w-none">
               {!collapsed && <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />}
               {!collapsed && <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>}
@@ -2298,7 +2301,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
+          <div ref={bottomHudRef} className="absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[24rem] md:p-0 lg:bottom-[60px] lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
             <Card className="mx-auto max-w-xl lg:max-w-none overflow-hidden rounded-md border-border bg-card shadow-lg backdrop-blur-md">
               <RouteRunSummary count={sortedStops.length} startedAt={runStart} finishedAt={finishedAt} {...metrics} loading={timeLoading} error={timeError} pending={undoPending} onBack={onBack} onUndo={latestCompleted ? () => void handleUndo(latestCompleted) : undefined} onInfo={() => setSelectedId(latestCompleted?.id ?? null)} />
             </Card>

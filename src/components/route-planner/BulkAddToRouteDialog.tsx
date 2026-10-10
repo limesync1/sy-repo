@@ -13,14 +13,6 @@ import { UiArtwork } from "@/components/shared/UiArtwork";
 
 /**
  * Bulk-tilføj valgte aftaler til en eksisterende rute med ét tryk.
- *
- * Brugeren ser:
- *   - Listen af valgte aftaler med adresse.
- *   - En søgbar liste af mulige mål-ruter (dato + navn + medarbejder).
- *
- * Selve mutationen sker udenfor — vi kalder bare `onConfirm(routeId)` så
- * RoutePlanner kan køre serielle `addStop`-mutationer gennem mutation-queue'en
- * og vise progress (samme mønster som bulk-flyt-ruter).
  */
 
 export type BulkAddJobItem = {
@@ -35,7 +27,6 @@ export type BulkAddRouteOption = {
   route_date: string;
   color?: string | null;
   employeeName?: string | null;
-  /** Antal eksisterende stop — bruges til at vise rutens belastning. */
   stopCount: number;
 };
 
@@ -57,8 +48,6 @@ export const BulkAddToRouteDialog = ({
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  // Nulstil valg når dialogen åbnes/lukkes — undgår at gammelt valg fra
-  // forrige session lander på en rute der ikke længere er synlig.
   useEffect(() => {
     if (open) {
       setSelectedRouteId(initialRouteId ?? null);
@@ -100,14 +89,17 @@ export const BulkAddToRouteDialog = ({
 
         <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto grid grid-cols-1 gap-4 bg-secondary/20 p-4 sm:grid-cols-[1fr_1.2fr] sm:p-5">
           {/* Venstre: valgte aftaler */}
-          <Section icon={<Check className="h-4 w-4" />} title="Valgte aftaler" hint={jobs.length} className="self-start">
-            <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              <span>Valgte aftaler</span><span className="tabular-nums normal-case font-medium">{jobs.length}</span>
-            </div>
-            <div className="max-h-[min(22dvh,10rem)] overflow-y-auto overscroll-contain sm:max-h-56">
+          <Section 
+            icon={<Check className="h-4 w-4" />} 
+            title="Valgte aftaler" 
+            hint={`${jobs.length} ${jobs.length === 1 ? "valgt" : "valgte"}`}
+            tone="primary"
+            className="self-start"
+          >
+            <div className="max-h-[min(22dvh,12rem)] overflow-y-auto overscroll-contain sm:max-h-80">
               <div className="space-y-1.5 pr-2">
                 {jobs.map((j, idx) => (
-                  <div key={j.id} className="flex items-center gap-2.5 rounded-md border bg-card py-1.5 pl-2.5 pr-1 text-xs">
+                  <div key={j.id} className="flex items-center gap-2.5 rounded-md border bg-card py-1.5 pl-2.5 pr-1 text-xs shadow-sm">
                     <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold tabular-nums text-foreground">{idx + 1}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold leading-tight truncate">{j.customer_name || "Uden navn"}</p>
@@ -120,7 +112,7 @@ export const BulkAddToRouteDialog = ({
                       variant="ghost"
                       size="sm"
                       aria-label={`Fjern ${j.customer_name || "aftale"}`}
-                      className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+                      className="h-10 w-10 shrink-0 p-0 text-muted-foreground hover:text-destructive transition-colors"
                       disabled={loading}
                       onClick={() => onRemoveJob(j.id)}
                     >
@@ -136,21 +128,27 @@ export const BulkAddToRouteDialog = ({
           </Section>
 
           {/* Højre: rute-vælger */}
-          <Section icon={<CalendarPlus className="h-4 w-4" />} title="Vælg rute" className="self-start">
+          <Section 
+            icon={<CalendarPlus className="h-4 w-4" />} 
+            title="Vælg rute" 
+            tone="sky"
+            className="self-start"
+          >
             <Field label="Søg efter rute">
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="bulk-route-search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Søg dato, navn eller medarbejder…"
-                  className="h-11 pl-9 text-base sm:h-9 sm:text-sm"
+                  className="h-10 pl-9 text-base sm:h-9 sm:text-sm"
                   disabled={loading}
                 />
               </div>
             </Field>
-            <div className="max-h-[min(45dvh,22rem)] overflow-y-auto overscroll-contain sm:max-h-56">
+            
+            <div className="max-h-[min(45dvh,24rem)] overflow-y-auto overscroll-contain sm:max-h-80">
               <div className="space-y-1.5 pr-2">
                 {filteredRoutes.map((r) => {
                   const selected = selectedRouteId === r.id;
@@ -163,14 +161,14 @@ export const BulkAddToRouteDialog = ({
                       aria-pressed={selected}
                       disabled={loading}
                       className={cn(
-                        "block h-auto w-full min-w-0 min-h-16 whitespace-normal text-left rounded-md border bg-card px-3 py-2.5 transition-[background-color,border-color,box-shadow,transform] duration-150",
-                        "hover:border-accent/40 hover:bg-secondary/40 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
-                        selected && "border-foreground bg-secondary/50 ring-1 ring-foreground/20",
+                        "block h-auto w-full min-w-0 min-h-16 whitespace-normal text-left rounded-md border bg-card px-3 py-2.5 transition-all duration-150 shadow-sm",
+                        "hover:border-accent/40 hover:bg-secondary/40 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-45",
+                        selected && "border-primary bg-primary/5 ring-1 ring-primary/20",
                       )}
                     >
                       <div className="flex items-center gap-3">
-                        <span aria-hidden className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border text-foreground" style={{ borderColor: r.color || undefined, boxShadow: r.color ? `inset 0 3px 0 ${r.color}` : undefined }}>
-                          <span className="text-[9px] font-semibold uppercase leading-none text-muted-foreground">{format(parseISO(r.route_date), "EEE", { locale: da })}</span>
+                        <span aria-hidden className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border bg-background text-foreground shadow-sm" style={{ borderColor: r.color || undefined, boxShadow: r.color ? `inset 0 3px 0 ${r.color}` : undefined }}>
+                          <span className="text-[9px] font-bold uppercase leading-none text-muted-foreground">{format(parseISO(r.route_date), "EEE", { locale: da })}</span>
                           <span className="text-base font-bold leading-tight tabular-nums">{format(parseISO(r.route_date), "d")}</span>
                         </span>
                         <div className="min-w-0 flex-1">
@@ -182,7 +180,7 @@ export const BulkAddToRouteDialog = ({
                             {r.stopCount} stop <span aria-hidden>→</span> <span className="font-semibold text-foreground">{r.stopCount + jobs.length} stop</span>
                           </p>
                         </div>
-                        <span aria-hidden className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border", selected ? "border-foreground bg-foreground text-background" : "border-border")}>
+                        <span aria-hidden className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors", selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background")}>
                           {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                         </span>
                       </div>
@@ -196,36 +194,35 @@ export const BulkAddToRouteDialog = ({
                 )}
               </div>
             </div>
-
           </Section>
         </div>
 
-        <SheetFooterBar className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-[11px] text-muted-foreground">
+        <SheetFooterBar className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-card">
+          <div className="text-[11px] text-muted-foreground px-1">
             {progress
-              ? <span className="tabular-nums">Behandler {progress.done}/{progress.total}…</span>
+              ? <span className="tabular-nums font-medium text-foreground">Behandler {progress.done}/{progress.total}…</span>
               : selectedRouteId
                 ? "Aftalerne lægges i bunden af rutens rækkefølge."
                 : "Vælg en rute for at fortsætte."}
           </div>
-          <div className="grid grid-cols-[auto_1fr] gap-2 sm:flex">
-            <Button type="button" variant="outline" className="h-11" onClick={() => onOpenChange(false)} disabled={loading}>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" className="flex-1 sm:flex-none h-10" onClick={() => onOpenChange(false)} disabled={loading}>
               Annullér
             </Button>
             <Button
               type="button"
-              className="h-11"
-               onClick={() => selectedRouteId && onConfirm(selectedRouteId)}
+              className="flex-1 sm:flex-none h-10"
+              onClick={() => selectedRouteId && onConfirm(selectedRouteId)}
               disabled={loading || !selectedRouteId || jobs.length === 0}
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Tilføjer…
                 </>
               ) : (
                 <>
-                  <CalendarPlus className="h-4 w-4" />
+                  <CalendarPlus className="h-4 w-4 mr-2" />
                   Tilføj {jobs.length} {jobs.length === 1 ? "aftale" : "aftaler"}
                 </>
               )}

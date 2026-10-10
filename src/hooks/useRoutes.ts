@@ -1,4 +1,3 @@
-import { askConfirm } from "@/components/ConfirmDialogHost";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
@@ -312,7 +311,7 @@ export type StopTimeEntry = {
 
 export const useStopTimeEntries = (stopIds: string[]) => {
   return useQuery({
-    queryKey: ["stop-time-entries", stopIds.sort().join(",")],
+    queryKey: ["stop-time-entries", [...stopIds].sort().join(",")],
     enabled: stopIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -332,51 +331,18 @@ export const useStartStopTime = () => {
     mutationFn: async ({
       stop_id, employee_id, is_team_fallback,
     }: { stop_id: string; employee_id: string; is_team_fallback?: boolean }) => {
-      // Tjek om der allerede er en åben entry — hvis ja, returnér den
-      const { data: existing } = await supabase
-        .from("stop_time_entries")
-        .select("*")
-        .eq("stop_id", stop_id)
-        .eq("employee_id", employee_id)
-        .is("ended_at", null)
-        .maybeSingle();
-      if (existing) return existing as StopTimeEntry;
-
-      // To aftaler tæt på hinanden: tid må aldrig tælle dobbelt. Spørg.
-      const { data: others } = await supabase
-        .from("stop_time_entries")
-        .select("id, stop_id, route_stops(customer_name)")
-        .eq("employee_id", employee_id)
-        .is("ended_at", null)
-        .neq("stop_id", stop_id);
-      if (others && others.length > 0) {
-        const name = (others[0] as any).route_stops?.customer_name || "en anden aftale";
-        const ok = await askConfirm({
-          title: "Tidsregistrering kører allerede",
-          description: `Du registrerer stadig tid hos ${name}. Skal den stoppes, så tiden hos den nye aftale starter nu?`,
-          confirmLabel: "Stop og start ny",
-        });
-        if (!ok) throw new Error("__cancelled__");
-        const { error: endErr } = await supabase
-          .from("stop_time_entries")
-          .update({ ended_at: new Date().toISOString() })
-          .in("id", others.map((o) => o.id));
-        if (endErr) throw endErr;
-      }
-
-
-      const { data, error } = await supabase
-        .from("stop_time_entries")
-        .insert({
-          stop_id,
-          employee_id,
-          started_at: new Date().toISOString(),
-          is_team_fallback: !!is_team_fallback,
-        })
-        .select("*")
-        .single();
+      const { data, error } = await supabase.rpc("employee_start_stop_time", {
+        _stop_id: stop_id,
+        _employee_id: employee_id,
+        _is_team_fallback: !!is_team_fallback,
+      });
       if (error) throw error;
-      return data as StopTimeEntry;
+      const result = data as { entry?: StopTimeEntry; closed_count?: number; reused?: boolean } | null;
+      if (!result?.entry) throw new Error("Tidsregistreringen kunne ikke startes.");
+      if ((result.closed_count ?? 0) > 0) {
+        toast.success("Tidsregistrering flyttet", { description: "Den forrige aftale blev stoppet, og tiden kører nu her." });
+      }
+      return result.entry;
     },
     // Optimistisk: knappen skal reagere øjeblikkeligt — ikke vente på DB-turen.
     onMutate: async (vars) => {
@@ -393,24 +359,24 @@ export const useStartStopTime = () => {
         is_team_fallback: !!vars.is_team_fallback,
         notes: null,
       };
-      qc.setQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] }, (current) => {
-        if (!current) return current;
-        if (current.some((e) => e.stop_id === vars.stop_id && e.employee_id === vars.employee_id && !e.ended_at)) return current;
-        return [...current, optimisticEntry];
-      });
+      // Only update caches that contain this stop; otherwise unrelated
+      // appointment sheets briefly show a timer that belongs elsewhere.
+      for (const [key, current] of previous) {
+        if (!current || !String(key[1] ?? "").split(",").includes(vars.stop_id)) continue;
+        if (current.some((e) => e.stop_id === vars.stop_id && e.employee_id === vars.employee_id && !e.ended_at)) continue;
+        qc.setQueryData<StopTimeEntry[]>(key, [...current, optimisticEntry]);
+      }
       return { previous, optimisticId };
     },
     onSuccess: (entry, _vars, ctx) => {
-      qc.setQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] }, (current) => {
-        if (!current) return current;
+      for (const [key, current] of qc.getQueriesData<StopTimeEntry[]>({ queryKey: ["stop-time-entries"] })) {
+        if (!current || !String(key[1] ?? "").split(",").includes(entry.stop_id)) continue;
         const withoutOptimistic = current.filter((e) => e.id !== ctx?.optimisticId);
-        if (withoutOptimistic.some((item) => item.id === entry.id)) return withoutOptimistic;
-        return [...withoutOptimistic, entry];
-      });
+        qc.setQueryData<StopTimeEntry[]>(key, withoutOptimistic.some((item) => item.id === entry.id) ? withoutOptimistic : [...withoutOptimistic, entry]);
+      }
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.previous?.forEach(([key, value]) => qc.setQueryData(key, value));
-      if (e?.message === "__cancelled__") return;
       toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" });
     },
     onSettled: () => {
