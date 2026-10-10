@@ -86,6 +86,121 @@ async function osrmDirections(coords: LatLng[]) {
   }
 }
 
+/** Decodes a Google encoded polyline into [lng, lat] pairs (GeoJSON order). */
+function decodePolyline(str: string): [number, number][] {
+  const out: [number, number][] = []; let i = 0, lat = 0, lng = 0;
+  while (i < str.length) {
+    for (const axis of [0, 1]) {
+      let shift = 0, result = 0, b: number;
+      do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      const d = result & 1 ? ~(result >> 1) : result >> 1;
+      if (axis === 0) lat += d; else lng += d;
+    }
+    out.push([lng / 1e5, lat / 1e5]);
+  }
+  return out;
+}
+
+/** Google maneuver enum → OSRM-style type/modifier used by the HUD icons. */
+function mapManeuver(m?: string): { type: string; modifier?: string } {
+  switch (m) {
+    case "DEPART": return { type: "depart" };
+    case "STRAIGHT": return { type: "continue", modifier: "straight" };
+    case "TURN_LEFT": return { type: "turn", modifier: "left" };
+    case "TURN_RIGHT": return { type: "turn", modifier: "right" };
+    case "TURN_SLIGHT_LEFT": return { type: "turn", modifier: "slight left" };
+    case "TURN_SLIGHT_RIGHT": return { type: "turn", modifier: "slight right" };
+    case "TURN_SHARP_LEFT": return { type: "turn", modifier: "sharp left" };
+    case "TURN_SHARP_RIGHT": return { type: "turn", modifier: "sharp right" };
+    case "UTURN_LEFT": case "UTURN_RIGHT": return { type: "turn", modifier: "uturn" };
+    case "RAMP_LEFT": return { type: "off ramp", modifier: "left" };
+    case "RAMP_RIGHT": return { type: "off ramp", modifier: "right" };
+    case "FORK_LEFT": return { type: "fork", modifier: "left" };
+    case "FORK_RIGHT": return { type: "fork", modifier: "right" };
+    case "MERGE": return { type: "merge", modifier: "straight" };
+    case "ROUNDABOUT_LEFT": return { type: "roundabout", modifier: "left" };
+    case "ROUNDABOUT_RIGHT": return { type: "roundabout", modifier: "right" };
+    case "ROUNDABOUT_STRAIGHT": return { type: "roundabout", modifier: "straight" };
+    case "ROUNDABOUT_SLIGHT_LEFT": return { type: "roundabout", modifier: "slight left" };
+    case "ROUNDABOUT_SLIGHT_RIGHT": return { type: "roundabout", modifier: "slight right" };
+    case "ROUNDABOUT_SHARP_LEFT": return { type: "roundabout", modifier: "sharp left" };
+    case "ROUNDABOUT_SHARP_RIGHT": return { type: "roundabout", modifier: "sharp right" };
+    case "ROUNDABOUT_U_TURN": return { type: "roundabout", modifier: "uturn" };
+    case "FERRY": case "FERRY_TRAIN": return { type: "notification" };
+    default: return { type: "continue", modifier: "straight" };
+  }
+}
+const secs = (d?: string) => (typeof d === "string" ? Math.round(parseFloat(d)) || 0 : 0);
+const bearing = (a: [number, number], b: [number, number]) => {
+  const r = Math.PI / 180, y = Math.sin((b[0] - a[0]) * r) * Math.cos(b[1] * r);
+  const x = Math.cos(a[1] * r) * Math.sin(b[1] * r) - Math.sin(a[1] * r) * Math.cos(b[1] * r) * Math.cos((b[0] - a[0]) * r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+};
+
+/** Google Routes API (traffic-aware, Danish instructions). Own server key first, connector as fallback. */
+async function googleDirections(coords: LatLng[]) {
+  const own = Deno.env.get("GOOGLE_API_KEY");
+  const lovable = Deno.env.get("LOVABLE_API_KEY");
+  const conn = Deno.env.get("GOOGLE_MAPS_API_KEY");
+  if (!own && !(lovable && conn)) return null;
+  const wp = (c: LatLng) => ({ location: { latLng: { latitude: c.lat, longitude: c.lng } } });
+  const body = JSON.stringify({
+    origin: wp(coords[0]), destination: wp(coords[coords.length - 1]),
+    intermediates: coords.slice(1, -1).map(wp),
+    travelMode: "DRIVE", routingPreference: "TRAFFIC_AWARE", languageCode: "da", units: "METRIC",
+    extraComputations: ["TRAFFIC_ON_POLYLINE"],
+  });
+  const fieldMask = "routes.distanceMeters,routes.duration,routes.staticDuration,routes.polyline.encodedPolyline,routes.travelAdvisory.speedReadingIntervals,routes.legs.steps.distanceMeters,routes.legs.steps.staticDuration,routes.legs.steps.polyline.encodedPolyline,routes.legs.steps.navigationInstruction,routes.legs.steps.startLocation,routes.legs.endLocation";
+  const call = (useOwn: boolean) => fetch(
+    useOwn ? "https://routes.googleapis.com/directions/v2:computeRoutes" : "https://connector-gateway.lovable.dev/google_maps/routes/directions/v2:computeRoutes",
+    { method: "POST", body, signal: AbortSignal.timeout(10000), headers: {
+      "Content-Type": "application/json", "X-Goog-FieldMask": fieldMask,
+      ...(useOwn ? { "X-Goog-Api-Key": own! } : { Authorization: `Bearer ${lovable}`, "X-Connection-Api-Key": conn! }),
+    } },
+  );
+  try {
+    let res = own ? await call(true) : await call(false);
+    if (!res.ok && own && lovable && conn) { console.warn("Google Routes own key failed", res.status, await res.text()); res = await call(false); }
+    if (!res.ok) { console.error("Google Routes failed", res.status, await res.text()); return null; }
+    const json = await res.json();
+    const route = json?.routes?.[0];
+    if (!route?.polyline?.encodedPolyline) return null;
+    const coordinates = decodePolyline(route.polyline.encodedPolyline);
+    const distance = Number(route.distanceMeters ?? 0);
+    const duration = secs(route.duration); const typical = secs(route.staticDuration);
+    const ratio = typical > 0 ? duration / typical : 1;
+    const steps: unknown[] = [];
+    for (const leg of route.legs ?? []) {
+      for (const st of leg.steps ?? []) {
+        const geom = st.polyline?.encodedPolyline ? decodePolyline(st.polyline.encodedPolyline) : [];
+        const loc = st.startLocation?.latLng;
+        const m = mapManeuver(st.navigationInstruction?.maneuver);
+        steps.push({
+          distance_m: Number(st.distanceMeters ?? 0),
+          duration_s: Math.round(secs(st.staticDuration) * ratio),
+          name: "",
+          maneuver: { ...m, instruction: st.navigationInstruction?.instructions,
+            bearing_after: geom.length > 1 ? bearing(geom[0], geom[1]) : undefined,
+            location: loc ? [loc.longitude, loc.latitude] : geom[0] },
+          geometry: { type: "LineString", coordinates: geom },
+        });
+      }
+      const end = leg.endLocation?.latLng;
+      if (end) steps.push({ distance_m: 0, duration_s: 0, name: "", maneuver: { type: "arrive", location: [end.longitude, end.latitude] }, geometry: { type: "LineString", coordinates: [[end.longitude, end.latitude]] } });
+    }
+    return {
+      geometry: { type: "LineString", coordinates }, distance_m: distance, duration_s: duration,
+      duration_raw_s: typical || duration, duration_typical_s: typical || null, traffic_multiplier: ratio, base_multiplier: 1,
+      override_applied: null, depart_at: new Date().toISOString(), depart_is_future: false, steps,
+      traffic: (route.travelAdvisory?.speedReadingIntervals ?? []).map((t: Record<string, unknown>) => ({ start: Number(t.startPolylinePointIndex ?? 0), end: Number(t.endPolylinePointIndex ?? 0), speed: String(t.speed ?? "NORMAL") })),
+      provider: "google" as const, alternatives_count: 1,
+    };
+  } catch (e) {
+    console.error("Google Routes error", e);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -108,6 +223,11 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Navigation legs (signed-in drivers, max 10 points) use Google Routes; planning stays on OSRM to bound cost.
+    if (body?.navigation === true && trimmed.length <= 10 && req.headers.get("Authorization")) {
+      const g = await googleDirections(trimmed);
+      if (g) return new Response(JSON.stringify({ ok: true, ...g }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const osrm = await osrmDirections(trimmed);
     if (osrm) {
       return new Response(JSON.stringify({ ok: true, ...osrm }), {
