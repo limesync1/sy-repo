@@ -50,6 +50,9 @@ const BACKWARD_FIXES = 3;
 const STOP_MPS = 0.8; // ~3 km/t
 const GO_MPS = 1.4; // ~5 km/t
 const MAX_DEAD_RECKONING_S = 10;
+/** I tunneler ved reel kørselsfart fortsætter bilen længere, som i Google Maps. */
+const MAX_TUNNEL_S = 30;
+const TUNNEL_MIN_MPS = 5;
 const MAX_HEADING_RATE = 120; // °/s
 const LONG_GAP_MS = 30_000;
 
@@ -232,7 +235,7 @@ export class PositionEngine {
     const target = this.target;
     if (!target) return null;
     const age = Math.max(0, (now - this.lastRecv) / 1000);
-    const confidence = age < 3 ? 1 : Math.max(0.35, 1 - (age - 3) / MAX_DEAD_RECKONING_S);
+    const confidence = age < 3 ? 1 : Math.max(0.35, 1 - (age - 3) / MAX_TUNNEL_S);
     if (!this.disp || this.forceJump) {
       this.forceJump = false;
       this.disp = { progress: this.onRoute ? this.progress : null, pos: target.pos, heading: target.heading, at: now };
@@ -247,7 +250,8 @@ export class PositionEngine {
     const line = this.line;
     if (this.onRoute && line && this.progress != null) {
       // Kør videre langs vejen mellem fixes; i tunneler op til 10 s med aftagende fart.
-      const run = this.moving ? this.speed * Math.min(age, 3) + this.speed * 0.6 * Math.max(0, Math.min(age, MAX_DEAD_RECKONING_S) - 3) : 0;
+      const cap = this.speed >= TUNNEL_MIN_MPS ? MAX_TUNNEL_S : MAX_DEAD_RECKONING_S;
+      const run = this.moving ? this.speed * Math.min(age, 3) + this.speed * 0.8 * Math.max(0, Math.min(age, cap) - 3) : 0;
       const predicted = Math.min(line.total, this.progress + run);
       let dp = d.progress;
       if (dp == null || Math.abs(predicted - dp) > 120) { jump = dp != null; dp = predicted; }
@@ -280,7 +284,7 @@ export class PositionEngine {
   /** Skal der tegnes flere frames? (bevægelse eller ikke landet endnu) */
   needsFrames(now: number): boolean {
     if (!this.target || !this.disp) return !!this.target;
-    if (this.moving && this.onRoute && (now - this.lastRecv) / 1000 < MAX_DEAD_RECKONING_S) return true;
+    if (this.moving && this.onRoute && (now - this.lastRecv) / 1000 < (this.speed >= TUNNEL_MIN_MPS ? MAX_TUNNEL_S : MAX_DEAD_RECKONING_S)) return true;
     const gap = haversineMeters(this.disp.pos[0], this.disp.pos[1], this.target.pos[0], this.target.pos[1]);
     const hd = this.disp.heading != null && this.target.heading != null ? Math.abs(delta(this.disp.heading, this.target.heading)) : 0;
     return gap > 0.3 || (hd > 0.5 && this.moving);
