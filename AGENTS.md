@@ -41,3 +41,5 @@
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
 - Panel headers share `PageHeader`/`.panel-page-hero` styling.
 - Public navigation persists outside suspense; local headers defer to avoid duplicates.
+- The position engine is the only source of the shown car position (map-matched to the active leg, hysteresis, outlier rejection, dead reckoning); camera, car, arrival and rerouting consume it so they never disagree.
+- Navigation legs are refetched only at start, next-stop change or reroute, never per distance driven, to keep the line under the car stable and bound routing cost.
