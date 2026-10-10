@@ -3,7 +3,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import { Crosshair, Layers, TrafficCone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
+import { googleMapsMapId, loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
 import { resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { haversineMeters } from "@/lib/geo-distance";
@@ -121,11 +121,16 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         center: ll(first), zoom: 13, disableDefaultUI: true, clickableIcons: false,
         gestureHandling: "greedy", keyboardShortcuts: false, isFractionalZoomEnabled: false,
         mapTypeId: readPrefs().satellite ? "hybrid" : "roadmap",
-        styles: night ? nightStyles() : undefined, backgroundColor: night ? "#0f172a" : "#e5e7eb",
+        // Vector map = Google Maps' own navigation rendering: heading-up rotation, 3D tilt, buildings.
+        mapId: googleMapsMapId(), renderingType: g.maps.RenderingType.VECTOR,
+        colorScheme: night ? g.maps.ColorScheme.DARK : g.maps.ColorScheme.LIGHT,
+        headingInteractionEnabled: true, tiltInteractionEnabled: true,
+        backgroundColor: night ? "#0f172a" : "#e5e7eb",
       });
       // A manual drag/zoom breaks follow mode, just like the open map.
       map.addListener("dragstart", () => interactRef.current());
       map.addListener("zoom_changed", () => { if (!programmatic.current) interactRef.current(); });
+      map.addListener("heading_changed", () => { if (!programmatic.current && map.getTilt()) interactRef.current(); });
       mapRef.current = map;
       setReady(true);
     }).catch((err: unknown) => {
@@ -156,7 +161,6 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     return () => ro.disconnect();
   }, [ready]);
 
-  useEffect(() => { mapRef.current?.setOptions({ styles: night && !prefs.satellite ? nightStyles() : null, backgroundColor: night ? "#0f172a" : "#e5e7eb" }); }, [night, ready, prefs.satellite]);
 
   useEffect(() => {
     const map = mapRef.current; if (!map) return;
@@ -238,7 +242,8 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const driving = routeStarted && moving && heading != null;
       if (!driving) { if (shown !== -1) { m.setIcon(dot); shown = -1; } return; }
       smooth = smooth == null ? heading : smooth + ((((heading - smooth) % 360) + 540) % 360 - 180) * 0.25;
-      const rot = Math.round(((smooth % 360) + 360) % 360);
+      const mapHeading = mapRef.current?.getHeading() ?? 0;
+      const rot = Math.round((((smooth - mapHeading) % 360) + 360) % 360);
       if (shown == null || shown === -1 || Math.abs((((rot - shown) % 360) + 540) % 360 - 180) >= 4) { m.setIcon(chevron(rot)); shown = rot; }
     };
     if (!puckRef.current) puckRef.current = new google.maps.Marker({ map, position: ll(userPos), zIndex: 100, clickable: false, optimized: true });
@@ -262,8 +267,8 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     if (!map || !el || !followActive) return;
     let zoom = Math.max(15, Math.min(17, Math.round(map.getZoom() ?? 17))); let pending = zoom; let since = 0;
     let last: { lat: number; lng: number; zoom: number } | null = null; let frame = 0;
-    let offset = 0; let offsetAt = 0;
-    const off = track.subscribe(({ pos }) => {
+    let offset = 0; let offsetAt = 0; let camHeading: number | null = null;
+    const off = track.subscribe(({ pos, heading }) => {
       if (document.visibilityState === "hidden" || frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
@@ -278,20 +283,26 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
           if (Math.abs(next - offset) >= 8) offset = next;
           offsetAt = now;
         }
-        programmatic.current = true;
-        const proj = map.getProjection();
-        let center: google.maps.LatLng | google.maps.LatLngLiteral = ll(pos);
-        if (proj && offset > 0) {
-          const p = proj.fromLatLngToPoint(center);
-          const shifted = p && proj.fromPointToLatLng(new google.maps.Point(p.x, p.y - offset / 2 ** zoom));
-          if (shifted) center = shifted;
+        // Heading-up like Google Maps navigation: rotate only on real movement, smoothed.
+        if (heading != null && speedRef.current > 2) {
+          camHeading = camHeading == null ? heading : camHeading + ((((heading - camHeading) % 360) + 540) % 360 - 180) * 0.2;
         }
-        map.moveCamera({ center, zoom });
+        const h = camHeading ?? map.getHeading() ?? 0;
+        // Push the car below the HUD by moving the camera centre ahead along the heading.
+        const mpp = (156543.03392 * Math.cos((pos[0] * Math.PI) / 180)) / 2 ** zoom;
+        const ahead = (offset + 40) * mpp;
+        const rad = (h * Math.PI) / 180;
+        const center = { lat: pos[0] + (ahead * Math.cos(rad)) / 111320, lng: pos[1] + (ahead * Math.sin(rad)) / (111320 * Math.cos((pos[0] * Math.PI) / 180)) };
+        programmatic.current = true;
+        map.moveCamera({ center, zoom, heading: Math.round(h), tilt: 45 });
         programmatic.current = false;
         last = { lat: pos[0], lng: pos[1], zoom };
       });
     });
-    return () => { off(); cancelAnimationFrame(frame); };
+    return () => {
+      off(); cancelAnimationFrame(frame);
+      programmatic.current = true; map.moveCamera({ heading: 0, tilt: 0 }); programmatic.current = false;
+    };
   }, [followActive, track, ready]);
 
   // Overview before the route starts.

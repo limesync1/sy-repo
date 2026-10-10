@@ -1848,7 +1848,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
           </div>
         ) : mapProvider === "google" ? (
-          <GoogleRouteMap
+          <GoogleRouteMap key={night ? "gmap-night" : "gmap-day"}
             stops={googleStops}
             start={startCoord ?? null}
             overview={allPoints}

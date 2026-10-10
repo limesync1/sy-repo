@@ -34,6 +34,9 @@ export function googleMapsBrowserKey(): string | undefined {
 }
 
 let runtimeKeyPromise: Promise<string | undefined> | null = null;
+let runtimeMapId: string | undefined;
+/** Vector map ID (cloud-configured or Google's DEMO_MAP_ID) — enables heading-up and tilt. */
+export function googleMapsMapId(): string { return runtimeMapId || "DEMO_MAP_ID"; }
 /**
  * The business's own referrer-restricted browser key, served to signed-in
  * users at runtime so it works on the custom domain. Falls back to the
@@ -42,8 +45,9 @@ let runtimeKeyPromise: Promise<string | undefined> | null = null;
 export function resolveGoogleMapsBrowserKey(): Promise<string | undefined> {
   if (!runtimeKeyPromise) {
     runtimeKeyPromise = supabase.functions
-      .invoke<{ key?: string | null }>("google-maps-browser-key", { body: {} })
+      .invoke<{ key?: string | null; mapId?: string }>("google-maps-browser-key", { body: {} })
       .then(({ data, error }) => {
+        if (data?.mapId) runtimeMapId = data.mapId;
         if (error) console.warn("Google Maps-nøgle kunne ikke hentes, bruger forbindelsens nøgle:", error.message);
         return data?.key?.trim() || googleMapsBrowserKey();
       })
