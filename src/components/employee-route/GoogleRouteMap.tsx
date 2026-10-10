@@ -397,7 +397,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       map.moveCamera({ center: { lat: c.lat, lng: c.lng }, zoom: c.zoom, heading: c.heading, tilt: c.tilt });
       if (k < 1) frame = requestAnimationFrame(tick);
     };
-    const retarget = (pos: [number, number], gpsHeading: number | null) => {
+    const retarget = (pos: [number, number], gpsHeading: number | null, jump = false) => {
       if (document.visibilityState === "hidden" || gestureRef.current.active || performance.now() < gestureRef.current.until) return;
       const flat = flatRef.current;
       heading = nextHeading(heading, gpsHeading, speedRef.current);
@@ -410,19 +410,31 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const p = snapToLine(pos, legRef.current);
       const dy = Math.max(0, (anchorRef.current ?? el.clientHeight / 2) - el.clientHeight / 2);
       const center = followCenter(p, h, zoom, dy, tilt);
-      from = cur(); to = { ...center, zoom, heading: h, tilt }; t0 = performance.now();
+      to = { ...center, zoom, heading: h, tilt };
+      if (jump) {
+        // Tilbage fra baggrunden: stå præcis hvor man er, uden at spole kortet.
+        cancelAnimationFrame(frame); frame = 0; from = to;
+        map.moveCamera({ center: { lat: to.lat, lng: to.lng }, zoom: to.zoom, heading: to.heading, tilt: to.tilt });
+        return;
+      }
+      from = cur(); t0 = performance.now();
       if (!frame) frame = requestAnimationFrame(tick);
     };
-    const off = track.subscribe(({ pos, heading: gh }) => {
+    let wasHidden = false;
+    const onVis = () => { if (document.visibilityState === "hidden") { wasHidden = true; cancelAnimationFrame(frame); frame = 0; from = to = null; } };
+    document.addEventListener("visibilitychange", onVis);
+    const off = track.subscribe(({ pos, heading: gh, jump }) => {
       const now = performance.now();
+      if (jump || wasHidden) { wasHidden = false; lastTarget = now; lastPos = pos; retarget(pos, gh, true); return; }
       const moved = !lastPos || haversineMeters(lastPos[0], lastPos[1], pos[0], pos[1]) > 1.5;
       if (now - lastTarget < 850 || (!moved && now - lastTarget < 3000)) return;
       lastTarget = now; lastPos = pos;
       retarget(pos, gh);
     });
-    if (userPos) retarget(userPos, null);
+    // Entering follow ("Centrér"/start): land directly on the car instead of a long sweep.
+    if (userPos) retarget(track.value?.pos ?? userPos, null, true);
     return () => {
-      off(); cancelAnimationFrame(frame);
+      off(); cancelAnimationFrame(frame); document.removeEventListener("visibilitychange", onVis);
     };
   }, [following, track, ready, northUp, vector]);
   const anchorRef = useRef<number | null>(null); anchorRef.current = anchorY;

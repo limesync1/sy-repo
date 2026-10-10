@@ -24,6 +24,8 @@ import { useEffect, useRef } from "react";
 export type MotionSample = {
   pos: [number, number];
   heading: number | null;
+  /** Sand når positionen skal sættes direkte (fx efter appen har været i baggrunden). */
+  jump?: boolean;
 };
 
 const FRAME_MS = 40; // ~25 fps
@@ -43,6 +45,7 @@ export class MotionTrack {
   private raf: number | null = null;
   private paused = false;
   private current: MotionSample | null = null;
+  private snapNext = false;
 
   subscribe(fn: (s: MotionSample) => void): () => void {
     this.listeners.add(fn);
@@ -59,14 +62,16 @@ export class MotionTrack {
   /** Nyt GPS-mål. Springer direkte hvis vi ikke har en tidligere position. */
   setTarget(pos: [number, number] | null, heading: number | null, now = performance.now()): void {
     if (!pos) return;
-    if (!this.current) {
-      this.current = { pos, heading };
-      this.from = pos;
-      this.to = pos;
-      this.fromHeading = heading;
-      this.toHeading = heading;
-      this.lastTargetAt = now;
+    // Første fix, første fix efter pause eller efter et langt hul: spring direkte
+    // til den aktuelle position i stedet for at "spole" gammel bevægelse frem.
+    if (!this.current || this.snapNext || (this.lastTargetAt > 0 && now - this.lastTargetAt > 5000)) {
+      this.snapNext = false;
+      const h = heading ?? this.current?.heading ?? null;
+      this.from = pos; this.to = pos; this.fromHeading = h; this.toHeading = h;
+      this.lastTargetAt = now; this.startedAt = now;
+      this.current = { pos, heading: h, jump: true };
       this.emit();
+      this.current = { pos, heading: h };
       return;
     }
     this.from = this.current.pos;
@@ -132,12 +137,9 @@ export class MotionTrack {
   resume(): void {
     if (!this.paused) return;
     this.paused = false;
-    // Spring til målet i stedet for at animere gammel bevægelse frem.
-    if (this.to) {
-      this.from = this.to;
-      this.current = { pos: this.to, heading: this.current?.heading ?? this.toHeading };
-      this.emit();
-    }
+    // Positionen fra før pausen er forældet: næste friske GPS-fix sættes direkte.
+    this.snapNext = true;
+    if (this.to) this.from = this.to;
   }
 
   destroy(): void {
