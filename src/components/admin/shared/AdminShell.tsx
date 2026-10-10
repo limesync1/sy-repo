@@ -7,8 +7,8 @@
 //
 // Navigationen defineres i ./adminNav (én sandhed for sidebar, drawer og bundnav).
 import { useNavigate } from "react-router-dom";
-import { useEffect, type ReactNode } from "react";
-import { ExternalLink, LogOut, Rocket, Truck } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { ExternalLink, LogOut, Rocket, Truck, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -22,6 +22,7 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { AccountProfileSheet } from "@/components/shared/AccountProfileSheet";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import {
   ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminNeighbours,
@@ -75,6 +76,7 @@ export const AdminShell = ({
 }: AdminShellProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
   const mobileTopbar = useIsBelowBreakpoint(640);
 
   // Holder plan-data varm i cachen (bruges af faner senere).
@@ -151,6 +153,7 @@ export const AdminShell = ({
 
   /* ---------------- Profil-menu (sidebar-bund) ---------------- */
   const profileItems: ProfileMenuItem[] = [
+    { key: "profile", icon: UserRound, label: "Rediger profil", onSelect: () => setProfileOpen(true) },
     { key: "public", icon: ExternalLink, label: "Se din side", href: `/v/${business.slug}` },
     { key: "logout", icon: LogOut, label: "Log ud", onSelect: signOut, danger: true, separatorBefore: true },
   ];
@@ -288,6 +291,7 @@ export const AdminShell = ({
           <SidebarProfileMenu
             name={displayName}
             subtitle={user?.email && user.email !== displayName ? user.email : business.name}
+            avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
             collapsed={ctx.collapsed}
             items={profileItems}
             fallback="K"
@@ -300,6 +304,7 @@ export const AdminShell = ({
       <DPAGate businessId={business.id} isOwner={isOwner}>
         {children}
       </DPAGate>
+      <AccountProfileSheet open={profileOpen} onOpenChange={setProfileOpen} userId={user?.id} name={user?.user_metadata?.display_name as string | undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
     </PanelShell>
   );
 };
