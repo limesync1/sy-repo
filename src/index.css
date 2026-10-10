@@ -177,6 +177,13 @@
     /* Reservér plads til scrollbar altid, så headeren ikke "hopper"
        horisontalt når man navigerer mellem korte og lange sider. */
     scrollbar-gutter: stable;
+    /* Lærredet bag siden skal følge temaet, så der aldrig vises en hvid flade
+       ved elastisk scroll, under korte sider eller bag scrollbaren i mørk tilstand. */
+    background-color: hsl(var(--background));
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
 
   /* En permanent desktop-scrollbar må ikke stjæle 15 px på telefoner.
