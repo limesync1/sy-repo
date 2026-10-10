@@ -423,18 +423,19 @@ const DashboardTab = ({
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:shrink-0">
               <a
                 href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary sm:px-3.5 sm:py-2 sm:text-xs"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-10 sm:px-3.5 sm:text-xs"
               >
                 <Eye className="h-3.5 w-3.5" /> Se din side
               </a>
-              <button
+              <Button
                 type="button"
                 onClick={openGuide}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary sm:px-3.5 sm:py-2 sm:text-xs"
+                variant="outline"
+                className="min-h-11 shrink-0 gap-1.5 rounded-full px-3 text-[11px] font-semibold shadow-sm sm:min-h-10 sm:px-3.5 sm:text-xs"
               >
                 <HelpCircle className="h-3.5 w-3.5" /> Se guide
                 <span className="tabular-nums opacity-80">· {guideSignals.done}/{guideSignals.total}</span>
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -486,15 +487,15 @@ const DashboardTab = ({
 
           {/* Top services */}
           {topServices.length > 0 ? (
-            <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+            <Card className="surface-admin overflow-hidden rounded-md border-border/80 shadow-sm">
               <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">Det her tjener I mest på lige nu.</p>
                 </div>
-                <button onClick={() => onNavigate?.("services")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+                <Button variant="ghost" size="sm" onClick={() => onNavigate?.("services")} className="h-9 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground">
                   Se alle <ArrowRight className="h-3 w-3" />
-                </button>
+                </Button>
               </div>
               <div className="divide-y divide-border">
                 {topServices.map((s, i) => {
@@ -522,7 +523,7 @@ const DashboardTab = ({
             </Card>
           ) : (
             servicesCount > 0 && ordersCount > 0 && (
-              <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+              <Card className="surface-admin rounded-md border-border/80 shadow-sm">
                 <CardContent className="p-4 sm:p-5">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -552,7 +553,7 @@ const DashboardTab = ({
                     type="button"
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
                       className={cn(
-                        "group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all",
+                        "group flex min-h-11 w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       a.tone === "primary" && "brand-blue-action border-transparent text-background hover:-translate-y-0.5",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
@@ -591,7 +592,7 @@ const DashboardTab = ({
 
               {actions.length > primaryActions.length && (
                 <details className="mt-3 group">
-                  <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <summary className="min-h-11 cursor-pointer list-none rounded-md px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <span className="inline-flex items-center gap-1">
                       Vis {actions.length - primaryActions.length} flere
                       <ChevronRight className="h-3 w-3 transition-transform group-open:rotate-90" />
@@ -603,7 +604,7 @@ const DashboardTab = ({
                         key={a.key}
                         type="button"
                         onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
-                    className="flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-secondary/60"
+                    className="flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center">
                           {a.illustration ? <BrandedIllustration name={a.illustration} className="h-9 w-9" /> : <a.icon className="h-5 w-5 text-muted-foreground" />}
