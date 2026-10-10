@@ -139,6 +139,8 @@ import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton"
 import DensityToggle, { useDensity } from "@/components/route-planner/DensityToggle";
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
+import DayOptimizerDialog from "@/components/route-planner/DayOptimizerDialog";
+import { Gauge } from "lucide-react";
 import { Printer, ListOrdered } from "lucide-react";
 import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
@@ -281,6 +283,7 @@ const Planner = () => {
     return () => document.documentElement.classList.remove("route-planner-open");
   }, []);
   const [date, setDate] = useState<string>(todayStr());
+  const [dayOptimizerOpen, setDayOptimizerOpen] = useState(false);
   const [appointmentsOpen, setAppointmentsOpen] = useState(false);
   const [appointmentTarget, setAppointmentTarget] = useState<CalendarRoute | null>(null);
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
@@ -2761,6 +2764,9 @@ const Planner = () => {
                   <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
                     <Printer className="h-3.5 w-3.5" /> Print / PDF af dagen
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDayOptimizerOpen(true)} className="text-xs gap-2">
+                    <Gauge className="h-3.5 w-3.5" /> Optimér dagen
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
                     <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
                   </DropdownMenuItem>
@@ -3804,6 +3810,9 @@ const Planner = () => {
                           <DropdownMenuLabel className="text-xs">Handlinger</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
                             <Printer className="h-3.5 w-3.5" /> Print / PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDayOptimizerOpen(true)} className="text-xs gap-2">
+                            <Gauge className="h-3.5 w-3.5" /> Optimér dagen
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
                             <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
@@ -5082,6 +5091,7 @@ const Planner = () => {
         onDone={() => setSelectedJobIds(new Set())}
       />
       )}
+      {dayOptimizerOpen && <DayOptimizerDialog open={dayOptimizerOpen} onOpenChange={setDayOptimizerOpen} businessId={businessId} date={date} />}
       {printOpen && (
       <RoutePrintDialog
         open={printOpen}
