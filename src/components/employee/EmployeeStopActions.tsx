@@ -7,7 +7,7 @@
 // Prisen regnes altid endeligt på serveren. Optimeret til mobil/tablet.
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, MoreHorizontal, X } from "lucide-react";
+import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, MoreHorizontal, X, Route as RouteIcon, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const [newServiceId, setNewServiceId] = useState<string>("");
   const [newPricing, setNewPricing] = useState<PricingState | null>(null);
   const [newStart, setNewStart] = useState(todayStr());
+  const [targetRouteId, setTargetRouteId] = useState<string | null>(null);
 
   useEffect(() => { 
     try { 
@@ -115,6 +116,22 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     },
   });
   const serviceById = useMemo(() => new Map(services.map((s) => [s.id, s])), [services]);
+
+  const { data: placementRoutes = [], isLoading: loadingPlacementRoutes } = useQuery({
+    queryKey: ["employee-route-placement-options", stopId, newStart],
+    enabled: newOpen && !!newStart && newPricing?.interval === "engangskøb",
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("employee_route_placement_options", { _stop_id: stopId, _start_date: newStart });
+      if (error) throw error;
+      return (data || []) as Array<{ id: string; name: string; route_date: string; is_same_series: boolean }>;
+    },
+  });
+
+  useEffect(() => {
+    if (!newOpen) return;
+    const preferred = placementRoutes.find((route) => route.is_same_series) || placementRoutes[0];
+    setTargetRouteId((current) => current && placementRoutes.some((route) => route.id === current) ? current : preferred?.id ?? null);
+  }, [newOpen, placementRoutes]);
 
   const snapshot = (ls: Line[]) => JSON.stringify(ls.map((l) => [l.service_id, l.quantity, l.pricing]));
 
@@ -196,7 +213,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   // ── Ny aftale ───────────────────────────────────────────────
   const newService = newServiceId ? serviceById.get(newServiceId) : undefined;
-  const openNew = () => { setNewServiceId(""); setNewPricing(null); setNewStart(runDate); setNewOpen(true); };
+  const openNew = () => { setNewServiceId(""); setNewPricing(null); setNewStart(runDate); setTargetRouteId(null); setNewOpen(true); };
   const pickNewService = (id: string) => {
     setNewServiceId(id);
     const s = serviceById.get(id);
@@ -204,25 +221,24 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   };
 
   const createNew = useMutation({
-    mutationFn: async (addToRoute: boolean) => {
+    mutationFn: async (routeId: string | null) => {
       assertOnline();
       if (!newService || !newPricing) throw new Error("Vælg en service.");
       if (!newStart) throw new Error("Vælg en opstartsdato.");
-      const { data, error } = await supabase.rpc("employee_create_order_from_stop" as any, {
+      const { data, error } = await supabase.rpc("employee_create_order_from_stop_v2", {
         _stop_id: stopId,
         _item: { service_id: newService.id, ...toPricingPayload(newService, newPricing) },
         _start_date: newStart,
-        _add_to_route: addToRoute,
+        _target_route_id: routeId,
       });
       if (error) throw error;
       return data as any;
     },
     onSuccess: (res) => {
-      toast.success(res?.added_to_route ? "Opgaven er tilføjet til din rute" : "Aftalen er oprettet", {
-        description: res?.added_to_route ? "Den ligger sidst på dagens rute."
-          : res?.reason === "date_mismatch" ? "Datoen er ikke i dag, så den ligger i Aftaler uden rute til kontoret."
-          : res?.reason === "recurring" ? "Faste aftaler placeres af kontoret, så den ligger i Aftaler uden rute."
-          : res?.reason === "route_closed" ? "Ruten er afsluttet, så den ligger i Aftaler uden rute."
+      const selectedRoute = placementRoutes.find((route) => route.id === res?.target_route_id);
+      toast.success(res?.added_to_route ? "Opgaven er tilføjet til ruten" : "Aftalen er oprettet", {
+        description: res?.added_to_route ? `Den ligger sidst på ${selectedRoute?.name || "den valgte rute"}.`
+          : res?.reason === "recurring" ? "Den faste aftale ligger i Aftaler uden rute, så kontoret kan placere serien."
           : "Den ligger i Aftaler uden rute, så kontoret kan planlægge den.",
       });
       setNewOpen(false);
@@ -234,26 +250,19 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   const submitNew = async () => {
     if (!newService || !newPricing) { toast.error("Vælg en service først"); return; }
-    const once = newPricing.interval === "engangskøb";
-    const sameDay = newStart === runDate;
-    if (once && sameDay) {
-      const add = await askConfirm({
-        title: "Skal opgaven på din rute i dag?",
-        description: "Opgaven er en engangsopgave i dag. Du kan lægge den sidst på din rute med det samme, eller lade kontoret planlægge den.",
-        confirmLabel: "Ja, på min rute", cancelLabel: "Nej, til kontoret",
-      });
-      createNew.mutate(add);
-      return;
-    }
-    const reason = !once
-      ? `Aftalen gentages (${ivLabel(newPricing.interval)}). For at den ikke lander på en forkert rute, placerer kontoret den på den rigtige rute.`
-      : "Opstartsdatoen er ikke i dag, så opgaven kan ikke komme på dagens rute.";
+    const recurring = newPricing.interval !== "engangskøb";
+    const selectedRoute = placementRoutes.find((route) => route.id === targetRouteId);
+    const reason = recurring
+      ? `Første besøg er ${newStart}, og aftalen gentages (${ivLabel(newPricing.interval)}). Kontoret placerer serien på de rigtige ruter.`
+      : selectedRoute
+        ? `Besøget oprettes ${newStart} og lægges sidst på ${selectedRoute.name}.`
+        : `Besøget oprettes ${newStart} i Aftaler uden rute, så kontoret kan planlægge det.`;
     const ok = await askConfirm({
-      title: "Aftalen gemmes til kontoret",
-      description: `${reason} Den lægges i Aftaler uden rute i ruteplanlæggeren.`,
+      title: "Opret aftalen?",
+      description: reason,
       confirmLabel: "Opret aftale", cancelLabel: "Tilbage",
     });
-    if (ok) createNew.mutate(false);
+    if (ok) createNew.mutate(recurring ? null : targetRouteId);
   };
 
   const sendNote = useMutation({
@@ -477,11 +486,39 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                  <Field 
                   label="Foreløbig opstartsdato" 
                   required 
-                  hint={newPricing?.interval === "engangskøb" && newStart === runDate ? "Du vælger ved oprettelse, om den skal sidst på dagens rute eller til kontoret." : newPricing?.interval !== "engangskøb" ? `Første besøg er ${newStart}. Kontoret placerer den faste aftale på den rigtige rute.` : "En fremtidig aftale lægges i Aftaler uden rute, så kontoret kan vælge den rigtige rute."}
+                  hint={newPricing?.interval !== "engangskøb" ? `Første besøg er ${newStart}. Kontoret placerer den faste aftale på de rigtige ruter.` : "Efter datoen vælger du præcist, hvor engangsopgaven skal placeres."}
                  >
                    <DatePickerField value={newStart} minDate={todayStr()} onChange={setNewStart} className="h-11 text-base" />
                  </Field>
                </Section>
+            )}
+            {newService && newPricing?.interval === "engangskøb" && (
+              <Section icon={<RouteIcon className="h-4 w-4" />} title="Placering på rute" tone="accent" hint={targetRouteId ? "Lægges sidst på ruten" : "Kontoret planlægger"}>
+                {loadingPlacementRoutes ? (
+                  <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Finder ruter på datoen…</p>
+                ) : (
+                  <fieldset className="space-y-2">
+                    {placementRoutes.map((route) => (
+                      <Button key={route.id} type="button" variant="outline" aria-pressed={targetRouteId === route.id} onClick={() => setTargetRouteId(route.id)}
+                        className={cn("h-auto min-h-14 w-full justify-start gap-3 whitespace-normal p-3 text-left", targetRouteId === route.id && "border-primary bg-primary/5 ring-1 ring-primary/20")}>
+                        <RouteIcon className="h-4 w-4 shrink-0" />
+                        <span className="min-w-0"><span className="block text-sm font-semibold">{route.is_same_series ? "Næste forekomst af samme rute" : route.name}</span><span className="block text-xs font-normal text-muted-foreground">{route.name} · {format(new Date(`${route.route_date}T12:00:00`), "d. MMMM", { locale: da })}</span></span>
+                      </Button>
+                    ))}
+                    <Button type="button" variant="outline" aria-pressed={targetRouteId === null} onClick={() => setTargetRouteId(null)}
+                      className={cn("h-auto min-h-14 w-full justify-start gap-3 whitespace-normal p-3 text-left", targetRouteId === null && "border-primary bg-primary/5 ring-1 ring-primary/20")}>
+                      <Inbox className="h-4 w-4 shrink-0" />
+                      <span><span className="block text-sm font-semibold">Aftaler uden rute</span><span className="block text-xs font-normal text-muted-foreground">Kontoret vælger ruten senere.</span></span>
+                    </Button>
+                    {placementRoutes.length === 0 && <p className="text-xs text-muted-foreground">Der er ingen tilgængelig rute på datoen. Aftalen kan stadig oprettes uden rute.</p>}
+                  </fieldset>
+                )}
+              </Section>
+            )}
+            {newService && newPricing?.interval !== "engangskøb" && (
+              <Section icon={<Inbox className="h-4 w-4" />} title="Placering" tone="muted">
+                <p className="text-sm text-muted-foreground">Faste aftaler oprettes i Aftaler uden rute. Kontoret placerer første besøg og de næste forekomster samlet.</p>
+              </Section>
             )}
           </div>
           <SheetFooterBar className="grid grid-cols-2 gap-2 px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
