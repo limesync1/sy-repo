@@ -320,9 +320,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   StepIndicator.displayName = "StepIndicator";
 
   return (
-    <div className={compact || noteOnly ? "contents" : "space-y-2"}>
+    <div className={compact ? "employee-stop-quick-actions col-span-full grid min-w-0 grid-cols-3 gap-2" : noteOnly ? "contents" : "space-y-2"}>
       {compact ? (
-        <div className="employee-stop-quick-actions contents">
+        <div className="contents">
           {!noteOnly && <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret aftale</span></Button>}
           {!noteOnly && <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny aftale</span></Button>}
           <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note til kontoret</span></Button>

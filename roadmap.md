@@ -3,7 +3,7 @@
 - [x] Færdiggør responsiv HUD på tablet/computer og robust Advanced Marker-håndtering
 - [x] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter
 - [x] Gør Ret aftale, Ny aftale og Note trinvise og ens med fælles overlay-primitiver
-- [ ] Ensret Føj til rute og Flyt dato helt med Rediger rute/Opret bestilling
+- [x] Ensret Føj til rute og Flyt dato helt med Rediger rute/Opret bestilling
 - [x] Implementér eksplicit smart aftaleplacering: dagens rute, næste ruteforekomst, anden rute eller uden rute
 - [x] Vis konsekvensen af Ret aftale for dette besøg og fremtidige besøg før gem
 - [x] Gør tidsregistrering atomisk og uden gentagne konfliktdialoger
@@ -16,8 +16,8 @@
 - [x] Fjern aktuelle runtime-advarsler i aftaledetaljer
 
 ## Responsivitet og synlighed
-- [ ] Ret fælles knapper, vinduer, bundark, dropdowns og popups centralt
-- [ ] Ret aftalevinduer og kompakte stophandlinger på alle bredder
-- [ ] Ensret Føj til rute og Flyt dato med de fælles vinduesprimitiver
+- [x] Ret fælles knapper, vinduer, bundark, dropdowns og popups centralt
+- [x] Ret aftalevinduer og kompakte stophandlinger på alle bredder
+- [x] Ensret Føj til rute og Flyt dato med de fælles vinduesprimitiver
 - [ ] Kontrollér rutekørsels-HUD uden overlap på mobil, tablet og computer
 - [ ] Test lyst/mørkt tema, lange tekster, scroll og fejltilstande

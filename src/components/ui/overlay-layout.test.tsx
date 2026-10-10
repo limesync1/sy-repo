@@ -1,12 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 describe("shared overlay layout", () => {
   it("reserves room for the close control and keeps content inside the viewport", () => {
-    render(<Dialog defaultOpen><DialogContent><DialogHeader><DialogTitle>En meget lang dansk overskrift til et lille vindue</DialogTitle></DialogHeader></DialogContent></Dialog>);
+    render(<Dialog defaultOpen><DialogContent><DialogHeader><DialogTitle>En meget lang dansk overskrift til et lille vindue</DialogTitle><DialogDescription>Beskrivelse</DialogDescription></DialogHeader></DialogContent></Dialog>);
     expect(screen.getByRole("dialog")).toHaveClass("max-h-[calc(100dvh-1rem)]", "z-[var(--z-modal)]");
     expect(screen.getByText(/En meget lang/).parentElement).toHaveClass("pr-10");
     expect(screen.getByRole("button", { name: "Luk" })).toHaveClass("h-11", "w-11");
@@ -19,7 +19,7 @@ describe("shared overlay layout", () => {
   });
 
   it("opens from a trigger with viewport-safe modal classes", () => {
-    render(<Dialog><DialogTrigger>Vis vindue</DialogTrigger><DialogContent><DialogTitle>Vindue</DialogTitle></DialogContent></Dialog>);
+    render(<Dialog><DialogTrigger>Vis vindue</DialogTrigger><DialogContent><DialogTitle>Vindue</DialogTitle><DialogDescription>Beskrivelse</DialogDescription></DialogContent></Dialog>);
     fireEvent.click(screen.getByRole("button", { name: "Vis vindue" }));
     expect(screen.getByRole("dialog")).toHaveClass("w-[calc(100vw-1rem)]");
   });
