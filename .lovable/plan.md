@@ -56,9 +56,10 @@ Mål: Kortet i rutekørsel skal opføre sig så tæt på Google Maps-appens navi
 - Google-kortet kan ikke vises i mit testmiljø. Den endelige visuelle test sker på serviceydere.dk på din telefon, med en tjekliste.
 
 ## Hvad du skal gøre i Google Cloud
-1. Opret en kortindstilling: **Map Management → Map IDs → JavaScript → Vector** og send mig koden.
-2. Opret en kortstil (**Map Styles**) med en lys og en mørk variant, og kobl den til kortindstillingen.
-3. Kontrollér, at **Routes API** er slået til på servernøglen.
+1. Kortindstillingen (Map ID) er modtaget. Den bliver gemt og koblet på som det første skridt. Tjek, at den er sat til **JavaScript** og **Vector**, og at **Tilt** og **Rotation** er slået til.
+2. Opret en kortstil under **Map Styles** med en lys og en mørk variant, og kobl den til kortindstillingen.
+3. Kontrollér, at **Routes API** er slået til på servernøglen, altså den uden website-begrænsning.
+4. Sørg for, at fakturering er aktiv, og sæt gerne en budgetalarm under **Billing → Budgets & alerts**.
 
 ## Tekniske detaljer
 - `GoogleRouteMap`: `mapId` fra `SERVICEYDERE_MAPS_MAP_ID` (via `google-maps-browser-key`), `colorScheme` ved oprettelse, genopbygning ved temaskift med bevaret kamera (`getCenter/getZoom/getHeading/getTilt`), og tilbagefald til raster uden `mapId` ved vektorfejl.
