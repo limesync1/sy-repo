@@ -2290,10 +2290,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Start aftale
                     </Button>
                   ) : null}
-                  {/* Én række handlinger — aldrig scroll i panelet. */}
+                  {/* Én række handlinger — aldrig scroll i panelet. Under kørsel kun det,
+                      man har brug for; Ret/Ny aftale vises når man er hos kunden. */}
                   <div className={cn("route-dock-actions flex min-w-0 gap-1.5", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" title="Oplysninger" className="route-dock-tile"><Info className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Info</span></Button>
-                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} compact />
+                  <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder || !(isAtNextStop || activeNextStopEntry)} routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
                     <Button asChild variant="outline" aria-label="Ring til kunde" title="Ring til kunde" className="route-dock-tile">
                       <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ring</span></a>
