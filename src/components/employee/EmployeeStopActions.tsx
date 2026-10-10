@@ -5,7 +5,7 @@
 //   ekstra stop på dagens rute når det er en engangsopgave i dag.
 // - Send en note til kontoret.
 // Prisen regnes altid endeligt på serveren. Optimeret til mobil/tablet.
-import { useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, ArrowLeft, Route as RouteIcon, Inbox } from "lucide-react";
 import { toast } from "sonner";
@@ -298,7 +298,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const sheetSide = isCompact ? "bottom" : "right";
   const sheetClass = cn(
     "planner-overlay appointment-details-overlay flex flex-col gap-0 p-0 overflow-hidden shadow-premium",
-    isCompact ? "h-[min(90dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0" : "w-full sm:max-w-md h-full",
+    isCompact ? "h-[min(92dvh,52rem)] !inset-x-0 !bottom-0 !rounded-t-md !rounded-b-none !border-x-0 !border-b-0" : "h-full w-full sm:max-w-md",
   );
 
   const servicesProblem = servicesError ? (
@@ -310,21 +310,22 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter services…</p>
   ) : null;
 
-  const StepIndicator = ({ current, total }: { current: number; total: number }) => (
-    <ol className="grid grid-cols-4 gap-1" aria-label={`Trin ${current} af ${total}`}>
+  const StepIndicator = forwardRef<HTMLOListElement, { current: number; total: number }>(({ current, total }, ref) => (
+    <ol ref={ref} className="grid grid-cols-4 gap-1" aria-label={`Trin ${current} af ${total}`}>
       {Array.from({ length: total }, (_, index) => index + 1).map((step) => (
         <li key={step} className={cn("h-1.5 rounded-full", step <= current ? "bg-primary" : "bg-border")} aria-current={step === current ? "step" : undefined} />
       ))}
     </ol>
-  );
+  ));
+  StepIndicator.displayName = "StepIndicator";
 
   return (
-    <div className={compact || noteOnly ? "contents" : "space-y-2"}>
+    <div className={compact ? "employee-stop-quick-actions col-span-full grid min-w-0 grid-cols-3 gap-2" : noteOnly ? "contents" : "space-y-2"}>
       {compact ? (
-        <div className="employee-stop-quick-actions contents">
-          {!noteOnly && <Button variant="outline" className="h-11 min-w-0 flex-1 gap-1.5 px-2 text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret</span></Button>}
-          {!noteOnly && <Button variant="outline" className="h-11 min-w-0 flex-1 gap-1.5 px-2 text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny</span></Button>}
-          <Button variant="outline" className="h-11 min-w-0 flex-1 gap-1.5 px-2 text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note</span></Button>
+        <div className="contents">
+          {!noteOnly && <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret aftale</span></Button>}
+          {!noteOnly && <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny aftale</span></Button>}
+          <Button variant="outline" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note til kontoret</span></Button>
         </div>
       ) : noteOnly ? (
         <Button variant="outline" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
@@ -382,7 +383,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                   <li key={l.key} className="space-y-3 rounded-md border border-border bg-card p-3 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <p className="min-w-0 break-words text-sm font-semibold">{l.name}</p>
-                      <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0 text-destructive hover:bg-destructive/10" aria-label={`Fjern ${l.name}`}
+                      <Button size="icon" variant="ghost" className="h-11 w-11 shrink-0 text-destructive hover:bg-destructive/10" aria-label={`Fjern ${l.name}`}
                         onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} disabled={lines.length <= 1}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
