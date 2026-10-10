@@ -209,7 +209,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     const seen = new Set<string>();
     for (const s of stops) {
       seen.add(s.id);
-      const key = `${s.n}|${s.state}|${s.highlighted}|${s.pos.join(",")}|${night}|${s.name}`;
+      const key = `${s.n}|${s.state}|${s.highlighted}|${s.pos.join(",")}|${night}|${s.name}|${overviewMode}|${routeStarted}`;
       const existing = markersRef.current.get(s.id);
       if (existing?.key === key) continue;
       const title = `${s.name || `Stop ${s.n}`}${s.state === "done" ? " (udført)" : ""}`;
