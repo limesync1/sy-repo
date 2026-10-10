@@ -631,6 +631,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
+  // Like Google Maps: after 10 s without touching the map, driving view resumes following the car.
+  const refollowRef = useRef<number | null>(null);
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
@@ -1865,6 +1867,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             fitEnabled={!routeStarted && !highlightedId}
             flyTo={highlightedPoint}
             night={night}
+            maneuverDistanceM={maneuver?.distanceToManeuverM ?? null}
             onInteract={breakFollow}
             onRecenter={() => { setHighlightedId(null); setFollowMode(true); }}
             onSelectStop={(id) => { setFollowMode(false); setHighlightedId(id); setSelectedId(id); }}

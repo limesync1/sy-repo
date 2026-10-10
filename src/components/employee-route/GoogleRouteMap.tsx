@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Crosshair, Layers, TrafficCone } from "lucide-react";
+import { Compass, Crosshair, Layers, Route, TrafficCone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { googleMapsMapId, loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
@@ -84,23 +84,6 @@ function pinIcon(label: string, state: GoogleStopState | "start", highlighted: b
   };
 }
 
-/** Dark style derived from theme tokens; works without a cloud map ID. */
-function nightStyles(): google.maps.MapTypeStyle[] {
-  const bg = resolveMapColor("--background", "hsl(222 47% 8%)");
-  const muted = resolveMapColor("--muted", "hsl(217 33% 17%)");
-  const mutedFg = resolveMapColor("--muted-foreground", "hsl(215 20% 65%)");
-  return [
-    { elementType: "geometry", stylers: [{ color: bg }] },
-    { elementType: "labels.text.fill", stylers: [{ color: mutedFg }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: bg }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: muted }] },
-    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: bg }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ lightness: 8 }, { color: muted }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0b1626" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] },
-  ];
-}
 
 /** Measures how much of the map the top HUD covers, so the car/next stop stays visible. */
 function hudPadding(container: HTMLElement) {
