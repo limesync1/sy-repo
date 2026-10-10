@@ -793,7 +793,6 @@
   @media (max-height: 720px) {
     .employee-route-run .route-maneuver-then { display: none; }
     .employee-route-run .route-hud-stack { max-height: 32dvh; }
-    .employee-route-run .route-drive-dock { max-height: 44dvh; }
   }
   .employee-route-run .route-drive-dock {
     box-shadow: 0 18px 46px -22px hsl(var(--foreground) / 0.58), 0 2px 8px hsl(var(--foreground) / 0.12);
@@ -820,18 +819,26 @@
     font-family: Inter, InterFallback, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
-  @media (max-width: 639px) {
-    .employee-route-run .route-drive-dock {
-      width: 100%;
-      max-height: min(42dvh, calc(22rem - env(safe-area-inset-bottom)));
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
+  /* Stoppanelet er dimensioneret til sit indhold, så det ikke skal scrolles.
+     Kun det udfoldede ruteoverblik må give et sikkerhedsloft. */
+  @media (max-width: 767px) {
+    .employee-route-run .route-drive-dock { width: 100%; max-height: 62dvh; overflow-y: auto; overscroll-behavior: contain; }
   }
 
-  @media (max-height: 620px) and (max-width: 900px) {
+  /* Handlingsfliser: ikon over kort tekst, én række, lige brede. */
+  .employee-route-run .route-dock-tile {
+    display: inline-flex; flex: 1 1 0; min-width: 0; height: 3.5rem; min-height: 3.5rem;
+    flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem;
+    padding: 0.25rem; border-radius: calc(var(--radius) - 2px);
+    font-size: 11px; font-weight: 600; line-height: 1; white-space: nowrap;
+  }
+  .employee-route-run .route-dock-tile-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Lav skærm (liggende telefon, lille browservindue): kun ikoner. */
+  @media (max-height: 560px) {
+    .employee-route-run .route-dock-tile { height: 2.75rem; min-height: 2.75rem; }
+    .employee-route-run .route-dock-tile-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     .employee-route-run .route-map-stage-driving > .leaflet-container { min-height: 7rem; }
-    .employee-route-run .route-drive-dock { max-height: 46dvh; }
   }
 
   /* Natkort: dæmpet mørk version af vejkortet — kræver ingen ekstra kortnøgle. */
