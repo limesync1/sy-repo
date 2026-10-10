@@ -780,12 +780,17 @@
     }
   }
 
-  /* På computer samles kørsels-HUD'en i én venstre kontrolkolonne. Kortet
-     forbliver stort, mens topkontroller og næste stop deler samme kant. */
+  /* Tablet, liggende telefon og computer: kørsels-HUD'en samles i én venstre
+     kontrolkolonne; højre side er fri til kort, kortknapper og advarsler. */
+  @media (min-width: 768px) {
+    .employee-route-run .route-hud-stack,
+    .employee-route-run .route-active-stop { left: 1rem; right: auto; width: min(30rem, calc(50vw - 1.5rem)); }
+    .employee-route-run .route-drive-dock { max-height: calc(100dvh - 9rem); overflow-y: auto; overscroll-behavior: contain; }
+    .employee-route-run .route-map-stage-driving .route-google-fallback { left: auto; right: 1rem; max-width: min(24rem, calc(50vw - 2.5rem)); }
+  }
   @media (min-width: 1024px) {
     .employee-route-run .route-hud-stack,
-    .employee-route-run .route-active-stop { left: 1rem; right: auto; width: min(30rem, calc(42vw - 2rem)); }
-    .employee-route-run .route-drive-dock { max-height: min(54dvh, 34rem); overflow-y: auto; overscroll-behavior: contain; }
+    .employee-route-run .route-active-stop { width: min(30rem, calc(42vw - 2rem)); }
     .employee-route-run .route-map-controls { right: 1.25rem; bottom: 1.25rem; }
     .employee-route-run .route-map-stage-driving .drive-issue-banner { left: calc(min(30rem, 42vw - 2rem) + 2rem); bottom: 1rem; width: min(23rem, calc(55vw - 4rem)); }
   }
