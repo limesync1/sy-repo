@@ -1,22 +1,10 @@
-# Roadmap
-- [x] Skift stop- og startnåle til Googles nye markører; test status, placering, valg og oprydning (10 test bestået; fysisk Google-kørsel ikke verificeret)
-- [x] Responsive rutekørsel, tjekliste og stopoplysninger
-- [x] Ensartet ret/ny aftale med custom kalender
-- [x] Medarbejderprofil og mobilnavigation
-- [x] Offentlig navigation og designsprog
-- [x] Forenklet ruteplanlægger uden autofordeling
-- [x] Responsive Leads og services
-- [x] Test centrale flows og skærmstørrelser
-- [x] Kompakt HUD, samlet ankomst, stopmenu og sikre fejlzoner
-- [x] Indlogget kontrol af HUD på mobil, tablet og computer
-- [x] Ensartede knapfarver og tabletlayout i rutekørsel
-- [x] Samlet mobilkalender med rulbar aftaleskuffe og direkte aftaletildeling
-- [x] Stabil offentlig navigation og indlæsningsvisninger uden headerskift
-- [x] Matchende planlæggerskeleton og oprydning i forældede indlæsningsvisninger
-- [x] Erstat hjælpecentrets fire ikoner med de vedhæftede PDF-illustrationer
-- [x] Indlogget browserkontrol på mobil, tablet og computer (DK Renfyn; aftalevalg og bekræftelse uden ændring af kundeaftaler)
-- [x] Fælles offentligt design for heroer, sektioner, kort og indlæsning
-- [x] Redesign Bliv udbyder og hele Systemet-universet
-- [x] Redesign Anmeldelser, Om os, Hjælpecenter og Kontakt
-- [x] Redesign Guides, blogartikler og juridiske sider
-- [x] Kontroller alle footer-sider på mobil, tablet og computer
+## Aktuel samlet forbedring
+- [ ] Fjern Kortinfo og stabilisér responsiv HUD/kort
+- [ ] Forbedr stophandlinger og fjern redundant Flere handlinger
+- [ ] Ensret Ret aftale, Ny aftale, Note, Føj til rute og Flyt dato
+- [ ] Gør aftaleplacering og serievalg tydeligere
+- [ ] Gør tidsregistrering atomisk og uden gentagne konfliktdialoger
+- [ ] Ensret Note til kontoret
+- [ ] Ensret medarbejderprofil og tilføj virksomhedsprofil
+- [ ] Komprimer offentlig mobilmenu og ret interaktionstilstande
+- [ ] Test mobil, tablet, computer samt lyst/mørkt tema

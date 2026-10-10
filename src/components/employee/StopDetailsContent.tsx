@@ -527,11 +527,11 @@ export const StopDetailsContent = ({
         {!readOnly && (
           <Section
             icon={<ClipboardList className="h-3.5 w-3.5" />}
-            title="Din note"
-            hint={noteDraft?.trim() ? "udfyldt" : "synlig for virksomheden"}
+            title="Note til kontoret"
+            hint={noteDraft?.trim() ? "udfyldt" : "synlig for kontoret"}
           >
             <Textarea
-              placeholder="Tilføj en note om besøget…"
+              placeholder="Skriv kort, hvad kontoret skal vide…"
               value={noteDraft}
               onChange={(e) => onNoteChange?.(e.target.value)}
               rows={3}
@@ -543,7 +543,7 @@ export const StopDetailsContent = ({
         {readOnly && stop.notes && stop.notes.trim() && (
           <Section
             icon={<ClipboardList className="h-3.5 w-3.5" />}
-            title="Note fra besøget"
+            title="Note til kontoret"
           >
             <div className="rounded-md border bg-card p-3">
               <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{stop.notes}</p>

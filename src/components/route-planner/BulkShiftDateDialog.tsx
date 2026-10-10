@@ -8,9 +8,9 @@ import { da } from "date-fns/locale";
 import { CalendarDays, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import { SheetHeaderBlock } from "./SheetSection";
+import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -151,17 +151,17 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
           />
         </DialogHeader>
 
-        <div className="planner-overlay-body px-5 py-4 space-y-4 overflow-y-auto">
+        <div className="planner-overlay-body space-y-4 overflow-y-auto px-4 py-4 sm:px-5">
+          <Section icon={<CalendarDays className="h-4 w-4" />} title="Ny opstartsdato" tone="sky">
           <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
             <TabsList className="grid grid-cols-2 w-full h-9">
               <TabsTrigger value="set" className="text-xs">Sæt fælles dato</TabsTrigger>
               <TabsTrigger value="shift" className="text-xs">Forskyd med dage</TabsTrigger>
             </TabsList>
             <TabsContent value="set" className="mt-3">
-              <Label className="text-xs">Ny opstartsdato</Label>
-              <div className="mt-1.5">
+              <Field label="Ny opstartsdato" required>
                 <DatePickerField value={targetDate} onChange={setTargetDate} />
-              </div>
+              </Field>
             </TabsContent>
             <TabsContent value="shift" className="mt-3 space-y-2">
               <Label className="text-xs">Antal dage (brug negativt tal for at trække fra)</Label>
@@ -194,6 +194,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
               </div>
             </TabsContent>
           </Tabs>
+          </Section>
 
           <div className="rounded-lg border bg-secondary/30 overflow-hidden">
             <div className="px-3 py-2 border-b bg-secondary/60 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -224,7 +225,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
           </div>
         </div>
 
-        <DialogFooter className="planner-overlay-footer px-5 py-3 border-t bg-card shrink-0 gap-2">
+        <SheetFooterBar className="grid grid-cols-2 gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy} className="h-9">
             Annullér
           </Button>
@@ -232,7 +233,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
             Flyt {willUpdate.length} aftale{willUpdate.length === 1 ? "" : "r"}
           </Button>
-        </DialogFooter>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );

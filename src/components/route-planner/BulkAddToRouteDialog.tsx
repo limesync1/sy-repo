@@ -2,14 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Check, CalendarPlus, Loader2, Search, X } from "lucide-react";
-import { SheetHeaderBlock } from "./SheetSection";
+import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
 import { UiArtwork } from "@/components/shared/UiArtwork";
 
 /**
@@ -99,9 +98,9 @@ export const BulkAddToRouteDialog = ({
           />
         </DialogHeader>
 
-        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto grid grid-cols-1 gap-4 bg-secondary/20 p-4 sm:grid-cols-[1fr_1.2fr] sm:p-5">
           {/* Venstre: valgte aftaler */}
-          <div className="border-b sm:border-b-0 sm:border-r p-3 sm:p-4 space-y-2">
+          <Section icon={<Check className="h-4 w-4" />} title="Valgte aftaler" hint={jobs.length} className="self-start">
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <span>Valgte aftaler</span><span className="tabular-nums normal-case font-medium">{jobs.length}</span>
             </div>
@@ -134,14 +133,11 @@ export const BulkAddToRouteDialog = ({
                 )}
               </div>
             </div>
-          </div>
+          </Section>
 
           {/* Højre: rute-vælger */}
-          <div className="p-3 sm:p-4 space-y-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="bulk-route-search" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Vælg rute
-              </Label>
+          <Section icon={<CalendarPlus className="h-4 w-4" />} title="Vælg rute" className="self-start">
+            <Field label="Søg efter rute">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -153,7 +149,7 @@ export const BulkAddToRouteDialog = ({
                   disabled={loading}
                 />
               </div>
-            </div>
+            </Field>
             <div className="max-h-[min(45dvh,22rem)] overflow-y-auto overscroll-contain sm:max-h-56">
               <div className="space-y-1.5 pr-2">
                 {filteredRoutes.map((r) => {
@@ -201,10 +197,10 @@ export const BulkAddToRouteDialog = ({
               </div>
             </div>
 
-          </div>
+          </Section>
         </div>
 
-        <DialogFooter className="planner-overlay-footer shrink-0 border-t bg-card p-4 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <SheetFooterBar className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-[11px] text-muted-foreground">
             {progress
               ? <span className="tabular-nums">Behandler {progress.done}/{progress.total}…</span>
@@ -235,7 +231,7 @@ export const BulkAddToRouteDialog = ({
               )}
             </Button>
           </div>
-        </DialogFooter>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );

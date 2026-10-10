@@ -2026,7 +2026,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Aktiv kørselsbjælke: alle primære kontroller samlet ét sted ─── */}
         {routeStarted && !allDone && (
           <>
-            <div className="route-hud-stack pointer-events-none absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] flex flex-col gap-2 sm:left-4 sm:right-4 lg:left-auto lg:w-[26rem] xl:w-[28rem] 2xl:w-[30rem]">
+            <div className="route-hud-stack pointer-events-none absolute left-2 right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-[1002] flex flex-col gap-2 sm:left-4 sm:right-auto sm:w-[min(30rem,calc(100vw-2rem))] lg:w-[min(28rem,calc(42vw-2rem))] xl:w-[30rem]">
             <div className="pointer-events-auto">
               <div className="flex h-12 w-full items-center gap-1 rounded-md border border-border bg-card/95 px-1 text-foreground shadow-lg backdrop-blur-md">
                 <Button
@@ -2156,7 +2156,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:p-4 md:left-auto md:right-4 md:w-[min(32rem,calc(100vw-2rem))] md:p-0 lg:bottom-[60px] lg:w-[34rem] xl:w-[38rem] 2xl:w-[42rem]">
+          <div className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:bottom-[calc(60px+env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[min(34rem,calc(100vw-2rem))] sm:p-0 lg:w-[min(38rem,calc(55vw-2rem))] xl:w-[40rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg sm:max-md:max-w-none md:max-w-none">
               {!collapsed && <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />}
               {!collapsed && <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>}
