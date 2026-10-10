@@ -94,7 +94,7 @@ async function main() {
     const fixes: RawFix[] = []; const truthAt: { t: number; d: number }[] = [];
     let d = 0, t = 0, rejectedExpected = 0;
     const townNear = (p: LL) => STOPS.some((s) => dist(s.stored, p) < 1500);
-    const tunnelStart = truth.total * 0.55; const tunnelEnd = tunnelStart + 300;
+    const tunnelStart = truth.total > 3000 ? truth.total * 0.55 : Infinity; const tunnelEnd = tunnelStart + 300; // tunnel kun på landevej
     while (d < truth.total) {
       const p = truth.pointAt(d); const town = townNear(p);
       const speed = (town ? 11 : 21) * (0.9 + rnd() * 0.2);
@@ -168,7 +168,7 @@ async function main() {
 
 Genereret ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC. Rutens rigtige veje er hentet med samme tjeneste som appen
 (vejvisning: ${reports[0]?.navProvider ?? "?"}, oversigt: OSRM). GPS-sporet har støj (3,5 m på landevej, 6 m i byer),
-spring på 150 m ved bygninger, en tunnel på 300 m pr. strækning, dubletter og hver anden strækning uden fart/retning (som iPhone).
+spring på 150 m ved bygninger, en tunnel på 300 m på hver landevejsstrækning, dubletter og hver anden strækning uden fart/retning (som iPhone).
 
 ## Bilen: ny positionsmotor mod tidligere metode
 | Strækning | Ny: maks. fra vejen | Ny: sidelæns hop | Ny: 95 % fejl | Før: maks. fra vejen | Før: hop vej↔GPS | Før: 95 % fejl | Afviste fixes |
