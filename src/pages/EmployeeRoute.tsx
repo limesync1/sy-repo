@@ -2085,8 +2085,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <div className="min-w-0 flex-1">
                         <p className="text-xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
                         <p className="mt-1 whitespace-normal break-words text-sm font-semibold leading-snug">
-                          {longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
-                          {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}
+                          {maneuver.currentStep.maneuver.instruction && !longStretch
+                            ? maneuver.currentStep.maneuver.instruction
+                            : <>{longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                              {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}</>}
                         </p>
                       </div>
                     </div>
@@ -2094,7 +2096,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <div className="route-maneuver-then flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
                         <span className="font-medium">Derefter</span>
                         <ManeuverIcon type={thenStep.maneuver.type} modifier={thenStep.maneuver.modifier} className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
+                        <span className="truncate">{thenStep.maneuver.instruction || thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
                       </div>
                     )}
                   </div>
