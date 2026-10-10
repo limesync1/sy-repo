@@ -1,10 +1,16 @@
 ## Aktuel samlet forbedring
 - [x] Fjern Kortinfo og stabilisér responsiv HUD/kort
-- [x] Forbedr stophandlinger og fjern redundant Flere handlinger
-- [x] Ensret Ret aftale, Ny aftale, Note, Føj til rute og Flyt dato
-- [x] Gør aftaleplacering og serievalg tydeligere
+- [ ] Færdiggør responsiv HUD på tablet/computer og robust Advanced Marker-håndtering
+- [ ] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter
+- [ ] Gør Ret aftale, Ny aftale og Note trinvise og ens med fælles overlay-primitiver
+- [ ] Ensret Føj til rute og Flyt dato helt med Rediger rute/Opret bestilling
+- [ ] Implementér eksplicit smart aftaleplacering: dagens rute, næste ruteforekomst, anden rute eller uden rute
+- [ ] Vis konsekvensen af Ret aftale for dette besøg, fremtidige besøg og serien før gem
 - [x] Gør tidsregistrering atomisk og uden gentagne konfliktdialoger
+- [ ] Saml aktiv timerstatus på tværs af HUD og detaljeark og test fejl/dobbeltklik
 - [x] Ensret Note til kontoret
 - [x] Ensret medarbejderprofil og tilføj virksomhedsprofil
-- [x] Komprimer offentlig mobilmenu og ret interaktionstilstande
-- [x] Test mobil, tablet og computer; korttema følger Google Map ID og systemtema
+- [ ] Ret offentlig mobilmenus dubletter, pressed/focus/active og tilgængelighed
+- [ ] Tilføj de lovede integrationstests for aftalelogik, profiler, navigation, HUD og timer
+- [ ] Test de centrale flows som relevante roller på mobil, tablet og computer i lyst/mørkt tema samt fejltilstande
+- [ ] Fjern aktuelle runtime-advarsler i aftaledetaljer
