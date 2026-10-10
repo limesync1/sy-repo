@@ -8,7 +8,7 @@ describe("google nav camera", () => {
     expect(nextHeading(null, 45, 10)).toBe(45);
   });
   it("caps large heading swings and wraps around north", () => {
-    expect(nextHeading(0, 180, 15)).toBeLessThanOrEqual(35 + 1e-9);
+    expect(Math.abs(angleDelta(0, nextHeading(0, 180, 15)!))).toBeLessThanOrEqual(35 + 1e-9);
     const h = nextHeading(350, 10, 15)!;
     expect(Math.abs(angleDelta(350, h))).toBeLessThan(20);
   });
