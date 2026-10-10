@@ -1943,4 +1943,4 @@ img[loading="lazy"].is-error {
 }
 .employee-action-tile-title { font-size: 0.8125rem; font-weight: 600; }
 .employee-action-tile-hint { font-size: 11px; font-weight: 400; opacity: 0.75; }
-@media (max-width: 359px) { .employee-action-tile-hint { display: none; } }
+@media (max-width: 439px) { .employee-action-tile { min-height: 3.75rem; } .employee-action-tile-hint { display: none; } }
