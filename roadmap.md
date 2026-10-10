@@ -1,13 +1,13 @@
 ## Aktuel samlet forbedring
 - [x] Fjern Kortinfo og stabilisér responsiv HUD/kort
-- [ ] Færdiggør responsiv HUD på tablet/computer og robust Advanced Marker-håndtering
-- [ ] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter
-- [ ] Gør Ret aftale, Ny aftale og Note trinvise og ens med fælles overlay-primitiver
+- [x] Færdiggør responsiv HUD på tablet/computer og robust Advanced Marker-håndtering
+- [x] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter
+- [x] Gør Ret aftale, Ny aftale og Note trinvise og ens med fælles overlay-primitiver
 - [ ] Ensret Føj til rute og Flyt dato helt med Rediger rute/Opret bestilling
 - [x] Implementér eksplicit smart aftaleplacering: dagens rute, næste ruteforekomst, anden rute eller uden rute
-- [ ] Vis konsekvensen af Ret aftale for dette besøg, fremtidige besøg og serien før gem
+- [x] Vis konsekvensen af Ret aftale for dette besøg og fremtidige besøg før gem
 - [x] Gør tidsregistrering atomisk og uden gentagne konfliktdialoger
-- [ ] Saml aktiv timerstatus på tværs af HUD og detaljeark og test fejl/dobbeltklik
+- [x] Saml aktiv timerstatus på tværs af HUD, tjekliste og detaljeark
 - [x] Ensret Note til kontoret
 - [x] Ensret medarbejderprofil og tilføj virksomhedsprofil
 - [x] Ret offentlig mobilmenus dubletter, pressed/focus/active og tilgængelighed
