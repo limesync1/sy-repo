@@ -280,7 +280,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         }
         programmatic.current = true;
         const proj = map.getProjection();
-        let center = ll(pos);
+        let center: google.maps.LatLng | google.maps.LatLngLiteral = ll(pos);
         if (proj && offset > 0) {
           const p = proj.fromLatLngToPoint(center);
           const shifted = p && proj.fromPointToLatLng(new google.maps.Point(p.x, p.y - offset / 2 ** zoom));
