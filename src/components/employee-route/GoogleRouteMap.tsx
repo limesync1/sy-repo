@@ -358,14 +358,14 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     puckRef.current = puck;
     const paint = (pos: [number, number], heading: number | null, confidence = 1) => {
       puck.position = ll(pos);
-      car.style.transform = `rotate(${norm360((heading ?? 0) - (map.getHeading() ?? 0))}deg)`;
+      car.style.transform = `rotate(${norm360((heading ?? 0) - (map.getHeading?.() ?? 0))}deg)`;
       car.style.opacity = String(0.45 + 0.55 * confidence);
     };
     const v = track.value;
     paint(v?.pos ?? userPos, v?.heading ?? null, v?.confidence);
     const off = track.subscribe((sample) => paint(sample.pos, sample.heading, sample.confidence));
     const offHeading = map.addListener("heading_changed", () => { const cur = track.value; if (cur) paint(cur.pos, cur.heading, cur.confidence); });
-    return () => { off(); offHeading.remove(); removePin(puck); if (puckRef.current === puck) puckRef.current = null; };
+    return () => { off(); offHeading?.remove(); removePin(puck); if (puckRef.current === puck) puckRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [following, ready, !!userPos, track]);
 
@@ -375,7 +375,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     if (!map || !el || !following) return;
     // Entering follow (start or "Centrér") always lands on one calm, predictable view.
     setOverviewMode(false);
-    let tilt = map.getTilt() ?? 0;
+    let tilt = map.getTilt?.() ?? 0;
     let lastAt = 0;
     const apply = (pos: [number, number], carHeading: number | null, confidence = 1, jump = false) => {
       if (document.visibilityState === "hidden" || gestureRef.current.active || (!jump && performance.now() < gestureRef.current.until)) return;
