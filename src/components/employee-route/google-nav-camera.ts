@@ -53,6 +53,7 @@ export function lerpCam(a: Cam, b: Cam, t: number): Cam {
 
 /** Follow zoom: the user's chosen zoom, temporarily +1 just before a turn. */
 export function followZoom(userZoom: number, turnDistanceM: number | null, speedMps: number): number {
-  const z = turnDistanceM != null && turnDistanceM < 200 && speedMps < 22 ? userZoom + 1 : userZoom;
-  return Math.max(12, Math.min(19.5, z));
+  // No automatic zoom changes: the camera keeps the zoom the driver chose.
+  void turnDistanceM; void speedMps;
+  return Math.max(12, Math.min(19.5, userZoom));
 }

@@ -383,8 +383,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   useEffect(() => {
     const map = mapRef.current; const el = containerRef.current;
     if (!map || !el || !following) return;
-    if (gestureRef.current.pinch === false) userZoomRef.current = Math.max(15, Math.min(18, map.getZoom() ?? 17)) ;
-    let heading: number | null = map.getHeading() || null;
+    // Entering follow (start or "Centrér") always lands on one calm, predictable view.
+    userZoomRef.current = 17;
+    let heading: number | null = null;
     let from: Cam | null = null; let to: Cam | null = null; let t0 = 0; let frame = 0; let lastTarget = 0;
     let lastPos: [number, number] | null = null;
     const cur = (): Cam => { const c = map.getCenter(); return { lat: c?.lat() ?? 0, lng: c?.lng() ?? 0, zoom: map.getZoom() ?? 17, heading: map.getHeading() ?? 0, tilt: map.getTilt() ?? 0 }; };
@@ -401,8 +402,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const flat = flatRef.current;
       heading = nextHeading(heading, gpsHeading, speedRef.current);
       setPuckHeading(heading);
-      const h = flat ? 0 : heading ?? 0;
-      const tilt = flat ? 0 : 45;
+      // Tilt/rotate only once a real driving direction is known; otherwise a flat north-up map.
+      const known = !flat && heading != null;
+      const h = known ? heading! : 0;
+      const tilt = known ? 40 : 0;
       const zoom = followZoom(userZoomRef.current, maneuverRef.current, speedRef.current);
       const p = snapToLine(pos, legRef.current);
       const dy = Math.max(0, (anchorRef.current ?? el.clientHeight / 2) - el.clientHeight / 2);
@@ -478,13 +481,18 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
           </div>
         </div>
       )}
+      {ready && routeStarted && !followActive && userPos && (
+        <Button type="button" onClick={onRecenter} className="absolute bottom-6 left-1/2 z-[1000] h-14 -translate-x-1/2 gap-2 rounded-full px-6 text-base font-semibold shadow-lg" aria-label="Centrér kortet på min position">
+          <Crosshair className="h-5 w-5" /> Centrér
+        </Button>
+      )}
+      {ready && !routeStarted && userPos && !fitEnabled && (
+        <Button type="button" variant="secondary" onClick={onRecenter} className="absolute bottom-6 left-1/2 z-[1000] h-12 -translate-x-1/2 gap-2 rounded-full px-5 shadow-md" aria-label="Centrér kortet på min position">
+          <Crosshair className="h-5 w-5" /> Min position
+        </Button>
+      )}
       {ready && (
         <div className="route-map-controls absolute bottom-6 right-3 z-[1000] flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-md sm:right-5">
-          {!followActive && userPos && (
-            <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={onRecenter} aria-label="Centrér på min position">
-              <Crosshair className="h-5 w-5" />
-            </Button>
-          )}
           {vector && <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={() => setNorthUp((v) => { const n = !v; try { localStorage.setItem("serviceydere:gmaps-northup", n ? "1" : "0"); } catch { /* private mode */ } return n; })} aria-label={northUp ? "Kør med retning op" : "Vis nord op"} title={northUp ? "Nord op" : "Retning op"}>
             <Compass className="h-5 w-5 transition-transform duration-300" style={{ transform: `rotate(${-mapHeading - 45}deg)` }} />
           </Button>}

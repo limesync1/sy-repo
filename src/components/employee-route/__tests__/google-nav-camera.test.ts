@@ -14,7 +14,7 @@ describe("google nav camera", () => {
   });
   it("keeps the user's zoom and only nudges it before turns", () => {
     expect(followZoom(14, null, 10)).toBe(14);
-    expect(followZoom(14, 150, 10)).toBe(15);
+    expect(followZoom(14, 150, 10)).toBe(14);
     expect(followZoom(14, 1500, 10)).toBe(14);
   });
   it("places the centre ahead along the heading", () => {
