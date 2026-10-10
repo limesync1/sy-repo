@@ -332,18 +332,15 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
           <MessageSquarePlus className="h-4 w-4" />Note til kontoret
         </Button>
       ) : (<>
-      <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
-        <Button variant="appointmentEdit" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openEditor} disabled={completed || !order}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-current/10"><Pencil className="h-4 w-4" /></span>
-          <span><span className="block text-sm font-semibold">Ret aftale</span><span className="block text-[11px] font-normal text-muted-foreground">Services og interval</span></span>
+      <div className={cn("grid gap-2", hideNoteAction ? "grid-cols-2" : "grid-cols-3")}>
+        <Button variant="appointmentEdit" className="employee-action-tile" onClick={openEditor} disabled={completed || !order}>
+          <Pencil className="h-5 w-5 shrink-0" /><span className="employee-action-tile-title">Ret aftale</span><span className="employee-action-tile-hint">Services og interval</span>
         </Button>
-        <Button variant="appointmentCreate" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openNew} disabled={!order}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-current/10"><CalendarPlus className="h-4 w-4" /></span>
-          <span><span className="block text-sm font-semibold">Ny aftale</span><span className="block text-[11px] font-normal text-muted-foreground">Hos samme kunde</span></span>
+        <Button variant="appointmentCreate" className="employee-action-tile" onClick={openNew} disabled={!order}>
+          <CalendarPlus className="h-5 w-5 shrink-0" /><span className="employee-action-tile-title">Ny aftale</span><span className="employee-action-tile-hint">Hos samme kunde</span>
         </Button>
-        {!hideNoteAction && <Button variant="appointmentNote" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={() => setNoteOpen(true)}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-current/10"><MessageSquarePlus className="h-4 w-4" /></span>
-          <span><span className="block text-sm font-semibold">Note til kontoret</span><span className="block text-[11px] font-normal opacity-75">Send intern besked</span></span>
+        {!hideNoteAction && <Button variant="appointmentNote" aria-label="Note til kontoret" className="employee-action-tile" onClick={() => setNoteOpen(true)}>
+          <MessageSquarePlus className="h-5 w-5 shrink-0" /><span className="employee-action-tile-title">Note</span><span className="employee-action-tile-hint">Til kontoret</span>
         </Button>}
       </div>
       {completed && <p className="text-[11px] text-muted-foreground">Fortryd udførsel for at rette aftalen.</p>}

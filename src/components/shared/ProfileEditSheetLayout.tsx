@@ -33,7 +33,7 @@ export function ProfileEditSheetLayout({
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={onRequestOpenChange}>
-      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:max-h-[92vh] sm:p-0">
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
             icon={<UserRound className="h-4 w-4" />}
