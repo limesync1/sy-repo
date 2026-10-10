@@ -29,7 +29,7 @@
 - Re-optimization never reorders within 250 m of the next stop to protect arrival.
 - Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.
 - Local Vite proxies hosted asset-pointer paths to the public app domain so original CDN icons render in sandbox checks without replacing user artwork.
-- Night maps use token-themed OpenFreeMap vectors, dim raster fallback and errors. PWA uses manifest only; no offline cache to stale previews.
+- Driving uses Google Maps via a singleton loader, falling back per session to Leaflet so drivers always have a map. PWA: manifest only, no offline cache.
 
 - HUD stacks maneuvers above one arrival/action dock; expandable overview preserves map space. Timelines keep explicit selection; undo stays visible and timing manual.
 - Mobile/touch field font rules cover portals; prevent focus zoom, preserve pinch zoom.

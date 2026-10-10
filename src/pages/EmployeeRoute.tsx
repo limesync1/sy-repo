@@ -63,6 +63,8 @@ import { useDriveIssues, useWakeLock, useNightMode, useRootDark } from "@/compon
 import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 import { NightBasemap } from "@/components/employee-route/NightBasemap";
+import { GoogleRouteMap, type GoogleRouteStop } from "@/components/employee-route/GoogleRouteMap";
+import { googleMapsBrowserKey, googleMapsPreviouslyFailed, rememberGoogleMapsFailure, type GoogleMapsLoadError } from "@/lib/google-maps-loader";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -390,6 +392,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [nightMapFailed, setNightMapFailed] = useState(false);
   const [nightMapRetry, setNightMapRetry] = useState(0);
   const reportNightMapFailure = useCallback((failed: boolean) => setNightMapFailed(failed), []);
+  // Google Maps first; the open map is a remembered per-session fallback so a rejected key never loops.
+  const [mapProvider, setMapProvider] = useState<"google" | "leaflet">(() => googleMapsBrowserKey() && !googleMapsPreviouslyFailed() ? "google" : "leaflet");
+  const [googleMapError, setGoogleMapError] = useState<string | null>(null);
+  const handleGoogleFailure = useCallback((err: GoogleMapsLoadError) => {
+    console.warn("Google Maps fallback:", err.reason, err.message);
+    rememberGoogleMapsFailure(true);
+    setGoogleMapError(err.reason === "auth" ? "Google-kortet er ikke tilladt på dette domæne endnu. Viser reservekortet." : err.reason === "timeout" ? "Google-kortet svarede ikke. Viser reservekortet." : "Google-kortet kunne ikke indlæses. Viser reservekortet.");
+    setMapProvider("leaflet");
+  }, []);
+  const retryGoogleMap = useCallback(() => { rememberGoogleMapsFailure(false); setGoogleMapError(null); setMapProvider("google"); }, []);
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
@@ -1122,6 +1134,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [allDone, routeStarted, routeId]);
   // Brug Serviceydere accent (dark-blue) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
+  const googleStops: GoogleRouteStop[] = useMemo(() => sortedStops.flatMap((s, i) => s.latitude == null || s.longitude == null ? [] : [{
+    id: s.id, n: i + 1, pos: [Number(s.latitude), Number(s.longitude)] as [number, number],
+    state: (s.status === "completed" ? "done" : s.id === nextStop?.id ? "next" : "future") as GoogleRouteStop["state"],
+    highlighted: s.id === highlightedId,
+  }]), [sortedStops, nextStop?.id, highlightedId]);
+  const nextPoint: [number, number] | null = nextStop?.latitude != null && nextStop?.longitude != null ? [Number(nextStop.latitude), Number(nextStop.longitude)] : null;
+  const googleHintLine = useMemo(() => {
+    if (!displayPos || !nextPoint) return null;
+    if (isAtNextStop) return { points: [displayPos, nextPoint], kind: "arrival" as const };
+    if (routeStarted && legLine.length < 2) return { points: [displayPos, nextPoint], kind: "direction" as const };
+    return null;
+  }, [displayPos?.[0], displayPos?.[1], nextPoint?.[0], nextPoint?.[1], isAtNextStop, routeStarted, legLine.length]);
+  const highlightedPoint: [number, number] | null = useMemo(() => {
+    const h = sortedStops.find((s) => s.id === highlightedId);
+    return h && h.latitude != null && h.longitude != null ? [Number(h.latitude), Number(h.longitude)] : null;
+  }, [sortedStops, highlightedId]);
   const themeColor = "hsl(var(--accent))";
   // Leaflet sætter pathOptions som SVG-attributter, hvor var() ikke opløses —
   // derfor slås tokens op til konkrete farver til kortlinjerne.
@@ -1818,8 +1846,36 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button type="button" variant="outline" size="sm" onClick={retryGeocoding}>Prøv igen</Button>
             </div>
           </div>
+        ) : mapProvider === "google" ? (
+          <GoogleRouteMap
+            stops={googleStops}
+            start={startCoord ?? null}
+            overview={allPoints}
+            previewLine={previewLine}
+            legLine={!isAtNextStop ? legLine : []}
+            hintLine={googleHintLine}
+            userPos={displayPos}
+            routeStarted={routeStarted}
+            moving={isMoving}
+            track={motionTrack}
+            speedMps={userSpeedMps}
+            followActive={routeStarted && followMode && pageVisible}
+            fitEnabled={!routeStarted && !highlightedId}
+            flyTo={highlightedPoint}
+            night={night}
+            onInteract={breakFollow}
+            onRecenter={() => { setHighlightedId(null); setFollowMode(true); }}
+            onSelectStop={(id) => { setFollowMode(false); setHighlightedId(id); setSelectedId(id); }}
+            onFailure={handleGoogleFailure}
+          />
         ) : (
           <>
+          {googleMapError && (
+            <div className={cn("absolute left-3 right-3 z-[1001] flex items-center justify-between gap-2 rounded-md border border-border bg-card/95 p-2 pl-3 text-xs text-foreground shadow-md sm:left-auto sm:max-w-sm", routeStarted && !allDone ? "bottom-3" : "top-3")} role="status">
+              <span>{googleMapError}</span>
+              <Button type="button" variant="outline" size="sm" className="h-8 shrink-0" onClick={retryGoogleMap}>Prøv Google igen</Button>
+            </div>
+          )}
           <MapContainer
             center={userPos ?? allPoints[0] ?? [56.1, 10.2]}
             zoom={13}
