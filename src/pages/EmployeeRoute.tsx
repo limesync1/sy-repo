@@ -57,7 +57,7 @@ import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
 import { GeocodeServiceError, geocodeAddress } from "@/lib/geocode";
 import {
-  evaluateMove, findSpeedOpportunity, minutesNow,
+  findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
 import { ArrowUp, ArrowDown, Zap } from "lucide-react";
 import { useDriveIssues, useWakeLock, useNightMode, useRootDark } from "@/components/employee-route/useDriveSafety";

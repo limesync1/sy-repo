@@ -1,9 +1,10 @@
 ## Rutekørsel: småfejl og roligere kort (10/10)
-- [ ] Forenkle ankomsthandlinger og forkorte sikker ankomstregistrering
-- [ ] Ret fejl ved ændret rækkefølge
-- [ ] Fjern konkurrerende navigationslinjer og ryd op i ruteoverblik
-- [ ] Brug vedhæftet bil i kortvisninger og undgå unødige opdateringer
-- [ ] Kontrollér målrettede tests og aktuelle fejl; Google-kort valideres på eget domæne
+- [x] Forenkle ankomsthandlinger og forkorte sikker ankomstregistrering
+- [ ] Bekræft rækkefølgeændring på den aktuelle rute — testsession har ikke adgang; flytning forenklet og hente-fejl giver Prøv igen
+- [x] Fjern konkurrerende navigationslinjer og ryd op i ruteoverblik
+- [x] Brug vedhæftet bil i kortvisninger og undgå unødige opdateringer
+- [x] Kontrollér målrettede tests og aktuelle fejl — 37 tests bestod
+- [ ] Visuel kontrol af Google-kort, navne og ruteoverblik — kræver brugerens autoriserede domæne
 
 ## Aktuel samlet forbedring
 - [x] Gør Centrér og kørselsknapper mere kompakte; isoleret layoutkontrol på mobil/tablet/computer og knaptest
@@ -20,8 +21,8 @@
 - [x] Ensret Note til kontoret
 - [x] Ensret medarbejderprofil og tilføj virksomhedsprofil
 - [x] Ret offentlig mobilmenus dubletter, pressed/focus/active og tilgængelighed
-- [ ] Tilføj de lovede integrationstests for aftalelogik, profiler, navigation, HUD og timer
-- [ ] Test de centrale flows som relevante roller på mobil, tablet og computer i lyst/mørkt tema samt fejltilstande
+- [ ] Integrationstests med reel aftalelogik/profiler/HUD/timer — afventer testsession med adgang til arbejdsplads og ruter
+- [ ] Test centrale rolleflows på mobil/tablet/computer — afventer testsession med adgang til arbejdsplads og ruter
 - [x] Fjern aktuelle runtime-advarsler i aftaledetaljer
 
 ## Responsivitet og synlighed
