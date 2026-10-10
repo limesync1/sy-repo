@@ -90,7 +90,7 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
       }
     }
 
-    if (!prev) {
+    if (!prev || raw.t - prev.lastT > 5000) {
       // Første fix: brug råt.
       const init = {
         pos: [raw.lat, raw.lng] as [number, number],
@@ -114,7 +114,8 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
     // Estimer hastighed (foretrækker GPS-rapporteret, ellers Δ-derivat).
     const measuredSpeed = raw.speed != null && raw.speed >= 0 ? raw.speed : moveM / dt;
     // Blød hastighed med EMA — undgår at zoom hopper ved enkelt-fix.
-    const speed = prev.speed * 0.6 + measuredSpeed * 0.4;
+    const speed = raw.speed != null && raw.speed >= 0 && raw.accuracy <= 30
+      ? raw.speed : prev.speed * 0.6 + measuredSpeed * 0.4;
 
     // Opdater rullende vindue af seneste fixes (bruges til weighted-anker).
     const recent = [...prev.recent, { lat: raw.lat, lng: raw.lng, acc: raw.accuracy, t: raw.t }]
