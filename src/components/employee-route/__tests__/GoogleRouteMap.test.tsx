@@ -57,6 +57,8 @@ beforeEach(() => {
     },
     importLibrary: mocks.importLibrary,
     Polyline: class { setMap() {} },
+    SymbolPath: { CIRCLE: "circle" },
+    Marker: class { setMap() {} setPosition() {} setIcon() {} },
     RenderingType: { VECTOR: "VECTOR", RASTER: "RASTER" },
     ColorScheme: { DARK: "DARK", LIGHT: "LIGHT" },
     CollisionBehavior: { REQUIRED: "REQUIRED" },
