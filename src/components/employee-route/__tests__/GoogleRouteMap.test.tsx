@@ -1,4 +1,4 @@
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GoogleRouteMap, type GoogleRouteStop } from "../GoogleRouteMap";
 
@@ -114,5 +114,15 @@ describe("Google advanced stop pins", () => {
     const props = makeProps(); render(<GoogleRouteMap {...props} />);
     await waitFor(() => expect(props.onFailure).toHaveBeenCalledOnce());
     expect(mocks.pins).toHaveLength(0);
+  });
+
+  it("keeps the compact labelled recenter action available after manual map movement", async () => {
+    const props = makeProps();
+    const view = render(<GoogleRouteMap {...props} routeStarted userPos={[56, 9]} />);
+    const button = await view.findByRole("button", { name: "Centrér kortet på min position" });
+    expect(button.textContent).toContain("Centrér");
+    expect(button.classList.contains("route-map-recenter")).toBe(true);
+    fireEvent.click(button);
+    expect(props.onRecenter).toHaveBeenCalledOnce();
   });
 });
