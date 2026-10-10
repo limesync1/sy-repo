@@ -631,8 +631,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
-  // Like Google Maps: after 10 s without touching the map, driving view resumes following the car.
-  const refollowRef = useRef<number | null>(null);
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
@@ -1335,6 +1333,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos, minStepIndex);
+  // Like Google Maps: after 10 s without touching the map, the driving view follows the car again.
+  useEffect(() => {
+    if (followMode || !routeStarted || highlightedId || selectedId || mapProvider !== "google") return;
+    const t = window.setTimeout(() => setFollowMode(true), 10000);
+    return () => window.clearTimeout(t);
+  }, [followMode, routeStarted, highlightedId, selectedId, mapProvider]);
   // A fresh directions response has its own step indices (even for the same stop).
   useEffect(() => {
     minStepIndexRef.current = { stopId: nextStop?.id ?? null, idx: 0 };
