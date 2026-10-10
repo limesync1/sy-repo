@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Compass, Crosshair, Layers, Route, TrafficCone } from "lucide-react";
+import { Compass, Crosshair, Info, Layers, Route, TrafficCone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { googleMapsMapId, loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
@@ -118,6 +118,8 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const vectorRef = useRef(true);
   const [mapHeading, setMapHeading] = useState(0);
   const [vector, setVector] = useState(true);
+  const [diag, setDiag] = useState<{ renderer: string; mapId: string; night: boolean } | null>(null);
+  const [showDiag, setShowDiag] = useState(false);
   vectorRef.current = vector;
 
   // Load + create the map once the container has a real size.
@@ -142,7 +144,13 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       map.addListener("heading_changed", () => setMapHeading(Math.round(map.getHeading() ?? 0)));
       mapRef.current = map;
       // Without WebGL Google silently renders raster (no rotation/tilt): stay on Google, just north-up.
-      google.maps.event.addListenerOnce(map, "idle", () => setVector(map.getRenderingType() !== g.maps.RenderingType.RASTER));
+      google.maps.event.addListenerOnce(map, "idle", () => {
+        const isVector = map.getRenderingType() !== g.maps.RenderingType.RASTER;
+        setVector(isVector);
+        const info = { renderer: isVector ? "Google 3D (vektor)" : "Google fladt (raster)", mapId: googleMapsMapId() === "DEMO_MAP_ID" ? "Googles testindstilling" : "Egen kortindstilling", night };
+        setDiag(info);
+        console.info("[Rutekort]", info);
+      });
       setReady(true);
     }).catch((err: unknown) => {
       if (!cancelled) failRef.current(err instanceof GoogleMapsLoadError ? err : new GoogleMapsLoadError("network", "Google Maps kunne ikke indlæses"));
@@ -424,6 +432,29 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" aria-label="Rutekort" role="region" />
       {!ready && <div className="absolute inset-0 animate-pulse bg-muted" aria-hidden />}
+      {ready && following && anchorY != null && (
+        // Screen-fixed car while following: the map glides beneath it, so it can never shake.
+        <div className="pointer-events-none absolute left-1/2 z-[999] -translate-x-1/2 -translate-y-1/2" style={{ top: anchorY }} aria-hidden>
+          <div className="relative flex h-12 w-12 items-center justify-center">
+            <span className="absolute inset-0 rounded-full bg-info/20" />
+            <svg viewBox="-12 -13 24 26" className="relative h-8 w-8 drop-shadow-md transition-transform duration-700 ease-out" style={{ transform: `rotate(${puckHeading == null || !moving ? 0 : norm360(puckHeading - mapHeading)}deg)` }}>
+              {puckHeading != null && moving
+                ? <path d="M0,-11 L8,9 L0,5 L-8,9 Z" className="fill-info stroke-background" strokeWidth={2.5} strokeLinejoin="round" />
+                : <circle r={7} className="fill-info stroke-background" strokeWidth={3} />}
+            </svg>
+          </div>
+        </div>
+      )}
+      {showDiag && diag && (
+        <div className="absolute left-3 top-1/2 z-[1001] max-w-[16rem] -translate-y-1/2 rounded-lg border border-border bg-card p-3 text-xs text-foreground shadow-lg" role="status">
+          <p className="mb-1 font-semibold">Kortinfo</p>
+          <p>Kort: {diag.renderer}</p>
+          <p>Indstilling: {diag.mapId}</p>
+          <p>Tema: {night ? "Mørkt" : "Lyst"}</p>
+          <p>Tilstand: {following ? "Følger bilen" : "Frit kort"}</p>
+          <button type="button" className="mt-2 font-semibold text-accent underline" onClick={() => setShowDiag(false)}>Luk</button>
+        </div>
+      )}
       {ready && (
         <div className="route-map-controls absolute bottom-6 right-3 z-[1000] flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-md sm:right-5">
           {!followActive && userPos && (
@@ -441,6 +472,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
           )}
           <Button type="button" variant="ghost" size="icon" aria-pressed={prefs.traffic} className={cn(ctrl, prefs.traffic && "bg-accent/15 text-accent")} onClick={() => setPrefs((p) => ({ ...p, traffic: !p.traffic }))} aria-label={prefs.traffic ? "Skjul trafik" : "Vis trafik"}>
             <TrafficCone className="h-5 w-5" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={() => setShowDiag((v) => !v)} aria-label="Kortinfo">
+            <Info className="h-5 w-5" />
           </Button>
           <Button type="button" variant="ghost" size="icon" aria-pressed={prefs.satellite} className={cn(ctrl, prefs.satellite && "bg-accent/15 text-accent")} onClick={() => setPrefs((p) => ({ ...p, satellite: !p.satellite }))} aria-label={prefs.satellite ? "Vis vejkort" : "Vis satellit"}>
             <Layers className="h-5 w-5" />

@@ -1345,7 +1345,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Like Google Maps: after 10 s without touching the map, the driving view follows the car again.
   useEffect(() => {
     if (followMode || !routeStarted || highlightedId || selectedId || mapProvider !== "google") return;
-    const t = window.setTimeout(() => setFollowMode(true), 10000);
+    const t = window.setTimeout(() => setFollowMode(true), 15000);
     return () => window.clearTimeout(t);
   }, [followMode, routeStarted, highlightedId, selectedId, mapProvider, mapTouchTick]);
   // A fresh directions response has its own step indices (even for the same stop).
