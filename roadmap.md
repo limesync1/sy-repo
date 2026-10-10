@@ -1,3 +1,10 @@
+## Rutekørsel: småfejl og roligere kort (10/10)
+- [ ] Forenkle ankomsthandlinger og forkorte sikker ankomstregistrering
+- [ ] Ret fejl ved ændret rækkefølge
+- [ ] Fjern konkurrerende navigationslinjer og ryd op i ruteoverblik
+- [ ] Brug vedhæftet bil i kortvisninger og undgå unødige opdateringer
+- [ ] Kontrollér målrettede tests og aktuelle fejl; Google-kort valideres på eget domæne
+
 ## Aktuel samlet forbedring
 - [x] Gør Centrér og kørselsknapper mere kompakte; isoleret layoutkontrol på mobil/tablet/computer og knaptest
 - [ ] Kontrollér kompakt HUD under reel rutekørsel — egen testsession har ingen tilgængelige ruter
