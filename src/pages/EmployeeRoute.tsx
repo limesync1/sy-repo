@@ -438,6 +438,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Stabil rute-origin: kun opdateret når brugeren har bevæget sig markant.
   // Ellers ville useDirections refetche hver eneste GPS-tick → maneuver-banner ville flimre.
   const stableOriginRef = useRef<{ lat: number; lng: number } | null>(null);
+  const originStopRef = useRef<string | null>(null);
   // Trafik-baseline kræver flere stabile målinger inden vi låser et "normalt" estimat.
   const baselineRef = useRef<{
     stopId: string;
@@ -833,16 +834,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     [sortedStops],
   );
 
-  // Opdater stabil origin kun når brugeren har bevæget sig >120 m (eller første gang).
-  // Det betyder at vi ikke spammer route-directions endpoint, og at "steps"-listen
-  // forbliver stabil mellem GPS-ticks — så banneret ikke flimrer.
+  // Rutens startpunkt sættes kun ved første fix, når næste stop skifter og
+  // ved afvigelse (reroute). Tidligere blev det flyttet hver 120 m, så
+  // rutelinjen blev udskiftet og hentet igen konstant under kørsel — det gav
+  // hop i bilen og mange unødige rutekald. Positionsmotoren følger nu linjen.
   if (userPos) {
-    const prev = stableOriginRef.current;
-    if (
-      !prev ||
-      haversineMeters(prev.lat, prev.lng, userPos[0], userPos[1]) > 120
-    ) {
+    const nextId = nextStop?.id ?? null;
+    if (!stableOriginRef.current || originStopRef.current !== nextId) {
       stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
+      originStopRef.current = nextId;
     }
   }
   const legOrigin: { lat: number; lng: number } | null = stableOriginRef.current
