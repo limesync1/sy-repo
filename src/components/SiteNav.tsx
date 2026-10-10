@@ -205,7 +205,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
 
           {/* Rolig, enkel navigation. Rolleikonerne er forbeholdt panelhandlinger,
               hvor de hjælper brugeren med at genkende den rigtige visning. */}
-          <div className="hidden items-center rounded-full border border-border bg-card p-1 shadow-sm lg:flex" aria-label="Hovednavigation">
+          <div className="hidden items-center rounded-full border border-border bg-card p-1 shadow-sm lg:flex" role="navigation" aria-label="Hovednavigation">
             {NAV_GROUPS.flatMap((group) => group.items).map((item) => (
               <SmartLink
                 key={item.key}
@@ -214,7 +214,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                 className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
                   isActive(item.key)
                     ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground active:bg-secondary"
                 }`}
               >
                 {item.label}
@@ -310,6 +310,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               className="h-11 w-11 rounded-md border border-transparent text-foreground hover:border-border hover:bg-secondary active:bg-secondary focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
               aria-label={open ? "Luk menu" : "Åbn menu"}
               aria-expanded={open}
+              aria-controls="public-mobile-menu"
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -317,13 +318,13 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
         </div>
 
         {open && (
-          <div className="mb-3 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-md border border-border bg-card p-2 shadow-xl lg:hidden">
+          <div id="public-mobile-menu" role="region" aria-label="Mobilmenu" className="mb-3 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-md border border-border bg-card p-2 shadow-xl lg:hidden">
             {NAV_GROUPS.map((group, gi) => (
               <div key={group.id} className={gi > 0 ? "mt-2" : ""}>
                 {gi > 0 && <div className="mb-2 h-px bg-border" />}
                 <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
                   <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                  <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">
                     {group.label}
                   </p>
                 </div>
@@ -349,7 +350,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   <>
                     <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
                       <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Skift visning</p>
+                      <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Skift visning</p>
                     </div>
                     {roles.map((r) => (
                       <Button
@@ -367,7 +368,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     <div className="my-2 h-px bg-border" />
                   </>
                 )}
-                {preferredRole && (
+                {preferredRole && !showSwitcher && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -383,16 +384,16 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   onClick={() => { setOpen(false); handleSignOut(); }}
                   className="min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary active:bg-secondary"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>Log ud
+                  <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>Log ud
                 </Button>
               </>
             ) : (
               <>
                 <Link to="/log-ind" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>
+                  <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>
                   Log ind
                 </Link>
-                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block min-h-11 rounded-md px-3 py-3 text-sm font-semibold text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-md px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   Opret konto
                 </Link>
               </>

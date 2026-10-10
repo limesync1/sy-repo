@@ -210,12 +210,10 @@ export const Field = ({
 /* ───────── SheetFooterBar ─────────
    Standard sticky footer-stribe.
    Børn lægges i en flex-row; brug `<div className="flex-1" />` for at adskille. */
-export const SheetFooterBar = ({
-  children,
-  className,
-}: {
+export const SheetFooterBar = React.forwardRef<HTMLDivElement, {
   children: React.ReactNode;
   className?: string;
-}) => (
-  <div className={cn("planner-overlay-footer border-t px-4 py-2.5 shrink-0 bg-card", className)}>{children}</div>
-);
+}>(({ children, className }, ref) => (
+  <div ref={ref} className={cn("planner-overlay-footer border-t px-4 py-2.5 shrink-0 bg-card", className)}>{children}</div>
+));
+SheetFooterBar.displayName = "SheetFooterBar";

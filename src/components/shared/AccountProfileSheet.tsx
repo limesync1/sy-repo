@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import ImageUpload from "@/components/business/ImageUpload";
 import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
+import { useUpdateProfile } from "@/hooks/useDatabase";
 
 type Props = {
   open: boolean;
@@ -23,6 +24,7 @@ export function AccountProfileSheet({ open, onOpenChange, userId, name: initialN
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [saving, setSaving] = useState(false);
+  const updateProfile = useUpdateProfile();
 
   useEffect(() => {
     if (!open) return;
@@ -43,6 +45,8 @@ export function AccountProfileSheet({ open, onOpenChange, userId, name: initialN
     }
     setSaving(true);
     try {
+      if (!userId) throw new Error("Din profil kunne ikke findes.");
+      await updateProfile.mutateAsync({ userId, display_name: nextName, avatar_url: avatarUrl || null });
       const { error } = await supabase.auth.updateUser({ data: { display_name: nextName, avatar_url: avatarUrl || null } });
       if (error) throw error;
       toast.success("Din profil er opdateret");

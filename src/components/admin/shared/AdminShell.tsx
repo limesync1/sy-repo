@@ -23,6 +23,7 @@ import {
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { AccountProfileSheet } from "@/components/shared/AccountProfileSheet";
+import { useMyProfile } from "@/hooks/useDatabase";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import {
   ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminNeighbours,
@@ -77,6 +78,7 @@ export const AdminShell = ({
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const { data: accountProfile } = useMyProfile();
   const mobileTopbar = useIsBelowBreakpoint(640);
 
   // Holder plan-data varm i cachen (bruges af faner senere).
@@ -149,7 +151,8 @@ export const AdminShell = ({
 
   const currentNav = findAdminNavItem(activeTab);
   const displayName =
-    (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
+    accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
+  const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
 
   /* ---------------- Profil-menu (sidebar-bund) ---------------- */
   const profileItems: ProfileMenuItem[] = [
@@ -291,7 +294,7 @@ export const AdminShell = ({
           <SidebarProfileMenu
             name={displayName}
             subtitle={user?.email && user.email !== displayName ? user.email : business.name}
-            avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
+            avatarUrl={accountAvatar}
             collapsed={ctx.collapsed}
             items={profileItems}
             fallback="K"
@@ -304,7 +307,7 @@ export const AdminShell = ({
       <DPAGate businessId={business.id} isOwner={isOwner}>
         {children}
       </DPAGate>
-      <AccountProfileSheet open={profileOpen} onOpenChange={setProfileOpen} userId={user?.id} name={user?.user_metadata?.display_name as string | undefined} avatarUrl={user?.user_metadata?.avatar_url as string | undefined} />
+      <AccountProfileSheet open={profileOpen} onOpenChange={setProfileOpen} userId={user?.id} name={displayName} avatarUrl={accountAvatar} />
     </PanelShell>
   );
 };

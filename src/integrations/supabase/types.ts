@@ -5345,6 +5345,24 @@ export type Database = {
         }
         Returns: Json
       }
+      employee_create_order_from_stop_v2: {
+        Args: {
+          _item: Json
+          _start_date: string
+          _stop_id: string
+          _target_route_id?: string
+        }
+        Returns: Json
+      }
+      employee_route_placement_options: {
+        Args: { _start_date: string; _stop_id: string }
+        Returns: {
+          id: string
+          is_same_series: boolean
+          name: string
+          route_date: string
+        }[]
+      }
       employee_start_stop_time: {
         Args: {
           _employee_id: string
