@@ -22,10 +22,8 @@ import {
   Map as MapIcon,
   Info,
   X,
-  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { askConfirm } from "@/components/ConfirmDialogHost";
 import { cn } from "@/lib/utils";
 import { useStartStopTime, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
@@ -282,7 +280,20 @@ export const RouteChecklistView = ({
                         <a href={`tel:${next.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunden</a>
                       </Button> : null}
                     </div>
-                    {!nextIsStarted && <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" className="h-10 w-full gap-2 text-sm"><MoreHorizontal className="h-4 w-4" />Flere handlinger</Button></DropdownMenuTrigger><DropdownMenuContent align="center" className="w-[min(22rem,calc(100vw-2rem))] p-2"><DropdownMenuItem className="min-h-12 items-start gap-3 whitespace-normal p-3" disabled={locked || pendingId === next.id} onSelect={async (event) => { event.preventDefault(); const confirmed = await askConfirm({ title: "Udfør uden registreret tid?", description: "Brug kun dette, hvis arbejdet ikke skal have en start- og sluttid. Manuel tidsregistrering er standard.", confirmLabel: "Markér udført uden tid", cancelLabel: "Tilbage" }); if (confirmed) onComplete(next); }}><Check className="mt-0.5 h-4 w-4 shrink-0" /><span><span className="block font-medium text-foreground">Udfør uden registreret tid</span><span className="mt-0.5 block text-xs leading-snug text-muted-foreground">Ingen arbejdstid gemmes på aftalen.</span></span></DropdownMenuItem></DropdownMenuContent></DropdownMenu>}
+                    {!nextIsStarted && (
+                      <Button
+                        variant="ghost"
+                        className="h-auto min-h-11 w-full justify-start gap-3 whitespace-normal border border-dashed border-border px-3 py-2 text-left text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                        disabled={locked || pendingId === next.id}
+                        onClick={async () => {
+                          const confirmed = await askConfirm({ title: "Udfør uden registreret tid?", description: "Brug kun dette, hvis arbejdet ikke skal have en start- og sluttid. Manuel tidsregistrering er standard.", confirmLabel: "Markér udført uden tid", cancelLabel: "Tilbage" });
+                          if (confirmed) onComplete(next);
+                        }}
+                      >
+                        <Check className="h-4 w-4 shrink-0" />
+                        <span><span className="block text-sm font-medium">Udfør uden registreret tid</span><span className="block text-xs">Ingen arbejdstid gemmes.</span></span>
+                      </Button>
+                    )}
                   </div>
                   {locked && (
                     <p className="mt-2 text-center text-xs text-muted-foreground">Ruten kan først udføres på selve dagen.</p>

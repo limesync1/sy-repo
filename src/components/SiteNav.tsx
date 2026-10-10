@@ -190,12 +190,12 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
     <BetaNotice />
     <nav aria-label="Serviceydere navigation" className="border-b border-border bg-site-header-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 py-3 sm:py-3.5">
+        <div className="flex min-h-14 items-center justify-between gap-2 py-2 lg:py-3.5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
             <img
               src="/serviceydere-logo-dark.webp"
             alt="Serviceydere – find og book lokale serviceydere i Danmark"
-              className="h-9 w-auto sm:h-10 lg:h-12"
+              className="h-8 w-auto sm:h-9 lg:h-12"
               width={1920}
               height={539}
               decoding="async"
@@ -229,7 +229,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               <>
                 {preferredRole && (
                   showSwitcher ? (
-                    <div className="hidden sm:inline-flex items-stretch overflow-hidden rounded-full bg-foreground text-background shadow-sm">
+                    <div className="hidden lg:inline-flex items-stretch overflow-hidden rounded-full bg-foreground text-background shadow-sm">
                       <Button
                         type="button"
                         variant="ghost"
@@ -270,7 +270,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     <Button
                       size="sm"
                       onClick={() => navigate(preferredRole.to)}
-                      className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 sm:inline-flex"
+                      className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 lg:inline-flex"
                     >
                       <PanelIcon role={preferredRole} selected />{preferredRole.label}
                     </Button>
@@ -281,7 +281,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   size="sm"
                   variant="outline"
                   onClick={handleSignOut}
-                  className="hidden rounded-full border-border bg-background text-foreground hover:bg-secondary hover:text-foreground sm:inline-flex"
+                  className="hidden rounded-full border-border bg-background text-foreground hover:bg-secondary hover:text-foreground lg:inline-flex"
                 >
                   <span className="mr-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} /></span>Log ud
                 </Button>
@@ -307,7 +307,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               variant="ghost"
               size="icon"
               onClick={() => setOpen((v) => !v)}
-              className="h-10 w-10 rounded-full text-foreground lg:hidden"
+              className="h-11 w-11 rounded-md border border-transparent text-foreground hover:border-border hover:bg-secondary active:bg-secondary focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
               aria-label={open ? "Luk menu" : "Åbn menu"}
               aria-expanded={open}
             >
@@ -317,7 +317,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
         </div>
 
         {open && (
-          <div className="mb-4 rounded-2xl border border-border bg-card p-3 shadow-xl lg:hidden">
+          <div className="mb-3 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-md border border-border bg-card p-2 shadow-xl lg:hidden">
             {NAV_GROUPS.map((group, gi) => (
               <div key={group.id} className={gi > 0 ? "mt-2" : ""}>
                 {gi > 0 && <div className="mb-2 h-px bg-border" />}
@@ -332,8 +332,9 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     key={item.key}
                     to={item.to}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
+                    aria-current={isActive(item.key) ? "page" : undefined}
+                    className={`flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                      isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary active:bg-secondary"
                     }`}
                   >
                     {item.label}
@@ -356,7 +357,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                         variant="ghost"
                         key={r.to}
                         onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                        className={`h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                        className={`min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-medium ${
                           preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                         }`}
                       >
@@ -371,7 +372,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     type="button"
                     variant="ghost"
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
-                    className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                    className="min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary active:bg-secondary"
                   >
                      <PanelIcon role={preferredRole} selected={false} size="lg" />Gå til {preferredRole.label}
                   </Button>
@@ -380,18 +381,18 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   type="button"
                   variant="ghost"
                   onClick={() => { setOpen(false); handleSignOut(); }}
-                  className="h-auto w-full justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                  className="min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary active:bg-secondary"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>Log ud
                 </Button>
               </>
             ) : (
               <>
-                <Link to="/log-ind" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
+                <Link to="/log-ind" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>
                   Log ind
                 </Link>
-                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
+                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block min-h-11 rounded-md px-3 py-3 text-sm font-semibold text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   Opret konto
                 </Link>
               </>
