@@ -1,3 +1,4 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
 // Edge function: route-directions
 // Returns key-free OSRM driving directions geometry (GeoJSON LineString)
 // between an ordered list of waypoints. Falls back to a straight line when
@@ -84,6 +85,16 @@ async function osrmDirections(coords: LatLng[]) {
   } catch {
     return null;
   }
+}
+
+async function isSignedIn(req: Request): Promise<boolean> {
+  const auth = req.headers.get("Authorization"); const url = Deno.env.get("SUPABASE_URL"); const anon = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!auth || !url || !anon) return false;
+  try {
+    const client = createClient(url, anon, { global: { headers: { Authorization: auth } }, auth: { persistSession: false } });
+    const { data, error } = await client.auth.getUser();
+    return !error && !!data.user;
+  } catch { return false; }
 }
 
 /** Decodes a Google encoded polyline into [lng, lat] pairs (GeoJSON order). */
@@ -224,7 +235,7 @@ Deno.serve(async (req) => {
     }
 
     // Navigation legs (signed-in drivers, max 10 points) use Google Routes; planning stays on OSRM to bound cost.
-    if (body?.navigation === true && trimmed.length <= 10 && req.headers.get("Authorization")) {
+    if (body?.navigation === true && trimmed.length <= 10 && await isSignedIn(req)) {
       const g = await googleDirections(trimmed);
       if (g) return new Response(JSON.stringify({ ok: true, ...g }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
