@@ -1,11 +1,11 @@
 /// <reference types="google.maps" />
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Compass, Crosshair, Layers, Route, TrafficCone } from "lucide-react";
+import { Compass, Crosshair, Info, Layers, Route, TrafficCone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { googleMapsMapId, loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
 import { resolveMapColor } from "@/components/employee-route/RouteMapLine";
-import { navigationZoom } from "@/components/employee-route/camera-policy";
+import { followCenter, followZoom, lerpCam, nextHeading, norm360, type Cam } from "@/components/employee-route/google-nav-camera";
 import { haversineMeters } from "@/lib/geo-distance";
 import type { MotionTrack } from "@/components/employee-route/motionTrack";
 
@@ -118,6 +118,8 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const vectorRef = useRef(true);
   const [mapHeading, setMapHeading] = useState(0);
   const [vector, setVector] = useState(true);
+  const [diag, setDiag] = useState<{ renderer: string; mapId: string; night: boolean } | null>(null);
+  const [showDiag, setShowDiag] = useState(false);
   vectorRef.current = vector;
 
   // Load + create the map once the container has a real size.
@@ -131,7 +133,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const first = userPos ?? start ?? stops[0]?.pos ?? [56.1, 10.2];
       const map = new g.maps.Map(containerRef.current, {
         center: ll(first), zoom: 13, disableDefaultUI: true, clickableIcons: false,
-        gestureHandling: "greedy", keyboardShortcuts: false, isFractionalZoomEnabled: false,
+        gestureHandling: "greedy", keyboardShortcuts: false, isFractionalZoomEnabled: true,
         mapTypeId: readPrefs().satellite ? "hybrid" : "roadmap",
         // Vector map = Google Maps' own navigation rendering: heading-up rotation, 3D tilt, buildings.
         mapId: googleMapsMapId(), renderingType: g.maps.RenderingType.VECTOR,
@@ -139,16 +141,16 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         headingInteractionEnabled: true, tiltInteractionEnabled: true,
         backgroundColor: night ? "#0f172a" : "#e5e7eb",
       });
-      // A manual drag/zoom breaks follow mode, just like the open map.
-      map.addListener("dragstart", () => interactRef.current());
-      map.addListener("zoom_changed", () => { if (!programmatic.current) interactRef.current(); });
-      map.addListener("heading_changed", () => {
-        setMapHeading(Math.round(map.getHeading() ?? 0));
-        if (!programmatic.current && map.getTilt()) interactRef.current();
-      });
+      map.addListener("heading_changed", () => setMapHeading(Math.round(map.getHeading() ?? 0)));
       mapRef.current = map;
       // Without WebGL Google silently renders raster (no rotation/tilt): stay on Google, just north-up.
-      google.maps.event.addListenerOnce(map, "idle", () => setVector(map.getRenderingType() !== g.maps.RenderingType.RASTER));
+      google.maps.event.addListenerOnce(map, "idle", () => {
+        const isVector = map.getRenderingType() !== g.maps.RenderingType.RASTER;
+        setVector(isVector);
+        const info = { renderer: isVector ? "Google 3D (vektor)" : "Google fladt (raster)", mapId: googleMapsMapId() === "DEMO_MAP_ID" ? "Googles testindstilling" : "Egen kortindstilling", night };
+        setDiag(info);
+        console.info("[Rutekort]", info);
+      });
       setReady(true);
     }).catch((err: unknown) => {
       if (!cancelled) failRef.current(err instanceof GoogleMapsLoadError ? err : new GoogleMapsLoadError("network", "Google Maps kunne ikke indlæses"));
@@ -259,97 +261,145 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     return () => { off(); trail.setMap(null); };
   }, [routeStarted, track, ready, night]);
 
-  // One Google-style car puck: blue chevron while moving (smoothed heading), blue dot when still.
-  // Position is updated per frame; the icon only changes when the smoothed heading moves ≥ 4°,
-  // which removes the shaking caused by GPS heading noise.
+  // ── Gestures: read straight from the finger, never from Google's camera events ──
+  // One-finger drag → free mode. Pinch/wheel → stay in follow, adopt the user's zoom.
+  const userZoomRef = useRef(17);
+  const gestureRef = useRef({ active: false, pinch: false, until: 0 });
+  useEffect(() => {
+    const el = containerRef.current; const map = mapRef.current; if (!el || !map) return;
+    let sx = 0, sy = 0, settle = 0;
+    const end = () => {
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        const g = gestureRef.current;
+        if (g.pinch) userZoomRef.current = map.getZoom() ?? userZoomRef.current;
+        g.active = false; g.pinch = false; g.until = performance.now() + 250;
+      }, 350);
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      gestureRef.current.active = true;
+      if (e.touches.length >= 2) gestureRef.current.pinch = true;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) { gestureRef.current.pinch = true; return; }
+      if (!gestureRef.current.pinch && Math.hypot(e.touches[0].clientX - sx, e.touches[0].clientY - sy) > 12) interactRef.current();
+    };
+    const onTouchEnd = (e: TouchEvent) => { if (e.touches.length === 0) end(); };
+    const onMouseDown = (e: MouseEvent) => { gestureRef.current.active = true; sx = e.clientX; sy = e.clientY; };
+    const onMouseMove = (e: MouseEvent) => { if (gestureRef.current.active && e.buttons && Math.hypot(e.clientX - sx, e.clientY - sy) > 6) interactRef.current(); };
+    const onMouseUp = () => { if (gestureRef.current.active) end(); };
+    const onWheel = () => { gestureRef.current.active = true; gestureRef.current.pinch = true; end(); };
+    el.addEventListener("touchstart", onTouchStart, { passive: true, capture: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: true, capture: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true, capture: true });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: true, capture: true });
+    el.addEventListener("mousedown", onMouseDown, true);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    el.addEventListener("wheel", onWheel, { passive: true, capture: true });
+    return () => {
+      window.clearTimeout(settle);
+      el.removeEventListener("touchstart", onTouchStart, true); el.removeEventListener("touchmove", onTouchMove, true);
+      el.removeEventListener("touchend", onTouchEnd, true); el.removeEventListener("touchcancel", onTouchEnd, true);
+      el.removeEventListener("mousedown", onMouseDown, true); window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp); el.removeEventListener("wheel", onWheel, true);
+    };
+  }, [ready]);
+
+  // ── HUD insets, measured only when the layout changes ──
+  const insetRef = useRef({ top: 0, bottom: 0 });
+  const [anchorY, setAnchorY] = useState<number | null>(null);
+  useEffect(() => {
+    const el = containerRef.current; if (!el) return;
+    const measure = () => {
+      const pad = hudPadding(el);
+      insetRef.current = { top: pad.top, bottom: pad.bottom };
+      const h = el.clientHeight;
+      // Car sits ~72 % down the free area, like Google Maps navigation.
+      setAnchorY(Math.round(pad.top + (h - pad.top - pad.bottom) * 0.72));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    el.parentElement?.querySelectorAll(".route-maneuver, .drive-issue-banner, .route-hud-stack").forEach((n) => ro.observe(n));
+    const id = window.setInterval(measure, 3000); // HUD blocks mount/unmount
+    return () => { ro.disconnect(); window.clearInterval(id); };
+  }, [ready]);
+
+  const following = followActive && routeStarted && !!userPos;
+  const flatRef = useRef(false); flatRef.current = northUp || !vector;
+
+  // ── Map puck: only when NOT following (then the screen-fixed puck is used) ──
+  const [puckHeading, setPuckHeading] = useState<number | null>(null);
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !userPos) { puckRef.current?.setMap(null); puckRef.current = null; haloRef.current?.setMap(null); haloRef.current = null; return; }
+    if (!map || !userPos || following) { puckRef.current?.setMap(null); puckRef.current = null; haloRef.current?.setMap(null); haloRef.current = null; return; }
     const blue = resolveMapColor("--info", "hsl(217 91% 60%)");
-    const chevron = (rotation: number): google.maps.Symbol => ({
-      path: "M 0,-11 L 8,9 L 0,5 L -8,9 Z", anchor: new google.maps.Point(0, 0),
-      scale: 1.35, fillColor: blue, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2.5, rotation,
-    });
-    const dot: google.maps.Symbol = { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: blue, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 3 };
     const halo: google.maps.Symbol = { path: google.maps.SymbolPath.CIRCLE, scale: 22, fillColor: blue, fillOpacity: 0.16, strokeOpacity: 0 };
-    let shown: number | null = null; let smooth: number | null = null;
-    const apply = (heading: number | null) => {
-      const m = puckRef.current; if (!m) return;
-      const driving = routeStarted && moving && heading != null;
-      if (!driving) { if (shown !== -1) { m.setIcon(dot); shown = -1; } return; }
-      smooth = smooth == null ? heading : smooth + ((((heading - smooth) % 360) + 540) % 360 - 180) * 0.25;
-      const mapHeading = mapRef.current?.getHeading() ?? 0;
-      const rot = Math.round((((smooth - mapHeading) % 360) + 360) % 360);
-      if (shown == null || shown === -1 || Math.abs((((rot - shown) % 360) + 540) % 360 - 180) >= 4) { m.setIcon(chevron(rot)); shown = rot; }
-    };
-    if (!puckRef.current) puckRef.current = new google.maps.Marker({ map, position: ll(userPos), zIndex: 100, clickable: false, optimized: true });
-    if (!haloRef.current) haloRef.current = new google.maps.Marker({ map, position: ll(userPos), icon: halo, zIndex: 99, clickable: false });
-    apply(null);
-    if (!routeStarted) { puckRef.current.setPosition(ll(userPos)); haloRef.current.setPosition(ll(userPos)); return; }
-    return track.subscribe(({ pos, heading }) => {
-      const p = snapToLine(pos, legRef.current);
-      puckRef.current?.setPosition(ll(p)); haloRef.current?.setPosition(ll(p));
-      apply(speedRef.current > 1.5 ? heading : shown != null && shown >= 0 ? shown : null);
-    });
-  }, [userPos == null, routeStarted, moving, track, ready, night]);
-  useEffect(() => {
-    if (routeStarted || !userPos) return;
-    puckRef.current?.setPosition(ll(userPos)); haloRef.current?.setPosition(ll(userPos));
-  }, [userPos?.[0], userPos?.[1], routeStarted]);
+    const icon = (): google.maps.Symbol => puckHeading != null && moving
+      ? { path: "M 0,-11 L 8,9 L 0,5 L -8,9 Z", anchor: new google.maps.Point(0, 0), scale: 1.35, fillColor: blue, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2.5, rotation: norm360(puckHeading - (map.getHeading() ?? 0)) }
+      : { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: blue, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 3 };
+    puckRef.current ??= new google.maps.Marker({ map, zIndex: 100, clickable: false });
+    haloRef.current ??= new google.maps.Marker({ map, icon: halo, zIndex: 99, clickable: false });
+    const p = ll(snapToLine(userPos, legRef.current));
+    puckRef.current.setPosition(p); haloRef.current.setPosition(p); puckRef.current.setIcon(icon());
+  }, [userPos?.[0], userPos?.[1], following, puckHeading, moving, ready, mapHeading]);
 
-  // Follow camera: one moveCamera per frame, integer zoom with dwell, car kept below the HUD.
-  // Sub-metre movements and HUD-height jitter are ignored so the map never trembles.
+  // ── Follow camera: GPS-driven targets, eased over ~900 ms, one moveCamera per frame only while animating ──
   useEffect(() => {
     const map = mapRef.current; const el = containerRef.current;
-    if (!map || !el || !followActive) return;
-    let zoom = Math.max(15, Math.min(17, Math.round(map.getZoom() ?? 17))); let pending = zoom; let since = 0;
-    let last: { lat: number; lng: number; zoom: number } | null = null; let frame = 0;
-    let offset = 0; let offsetAt = 0; let camHeading: number | null = null;
-    const off = track.subscribe(({ pos, heading }) => {
-      if (document.visibilityState === "hidden" || frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const turn = maneuverRef.current;
-        const c = turn != null && turn < 220 && speedRef.current < 22 ? 18 : navigationZoom(speedRef.current, zoom);
-        if (c !== pending) { pending = c; since = performance.now(); }
-        if (c !== zoom && (c === 18 || zoom === 18 ? performance.now() - since > 1200 : performance.now() - since > 6000)) zoom = c;
-        if (last && last.zoom === zoom && haversineMeters(last.lat, last.lng, pos[0], pos[1]) < 1.2) return;
-        const now = performance.now();
-        if (now - offsetAt > 2000) {
-          const pad = hudPadding(el);
-          const next = Math.round(Math.max(0, Math.min(el.clientHeight * 0.22, (pad.top - 16) / 2)) / 8) * 8;
-          if (Math.abs(next - offset) >= 8) offset = next;
-          offsetAt = now;
-        }
-        // Heading-up like Google Maps navigation: rotate only on real movement, smoothed.
-        if (heading != null && speedRef.current > 2) {
-          camHeading = camHeading == null ? heading : camHeading + ((((heading - camHeading) % 360) + 540) % 360 - 180) * 0.2;
-        }
-        const flat = northUpRef.current || !vectorRef.current;
-        const h = flat ? 0 : camHeading ?? map.getHeading() ?? 0;
-        // Push the car below the HUD by moving the camera centre ahead along the heading.
-        const mpp = (156543.03392 * Math.cos((pos[0] * Math.PI) / 180)) / 2 ** zoom;
-        const ahead = (offset + 40) * mpp;
-        const rad = (h * Math.PI) / 180;
-        const center = { lat: pos[0] + (ahead * Math.cos(rad)) / 111320, lng: pos[1] + (ahead * Math.sin(rad)) / (111320 * Math.cos((pos[0] * Math.PI) / 180)) };
-        programmatic.current = true;
-        map.moveCamera({ center, zoom, heading: Math.round(h), tilt: flat ? 0 : 45 });
-        programmatic.current = false;
-        last = { lat: pos[0], lng: pos[1], zoom };
-      });
+    if (!map || !el || !following) return;
+    if (gestureRef.current.pinch === false) userZoomRef.current = Math.max(15, Math.min(18, map.getZoom() ?? 17)) ;
+    let heading: number | null = map.getHeading() || null;
+    let from: Cam | null = null; let to: Cam | null = null; let t0 = 0; let frame = 0; let lastTarget = 0;
+    let lastPos: [number, number] | null = null;
+    const cur = (): Cam => { const c = map.getCenter(); return { lat: c?.lat() ?? 0, lng: c?.lng() ?? 0, zoom: map.getZoom() ?? 17, heading: map.getHeading() ?? 0, tilt: map.getTilt() ?? 0 }; };
+    const tick = () => {
+      frame = 0;
+      if (!from || !to || gestureRef.current.active) return;
+      const k = Math.min(1, (performance.now() - t0) / 900);
+      const c = lerpCam(from, to, k);
+      map.moveCamera({ center: { lat: c.lat, lng: c.lng }, zoom: c.zoom, heading: c.heading, tilt: c.tilt });
+      if (k < 1) frame = requestAnimationFrame(tick);
+    };
+    const retarget = (pos: [number, number], gpsHeading: number | null) => {
+      if (document.visibilityState === "hidden" || gestureRef.current.active || performance.now() < gestureRef.current.until) return;
+      const flat = flatRef.current;
+      heading = nextHeading(heading, gpsHeading, speedRef.current);
+      setPuckHeading(heading);
+      const h = flat ? 0 : heading ?? 0;
+      const tilt = flat ? 0 : 45;
+      const zoom = followZoom(userZoomRef.current, maneuverRef.current, speedRef.current);
+      const p = snapToLine(pos, legRef.current);
+      const dy = Math.max(0, (anchorRef.current ?? el.clientHeight / 2) - el.clientHeight / 2);
+      const center = followCenter(p, h, zoom, dy, tilt);
+      from = cur(); to = { ...center, zoom, heading: h, tilt }; t0 = performance.now();
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    const off = track.subscribe(({ pos, heading: gh }) => {
+      const now = performance.now();
+      const moved = !lastPos || haversineMeters(lastPos[0], lastPos[1], pos[0], pos[1]) > 1.5;
+      if (now - lastTarget < 850 || (!moved && now - lastTarget < 3000)) return;
+      lastTarget = now; lastPos = pos;
+      retarget(pos, gh);
     });
+    if (userPos) retarget(userPos, null);
     return () => {
       off(); cancelAnimationFrame(frame);
-      programmatic.current = true; map.moveCamera({ heading: 0, tilt: 0 }); programmatic.current = false;
     };
-  }, [followActive, track, ready]);
+  }, [following, track, ready, northUp, vector]);
+  const anchorRef = useRef<number | null>(null); anchorRef.current = anchorY;
+
+  // Leaving follow (free/overview) flattens nothing — the user keeps the view they chose.
+  // Re-entering follow eases from wherever the user left the camera.
 
   // Overview before the route starts.
   const fitKey = overview.map((p) => p.join(",")).join(";");
   useEffect(() => {
     const map = mapRef.current; const el = containerRef.current;
     if (!map || !el || !fitEnabled || overview.length === 0) return;
-    programmatic.current = true;
+    map.moveCamera({ heading: 0, tilt: 0 });
     if (overview.length === 1) { map.setCenter(ll(overview[0])); map.setZoom(15); }
     else {
       const b = new google.maps.LatLngBounds(); overview.forEach((p) => b.extend(ll(p)));
@@ -382,6 +432,29 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" aria-label="Rutekort" role="region" />
       {!ready && <div className="absolute inset-0 animate-pulse bg-muted" aria-hidden />}
+      {ready && following && anchorY != null && (
+        // Screen-fixed car while following: the map glides beneath it, so it can never shake.
+        <div className="pointer-events-none absolute left-1/2 z-[999] -translate-x-1/2 -translate-y-1/2" style={{ top: anchorY }} aria-hidden>
+          <div className="relative flex h-12 w-12 items-center justify-center">
+            <span className="absolute inset-0 rounded-full bg-info/20" />
+            <svg viewBox="-12 -13 24 26" className="relative h-8 w-8 drop-shadow-md transition-transform duration-700 ease-out" style={{ transform: `rotate(${puckHeading == null || !moving ? 0 : norm360(puckHeading - mapHeading)}deg)` }}>
+              {puckHeading != null && moving
+                ? <path d="M0,-11 L8,9 L0,5 L-8,9 Z" className="fill-info stroke-background" strokeWidth={2.5} strokeLinejoin="round" />
+                : <circle r={7} className="fill-info stroke-background" strokeWidth={3} />}
+            </svg>
+          </div>
+        </div>
+      )}
+      {showDiag && diag && (
+        <div className="absolute left-3 top-1/2 z-[1001] max-w-[16rem] -translate-y-1/2 rounded-lg border border-border bg-card p-3 text-xs text-foreground shadow-lg" role="status">
+          <p className="mb-1 font-semibold">Kortinfo</p>
+          <p>Kort: {diag.renderer}</p>
+          <p>Indstilling: {diag.mapId}</p>
+          <p>Tema: {night ? "Mørkt" : "Lyst"}</p>
+          <p>Tilstand: {following ? "Følger bilen" : "Frit kort"}</p>
+          <button type="button" className="mt-2 font-semibold text-accent underline" onClick={() => setShowDiag(false)}>Luk</button>
+        </div>
+      )}
       {ready && (
         <div className="route-map-controls absolute bottom-6 right-3 z-[1000] flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-md sm:right-5">
           {!followActive && userPos && (
@@ -399,6 +472,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
           )}
           <Button type="button" variant="ghost" size="icon" aria-pressed={prefs.traffic} className={cn(ctrl, prefs.traffic && "bg-accent/15 text-accent")} onClick={() => setPrefs((p) => ({ ...p, traffic: !p.traffic }))} aria-label={prefs.traffic ? "Skjul trafik" : "Vis trafik"}>
             <TrafficCone className="h-5 w-5" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" className={ctrl} onClick={() => setShowDiag((v) => !v)} aria-label="Kortinfo">
+            <Info className="h-5 w-5" />
           </Button>
           <Button type="button" variant="ghost" size="icon" aria-pressed={prefs.satellite} className={cn(ctrl, prefs.satellite && "bg-accent/15 text-accent")} onClick={() => setPrefs((p) => ({ ...p, satellite: !p.satellite }))} aria-label={prefs.satellite ? "Vis vejkort" : "Vis satellit"}>
             <Layers className="h-5 w-5" />
