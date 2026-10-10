@@ -1,4 +1,6 @@
 ## Aktuel samlet forbedring
+- [x] Gør Centrér og kørselsknapper mere kompakte; isoleret layoutkontrol på mobil/tablet/computer og knaptest
+- [ ] Kontrollér kompakt HUD under reel rutekørsel — egen testsession har ingen tilgængelige ruter
 - [x] Fjern Kortinfo og stabilisér responsiv HUD/kort
 - [x] Færdiggør responsiv HUD på tablet/computer og robust Advanced Marker-håndtering
 - [x] Ensret stophandlingerne i tjekliste, rutekørsel og aftaledetaljer uden skjulte dubletter

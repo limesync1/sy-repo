@@ -254,7 +254,7 @@ NavCamera.displayName = "NavCamera";
 const DriveMapControls = forwardRef<never, { following: boolean; onFollow: () => void; onManualZoom: () => void }>(({ following, onFollow, onManualZoom }, _ref) => {
   const map = useMap();
   return (
-    <div className="absolute right-3 top-1/2 z-[1000] flex -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-md sm:right-5">
+    <div className="absolute right-3 top-1/2 z-[1000] flex -translate-y-1/2 flex-col overflow-hidden rounded-md border border-border/60 bg-card shadow-md sm:right-5">
       <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border/60" onClick={() => { onManualZoom(); map.zoomIn(1); }} aria-label="Zoom ind">
         <Plus className="h-5 w-5" strokeWidth={2.5} />
       </Button>
@@ -2047,7 +2047,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className={cn("h-10 w-10 shrink-0", listOpen && "bg-secondary")}
+                  className={cn("h-11 w-11 shrink-0", listOpen && "bg-secondary")}
                   onClick={() => setListOpen((value) => !value)}
                   aria-label="Vis alle stop" title="Vis alle stop"
                   aria-pressed={listOpen}
@@ -2180,12 +2180,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Button
                 type="button"
                 variant="ghost"
-                className="group h-auto w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3.5 py-2 hover:bg-secondary/50 active:bg-secondary/70"
+                className="group h-auto min-h-11 w-full flex-nowrap justify-start rounded-none border-t border-border/50 px-3 py-1.5 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setSelectedId(nextStop.id)}
                 aria-label="Vis aftalens oplysninger"
               >
                 <span
-                   className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-sm font-bold tabular-nums shrink-0"
+                   className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-accent bg-card text-foreground text-sm font-bold tabular-nums shrink-0"
                 >
                   {nextStopIdx + 1}
                 </span>
@@ -2250,7 +2250,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {/* Altid synlig: kompakt CTA-rad — så medarbejderen kan markere
                   udført / navigere uden at åbne detaljer (og uden at miste
                   kortvisningen). */}
-                <div className="border-t border-border/60 bg-secondary/25 px-3 py-2 sm:max-md:h-full sm:max-md:border-l sm:max-md:border-t-0">
+                <div className="border-t border-border/60 bg-secondary/25 px-2.5 py-1.5 sm:max-md:h-full sm:max-md:border-l sm:max-md:border-t-0">
                   {activeNextStopEntry ? (
                     <Button
                       onClick={() => handleComplete(nextStop)}
@@ -2280,7 +2280,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ) : null}
                   {/* Én række handlinger — aldrig scroll i panelet. Under kørsel kun det,
                       man har brug for; Ret/Ny aftale vises når man er hos kunden. */}
-                  <div className={cn("route-dock-actions flex min-w-0 gap-1.5", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
+                  <div className={cn("route-dock-actions flex min-w-0 gap-1", (activeNextStopEntry || isAtNextStop) && "mt-1.5")}>
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" title="Oplysninger" className="route-dock-tile"><Info className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Info</span></Button>
                   <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder || !(isAtNextStop || activeNextStopEntry)} routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (

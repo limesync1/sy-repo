@@ -784,13 +784,13 @@
      kontrolkolonne; højre side er fri til kort, kortknapper og advarsler. */
   @media (min-width: 768px) {
     .employee-route-run .route-hud-stack,
-    .employee-route-run .route-active-stop { left: 1rem; right: auto; width: min(30rem, calc(50vw - 1.5rem)); }
+    .employee-route-run .route-active-stop { left: 1rem; right: auto; width: min(28rem, calc(50vw - 1.5rem)); }
     .employee-route-run .route-drive-dock { max-height: calc(100dvh - 9rem); overflow-y: auto; overscroll-behavior: contain; }
     .employee-route-run .route-map-stage-driving .route-google-fallback { left: auto; right: 1rem; max-width: min(24rem, calc(50vw - 2.5rem)); }
   }
   @media (min-width: 1024px) {
     .employee-route-run .route-hud-stack,
-    .employee-route-run .route-active-stop { width: min(30rem, calc(42vw - 2rem)); }
+    .employee-route-run .route-active-stop { width: min(28rem, calc(42vw - 2rem)); }
     .employee-route-run .route-map-controls { right: 1.25rem; bottom: 1.25rem; }
     .employee-route-run .route-map-stage-driving .drive-issue-banner { left: calc(min(30rem, 42vw - 2rem) + 2rem); bottom: 1rem; width: min(23rem, calc(55vw - 4rem)); }
   }
@@ -831,9 +831,15 @@
   }
 
   /* Handlingsfliser: ikon over kort tekst, én række, lige brede. */
+  .employee-route-run .route-map-recenter {
+    bottom: 0.75rem; height: 2.75rem; min-height: 2.75rem; white-space: nowrap;
+  }
+  @media (min-width: 768px) {
+    .employee-route-run .route-map-recenter { left: 75%; }
+  }
   .employee-route-run .route-dock-tile {
-    display: inline-flex; flex: 1 1 0; min-width: 0; height: 3.5rem; min-height: 3.5rem;
-    flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem;
+    display: inline-flex; flex: 1 1 0; min-width: 0; height: 3rem; min-height: 3rem;
+    flex-direction: column; align-items: center; justify-content: center; gap: 0.1875rem;
     padding: 0.25rem; border-radius: calc(var(--radius) - 2px);
     font-size: 11px; font-weight: 600; line-height: 1; white-space: nowrap;
   }
@@ -850,6 +856,10 @@
     .employee-route-run .route-dock-tile { height: 2.75rem; min-height: 2.75rem; }
     .employee-route-run .route-dock-tile-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     .employee-route-run .route-map-stage-driving > .leaflet-container { min-height: 7rem; }
+    .employee-route-run .route-map-controls { flex-direction: row; }
+    .employee-route-run .route-map-controls > button { border-bottom: 0; border-right: 1px solid hsl(var(--border) / 0.6); }
+    .employee-route-run .route-map-controls > button:last-child { border-right: 0; }
+    .employee-route-run .route-map-recenter { bottom: 4rem; }
   }
 
   /* Natkort: dæmpet mørk version af vejkortet — kræver ingen ekstra kortnøgle. */
