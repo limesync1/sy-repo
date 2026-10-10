@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Skift stop- og startnåle til Googles nye markører; test status, placering, valg og oprydning
+- [x] Skift stop- og startnåle til Googles nye markører; test status, placering, valg og oprydning (10 test bestået; fysisk Google-kørsel ikke verificeret)
 - [x] Responsive rutekørsel, tjekliste og stopoplysninger
 - [x] Ensartet ret/ny aftale med custom kalender
 - [x] Medarbejderprofil og mobilnavigation
