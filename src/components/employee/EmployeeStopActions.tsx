@@ -7,11 +7,10 @@
 // Prisen regnes altid endeligt på serveren. Optimeret til mobil/tablet.
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, MoreHorizontal, X, Route as RouteIcon, Inbox } from "lucide-react";
+import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, ArrowLeft, Route as RouteIcon, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
@@ -76,6 +75,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const [newPricing, setNewPricing] = useState<PricingState | null>(null);
   const [newStart, setNewStart] = useState(todayStr());
   const [targetRouteId, setTargetRouteId] = useState<string | null>(null);
+  const [editStep, setEditStep] = useState<1 | 2>(1);
+  const [newStep, setNewStep] = useState<1 | 2 | 3 | 4>(1);
 
   useEffect(() => { 
     try { 
@@ -149,6 +150,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     setLines(next);
     setInitialLines(snapshot(next));
     setApplyFuture(true);
+    setEditStep(1);
     setEditOpen(true);
   };
 
@@ -213,7 +215,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   // ── Ny aftale ───────────────────────────────────────────────
   const newService = newServiceId ? serviceById.get(newServiceId) : undefined;
-  const openNew = () => { setNewServiceId(""); setNewPricing(null); setNewStart(runDate); setTargetRouteId(null); setNewOpen(true); };
+  const openNew = () => { setNewServiceId(""); setNewPricing(null); setNewStart(runDate); setTargetRouteId(null); setNewStep(1); setNewOpen(true); };
   const pickNewService = (id: string) => {
     setNewServiceId(id);
     const s = serviceById.get(id);
@@ -308,17 +310,22 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter services…</p>
   ) : null;
 
+  const StepIndicator = ({ current, total }: { current: number; total: number }) => (
+    <ol className="grid grid-cols-4 gap-1" aria-label={`Trin ${current} af ${total}`}>
+      {Array.from({ length: total }, (_, index) => index + 1).map((step) => (
+        <li key={step} className={cn("h-1.5 rounded-full", step <= current ? "bg-primary" : "bg-border")} aria-current={step === current ? "step" : undefined} />
+      ))}
+    </ol>
+  );
+
   return (
     <div className={compact || noteOnly ? "contents" : "space-y-2"}>
       {compact ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="Flere aftalehandlinger" title="Flere aftalehandlinger"><MoreHorizontal className="h-5 w-5" /></Button></DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-[1200] min-w-52 bg-card text-foreground">
-            {!noteOnly && <DropdownMenuItem className="min-h-11 gap-2" onSelect={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4" />Ret aftale</DropdownMenuItem>}
-            {!noteOnly && <DropdownMenuItem className="min-h-11 gap-2" onSelect={openNew} disabled={!order}><CalendarPlus className="h-4 w-4" />Ny aftale</DropdownMenuItem>}
-            <DropdownMenuItem className="min-h-11 gap-2" onSelect={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4" />Note til kontoret</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="employee-stop-quick-actions contents">
+          {!noteOnly && <Button variant="outline" className="h-11 min-w-0 flex-1 gap-1.5 px-2 text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret</span></Button>}
+          {!noteOnly && <Button variant="outline" className="h-11 min-w-0 flex-1 gap-1.5 px-2 text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny</span></Button>}
+          <Button variant="outline" className="h-11 min-w-0 flex-1 gap-1.5 px-2 text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note</span></Button>
+        </div>
       ) : noteOnly ? (
         <Button variant="outline" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
           <MessageSquarePlus className="h-4 w-4" />Note
@@ -362,11 +369,12 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             <SheetTitle className="sr-only">Ret aftale</SheetTitle><SheetDescription className="sr-only">Ret services og vælg hvilke besøg ændringen gælder.</SheetDescription>
             <AppointmentDetailsHeader 
               title="Ret aftale" 
-              description="Ret services og vælg tydeligt, hvilke besøg ændringen gælder." 
+              description={`Trin ${editStep} af 2 · ${editStep === 1 ? "Services og pris" : "Omfang og bekræftelse"}`} 
             />
+            <div className="mt-3"><StepIndicator current={editStep} total={2} /></div>
           </SheetHeader>
           <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-5 sm:p-5">
-            {servicesProblem}
+            {editStep === 1 && <>{servicesProblem}
             <ul className="space-y-2">
               {lines.map((l) => {
                 const svc = l.service_id ? serviceById.get(l.service_id) : undefined;
@@ -400,19 +408,21 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1">Tilføj service</p>
                 <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card shadow-sm">
                   {addable.map((s) => (
-                    <button type="button" key={s.id} className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary/60 active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+                    <Button type="button" variant="ghost" key={s.id} className="flex h-auto min-h-12 w-full items-center justify-start gap-3 rounded-none px-3 py-2 text-left"
                       onClick={() => setLines((ls) => [...ls, { key: `new-${s.id}`, item_id: null, service_id: s.id, name: s.name, quantity: 1, unit: s.unit, pricing: defaultPricing(s) }])}>
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium leading-snug text-foreground">{s.name}</span>
                         <span className="block text-[11px] text-muted-foreground">{s.pricing_type === "timepris" ? "Timepris" : s.pricing_type === "prisberegner" ? "Prisberegner" : "Fast pris"}</span>
                       </span>
                       <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             )}
 
+            </>}
+            {editStep === 2 && <>
             {intervalChanged && (
               <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2.5 text-[12px] text-warning-foreground">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -436,13 +446,20 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               ))}
             </fieldset>
             </Section>
+            <Section icon={<CheckCircle2 className="h-4 w-4" />} title="Kontrollér før du gemmer" tone="muted">
+              <div className="space-y-2 text-sm">
+                <p className="flex justify-between gap-3"><span className="text-muted-foreground">Services</span><strong>{lines.length}</strong></p>
+                {editTotal > 0 && <p className="flex justify-between gap-3"><span className="text-muted-foreground">Ca. pris pr. besøg</span><strong>{formatPrice(editTotal)}</strong></p>}
+                <p className="rounded-md bg-secondary/60 p-2.5 text-xs leading-5 text-muted-foreground">{applyFuture ? "Dette besøg og kommende besøg bliver opdateret. Ruteplaceringen ændres ikke lydløst." : "Kun dette besøg bliver opdateret. Kommende besøg og serien forbliver uændrede."}</p>
+              </div>
+            </Section>
+            </>}
           </div>
           <SheetFooterBar className="px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-            {editTotal > 0 && <p className="mb-2 flex justify-between text-sm"><span className="text-muted-foreground">Ca. pris pr. besøg</span><span className="font-semibold tabular-nums">{formatPrice(editTotal)}</span></p>}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="h-12" onClick={() => void closeEditor()} disabled={save.isPending}>Annullér</Button>
-              <Button className="h-12" onClick={() => void trySave()} disabled={save.isPending || lines.length === 0 || !dirty}>
-                {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gem ændringer"}
+              <Button variant="outline" className="h-12" onClick={() => editStep === 1 ? void closeEditor() : setEditStep(1)} disabled={save.isPending}>{editStep === 1 ? "Annullér" : <><ArrowLeft className="h-4 w-4" />Tilbage</>}</Button>
+              <Button className="h-12" onClick={() => editStep === 1 ? setEditStep(2) : void trySave()} disabled={save.isPending || lines.length === 0 || !dirty}>
+                {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editStep === 1 ? "Fortsæt" : "Gem ændringer"}
               </Button>
             </div>
           </SheetFooterBar>
@@ -456,21 +473,22 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             <SheetTitle className="sr-only">Ny aftale</SheetTitle><SheetDescription className="sr-only">Opret en aftale hos samme kunde.</SheetDescription>
             <AppointmentDetailsHeader 
               title={`Ny aftale hos ${order?.customer_name || "kunden"}`} 
-              description="Kunden genbruges. Vælg service, interval og hvor aftalen skal planlægges." 
+              description={`Trin ${newStep} af 4 · ${["Service og pris", "Dato og gentagelse", "Placering på rute", "Kontrollér og opret"][newStep - 1]}`} 
             />
+            <div className="mt-3"><StepIndicator current={newStep} total={4} /></div>
           </SheetHeader>
           <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-5 sm:p-5">
-            {servicesProblem}
+            {newStep === 1 && <>{servicesProblem}
             {!servicesError && !loadingServices && (
               services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive services.</p> : (
                 <div>
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1">Service</p>
                    <div className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card shadow-sm">
                     {services.map((s) => (
-                       <button key={s.id} type="button" className={cn("flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-secondary/60", newServiceId === s.id && "bg-primary/5 text-foreground ring-1 ring-inset ring-primary/30")} onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
+                       <Button key={s.id} type="button" variant="ghost" className={cn("flex h-auto min-h-12 w-full items-center justify-start gap-3 rounded-none px-3 py-2 text-left", newServiceId === s.id && "bg-primary/5 text-foreground ring-1 ring-inset ring-primary/30")} onClick={() => pickNewService(s.id)} aria-pressed={newServiceId === s.id}>
                          <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug">{s.name}</span><span className="block text-[11px] text-muted-foreground">{s.pricing_type === "timepris" ? "Timepris" : s.pricing_type === "prisberegner" ? "Prisberegner" : "Fast pris"}</span></span>
                          {newServiceId === s.id ? <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" /> : <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />}
-                       </button>
+                       </Button>
                     ))}
                   </div>
                 </div>
@@ -481,7 +499,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 <CompactPricingEditor service={newService} value={newPricing} onChange={setNewPricing} />
               </div>
             )}
-            {newService && (
+            </>}
+            {newStep === 2 && newService && (
                <Section icon={<CalendarPlus className="h-4 w-4" />} title="Planlægning" tone="sky">
                  <Field 
                   label="Foreløbig opstartsdato" 
@@ -492,7 +511,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                  </Field>
                </Section>
             )}
-            {newService && newPricing?.interval === "engangskøb" && (
+            {newStep === 3 && newService && newPricing?.interval === "engangskøb" && (
               <Section icon={<RouteIcon className="h-4 w-4" />} title="Placering på rute" tone="accent" hint={targetRouteId ? "Lægges sidst på ruten" : "Kontoret planlægger"}>
                 {loadingPlacementRoutes ? (
                   <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Finder ruter på datoen…</p>
@@ -515,16 +534,26 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 )}
               </Section>
             )}
-            {newService && newPricing?.interval !== "engangskøb" && (
+            {newStep === 3 && newService && newPricing?.interval !== "engangskøb" && (
               <Section icon={<Inbox className="h-4 w-4" />} title="Placering" tone="muted">
                 <p className="text-sm text-muted-foreground">Faste aftaler oprettes i Aftaler uden rute. Kontoret placerer første besøg og de næste forekomster samlet.</p>
               </Section>
             )}
+            {newStep === 4 && newService && newPricing && (
+              <Section icon={<CheckCircle2 className="h-4 w-4" />} title="Aftalen oprettes sådan" tone="accent">
+                <div className="space-y-2 text-sm">
+                  <p className="flex justify-between gap-3"><span className="text-muted-foreground">Service</span><strong className="text-right">{newService.name}</strong></p>
+                  <p className="flex justify-between gap-3"><span className="text-muted-foreground">Første dato</span><strong>{format(new Date(`${newStart}T12:00:00`), "d. MMMM yyyy", { locale: da })}</strong></p>
+                  <p className="flex justify-between gap-3"><span className="text-muted-foreground">Gentagelse</span><strong>{ivLabel(newPricing.interval)}</strong></p>
+                  <p className="rounded-md bg-secondary/60 p-2.5 text-xs leading-5 text-muted-foreground">{newPricing.interval !== "engangskøb" ? "Aftalen lægges i Aftaler uden rute, så kontoret kan placere hele serien korrekt." : targetRouteId ? `Besøget lægges sidst på ${placementRoutes.find((route) => route.id === targetRouteId)?.name || "den valgte rute"}.` : "Besøget lægges i Aftaler uden rute til senere planlægning."}</p>
+                </div>
+              </Section>
+            )}
           </div>
           <SheetFooterBar className="grid grid-cols-2 gap-2 px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-            <Button variant="outline" className="h-12" onClick={() => setNewOpen(false)} disabled={createNew.isPending}>Annullér</Button>
-            <Button className="h-12" onClick={() => void submitNew()} disabled={!newService || createNew.isPending}>
-              {createNew.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Opret aftale"}
+            <Button variant="outline" className="h-12" onClick={() => newStep === 1 ? setNewOpen(false) : setNewStep((newStep - 1) as 1 | 2 | 3)} disabled={createNew.isPending}>{newStep === 1 ? "Annullér" : <><ArrowLeft className="h-4 w-4" />Tilbage</>}</Button>
+            <Button className="h-12" onClick={() => newStep === 4 ? void submitNew() : setNewStep((newStep + 1) as 2 | 3 | 4)} disabled={!newService || !newPricing || createNew.isPending}>
+              {createNew.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : newStep === 4 ? "Opret aftale" : "Fortsæt"}
             </Button>
           </SheetFooterBar>
         </SheetContent>

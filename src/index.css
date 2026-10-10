@@ -758,6 +758,15 @@
       bottom: 0.5rem;
     }
   }
+
+  /* På computer samles kørsels-HUD'en i én venstre kontrolkolonne. Kortet
+     forbliver stort, mens topkontroller og næste stop deler samme kant. */
+  @media (min-width: 1024px) {
+    .employee-route-run .route-hud-stack,
+    .employee-route-run .route-active-stop { left: 1rem; right: auto; width: min(30rem, calc(42vw - 2rem)); }
+    .employee-route-run .route-drive-dock { max-height: min(54dvh, 34rem); overflow-y: auto; overscroll-behavior: contain; }
+    .employee-route-run .route-map-controls { right: 1.25rem; bottom: 1.25rem; }
+  }
   /* Browser address bars leave a short viewport: keep the map visible. */
   @media (max-height: 720px) {
     .employee-route-run .route-maneuver-then { display: none; }
