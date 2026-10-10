@@ -2800,22 +2800,25 @@ export const useMyRouteData = (routeId: string | undefined) => {
     queryKey: ["my-route-data", routeId],
     enabled: !!routeId,
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
       if (!user.user) return null;
       // Brugeren kan have flere medarbejder-records (én pr. virksomhed) —
       // tag den første i stedet for at fejle på "flere rækker".
-      const { data: emps } = await supabase
+      const { data: emps, error: employeeError } = await supabase
         .from("employees")
         .select("id, name, business_id")
         .eq("user_id", user.user.id)
         .order("created_at", { ascending: true });
+      if (employeeError) throw employeeError;
       if (!emps?.length) return null;
 
-      const { data: route } = await supabase
+      const { data: route, error: routeError } = await supabase
         .from("routes")
         .select("*, businesses(name, phone)")
         .eq("id", routeId!)
         .maybeSingle();
+      if (routeError) throw routeError;
       if (!route) return null;
       // Vælg den medarbejder-record der hører til rutens virksomhed.
       const emp = emps.find((e: any) => e.business_id === (route as any).business_id) ?? emps[0];
@@ -2824,7 +2827,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .select("stop_id")
         .eq("employee_id", emp.id);
       const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
-      const { data: rawStops } = await supabase
+      const { data: rawStops, error: stopsError } = await supabase
         .from("route_stops")
         // Hent occurrence + aftalens interval i samme request — bruges
         // både til interval-validering (dropper stops der ikke hører til
@@ -2832,6 +2835,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .select("*, agreement_occurrence:agreement_occurrences(occurrence_date, agreement:agreements(interval))")
         .eq("route_id", routeId!)
         .order("sequence", { ascending: true });
+      if (stopsError) throw stopsError;
       // Interval-validering: hvis ruten er dagens dato, drop stops hvis
       // occurrence peger på en anden dato (legacy/fejlmaterialisering).
       // Når vi ikke kender en specifik dag (route uden konkret dato eller
