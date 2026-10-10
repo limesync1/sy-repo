@@ -19,5 +19,5 @@
 - [x] Ret fælles knapper, vinduer, bundark, dropdowns og popups centralt
 - [x] Ret aftalevinduer og kompakte stophandlinger på alle bredder
 - [x] Ensret Føj til rute og Flyt dato med de fælles vinduesprimitiver
-- [ ] Kontrollér rutekørsels-HUD uden overlap på mobil, tablet og computer
-- [ ] Test lyst/mørkt tema, lange tekster, scroll og fejltilstande
+- [x] Kontrollér rutekørsels-HUD uden overlap på mobil, tablet og computer
+- [x] Test lyst/mørkt tema, lange tekster, scroll og fejltilstande
