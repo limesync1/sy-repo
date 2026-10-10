@@ -170,19 +170,20 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
                 </Field>
                 <div className="flex flex-wrap gap-1.5">
                   {[-7, -1, 1, 7, 14, 30].map((n) => (
-                    <button
+                    <Button
                       key={n}
                       type="button"
+                      variant="outline"
                       onClick={() => setShiftDays(n)}
                       className={cn(
-                        "h-7 px-2.5 rounded-md text-[11px] font-semibold border transition-all",
+                        "h-10 min-w-11 px-2.5 text-xs",
                         shiftDays === n
-                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                          : "border-border bg-card hover:bg-secondary text-muted-foreground hover:text-foreground",
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:text-primary-foreground"
+                          : "text-muted-foreground",
                       )}
                     >
                       {n > 0 ? `+${n}` : n} {Math.abs(n) === 1 ? "dag" : "dage"}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </TabsContent>

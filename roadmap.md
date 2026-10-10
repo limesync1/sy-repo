@@ -14,3 +14,10 @@
 - [ ] Tilføj de lovede integrationstests for aftalelogik, profiler, navigation, HUD og timer
 - [ ] Test de centrale flows som relevante roller på mobil, tablet og computer i lyst/mørkt tema samt fejltilstande
 - [x] Fjern aktuelle runtime-advarsler i aftaledetaljer
+
+## Responsivitet og synlighed
+- [ ] Ret fælles knapper, vinduer, bundark, dropdowns og popups centralt
+- [ ] Ret aftalevinduer og kompakte stophandlinger på alle bredder
+- [ ] Ensret Føj til rute og Flyt dato med de fælles vinduesprimitiver
+- [ ] Kontrollér rutekørsels-HUD uden overlap på mobil, tablet og computer
+- [ ] Test lyst/mørkt tema, lange tekster, scroll og fejltilstande
