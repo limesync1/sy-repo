@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const { data: { user }, error } = await authClient.auth.getUser();
     if (error || !user) return json({ error: "Ikke logget ind" }, 401);
 
-    const key = Deno.env.get("GOOGLE_MAPS_BROWSER_KEY")?.trim();
+    const key = Deno.env.get("SERVICEYDERE_MAPS_BROWSER_KEY")?.trim();
     if (!key) return json({ key: null, reason: "not-configured" });
     return json({ key }, 200, { "Cache-Control": "private, max-age=3600" });
   } catch (err) {
