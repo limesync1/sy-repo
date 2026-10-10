@@ -84,6 +84,12 @@
     --sand-foreground: 28 55% 24%;
     --ocean: 204 96% 13%;
     --ocean-foreground: 195 40% 94%;
+    --silver-surface: 210 18% 98%;
+    --silver-surface-strong: 210 16% 93%;
+    --silver-border: 210 14% 82%;
+    --action-edit: 34 88% 42%;
+    --action-create: 198 71% 35%;
+    --action-note: 217 78% 48%;
   }
 
   .dark {
@@ -148,6 +154,12 @@
     --sand-foreground: 38 70% 82%;
     --ocean: 204 60% 10%;
     --ocean-foreground: 195 40% 92%;
+    --silver-surface: 217 18% 17%;
+    --silver-surface-strong: 217 17% 22%;
+    --silver-border: 217 16% 31%;
+    --action-edit: 38 88% 62%;
+    --action-create: 195 69% 55%;
+    --action-note: 217 91% 68%;
   }
 }
 
@@ -1216,6 +1228,11 @@
     background-image: linear-gradient(180deg, hsl(var(--card)), hsl(var(--secondary) / 0.9));
   }
 
+  .surface-silver {
+    background-image: linear-gradient(145deg, hsl(var(--silver-surface)) 0%, hsl(var(--card)) 48%, hsl(var(--silver-surface-strong)) 100%);
+    border-color: hsl(var(--silver-border) / 0.72);
+  }
+
   .surface-dark-panel {
     background-image: linear-gradient(180deg, hsl(var(--foreground)), hsl(0 0% 9%));
   }
@@ -1751,6 +1768,21 @@ img[loading="lazy"].is-error {
 }
 .brand-blue-action:hover {
   background-image: linear-gradient(180deg, hsl(var(--brand-blue-start) / 0.94), hsl(var(--brand-blue-end) / 0.94));
+}
+
+.appointment-action-edit,
+.appointment-action-create,
+.appointment-action-note {
+  border: 1px solid currentColor;
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.05);
+}
+.appointment-action-edit { background: hsl(var(--action-edit) / 0.1); color: hsl(var(--action-edit)); border-color: hsl(var(--action-edit) / 0.35); }
+.appointment-action-create { background: hsl(var(--action-create) / 0.11); color: hsl(var(--action-create)); border-color: hsl(var(--action-create) / 0.36); }
+.appointment-action-note { background: hsl(var(--action-note) / 0.1); color: hsl(var(--action-note)); border-color: hsl(var(--action-note) / 0.34); }
+@media (hover: hover) and (pointer: fine) {
+  .appointment-action-edit:hover { background: hsl(var(--action-edit) / 0.17); border-color: hsl(var(--action-edit) / 0.55); }
+  .appointment-action-create:hover { background: hsl(var(--action-create) / 0.18); border-color: hsl(var(--action-create) / 0.56); }
+  .appointment-action-note:hover { background: hsl(var(--action-note) / 0.17); border-color: hsl(var(--action-note) / 0.54); }
 }
 
 .brand-blue-section {

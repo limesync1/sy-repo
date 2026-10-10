@@ -410,7 +410,7 @@ const DashboardTab = ({
             <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-background/55 sm:text-xs sm:tracking-[0.2em]">
               {greeting()} · {new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
             </p>
-            <h1 className="mt-1 truncate text-lg font-semibold leading-tight text-background sm:mt-1.5 sm:text-2xl lg:text-[2rem]">
+            <h1 className="mt-1 break-words text-lg font-semibold leading-tight text-background sm:mt-1.5 sm:text-2xl lg:text-[2rem]">
               {business.name}
             </h1>
             <p className="mt-1 flex items-start gap-1.5 text-[11px] leading-4 text-background/78 sm:mt-1.5 sm:gap-2 sm:text-sm sm:leading-5">
@@ -448,7 +448,7 @@ const DashboardTab = ({
         </div>
       </section>
 
-      <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+      <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.9fr)] xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
         <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Finansielt overblik — afløser de tidligere "Omsætning"-kort.
               Viser hvad der er faktureret, betalt, udestående/forfaldent,
@@ -677,7 +677,7 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "min-w-0 overflow-hidden rounded-md border bg-card px-3 py-2.5 text-left text-foreground shadow-sm transition-all sm:px-3.5 sm:py-3",
+    "surface-silver min-w-0 overflow-hidden rounded-md border px-3 py-2.5 text-left text-foreground shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-3.5 sm:py-3",
     accent ? "border-warning/60 ring-1 ring-inset ring-warning/30" : "border-border",
     onClick && "hover:-translate-y-0.5 hover:shadow-md",
   );
@@ -829,7 +829,7 @@ const FinanceOverviewCard = ({
   const periodLabel = period === "p7" ? "7 dage" : "30 dage";
 
   return (
-    <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+    <Card className="surface-admin overflow-hidden rounded-md border-border/80 shadow-sm">
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
@@ -841,17 +841,19 @@ const FinanceOverviewCard = ({
         </div>
         <div className="inline-flex shrink-0 items-center rounded-lg border border-border bg-card p-0.5 text-[11px] font-medium">
           {(["p7", "p30"] as const).map((k) => (
-            <button
+            <Button
               key={k}
               type="button"
               onClick={() => setPeriod(k)}
+              variant="ghost"
+              size="sm"
               className={cn(
-                "rounded-md px-2.5 py-1 transition-colors",
+                "h-8 rounded-md px-2.5 text-[11px] transition-colors",
                 period === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
               )}
             >
               {k === "p7" ? "7 dage" : "30 dage"}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -861,7 +863,7 @@ const FinanceOverviewCard = ({
         <button
           type="button"
           onClick={onOpenRevenue}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -880,7 +882,7 @@ const FinanceOverviewCard = ({
         <button
           type="button"
           onClick={onOpenRevenue}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -904,7 +906,7 @@ const FinanceOverviewCard = ({
         <button
           type="button"
           onClick={() => onNavigate?.("orders")}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -927,18 +929,13 @@ const FinanceOverviewCard = ({
         <button
           type="button"
           onClick={() => onNavigate?.("orders")}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
-            <span className="relative inline-flex h-10 w-10 shrink-0" aria-label="Udførte aftaler">
-              <BrandedIllustration name="orders" className="h-10 w-10" />
-              <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent p-0.5 text-white ring-2 ring-card">
-                <Check className="h-3 w-3" strokeWidth={3} />
-              </span>
-            </span>
+            <BrandedIllustration name="appointmentCompleted" className="h-10 w-10" alt="Udførte aftaler" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>
@@ -954,7 +951,7 @@ const FinanceOverviewCard = ({
       <button
         type="button"
         onClick={() => onNavigate?.("employees")}
-        className="group flex w-full items-center justify-between gap-3 border-t border-border bg-accent/[0.05] px-4 py-3 text-left transition-colors hover:bg-accent/[0.10] sm:px-5"
+        className="group flex w-full items-center justify-between gap-3 border-t border-border bg-accent/[0.05] px-4 py-3 text-left transition-colors hover:bg-accent/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"
       >
         <div className="flex min-w-0 items-center gap-3">
           <StatIconTile>

@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ImgHTMLAttributes } from "react";
+import { forwardRef, type HTMLAttributes, type ImgHTMLAttributes } from "react";
 import animatedArrow from "@/assets/ui/Pil_animeret.svg.asset.json";
 import recentSearch from "@/assets/content-icons/senest-soegt.svg.asset.json";
 import searchIcon from "@/assets/content-icons/soeg.svg.asset.json";
@@ -19,9 +19,12 @@ const ARTWORK: Record<ArtworkName, string> = {
   appointmentInfo: appointmentInfo.url,
 };
 
-export const UiArtwork = ({ name, className, alt = "", ...props }: ImgHTMLAttributes<HTMLImageElement> & { name: ArtworkName }) => (
-  <img src={ARTWORK[name]} alt={alt} className={cn("shrink-0 object-contain", className)} {...props} />
+export const UiArtwork = forwardRef<HTMLImageElement, ImgHTMLAttributes<HTMLImageElement> & { name: ArtworkName }>(
+  ({ name, className, alt = "", ...props }, ref) => (
+    <img ref={ref} src={ARTWORK[name]} alt={alt} className={cn("shrink-0 object-contain", className)} {...props} />
+  ),
 );
+UiArtwork.displayName = "UiArtwork";
 
 export const SectionLabelMark = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => (
   <span aria-hidden className={cn("inline-flex h-2 w-12 shrink-0 items-center", className)} {...props}>
