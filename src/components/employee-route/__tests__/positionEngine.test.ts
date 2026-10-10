@@ -61,12 +61,13 @@ describe("PositionEngine", () => {
   it("does not reroute on a short excursion, but does after 3 fixes over 45 m", () => {
     const e = new PositionEngine(); e.setRoute(road);
     drive(e, 10);
-    e.ingest(fix(at(150, 50), 10_000), 10_000);
+    e.ingest(fix(at(140, 30), 10_000), 10_000);
+    e.ingest(fix(at(154, 50), 11_000), 11_000);
+    e.ingest(fix(at(168, 55), 12_000), 12_000);
     expect(e.state!.onRoute).toBe(true);
-    e.ingest(fix(at(164, 55), 11_000), 11_000);
-    e.ingest(fix(at(178, 60), 12_000), 12_000);
+    e.ingest(fix(at(182, 60), 13_000), 13_000);
     expect(e.state!.onRoute).toBe(false);
-    e.ingest(fix(at(192, 62), 13_000), 13_000);
+    e.ingest(fix(at(196, 62), 14_000), 14_000);
     expect(e.state!.offRouteFixes).toBeGreaterThanOrEqual(1);
   });
 
