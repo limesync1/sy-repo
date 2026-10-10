@@ -56,6 +56,7 @@ beforeEach(() => {
       getRenderingType() { return "VECTOR"; }
     },
     importLibrary: mocks.importLibrary,
+    Polyline: class { setMap() {} },
     RenderingType: { VECTOR: "VECTOR", RASTER: "RASTER" },
     ColorScheme: { DARK: "DARK", LIGHT: "LIGHT" },
     CollisionBehavior: { REQUIRED: "REQUIRED" },
