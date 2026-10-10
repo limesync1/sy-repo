@@ -630,7 +630,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [routeStarted, followMode]);
 
   /* Bryd follow ved manuel kortinteraktion */
-  const breakFollow = () => { if (followMode) setFollowMode(false); };
+  const [mapTouchTick, setMapTouchTick] = useState(0);
+  const breakFollow = () => { setMapTouchTick((t) => t + 1); if (followMode) setFollowMode(false); };
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
@@ -1333,6 +1334,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos, minStepIndex);
+  // Like Google Maps: after 10 s without touching the map, the driving view follows the car again.
+  useEffect(() => {
+    if (followMode || !routeStarted || highlightedId || selectedId || mapProvider !== "google") return;
+    const t = window.setTimeout(() => setFollowMode(true), 10000);
+    return () => window.clearTimeout(t);
+  }, [followMode, routeStarted, highlightedId, selectedId, mapProvider, mapTouchTick]);
   // A fresh directions response has its own step indices (even for the same stop).
   useEffect(() => {
     minStepIndexRef.current = { stopId: nextStop?.id ?? null, idx: 0 };
@@ -1865,6 +1872,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             fitEnabled={!routeStarted && !highlightedId}
             flyTo={highlightedPoint}
             night={night}
+            maneuverDistanceM={maneuver?.distanceToManeuverM ?? null}
             onInteract={breakFollow}
             onRecenter={() => { setHighlightedId(null); setFollowMode(true); }}
             onSelectStop={(id) => { setFollowMode(false); setHighlightedId(id); setSelectedId(id); }}
@@ -2085,8 +2093,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <div className="min-w-0 flex-1">
                         <p className="text-xl font-bold leading-none tabular-nums">{formatKm(maneuver.distanceToManeuverM)}</p>
                         <p className="mt-1 whitespace-normal break-words text-sm font-semibold leading-snug">
-                          {longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
-                          {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}
+                          {maneuver.currentStep.maneuver.instruction && !longStretch
+                            ? maneuver.currentStep.maneuver.instruction
+                            : <>{longStretch ? "Fortsæt ligeud" : maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                              {road ? <span className="font-normal text-muted-foreground"> ad {road}</span> : null}</>}
                         </p>
                       </div>
                     </div>
@@ -2094,7 +2104,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <div className="route-maneuver-then flex items-center gap-2 border-t border-border bg-secondary/50 px-3.5 py-1.5 text-xs text-muted-foreground">
                         <span className="font-medium">Derefter</span>
                         <ManeuverIcon type={thenStep.maneuver.type} modifier={thenStep.maneuver.modifier} className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
+                        <span className="truncate">{thenStep.maneuver.instruction || thenStep.name || maneuverLabel(thenStep.maneuver.type, thenStep.maneuver.modifier)}</span>
                       </div>
                     )}
                   </div>
