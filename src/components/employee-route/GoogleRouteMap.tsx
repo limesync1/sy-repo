@@ -89,7 +89,7 @@ function getElementPadding(container: HTMLElement, topRef?: React.RefObject<HTML
 }
 
 export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleRouteMap(props, _ref) {
-  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, moving, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, trafficSegments, onInteract, onRecenter, onSelectStop, onFailure, topOverlayRef, bottomOverlayRef } = props;
+  const { stops, start, overview, previewLine, legLine, hintLine, userPos, routeStarted, track, speedMps, followActive, fitEnabled, flyTo, night, maneuverDistanceM, trafficSegments, onInteract, onRecenter, onSelectStop, onFailure, topOverlayRef, bottomOverlayRef } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [ready, setReady] = useState(false);
