@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
 import type { MotionSample } from "@/components/employee-route/motionTrack";
 
@@ -351,10 +351,11 @@ export class PositionTrack {
 const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
 /**
- * React-binding: fodrer motoren med rå fixes og rutelinjen.
- * Returnerer et stabilt track (til kort-lag) og motorens tilstand pr. fix.
+ * React-binding: fodrer motoren med rå fixes. Rutelinjen sættes med
+ * `setRoute`, når den kendes. Returnerer et stabilt track (til kort-lag)
+ * og motorens tilstand pr. accepteret fix.
  */
-export function usePositionTrack(raw: RawFix | null, line: [number, number][], enabled: boolean) {
+export function usePositionTrack(raw: RawFix | null, enabled: boolean) {
   const ref = useRef<PositionTrack | null>(null);
   if (!ref.current) ref.current = new PositionTrack();
   const track = ref.current;
@@ -363,13 +364,13 @@ export function usePositionTrack(raw: RawFix | null, line: [number, number][], e
   useEffect(() => () => track.destroy(), [track]);
   useEffect(() => { if (enabled) track.resume(); else track.pause(); }, [enabled, track]);
   useEffect(() => {
-    track.setRoute(line);
-    const s = track.engine.state; if (s) setState(s);
-  }, [line, track]);
-  useEffect(() => {
     if (!raw) return;
     if (track.push(raw)) setState(track.engine.state);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [raw?.t, raw?.lat, raw?.lng]);
-  return { track, state };
+  const setRoute = useCallback((line: [number, number][]) => {
+    track.setRoute(line);
+    setState(track.engine.state);
+  }, [track]);
+  return { track, state, setRoute };
 }
