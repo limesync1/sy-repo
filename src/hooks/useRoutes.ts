@@ -11,6 +11,8 @@ import { toastRouteError } from "@/lib/route-errors";
 export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
   qc.invalidateQueries({ queryKey: ["route-stops"] });
+  qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
+  qc.invalidateQueries({ queryKey: ["employee-earnings"] });
   qc.invalidateQueries({ queryKey: ["routes"] });
   qc.invalidateQueries({ queryKey: ["routes-range"] });
   qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
