@@ -630,7 +630,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [routeStarted, followMode]);
 
   /* Bryd follow ved manuel kortinteraktion */
-  const breakFollow = () => { if (followMode) setFollowMode(false); };
+  const [mapTouchTick, setMapTouchTick] = useState(0);
+  const breakFollow = () => { setMapTouchTick((t) => t + 1); if (followMode) setFollowMode(false); };
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
@@ -1338,7 +1339,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (followMode || !routeStarted || highlightedId || selectedId || mapProvider !== "google") return;
     const t = window.setTimeout(() => setFollowMode(true), 10000);
     return () => window.clearTimeout(t);
-  }, [followMode, routeStarted, highlightedId, selectedId, mapProvider]);
+  }, [followMode, routeStarted, highlightedId, selectedId, mapProvider, mapTouchTick]);
   // A fresh directions response has its own step indices (even for the same stop).
   useEffect(() => {
     minStepIndexRef.current = { stopId: nextStop?.id ?? null, idx: 0 };
