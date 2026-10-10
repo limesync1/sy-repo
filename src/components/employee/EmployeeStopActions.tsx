@@ -57,8 +57,49 @@ const pricingFromItem = (item: any): PricingState => {
   };
 };
 
-export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, routeDate = null, compact = false }: {
-  stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; hideNoteAction?: boolean; routeDate?: string | null; compact?: boolean;
+/** Noter medarbejderen har sendt til kontoret om dette stop. */
+export function useStopOfficeNotes(stopId: string) {
+  return useQuery({
+    queryKey: ["employee-stop-notes", stopId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employee_appointment_notes")
+        .select("id, body, kind, created_at")
+        .eq("stop_id", stopId)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+/**
+ * Viser tidligere noter sendt til kontoret. Brugt af detaljervisningen, hvor
+ * selve handlingerne ligger øverst i modalen og notat-historikken nederst.
+ */
+export function EmployeeStopNotesList({ stopId }: { stopId: string }) {
+  const { data: notes = [], isError: notesError } = useStopOfficeNotes(stopId);
+  if (notesError) {
+    return <p className="text-[11px] text-muted-foreground">Tidligere noter kunne ikke hentes lige nu.</p>;
+  }
+  if (notes.length === 0) return null;
+  return (
+    <ul className="space-y-1.5">
+      {notes.map((n: any) => (
+        <li key={n.id} className="rounded-md border border-border bg-secondary/30 px-3 py-2">
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <CheckCircle2 className="h-3 w-3" /> Sendt {format(new Date(n.created_at), "d. MMM HH:mm", { locale: da })}
+          </p>
+          <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">{n.body}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, hideNotesList = false, routeDate = null, compact = false }: {
+  stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; hideNoteAction?: boolean; hideNotesList?: boolean; routeDate?: string | null; compact?: boolean;
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
@@ -88,19 +129,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const businessId: string | undefined = order?.business_id;
   const runDate = routeDate || todayStr();
 
-  const { data: notes = [], isError: notesError } = useQuery({
-    queryKey: ["employee-stop-notes", stopId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("employee_appointment_notes")
-        .select("id, body, kind, created_at")
-        .eq("stop_id", stopId)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: notes = [], isError: notesError } = useStopOfficeNotes(stopId);
 
   const { data: services = [], isLoading: loadingServices, isError: servicesError, refetch: refetchServices } = useQuery({
     queryKey: ["employee-business-services-priced", businessId],
@@ -345,19 +374,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       </div>
       {completed && <p className="text-[11px] text-muted-foreground">Fortryd udførsel for at rette aftalen.</p>}
 
-      {notesError && <p className="text-[11px] text-muted-foreground">Tidligere noter kunne ikke hentes lige nu.</p>}
-      {notes.length > 0 && (
-        <ul className="space-y-1.5">
-          {notes.map((n: any) => (
-            <li key={n.id} className="rounded-md border border-border bg-secondary/30 px-3 py-2">
-              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3" /> Sendt {format(new Date(n.created_at), "d. MMM HH:mm", { locale: da })}
-              </p>
-              <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">{n.body}</p>
-            </li>
-          ))}
-        </ul>
-      )}
+      {!hideNotesList && <EmployeeStopNotesList stopId={stopId} />}
       </>)}
 
       {/* Ret aftale */}

@@ -30,7 +30,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { EmployeeStopActions } from "./EmployeeStopActions";
+import { EmployeeStopActions, EmployeeStopNotesList } from "./EmployeeStopActions";
 
 type RouteContext = {
   name: string | null;
@@ -323,6 +323,16 @@ export const StopDetailsContent = ({
       </div>
 
       <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-3 p-3 sm:space-y-4 sm:p-5">
+        {!readOnly && stop.order_id && (
+          <EmployeeStopActions
+            stopId={stop.id}
+            order={order}
+            completed={stop.status === "completed"}
+            hideNoteAction
+            hideNotesList
+            routeDate={route?.date ?? null}
+          />
+        )}
         {!readOnly && (fullAddress || stop.customer_phone) && (
           <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Kontakt og navigation">
             <div className={stop.customer_phone && fullAddress && onNavigate ? "grid grid-cols-1 min-[400px]:grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
@@ -458,12 +468,6 @@ export const StopDetailsContent = ({
           )}
         </Section>
 
-        {!readOnly && stop.order_id && (
-          <EmployeeStopActions stopId={stop.id} order={order} completed={stop.status === "completed"} hideNoteAction routeDate={route?.date ?? null} />
-        )}
-
-
-
         <details className="stop-secondary-details rounded-md border border-border bg-card">
           <summary className="cursor-pointer px-3 py-3 text-sm font-medium text-foreground">Beløb og rutedetaljer</summary>
           <div className="space-y-3 p-3 pt-0">
@@ -539,6 +543,8 @@ export const StopDetailsContent = ({
             />
           </Section>
         )}
+
+        {!readOnly && stop.order_id && <EmployeeStopNotesList stopId={stop.id} />}
 
         {readOnly && stop.notes && stop.notes.trim() && (
           <Section
