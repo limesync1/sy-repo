@@ -4,6 +4,11 @@
 
 @layer base {
   :root {
+    --z-overlay: 1200;
+    --z-modal: 1210;
+    --z-alert: 1220;
+    --z-popover: 1230;
+    --z-tooltip: 1240;
     --background: 0 0% 100%;
     --site-header-background: 0 0% 100%;
     --shadow-color: 222 47% 11%;
@@ -1661,6 +1666,8 @@ img[loading="lazy"].is-error {
 @media (max-width: 639px) {
   body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0; pointer-events: none; }
 }
+
+.toaster { z-index: var(--z-alert) !important; }
 
 /* Ensartet størrelse i alle panel-vinduer (Rediger rute, Stops, Opret rute,
    Opret bestilling, Opret kunde) — undgår at felter er for store/små. */

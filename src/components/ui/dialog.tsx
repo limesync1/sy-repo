@@ -19,7 +19,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "ui-overlay fixed inset-0 z-50 bg-black/50 dark:bg-black/70 backdrop-blur-sm",
+      "ui-overlay fixed inset-0 z-[var(--z-overlay)] bg-black/50 dark:bg-black/70 backdrop-blur-sm",
       className,
     )}
     {...props}
@@ -36,7 +36,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "ui-modal fixed left-1/2 top-1/2 z-50 grid w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] min-w-0 -translate-x-1/2 -translate-y-1/2 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-lg border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-foreground/10 sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:p-6",
+        "ui-modal fixed left-1/2 top-1/2 z-[var(--z-modal)] grid w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] min-w-0 -translate-x-1/2 -translate-y-1/2 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-lg border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-foreground/10 sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:p-6",
         className,
       )}
       {...props}
@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("min-w-0 flex flex-col space-y-1.5 text-left", className)} {...props} />
+  <div className={cn("min-w-0 flex flex-col space-y-1.5 pr-10 text-left sm:pr-12", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 

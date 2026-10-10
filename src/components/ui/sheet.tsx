@@ -19,7 +19,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "ui-overlay fixed inset-0 z-50 bg-black/50 dark:bg-black/70 backdrop-blur-sm",
+      "ui-overlay fixed inset-0 z-[var(--z-overlay)] bg-black/50 dark:bg-black/70 backdrop-blur-sm",
       className,
     )}
     {...props}
@@ -29,7 +29,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "ui-sheet fixed z-50 min-w-0 gap-4 overflow-x-hidden overscroll-contain bg-background p-6 shadow-2xl shadow-foreground/10 transition motion-reduce:transition-none",
+  "ui-sheet fixed z-[var(--z-modal)] min-w-0 gap-4 overflow-x-hidden overscroll-contain bg-background p-6 shadow-2xl shadow-foreground/10 transition motion-reduce:transition-none",
   {
     variants: {
       side: {
@@ -75,7 +75,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-2 text-center sm:text-left", className)} {...props} />
+  <div className={cn("flex min-w-0 flex-col space-y-2 pr-10 text-left sm:pr-12", className)} {...props} />
 );
 SheetHeader.displayName = "SheetHeader";
 
