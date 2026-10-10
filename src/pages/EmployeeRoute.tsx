@@ -40,8 +40,8 @@ import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
-import { useMotionTrack, type MotionTrack } from "@/components/employee-route/motionTrack";
-import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
+import type { MotionSource } from "@/components/employee-route/motionTrack";
+import { usePositionTrack } from "@/components/employee-route/positionEngine";
 import { RouteMapLine, resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -117,7 +117,7 @@ const NavPuckMarker = ({
   fallback,
   moving,
 }: {
-  track: MotionTrack;
+  track: MotionSource;
   fallback: [number, number];
   /** Når false: vis kun prikken (ingen retningskegle, ingen rotation). */
   moving: boolean;
@@ -209,7 +209,7 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
  *    kortet ikke pumper ind og ud.
  *  - Står bilen stille, sker der ingenting overhovedet ("pause").
  */
-const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speedMps: number; topHudRef?: React.RefObject<HTMLElement>; bottomHudRef?: React.RefObject<HTMLElement>; }>(({ active, track, speedMps, topHudRef, bottomHudRef }, _ref) => {
+const NavCamera = forwardRef<never, { active: boolean; track: MotionSource; speedMps: number; topHudRef?: React.RefObject<HTMLElement>; bottomHudRef?: React.RefObject<HTMLElement>; }>(({ active, track, speedMps, topHudRef, bottomHudRef }, _ref) => {
   const map = useMap();
   const speedRef = useRef(speedMps);
   speedRef.current = speedMps;
@@ -610,14 +610,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
   // position + heading + estimeret hastighed (sidstnævnte bruges også
   // til den hastigheds-adaptive zoom).
-  const filtered: FilteredFix | null = useGpsFilter(rawFix);
+  // Positionsmotoren er eneste kilde til bilens position: den matcher fixes
+  // til rutelinjen, afviser umulige spring og kører videre i tunneler.
+  const { track: positionTrack, state: engineState, setRoute: setEngineRoute } = usePositionTrack(rawFix, routeStarted && pageVisible);
   useEffect(() => {
-    if (!filtered) return;
-    setUserPos(filtered.pos);
-    if (filtered.heading != null) setUserHeading(filtered.heading);
-  }, [filtered?.pos[0], filtered?.pos[1], filtered?.heading]);
-  const userSpeedMps = filtered?.speedMps ?? 0;
-  const userAccuracyM = filtered?.accuracyM ?? null;
+    if (!engineState) return;
+    setUserPos((p) => (p && p[0] === engineState.pos[0] && p[1] === engineState.pos[1] ? p : engineState.pos));
+    if (engineState.heading != null) setUserHeading(engineState.heading);
+  }, [engineState]);
+  const userSpeedMps = engineState?.speedMps ?? 0;
+  const userAccuracyM = engineState?.accuracyM ?? null;
   const driving = routeStarted && runMode !== "list";
   useWakeLock(driving && pageVisible);
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
@@ -991,6 +993,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const raw = directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
     return raw;
   }, [directions]);
+  useEffect(() => { setEngineRoute(legLine); }, [legLine, setEngineRoute]);
   // Google traffic intervals (index ranges on the leg geometry) → coloured segments like Google Maps.
   const trafficSegments = useMemo(() => {
     const t = (directions as { traffic?: { start: number; end: number; speed: string }[] } | undefined)?.traffic;
@@ -1029,9 +1032,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       offRouteStreakRef.current = 0;
       return;
     }
-    const dist = pointToPolylineMeters(userPos[0], userPos[1], legLine);
-    if (dist > OFF_ROUTE_THRESHOLD_M) {
-      offRouteStreakRef.current += 1;
+    // Motoren afgør afvigelse med hysterese (3 fixes over 45 m); den viste
+    // position er trukket ind på vejen, så den kan ikke bruges til afstand.
+    if (engineState && !engineState.onRoute && engineState.offRouteFixes >= OFF_ROUTE_STREAK) {
+      offRouteStreakRef.current = engineState.offRouteFixes;
     } else {
       offRouteStreakRef.current = 0;
       if (isRerouting) setIsRerouting(false);
@@ -1069,7 +1073,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       setTimeout(() => setIsRerouting(false), 3000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userPos?.[0], userPos?.[1], legLine, nextStop?.id, distanceToNextM, routeStarted, audioEnabled]);
+  }, [engineState, legLine, nextStop?.id, distanceToNextM, routeStarted, audioEnabled]);
 
   // Reset reroute-spoken pointer når næste stop ændrer sig så vi får
   // ny stemmebesked ved næste reroute event.
@@ -1087,32 +1091,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       lastHeadingRef.current = userHeading;
       return userHeading;
     }
-    // 2) Ellers: peg mod næste stop — men KUN når vi er i bevægelse og
-    //    langt nok væk til at pejlingen er stabil. Tæt på stoppet svinger
-    //    pejlingen vildt ved få meters GPS-støj.
-    if (
-      isMoving &&
-      userPos && nextStop && nextStop.latitude != null && nextStop.longitude != null &&
-      (distanceToNextM == null || distanceToNextM > 80)
-    ) {
-      const b = bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
-      lastHeadingRef.current = b;
-      return b;
-    }
+    // Ingen "lige linje mod næste stop": den peger hen over marker.
     // 3) Holder vi stille: behold den sidst kendte retning.
     return lastHeadingRef.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userHeading, isMoving, userPos?.[0], userPos?.[1], nextStop?.id, nextStop?.latitude, nextStop?.longitude, distanceToNextM]);
+  }, [userHeading]);
 
   // Blød bevægelse mellem GPS-fixes. Interpolationen sker UDEN for React
   // (MotionTrack) og skrives direkte på Leaflet-markøren og kameraet — så
   // siden kun re-renderer når der kommer et nyt fix. Det var tidligere
   // ~60 re-renders i sekundet, hvilket gjorde telefonen varm.
-  const motionTrack = useMotionTrack(
-    userPos,
-    derivedHeading,
-    routeStarted && pageVisible,
-  );
+  const motionTrack = positionTrack;
   const displayPos = userPos;
   const displayHeading = derivedHeading;
 
