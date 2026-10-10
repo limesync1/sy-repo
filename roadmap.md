@@ -33,3 +33,8 @@
 - [x] Verificér indlogget på mobil, tablet og computer i lyst/mørkt tema
 - [x] Tilføj og kør målrettede komponenttests samt kontrollér fejl- og konsollog
 - [x] Placer Ret aftale og Ny aftale øverst i opgavedetaljens modal med notathistorik nederst
+
+## Rute og mørk tilstand (10/10)
+- [x] Tilføj Bauhaus Herning og jem & fix Herning som kunder og sidste stop på Haderup–Herning
+- [x] Fjern hvid sidebaggrund i mørk tilstand (ses ved scroll)
+- [x] Centrér/positionér lander direkte på bilen; ingen "spoling" efter app-skift
