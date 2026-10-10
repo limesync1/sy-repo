@@ -2165,14 +2165,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && nextStop && (
           <div ref={bottomHudRef} className="route-active-stop pointer-events-none absolute bottom-[calc(52px+env(safe-area-inset-bottom))] inset-x-0 z-[1000] p-2 sm:bottom-[calc(60px+env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[min(34rem,calc(100vw-2rem))] sm:p-0 lg:left-4 lg:right-auto lg:w-[min(30rem,calc(42vw-2rem))] xl:w-[30rem]">
             <Card className="route-drive-dock pointer-events-auto mx-auto max-w-xl overflow-hidden rounded-md border-border/80 bg-card shadow-lg sm:max-md:max-w-none md:max-w-none">
+              {/* Opsummering i Google Maps-stil: stor restid, derefter afstand og ankomst. */}
+              <button type="button" className="route-dock-summary flex min-h-12 w-full items-center justify-between gap-2 border-b border-border px-3.5 py-1.5 text-left tabular-nums transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring" aria-label={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}>
+                <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5" role="status">
+                  {activeNextStopLabel ? <><b className="font-mono text-lg font-bold leading-tight text-success">{activeNextStopLabel}</b><span className="truncate text-xs text-muted-foreground">hos {activeRouteStop?.customer_name || "kunden"}</span></>
+                    : isAtNextStop ? <><b className="text-lg font-bold leading-tight text-success">Fremme</b><span className="text-xs text-muted-foreground">{actualArrival ? `ankom ${formatClockTime(actualArrival)}` : "klar til at starte"}</span></>
+                    : <><b className="text-lg font-bold leading-tight text-success">{liveDurationS != null ? formatMin(liveDurationS) : "—"}</b><span className="text-xs text-muted-foreground">{liveDistanceM != null ? `${formatKm(liveDistanceM)} · ` : ""}ankomst {etaLabel ?? "—"}</span></>}
+                </span>
+                <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-muted-foreground">
+                  <span className="hidden min-[380px]:inline">{nextStopIdx + 1}/{sortedStops.length}</span>
+                  {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </span>
+              </button>
               {!collapsed && <StopTimeline stops={sortedStops} currentIndex={nextStopIdx} arrived={isAtNextStop} />}
               {!collapsed && <div className="px-3.5 py-1"><RouteWeatherStatus routeId={route.id} date={route.route_date} stops={sortedStops} /></div>}
-              <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border px-3 text-xs tabular-nums">
-                <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground" role="status">
-                  {activeNextStopLabel ? <><Clock className="h-4 w-4 text-success" /><span>Tid hos <b className="font-semibold text-foreground">{activeRouteStop?.customer_name || "kunden"}</b> · <b className="font-mono font-semibold text-success">{activeNextStopLabel}</b></span></> : isAtNextStop ? <><CheckCircle2 className="h-4 w-4 text-success" /><span className="font-semibold text-success">Hos kunden{actualArrival ? ` · ${formatClockTime(actualArrival)}` : ""}</span></> : <><Navigation className="h-4 w-4" /><span>Ankomst · ca. <b className="text-foreground">{etaLabel ?? "—"}</b></span>{liveDurationS != null && <span>· {formatMin(liveDurationS)}</span>}</>}
-                </p>
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" aria-label={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} title={collapsed ? "Vis ruteoverblik" : "Skjul ruteoverblik"} aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}>{collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</Button>
-              </div>
               {/* Tidsregistrering — én kompakt linje */}
               {!collapsed && routeStartedAt && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 pb-1 pt-1.5 text-xs tabular-nums text-muted-foreground">
