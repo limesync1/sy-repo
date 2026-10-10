@@ -28,6 +28,7 @@ import {
   type PricedService, type PricingState,
 } from "./CompactPricingEditor";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
+import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
 type Line = {
   key: string; item_id: string | null; service_id: string | null; name: string;
@@ -298,15 +299,18 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
           <MessageSquarePlus className="h-4 w-4" />Note
         </Button>
       ) : (<>
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
-        <Button variant="outline" className="h-12 justify-center gap-2" onClick={openEditor} disabled={completed || !order}>
-          <Pencil className="h-4 w-4" /> Ret aftale
+      <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
+        <Button variant="outline" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openEditor} disabled={completed || !order}>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><Pencil className="h-4 w-4" /></span>
+          <span><span className="block text-sm font-semibold">Ret aftale</span><span className="block text-[11px] font-normal text-muted-foreground">Services og interval</span></span>
         </Button>
-        <Button variant="outline" className="h-12 justify-center gap-2" onClick={openNew} disabled={!order}>
-          <CalendarPlus className="h-4 w-4" /> Ny aftale
+        <Button variant="outline" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={openNew} disabled={!order}>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><CalendarPlus className="h-4 w-4" /></span>
+          <span><span className="block text-sm font-semibold">Ny aftale</span><span className="block text-[11px] font-normal text-muted-foreground">Hos samme kunde</span></span>
         </Button>
-        <Button variant="outline" className="h-12 justify-center gap-2 min-[400px]:col-span-2" onClick={() => setNoteOpen(true)}>
-          <MessageSquarePlus className="h-4 w-4" /> Note til kontoret
+        <Button variant="outline" className="h-auto min-h-14 justify-start gap-3 whitespace-normal px-3 py-2 text-left" onClick={() => setNoteOpen(true)}>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><MessageSquarePlus className="h-4 w-4" /></span>
+          <span><span className="block text-sm font-semibold">Note</span><span className="block text-[11px] font-normal text-muted-foreground">Send til kontoret</span></span>
         </Button>
       </div>
       {completed && <p className="text-[11px] text-muted-foreground">Fortryd udførsel for at rette aftalen.</p>}
@@ -329,11 +333,11 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {/* Ret aftale */}
       <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
-            <SheetTitle>Ret den nuværende aftale</SheetTitle>
-            <SheetDescription>Vælg services og tilpas de prisfelter, virksomheden bruger.</SheetDescription>
+          <SheetHeader className="planner-overlay-header shrink-0 border-b border-border p-4 pr-12 text-left">
+            <SheetTitle className="sr-only">Ret aftale</SheetTitle><SheetDescription className="sr-only">Ret services og vælg hvilke besøg ændringen gælder.</SheetDescription>
+            <SheetHeaderBlock icon={<Pencil className="h-4 w-4" />} title="Ret aftale" description="Ret services og vælg tydeligt, hvilke besøg ændringen gælder." />
           </SheetHeader>
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 sm:p-5">
             {servicesProblem}
             <ul className="space-y-2">
               {lines.map((l) => {
@@ -388,8 +392,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               </p>
             )}
 
+            <Section icon={<CheckCircle2 className="h-4 w-4" />} title="Gælder for" tone="accent">
             <fieldset className="space-y-2">
-              <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Gælder for</legend>
               {[
                 { v: true, t: "Dette og kommende besøg", d: "Forventede besøg på aftalen opdateres også." },
                 { v: false, t: "Kun dette besøg", d: "Kommende besøg forbliver uændrede." },
@@ -403,8 +407,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 </Button>
               ))}
             </fieldset>
+            </Section>
           </div>
-          <div className="shrink-0 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetFooterBar className="pb-[max(1rem,env(safe-area-inset-bottom))]">
             {editTotal > 0 && <p className="mb-2 flex justify-between text-sm"><span className="text-muted-foreground">Ca. pris pr. besøg</span><span className="font-semibold tabular-nums">{formatPrice(editTotal)}</span></p>}
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" className="h-12" onClick={() => void closeEditor()} disabled={save.isPending}>Annullér</Button>
@@ -412,18 +417,18 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
                 {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gem ændringer"}
               </Button>
             </div>
-          </div>
+          </SheetFooterBar>
         </SheetContent>
       </Sheet>
 
       {/* Ny aftale hos kunden */}
       <Sheet open={newOpen} onOpenChange={(o) => { if (!createNew.isPending) setNewOpen(o); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
-            <SheetTitle>Opret ny aftale hos {order?.customer_name || "kunden"}</SheetTitle>
-            <SheetDescription>Kunden genbruges. Du vælger service, prisopsætning, interval og foreløbig dato.</SheetDescription>
+          <SheetHeader className="planner-overlay-header shrink-0 border-b border-border p-4 pr-12 text-left">
+            <SheetTitle className="sr-only">Ny aftale</SheetTitle><SheetDescription className="sr-only">Opret en aftale hos samme kunde.</SheetDescription>
+            <SheetHeaderBlock icon={<CalendarPlus className="h-4 w-4" />} title={`Ny aftale hos ${order?.customer_name || "kunden"}`} description="Kunden genbruges. Vælg service, interval og hvor aftalen skal planlægges." />
           </SheetHeader>
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 sm:p-5">
             {servicesProblem}
             {!servicesError && !loadingServices && (
               services.length === 0 ? <p className="text-sm text-muted-foreground">Virksomheden har ingen aktive services.</p> : (
@@ -446,26 +451,26 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               </div>
             )}
             {newService && (
-               <div className="space-y-1.5"><label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Foreløbig opstartsdato</label><DatePickerField value={newStart} minDate={todayStr()} onChange={setNewStart} className="h-11 text-base" /><p className="text-xs leading-snug text-muted-foreground">Kontoret kan justere datoen, før aftalen lægges på en rute.</p></div>
+               <Section icon={<CalendarPlus className="h-4 w-4" />} title="Planlægning" tone="sky"><Field label="Foreløbig opstartsdato" required hint={newPricing?.interval === "engangskøb" && newStart === runDate ? "Du vælger ved oprettelse, om den skal sidst på dagens rute eller til kontoret." : newPricing?.interval !== "engangskøb" ? `Første besøg er ${newStart}. Kontoret placerer den faste aftale på den rigtige rute.` : "En fremtidig aftale lægges i Aftaler uden rute, så kontoret kan vælge den rigtige rute."}><DatePickerField value={newStart} minDate={todayStr()} onChange={setNewStart} className="h-11 text-base" /></Field></Section>
             )}
           </div>
-          <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetFooterBar className="grid grid-cols-2 gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="outline" className="h-12" onClick={() => setNewOpen(false)} disabled={createNew.isPending}>Annullér</Button>
             <Button className="h-12" onClick={() => void submitNew()} disabled={!newService || createNew.isPending}>
               {createNew.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Opret aftale"}
             </Button>
-          </div>
+          </SheetFooterBar>
         </SheetContent>
       </Sheet>
 
       {/* Note til kontoret */}
       <Sheet open={noteOpen} onOpenChange={setNoteOpen}>
         <SheetContent side={sheetSide} className={sheetClass}>
-          <SheetHeader className="shrink-0 border-b border-border p-4 pr-12 text-left">
-            <SheetTitle>Note til kontoret</SheetTitle>
-            <SheetDescription>Noten vises på aftalen i virksomhedspanelet.</SheetDescription>
+          <SheetHeader className="planner-overlay-header shrink-0 border-b border-border p-4 pr-12 text-left">
+            <SheetTitle className="sr-only">Note til kontoret</SheetTitle><SheetDescription className="sr-only">Send en intern note om besøget.</SheetDescription>
+            <SheetHeaderBlock icon={<MessageSquarePlus className="h-4 w-4" />} title="Note til kontoret" description="Noten gemmes på aftalen og bliver synlig for kontoret." />
           </SheetHeader>
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 sm:p-5">
             <div className="flex flex-wrap gap-2">
               {QUICK_NOTES.map((q) => (
                 <Button key={q} variant="secondary" size="sm" className="h-10"
@@ -476,12 +481,12 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={5} maxLength={2000}
               placeholder="Skriv kort, hvad kontoret skal vide…" autoFocus={!isCompact} />
           </div>
-          <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetFooterBar className="grid grid-cols-2 gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="outline" className="h-12" onClick={() => setNoteOpen(false)}>Annullér</Button>
             <Button className="h-12 gap-2" onClick={() => sendNote.mutate()} disabled={!note.trim() || sendNote.isPending}>
               {sendNote.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> Send</>}
             </Button>
-          </div>
+          </SheetFooterBar>
         </SheetContent>
       </Sheet>
     </div>
