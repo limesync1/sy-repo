@@ -61,7 +61,8 @@
       /* Kritisk CSS: undgår hvidt "blink" og layout-hop før React mounter.
          Baggrunden matcher app-baggrunden, og #root reserverer viewport-højden. */
       html { background: hsl(0 0% 100%); }
-      body { margin: 0; background: hsl(0 0% 100%); }
+      html.dark { background: hsl(222 35% 7%); color-scheme: dark; }
+      body { margin: 0; }
       #root { min-height: 100vh; min-height: 100dvh; }
     </style>
     <div id="root">
