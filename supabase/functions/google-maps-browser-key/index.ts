@@ -28,8 +28,10 @@ Deno.serve(async (req) => {
     if (error || !user) return json({ error: "Ikke logget ind" }, 401);
 
     const key = Deno.env.get("SERVICEYDERE_MAPS_BROWSER_KEY")?.trim();
-    if (!key) return json({ key: null, reason: "not-configured" });
-    return json({ key }, 200, { "Cache-Control": "private, max-age=3600" });
+    // Vector map ID enables Google Maps' own heading-up/tilt navigation camera.
+    const mapId = Deno.env.get("SERVICEYDERE_MAPS_MAP_ID")?.trim() || "DEMO_MAP_ID";
+    if (!key) return json({ key: null, mapId, reason: "not-configured" });
+    return json({ key, mapId }, 200, { "Cache-Control": "private, max-age=3600" });
   } catch (err) {
     console.error("google-maps-browser-key failed:", err);
     return json({ error: "Kortnøglen kunne ikke hentes" }, 500);
