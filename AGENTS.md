@@ -23,8 +23,8 @@
 - Business tab fallbacks share eagerly imported registry skeletons, preventing blank lazy fallbacks; empty customer lists use shared `NoItemsIcon`.
 
 - Leaflet reserve uses synchronized motion/rotation; mobile actions stay below the map. Google stop/start pins use imported AdvancedMarkerElement with geographic anchors and id-based updates to move with the camera, not the car.
-- Arrival uses bounded accuracy-aware proximity, low-speed gating and dwell; work timers and completion require explicit actions to avoid false hours.
-- Driving route lines preserve provider road geometry and render through the shared SVG brand-gradient layer, so decoration never moves a route off the road.
+- Arrival is immediate for accurate slow fixes, otherwise uses short dwell; timers and completion stay manual to avoid false hours.
+- Route lines preserve road geometry; Google shows active leg OR overview, without raw GPS trails, to avoid competing paths. Google/Leaflet share car artwork.
 - Route theme owns guide/checklist/portals; toasts observe root. Manual choices reset at automatic switch, avoiding mixed themes.
 - Re-optimization never reorders within 250 m of the next stop to protect arrival.
 - Guide and checklist share metrics, expiring stop-scoped GPS ETA, actual arrival and summary; merge customer intervals to prevent double-counting and never substitute scheduled time for ETA.

@@ -119,6 +119,21 @@ describe("Google advanced stop pins", () => {
     expect(mocks.pins).toHaveLength(0);
   });
 
+  it("shows the customer's real name beside a stop instead of hiding it beneath road lines", async () => {
+    const props = makeProps();
+    render(<GoogleRouteMap {...props} stops={[{ ...stops[0], name: "Bauhaus Herning" }]} />);
+    await waitFor(() => expect(mocks.pins).toHaveLength(2));
+    expect(mocks.pins[0].title).toBe("Bauhaus Herning");
+    expect(mocks.pins[0].content.textContent).toContain("Bauhaus Herning");
+  });
+
+  it("uses the uploaded car in following mode", async () => {
+    const props = makeProps();
+    const view = render(<GoogleRouteMap {...props} routeStarted followActive userPos={[56, 9]} />);
+    await waitFor(() => expect(view.container.querySelector("img.route-navigation-car")).not.toBeNull());
+    expect(view.container.querySelector("img.route-navigation-car")?.getAttribute("src")).toContain("navigation-car.svg");
+  });
+
   it("keeps the compact labelled recenter action available after manual map movement", async () => {
     const props = makeProps();
     const view = render(<GoogleRouteMap {...props} routeStarted userPos={[56, 9]} />);
