@@ -31,17 +31,17 @@ export function DriveIssueBanner({ issues, onRetry, placement = "overlay" }: { i
       {issues.slice(0, 2).map((issue) => {
         const Icon = issue.id === "offline" ? WifiOff : issue.tone === "error" ? MapPinOff : AlertTriangle;
         return (
-          <div key={issue.id} role="alert" className={cn("pointer-events-auto flex items-start gap-2.5 rounded-xl border bg-card px-3 py-2.5 shadow-md", issue.tone === "error" ? "border-destructive/30" : "border-warning/40")}>
-            <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", issue.tone === "error" ? "text-destructive" : "text-warning")} aria-hidden />
+          <div key={issue.id} role="alert" className={cn("pointer-events-auto flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 shadow-md", issue.tone === "error" ? "border-destructive/30" : "border-warning/40")}>
+            <Icon className={cn("h-4 w-4 shrink-0", issue.tone === "error" ? "text-destructive" : "text-warning")} aria-hidden />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">{issue.title}</p>
-              <p className="mt-0.5 text-xs leading-4 text-muted-foreground">{issue.body}</p>
-              {issue.action && (
-                <Button size="sm" variant="outline" className="mt-2 h-9 gap-1.5 text-xs" onClick={onRetry}>
-                  <RefreshCw className="h-3.5 w-3.5" /> Prøv igen
-                </Button>
-              )}
+              <p className="truncate text-xs font-semibold text-foreground">{issue.title}</p>
+              <p className="line-clamp-2 text-[11px] leading-4 text-muted-foreground">{issue.body}</p>
             </div>
+            {issue.action && (
+              <Button size="icon" variant="outline" className="h-10 w-10 shrink-0" onClick={onRetry} aria-label="Prøv igen" title="Prøv igen">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         );
       })}
