@@ -259,7 +259,7 @@ export function GoogleRouteMap(props: Props) {
         if (proj) {
           const scale = 2 ** zoom;
           const p = proj.fromLatLngToPoint(ll(pos));
-          if (p) map.setCenter(proj.fromLatLngToPoint ? proj.fromPointToLatLng(new google.maps.Point(p.x, p.y - offset / scale))! : ll(pos));
+          map.setCenter((p && proj.fromPointToLatLng(new google.maps.Point(p.x, p.y - offset / scale))) || ll(pos));
         } else map.setCenter(ll(pos));
         programmatic.current = false;
         last = { lat: pos[0], lng: pos[1], zoom };
