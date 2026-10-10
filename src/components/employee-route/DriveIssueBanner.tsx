@@ -27,7 +27,7 @@ export function DriveIssueBanner({ issues, onRetry, placement = "overlay" }: { i
     );
   }
   return (
-    <div className="drive-issue-banner pointer-events-none absolute inset-x-2 top-2 z-[1005] flex flex-col gap-2 md:inset-x-auto md:left-1/2 md:w-[420px] md:-translate-x-1/2">
+    <div className="drive-issue-banner pointer-events-none absolute inset-x-2 bottom-[calc(9.5rem+env(safe-area-inset-bottom))] z-[1005] flex flex-col gap-2 sm:inset-x-auto sm:bottom-4 sm:left-4 sm:w-[min(23rem,calc(100vw-2rem))] lg:w-[25rem]">
       {issues.slice(0, 2).map((issue) => {
         const Icon = issue.id === "offline" ? WifiOff : issue.tone === "error" ? MapPinOff : AlertTriangle;
         return (
