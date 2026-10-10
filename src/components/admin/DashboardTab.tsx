@@ -449,7 +449,7 @@ const DashboardTab = ({
         </div>
       </section>
 
-      <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.9fr)] xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+      <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.9fr)]">
         <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Finansielt overblik — afløser de tidligere "Omsætning"-kort.
               Viser hvad der er faktureret, betalt, udestående/forfaldent,
