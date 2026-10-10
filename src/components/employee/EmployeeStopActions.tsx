@@ -320,13 +320,13 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   StepIndicator.displayName = "StepIndicator";
 
   return (
-    <div className={compact ? "employee-stop-quick-actions col-span-full grid min-w-0 grid-cols-3 gap-2" : noteOnly ? "contents" : "space-y-2"}>
+    <div className={compact || noteOnly ? "contents" : "space-y-2"}>
       {compact ? (
-        <div className="contents">
-          {!noteOnly && <Button variant="appointmentEdit" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openEditor} disabled={completed || !order}><Pencil className="h-4 w-4 shrink-0" /><span>Ret aftale</span></Button>}
-          {!noteOnly && <Button variant="appointmentCreate" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={openNew} disabled={!order}><CalendarPlus className="h-4 w-4 shrink-0" /><span>Ny aftale</span></Button>}
-          {!hideNoteAction && <Button variant="appointmentNote" className="h-auto min-h-11 min-w-0 flex-1 gap-1.5 whitespace-normal px-2 py-2 text-center text-xs" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-4 w-4 shrink-0" /><span>Note til kontoret</span></Button>}
-        </div>
+        <>
+          {!noteOnly && <Button variant="appointmentEdit" aria-label="Ret aftale" title="Ret aftale" className="route-dock-tile" onClick={openEditor} disabled={completed || !order}><Pencil className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ret aftale</span></Button>}
+          {!noteOnly && <Button variant="appointmentCreate" aria-label="Ny aftale" title="Ny aftale" className="route-dock-tile" onClick={openNew} disabled={!order}><CalendarPlus className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ny aftale</span></Button>}
+          {!hideNoteAction && <Button variant="appointmentNote" aria-label="Note til kontoret" title="Note til kontoret" className="route-dock-tile" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Note</span></Button>}
+        </>
       ) : noteOnly && !hideNoteAction ? (
         <Button variant="appointmentNote" aria-label="Note til kontoret" title="Note til kontoret" className="h-11 shrink-0 gap-1.5 rounded-md px-3 text-xs" onClick={() => setNoteOpen(true)}>
           <MessageSquarePlus className="h-4 w-4" />Note til kontoret
