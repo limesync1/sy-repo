@@ -622,13 +622,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
   const { night, toggle: toggleNight } = useNightMode();
   useRootDark(night);
-  // Uden centrér-knap: kortet vender selv tilbage til at følge dig kort
-  // efter at du har kigget rundt med fingeren.
-  useEffect(() => {
-    if (!routeStarted || followMode) return;
-    const t = window.setTimeout(() => { setHighlightedId(null); setFollowMode(true); }, 8000);
-    return () => window.clearTimeout(t);
-  }, [routeStarted, followMode]);
+  // Kortet bliver, hvor brugeren har lagt det; "Centrér" genoptager følgning.
 
   /* Bryd follow ved manuel kortinteraktion */
   const [mapTouchTick, setMapTouchTick] = useState(0);
@@ -1347,12 +1341,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos, minStepIndex);
-  // Like Google Maps: after 10 s without touching the map, the driving view follows the car again.
-  useEffect(() => {
-    if (followMode || !routeStarted || highlightedId || selectedId || mapProvider !== "google") return;
-    const t = window.setTimeout(() => setFollowMode(true), 15000);
-    return () => window.clearTimeout(t);
-  }, [followMode, routeStarted, highlightedId, selectedId, mapProvider, mapTouchTick]);
   // A fresh directions response has its own step indices (even for the same stop).
   useEffect(() => {
     minStepIndexRef.current = { stopId: nextStop?.id ?? null, idx: 0 };

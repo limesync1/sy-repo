@@ -383,8 +383,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   useEffect(() => {
     const map = mapRef.current; const el = containerRef.current;
     if (!map || !el || !following) return;
-    if (gestureRef.current.pinch === false) userZoomRef.current = Math.max(15, Math.min(18, map.getZoom() ?? 17)) ;
-    let heading: number | null = map.getHeading() || null;
+    // Entering follow (start or "Centrér") always lands on one calm, predictable view.
+    userZoomRef.current = 17;
+    let heading: number | null = null;
     let from: Cam | null = null; let to: Cam | null = null; let t0 = 0; let frame = 0; let lastTarget = 0;
     let lastPos: [number, number] | null = null;
     const cur = (): Cam => { const c = map.getCenter(); return { lat: c?.lat() ?? 0, lng: c?.lng() ?? 0, zoom: map.getZoom() ?? 17, heading: map.getHeading() ?? 0, tilt: map.getTilt() ?? 0 }; };
@@ -401,8 +402,10 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const flat = flatRef.current;
       heading = nextHeading(heading, gpsHeading, speedRef.current);
       setPuckHeading(heading);
-      const h = flat ? 0 : heading ?? 0;
-      const tilt = flat ? 0 : 45;
+      // Tilt/rotate only once a real driving direction is known; otherwise a flat north-up map.
+      const known = !flat && heading != null;
+      const h = known ? heading! : 0;
+      const tilt = known ? 40 : 0;
       const zoom = followZoom(userZoomRef.current, maneuverRef.current, speedRef.current);
       const p = snapToLine(pos, legRef.current);
       const dy = Math.max(0, (anchorRef.current ?? el.clientHeight / 2) - el.clientHeight / 2);
