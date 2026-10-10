@@ -1934,3 +1934,13 @@ img[loading="lazy"].is-error {
 }
 .panel-page-hero .border-input:hover, .panel-page-hero button.bg-secondary:hover { background: hsl(var(--ocean-foreground) / 0.9); color: hsl(var(--ocean)); }
 .panel-page-hero .brand-blue-action { box-shadow: 0 0 0 1px hsl(var(--ocean-foreground) / 0.35); }
+
+/* Aftalehandlinger i tjekliste og detaljer: tre ens farvede fliser på én række. */
+.employee-action-tile {
+  display: inline-flex; height: auto; min-height: 4.5rem; min-width: 0;
+  flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem;
+  padding: 0.5rem 0.375rem; text-align: center; white-space: normal; line-height: 1.15;
+}
+.employee-action-tile-title { font-size: 0.8125rem; font-weight: 600; }
+.employee-action-tile-hint { font-size: 11px; font-weight: 400; opacity: 0.75; }
+@media (max-width: 359px) { .employee-action-tile-hint { display: none; } }
