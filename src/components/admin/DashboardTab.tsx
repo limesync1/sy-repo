@@ -431,7 +431,7 @@ const DashboardTab = ({
                 type="button"
                 onClick={openGuide}
                 variant="outline"
-                className="min-h-11 shrink-0 gap-1.5 rounded-full px-3 text-[11px] font-semibold shadow-sm sm:min-h-10 sm:px-3.5 sm:text-xs"
+                className="min-h-11 shrink-0 gap-1.5 rounded-full px-3 text-[11px] font-semibold text-foreground shadow-sm sm:min-h-10 sm:px-3.5 sm:text-xs"
               >
                 <HelpCircle className="h-3.5 w-3.5" /> Se guide
                 <span className="tabular-nums opacity-80">· {guideSignals.done}/{guideSignals.total}</span>
