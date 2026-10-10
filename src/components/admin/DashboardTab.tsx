@@ -936,9 +936,7 @@ const FinanceOverviewCard = ({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-success/25 bg-success/10 text-success" aria-hidden="true">
-              <CheckCircle2 className="h-5 w-5" />
-            </span>
+            <BrandedIllustration name="orders" className="h-10 w-10 shrink-0" alt="Udførte aftaler" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>
