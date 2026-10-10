@@ -2284,17 +2284,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Start aftale
                     </Button>
                   ) : null}
-                  <div className={cn("grid grid-cols-2 gap-2 min-[430px]:grid-cols-3 sm:grid-cols-4", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" className="h-auto min-h-11 min-w-0 gap-1.5 whitespace-normal rounded-md px-2 py-2 text-center text-xs font-semibold"><Info className="h-4 w-4 shrink-0" />Oplysninger</Button>
-                  {latestCompleted && <Button variant="undo" className="h-auto min-h-11 min-w-0 gap-1.5 whitespace-normal rounded-md px-2 py-2 text-center text-xs font-semibold leading-tight" disabled={undoPending} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-4 w-4 shrink-0" />Fortryd udførsel</Button>}
+                  {/* Én række handlinger — aldrig scroll i panelet. */}
+                  <div className={cn("route-dock-actions flex min-w-0 gap-1.5", (activeNextStopEntry || isAtNextStop) && "mt-2")}>
+                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" title="Oplysninger" className="route-dock-tile"><Info className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Info</span></Button>
                   <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly={!nextStopOrder} routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-11 w-11 shrink-0 p-0 rounded-md border-border hover:bg-secondary">
-                      <a href={`tel:${nextStop.customer_phone}`}>
-                        <Phone className="h-4 w-4" />
-                      </a>
+                    <Button asChild variant="outline" aria-label="Ring til kunde" title="Ring til kunde" className="route-dock-tile">
+                      <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ring</span></a>
                     </Button>
                   ) : null}
+                  {latestCompleted && <Button variant="undo" aria-label={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} title={`Fortryd ${latestCompleted.customer_name || "seneste stop"}`} className="route-dock-tile" disabled={undoPending} onClick={() => void handleUndo(latestCompleted)}><Undo2 className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Fortryd</span></Button>}
                   </div>
                 </div>
               </div>
