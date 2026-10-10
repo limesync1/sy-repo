@@ -42,6 +42,9 @@ import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import type { MotionSource } from "@/components/employee-route/motionTrack";
 import { usePositionTrack } from "@/components/employee-route/positionEngine";
+import { useDriveRecorder } from "@/components/employee-route/useDriveRecorder";
+import { DriveTraceDialog } from "@/components/employee-route/DriveTraceDialog";
+import { Switch } from "@/components/ui/switch";
 import { RouteMapLine, resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -619,6 +622,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setUserPos((p) => (p && p[0] === engineState.pos[0] && p[1] === engineState.pos[1] ? p : engineState.pos));
     if (engineState.heading != null) setUserHeading(engineState.heading);
   }, [engineState]);
+  const [recordDrive, setRecordDrive] = useState(() => { try { return sessionStorage.getItem("serviceydere:record-drive") === "1"; } catch { return false; } });
+  const [traceOpen, setTraceOpen] = useState(false);
+  useEffect(() => { try { sessionStorage.setItem("serviceydere:record-drive", recordDrive ? "1" : "0"); } catch { /* privat tilstand */ } }, [recordDrive]);
+  useDriveRecorder(routeId, recordDrive && routeStarted, rawFix, positionTrack);
   const userSpeedMps = engineState?.speedMps ?? 0;
   const userAccuracyM = engineState?.accuracyM ?? null;
   const driving = routeStarted && runMode !== "list";
@@ -2352,7 +2359,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         canReorder={!allDone}
         reordering={reorderStops.isPending}
         onMoveStop={handleMoveStop}
+        footer={
+          <div className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <label htmlFor="record-drive" className="flex min-h-11 flex-1 cursor-pointer items-center gap-3 text-sm font-medium text-foreground">
+              <Switch id="record-drive" checked={recordDrive} onCheckedChange={setRecordDrive} />
+              <span>Optag kørsel<span className="block text-xs font-normal text-muted-foreground">Gemmer GPS og bilens position i 14 dage</span></span>
+            </label>
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setTraceOpen(true)}>Se optagelse</Button>
+          </div>
+        }
       />}
+      {routeId && <DriveTraceDialog routeId={routeId} open={traceOpen} onOpenChange={setTraceOpen} />}
     </div>
   );
 };
@@ -2402,9 +2419,10 @@ const StopListPanel = forwardRef<HTMLDivElement, {
   canReorder: boolean;
   reordering: boolean;
   onMoveStop: (stopId: string, dir: -1 | 1) => void;
+  footer?: React.ReactNode;
 }>(({
   open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
-  canReorder, reordering, onMoveStop,
+  canReorder, reordering, onMoveStop, footer,
 }, ref) => {
   const remainingIds = stops.filter((s) => s.status !== "completed").map((s) => s.id);
   const total = stops.length;
@@ -2548,6 +2566,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
               </div>
             );
           })}
+          {footer}
         </div>
       </div>
     </div>
