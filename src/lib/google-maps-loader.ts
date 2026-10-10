@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 /**
  * Loads the Google Maps JavaScript API exactly once per page. Every caller
  * shares the same promise, so closing/reopening the view or remounting the
