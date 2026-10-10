@@ -55,7 +55,7 @@ function pinIcon(label: string, state: GoogleStopState | "start", highlighted: b
   const inner = state === "done"
     ? `<path d="m15 20 5 5 9-10" fill="none" stroke="${text}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`
     : state === "start"
-      ? `<path d="M14 19l16-8-8 16-2-6z" fill="${text}"/>`
+      ? `<path d="M15 21l7-6 7 6v7h-4.5v-4.5h-5V28H15z" fill="${text}"/>`
       : `<text x="22" y="25" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="${text}">${label}</text>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 44 54">${ring}<path d="M22 52c-1-6-15-15-15-31a15 15 0 0 1 30 0c0 16-14 25-15 31z" fill="${fill}" stroke="${stroke}" stroke-width="2.5" opacity="${state === "done" ? 0.85 : 1}"/>${inner}</svg>`;
   return {
@@ -100,6 +100,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const markersRef = useRef(new Map<string, { marker: google.maps.Marker; key: string }>());
   const startMarkerRef = useRef<google.maps.Marker | null>(null);
   const puckRef = useRef<google.maps.Marker | null>(null);
+  const haloRef = useRef<google.maps.Marker | null>(null);
   const trafficRef = useRef<google.maps.TrafficLayer | null>(null);
   const selectRef = useRef(onSelectStop); selectRef.current = onSelectStop;
   const interactRef = useRef(onInteract); interactRef.current = onInteract;
@@ -139,7 +140,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     return () => {
       cancelled = true; offAuth(); ro?.disconnect();
       markersRef.current.forEach(({ marker }) => marker.setMap(null)); markersRef.current.clear();
-      startMarkerRef.current?.setMap(null); puckRef.current?.setMap(null); trafficRef.current?.setMap(null);
+      startMarkerRef.current?.setMap(null); puckRef.current?.setMap(null); haloRef.current?.setMap(null); trafficRef.current?.setMap(null);
       if (mapRef.current) google.maps.event.clearInstanceListeners(mapRef.current);
       mapRef.current = null;
     };
@@ -218,31 +219,50 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
     return () => lines.forEach((l) => l.setMap(null));
   }, [previewLine, legLine, hintLine, routeStarted, ready, night]);
 
-  // User puck: arrow while driving (rotated by heading), dot otherwise. Updated imperatively per frame.
+  // One Google-style car puck: blue chevron while moving (smoothed heading), blue dot when still.
+  // Position is updated per frame; the icon only changes when the smoothed heading moves ≥ 4°,
+  // which removes the shaking caused by GPS heading noise.
   useEffect(() => {
-    const map = mapRef.current; if (!map || !userPos) { puckRef.current?.setMap(null); puckRef.current = null; return; }
-    const info = resolveMapColor("--info", "hsl(217 91% 60%)");
-    const accent = resolveMapColor("--accent", "hsl(184 90% 42%)");
-    const icon = (rotation: number): google.maps.Symbol => routeStarted
-      ? { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 7, fillColor: accent, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2.5, rotation: moving ? rotation : 0 }
-      : { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: info, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 3 };
-    if (!puckRef.current) puckRef.current = new google.maps.Marker({ map, position: ll(userPos), icon: icon(0), zIndex: 100, clickable: false });
-    else puckRef.current.setIcon(icon(0));
-    if (!routeStarted) { puckRef.current.setPosition(ll(userPos)); return; }
-    return track.subscribe(({ pos, heading }) => {
+    const map = mapRef.current;
+    if (!map || !userPos) { puckRef.current?.setMap(null); puckRef.current = null; haloRef.current?.setMap(null); haloRef.current = null; return; }
+    const blue = resolveMapColor("--info", "hsl(217 91% 60%)");
+    const chevron = (rotation: number): google.maps.Symbol => ({
+      path: "M 0,-11 L 8,9 L 0,5 L -8,9 Z", anchor: new google.maps.Point(0, 0),
+      scale: 1.35, fillColor: blue, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 2.5, rotation,
+    });
+    const dot: google.maps.Symbol = { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: blue, fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 3 };
+    const halo: google.maps.Symbol = { path: google.maps.SymbolPath.CIRCLE, scale: 22, fillColor: blue, fillOpacity: 0.16, strokeOpacity: 0 };
+    let shown: number | null = null; let smooth: number | null = null;
+    const apply = (heading: number | null) => {
       const m = puckRef.current; if (!m) return;
-      m.setPosition(ll(pos));
-      if (heading != null && moving) m.setIcon(icon(heading));
+      const driving = routeStarted && moving && heading != null;
+      if (!driving) { if (shown !== -1) { m.setIcon(dot); shown = -1; } return; }
+      smooth = smooth == null ? heading : smooth + ((((heading - smooth) % 360) + 540) % 360 - 180) * 0.25;
+      const rot = Math.round(((smooth % 360) + 360) % 360);
+      if (shown == null || shown === -1 || Math.abs((((rot - shown) % 360) + 540) % 360 - 180) >= 4) { m.setIcon(chevron(rot)); shown = rot; }
+    };
+    if (!puckRef.current) puckRef.current = new google.maps.Marker({ map, position: ll(userPos), zIndex: 100, clickable: false, optimized: true });
+    if (!haloRef.current) haloRef.current = new google.maps.Marker({ map, position: ll(userPos), icon: halo, zIndex: 99, clickable: false });
+    apply(null);
+    if (!routeStarted) { puckRef.current.setPosition(ll(userPos)); haloRef.current.setPosition(ll(userPos)); return; }
+    return track.subscribe(({ pos, heading }) => {
+      puckRef.current?.setPosition(ll(pos)); haloRef.current?.setPosition(ll(pos));
+      apply(speedRef.current > 1.5 ? heading : shown != null && shown >= 0 ? shown : null);
     });
   }, [userPos == null, routeStarted, moving, track, ready, night]);
-  useEffect(() => { if (!routeStarted && userPos) puckRef.current?.setPosition(ll(userPos)); }, [userPos?.[0], userPos?.[1], routeStarted]);
+  useEffect(() => {
+    if (routeStarted || !userPos) return;
+    puckRef.current?.setPosition(ll(userPos)); haloRef.current?.setPosition(ll(userPos));
+  }, [userPos?.[0], userPos?.[1], routeStarted]);
 
-  // Follow camera: speed-adaptive integer zoom with dwell, car kept below the HUD.
+  // Follow camera: one moveCamera per frame, integer zoom with dwell, car kept below the HUD.
+  // Sub-metre movements and HUD-height jitter are ignored so the map never trembles.
   useEffect(() => {
     const map = mapRef.current; const el = containerRef.current;
     if (!map || !el || !followActive) return;
-    let zoom = Math.max(15, Math.min(17, map.getZoom() ?? 17)); let pending = zoom; let since = 0;
+    let zoom = Math.max(15, Math.min(17, Math.round(map.getZoom() ?? 17))); let pending = zoom; let since = 0;
     let last: { lat: number; lng: number; zoom: number } | null = null; let frame = 0;
+    let offset = 0; let offsetAt = 0;
     const off = track.subscribe(({ pos }) => {
       if (document.visibilityState === "hidden" || frame) return;
       frame = requestAnimationFrame(() => {
@@ -250,17 +270,23 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
         const c = navigationZoom(speedRef.current, zoom);
         if (c !== pending) { pending = c; since = performance.now(); }
         if (c !== zoom && performance.now() - since > 6000) zoom = c;
-        if (last && last.zoom === zoom && haversineMeters(last.lat, last.lng, pos[0], pos[1]) < 0.5) return;
+        if (last && last.zoom === zoom && haversineMeters(last.lat, last.lng, pos[0], pos[1]) < 1.2) return;
+        const now = performance.now();
+        if (now - offsetAt > 2000) {
+          const pad = hudPadding(el);
+          const next = Math.round(Math.max(0, Math.min(el.clientHeight * 0.22, (pad.top - 16) / 2)) / 8) * 8;
+          if (Math.abs(next - offset) >= 8) offset = next;
+          offsetAt = now;
+        }
         programmatic.current = true;
-        if (map.getZoom() !== zoom) map.setZoom(zoom);
-        const pad = hudPadding(el);
-        const offset = Math.max(0, Math.min(el.clientHeight * 0.22, (pad.top - 16) / 2));
         const proj = map.getProjection();
-        if (proj) {
-          const scale = 2 ** zoom;
-          const p = proj.fromLatLngToPoint(ll(pos));
-          map.setCenter((p && proj.fromPointToLatLng(new google.maps.Point(p.x, p.y - offset / scale))) || ll(pos));
-        } else map.setCenter(ll(pos));
+        let center: google.maps.LatLng | google.maps.LatLngLiteral = ll(pos);
+        if (proj && offset > 0) {
+          const p = proj.fromLatLngToPoint(center);
+          const shifted = p && proj.fromPointToLatLng(new google.maps.Point(p.x, p.y - offset / 2 ** zoom));
+          if (shifted) center = shifted;
+        }
+        map.moveCamera({ center, zoom });
         programmatic.current = false;
         last = { lat: pos[0], lng: pos[1], zoom };
       });
