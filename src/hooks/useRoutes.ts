@@ -2960,7 +2960,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
 /* ─── Driving directions geometry between two or more waypoints ─── */
 export const useDirections = (
   waypoints: { lat: number; lng: number }[] | null,
-  options?: { departAt?: string; businessId?: string },
+  options?: { departAt?: string; businessId?: string; navigation?: boolean },
 ) => {
   const key = waypoints?.map((w) => `${w.lat.toFixed(5)},${w.lng.toFixed(5)}`).join("|") || "";
   const departKey = options?.departAt
@@ -2968,7 +2968,7 @@ export const useDirections = (
     : "now";
   const bizKey = options?.businessId || "none";
   return useQuery({
-    queryKey: ["directions", key, departKey, bizKey],
+    queryKey: ["directions", key, departKey, bizKey, options?.navigation ? "nav" : "plan"],
     enabled: !!waypoints && waypoints.length >= 2,
     // Hold cache i 30 sek — kort nok til at en reroute (samme key, men efter
     // invalidate) faktisk fetches igen, langt nok til at vi ikke spammer
@@ -2990,6 +2990,7 @@ export const useDirections = (
           waypoints,
           ...(options?.departAt ? { depart_at: options.departAt } : {}),
           ...(options?.businessId ? { business_id: options.businessId } : {}),
+          ...(options?.navigation ? { navigation: true } : {}),
         },
       });
       if (error) {
@@ -2998,7 +2999,7 @@ export const useDirections = (
       }
       return data as {
         ok: boolean;
-        provider: "osrm" | "fallback";
+        provider: "osrm" | "google" | "fallback";
         geometry: { type: "LineString"; coordinates: [number, number][] };
         distance_m: number | null;
         duration_s: number | null;

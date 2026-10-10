@@ -858,6 +858,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const { data: directions, isError: directionsError, refetch: retryDirections } = useDirections(legWaypoints, {
     businessId: route?.business_id,
+    navigation: true,
   });
 
   /* ── Preview directions: hele den planlagte rute, vist FØR brugeren
