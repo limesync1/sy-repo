@@ -139,7 +139,11 @@ export class MotionTrack {
     this.paused = false;
     // Positionen fra før pausen er forældet: næste friske GPS-fix sættes direkte.
     this.snapNext = true;
-    if (this.to) this.from = this.to;
+    if (this.to) {
+      this.from = this.to;
+      this.current = { pos: this.to, heading: this.current?.heading ?? this.toHeading };
+      this.emit();
+    }
   }
 
   destroy(): void {
