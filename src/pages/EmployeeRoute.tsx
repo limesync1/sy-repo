@@ -393,7 +393,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [nightMapRetry, setNightMapRetry] = useState(0);
   const reportNightMapFailure = useCallback((failed: boolean) => setNightMapFailed(failed), []);
   // Google Maps first; the open map is a remembered per-session fallback so a rejected key never loops.
-  const [mapProvider, setMapProvider] = useState<"google" | "leaflet">(() => googleMapsBrowserKey() && !googleMapsPreviouslyFailed() ? "google" : "leaflet");
+  // The key may arrive at runtime (business's own key), so always try Google unless it already failed this session.
+  const [mapProvider, setMapProvider] = useState<"google" | "leaflet">(() => !googleMapsPreviouslyFailed() ? "google" : "leaflet");
   const [googleMapError, setGoogleMapError] = useState<string | null>(null);
   const handleGoogleFailure = useCallback((err: GoogleMapsLoadError) => {
     console.warn("Google Maps fallback:", err.reason, err.message);

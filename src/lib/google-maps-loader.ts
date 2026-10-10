@@ -1,4 +1,5 @@
 /// <reference types="google.maps" />
+import { supabase } from "@/integrations/supabase/client";
 /**
  * Loads the Google Maps JavaScript API exactly once per page. Every caller
  * shares the same promise, so closing/reopening the view or remounting the
@@ -77,9 +78,8 @@ export function loadGoogleMaps(timeoutMs = 8000): Promise<typeof google> {
 
 function injectScript(key: string, timeoutMs: number): Promise<typeof google> {
   if (window.google?.maps?.Map) return Promise.resolve(window.google);
-
-
-  loadPromise = new Promise<typeof google>((resolve, reject) => {
+  document.getElementById("gmaps-js")?.remove();
+  return new Promise<typeof google>((resolve, reject) => {
     let settled = false;
     const fail = (err: GoogleMapsLoadError) => {
       if (settled) return;
@@ -111,5 +111,4 @@ function injectScript(key: string, timeoutMs: number): Promise<typeof google> {
     script.onerror = () => fail(new GoogleMapsLoadError("network", "Google Maps kunne ikke hentes — tjek forbindelsen"));
     document.head.appendChild(script);
   });
-  return loadPromise;
 }
