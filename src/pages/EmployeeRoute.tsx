@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { stripPrices } from "@/lib/employee-display";
-import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
+import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playStartChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
   playTurnCue, playApproachCue, playRerouteCue, playTrafficCue,
@@ -40,8 +40,11 @@ import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
-import { useMotionTrack, type MotionTrack } from "@/components/employee-route/motionTrack";
-import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
+import type { MotionSource } from "@/components/employee-route/motionTrack";
+import { usePositionTrack } from "@/components/employee-route/positionEngine";
+import { useDriveRecorder } from "@/components/employee-route/useDriveRecorder";
+import { DriveTraceDialog } from "@/components/employee-route/DriveTraceDialog";
+import { Switch } from "@/components/ui/switch";
 import { RouteMapLine, resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -117,7 +120,7 @@ const NavPuckMarker = ({
   fallback,
   moving,
 }: {
-  track: MotionTrack;
+  track: MotionSource;
   fallback: [number, number];
   /** Når false: vis kun prikken (ingen retningskegle, ingen rotation). */
   moving: boolean;
@@ -209,7 +212,7 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
  *    kortet ikke pumper ind og ud.
  *  - Står bilen stille, sker der ingenting overhovedet ("pause").
  */
-const NavCamera = forwardRef<never, { active: boolean; track: MotionTrack; speedMps: number; topHudRef?: React.RefObject<HTMLElement>; bottomHudRef?: React.RefObject<HTMLElement>; }>(({ active, track, speedMps, topHudRef, bottomHudRef }, _ref) => {
+const NavCamera = forwardRef<never, { active: boolean; track: MotionSource; speedMps: number; topHudRef?: React.RefObject<HTMLElement>; bottomHudRef?: React.RefObject<HTMLElement>; }>(({ active, track, speedMps, topHudRef, bottomHudRef }, _ref) => {
   const map = useMap();
   const speedRef = useRef(speedMps);
   speedRef.current = speedMps;
@@ -438,6 +441,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Stabil rute-origin: kun opdateret når brugeren har bevæget sig markant.
   // Ellers ville useDirections refetche hver eneste GPS-tick → maneuver-banner ville flimre.
   const stableOriginRef = useRef<{ lat: number; lng: number } | null>(null);
+  const originStopRef = useRef<string | null>(null);
   // Trafik-baseline kræver flere stabile målinger inden vi låser et "normalt" estimat.
   const baselineRef = useRef<{
     stopId: string;
@@ -610,14 +614,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
   // position + heading + estimeret hastighed (sidstnævnte bruges også
   // til den hastigheds-adaptive zoom).
-  const filtered: FilteredFix | null = useGpsFilter(rawFix);
+  // Positionsmotoren er eneste kilde til bilens position: den matcher fixes
+  // til rutelinjen, afviser umulige spring og kører videre i tunneler.
+  const { track: positionTrack, state: engineState, setRoute: setEngineRoute } = usePositionTrack(rawFix, routeStarted && pageVisible);
   useEffect(() => {
-    if (!filtered) return;
-    setUserPos(filtered.pos);
-    if (filtered.heading != null) setUserHeading(filtered.heading);
-  }, [filtered?.pos[0], filtered?.pos[1], filtered?.heading]);
-  const userSpeedMps = filtered?.speedMps ?? 0;
-  const userAccuracyM = filtered?.accuracyM ?? null;
+    if (!engineState) return;
+    setUserPos((p) => (p && p[0] === engineState.pos[0] && p[1] === engineState.pos[1] ? p : engineState.pos));
+    if (engineState.heading != null) setUserHeading(engineState.heading);
+  }, [engineState]);
+  const [recordDrive, setRecordDrive] = useState(() => { try { return sessionStorage.getItem("serviceydere:record-drive") === "1"; } catch { return false; } });
+  const [traceOpen, setTraceOpen] = useState(false);
+  useEffect(() => { try { sessionStorage.setItem("serviceydere:record-drive", recordDrive ? "1" : "0"); } catch { /* privat tilstand */ } }, [recordDrive]);
+  useDriveRecorder(routeId, recordDrive && routeStarted, rawFix, positionTrack);
+  const userSpeedMps = engineState?.speedMps ?? 0;
+  const userAccuracyM = engineState?.accuracyM ?? null;
   const driving = routeStarted && runMode !== "list";
   useWakeLock(driving && pageVisible);
   const driveIssues = useDriveIssues({ active: !!routeStarted, permission: geoPermission, gpsErrorCode, lastFixAt: driving ? lastFixAt : null, accuracyM: driving ? userAccuracyM : null });
@@ -776,36 +786,36 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Knyt kun live-positionen til et stop, når medarbejderen faktisk er ved
   // adressen. Det forhindrer, at næste aftale markeres grøn under hele køreturen.
   const liveStopId = useMemo(() => {
-    if (!filtered) return null;
-    const accuracyAllowance = Math.min(Math.max(filtered.accuracyM, 0), 40);
+    if (!engineState) return null;
+    const accuracyAllowance = Math.min(Math.max(engineState.accuracyM, 0), 40);
     const arrivalRadiusM = Math.max(100, 60 + accuracyAllowance);
     let nearest: { id: string; distanceM: number } | null = null;
     for (const stop of sortedStops) {
       if (stop.status === "completed" || stop.latitude == null || stop.longitude == null) continue;
       const distanceM = haversineMeters(
-        filtered.pos[0],
-        filtered.pos[1],
+        engineState.pos[0],
+        engineState.pos[1],
         Number(stop.latitude),
         Number(stop.longitude),
       );
       if (!nearest || distanceM < nearest.distanceM) nearest = { id: stop.id, distanceM };
     }
     return nearest && nearest.distanceM <= arrivalRadiusM ? nearest.id : null;
-  }, [filtered, sortedStops]);
+  }, [engineState, sortedStops]);
   const routeNotifications = employeeNotifications.filter((item) => item.route_id === routeId && !item.read_at);
 
   useEffect(() => {
-    if (!routeStarted || !pageVisible || !filtered || !meEmp?.id || !route) return;
+    if (!routeStarted || !pageVisible || !engineState || !meEmp?.id || !route) return;
     let cancelled = false;
     const pushPosition = async () => {
       if (cancelled) return;
       const { error } = await supabase.rpc("report_route_position", {
         _route_id: routeId,
-        _latitude: filtered.pos[0],
-        _longitude: filtered.pos[1],
-        _heading: filtered.heading ?? undefined,
-        _accuracy_m: filtered.accuracyM ?? undefined,
-        _speed_mps: filtered.speedMps ?? undefined,
+        _latitude: engineState.pos[0],
+        _longitude: engineState.pos[1],
+        _heading: engineState.heading ?? undefined,
+        _accuracy_m: engineState.accuracyM ?? undefined,
+        _speed_mps: engineState.speedMps ?? undefined,
         _current_stop_id: liveStopId ?? undefined,
       });
       if (error) console.warn("[live-position] kunne ikke sendes", error.message);
@@ -813,7 +823,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     void pushPosition();
     const timer = window.setInterval(pushPosition, 5_000);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, liveStopId, filtered?.pos[0], filtered?.pos[1]]);
+  }, [routeStarted, pageVisible, routeId, route?.id, meEmp?.id, liveStopId, engineState?.pos[0], engineState?.pos[1]]);
 
   useEffect(() => {
     return () => { void supabase.rpc("clear_route_position", { _route_id: routeId }); };
@@ -831,16 +841,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     [sortedStops],
   );
 
-  // Opdater stabil origin kun når brugeren har bevæget sig >120 m (eller første gang).
-  // Det betyder at vi ikke spammer route-directions endpoint, og at "steps"-listen
-  // forbliver stabil mellem GPS-ticks — så banneret ikke flimrer.
+  // Rutens startpunkt sættes kun ved første fix, når næste stop skifter og
+  // ved afvigelse (reroute). Tidligere blev det flyttet hver 120 m, så
+  // rutelinjen blev udskiftet og hentet igen konstant under kørsel — det gav
+  // hop i bilen og mange unødige rutekald. Positionsmotoren følger nu linjen.
   if (userPos) {
-    const prev = stableOriginRef.current;
-    if (
-      !prev ||
-      haversineMeters(prev.lat, prev.lng, userPos[0], userPos[1]) > 120
-    ) {
+    const nextId = nextStop?.id ?? null;
+    if (!stableOriginRef.current || originStopRef.current !== nextId) {
       stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
+      originStopRef.current = nextId;
     }
   }
   const legOrigin: { lat: number; lng: number } | null = stableOriginRef.current
@@ -991,6 +1000,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const raw = directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
     return raw;
   }, [directions]);
+  useEffect(() => { setEngineRoute(legLine); }, [legLine, setEngineRoute]);
   // Google traffic intervals (index ranges on the leg geometry) → coloured segments like Google Maps.
   const trafficSegments = useMemo(() => {
     const t = (directions as { traffic?: { start: number; end: number; speed: string }[] } | undefined)?.traffic;
@@ -1015,7 +1025,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     ? directions.duration_s * Math.min(1, liveRoadProgress.remaining / liveRoadProgress.total)
     : directions?.duration_s ?? null;
 
-  const OFF_ROUTE_THRESHOLD_M = 40;
   const OFF_ROUTE_STREAK = 3;
   const REROUTE_COOLDOWN_MS = 8000;
   useEffect(() => {
@@ -1029,9 +1038,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       offRouteStreakRef.current = 0;
       return;
     }
-    const dist = pointToPolylineMeters(userPos[0], userPos[1], legLine);
-    if (dist > OFF_ROUTE_THRESHOLD_M) {
-      offRouteStreakRef.current += 1;
+    // Motoren afgør afvigelse med hysterese (3 fixes over 45 m); den viste
+    // position er trukket ind på vejen, så den kan ikke bruges til afstand.
+    if (engineState && !engineState.onRoute && engineState.offRouteFixes >= OFF_ROUTE_STREAK) {
+      offRouteStreakRef.current = engineState.offRouteFixes;
     } else {
       offRouteStreakRef.current = 0;
       if (isRerouting) setIsRerouting(false);
@@ -1069,7 +1079,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       setTimeout(() => setIsRerouting(false), 3000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userPos?.[0], userPos?.[1], legLine, nextStop?.id, distanceToNextM, routeStarted, audioEnabled]);
+  }, [engineState, legLine, nextStop?.id, distanceToNextM, routeStarted, audioEnabled]);
 
   // Reset reroute-spoken pointer når næste stop ændrer sig så vi får
   // ny stemmebesked ved næste reroute event.
@@ -1079,7 +1089,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   /* Er vi reelt i bevægelse?  Bruges til at fastfryse pilen når bilen
    * holder stille — ellers snurrer den rundt på ren GPS-støj. */
-  const isMoving = userSpeedMps > 1.2; // ~4 km/t
+  const isMoving = engineState?.moving ?? false;
   const lastHeadingRef = useRef<number | null>(null);
   const derivedHeading = useMemo(() => {
     // 1) Filtreret GPS-heading er altid bedst når den findes.
@@ -1087,32 +1097,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       lastHeadingRef.current = userHeading;
       return userHeading;
     }
-    // 2) Ellers: peg mod næste stop — men KUN når vi er i bevægelse og
-    //    langt nok væk til at pejlingen er stabil. Tæt på stoppet svinger
-    //    pejlingen vildt ved få meters GPS-støj.
-    if (
-      isMoving &&
-      userPos && nextStop && nextStop.latitude != null && nextStop.longitude != null &&
-      (distanceToNextM == null || distanceToNextM > 80)
-    ) {
-      const b = bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
-      lastHeadingRef.current = b;
-      return b;
-    }
+    // Ingen "lige linje mod næste stop": den peger hen over marker.
     // 3) Holder vi stille: behold den sidst kendte retning.
     return lastHeadingRef.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userHeading, isMoving, userPos?.[0], userPos?.[1], nextStop?.id, nextStop?.latitude, nextStop?.longitude, distanceToNextM]);
+  }, [userHeading]);
 
   // Blød bevægelse mellem GPS-fixes. Interpolationen sker UDEN for React
   // (MotionTrack) og skrives direkte på Leaflet-markøren og kameraet — så
   // siden kun re-renderer når der kommer et nyt fix. Det var tidligere
   // ~60 re-renders i sekundet, hvilket gjorde telefonen varm.
-  const motionTrack = useMotionTrack(
-    userPos,
-    derivedHeading,
-    routeStarted && pageVisible,
-  );
+  const motionTrack = positionTrack;
   const displayPos = userPos;
   const displayHeading = derivedHeading;
 
@@ -2364,7 +2359,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         canReorder={!allDone}
         reordering={reorderStops.isPending}
         onMoveStop={handleMoveStop}
+        footer={
+          <div className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <label htmlFor="record-drive" className="flex min-h-11 flex-1 cursor-pointer items-center gap-3 text-sm font-medium text-foreground">
+              <Switch id="record-drive" checked={recordDrive} onCheckedChange={setRecordDrive} />
+              <span>Optag kørsel<span className="block text-xs font-normal text-muted-foreground">Gemmer GPS og bilens position i 14 dage</span></span>
+            </label>
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setTraceOpen(true)}>Se optagelse</Button>
+          </div>
+        }
       />}
+      {routeId && <DriveTraceDialog routeId={routeId} open={traceOpen} onOpenChange={setTraceOpen} />}
     </div>
   );
 };
@@ -2414,9 +2419,10 @@ const StopListPanel = forwardRef<HTMLDivElement, {
   canReorder: boolean;
   reordering: boolean;
   onMoveStop: (stopId: string, dir: -1 | 1) => void;
+  footer?: React.ReactNode;
 }>(({
   open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
-  canReorder, reordering, onMoveStop,
+  canReorder, reordering, onMoveStop, footer,
 }, ref) => {
   const remainingIds = stops.filter((s) => s.status !== "completed").map((s) => s.id);
   const total = stops.length;
@@ -2560,6 +2566,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
               </div>
             );
           })}
+          {footer}
         </div>
       </div>
     </div>

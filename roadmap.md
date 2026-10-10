@@ -48,3 +48,11 @@
 - [x] Centrér/positionér lander direkte på bilen; ingen "spoling" efter app-skift
 - [x] Fortryd udførsel sletter også aftalens tidsregistrering
 - [x] Optimér dagen: hurtigste rækkefølge for alle dagens ruter med køretid pr. medarbejder
+
+## Stabil bil og kørselstest (10/10)
+- [x] Positionsmotor: vejmatchning, hysterese, afvisning af spring, tunnel, stillestående
+- [x] Jævnt kamera og bil fra samme sample (Google og reservekort)
+- [x] Rutelinjen hentes ikke længere hver 120 m
+- [x] Simuleret Haderup–Herning med afvigelsesrapport; forkerte stopplaceringer rettet
+- [x] «Optag kørsel» og «Se optagelse» under Alle stop (slettes efter 14 dage)
+- [ ] Rigtig kørsel med optagelse på telefonen (kræver at du kører)

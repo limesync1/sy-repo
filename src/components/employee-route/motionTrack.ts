@@ -26,6 +26,14 @@ export type MotionSample = {
   heading: number | null;
   /** Sand når positionen skal sættes direkte (fx efter appen har været i baggrunden). */
   jump?: boolean;
+  /** 1 = frisk GPS; falder under huller (tunnel), så bilen kan nedtones. */
+  confidence?: number;
+};
+
+/** Fælles kontrakt for kort-lag: bil og kamera abonnerer på samme sample. */
+export type MotionSource = {
+  subscribe(fn: (s: MotionSample) => void): () => void;
+  readonly value: (MotionSample & { confidence?: number }) | null;
 };
 
 const FRAME_MS = 40; // ~25 fps
