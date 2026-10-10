@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { googleMapsMapId, loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
 import { resolveMapColor } from "@/components/employee-route/RouteMapLine";
-import { followCenter, followZoom, lerpCam, nextHeading, norm360, type Cam } from "@/components/employee-route/google-nav-camera";
+import { followCenter, followZoom, norm360 } from "@/components/employee-route/google-nav-camera";
 import navigationCar from "@/assets/navigation-car.svg.asset.json";
-import { haversineMeters } from "@/lib/geo-distance";
-import type { MotionTrack } from "@/components/employee-route/motionTrack";
+import type { MotionSource } from "@/components/employee-route/motionTrack";
 
 export type GoogleStopState = "next" | "done" | "future";
 export interface GoogleRouteStop { id: string; n: number; pos: [number, number]; state: GoogleStopState; highlighted: boolean; name?: string }
@@ -26,7 +25,7 @@ interface Props {
   userPos: [number, number] | null;
   routeStarted: boolean;
   moving: boolean;
-  track: MotionTrack;
+  track: MotionSource;
   speedMps: number;
   followActive: boolean;
   fitEnabled: boolean;
@@ -107,7 +106,6 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   const speedRef = useRef(speedMps); speedRef.current = speedMps;
   const programmatic = useRef(false);
   const maneuverRef = useRef(maneuverDistanceM ?? null); maneuverRef.current = maneuverDistanceM ?? null;
-  const legRef = useRef(legLine); legRef.current = legLine;
   const [northUp, setNorthUp] = useState(() => { try { return localStorage.getItem("serviceydere:gmaps-northup") === "1"; } catch { return false; } });
   const northUpRef = useRef(northUp); northUpRef.current = northUp;
   const vectorRef = useRef(true);
