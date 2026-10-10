@@ -838,6 +838,12 @@
     font-size: 11px; font-weight: 600; line-height: 1; white-space: nowrap;
   }
   .employee-route-run .route-dock-tile-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .employee-route-run .route-dock-actions { container-type: inline-size; }
+  .employee-route-run .route-dock-tile-short { display: none; }
+  @container (max-width: 26rem) {
+    .employee-route-run .route-dock-tile-long { display: none; }
+    .employee-route-run .route-dock-tile-short { display: inline; }
+  }
 
   /* Lav skærm (liggende telefon, lille browservindue): kun ikoner. */
   @media (max-height: 560px) {

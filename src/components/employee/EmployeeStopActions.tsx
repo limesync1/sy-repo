@@ -323,8 +323,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     <div className={compact || noteOnly ? "contents" : "space-y-2"}>
       {compact ? (
         <>
-          {!noteOnly && <Button variant="appointmentEdit" aria-label="Ret aftale" title="Ret aftale" className="route-dock-tile" onClick={openEditor} disabled={completed || !order}><Pencil className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ret aftale</span></Button>}
-          {!noteOnly && <Button variant="appointmentCreate" aria-label="Ny aftale" title="Ny aftale" className="route-dock-tile" onClick={openNew} disabled={!order}><CalendarPlus className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Ny aftale</span></Button>}
+          {!noteOnly && <Button variant="appointmentEdit" aria-label="Ret aftale" title="Ret aftale" className="route-dock-tile" onClick={openEditor} disabled={completed || !order}><Pencil className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label"><span className="route-dock-tile-long">Ret aftale</span><span className="route-dock-tile-short">Ret</span></span></Button>}
+          {!noteOnly && <Button variant="appointmentCreate" aria-label="Ny aftale" title="Ny aftale" className="route-dock-tile" onClick={openNew} disabled={!order}><CalendarPlus className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label"><span className="route-dock-tile-long">Ny aftale</span><span className="route-dock-tile-short">Ny</span></span></Button>}
           {!hideNoteAction && <Button variant="appointmentNote" aria-label="Note til kontoret" title="Note til kontoret" className="route-dock-tile" onClick={() => setNoteOpen(true)}><MessageSquarePlus className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Note</span></Button>}
         </>
       ) : noteOnly && !hideNoteAction ? (
