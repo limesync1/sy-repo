@@ -156,7 +156,7 @@ describe("PositionEngine", () => {
 describe("PositionEngine bilmodel", () => {
   it("accelererer blødt fra stilstand (maks ca. 3 m/s²)", () => {
     const e = new PositionEngine(); e.setRoute(road);
-    e.ingest(fix(at(0, 0), 0, { speed: 0 }), 0); e.sample(0);
+    for (let i = 0; i < 3; i++) { e.ingest(fix(at(0, 0), i * 300, { speed: 0 }), i * 300); e.sample(i * 300); }
     e.ingest(fix(at(20, 0), 1000, { speed: 20 }), 1000);
     let prev = line.project(e.sample(1000)!.pos).d, maxV = 0, prevV = 0, maxA = 0;
     for (let k = 1; k <= 25; k++) {
