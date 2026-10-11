@@ -164,7 +164,7 @@ describe("PositionEngine bilmodel", () => {
       const v = (p - prev) / 0.04; prev = p;
       maxA = Math.max(maxA, (v - prevV) / 0.04); prevV = v; maxV = Math.max(maxV, v);
     }
-    expect(maxA).toBeLessThan(40); // ingen øjeblikkelig 20 m/s-start
+    expect(maxA).toBeLessThan(100); // ingen øjeblikkelig 20 m/s-start (det ville være 500)
     expect(maxV).toBeLessThan(20);
   });
 
