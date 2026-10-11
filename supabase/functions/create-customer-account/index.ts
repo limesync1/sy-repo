@@ -64,6 +64,21 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Ejere må kun oprette konti til e-mails på deres egne, eksisterende kunder.
+  if (!isAdmin) {
+    const { data: owned } = await admin.from('businesses').select('id').eq('owner_id', callerId)
+    const ids = (owned ?? []).map((b: { id: string }) => b.id)
+    const [{ data: bc }, { data: pc }] = await Promise.all([
+      admin.from('business_customers').select('id').in('business_id', ids).ilike('email', email).limit(1),
+      admin.from('private_customers').select('id').in('business_id', ids).ilike('email', email).limit(1),
+    ])
+    if (!(bc?.length || pc?.length)) {
+      return new Response(JSON.stringify({ error: 'E-mailen tilhører ikke en af dine kunder' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
   // Check if user exists
   let existingUserId: string | null = null
   try {
