@@ -268,7 +268,7 @@ export class PositionEngine {
         const gap = predicted - dp;
         const base = this.moving ? this.speed : 0;
         const wantV = gap < -25 ? 0 : Math.max(0, base + gap * 0.9);
-        const v = d.v ?? base;
+        const v = d.v ?? 0;
         const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * dt, wantV - v));
         d.v = Math.max(0, v + dv);
         if (!this.moving && gap > -25) {
