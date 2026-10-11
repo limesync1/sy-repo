@@ -158,9 +158,9 @@ describe("PositionEngine bilmodel", () => {
     const e = new PositionEngine(); e.setRoute(road);
     for (let i = 0; i < 3; i++) { e.ingest(fix(at(0, 0), i * 300, { speed: 0 }), i * 300); e.sample(i * 300); }
     e.ingest(fix(at(20, 0), 1000, { speed: 20 }), 1000);
-    let prev = line.project(e.sample(1000)!.pos).d, maxV = 0, prevV = 0, maxA = 0;
+    let prev = (e.sample(1000)!.pos[1] - 9) / M_LNG, maxV = 0, prevV = 0, maxA = 0;
     for (let k = 1; k <= 25; k++) {
-      const p = line.project(e.sample(1000 + k * 40)!.pos).d;
+      const p = (e.sample(1000 + k * 40)!.pos[1] - 9) / M_LNG;
       const v = (p - prev) / 0.04; prev = p;
       maxA = Math.max(maxA, (v - prevV) / 0.04); prevV = v; maxV = Math.max(maxV, v);
     }
