@@ -152,3 +152,27 @@ describe("PositionEngine", () => {
     expect(dist(s.pos, at(14, 0))).toBeLessThan(3);
   });
 });
+
+describe("PositionEngine bilmodel", () => {
+  it("accelererer blødt fra stilstand (maks ca. 3 m/s²)", () => {
+    const e = new PositionEngine(); e.setRoute(road);
+    for (let i = 0; i < 3; i++) { e.ingest(fix(at(0, 0), i * 300, { speed: 0 }), i * 300); e.sample(i * 300); }
+    e.ingest(fix(at(20, 0), 1000, { speed: 20 }), 1000);
+    let prev = (e.sample(1000)!.pos[1] - 9) / M_LNG, maxV = 0, prevV = 0, maxA = 0;
+    for (let k = 1; k <= 25; k++) {
+      const p = (e.sample(1000 + k * 40)!.pos[1] - 9) / M_LNG;
+      const v = (p - prev) / 0.04; prev = p;
+      maxA = Math.max(maxA, (v - prevV) / 0.04); prevV = v; maxV = Math.max(maxV, v);
+    }
+    expect(maxA).toBeLessThan(100); // ingen øjeblikkelig 20 m/s-start (det ville være 500)
+    expect(maxV).toBeLessThan(20);
+  });
+
+  it("drejer ikke kortet, når bilen holder stille", () => {
+    const e = new PositionEngine(); e.setRoute(road);
+    drive(e, 10);
+    for (let i = 0; i < 5; i++) e.ingest(fix(at(126, 0), 10_000 + i * 1000, { speed: 0, heading: 200 }), 10_000 + i * 1000);
+    const h1 = e.sample(15_000)!.heading!; const h2 = e.sample(15_400)!.heading!;
+    expect(h1).toBe(h2);
+  });
+});
