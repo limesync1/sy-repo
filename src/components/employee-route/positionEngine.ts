@@ -271,6 +271,8 @@ export class PositionEngine {
         const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * dt, wantV - v));
         d.v = Math.max(0, v + dv);
         dp += d.v * dt;
+        // En bil kører ikke forbi sit eget fix: brems helt ved målet.
+        if (dp > predicted + (this.moving ? 15 : 0)) { dp = Math.max(predicted, dp - (dp - predicted) * 0.5); if (!this.moving) d.v = 0; }
         if (gap < -25) dp += gap * (1 - Math.exp(-dt / 0.8));
       }
       d.progress = dp;
