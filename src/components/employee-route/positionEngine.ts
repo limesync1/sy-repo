@@ -249,7 +249,8 @@ export class PositionEngine {
       return { pos: target.pos, heading: target.heading, jump: true, confidence, onRoute: this.onRoute };
     }
     const d = this.disp;
-    const dt = Math.max(0, Math.min(0.5, (now - d.at) / 1000));
+    const rawDt = Math.max(0, (now - d.at) / 1000);
+    const dt = Math.min(0.5, rawDt);
     d.at = now;
     let jump = false;
     let pos: [number, number];
@@ -270,8 +271,11 @@ export class PositionEngine {
         const v = d.v ?? base;
         const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * dt, wantV - v));
         d.v = Math.max(0, v + dv);
-        if (!this.moving && Math.abs(gap) < 3) d.v = 0; // holder stille
-        dp += d.v * dt;
+        if (!this.moving && gap > -25) {
+          // Holder stille: rul blødt det sidste stykke hen til fixet og stå så helt stille.
+          d.v = 0;
+          dp += Math.max(0, gap) * (1 - Math.exp(-rawDt / 0.4));
+        } else dp += d.v * dt;
         // Langt bagud (fx efter pause i sampling): indhent blødt i stedet for at krybe.
         if (gap > 30) { dp += (predicted - dp) * (1 - Math.exp(-dt / 0.3)); d.v = Math.max(d.v, base); }
         // En bil kører ikke forbi sit eget fix: brems helt ved målet.
