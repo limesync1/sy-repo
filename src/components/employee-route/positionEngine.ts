@@ -269,7 +269,7 @@ export class PositionEngine {
         const base = this.moving ? this.speed : 0;
         const wantV = gap < -25 ? 0 : Math.max(0, base + gap * 0.9);
         const v = d.v ?? 0;
-        const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * dt, wantV - v));
+        const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * (1 + Math.max(0, gap) / 20) * dt, wantV - v));
         d.v = Math.max(0, v + dv);
         if (!this.moving && gap > -25) {
           // Holder stille: rul blødt det sidste stykke hen til fixet og stå så helt stille.
@@ -277,7 +277,7 @@ export class PositionEngine {
           dp += Math.max(0, gap) * (1 - Math.exp(-rawDt / 0.4));
         } else dp += d.v * dt;
         // Langt bagud (fx efter pause i sampling): indhent blødt i stedet for at krybe.
-        if (gap > 30) { dp += (predicted - dp) * (1 - Math.exp(-dt / 0.3)); d.v = Math.max(d.v, base); }
+        if (gap > 80) { dp += (predicted - dp) * (1 - Math.exp(-dt / 0.3)); d.v = Math.max(d.v, base); }
         // En bil kører ikke forbi sit eget fix: brems helt ved målet.
         if (this.moving && dp > predicted + 15) dp = Math.max(predicted, dp - (dp - predicted) * 0.5);
         if (gap < -25) dp += gap * (1 - Math.exp(-dt / 0.8));
