@@ -4,14 +4,14 @@ import { GARDEN_CITIES } from "@/pages/cities/gardenCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/have",
-  metaTitle: "Havemand pris 2026: Fra 400 kr./t — sammenlign lokale gartnere",
+  metaTitle: "Gartner priser 2026: Havemand 400–700 kr./t · Få 3 tilbud",
   metaDescription:
-    "Hvad koster en havemand? Græsslåning fra 250 kr., hækklipning fra 45 kr./m. Sammenlign priser fra lokale gartnere og få 3 gratis tilbud på 1 minut — med fradrag.",
-  keywords: "haveservice priser, find anlægsgartner, find havehjælp, havehjælp pris, haveservice pris, haveservice guide 2026, havemand pris, gartner pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
-  heroEyebrow: "Hub · Have",
-  heroTitle: "Haveservice i Danmark 2026 — komplet guide",
+    "Se hvad en gartner koster i 2026: havemand 400–700 kr./t, græsslåning fra 250 kr., hækklipning fra 45 kr./m. Få 3 gratis tilbud fra lokale gartnere — med fradrag.",
+  keywords: "gartner priser, gartner pris, havemand pris, haveservice priser, find anlægsgartner, find havehjælp, havehjælp pris, haveservice pris, havefirma, anlægsgartner, hækklipning pris, græsslåning pris, træfældning pris, snerydning pris",
+  heroEyebrow: "Prisguide · Have",
+  heroTitle: "Hvad koster en gartner? Priser på havearbejde 2026",
   heroSubtitle:
-    "Find lokale havemænd og anlægsgartnere, sammenlign vejledende priser på havearbejde, og få op til 3 gratis, uforpligtende tilbud på din opgave — fra græsslåning og hækklipning til nye haveanlæg.",
+    "En havemand koster typisk 400–700 kr. i timen, græsslåning 250–900 kr. pr. besøg og hækklipning fra 45 kr. pr. meter. Sammenlign priserne herunder, og få op til 3 gratis, uforpligtende tilbud fra lokale gartnere.",
   breadcrumbLabel: "Have",
   ctaCategory: "Haveservice",
   publishedAt: "2026-03-20",
