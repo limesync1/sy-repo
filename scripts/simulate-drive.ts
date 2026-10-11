@@ -73,6 +73,8 @@ type LegReport = {
 
 async function main() {
   const reports: LegReport[] = [];
+  const trace: { t: number; raw: LL; acc: number; speed: number | null; shown: LL | null; onRoute: boolean | null }[] = [];
+  const traceClock = Date.now() - 3 * 3600_000; let legOffset = 0; const slowTurns: number[] = [];
   const dataset: Record<string, unknown> = {};
   const overviewAll = toLL(await directions(STOPS.map((s) => s.stored), false));
   for (let i = 0; i < STOPS.length - 1; i++) {
@@ -110,17 +112,35 @@ async function main() {
         if (rnd() < 0.01) fixes.push({ ...fixes[fixes.length - 1] }); // dublet
       }
       truthAt.push({ t, d });
+      // Rødt lys i byen: holder stille i 20 s med GPS-støj.
+      if (town && !inTunnel && rnd() < 0.004) {
+        for (let w = 0; w < 20; w++) {
+          t += 1000;
+          fixes.push({ lat: p[0] + (gauss() * sigma) / 111320, lng: p[1] + (gauss() * sigma) / (111320 * Math.cos((p[0] * Math.PI) / 180)), accuracy, heading: null, speed: iphone ? null : 0, t });
+          truthAt.push({ t, d });
+        }
+      }
       d += speed; t += 1000;
     }
 
     const engine = new PositionEngine(); engine.setRoute(navLine);
     let rejected = 0; let fi = 0;
     const errs: number[] = []; let maxOff = 0, sideJumps = 0, backward = 0, maxHeadErr = 0;
-    let prev: LL | null = null, prevProg = -Infinity;
+    let prev: LL | null = null, prevProg = -Infinity, prevHead: number | null = null, maxTurnSlow = 0;
     for (const { t: tt, d: dd } of truthAt) {
-      while (fi < fixes.length && fixes[fi].t <= tt) { if (!engine.ingest(fixes[fi], fixes[fi].t)) rejected++; fi++; }
+      while (fi < fixes.length && fixes[fi].t <= tt) {
+        const f = fixes[fi];
+        if (!engine.ingest(f, f.t)) rejected++;
+        const shownNow = engine.sample(f.t);
+        trace.push({ t: traceClock + legOffset + f.t, raw: [f.lat, f.lng], acc: Math.round(f.accuracy * 10) / 10, speed: f.speed, shown: shownNow ? shownNow.pos : null, onRoute: engine.state?.onRoute ?? null });
+        fi++;
+      }
       for (let k = 0; k < 25; k++) {
         const now = tt + k * 40; const s = engine.sample(now); if (!s) continue;
+        if (s.heading != null && prevHead != null && (engine.state?.speedMps ?? 0) < 8.3) {
+          maxTurnSlow = Math.max(maxTurnSlow, Math.abs(((s.heading - prevHead + 540) % 360) - 180) / 0.04);
+        }
+        prevHead = s.heading;
         const truthPos = truth.pointAt(dd + ((k * 40) / 1000) * 15);
         errs.push(dist(s.pos, truthPos));
         const pr = truth.project(s.pos);
@@ -154,6 +174,8 @@ async function main() {
       engineMaxOffRoadM: maxOff, engineP95ErrorM: p95(errs), engineSideJumps: sideJumps, engineBackwardM: backward,
       oldMaxOffRoadM: oldOff, oldSideJumps: oldJumps, oldP95ErrorM: p95(oldErrs), rejectedFixes: rejected, maxHeadingErrDeg: maxHeadErr,
     });
+    legOffset += (truthAt[truthAt.length - 1]?.t ?? 0) + 300_000; // 5 min ved butikken
+    slowTurns.push(maxTurnSlow);
     dataset[leg] = { navLine, overviewLine: ovLine, fixes: fixes.slice(0, 2000) };
     console.log(`✓ ${leg}`);
   }
@@ -190,6 +212,8 @@ ${stopRows.join("\n")}
 `;
   mkdirSync("/mnt/documents", { recursive: true });
   writeFileSync("/mnt/documents/haderup-herning-afvigelser.md", md);
+  writeFileSync("/tmp/haderup-herning-trace.json", JSON.stringify(trace));
+  console.log("Maks. drejning under 30 km/t (°/s) pr. strækning:", slowTurns.map((x) => x.toFixed(0)).join(", "));
   writeFileSync("/tmp/haderup-herning-sim.json", JSON.stringify({ reports, dataset }));
   console.log(md);
 }
