@@ -3346,6 +3346,24 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_match_rate_events: {
+        Row: {
+          created_at: string
+          id: number
+          visitor_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          visitor_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          visitor_key?: string
+        }
+        Relationships: []
+      }
       quote_request_matches: {
         Row: {
           ai_draft: string | null

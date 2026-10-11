@@ -78,6 +78,13 @@
       "when": 1791716923454,
       "tag": "0010_calculator_price_no_base_floor",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791717141489,
+      "tag": "0011_plan_status_feature_guard_and_quote_rate_limit",
+      "breakpoints": true
     }
   ]
 }
