@@ -278,8 +278,6 @@ export class PositionEngine {
         } else dp += d.v * dt;
         // Langt bagud (fx efter pause i sampling): indhent blødt i stedet for at krybe.
         if (gap > 80 || (rawDt > 0.5 && gap > 0)) { dp += (predicted - dp) * (1 - Math.exp(-rawDt / 0.3)); d.v = Math.max(d.v, base); }
-        // En bil kører ikke forbi sit eget fix: brems helt ved målet.
-        if (this.moving && dp > predicted + 15) dp = Math.max(predicted, dp - (dp - predicted) * 0.5);
         if (gap < -25) dp += gap * (1 - Math.exp(-dt / 0.8));
       }
       d.progress = dp;
