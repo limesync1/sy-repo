@@ -71,6 +71,13 @@
       "when": 1791716898609,
       "tag": "0009_harden_calculator_price_and_business_reactivation",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791716923454,
+      "tag": "0010_calculator_price_no_base_floor",
+      "breakpoints": true
     }
   ]
 }
