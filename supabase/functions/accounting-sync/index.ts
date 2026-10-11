@@ -71,6 +71,12 @@ Deno.serve(async (req) => {
     if (!accountingEnabled) {
       return json({ ok: true, skipped: "accounting_integration_disabled" });
     }
+    // Kræv et aktivt abonnement eller en løbende prøveperiode.
+    const { data: plan } = await admin.from("business_plans")
+      .select("status, trial_ends_at").eq("business_id", business_id).maybeSingle();
+    const planOk = !!plan && (plan.status === "active"
+      || (plan.status === "trialing" && (!plan.trial_ends_at || new Date(plan.trial_ends_at) > new Date())));
+    if (!planOk) return json({ ok: true, skipped: "plan_inactive" });
 
     const integration = await loadIntegration(admin, business_id);
     if (!integration) {
