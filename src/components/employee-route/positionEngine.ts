@@ -54,6 +54,8 @@ const MAX_DEAD_RECKONING_S = 10;
 const MAX_TUNNEL_S = 30;
 const TUNNEL_MIN_MPS = 5;
 const MAX_HEADING_RATE = 120; // °/s
+const MAX_ACCEL = 3; // m/s²
+const MAX_BRAKE = 4.5; // m/s²
 const LONG_GAP_MS = 30_000;
 
 const norm = (a: number) => ((a % 360) + 360) % 360;
@@ -86,7 +88,12 @@ export class RouteLine {
   /** Vejens retning ved d, udglattet over et kort stykke frem. */
   headingAt(d: number): number {
     const from = Math.max(0, Math.min(d, this.total - 1));
-    const a = this.pointAt(from - 4), b = this.pointAt(from + 14);
+    // To korte vinduer i midt gør sving til en bue frem for et knæk.
+    const a = this.pointAt(from - 6), b = this.pointAt(from + 6);
+    const c = this.pointAt(from - 2), e = this.pointAt(from + 16);
+    const h1 = bearingDegrees(a[0], a[1], b[0], b[1]), h2 = bearingDegrees(c[0], c[1], e[0], e[1]);
+    const dd = ((h2 - h1 + 540) % 360) - 180;
+    return (h1 + dd / 2 + 360) % 360;
     return bearingDegrees(a[0], a[1], b[0], b[1]);
   }
   /** Nærmeste punkt på linjen inden for [from, to] kørte meter. */
@@ -120,7 +127,7 @@ export class PositionEngine {
   private offRouteFixes = 0;
   private backHits = 0;
   private target: { pos: [number, number]; heading: number | null } | null = null;
-  private disp: { progress: number | null; pos: [number, number]; heading: number | null; at: number } | null = null;
+  private disp: { progress: number | null; pos: [number, number]; heading: number | null; at: number; v?: number } | null = null;
   private forceJump = false;
 
   setRoute(pts: [number, number][]): void {
@@ -255,8 +262,17 @@ export class PositionEngine {
       const predicted = Math.min(line.total, this.progress + run);
       let dp = d.progress;
       if (dp == null || Math.abs(predicted - dp) > 120) { jump = dp != null; dp = predicted; }
-      else if (predicted > dp) dp += (predicted - dp) * (1 - Math.exp(-dt / 0.3));
-      else if (dp - predicted > 25) dp += (predicted - dp) * (1 - Math.exp(-dt / 0.8));
+      else {
+        // Bilmodel: farten ændres højst med MAX_ACCEL/MAX_BRAKE, aldrig baglæns.
+        const gap = predicted - dp;
+        const base = this.moving ? this.speed : 0;
+        const wantV = gap < -25 ? 0 : Math.max(0, base + gap * 0.9);
+        const v = d.v ?? base;
+        const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * dt, wantV - v));
+        d.v = Math.max(0, v + dv);
+        dp += d.v * dt;
+        if (gap < -25) dp += gap * (1 - Math.exp(-dt / 0.8));
+      }
       d.progress = dp;
       pos = line.pointAt(dp);
       if (this.moving) wanted = line.headingAt(dp);
@@ -274,7 +290,9 @@ export class PositionEngine {
       if (d.heading == null || jump) d.heading = norm(wanted);
       else {
         const diff = delta(d.heading, wanted);
-        const step = Math.max(-MAX_HEADING_RATE * dt, Math.min(MAX_HEADING_RATE * dt, diff * (1 - Math.exp(-dt / 0.25))));
+        const vNow = d.v ?? this.speed;
+        const rate = !this.moving && vNow < 0.5 ? 0 : vNow < 8.3 ? Math.min(MAX_HEADING_RATE, 90) : MAX_HEADING_RATE;
+        const step = Math.max(-rate * dt, Math.min(rate * dt, diff * (1 - Math.exp(-dt / 0.25))));
         d.heading = norm(d.heading + step);
       }
     }
