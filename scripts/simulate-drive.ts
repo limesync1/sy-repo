@@ -145,7 +145,7 @@ async function main() {
         errs.push(dist(s.pos, truthPos));
         const pr = truth.project(s.pos);
         maxOff = Math.max(maxOff, pr.dist);
-        if (prev) { const step = dist(prev, s.pos); if (step > 8 && !s.jump) { sideJumps++; if (process.env.DBG) console.log("HOP", i, tt, k, step.toFixed(1), engine.state?.moving, engine.state?.speedMps?.toFixed(1), engine.state?.onRoute); } }
+        if (prev) { const step = dist(prev, s.pos); if (step > 8 && !s.jump) { sideJumps++; } }
         if (pr.d < prevProg - 1) backward = Math.max(backward, prevProg - pr.d);
         prevProg = Math.max(prevProg, pr.d);
         if (s.heading != null && engine.state?.moving) {
