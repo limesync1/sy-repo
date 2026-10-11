@@ -71,6 +71,17 @@ serve(async (req) => {
       .eq("customer_email", emailRaw).gte("created_at", since);
     if ((recentCount ?? 0) >= 5) return json400("Du har sendt mange forespørgsler i dag. Prøv igen i morgen.", 429);
 
+    // Bound usage per visitor (hashed IP): at most 5 requests per hour, whatever e-mail is used.
+    const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("cf-connecting-ip") || "unknown";
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`quote:${ip}`));
+    const visitorKey = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: visitorCount } = await supabase.from("quote_match_rate_events")
+      .select("id", { count: "exact", head: true })
+      .eq("visitor_key", visitorKey).gte("created_at", hourAgo);
+    if ((visitorCount ?? 0) >= 5) return json400("Du har sendt mange forespørgsler. Prøv igen om en time.", 429);
+    await supabase.from("quote_match_rate_events").insert({ visitor_key: visitorKey });
+
     // Query by categories array (contains) instead of single category field
     const { data: businesses, error: bizError } = await supabase
       .from("businesses")
