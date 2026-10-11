@@ -271,7 +271,7 @@ export class PositionEngine {
         const v = d.v ?? 0;
         const dv = Math.max(-MAX_BRAKE * dt, Math.min(MAX_ACCEL * (1 + Math.max(0, gap) / 20) * dt, wantV - v));
         d.v = Math.max(0, v + dv);
-        if (!this.moving && gap > -25) {
+        if (!this.moving && gap < 3 && gap > -25) {
           // Holder stille: rul blødt det sidste stykke hen til fixet og stå så helt stille.
           d.v = 0;
           dp += Math.max(0, gap) * (1 - Math.exp(-rawDt / 0.4));
