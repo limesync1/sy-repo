@@ -175,12 +175,12 @@ const EmployeeStats = () => {
         <PopoverTrigger asChild>
           <Button
             size="sm"
-            variant="ghost"
+            variant="outline"
             className={cn(
               "h-11 flex-1 shrink-0 gap-1.5 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:h-9 sm:flex-none",
               range === "custom"
                 ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                : "text-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
             <CalendarIcon className="h-3.5 w-3.5" />
