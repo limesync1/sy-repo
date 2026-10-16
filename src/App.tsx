@@ -153,8 +153,9 @@ const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pa
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
 const GardenCityPage         = lazyRoute("/haveservice/:city", () => import("./pages/cities/GardenCityPage"));
-const WindowCityPage         = lazyRoute("/vinduespudser/:city", () => import("./pages/cities/TradeCityPage").then((m) => ({ default: m.WindowCityPage })));
-const PainterCityPage        = lazyRoute("/maler/:city", () => import("./pages/cities/TradeCityPage").then((m) => ({ default: m.PainterCityPage })));
+const TradeCityPage          = lazyRoute("/branche/:city", () => import("./pages/cities/TradeCityPage"));
+const CityHubPage            = lazyRoute("/by", () => import("./pages/cities/CityHubPage"));
+const TRADE_KINDS = ["vinduespudser", "maler", "elektriker", "vvs", "toemrer", "murer", "kloakmester", "skadedyr"];
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
 const BlogCategoryIndex      = lazyRoute("/blog/kategori", () => import("./pages/blog/BlogCategoryIndex"));
 
@@ -438,8 +439,9 @@ const App = () => (
               <Route path="/flyttehjaelp/:city" element={<MovingCityPage />} />
               <Route path="/haandvaerker/:city" element={<HandymanCityPage />} />
               <Route path="/haveservice/:city" element={<GardenCityPage />} />
-              <Route path="/vinduespudser/:city" element={<WindowCityPage />} />
-              <Route path="/maler/:city" element={<PainterCityPage />} />
+              {TRADE_KINDS.map((k) => <Route key={k} path={`/${k}/:city`} element={<TradeCityPage kind={k} />} />)}
+              <Route path="/by" element={<CityHubPage />} />
+              <Route path="/by/:city" element={<CityHubPage />} />
 
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />

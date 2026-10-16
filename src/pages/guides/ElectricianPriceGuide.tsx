@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -103,6 +104,9 @@ const ElectricianPriceGuide = () => {
             <li>Brug <strong>BoligJob-fradraget</strong> på arbejdsløn (op til 17.500 kr./person på grønne håndværkerydelser).</li>
             <li>Bed om <strong>specificeret faktura</strong> med opdeling af løn, materialer og kørsel.</li>
           </ul>
+
+          <h2>Elektriker i din by</h2>
+          <p className="text-sm">{branchCities(findBranch("elektriker")!).map((c, i, a) => (<span key={c.slug}><Link to={`/elektriker/${c.slug}`} className="underline">Elektriker {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Find en elektriker nu</h2>

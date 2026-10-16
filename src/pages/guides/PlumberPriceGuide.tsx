@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -107,6 +108,9 @@ const PlumberPriceGuide = () => {
             <li>Brug <strong>VVS'er med autorisation</strong> — vand- og afløbsarbejde er lovkrav.</li>
             <li>Tjek om opgaven er omfattet af <strong>energifradrag</strong> (varmepumpe, isolering).</li>
           </ul>
+
+          <h2>VVS i din by</h2>
+          <p className="text-sm">{branchCities(findBranch("vvs")!).map((c, i, a) => (<span key={c.slug}><Link to={`/vvs/${c.slug}`} className="underline">VVS {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Find en VVS'er nu</h2>

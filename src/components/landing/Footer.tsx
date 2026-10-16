@@ -75,6 +75,7 @@ const Footer = () => {
               <li><Link to="/guides/flytning" className="transition-colors hover:text-background">Flytning 2026</Link></li>
               <li><Link to="/guides/haandvaerker" className="transition-colors hover:text-background">Håndværker 2026</Link></li>
               <li><Link to="/guides/have" className="transition-colors hover:text-background">Have &amp; haveservice</Link></li>
+              <li><Link to="/by" className="transition-colors hover:text-background">Find service i din by</Link></li>
             </ul>
           </div>
           <div>

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
 import { defineGuidePage } from "./defineGuidePage";
 
 // SEO-mål: "kloak pris" (30/md) + "kloakmester pris" + "tv-inspektion kloak pris".
@@ -36,6 +38,10 @@ export default defineGuidePage({
       "Vejledende priser inkl. moms. Større gravearbejder med belægningsretablering (fliser, asfalt) lægges oveni — typisk 600–1.400 kr./m².",
   },
   sections: [
+    {
+      heading: "Kloakmester i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("kloakmester")!).map((c, i, a) => (<span key={c.slug}><Link to={`/kloakmester/${c.slug}`} className="underline">Kloakmester {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Hvornår skal du have kloakmester (og ikke selv klare det)?",
       paragraphs: [

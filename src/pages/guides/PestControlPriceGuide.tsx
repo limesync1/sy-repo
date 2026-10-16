@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
 import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
@@ -31,6 +33,10 @@ export default defineGuidePage({
     footnote: "Vejledende priser inkl. moms. Mange forsikringer dækker bekæmpelse — tjek altid din police.",
   },
   sections: [
+    {
+      heading: "Skadedyrsbekæmpelse i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("skadedyr")!).map((c, i, a) => (<span key={c.slug}><Link to={`/skadedyr/${c.slug}`} className="underline">Skadedyrsbekæmpelse {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Symptomer — hvad har du?",
       list: [
