@@ -1,3 +1,4 @@
+import { MapCrashGuard } from "@/components/employee-route/MapCrashGuard";
 import navigationCar from "@/assets/navigation-car.svg.asset.json";
 import { EmployeeStopActions } from "@/components/employee/EmployeeStopActions";
 import { markRouteStarted, getRouteStartedAt, formatClockTime, formatRunDuration, readArrival, saveArrival, readArrivalEstimate, saveArrivalEstimate } from "@/components/employee-route/route-run-clock";
@@ -1857,6 +1858,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
           </div>
         ) : mapProvider === "google" ? (
+          <MapCrashGuard onCrash={(e) => handleGoogleFailure({ reason: "network", message: e.message } as unknown as GoogleMapsLoadError)}>
           <GoogleRouteMap key={night ? "gmap-night" : "gmap-day"}
             topOverlayRef={topHudRef}
             bottomOverlayRef={bottomHudRef}
@@ -1882,6 +1884,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             onSelectStop={(id) => { setFollowMode(false); setHighlightedId(id); setSelectedId(id); }}
             onFailure={handleGoogleFailure}
           />
+          </MapCrashGuard>
         ) : (
           <>
           {googleMapError && (

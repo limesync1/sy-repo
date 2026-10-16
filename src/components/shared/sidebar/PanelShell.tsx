@@ -234,7 +234,7 @@ export const PanelShell = ({
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="-ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent/60 lg:hidden"
+              className="-ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent/60 lg:hidden"
               aria-label="Åbn menu"
               aria-haspopup="dialog"
             >
