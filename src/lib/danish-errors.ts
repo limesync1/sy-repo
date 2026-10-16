@@ -24,11 +24,24 @@ const TRANSLATIONS: Array<[RegExp, string]> = [
   [/violates not[- ]null/i, "Et obligatorisk felt mangler."],
   [/value too long/i, "Værdien er for lang."],
 
+  // Rutekørsel: GPS, kort og vejvisning
+  [/user denied geolocation|geolocation.*denied|permission_denied/i, "Du har slået placering fra. Slå den til i telefonens indstillinger for at se bilen på kortet."],
+  [/position unavailable|position_unavailable/i, "Vi kan ikke finde din position. Tjek at placering er slået til for browseren."],
+  [/RefererNotAllowed|ApiNotActivated|InvalidKey|gm_authFailure|REQUEST_DENIED/i, "Google-kortet kunne ikke åbne. Vi viser reservekortet, så du kan køre videre."],
+  [/ROUTE_NOT_FOUND|no route|NoRoute/i, "Vi kunne ikke beregne vejen til næste stop. Linjen vises som lige streg, indtil vi prøver igen."],
+  [/no coordinates|missing coordinates|geocod/i, "Vi kan ikke finde adressen på kortet. Kontakt kontoret, så adressen bliver rettet."],
+
   // Netværk
-  [/failed to fetch/i, "Kunne ikke kontakte serveren. Tjek din internetforbindelse."],
+  [/failed to fetch|load failed|offline/i, "Kunne ikke kontakte serveren. Tjek din internetforbindelse og tryk Prøv igen."],
   [/network[- ]error/i, "Netværksfejl. Prøv igen om lidt."],
-  [/timeout/i, "Anmodningen tog for lang tid. Prøv igen."],
+  [/timeout|timed out/i, "Anmodningen tog for lang tid. Prøv igen."],
 ];
+
+/** Plain-Danish message for a browser GeolocationPositionError code (1 denied, 2 unavailable, 3 timeout). */
+export const geolocationErrorDa = (code: number | undefined): string =>
+  code === 1 ? "Du har slået placering fra. Slå den til i telefonens indstillinger for at se bilen på kortet."
+  : code === 3 ? "GPS'en svarer langsomt. Gå et sted hen med frit udsyn til himlen, så prøver vi igen."
+  : "Vi kan ikke finde din position. Tjek at placering er slået til for browseren.";
 
 const looksEnglish = (msg: string) => /[a-z]/i.test(msg) && !/[æøåÆØÅ]/.test(msg);
 
