@@ -34,3 +34,4 @@
 - Panel headers share `PageHeader`/`.panel-page-hero` styling.
 - Public navigation persists outside suspense; local headers defer to avoid duplicates.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
+- City landing pages for new trades come from `src/pages/cities/branchRegistry.ts` + shared `cityFacts.ts`; sitemap, prerender titles and `/by` hubs derive from it so one registry drives every trade-city page.

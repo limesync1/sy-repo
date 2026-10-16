@@ -56,3 +56,9 @@
 - [x] Simuleret Haderup–Herning med afvigelsesrapport; forkerte stopplaceringer rettet
 - [x] «Optag kørsel» og «Se optagelse» under Alle stop (slettes efter 14 dage)
 - [ ] Rigtig kørsel med optagelse på telefonen (kræver at du kører)
+
+## Bysider (plan 16. okt.)
+- [x] Bølge 1: alle eksisterende brancher i 18 byer
+- [x] Bølge 2: elektriker, VVS, tømrer, murer, kloakmester, skadedyr i 18 byer + /by-hubs
+- [ ] Bølge 3: sidste 8 brancher + 16 nye byer — venter på indeksering af bølge 1–2 (tjek Search Console ca. 6.–13. nov.)
+- [ ] Bølge 4: forstæder — afhænger af bølge 3
