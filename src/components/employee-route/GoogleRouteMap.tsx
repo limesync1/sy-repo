@@ -286,7 +286,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       window.clearTimeout(settle);
       settle = window.setTimeout(() => {
         const g = gestureRef.current;
-        if (g.pinch) userZoomRef.current = map.getZoom() ?? userZoomRef.current;
+        if (g.pinch) { userZoomRef.current = map.getZoom() ?? userZoomRef.current; userZoomedRef.current = true; }
         g.active = false; g.pinch = false; g.until = performance.now() + 250;
       }, 350);
     };
