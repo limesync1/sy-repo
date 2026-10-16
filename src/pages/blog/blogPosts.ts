@@ -308,9 +308,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   // så vi kan tage positionen på Google for fjern-pletter/rengøringsguides.
   {
     slug: "fjern-svedpletter-fra-hvidt-toej",
-    title: "Fjern svedpletter fra hvidt tøj — 7 metoder der faktisk virker",
+    title: "Fjern gule svedpletter fra hvidt tøj: 3 metoder på 1 time",
     description:
-      "Gule svedpletter under armene? Trin-for-trin guide med natron, brintoverilte, citronsyre og opvaskemiddel — plus hvad du IKKE skal gøre på hvidt bomuldstøj.",
+      "Gule pletter under armene? Brintoverilte + opvaskemiddel fjerner selv gamle svedpletter. Se de 7 metoder, og hvorfor klor gør pletterne værre.",
     publishedAt: "2026-01-10",
     readingMinutes: 8,
     category: "Rengøring",
@@ -368,9 +368,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "lav-dit-eget-vinduespudsemiddel",
-    title: "Lav dit eget vinduespudsemiddel — 4 opskrifter der virker",
+    title: "Hjemmelavet vinduespudsemiddel: 4 opskrifter uden striber",
     description:
-      "Eddike, sprit, opvaskemiddel og citronsyre: præcise opskrifter til vinduespudsemiddel der ikke laver striber. Plus advarsler mod blanding du skal undgå.",
+      "Eddike, sprit og en dråbe sæbe: præcise mængder til stribefri ruder for få kroner. Plus de blandinger du aldrig må lave.",
     publishedAt: "2026-01-19",
     readingMinutes: 6,
     category: "Vinduespudser",
@@ -1384,14 +1384,14 @@ BLOG_POSTS.push(
 // ───── Batch 6: rettigheder, regler, energi, skadedyr, sommerhus, lejer
 BLOG_POSTS.push(
   { slug: "garantitider-paa-haandvaerkerarbejde",
-    title: "Garantitider på håndværkerarbejde — 2 år, 5 år eller 10?",
+    title: "Garanti på håndværkerarbejde: 2, 5 eller 10 år? (2026)",
     description: "Købelovens 2 år, AB-Forbrugers 5 år og skjulte mangler op til 10 år. Få overblik over reklamationsfrister, 1- og 5-års gennemgang og hvordan du reklamerer rigtigt.",
     publishedAt: "2026-08-21", readingMinutes: 7, category: "Håndværker",
     tags: ["garanti","reklamation","rettigheder"],
     loader: () => import("./posts/WarrantyContractorWork") },
   { slug: "nabo-klager-over-byggeri-stoj-regler",
-    title: "Nabo klager over byggeri — støjtider, regler og konflikthåndtering",
-    description: "Hvornår må håndværkeren larme, hvornår skal du varsle naboen, og hvad kan naboen reelt kræve? Få reglerne og en tjekliste der forebygger nabokonflikten.",
+    title: "Byggestøj og naboer: Hvornår må håndværkere larme? Regler",
+    description: "Typisk hverdage 7–18 og lørdag 8–14 – men din kommune bestemmer. Se støjtider, varsling af naboen og hvad naboen kan kræve.",
     publishedAt: "2026-08-22", readingMinutes: 6, category: "Håndværker",
     tags: ["nabo","stoej","regler"],
     loader: () => import("./posts/NeighborComplaintsBuilding") },

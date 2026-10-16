@@ -25,7 +25,7 @@ export interface GuideMeta {
 
 export const GUIDES: GuideMeta[] = [
   // Eksisterende prisguides
-  { href: "/priser/rengoering", title: "Rengøring pris 2026 — timepris & fast pris", desc: "Komplet prisguide for privat- og erhvervsrengøring — timepris, fast pris og BoligJob-fradrag.", category: "Rengøring", tag: "Prisguide", priority: "0.8" },
+  { href: "/priser/rengoering", title: "Rengøringsfirma priser 2026 — privat rengøring fra 250 kr./t", desc: "Komplet prisguide for privat- og erhvervsrengøring — timepris, fast pris og BoligJob-fradrag.", category: "Rengøring", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/flyttehjaelp", title: "Hvad koster flyttehjælp i 2026?", desc: "Priser på flyttefirmaer — pakker, kørsel, opbevaring og typiske flytteeksempler.", category: "Flyttehjælp", tag: "Prisguide", priority: "0.8" },
   { href: "/priser/haandvaerker", title: "Hvad koster en håndværker i timen?", desc: "Timepriser for tømrer, murer, snedker og alm. håndværker — inkl. udkald og BoligJob-fradrag.", category: "Håndværker", tag: "Prisguide", priority: "0.85" },
   { href: "/priser/maler", title: "Maler pris pr. m² i 2026", desc: "Priser pr. m² for vægge, lofter og træværk — indvendigt og udvendigt malerarbejde.", category: "Maler", tag: "Prisguide", priority: "0.8" },

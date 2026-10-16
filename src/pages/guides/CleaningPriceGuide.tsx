@@ -89,8 +89,8 @@ const CleaningPriceGuide = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Rengøring pris 2026 — timepris & fast pris"
-        description="Rengøring pris: Hvad koster rengøringshjælp i Danmark? Se timepriser, faste priser, BoligJob-fradrag og hvad der påvirker prisen for privat- og erhvervsrengøring."
+        title="Rengøringsfirma priser 2026: Privat rengøring fra 250 kr./t"
+        description="Hvad koster privat rengøring? Typisk 250–450 kr./t inkl. moms, eller 350–650 kr. pr. besøg i en lejlighed. Se priser, fradrag og få 3 gratis tilbud."
         canonicalPath="/priser/rengoering"
         keywords="rengøringsfirma priser, hvad koster privat rengøring, rengøring pris, timepris rengøring, fast pris rengøring, erhvervsrengøring pris, boligjob fradrag rengøring"
         ogType="article"
