@@ -216,7 +216,7 @@ const routeMeta = [
   ...cityMeta("haandvaerker", "Håndværker", HANDYMAN_CITIES),
   ...cityMeta("haveservice", "Haveservice", GARDEN_CITIES),
   ...BRANCHES.flatMap((b) => branchCities(b).map((c) => ({ path: `/${b.kind}/${c.slug}`, title: `${b.label} ${c.name}: Priser 2026 · Få 3 tilbud | Serviceydere`, description: `${b.label} i ${c.name}: ${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} ${b.unit}. Se lokale priser og få 3 gratis tilbud fra ${b.plural} i ${c.name}.` }))),
-  { path: "/by", title: "Find serviceydere i din by – alle byer | Serviceydere", description: "Se priser og få 3 gratis tilbud på rengøring, håndværk, maler, elektriker, VVS og meget mere i 18 danske byer." },
+  { path: "/by", title: "Find serviceydere i din by – alle byer | Serviceydere", description: "Se priser og få 3 gratis tilbud på rengøring, håndværk, maler, elektriker, VVS og meget mere i 34 danske byer." },
   ...CITY_FACTS.map((c) => ({ path: `/by/${c.slug}`, title: `Serviceydere i ${c.name} – priser på ${servicesForCity(c.slug).length} services | Serviceydere`, description: `Find rengøring, håndværkere, maler, elektriker, VVS og flere services i ${c.name}. Se lokale priser og få 3 gratis tilbud.` })),
 ];
 // Virksomhedssider (/v/:slug) — hentes ved build, så hver virksomhed får egen
