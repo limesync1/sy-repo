@@ -60,5 +60,5 @@
 ## Bysider (plan 16. okt.)
 - [x] Bølge 1: alle eksisterende brancher i 18 byer
 - [x] Bølge 2: elektriker, VVS, tømrer, murer, kloakmester, skadedyr i 18 byer + /by-hubs
-- [ ] Bølge 3: sidste 8 brancher + 16 nye byer — venter på indeksering af bølge 1–2 (tjek Search Console ca. 6.–13. nov.)
-- [ ] Bølge 4: forstæder — afhænger af bølge 3
+- [x] Bølge 3: sidste 8 brancher + 16 forstæder/mindre byer (fremrykket efter brugerens ønske)
+- [ ] Bølge 4: 16 mellemstore byer (Viborg, Fredericia …) — venter på indeksering i Search Console (ca. 6.–13. nov.)
