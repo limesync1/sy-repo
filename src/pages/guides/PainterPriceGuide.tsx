@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
+import { PAINTER_CITIES } from "@/pages/cities/tradeCityData";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -105,6 +106,9 @@ const PainterPriceGuide = () => {
             for to malere og lander på <strong>22.000–36.000 kr.</strong> inkl. maling. Mens du er
             væk hjemmefra. Ekstra: træværk +6.000 kr., kraftig farveændring +15%.
           </p>
+
+          <h2>Maler i din by</h2>
+          <p className="text-sm">{PAINTER_CITIES.map((c, i) => (<span key={c.slug}><Link to={`/maler/${c.slug}`} className="underline">Maler {c.name}</Link>{i < PAINTER_CITIES.length - 1 ? " · " : ""}</span>))}</p>
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Få 3 gratis malertilbud</h2>
