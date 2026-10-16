@@ -251,6 +251,21 @@ export const HANDYMAN_CITIES: CityHandymanContent[] = [
     localFactor: "Landejendomme ligger spredt, så spørg om kørselstillæg uden for byen. Til gengæld er timepriserne blandt de laveste på Sjælland, og mange firmaer kan starte hurtigere end i hovedstadsområdet.",
     popularTasks: ["Tagreparation", "Udskiftning af vinduer", "Renovering af udhus", "Køkkenmontering", "Fejlsøgning på el"],
   },
+  {
+    slug: "holstebro",
+    name: "Holstebro",
+    region: "Midtjylland",
+    postalRange: "7500–7560",
+    hourlyLow: 420, hourlyHigh: 620,
+    carpenterLow: 460, carpenterHigh: 660,
+    electricianLow: 495, electricianHigh: 725,
+    callOutLow: 350, callOutHigh: 750,
+    intro:
+      "Holstebro har mange parcelhuse fra 1960'erne og 70'erne i Mejdal, Tvis og Skave, hvor håndværkerne især skifter vinduer, efterisolerer og renoverer badeværelser.",
+    localFactor:
+      "Vestjysk vind og regn slider på tage, facader og vinduer, så mange opgaver handler om klimaskærmen. Timepriserne er blandt de laveste i landet, og firmaerne dækker ofte Struer og Vinderup uden kørselstillæg.",
+    popularTasks: ["Udskiftning af vinduer", "Efterisolering af loft", "Badeværelsesrenovering", "Reparation af tag", "Ny terrasse"],
+  },
 ];
 
 export const findHandymanCity = (slug?: string) =>

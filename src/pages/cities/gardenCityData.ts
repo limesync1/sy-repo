@@ -123,6 +123,27 @@ export const GARDEN_CITIES: CityGardenContent[] = [
     localFactor: "Kystnære grunde med sandjord og salt vind kræver robust beplantning og oftere tilbageklipning. Sommerhusejere bestiller typisk faste besøg, mens de ikke selv er der — husk at aftale adgang.",
     popularTasks: ["Haveservice til sommerhus", "Hækklipning", "Græsslåning", "Beskæring af fyr og buske", "Forårsklargøring"],
   },
+  {
+    slug: "hilleroed", name: "Hillerød", region: "Hovedstaden", postalRange: "3400",
+    hourlyLow: 385, hourlyHigh: 575, lawnLow: 340, lawnHigh: 730, hedgeLow: 33, hedgeHigh: 72,
+    intro: "Hillerød har mange villaer og rækkehuse i Ullerød, Trollesminde og Alsønderup, ofte med store haver tæt på skov. Fast havepasning hver 14. dag er den mest bestilte løsning.",
+    localFactor: "Skovnære grunde giver mange blade i efteråret og mos i plænen. Bortkørsel af haveaffald fylder derfor mere i prisen end i bymidten.",
+    popularTasks: ["Græsslåning hver 14. dag", "Løvrydning om efteråret", "Hækklipning", "Mosbekæmpelse i plænen", "Beskæring af træer"],
+  },
+  {
+    slug: "holstebro", name: "Holstebro", region: "Midtjylland", postalRange: "7500–7560",
+    hourlyLow: 345, hourlyHigh: 515, lawnLow: 300, lawnHigh: 640, hedgeLow: 30, hedgeHigh: 62,
+    intro: "Holstebro består mest af parcelhuse i Mejdal, Tvis og Skave med plads til store plæner og hække. Mange bestiller en sæsonpakke fra april til oktober.",
+    localFactor: "Vestenvind og sandet jord betyder, at læhegn og hække skal klippes og plejes oftere. Prisniveauet er blandt de laveste i landet.",
+    popularTasks: ["Sæsonpakke med græsslåning", "Klipning af læhegn", "Hækklipning", "Ukrudtsbekæmpelse", "Forårsklargøring"],
+  },
+  {
+    slug: "slagelse", name: "Slagelse", region: "Sjælland", postalRange: "4200",
+    hourlyLow: 355, hourlyHigh: 530, lawnLow: 310, lawnHigh: 660, hedgeLow: 30, hedgeHigh: 65,
+    intro: "Slagelse har mange parcelhuse fra 1960'erne og 70'erne i Antvorskov og Vårby, hvor hække og buske efterhånden er blevet store.",
+    localFactor: "Ældre haver har ofte tilgroede hække og træer, som kræver en større oprydning før fast pasning. Firmaerne dækker typisk også Korsør og Sorø.",
+    popularTasks: ["Oprydning af tilgroet have", "Hækklipning", "Græsslåning", "Fældning af mindre træer", "Bortkørsel af haveaffald"],
+  },
 ];
 
 export const findGardenCity = (slug?: string) =>
