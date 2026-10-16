@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
+import { WINDOW_CITIES } from "@/pages/cities/tradeCityData";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -105,6 +106,9 @@ const WindowCleaningPriceGuide = () => {
             på <strong>650 kr. pr. besøg</strong>. Årligt: cirka <strong>7.800 kr.</strong> Med
             BoligJob-fradrag falder den reelle udgift til ca. 5.100 kr.
           </p>
+
+          <h2>Vinduespudser i din by</h2>
+          <p className="text-sm">{WINDOW_CITIES.map((c, i) => (<span key={c.slug}><Link to={`/vinduespudser/${c.slug}`} className="underline">Vinduespudser {c.name}</Link>{i < WINDOW_CITIES.length - 1 ? " · " : ""}</span>))}</p>
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Find en vinduespudser</h2>
