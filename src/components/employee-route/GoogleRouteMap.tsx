@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { googleMapsMapId, loadGoogleMaps, onGoogleMapsAuthFailure, GoogleMapsLoadError } from "@/lib/google-maps-loader";
 import { resolveMapColor } from "@/components/employee-route/RouteMapLine";
-import { followCenter, followZoom, norm360 } from "@/components/employee-route/google-nav-camera";
+import { followCenter, followZoom, lookAheadPx, norm360, smoothZoom } from "@/components/employee-route/google-nav-camera";
 import navigationCar from "@/assets/navigation-car.svg.asset.json";
 import type { MotionSource } from "@/components/employee-route/motionTrack";
 
@@ -275,6 +275,9 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
   // ── Gestures: read straight from the finger, never from Google's camera events ──
   // One-finger drag → free mode. Pinch/wheel → stay in follow, adopt the user's zoom.
   const userZoomRef = useRef(17);
+  /** True once the driver pinched; their zoom then wins over speed-based zoom. */
+  const userZoomedRef = useRef(false);
+  const zoomNowRef = useRef(17);
   const gestureRef = useRef({ active: false, pinch: false, until: 0 });
   useEffect(() => {
     const el = containerRef.current; const map = mapRef.current; if (!el || !map) return;
@@ -283,7 +286,7 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       window.clearTimeout(settle);
       settle = window.setTimeout(() => {
         const g = gestureRef.current;
-        if (g.pinch) userZoomRef.current = map.getZoom() ?? userZoomRef.current;
+        if (g.pinch) { userZoomRef.current = map.getZoom() ?? userZoomRef.current; userZoomedRef.current = true; }
         g.active = false; g.pinch = false; g.until = performance.now() + 250;
       }, 350);
     };
@@ -387,8 +390,11 @@ export const GoogleRouteMap = forwardRef<HTMLDivElement, Props>(function GoogleR
       const dt = lastAt ? Math.min(0.5, (now - lastAt) / 1000) : 1; lastAt = now;
       const wantTilt = known ? 40 : 0;
       tilt = jump ? wantTilt : tilt + (wantTilt - tilt) * Math.min(1, dt * 3);
-      const zoom = followZoom(userZoomRef.current, maneuverRef.current, speedRef.current);
-      const dy = Math.max(0, (anchorRef.current ?? el.clientHeight / 2) - el.clientHeight / 2);
+      const target = followZoom(userZoomRef.current, maneuverRef.current, speedRef.current, userZoomedRef.current);
+      zoomNowRef.current = jump || userZoomedRef.current ? target : smoothZoom(zoomNowRef.current, target, dt);
+      const zoom = zoomNowRef.current;
+      const dy = Math.max(0, (anchorRef.current ?? el.clientHeight / 2) - el.clientHeight / 2)
+        + (known ? lookAheadPx(speedRef.current, el.clientHeight) : 0);
       const center = followCenter(pos, h, zoom, dy, tilt);
       map.moveCamera({ center, zoom, heading: h, tilt });
       const car = fixedCarRef.current;
