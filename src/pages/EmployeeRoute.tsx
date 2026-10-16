@@ -1857,7 +1857,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
           </div>
         ) : mapProvider === "google" ? (
-          <MapCrashGuard onCrash={(e) => handleGoogleFailure({ reason: "load", message: e.message } as GoogleMapsLoadError)}>
+          <MapCrashGuard onCrash={(e) => handleGoogleFailure({ reason: "network", message: e.message } as GoogleMapsLoadError)}>
           <GoogleRouteMap key={night ? "gmap-night" : "gmap-day"}
             topOverlayRef={topHudRef}
             bottomOverlayRef={bottomHudRef}
