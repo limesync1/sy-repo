@@ -26,12 +26,6 @@ export interface Branch {
 
 const r5 = (n: number) => Math.round(n / 5) * 5;
 const fmt = (n: number) => n.toLocaleString("da-DK");
-const scale = (c: BranchCity, low: number, high: number) => {
-  const k = c.unitLow / Math.max(1, c.unitLow); // placeholder for symmetry
-  void k;
-  return `${fmt(low)}–${fmt(high)} kr.`;
-};
-void scale;
 
 export const BRANCHES: Branch[] = [
   {
