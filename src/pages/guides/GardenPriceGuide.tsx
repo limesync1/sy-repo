@@ -34,7 +34,7 @@ const GardenPriceGuide = () => {
       mainEntity: [
         { "@type": "Question", name: "Hvad koster en havemand i timen?", acceptedAnswer: { "@type": "Answer", text: "En havemand koster typisk 400–700 kr. i timen inkl. moms i 2026. Faste aftaler ligger ofte 15–25% lavere end engangsbesøg." } },
         { "@type": "Question", name: "Hvad koster græsslåning?", acceptedAnswer: { "@type": "Answer", text: "Græsslåning af et alm. parcelhus (300–600 m² græs) koster 400–900 kr. pr. besøg afhængig af by og adgang. Inkl. afklip og bortskaffelse." } },
-        { "@type": "Question", name: "Hvad koster hækklipning?", acceptedAnswer: { "@type": "Answer", text: "Hækklipning koster 45–90 kr. pr. løbende meter. Højde over 2 meter koster typisk 90–150 kr. pr. meter pga. stilladsbehov." } },
+        { "@type": "Question", name: "Hvad koster hækklipning?", acceptedAnswer: { "@type": "Answer", text: "Hækklipning koster 30–80 kr. pr. løbende meter. Meget høje hække over 2 meter, der kræver lift eller stillads, koster ofte 80–150 kr. pr. meter." } },
         { "@type": "Question", name: "Kan jeg få fradrag på haveservice?", acceptedAnswer: { "@type": "Answer", text: "Ja — haveservice indgår i BoligJob-ordningens serviceydelser med op til 18.300 kr./person i 2026. Kræver elektronisk betaling og specificeret faktura." } },
       ],
     },
@@ -44,7 +44,7 @@ const GardenPriceGuide = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Gartner pris 2026 — havearbejde fra 400 kr./t | Serviceydere"
-        description="Hvad koster en gartner og havearbejde? Se priser: gartner fra 400 kr./t, græsslåning fra 250 kr., hækklipning fra 45 kr./m. Sammenlign gratis og få 3 tilbud fra havefirmaer nær dig."
+        description="Hvad koster en gartner og havearbejde? Se priser: gartner fra 400 kr./t, græsslåning fra 250 kr., hækklipning fra ca. 30 kr./m. Sammenlign gratis og få 3 tilbud fra havefirmaer nær dig."
         canonicalPath="/priser/haveservice"
         keywords="haveservice pris, havemand pris, græsslåning pris, hækklipning pris, havefirma pris, haveservice abonnement"
         ogType="article"
@@ -69,7 +69,7 @@ const GardenPriceGuide = () => {
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
               <li>Timepris havemand: <strong>400–700 kr.</strong> inkl. moms</li>
               <li>Græsslåning pr. besøg: <strong>250–900 kr.</strong></li>
-              <li>Hækklipning pr. lbm.: <strong>45–90 kr.</strong></li>
+              <li>Hækklipning pr. lbm.: <strong>30–80 kr.</strong></li>
               <li>Fradrag (BoligJob): <strong>op til 18.300 kr./person</strong></li>
             </ul>
           </div>
@@ -83,7 +83,7 @@ const GardenPriceGuide = () => {
                 <tr><td className="px-4 py-3">Græsslåning, lille have (&lt;300 m²)</td><td className="px-4 py-3">250–500 kr.</td><td className="px-4 py-3">Pr. besøg</td></tr>
                 <tr><td className="px-4 py-3">Græsslåning, mellem (300–600 m²)</td><td className="px-4 py-3">400–900 kr.</td><td className="px-4 py-3">Pr. besøg</td></tr>
                 <tr><td className="px-4 py-3">Græsslåning, stor (600+ m²)</td><td className="px-4 py-3">600–1.500 kr.</td><td className="px-4 py-3">Pr. besøg</td></tr>
-                <tr><td className="px-4 py-3">Hækklipning</td><td className="px-4 py-3">45–90 kr.</td><td className="px-4 py-3">Pr. lbm.</td></tr>
+                <tr><td className="px-4 py-3">Hækklipning</td><td className="px-4 py-3">30–80 kr.</td><td className="px-4 py-3">Pr. lbm.</td></tr>
                 <tr><td className="px-4 py-3">Forårsoprydning</td><td className="px-4 py-3">1.500–4.500 kr.</td><td className="px-4 py-3">Fast pris</td></tr>
                 <tr><td className="px-4 py-3">Bortskaffelse af haveaffald</td><td className="px-4 py-3">300–1.000 kr.</td><td className="px-4 py-3">Pr. læs</td></tr>
                 <tr><td className="px-4 py-3">Snerydning (abonnement)</td><td className="px-4 py-3">2.500–6.000 kr.</td><td className="px-4 py-3">Pr. sæson</td></tr>
@@ -120,7 +120,7 @@ const GardenPriceGuide = () => {
             items={[
               { q: "Hvad koster en havemand i timen?", a: "En havemand koster typisk 400–700 kr. i timen inkl. moms i 2026. Faste aftaler ligger ofte 15–25% lavere end engangsbesøg." },
               { q: "Hvad koster græsslåning?", a: "Græsslåning af et alm. parcelhus (300–600 m² græs) koster 400–900 kr. pr. besøg afhængig af by og adgang." },
-              { q: "Hvad koster hækklipning?", a: "Hækklipning koster 45–90 kr. pr. løbende meter. Højde over 2 meter koster typisk 90–150 kr. pr. meter." },
+              { q: "Hvad koster hækklipning?", a: "Hækklipning koster 30–80 kr. pr. løbende meter. Meget høje hække over 2 meter koster ofte 80–150 kr. pr. meter." },
               { q: "Kan jeg få fradrag på haveservice?", a: "Ja — haveservice indgår i BoligJob-ordningens serviceydelser. Det kræver elektronisk betaling og specificeret faktura." },
             ]}
           />

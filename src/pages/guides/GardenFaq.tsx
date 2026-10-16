@@ -17,7 +17,7 @@ export default defineGuidePage({
   quickFacts: [
     <>Timepris: <strong>400–700 kr./t</strong> inkl. moms</>,
     <>Græsslåning: <strong>250–900 kr./besøg</strong></>,
-    <>Hækklipning: <strong>45–90 kr./lbm</strong></>,
+    <>Hækklipning: <strong>30–80 kr./lbm</strong></>,
     <>Servicefradrag på arbejdslønnen</>,
   ],
   priceTable: {
@@ -25,7 +25,7 @@ export default defineGuidePage({
     rows: [
       { label: "Havemand", price: "400–700 kr./t", note: "Timepris" },
       { label: "Græsslåning parcelhus", price: "250–900 kr.", note: "Pr. besøg" },
-      { label: "Hækklipning", price: "45–90 kr.", note: "Pr. løbende meter" },
+      { label: "Hækklipning", price: "30–80 kr.", note: "Pr. løbende meter" },
       { label: "Bortkørsel af haveaffald", price: "300–800 kr.", note: "Pr. læs" },
     ],
     footnote: "Vejledende priser inkl. moms. Den endelige pris afhænger af havens størrelse og adgangsforhold.",
@@ -42,7 +42,7 @@ export default defineGuidePage({
     { q: "Hvad er forskellen på en havemand og en anlægsgartner?", a: "En havemand vedligeholder haven. En anlægsgartner anlægger nyt, fx terrasser, belægning, plæner og beplantning." },
     { q: "Kan jeg få fradrag for en havemand?", a: "Ja. Almindeligt havearbejde som græsslåning, hækklipning og lugning giver servicefradrag på arbejdslønnen. Materialer og kørsel giver ikke fradrag." },
     { q: "Hvad koster græsslåning?", a: "Græsslåning koster typisk 250–900 kr. pr. besøg for et parcelhus. Faste aftaler hver uge eller hver 14. dag giver ofte den laveste pris pr. besøg." },
-    { q: "Hvad koster hækklipning?", a: "Hækklipning koster typisk 45–90 kr. pr. løbende meter. Høje, brede eller forsømte hække koster mere." },
+    { q: "Hvad koster hækklipning?", a: "Hækklipning koster typisk 30–80 kr. pr. løbende meter. Høje, brede eller forsømte hække koster mere." },
     { q: "Hvor ofte skal græsset slås?", a: "I vækstsæsonen fra april til oktober bør græsset slås hver uge eller hver 14. dag." },
     { q: "Hvornår skal hækken klippes?", a: "De fleste hække klippes to gange om året: i juni og igen i august eller september." },
     { q: "Er bortkørsel af haveaffald med i prisen?", a: "Ikke altid. Spørg, om haveaffald er inkluderet, eller om det afregnes pr. læs." },
