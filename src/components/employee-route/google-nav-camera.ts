@@ -51,9 +51,31 @@ export function lerpCam(a: Cam, b: Cam, t: number): Cam {
   };
 }
 
-/** Follow zoom: the user's chosen zoom, temporarily +1 just before a turn. */
-export function followZoom(userZoom: number, turnDistanceM: number | null, speedMps: number): number {
-  // No automatic zoom changes: the camera keeps the zoom the driver chose.
-  void turnDistanceM; void speedMps;
-  return Math.max(12, Math.min(19.5, userZoom));
+/** Speed-based zoom like Google Maps navigation: ~17.5 in town, ~15.5 on the motorway. */
+export function speedZoom(speedMps: number): number {
+  const kmh = Math.max(0, speedMps) * 3.6;
+  const t = Math.max(0, Math.min(1, (kmh - 40) / 70)); // 40 km/h → 0, 110 km/h → 1
+  return 17.5 - 2 * t;
+}
+
+/**
+ * Follow zoom. If the driver pinched, their zoom wins and never changes by itself.
+ * Otherwise speed-based zoom, with a small temporary +0.5 just before a town turn.
+ */
+export function followZoom(userZoom: number, turnDistanceM: number | null, speedMps: number, userChose = true): number {
+  if (userChose) return Math.max(12, Math.min(19.5, userZoom));
+  let z = speedZoom(speedMps);
+  if (turnDistanceM != null && turnDistanceM < 150 && speedMps < 14) z += 0.5;
+  return Math.max(12, Math.min(19.5, z));
+}
+
+/** Low-pass towards a target zoom so speed changes never make the map pump. */
+export function smoothZoom(prev: number, target: number, dtS: number, tauS = 2.5): number {
+  return prev + (target - prev) * (1 - Math.exp(-Math.max(0, dtS) / tauS));
+}
+
+/** Extra px the car sits lower at speed, so more road ahead is visible (max ~18% of height). */
+export function lookAheadPx(speedMps: number, heightPx: number): number {
+  const t = Math.max(0, Math.min(1, (speedMps * 3.6 - 20) / 80));
+  return t * heightPx * 0.18;
 }
