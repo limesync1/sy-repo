@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
@@ -32,6 +34,10 @@ export default defineGuidePage({
     footnote: "Vejledende priser inkl. moms. Større projekter kan opnå mængderabat.",
   },
   sections: [
+    {
+      heading: "Anlægsgartner i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("anlaegsgartner")!).map((c, i, a) => (<span key={c.slug}><Link to={`/anlaegsgartner/${c.slug}`} className="underline">Anlægsgartner {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Start med funktionen, ikke æstetikken",
       paragraphs: [

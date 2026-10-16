@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 // SEO-mål: "varmepumpe pris" (880/md, KDI 23). Konkurrenter rangerer
@@ -37,6 +39,10 @@ export default defineGuidePage({
       "Vejledende priser inkl. moms og standardinstallation. Lange rørtræk, gravearbejde og 3-faset el kan give tillæg på 10.000–35.000 kr.",
   },
   sections: [
+    {
+      heading: "Varmepumpe i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("varmepumpe")!).map((c, i, a) => (<span key={c.slug}><Link to={`/varmepumpe/${c.slug}`} className="underline">Varmepumpe {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Luft-til-vand vs. luft-til-luft — hvad skal du vælge?",
       paragraphs: [

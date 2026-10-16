@@ -18,7 +18,7 @@ const CityHubPage = () => {
   if (!city) {
     return (
       <div className="min-h-screen bg-background">
-        <SEO title="Find serviceydere i din by – alle byer" description="Se priser og få 3 gratis tilbud på rengøring, håndværk, maler, elektriker, VVS og meget mere i 18 danske byer." canonicalPath="/by" />
+        <SEO title="Find serviceydere i din by – alle byer" description="Se priser og få 3 gratis tilbud på rengøring, håndværk, maler, elektriker, VVS og meget mere i 34 danske byer." canonicalPath="/by" />
         <SiteNav />
         <ArticleHero breadcrumbs={[{ label: "Forside", to: "/" }, { label: "Byer" }]} eyebrow="Hele Danmark" title="Find serviceydere i din by" subtitle="Vælg din by og se lokale priser på alle services." />
         <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

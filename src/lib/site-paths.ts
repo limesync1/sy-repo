@@ -39,7 +39,7 @@ export const VALID_SITE_PATHS: string[] = [
   "/by",
 ];
 
-const VALID_PREFIXES = ["/priser/", "/guides/", "/blog/", "/v/", "/rengoering/", "/flyttehjaelp/", "/haandvaerker/", "/haveservice/", "/vinduespudser/", "/maler/", "/elektriker/", "/vvs/", "/toemrer/", "/murer/", "/kloakmester/", "/skadedyr/", "/by/"];
+const VALID_PREFIXES = ["/priser/", "/guides/", "/blog/", "/v/", "/rengoering/", "/flyttehjaelp/", "/haandvaerker/", "/haveservice/", "/vinduespudser/", "/maler/", "/elektriker/", "/vvs/", "/toemrer/", "/murer/", "/kloakmester/", "/skadedyr/", "/gulvlaegger/", "/skorstensfejer/", "/varmepumpe/", "/tagdaekker/", "/badevaerelse/", "/vinduesudskiftning/", "/anlaegsgartner/", "/algebehandling/", "/by/"];
 
 export function normalizeSitePath(input: string): string {
   let path = input.trim().replace(/^https?:\/\/(?:www\.)?serviceydere\.dk/i, "");
