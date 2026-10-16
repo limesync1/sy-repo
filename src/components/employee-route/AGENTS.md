@@ -11,3 +11,4 @@
 - The position engine is the only source of the shown car position (map-matched to the active leg, hysteresis, outlier rejection, dead reckoning); camera, car, arrival and rerouting consume it so they never disagree.
 - Navigation legs are refetched only at start, next-stop change or reroute, never per distance driven, to keep the line under the car stable and bound routing cost.
 - The shown car follows a vehicle model (bounded acceleration/braking, no turning while stationary, speed-limited turn rate) so it never teleports or spins.
+- Follow zoom is speed-based and low-pass filtered until the driver pinches; afterwards the driver's zoom always wins, so the map never fights the user.
