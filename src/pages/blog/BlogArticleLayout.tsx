@@ -18,6 +18,16 @@ interface Props {
   children: ReactNode;
 }
 
+/** Blogkategori → prisguide, så læsere af populære indlæg finder priser og tilbud. */
+const PRICE_GUIDE_BY_CATEGORY: Record<string, string> = {
+  "Rengøring": "/priser/rengoering", "Flyttehjælp": "/priser/flyttehjaelp", "Håndværker": "/priser/haandvaerker",
+  "Maler": "/priser/maler", "Vinduespudsning": "/priser/vinduespudser", "Vinduespudser": "/priser/vinduespudser",
+  "VVS": "/priser/vvs", "Haveservice": "/priser/haveservice", "Elektriker": "/priser/elektriker", "Tømrer": "/priser/tomrer",
+  "Murer": "/priser/murer", "Gulvlægger": "/priser/gulvlaegger", "Anlægsgartner": "/priser/anlaegsgartner",
+  "Skadedyr": "/priser/skadedyr", "Skadedyrsbekæmpelse": "/priser/skadedyr", "Skorstensfejer": "/priser/skorstensfejer",
+  "Algebehandling": "/priser/algebehandling", "Sikkerhed": "/priser/sikkerhed", "Tagrenovering": "/priser/nyt-tag", "Tagdækker": "/priser/nyt-tag",
+};
+
 /** Delt artikel-layout for /blog/:slug sider. Sørger for ensartet SEO,
  *  brødkrummer, JSON-LD (Article + Breadcrumb + evt. FAQPage) og CTA. */
 const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
@@ -111,6 +121,11 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
               <Link to="/virksomheder" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">
                 Se serviceudbydere
               </Link>
+              {post.category && PRICE_GUIDE_BY_CATEGORY[post.category] && (
+                <Link to={PRICE_GUIDE_BY_CATEGORY[post.category]} className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">
+                  Se priser på {post.category.toLowerCase()}
+                </Link>
+              )}
             </div>
           </div>
         </article>
