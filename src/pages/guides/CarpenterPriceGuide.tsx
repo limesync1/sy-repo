@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
 import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
@@ -31,6 +33,10 @@ export default defineGuidePage({
     footnote: "Vejledende priser inkl. moms. Opdateret 2026.",
   },
   sections: [
+    {
+      heading: "Tømrer i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("toemrer")!).map((c, i, a) => (<span key={c.slug}><Link to={`/toemrer/${c.slug}`} className="underline">Tømrer {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Timepris vs. akkord",
       paragraphs: [

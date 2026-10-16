@@ -11,7 +11,9 @@ import { CITIES } from "../src/pages/cities/cleaningCityData";
 import { MOVING_CITIES } from "../src/pages/cities/movingCityData";
 import { HANDYMAN_CITIES } from "../src/pages/cities/handymanCityData";
 import { GARDEN_CITIES } from "../src/pages/cities/gardenCityData";
-import { WINDOW_CITIES, PAINTER_CITIES } from "../src/pages/cities/tradeCityData";
+import { BRANCHES, branchCities } from "../src/pages/cities/branchRegistry";
+import { CITY_FACTS } from "../src/pages/cities/cityFacts";
+import { servicesForCity } from "../src/pages/cities/cityServices";
 import { SOFTWARE_PAGES } from "../src/pages/software/softwareRegistry";
 
 const BASE_URL = "https://serviceydere.dk";
@@ -72,8 +74,9 @@ const CITY_ENTRIES: SitemapEntry[] = [
   ...MOVING_CITIES.map((c) => ({ path: `/flyttehjaelp/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
   ...HANDYMAN_CITIES.map((c) => ({ path: `/haandvaerker/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
   ...GARDEN_CITIES.map((c) => ({ path: `/haveservice/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
-  ...WINDOW_CITIES.map((c) => ({ path: `/vinduespudser/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
-  ...PAINTER_CITIES.map((c) => ({ path: `/maler/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
+  ...BRANCHES.flatMap((b) => branchCities(b).map((c) => ({ path: `/${b.kind}/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" }))),
+  { path: "/by", changefreq: "weekly" as const, priority: "0.7" },
+  ...CITY_FACTS.map((c) => ({ path: `/by/${c.slug}`, changefreq: "weekly" as const, priority: "0.7" })),
 ];
 
 // Offentlige produktsider (/software/*) — én sandhed i softwareRegistry.
@@ -212,8 +215,9 @@ const routeMeta = [
   ...cityMeta("flyttehjaelp", "Flyttehjælp", MOVING_CITIES),
   ...cityMeta("haandvaerker", "Håndværker", HANDYMAN_CITIES),
   ...cityMeta("haveservice", "Haveservice", GARDEN_CITIES),
-  ...WINDOW_CITIES.map((c) => ({ path: `/vinduespudser/${c.slug}`, title: `Vinduespudser ${c.name}: Priser 2026 · Få 3 tilbud | Serviceydere`, description: `Vinduespudser i ${c.name}: ${c.unitLow}–${c.unitHigh} kr. pr. vindue ved fast aftale. Se lokale priser og få 3 gratis tilbud fra vinduespudsere i ${c.name}.` })),
-  ...PAINTER_CITIES.map((c) => ({ path: `/maler/${c.slug}`, title: `Maler ${c.name}: Priser 2026 · Få 3 tilbud | Serviceydere`, description: `Maler i ${c.name}: ${c.unitLow}–${c.unitHigh} kr. pr. m² væg inkl. maling. Se lokale priser og få 3 gratis tilbud fra malere i ${c.name}.` })),
+  ...BRANCHES.flatMap((b) => branchCities(b).map((c) => ({ path: `/${b.kind}/${c.slug}`, title: `${b.label} ${c.name}: Priser 2026 · Få 3 tilbud | Serviceydere`, description: `${b.label} i ${c.name}: ${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} ${b.unit}. Se lokale priser og få 3 gratis tilbud fra ${b.plural} i ${c.name}.` }))),
+  { path: "/by", title: "Find serviceydere i din by – alle byer | Serviceydere", description: "Se priser og få 3 gratis tilbud på rengøring, håndværk, maler, elektriker, VVS og meget mere i 18 danske byer." },
+  ...CITY_FACTS.map((c) => ({ path: `/by/${c.slug}`, title: `Serviceydere i ${c.name} – priser på ${servicesForCity(c.slug).length} services | Serviceydere`, description: `Find rengøring, håndværkere, maler, elektriker, VVS og flere services i ${c.name}. Se lokale priser og få 3 gratis tilbud.` })),
 ];
 // Virksomhedssider (/v/:slug) — hentes ved build, så hver virksomhed får egen
 // statisk title/description/canonical og egen sitemap. Fejl må ikke stoppe build.
