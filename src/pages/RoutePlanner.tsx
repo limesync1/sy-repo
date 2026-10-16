@@ -3932,8 +3932,8 @@ const Planner = () => {
                       </SheetTrigger>
                       <SheetContent side="bottom" className="planner-overlay h-[74dvh] max-h-[74dvh] rounded-t-md p-0 flex flex-col">
                         <div className="planner-overlay-header shrink-0 border-b px-4 py-3 pr-12">
-                          <p className="text-sm font-semibold text-foreground">Filtrér ruter</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">Vælg medarbejdere eller statusser — kalenderen opdateres med det samme.</p>
+                          <SheetTitle className="text-sm font-semibold text-foreground">Filtrér ruter</SheetTitle>
+                          <SheetDescription className="mt-0.5 text-xs text-muted-foreground">Vælg medarbejdere eller statusser — kalenderen opdateres med det samme.</SheetDescription>
                         </div>
                         <div className="planner-overlay-body flex-1 overflow-y-auto space-y-4 px-4 py-4">
                           <div>
