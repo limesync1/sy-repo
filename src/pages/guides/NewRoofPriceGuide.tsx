@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 // SEO-mål: "nyt tag pris" (1.600/md, KDI 28). Komplet pris-side med m²-priser
@@ -37,6 +39,10 @@ export default defineGuidePage({
       "Vejledende priser inkl. moms og arbejde. Tagrender, inddækninger om skorsten, ovenlys og rygning lægges oveni — typisk 15.000–60.000 kr. afhængigt af tagets kompleksitet.",
   },
   sections: [
+    {
+      heading: "Nyt tag i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("tagdaekker")!).map((c, i, a) => (<span key={c.slug}><Link to={`/tagdaekker/${c.slug}`} className="underline">Nyt tag {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Hvad indgår i en typisk tagrenovering?",
       ordered: [

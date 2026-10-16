@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
@@ -31,6 +33,10 @@ export default defineGuidePage({
     footnote: "Fejergebyret opkræves typisk via kommunens ejendomsskat. Priser inkl. moms.",
   },
   sections: [
+    {
+      heading: "Skorstensfejer i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("skorstensfejer")!).map((c, i, a) => (<span key={c.slug}><Link to={`/skorstensfejer/${c.slug}`} className="underline">Skorstensfejer {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Lovpligtig fejning — hvor ofte?",
       list: [

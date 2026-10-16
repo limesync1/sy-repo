@@ -155,7 +155,7 @@ const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./
 const GardenCityPage         = lazyRoute("/haveservice/:city", () => import("./pages/cities/GardenCityPage"));
 const TradeCityPage          = lazyRoute("/branche/:city", () => import("./pages/cities/TradeCityPage"));
 const CityHubPage            = lazyRoute("/by", () => import("./pages/cities/CityHubPage"));
-const TRADE_KINDS = ["vinduespudser", "maler", "elektriker", "vvs", "toemrer", "murer", "kloakmester", "skadedyr"];
+const TRADE_KINDS = ["vinduespudser", "maler", "elektriker", "vvs", "toemrer", "murer", "kloakmester", "skadedyr", "gulvlaegger", "skorstensfejer", "varmepumpe", "tagdaekker", "badevaerelse", "vinduesudskiftning", "anlaegsgartner", "algebehandling"];
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
 const BlogCategoryIndex      = lazyRoute("/blog/kategori", () => import("./pages/blog/BlogCategoryIndex"));
 

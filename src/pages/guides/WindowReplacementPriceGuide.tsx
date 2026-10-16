@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 // SEO-mål: "udskiftning af vinduer pris" (210/md, KDI 15) + relaterede long-tails.
@@ -35,6 +37,10 @@ export default defineGuidePage({
       "Vejledende priser inkl. moms for træ-/aluminium-vinduer med 3-lags energiruder. Specialmål, buede vinduer og højde over 2½ etage giver tillæg.",
   },
   sections: [
+    {
+      heading: "Nye vinduer i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("vinduesudskiftning")!).map((c, i, a) => (<span key={c.slug}><Link to={`/vinduesudskiftning/${c.slug}`} className="underline">Nye vinduer {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "2-lags vs. 3-lags energiruder",
       paragraphs: [

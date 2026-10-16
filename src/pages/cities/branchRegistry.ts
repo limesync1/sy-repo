@@ -158,6 +158,134 @@ export const BRANCHES: Branch[] = [
       local: `I ${f.older} kan mus og rotter komme ind gennem gamle kloakrør og revner. Husk at rotter skal anmeldes til kommunen, som bekæmper dem gratis.`,
     }),
   },
+  {
+    kind: "gulvlaegger", label: "Gulvlægger", one: "en gulvlægger", plural: "gulvlæggere", category: "Gulvlægger", priceGuide: "/priser/gulvlaegger",
+    unit: "kr. pr. m² for lægning af trægulv", ref: "kr. pr. m² for gulvafslibning", unitBase: [175, 300], refBase: [150, 300],
+    rows: (c) => [
+      ["Lægning af trægulv/plankegulv", `${c.unitLow}–${c.unitHigh} kr./m²`],
+      ["Gulvafslibning og lakering", `${c.refLow}–${c.refHigh} kr./m²`],
+      ["Klikgulv (laminat)", "150–300 kr./m²"],
+      ["Fodpaneler", "60–120 kr./lbm"],
+    ],
+    tasks: ["Nyt trægulv eller klikgulv", "Afslibning af gamle plankegulve", "Lakering og olie", "Fodpaneler og overgange", "Vinyl og linoleum"],
+    deduction: "Gulvlægning giver normalt ikke håndværkerfradrag efter de gældende BoligJob-regler. Tjek reglerne hos Skattestyrelsen.",
+    text: (f) => ({
+      intro: `Gulvlæggere i ${f.name} lægger især nye gulve og sliber gamle gulve hos ${f.housing}.`,
+      local: `I ${f.older} ligger der ofte gamle plankegulve, som kan slibes op i stedet for at blive skiftet. I ${f.newer} er klikgulve og vinyl mest almindeligt.`,
+    }),
+  },
+  {
+    kind: "skorstensfejer", label: "Skorstensfejer", one: "en skorstensfejer", plural: "skorstensfejere", category: "Skorstensfejer", priceGuide: "/priser/skorstensfejer",
+    unit: "kr. for fejning af brændeovn", ref: "kr. for ekstra fejning eller udkald", unitBase: [350, 650], refBase: [550, 900],
+    rows: (c) => [
+      ["Lovpligtig fejning af brændeovn", `${c.unitLow}–${c.unitHigh} kr.`],
+      ["Ekstra fejning/udkald", `${c.refLow}–${c.refHigh} kr.`],
+      ["Syn af ny brændeovn", "650–1.100 kr."],
+      ["Skorstensinspektion med kamera", "1.200–2.500 kr."],
+    ],
+    tasks: ["Lovpligtig fejning", "Syn af ny brændeovn", "Kamera-inspektion af skorsten", "Rådgivning om brandsikkerhed", "Fejning af oliefyr"],
+    deduction: "Skorstensfejning giver ikke fradrag. Fejning er lovpligtig, og kommunen bestemmer, hvilken skorstensfejer der dækker dit område.",
+    text: (f) => ({
+      intro: `I ${f.name} fejer skorstensfejeren især brændeovne og pejse hos ${f.housing}. Fejning er lovpligtig, og kommunen har en fast skorstensfejer for området.`,
+      local: `${f.older} har ofte gamle skorstene, som bør tjekkes med kamera før en ny brændeovn sættes op. ${f.climate}`,
+    }),
+  },
+  {
+    kind: "varmepumpe", label: "Varmepumpe", one: "en varmepumpe", plural: "varmepumpe-installatører", category: "VVS", priceGuide: "/priser/varmepumpe",
+    unit: "kr. for luft-til-luft-varmepumpe installeret", ref: "kr. for årligt eftersyn", unitBase: [18000, 28000], refBase: [1200, 2500],
+    rows: (c) => [
+      ["Luft-til-luft, installeret", `${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} kr.`],
+      ["Luft-til-vand, installeret", "125.000–160.000 kr."],
+      ["Årligt eftersyn", `${c.refLow.toLocaleString("da-DK")}–${c.refHigh.toLocaleString("da-DK")} kr.`],
+      ["Fjernelse af gammelt oliefyr", "10.000–35.000 kr."],
+    ],
+    tasks: ["Luft-til-luft-varmepumpe", "Luft-til-vand-varmepumpe", "Udskiftning af oliefyr eller gasfyr", "Årligt eftersyn", "Rådgivning om tilskud"],
+    deduction: "Installation af varmepumpe kan give håndværkerfradrag for arbejdslønnen, og der kan være statslige tilskud til udskiftning af olie- og gasfyr. Tjek de gældende regler.",
+    text: (f) => ({
+      intro: `Varmepumper i ${f.name} sættes mest op hos ${f.housing}, hvor de afløser oliefyr, gasfyr eller elvarme.`,
+      local: `${f.older} er ofte dårligt isoleret, så en luft-til-vand-pumpe skal dimensioneres omhyggeligt. Tjek også, om der kommer fjernvarme til dit område, før du vælger.`,
+    }),
+  },
+  {
+    kind: "tagdaekker", label: "Tagdækker", one: "et nyt tag", plural: "tagdækkere", category: "Håndværker", priceGuide: "/priser/nyt-tag",
+    unit: "kr. pr. m² for nyt betontegltag", ref: "kr. pr. m² for nyt tegltag", unitBase: [1050, 1400], refBase: [1250, 1700],
+    rows: (c) => [
+      ["Nyt tag med betontegl", `${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} kr./m²`],
+      ["Nyt tag med vingetegl", `${c.refLow.toLocaleString("da-DK")}–${c.refHigh.toLocaleString("da-DK")} kr./m²`],
+      ["Nyt tag med stål eller eternit", "1.150–1.550 kr./m²"],
+      ["Tagrender og nedløb, parcelhus", "12.000–28.000 kr."],
+    ],
+    tasks: ["Nyt tag på parcelhus", "Udskiftning af tagrender", "Efterisolering af loft", "Reparation efter storm", "Tagvinduer og ovenlys"],
+    deduction: "Nyt tag giver som udgangspunkt ikke håndværkerfradrag, men efterisolering af loftet i samme forbindelse kan give fradrag for arbejdslønnen.",
+    text: (f) => ({
+      intro: `Et nyt tag i ${f.name} er en af de største opgaver hos ${f.housing}. Mange huse fra 1960'erne og 70'erne har nu tage, der er slidt op.`,
+      local: `${f.climate} I ${f.older} kræver tagudskiftning ofte, at man bevarer husets oprindelige udtryk.`,
+    }),
+  },
+  {
+    kind: "badevaerelse", label: "Nyt badeværelse", one: "et nyt badeværelse", plural: "badeværelsesfirmaer", category: "Håndværker", priceGuide: "/priser/nyt-badevaerelse",
+    unit: "kr. pr. m² for badeværelse i standardkvalitet", ref: "kr. for et komplet badeværelse på 6 m²", unitBase: [22000, 35000], refBase: [110000, 165000],
+    rows: (c) => [
+      ["Badeværelse, standard", `${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} kr./m²`],
+      ["Komplet badeværelse, 6 m²", `${c.refLow.toLocaleString("da-DK")}–${c.refHigh.toLocaleString("da-DK")} kr.`],
+      ["Stort eller eksklusivt badeværelse", "180.000–280.000 kr."],
+      ["Gulvvarme i badeværelse", "12.000–35.000 kr."],
+    ],
+    tasks: ["Komplet renovering af badeværelse", "Ny bruseniche", "Fliser og vådrumsmembran", "Gulvvarme", "Nyt toilet og håndvask"],
+    deduction: "Badeværelsesrenovering giver normalt ikke håndværkerfradrag efter de gældende regler. Tjek reglerne hos Skattestyrelsen.",
+    text: (f) => ({
+      intro: `Et nyt badeværelse i ${f.name} er en af de mest bestilte renoveringer hos ${f.housing}. Murer, VVS'er og elektriker skal arbejde sammen, så det er en fordel at få ét samlet tilbud.`,
+      local: `I ${f.older} er der ofte gamle rør og gulve, som skal udskiftes, før de nye fliser lægges. Det kan gøre prisen højere end forventet.`,
+    }),
+  },
+  {
+    kind: "vinduesudskiftning", label: "Vinduesudskiftning", one: "et nyt vindue", plural: "vinduesfirmaer", category: "Tømrer", priceGuide: "/priser/vinduesudskiftning",
+    unit: "kr. pr. vindue inkl. montering", ref: "kr. for en terrassedør inkl. montering", unitBase: [5500, 9500], refBase: [11000, 18000],
+    rows: (c) => [
+      ["Nyt vindue inkl. montering", `${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} kr.`],
+      ["Terrassedør inkl. montering", `${c.refLow.toLocaleString("da-DK")}–${c.refHigh.toLocaleString("da-DK")} kr.`],
+      ["Alle vinduer i et parcelhus", "28.000–55.000 kr. pr. facade"],
+      ["Bortskaffelse af gamle vinduer", "350–600 kr./stk."],
+    ],
+    tasks: ["Nye energivinduer", "Ny terrassedør", "Skift af ruder", "Fugning og tætning", "Bortskaffelse af gamle vinduer"],
+    deduction: "Udskiftning til energivinduer kan give håndværkerfradrag for arbejdslønnen efter BoligJob-ordningens regler.",
+    text: (f) => ({
+      intro: `Nye vinduer i ${f.name} bestilles især hos ${f.housing}, hvor gamle vinduer giver træk og høje varmeregninger.`,
+      local: `${f.climate} I ${f.older} kan der være krav om, at nye vinduer ligner de gamle — tjek med kommunen, før du bestiller.`,
+    }),
+  },
+  {
+    kind: "anlaegsgartner", label: "Anlægsgartner", one: "en anlægsgartner", plural: "anlægsgartnere", category: "Anlægsgartner", priceGuide: "/priser/anlaegsgartner",
+    unit: "kr. pr. m² for belægning med fliser", ref: "kr. pr. lbm for ny hæk inkl. plantning", unitBase: [1200, 2200], refBase: [250, 450],
+    rows: (c) => [
+      ["Fliser og belægning", `${c.unitLow.toLocaleString("da-DK")}–${c.unitHigh.toLocaleString("da-DK")} kr./m²`],
+      ["Ny hæk inkl. plantning", `${c.refLow}–${c.refHigh} kr./lbm`],
+      ["Natursten og klinker", "1.800–3.500 kr./m²"],
+      ["Indkørsel (ca. 25 m²)", "35.000–65.000 kr."],
+    ],
+    tasks: ["Ny indkørsel og flisebelægning", "Terrasse i sten", "Plantning af hæk", "Nyt græs og rullegræs", "Dræn og afvanding"],
+    deduction: "Anlægsgartnerarbejde giver normalt ikke håndværkerfradrag, men almindelig havepleje er omfattet af servicefradraget.",
+    text: (f) => ({
+      intro: `Anlægsgartnere i ${f.name} lægger især nye indkørsler, terrasser og hække hos ${f.housing}.`,
+      local: `${f.climate} I ${f.newer} skal haven ofte anlægges fra bunden, mens ældre haver mest får ny belægning.`,
+    }),
+  },
+  {
+    kind: "algebehandling", label: "Algebehandling", one: "en algebehandling", plural: "firmaer til algebehandling", category: "Algebehandling", priceGuide: "/priser/algebehandling",
+    unit: "kr. pr. m² for algebehandling af tag", ref: "kr. pr. m² for rensning af fliser og belægning", unitBase: [25, 40], refBase: [30, 55],
+    rows: (c) => [
+      ["Algebehandling af tag", `${c.unitLow}–${c.unitHigh} kr./m²`],
+      ["Rensning af fliser og belægning", `${c.refLow}–${c.refHigh} kr./m²`],
+      ["Facaderens", "20–40 kr./m²"],
+      ["Tag på parcelhus (ca. 150 m²)", "4.500–7.500 kr."],
+    ],
+    tasks: ["Algebehandling af tag", "Rensning af fliser og terrasse", "Facaderens", "Mosfjernelse", "Imprægnering efter rensning"],
+    deduction: "Algebehandling giver normalt ikke fradrag. Rengøring af tagrender kan dog være omfattet af servicefradraget.",
+    text: (f) => ({
+      intro: `Algebehandling i ${f.name} bestilles mest til tage og terrasser hos ${f.housing}.`,
+      local: `${f.climate} Grønne alger vokser hurtigst på tage i skygge og på nordsiden, så de skal ofte behandles hvert 2.–4. år.`,
+    }),
+  },
 ];
 
 export const findBranch = (kind: string) => BRANCHES.find((b) => b.kind === kind);

@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 // SEO-mål: "nyt badeværelse pris" (720/md, KDI 15). Komplet totalpris-guide.
@@ -36,6 +38,10 @@ export default defineGuidePage({
       "Vejledende totalentreprise inkl. moms. Standard 8 m² badeværelse = nedrivning, vådrumsmembran, nye rør og el, gulvvarme, fliser, sanitet og bortskaffelse.",
   },
   sections: [
+    {
+      heading: "Nyt badeværelse i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("badevaerelse")!).map((c, i, a) => (<span key={c.slug}><Link to={`/badevaerelse/${c.slug}`} className="underline">Nyt badeværelse {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Hvad er inkluderet i en totalentreprise?",
       list: [

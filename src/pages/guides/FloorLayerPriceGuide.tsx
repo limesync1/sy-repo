@@ -1,3 +1,5 @@
+import { branchCities, findBranch } from "@/pages/cities/branchRegistry";
+import { Link } from "react-router-dom";
 import { defineGuidePage } from "./defineGuidePage";
 
 export default defineGuidePage({
@@ -33,6 +35,10 @@ export default defineGuidePage({
     footnote: "Vejledende lægningspriser inkl. moms. Selve gulvet kommer oveni.",
   },
   sections: [
+    {
+      heading: "Gulvlægger i din by",
+      body: (<p className="text-sm">{branchCities(findBranch("gulvlaegger")!).map((c, i, a) => (<span key={c.slug}><Link to={`/gulvlaegger/${c.slug}`} className="underline">Gulvlægger {c.name}</Link>{i < a.length - 1 ? " · " : ""}</span>))}</p>),
+    },
     {
       heading: "Hvad koster gulvet ekstra?",
       list: [
