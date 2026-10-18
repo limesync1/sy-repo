@@ -532,7 +532,7 @@ export const useUpdateProfile = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, ...updates }: { userId: string } & Partial<TablesUpdate<"profiles">>) => {
-      const { data, error } = await supabase.from("profiles").update(updates as any).eq("user_id", userId).select().single();
+      const { data, error } = await supabase.from("profiles").upsert({ ...updates, user_id: userId }, { onConflict: "user_id" }).select().single();
       if (error) throw error;
       return data;
     },
