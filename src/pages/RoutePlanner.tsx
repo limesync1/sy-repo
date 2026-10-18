@@ -4074,30 +4074,34 @@ const Planner = () => {
                     </Sheet>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-[4px]" aria-label="Visning">
-                          <LayoutGrid className="h-4 w-4" />
+                        <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-md" aria-label="Flere planlægningshandlinger">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-64 p-2">
-                        <div className="flex items-center justify-between gap-2 px-1 py-1.5">
-                          <span className="text-xs text-muted-foreground">Tæthed</span>
+                      <DropdownMenuContent align="end" className="w-64 p-1.5">
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDate(todayStr())}><CalendarIcon className="h-4 w-4" />Gå til i dag</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayOptimizerOpen(true)}><Gauge className="h-4 w-4" />Optimér dagen</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayDetailOpen(true)}><ListOrdered className="h-4 w-4" />Vis dagen som tidslinje</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setPrintOpen(true)}><Printer className="h-4 w-4" />Print / PDF</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => openSickLeaveDialog()}><AlertTriangle className="h-4 w-4" />Meld medarbejder syg</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="min-h-11 gap-2" disabled={!history.canUndo} onClick={() => void history.undo()}><Undo2 className="h-4 w-4" />Fortryd seneste handling</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" disabled={!history.canRedo} onClick={() => void history.redo()}><Redo2 className="h-4 w-4" />Gentag seneste fortryd</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <div className="flex min-h-11 items-center justify-between gap-2 px-2">
+                          <span className="text-sm text-muted-foreground">Tæthed</span>
                           <DensityToggle />
                         </div>
-                        <div className="flex items-center justify-between gap-2 px-1 py-1.5">
-                          <span className="text-xs text-muted-foreground">Mørk tilstand</span>
+                        <div className="flex min-h-11 items-center justify-between gap-2 px-2">
+                          <span className="text-sm text-muted-foreground">Mørk tilstand</span>
                           <ThemeToggle />
                         </div>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="min-h-11 gap-2 text-xs">
-                          <ListOrdered className="h-4 w-4" /> Vis dagen som tidslinje
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <Button className="h-11 w-full gap-1.5 rounded-[4px] text-sm" onClick={requestCreateOrder}>
+                    <Button className="h-11 w-full gap-1.5 rounded-md text-sm" onClick={requestCreateOrder}>
                       <ShoppingBag className="h-4 w-4" />
                       Opret bestilling
                     </Button>
@@ -4105,18 +4109,6 @@ const Planner = () => {
                       <RouteIcon className="h-4 w-4" />
                       Opret rute
                     </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11" aria-label="Flere planlægningshandlinger"><MoreHorizontal /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setDate(todayStr())}><CalendarIcon />I dag</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDayOptimizerOpen(true)}><Gauge />Optimér dagen</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setPrintOpen(true)}><Printer />Print / PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openSickLeaveDialog()}><AlertTriangle />Meld medarbejder syg</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem disabled={!history.canUndo} onClick={() => void history.undo()}><Undo2 />Fortryd seneste handling</DropdownMenuItem>
-                        <DropdownMenuItem disabled={!history.canRedo} onClick={() => void history.redo()}><Redo2 />Gentag seneste fortryd</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
 
                 </div>
