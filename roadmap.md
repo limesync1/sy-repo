@@ -1,5 +1,5 @@
 ## Automatisk oprettelse efter timeinterval
-- [ ] Undersøg forfalden næste aftale, automatisk oprettelse og aftalelistens opdatering; ret kun bekræftede fejl
+- [x] Undersøg beskeden: aktiv timegentagelse forfalder 19. oktober kl. 01:10:06 dansk tid; aktiv automatisk kontrol kører hvert femte minut, så næste kontrol er kl. 01:15. Ingen bekræftet fejl eller ændringer i aftalerne; faktisk næste oprettelse er endnu ikke verificeret.
 
 ## Demosiden fjernet
 - [x] Slet /demo, demo-data og kurv-/chat-undtagelser; gamle /demo-links sendes til /virksomheder og er bekræftet i browser
