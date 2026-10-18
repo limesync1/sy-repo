@@ -60,6 +60,9 @@ export const PILL_ACTIVE = "active:scale-[0.99] active:shadow-sm";
 /** Komplet base-klassesæt for en pille (kalender-rute-pille). Brug som
  *  første argument til `cn(...)` så alle piller deler nøjagtigt samme
  *  fundamental-stil. */
+export const PILL_VIRTUAL = "border-dashed border-foreground/30 bg-muted/40 [background-image:repeating-linear-gradient(135deg,transparent_0_6px,hsl(var(--muted-foreground)/0.06)_6px_7px)]";
+export const PILL_COMPLETED = "bg-success/[0.07] hover:bg-success/[0.12]";
+
 export const PILL_BASE = `group relative ${PILL_RADIUS_SM} cursor-pointer overflow-hidden bg-card ${PILL_BORDER} ${PILL_SHADOW} ${PILL_TRANSITION} ${PILL_SHADOW_HOVER} ${PILL_HOVER_LIFT}`;
 
 /* ─────────────────────────────────────────────────────────────────────────

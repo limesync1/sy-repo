@@ -21,7 +21,7 @@ import { CalendarPlus } from "lucide-react";
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className="planner-job-card relative rounded-[5px] border border-border/60 bg-card overflow-hidden flex">
+  <div className={cn(CARD_BASE, CARD_BORDER, "planner-job-card flex")}>
     <div className="w-[3px] bg-secondary shrink-0" />
     <div className="flex w-10 shrink-0 items-center justify-center"><Skeleton className="h-[18px] w-[18px] rounded-[4px]" /></div>
     <div className={`min-w-0 flex-1 ${compact ? "p-2" : "p-2.5"} space-y-1.5`}>
@@ -297,7 +297,7 @@ export const UnassignedJobCard = ({
           aria-label={selected ? `Fravælg ${job.customer_name}` : `Vælg ${job.customer_name}`}
           aria-pressed={selected}
           title={selected ? "Fravælg" : "Vælg flere aftaler"}
-          className="flex w-10 shrink-0 items-center justify-center border-0 bg-transparent p-0 !shadow-none outline-none ring-0 touch-manipulation group/check"
+          className="flex w-11 shrink-0 items-center justify-center border-0 bg-transparent p-0 !shadow-none outline-none ring-0 touch-manipulation group/check"
         >
           <span
             className={cn(
@@ -348,7 +348,7 @@ export const UnassignedJobCard = ({
 
           {/* Linje 2: ydelse */}
           {serviceLine && (
-            <p className={cn("text-xs leading-4 text-foreground/75", compact ? "truncate" : "break-words")}>{serviceLine}</p>
+            <p className="break-words text-xs leading-4 text-foreground/75">{serviceLine}</p>
           )}
 
           {/* Linje 3: adresse */}
@@ -358,7 +358,7 @@ export const UnassignedJobCard = ({
               title={hasGps ? fullAddress : `${fullAddress} — adressen kunne ikke placeres på kortet`}
             >
               <MapPin className={cn("h-3 w-3 shrink-0", hasGps ? "text-muted-foreground/60" : "text-orange-500")} />
-              <span className={cn("min-w-0", compact ? "truncate" : "break-words")}>{fullAddress}</span>
+              <span className="min-w-0 break-words">{fullAddress}</span>
             </p>
           )}
 
@@ -405,14 +405,14 @@ export const UnassignedJobCard = ({
 
         {/* På touch/mobil kan kort ikke trækkes — derfor en tydelig knap. */}
         {isCompact && !isPending && onChooseRoute && (
-          <div className="px-3 pb-2.5" style={{ paddingLeft: canSelect ? 0 : undefined }}>
+          <div className="border-t border-border/70 bg-secondary/20 px-2 py-1">
             <Button
               type="button"
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={(e) => { e.stopPropagation(); onChooseRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="h-9 w-full gap-1.5 text-xs font-semibold"
+              className="h-11 w-full gap-1.5 text-xs font-semibold"
             >
               <CalendarPlus className="h-3.5 w-3.5" />
               Læg på rute

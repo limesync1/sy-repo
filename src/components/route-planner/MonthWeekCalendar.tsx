@@ -47,7 +47,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo, useState } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
-import { PILL_BASE } from "./lib/card-styles";
+import { PILL_BASE, PILL_VIRTUAL, PILL_COMPLETED } from "./lib/card-styles";
 import type { StopCapacity } from "./lib/stop-capacity";
 import { stopCapacity } from "./lib/stop-capacity";
 import {
@@ -1391,7 +1391,7 @@ const RoutePillInner = ({
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
         // forveksles med den rigtige basisrute.
-        isVirtual && "border-dashed border-foreground/30 bg-muted/40 [background-image:repeating-linear-gradient(135deg,transparent_0_6px,hsl(var(--muted-foreground)/0.06)_6px_7px)]",
+        isVirtual && PILL_VIRTUAL,
         // Basisruter (kilden til en gentagende serie) får en lille ring-
         // accent så de tydeligt skiller sig ud fra både engangsruter og
         // projicerede forekomster — uden at flytte indholdet i pillen.
@@ -1399,7 +1399,7 @@ const RoutePillInner = ({
         isPast && "opacity-50 saturate-50 hover:opacity-90",
         // Helt udført rute: emerald-tint på baggrunden, dæmpet skrift —
         // gør "færdig" til den klart mest scanbare tilstand i kalenderen.
-        showAsCompleted && !isPast && "bg-emerald-500/[0.07] hover:bg-emerald-500/[0.12]",
+        showAsCompleted && !isPast && PILL_COMPLETED,
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
         // ikke visuelt invitere til drop.

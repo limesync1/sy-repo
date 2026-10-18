@@ -27,6 +27,7 @@ import type { StopCapacity } from "./lib/stop-capacity";
 import { MoreHorizontal, Eye, History, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { PILL_BASE, PILL_VIRTUAL, PILL_COMPLETED, PILL_RAIL_WIDTH } from "./lib/card-styles";
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 const readableTokenOn = (color?: string | null) => {
@@ -444,12 +445,12 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       data-density-target="agenda-route"
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative flex min-h-[88px] flex-wrap items-center gap-2 rounded-[5px] border border-border/70 bg-card px-2.5 py-2 cursor-pointer transition-colors overflow-hidden",
-        "border-l-[3px] hover:border-foreground/25",
+        PILL_BASE,
+        "grid min-h-[88px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 pl-3 pr-2.5 py-2.5",
         isDragging && "opacity-40",
-        isVirtual && "border-dashed",
+        isVirtual && PILL_VIRTUAL,
         isPast && "opacity-60 saturate-50 cursor-not-allowed",
-        showAsCompleted && !isPast && "bg-emerald-500/[0.07] hover:bg-emerald-500/[0.12]",
+        showAsCompleted && !isPast && PILL_COMPLETED,
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md",
         !isVirtual && isOver && validation && ringForSeverity(validation.severity),
@@ -457,12 +458,10 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
       )}
-      style={{
-        borderLeftColor: showAsCompleted ? "hsl(var(--feature-cool-foreground))" : route.color,
-        borderLeftWidth: 3,
-      }}
+
       aria-busy={busy || undefined}
     >
+      <span aria-hidden className={cn("absolute inset-y-0 left-0", PILL_RAIL_WIDTH)} style={{ backgroundColor: showAsCompleted ? "hsl(var(--success))" : route.color }} />
       {isOver && validation && (
         <div className={cn(
           "absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%]",
@@ -490,7 +489,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         aria-label={`Åbn ${route.name || "rute"}`}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
         className={cn(
-          "flex-1 min-w-0 basis-[55%] outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isVirtual || compactLayout ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
@@ -578,6 +577,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
       )}
 
+      <div className="col-span-2 -mx-2.5 -mb-2.5 ml-[-0.75rem] flex items-center justify-end gap-1 border-t border-border/70 bg-secondary/20 px-2 py-1" onClick={(e) => e.stopPropagation()}>
       {compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2 && (
         <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" aria-label={`Optimér ${route.name || "ruten"}`} disabled={busy || optimizing} onKeyDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onOptimize(); }}>
           {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}<span>Optimér</span>
@@ -597,10 +597,11 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
       {stopCount > 0 && !showAsCompleted && !isVirtual && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-secondary" aria-hidden="true">
           <div
-            className="h-full bg-emerald-500 transition-all duration-500"
+            className="h-full bg-success transition-all duration-500"
             style={{ width: `${progressPct}%` }}
           />
         </div>

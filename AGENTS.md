@@ -29,7 +29,7 @@
 
 - Route weather shares stop-cell forecast averages across staff/calendar; no country fallback.
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
-- Compact planning uses a selected-day agenda and bounded calendar, scrollable drawer and tap assignment; desktop retains drag. Dialogs share names/employees and scrolling; density/detail persist independently.
+- Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share desktop state tokens and portal styles. Dialogs share scrolling; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
 - Panel headers share `PageHeader`/`.panel-page-hero` styling.

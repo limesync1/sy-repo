@@ -436,7 +436,7 @@ const SortableStopRow = ({
         className={cn("absolute left-0 top-0 bottom-0 z-10", CARD_RAIL_WIDTH)}
         style={{ background: color }}
       />
-      <div className="flex items-stretch min-h-[3rem] pl-1">
+      <div className={cn("flex items-stretch min-h-[3rem] pl-1", compact && "flex-wrap")}>
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection && !compact ? (
           <button
@@ -501,20 +501,20 @@ const SortableStopRow = ({
 
           {/* Ydelse — sekundær linje */}
           {stop.service_summary ? (
-            <p className="text-[11px] text-muted-foreground truncate sm:text-[11px]">
+            <p className="break-words text-xs leading-4 text-muted-foreground">
               {stop.service_summary}
             </p>
           ) : (
-            <p className="text-[11px] text-muted-foreground/60 truncate italic sm:text-[11px]">
+            <p className="text-xs leading-4 text-muted-foreground/60 italic">
               Ingen ydelser angivet
             </p>
           )}
 
           {/* Adresse — tertiær */}
           {stop.address && (
-            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 sm:text-[11px]">
+            <p className="text-xs leading-4 text-muted-foreground flex items-start gap-1">
               <MapPin className="h-3 w-3 shrink-0" />
-              {stop.address}
+              <span className="min-w-0 break-words">{stop.address}</span>
             </p>
           )}
 
@@ -589,7 +589,7 @@ const SortableStopRow = ({
         )}
 
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
-        <div className="flex shrink-0 flex-col items-center justify-center gap-1 px-1.5">
+        <div className={cn("flex shrink-0 items-center gap-1 px-1.5", compact ? "basis-full justify-end border-t border-border/70 bg-secondary/20 py-1" : "flex-col justify-center")}>
           {compact && !isProjection && <>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>

@@ -100,17 +100,17 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                           {s.serviceSummary && (
                             <IndustryIcon name={s.serviceSummary} className="h-7 w-7 shrink-0 object-contain" alt="" />
                           )}
-                          <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
+                          <p className="min-w-0 break-words text-sm font-semibold leading-5">{s.customerName}</p>
                         </div>
                       </div>
                       {s.serviceSummary && (
-                        <p className="mt-0.5 text-[11px] text-muted-foreground truncate pl-[26px]">
+                        <p className="mt-0.5 break-words text-xs leading-4 text-muted-foreground">
                           {s.serviceSummary}
                         </p>
                       )}
                       {s.address && (
-                        <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1 truncate">
-                          <MapPin className="h-3 w-3 shrink-0" /> {s.address}
+                        <p className="mt-1 text-xs leading-4 text-muted-foreground flex items-start gap-1">
+                          <MapPin className="h-3 w-3 shrink-0" /> <span className="min-w-0 break-words">{s.address}</span>
                         </p>
                       )}
                       {s.routeName && (
