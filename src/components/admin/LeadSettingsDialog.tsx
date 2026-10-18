@@ -150,7 +150,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2"><Settings2 className="h-4 w-4" />Indstillinger</Button>
       </DialogTrigger>
-      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+      <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
             title={<DialogTitle className="text-base">Lead-indstillinger</DialogTitle>}

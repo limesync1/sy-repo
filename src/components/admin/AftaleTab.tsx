@@ -2597,7 +2597,7 @@ const AftaleTab = ({
 
       {/* Opret-rute dialog — samme design og felter som ruteplanlæggerens "Opret rute". */}
       <Dialog open={createRouteOpen} onOpenChange={setCreateRouteOpen}>
-        <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
+        <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
           <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
             <SheetHeaderBlock
               accent={newRouteColor}

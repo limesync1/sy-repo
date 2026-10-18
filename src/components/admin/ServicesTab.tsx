@@ -325,7 +325,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
     <div className="space-y-5">
 
       <Dialog open={isFocusMode} onOpenChange={(open) => { if (!open) { setShowForm(false); setEditingId(null); } }}>
-        <DialogContent className="inset-x-0 bottom-0 top-auto h-[96dvh] max-h-[96dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-b-none rounded-t-md p-0 gap-0 flex flex-col sm:left-[50%] sm:top-[50%] sm:h-auto sm:max-h-[calc(100dvh-1rem)] sm:max-w-5xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-md">
+        <DialogContent className="modal-large overflow-hidden p-0 gap-0 flex flex-col">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
             <DialogTitle className="text-base">
               {editingService ? `Rediger ${editingService.name}` : "Ny service"}

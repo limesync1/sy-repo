@@ -422,7 +422,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
       </div>
 
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) resetForm(); else setShowForm(true); }}>
-        <DialogContent className="max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
+        <DialogContent className="modal-large max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
               Ny medarbejder
