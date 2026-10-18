@@ -36,3 +36,4 @@
 - Public navigation persists outside suspense; local headers defer to avoid duplicates.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - City landing pages for new trades come from `src/pages/cities/branchRegistry.ts` + shared `cityFacts.ts`; sitemap, prerender titles and `/by` hubs derive from it so one registry drives every trade-city page.
+- Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
