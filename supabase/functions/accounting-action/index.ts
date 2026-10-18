@@ -138,7 +138,11 @@ Deno.serve(async (req) => {
           caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
         } else {
           // External link er en ordre/kladdeordre — der findes endnu ingen faktura
-          // at downloade. Vis ikke download-knappen.
+          // at downloade. Kreditering bogfører først ordren.
+          caps.can_credit = link?.external_type === "order"
+            && typeof adapter.finalizeInvoice === "function"
+            && typeof adapter.creditInvoice === "function"
+            && order.payment_status !== "credited" && !isCancelled;
         }
       }
       try {
@@ -159,9 +163,9 @@ Deno.serve(async (req) => {
             caps.is_booked = isBooked;
             caps.is_draft = isDraft;
             const fullyPaid = s.status === "paid" || s.status === "credited";
-            caps.can_credit = isBooked
+            caps.can_credit = (isBooked || (isDraft && typeof adapter.finalizeInvoice === "function"))
               && typeof adapter.creditInvoice === "function"
-              && s.status !== "credited";
+              && s.status !== "credited" && order.payment_status !== "credited";
             caps.can_mark_paid = (isBooked || (isDraft && typeof adapter.finalizeInvoice === "function"))
               && typeof adapter.markInvoicePaid === "function"
               && !fullyPaid;
@@ -302,9 +306,32 @@ Deno.serve(async (req) => {
         if (typeof adapter.creditInvoice !== "function") {
           return json({ error: `${integ.provider} understøtter ikke kreditering via API` }, 400);
         }
-        if (!externalId) return json({ error: "Faktura er ikke bogført endnu — kan ikke krediteres." }, 400);
+        let toCredit: string | null = localInvoiceType === "invoice_booked" ? externalId : null;
+        if (!toCredit && link?.external_id && typeof adapter.finalizeInvoice === "function"
+            && (link.external_type === "order" || link.external_type === "invoice_draft")) {
+          // Kun bogførte fakturaer kan krediteres — bogfør først.
+          const fin = await adapter.finalizeInvoice({
+            external_id: link.external_id,
+            external_type: link.external_type as "order" | "invoice_draft",
+          });
+          toCredit = fin.invoice_external_id;
+          await admin.from("accounting_order_links").update({
+            external_id: fin.invoice_external_id,
+            external_number: fin.invoice_external_number ?? fin.invoice_external_id,
+            external_type: "invoice_booked",
+            last_status_synced: "booked",
+          }).eq("business_id", order.business_id).eq("provider", integ.provider).eq("order_id", order_id);
+          await admin.from("orders").update({
+            invoice_external_id: fin.invoice_external_id,
+            invoice_external_number: fin.invoice_external_number ?? fin.invoice_external_id,
+            invoice_status: "booked",
+            invoiced_at: new Date().toISOString(),
+          }).eq("id", order_id);
+        }
+        if (!toCredit) toCredit = externalId;
+        if (!toCredit) return json({ error: "Aftalen findes ikke i regnskabsprogrammet endnu — synkronisér og prøv igen." }, 400);
         const res = await adapter.creditInvoice({
-          invoice_external_id: externalId,
+          invoice_external_id: toCredit,
           reason: params?.reason ?? null,
         });
         await admin.from("orders").update({
