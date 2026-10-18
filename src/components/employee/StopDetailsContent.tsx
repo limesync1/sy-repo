@@ -280,9 +280,10 @@ export const StopDetailsContent = ({
       const { data, error } = await supabase.functions.invoke("accounting-action", {
         body: { order_id: stop.order_id, action: "resend_invoice" },
       });
-      if (error) throw error;
+      if (error) { const detail = await error.context?.json?.().catch(() => null); throw new Error(detail?.error || error.message); }
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("Faktura sendt til kunden");
+      if (data?.sent === false) toast.warning(data?.note || 'Mailen blev ikke sendt');
+      else toast.success("Faktura sendt til kunden");
     } catch (e: any) {
       toast.error(e?.message ?? "Kunne ikke sende faktura");
     } finally {

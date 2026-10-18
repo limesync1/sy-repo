@@ -92,6 +92,20 @@
       "when": 1792325788217,
       "tag": "0012_fix_accounting_kick",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792328493013,
+      "tag": "0013_employee_cancel_appointment",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792328649093,
+      "tag": "0014_isolated_hourly_test_recurrence",
+      "breakpoints": true
     }
   ]
 }

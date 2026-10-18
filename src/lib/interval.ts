@@ -63,6 +63,9 @@ export function parseInterval(value: string | null | undefined): ParsedInterval 
   if (!v || v === "engangskøb" || v === "engangskob" || v === "once") {
     return { n: 0, unit: "day", once: true, raw: v };
   }
+  // Isolated removable test key: calendar previews remain date-based;
+  // actual hourly cycles are materialized by the server after completion.
+  if (v === 'every_1_hour_test') return { n: 1, unit: 'day', once: false, raw: v };
   // Minut-cadence (fx "10_min", "5 min", "every_15_minute"). Kalenderen
   // arbejder pr. dag, så vi behandler enhver minut-cadence som "daglig"
   // i projekteringen — UI-laget viser fortsat "Hvert N. minut" via
@@ -123,6 +126,7 @@ export function buildInterval(n: number, unit: IntervalUnit): string {
  * - 0:   "Engangskøb"
  */
 export function formatInterval(value: string | null | undefined): string {
+  if (value === 'every_1_hour_test') return 'Hver 1 time (test)';
   // Special-case: minut-baserede test-/teknisk-intervaller (fx "10_min").
   // Vi understøtter dem ikke i kalender-projektionen (behandles som
   // "daglig" dér), men i UI skal de vises korrekt så ejeren ikke bliver
