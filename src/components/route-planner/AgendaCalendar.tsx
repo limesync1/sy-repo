@@ -24,6 +24,8 @@ import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-
 import RouteContextMenu from "./RouteContextMenu";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import type { StopCapacity } from "./lib/stop-capacity";
+import { MoreHorizontal, Eye, History, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
@@ -36,6 +38,7 @@ const readableTokenOn = (color?: string | null) => {
 
 type Props = {
   view: "month" | "week";
+  selectedDayOnly?: boolean;
   anchorDate: string;
   routes: CalendarRoute[];
   onAddAppointment?: (route: CalendarRoute) => void;
@@ -61,7 +64,7 @@ type Props = {
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const AgendaCalendar = ({
-  view, anchorDate, routes, onSelectRoute, onSelectStop,
+  view, selectedDayOnly = false, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate, conflictedRouteIds, onAddAppointment,
 }: Props) => {
@@ -102,9 +105,10 @@ export const AgendaCalendar = ({
   // for at undgå støj. Inden i måneden vises alle dage (også tomme), så
   // brugeren kan droppe en aftale på en tom dag.
   const visibleDays = useMemo(() => {
+    if (selectedDayOnly) return [parseISO(anchorDate)];
     if (view === "week") return days;
     return days.filter((d) => isSameMonth(d, anchor) || (routesByDate.get(ymd(d))?.length ?? 0) > 0);
-  }, [days, view, anchor, routesByDate]);
+  }, [days, view, anchor, routesByDate, selectedDayOnly, anchorDate]);
 
   // Gruppér efter ISO-uge så vi kan vise "Uge N"-overskrifter
   const grouped = useMemo(() => {
@@ -122,9 +126,9 @@ export const AgendaCalendar = ({
     <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y rounded-lg bg-background">
       {grouped.map((grp) => (
         <div key={grp.week}>
-          <div className="sticky top-0 z-10 border-b bg-secondary/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
+          {!selectedDayOnly && <div className="sticky top-0 z-10 border-b bg-secondary/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
             Uge {grp.week}
-          </div>
+          </div>}
           <ul className="divide-y">
             {grp.days.map((day) => {
               const dateStr = ymd(day);
@@ -440,7 +444,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       data-density-target="agenda-route"
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative flex min-h-[64px] items-center gap-2 rounded-[5px] border border-border/70 bg-card px-2.5 py-2 cursor-pointer transition-colors overflow-hidden",
+        "relative flex min-h-[88px] flex-wrap items-center gap-2 rounded-[5px] border border-border/70 bg-card px-2.5 py-2 cursor-pointer transition-colors overflow-hidden",
         "border-l-[3px] hover:border-foreground/25",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
@@ -481,12 +485,16 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       <div
         {...(isVirtual || compactLayout ? {} : listeners)}
         {...(isVirtual || compactLayout ? {} : attributes)}
+        role="button"
+        tabIndex={0}
+        aria-label={`Åbn ${route.name || "rute"}`}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
         className={cn(
-          "flex-1 min-w-0",
+          "flex-1 min-w-0 basis-[55%] outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isVirtual || compactLayout ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
-        <div className="text-xs font-semibold leading-tight flex items-center gap-1">
+        <div className="text-sm font-semibold leading-snug flex flex-wrap items-center gap-1">
           {isVirtual && (
             <span
               className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
@@ -524,9 +532,9 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
               Konflikt
             </span>
           )}
-          <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
+          <span className="break-words">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
         </div>
-        <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground tabular-nums">
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground tabular-nums">
             <span className="font-semibold text-foreground/80">{stopCount} stop</span>
           {completedCount > 0 && !showAsCompleted && (
             <span className="text-emerald-600 dark:text-emerald-400">{completedCount}/{stopCount}</span>
@@ -569,7 +577,15 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">Tilføj aftale</span><span className="sm:hidden">Tilføj</span>
         </Button>
       )}
-      <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground shrink-0" />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
+        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
+          {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles />Optimér rute</DropdownMenuItem>}
+          {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
+          {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
+        </DropdownMenuContent>
+      </DropdownMenu>
       {stopCount > 0 && !showAsCompleted && completedCount > 0 && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-secondary">
           <div
@@ -599,8 +615,8 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       onAction={(action) => {
         if (action === "view") onSelect();
         else if (action === "optimize" && canOptimize) onOptimize();
-        else if (action === "delete" && canDelete) onDelete!();
-        else if (action === "history" && canHistory) onShowHistory!();
+        else if (action === "delete" && canDelete) onDelete?.();
+        else if (action === "history" && canHistory) onShowHistory?.();
       }}
     >
       {pill}
