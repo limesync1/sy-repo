@@ -36,7 +36,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "ui-modal fixed left-1/2 top-1/2 z-[var(--z-modal)] grid w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] min-w-0 -translate-x-1/2 -translate-y-1/2 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-lg border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-foreground/10 sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:p-6",
+        "ui-modal fixed inset-x-0 bottom-0 top-auto z-[var(--z-modal)] grid w-full max-w-none max-h-[calc(100dvh-0.75rem)] min-w-0 translate-x-0 translate-y-0 content-start gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-t-2xl border border-b-0 bg-background p-4 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-foreground/10 before:absolute before:left-1/2 before:top-2 before:h-1 before:w-10 before:-translate-x-1/2 before:rounded-full before:bg-muted-foreground/30 sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-lg sm:max-h-[calc(100dvh-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border-b sm:p-6 sm:before:hidden",
         className,
       )}
       {...props}
@@ -57,7 +57,7 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("grid min-w-0 grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:flex sm:flex-row sm:justify-end", className)} {...props} />
+  <div className={cn("sticky bottom-[calc(-1*max(1rem,env(safe-area-inset-bottom)))] z-10 -mx-4 -mb-[max(1rem,env(safe-area-inset-bottom))] grid min-w-0 grid-cols-1 gap-2 border-t bg-background/95 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur min-[380px]:grid-cols-2 [&_button]:min-h-11 sm:static sm:mx-0 sm:mb-0 sm:flex sm:flex-row sm:justify-end sm:border-t-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none", className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 
@@ -67,7 +67,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-xl font-semibold leading-tight tracking-tight sm:text-lg", className)}
     {...props}
   />
 ));
@@ -77,7 +77,7 @@ const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+  <DialogPrimitive.Description ref={ref} className={cn("text-base leading-relaxed text-muted-foreground sm:text-sm", className)} {...props} />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
