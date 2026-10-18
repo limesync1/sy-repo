@@ -37,8 +37,8 @@ export function ProfileEditSheetLayout({
       <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:max-h-[92vh] sm:p-0">
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            icon={<PanelIcon name="editProfile" className="h-7 w-7" />}
-            iconClassName="h-11 w-11 rounded-md bg-card border border-border"
+            icon={<PanelIcon name="editProfile" className="h-14 w-14" />}
+            iconClassName="h-14 w-14 rounded-none !bg-transparent ring-0"
             title={<DialogTitle className="text-base">Rediger profil</DialogTitle>}
             description={<DialogDescription className="text-xs leading-snug">{description}</DialogDescription>}
           >
