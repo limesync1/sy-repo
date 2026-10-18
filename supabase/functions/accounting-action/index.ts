@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
             caps.can_credit = isBooked
               && typeof adapter.creditInvoice === "function"
               && s.status !== "credited";
-            caps.can_mark_paid = isBooked
+            caps.can_mark_paid = (isBooked || (isDraft && typeof adapter.finalizeInvoice === "function"))
               && typeof adapter.markInvoicePaid === "function"
               && !fullyPaid;
             caps.can_void = isDraft && typeof adapter.voidDraft === "function";
