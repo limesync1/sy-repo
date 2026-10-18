@@ -28,8 +28,10 @@ import { template as adminImpersonationCode } from './admin-impersonation-code.t
 import { template as businessDeletionCode } from './business-deletion-code.tsx'
 import { template as betaLaunch } from './beta-launch.tsx'
 import { template as businessWelcome } from './business-welcome.tsx'
+import { template as accountingDocument } from './accounting-document.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
+  'accounting-document': accountingDocument,
   'welcome': welcome,
   'order-confirmation': orderConfirmation,
   'order-status-update': orderStatusUpdate,
