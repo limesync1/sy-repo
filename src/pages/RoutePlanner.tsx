@@ -2511,6 +2511,7 @@ const Planner = () => {
       <AdminShell
         business={business}
         activeTab="routes"
+        title="Ruteplanlægger"
         contentPadding={false}
         collapsible
         hideTopbarUtilities
