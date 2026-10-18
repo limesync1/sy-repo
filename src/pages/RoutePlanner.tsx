@@ -3958,7 +3958,7 @@ const Planner = () => {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1.5">
+                  <div className="grid grid-cols-[minmax(0,1fr)_44px_44px_44px] items-center gap-1.5">
                     <Tabs value={mobileDayView ? "day" : view} onValueChange={(v) => { setMobileDayView(v === "day"); if (v !== "day") setView(v as "month" | "week"); }}>
                       <TabsList className="grid h-11 w-full grid-cols-3 rounded-md bg-secondary p-0">
                         {[{ value: "day", label: "Dag" }, { value: "week", label: "Uge" }, { value: "month", label: "Måned" }].map((item) => <TabsTrigger key={item.value} value={item.value} className="h-11 min-w-0 px-1 text-sm data-[state=active]:bg-card data-[state=active]:text-foreground">{item.label}</TabsTrigger>)}
