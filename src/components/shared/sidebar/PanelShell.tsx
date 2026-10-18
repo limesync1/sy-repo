@@ -230,7 +230,7 @@ export const PanelShell = ({
             animateLayout && `transition-[padding-left] duration-200 ${EASE} motion-reduce:transition-none`,
           )}
         >
-          <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/60 bg-card/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:gap-3 sm:px-6">
+          <header className="service-panel-topbar sticky top-0 z-30 flex min-h-14 shrink-0 flex-wrap items-center gap-2 border-b border-border/60 bg-card/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:gap-3 sm:px-6">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
@@ -245,7 +245,7 @@ export const PanelShell = ({
               {subtitle ? <p className="hidden truncate text-[11px] text-muted-foreground sm:block">{subtitle}</p> : null}
             </div>
             {topbarRight ? (
-              <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">{topbarRight}</div>
+              <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">{topbarRight}</div>
             ) : null}
           </header>
           {topbarExtra}

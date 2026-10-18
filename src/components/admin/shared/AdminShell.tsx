@@ -166,7 +166,7 @@ export const AdminShell = ({
   const topbarActions = (
     <>
       {topbarRight && !hideActions && !mobileTopbar && (
-        <div className="hidden min-w-0 items-center gap-2 sm:flex">{topbarRight}</div>
+        <div className="hidden min-w-0 flex-wrap items-center justify-end gap-2 sm:flex">{topbarRight}</div>
       )}
       {!hideTopbarUtilities && publicId && (
         <button
