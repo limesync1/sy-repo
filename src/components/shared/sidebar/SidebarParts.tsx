@@ -561,7 +561,7 @@ export const SidebarProfileMenu = ({
         const cls = item.danger ? "text-destructive focus:text-destructive" : undefined;
         const content = (
           <>
-            <Icon className={cn("mr-2 shrink-0", item.key === "profile" ? "h-6 w-6" : "h-4 w-4")} aria-hidden="true" />
+            <Icon className="mr-2 h-4 w-4" aria-hidden="true" />
             {item.label}
           </>
         );
