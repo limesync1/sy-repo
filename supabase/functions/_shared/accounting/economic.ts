@@ -908,6 +908,21 @@ export function makeEconomicAdapter(
       }
     },
 
+    async finalizeInvoice({ external_id, external_type }) {
+      let draftNumber: string | number = external_id;
+      if (external_type === "order") {
+        const r = await (this as any).bookInvoice({ external_id, external_type: "order" });
+        draftNumber = r.invoice_external_id;
+      }
+      const booked = await ecRequest(creds, "/invoices/booked", {
+        method: "POST",
+        body: JSON.stringify({ draftInvoice: { draftInvoiceNumber: Number(draftNumber) } }),
+      });
+      const no = String(booked?.bookedInvoiceNumber ?? "");
+      if (!no) throw new Error("e-conomic returnerede intet fakturanummer ved bogføring.");
+      return { invoice_external_id: no, invoice_external_number: no };
+    },
+
     async markInvoicePaid({ invoice_external_id, amount, paid_at }) {
       // Registrér betaling som kundebetaling i kassekladden mod den bogførte faktura.
       const paidDate = paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
