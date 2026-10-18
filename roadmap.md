@@ -1,3 +1,8 @@
+## Fakturamails, annullering og timeinterval
+- [ ] Ret og test Gensend faktura samt mail ved kreditnota
+- [ ] Medarbejder kan annullere med valg mellem kreditnota nu og kontoret
+- [ ] Midlertidigt interval hver time med normal regnskabssynkronisering
+
 ## Servicepriser og tom virksomhedsside
 - [x] Vis servicepriser som uden moms ved oprettelse, bestilling og i servicemails; mailfunktioner opdateret
 - [x] Brug vedhæftet ikon ved Ingen services oprettet endnu
