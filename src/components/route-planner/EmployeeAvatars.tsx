@@ -1,5 +1,8 @@
-// EmployeeAvatars — kompakt stak af medarbejder-avatars med tooltips.
-// Bruges på aftalekort i RouteStopsPanel og samlet på rute-niveau i kalenderen.
+// EmployeeAvatars — kompakt stak af medarbejder-avatars med navne-boks.
+// Bruges på aftalekort i RouteStopsPanel, sygemeldingskort og rute-niveau.
+//
+// Navne-boksen portales (via ui/hover-card) til <body>, fordi aftalekortene klipper indhold
+// (overflow-hidden). Uden portal blev navnet halvt skjult ved kortets kant.
 
 import { cn } from "@/lib/utils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -20,6 +23,8 @@ type Props = {
   className?: string;
   /** Vis fallback "Ingen tildelt" når listen er tom. */
   showEmpty?: boolean;
+  /** Medarbejder der er ansvarlig (lead) — markeres i navne-boksen. */
+  leadId?: string | null;
 };
 
 const initials = (name: string) =>
@@ -39,8 +44,31 @@ const readableTokenOn = (color?: string | null) => {
   return lum > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
 };
 
+const TRIGGER_CLASS =
+  "relative inline-flex shrink-0 cursor-default items-center justify-center rounded-full ring-2 ring-card transition-transform duration-150 hover:z-10 hover:scale-110 focus-visible:z-10 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-accent motion-reduce:transition-none";
+
+/** Navne-boks der altid ligger oven på siden og flytter sig efter plads. */
+const NameCard = ({ children, wide }: { children: React.ReactNode; wide?: boolean }) => (
+    <HoverCardContent
+      side="top"
+      align="center"
+      sideOffset={6}
+      collisionPadding={8}
+      className={cn("p-2", wide ? "w-44" : "w-auto max-w-[16rem]")}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </HoverCardContent>
+);
+
+const LeadTag = () => (
+  <span className="mt-1 inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-foreground">
+    Ansvarlig
+  </span>
+);
+
 export const EmployeeAvatars = ({
-  employees, max = 3, size = 18, className, showEmpty,
+  employees, max = 3, size = 18, className, showEmpty, leadId,
 }: Props) => {
   if (employees.length === 0) {
     if (!showEmpty) return null;
@@ -49,64 +77,83 @@ export const EmployeeAvatars = ({
     );
   }
   const visible = employees.slice(0, max);
-  const extra = employees.length - visible.length;
-  const tooltip = employees.map((e) => e.name).join(", ");
+  const hidden = employees.slice(max);
   const fontSize = Math.max(8, Math.round(size * 0.42));
+  // Mindre overlap end før, så man rammer den rigtige avatar.
+  const overlap = Math.round(size * 0.18);
 
   return (
-    <div className={cn("flex -space-x-1.5 shrink-0", className)} title={tooltip}>
-      {visible.map((e) => (
-        // Hver avatar løftes over stakken ved hover/fokus, så den aldrig er
-        // halvt skjult bag den næste avatar. Alle varianter får samme
-        // hover-kort med navn (og billede, hvis det findes).
-        <HoverCard key={e.id} openDelay={150} closeDelay={80}>
+    <div
+      className={cn("flex shrink-0 items-center", className)}
+      role="group"
+      aria-label={`Medarbejdere: ${employees.map((e) => e.name).join(", ")}`}
+    >
+      {visible.map((e, i) => (
+        <HoverCard key={e.id} openDelay={120} closeDelay={60}>
           <HoverCardTrigger asChild>
-            {e.avatar_url ? (
-              <img
-                src={e.avatar_url}
-                alt={e.name}
-                loading="lazy"
-                tabIndex={0}
-                className="relative rounded-full object-cover ring-2 ring-background transition-transform hover:z-10 hover:scale-110 focus:z-10 focus:outline-none focus-visible:ring-foreground/40"
-                style={{ width: size, height: size }}
-              />
-            ) : (
-              <span
-                tabIndex={0}
-                className="relative inline-flex items-center justify-center rounded-full ring-2 ring-background font-semibold leading-none transition-transform hover:z-10 hover:scale-110 focus:z-10 focus:outline-none focus-visible:ring-foreground/40"
-                style={{
-                  width: size,
-                  height: size,
-                  background: e.color || "hsl(220 13% 46%)",
-                  color: readableTokenOn(e.color),
-                  fontSize,
-                }}
-                aria-label={e.name}
-              >
-                {initials(e.name)}
-              </span>
-            )}
+            <span
+              tabIndex={0}
+              aria-label={e.id === leadId ? `${e.name} (ansvarlig)` : e.name}
+              className={TRIGGER_CLASS}
+              style={{
+                width: size,
+                height: size,
+                marginLeft: i === 0 ? 0 : -overlap,
+                background: e.avatar_url ? undefined : e.color || "hsl(var(--muted-foreground))",
+                color: readableTokenOn(e.color),
+                fontSize,
+              }}
+              onClick={(ev) => ev.stopPropagation()}
+            >
+              {e.avatar_url ? (
+                <img
+                  src={e.avatar_url}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="font-semibold leading-none">{initials(e.name)}</span>
+              )}
+            </span>
           </HoverCardTrigger>
-          <HoverCardContent side="top" align="center" className={e.avatar_url ? "w-48 p-2" : "w-auto px-3 py-1.5"}>
+          <NameCard wide={!!e.avatar_url}>
             {e.avatar_url && (
               <img
                 src={e.avatar_url}
-                alt={e.name}
-                className="aspect-square w-full rounded-xl border border-border object-cover"
+                alt=""
+                className="mb-2 aspect-square w-full rounded-lg border border-border object-cover"
               />
             )}
-            <p className={cn("truncate text-center text-xs font-semibold text-foreground", e.avatar_url && "mt-2")}>{e.name}</p>
-          </HoverCardContent>
+            <p className="break-words text-center text-sm font-semibold leading-snug text-foreground">{e.name}</p>
+            {e.id === leadId && <div className="text-center"><LeadTag /></div>}
+          </NameCard>
         </HoverCard>
       ))}
-      {extra > 0 && (
-        <span
-          className="inline-flex items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground font-bold"
-          style={{ height: size, minWidth: size, padding: "0 4px", fontSize }}
-          title={tooltip}
-        >
-          +{extra}
-        </span>
+      {hidden.length > 0 && (
+        <HoverCard openDelay={120} closeDelay={60}>
+          <HoverCardTrigger asChild>
+            <span
+              tabIndex={0}
+              aria-label={`${hidden.length} flere: ${hidden.map((e) => e.name).join(", ")}`}
+              className={cn(TRIGGER_CLASS, "bg-muted font-bold text-muted-foreground")}
+              style={{ height: size, minWidth: size, padding: "0 4px", marginLeft: -overlap, fontSize }}
+              onClick={(ev) => ev.stopPropagation()}
+            >
+              +{hidden.length}
+            </span>
+          </HoverCardTrigger>
+          <NameCard>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Også på aftalen</p>
+            <ul className="space-y-0.5">
+              {hidden.map((e) => (
+                <li key={e.id} className="break-words text-sm font-medium text-foreground">
+                  {e.name}{e.id === leadId ? " · ansvarlig" : ""}
+                </li>
+              ))}
+            </ul>
+          </NameCard>
+        </HoverCard>
       )}
     </div>
   );
