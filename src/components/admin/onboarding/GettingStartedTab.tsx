@@ -9,7 +9,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, ExternalLink, Lock, PlayCir
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PanelIcon } from "@/components/shared/PanelIcon";
-import { FOCUS_OPTIONS, type OnboardingStepId } from "./steps";
+import { type OnboardingStepId } from "./steps";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import { useOnboardingVideos, toEmbedUrl } from "@/hooks/useOnboardingVideos";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -81,7 +81,7 @@ const StepVideo = ({ url, title }: { url?: string; title: string }) => {
 
 export default function GettingStartedTab({ business, onNavigate }: Props) {
   const {
-    counts, isLoading, done, steps, focus, setFocus, clearFocus,
+    counts, isLoading, done, steps,
     completedCount, totalCount, allDone, nextStepId,
   } = useOnboardingSignals(business);
   const { data: videos = {} } = useOnboardingVideos();
@@ -114,7 +114,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   const stepDone = step ? !!done[step.id] : false;
   const missing = step ? (step.requires ?? []).filter((r) => !r.met(counts)) : [];
   const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
-  const showStep = !!step && (focus || allDone);
+  const showStep = !!step;
 
   return (
     <div
@@ -135,11 +135,6 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            {focus && (
-              <Button type="button" onClick={clearFocus} variant="ghost" size="sm" className="hidden h-8 px-2 text-xs text-muted-foreground sm:inline-flex">
-                Skift formål
-              </Button>
-            )}
             <Button asChild variant="outline" size="sm" className="h-8 text-xs">
               <a href={`/v/${business?.slug ?? ""}`} target="_blank" rel="noreferrer">
                 <span className="hidden sm:inline">Se jeres side</span>
@@ -199,32 +194,6 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
 
       {/* Body */}
       <div className="planner-overlay-body min-h-0 flex-1 overflow-hidden bg-secondary/20 p-3 sm:p-4">
-        {!focus && !allDone && (
-          <div className="flex h-full min-h-0 flex-col rounded-md border border-border bg-card">
-            <div className="flex min-h-9 items-center border-b border-border bg-secondary/35 px-3 py-2">
-              <h3 className="text-[13px] font-semibold text-foreground">Vælg først, hvad I vil opsætte</h3>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-3">
-              <p className="mb-3 text-xs text-muted-foreground">Så viser vi kun de trin, der passer til jeres virksomhed.</p>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {FOCUS_OPTIONS.map((o) => (
-                  <Button
-                    key={o.value}
-                    type="button"
-                    variant="outline"
-                    onClick={() => setFocus(o.value)}
-                    className="h-auto min-h-16 justify-start rounded-md p-3 text-left hover:border-foreground/40 hover:bg-secondary/40"
-                  >
-                    <span>
-                      <span className="block text-sm font-semibold text-foreground">{o.title}</span>
-                      <span className="mt-0.5 block whitespace-normal text-xs font-normal leading-snug text-muted-foreground">{o.body}</span>
-                    </span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {showStep && step && (
           <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)] lg:grid-rows-1 lg:gap-4">
