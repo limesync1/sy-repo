@@ -4,7 +4,8 @@
 // - "Mere" markeres som aktiv når den aktive fane ligger inde i sheet'et.
 // - Højden er 60px + safe-area og matcher --bottomnav-h i PanelShell.
 import { useState, type ReactNode } from "react";
-import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -38,9 +39,9 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
 
   const itemClass = (active: boolean) =>
     cn(
-      "relative flex h-[60px] w-full touch-manipulation flex-col items-center justify-center gap-0.5 text-[11px] font-medium outline-none",
+      "relative flex h-[60px] w-full touch-manipulation flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-medium outline-none",
       "transition-[background-color,color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-secondary/40 active:translate-y-0 motion-reduce:transition-none motion-reduce:transform-none focus-visible:bg-secondary/60",
-      active ? "text-accent" : "text-muted-foreground active:text-foreground",
+      active ? "text-foreground" : "text-muted-foreground active:text-foreground",
     );
 
   const pill = (active: boolean) =>
@@ -64,7 +65,7 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
             const Icon = it.icon;
             return (
               <li key={it.key}>
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={it.onSelect}
                   onTouchStart={it.onPrefetch}
@@ -81,18 +82,20 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
                       />
                     )}
                   </span>
-                  <span className="leading-tight">{it.label}</span>
-                </button>
+                  <span className="max-w-full whitespace-normal text-center leading-tight">{it.label}</span>
+                </Button>
               </li>
             );
           })}
           {hasMore && (
             <li>
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => setMoreOpen(true)}
                 className={itemClass(moreActive)}
                 aria-haspopup="dialog"
+                aria-expanded={moreOpen}
+                aria-controls="panel-more-navigation"
                 aria-label="Åbn flere menupunkter"
               >
                 <span className={pill(moreActive)}>
@@ -101,8 +104,8 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
                     <span className="absolute right-2 top-0.5 h-2 w-2 rounded-full bg-accent ring-2 ring-card" aria-hidden="true" />
                   )}
                 </span>
-                <span className="leading-tight">{moreTitle}</span>
-              </button>
+                <span className="max-w-full whitespace-normal text-center leading-tight">{moreTitle}</span>
+              </Button>
             </li>
           )}
         </ul>
@@ -111,37 +114,43 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
       {hasMore && (
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetContent
+            id="panel-more-navigation"
             side="bottom"
             hideCloseButton
             className="max-h-[82dvh] gap-0 overflow-y-auto rounded-t-2xl border-border/60 bg-card p-0 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-lg lg:hidden"
           >
-            <SheetTitle className="sr-only">{moreTitle}</SheetTitle>
+
             <SheetDescription className="sr-only">Flere menupunkter</SheetDescription>
             <div className="flex justify-center py-2.5" aria-hidden="true">
               <span className="h-1 w-10 rounded-full bg-muted-foreground/25" />
             </div>
 
+            <div className="flex items-center justify-between px-4 pb-2">
+              <SheetTitle className="text-base font-semibold">{moreTitle}</SheetTitle>
+              <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setMoreOpen(false)} aria-label="Luk flere menupunkter"><X /></Button>
+            </div>
+
             {more.length > 0 && (
-              <ul className="grid grid-cols-3 gap-1 px-3 pb-2">
+              <ul className="grid grid-cols-2 gap-1 px-3 pb-2 sm:grid-cols-3">
                 {more.map((it) => {
                   const Icon = it.icon;
                   return (
                     <li key={it.key}>
-                      <button
+                      <Button variant="ghost"
                         type="button"
                         onClick={() => { setMoreOpen(false); it.onSelect(); }}
                         onTouchStart={it.onPrefetch}
                         aria-current={it.active ? "page" : undefined}
                         className={cn(
-                          "relative flex w-full touch-manipulation flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-xs font-medium outline-none transition-colors motion-reduce:transition-none",
+                          "relative flex h-auto min-h-24 w-full touch-manipulation flex-col items-center gap-1.5 rounded-lg px-2 py-3 text-sm font-medium outline-none transition-colors motion-reduce:transition-none",
                           "focus-visible:ring-2 focus-visible:ring-accent/60 active:bg-secondary",
-                          it.active ? "bg-accent/10 text-accent" : "text-foreground hover:bg-secondary/60",
+                          it.active ? "bg-accent/10 text-foreground" : "text-foreground hover:bg-secondary/60",
                         )}
                       >
                         <span className={cn("flex h-11 w-11 items-center justify-center rounded-xl", it.active ? "bg-card" : "bg-secondary")}>
                           <Icon className="h-5 w-5" aria-hidden="true" />
                         </span>
-                        <span className="max-w-full truncate leading-tight">{it.label}</span>
+                        <span className="max-w-full whitespace-normal text-center leading-snug">{it.label}</span>
                         {hasBadge(it.badge) && (
                           <span
                             className={cn(
@@ -152,7 +161,7 @@ export default function PanelBottomNav({ primary, more = [], moreTitle = "Mere",
                             {it.badge}
                           </span>
                         )}
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}

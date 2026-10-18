@@ -272,7 +272,8 @@ const RoutePlannerDesktopOnly = () => {
 const Planner = () => {
   const { user: plannerAuthUser } = useAuth();
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
-  const isCompactRouteLayout = useIsBelowBreakpoint(1280);
+  const isCompactRouteLayout = useIsBelowBreakpoint(1100);
+  const [mobileDayView, setMobileDayView] = useState(true);
   const qc = useQueryClient();
   // Mørk-tilstand gælder hele siden mens ruteplanlæggeren er åben, så
   // sidebar, topbar og alt portal-indhold (dialoger, sheets, popovers,
@@ -3629,6 +3630,7 @@ const Planner = () => {
               )}
               <div className="flex-1 min-h-0">
                 <AgendaCalendar
+                  selectedDayOnly={mobileDayView}
                   view={view}
                   anchorDate={date}
                   routes={calendarRoutesAll}
@@ -3659,7 +3661,7 @@ const Planner = () => {
           );
 
           return (
-              <div className="planner-canvas min-h-0 w-full shrink-0 overflow-hidden p-2 2xl:p-3" style={{ height: "calc(100dvh - 73px)", maxHeight: "calc(100dvh - 73px)" }}>
+              <div className="planner-canvas min-h-0 w-full shrink-0 overflow-hidden p-2 2xl:p-3 h-[calc(100dvh-56px-var(--panel-bottom-clearance,0px))]">
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
@@ -3910,47 +3912,47 @@ const Planner = () => {
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
               <div className="flex h-full min-h-0 flex-col gap-2 [@media(min-width:1100px)]:hidden">
-                <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-lg border border-border bg-card p-2.5">
+                <div className="planner-mobile-toolbar shrink-0 space-y-2 border-b border-border bg-card p-2.5">
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="icon"
                       className="h-11 w-11 shrink-0 rounded-[4px]"
                       onClick={() =>
-                        setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
+                        setDate(format(mobileDayView ? addDays(parseISO(date), -1) : view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                       }
-                      aria-label={view === "week" ? "Forrige uge" : "Forrige måned"}
+                      aria-label={mobileDayView ? "Forrige dag" : view === "week" ? "Forrige uge" : "Forrige måned"}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div className="min-w-0 flex-1 text-center">
-                      <p className="truncate text-sm font-semibold first-letter:uppercase tabular-nums text-foreground">
-                        {view === "week"
-                          ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
-                          : format(parseISO(date), "MMMM yyyy", { locale: da })}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground tabular-nums">
-                        {periodSummary.routeCount} {periodSummary.routeCount === 1 ? "rute" : "ruter"} · {periodSummary.stopCount} stop
-                      </p>
-                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" className="h-11 min-w-0 flex-1 flex-col gap-0.5 px-1" aria-label="Vælg dato">
+                          <span className="max-w-full truncate text-sm font-semibold capitalize">{mobileDayView ? format(parseISO(date), "EEEE d. MMM", { locale: da }) : view === "week" ? `Uge ${format(parseISO(date), "I")} · ${format(parseISO(date), "MMM yyyy", { locale: da })}` : format(parseISO(date), "MMMM yyyy", { locale: da })}</span>
+                          <span className="text-xs font-normal text-muted-foreground">{periodSummary.routeCount} ruter · {periodSummary.stopCount} stop</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="center" className="w-auto p-0">
+                        <RouteAwareCalendar mode="single" selected={parseISO(date)} onSelect={(d) => { if (d) setDate(format(d, "yyyy-MM-dd")); }} routeDates={routeDatesSet} busyDates={busyDatesSet} overloadedDates={overloadedDatesSet} />
+                      </PopoverContent>
+                    </Popover>
                     <Button
                       variant="outline"
                       size="icon"
                       className="h-11 w-11 shrink-0 rounded-[4px]"
                       onClick={() =>
-                        setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
+                        setDate(format(mobileDayView ? addDays(parseISO(date), 1) : view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                       }
-                      aria-label={view === "week" ? "Næste uge" : "Næste måned"}
+                      aria-label={mobileDayView ? "Næste dag" : view === "week" ? "Næste uge" : "Næste måned"}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-1.5">
-                    <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                      <TabsList className="grid h-11 w-full grid-cols-2 rounded-md border border-border bg-secondary/50 p-1">
-                        <TabsTrigger value="month" className="h-9 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
-                        <TabsTrigger value="week" className="h-9 rounded-[4px] text-xs font-semibold text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Uge</TabsTrigger>
+                  <div className="grid grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1.5">
+                    <Tabs value={mobileDayView ? "day" : view} onValueChange={(v) => { setMobileDayView(v === "day"); if (v !== "day") setView(v as "month" | "week"); }}>
+                      <TabsList className="grid h-11 w-full grid-cols-3 rounded-md bg-secondary p-0">
+                        {[{ value: "day", label: "Dag" }, { value: "week", label: "Uge" }, { value: "month", label: "Måned" }].map((item) => <TabsTrigger key={item.value} value={item.value} className="h-11 min-w-0 px-1 text-sm data-[state=active]:bg-card data-[state=active]:text-foreground">{item.label}</TabsTrigger>)}
                       </TabsList>
                     </Tabs>
                     <Sheet>
@@ -3958,11 +3960,10 @@ const Planner = () => {
                         <Button
                           variant={filtersActive ? "default" : "outline"}
                           size="sm"
-                          className="h-11 shrink-0 gap-1.5 rounded-[4px] px-2.5 text-xs"
+                          className="h-11 w-11 shrink-0 gap-1 rounded-md p-0"
                           aria-label="Filtre"
                         >
                           <Filter className="h-4 w-4" />
-                          Filtre
                           {filtersActive && (
                             <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
                               {filterAssigneeIds.length + filterStatuses.length}
@@ -4022,7 +4023,7 @@ const Planner = () => {
                                 </button>
                               )}
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_44px] gap-2">
                               {STATUS_OPTIONS.map((opt) => {
                                 const checked = filterStatuses.includes(opt.value);
                                 return (
@@ -4083,9 +4084,7 @@ const Planner = () => {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="sm" className="h-11 rounded-[4px] px-2.5 text-xs" onClick={() => setDate(todayStr())}>
-                      I dag
-                    </Button>
+
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -4093,14 +4092,26 @@ const Planner = () => {
                       <ShoppingBag className="h-4 w-4" />
                       Opret bestilling
                     </Button>
-                    <Button className="h-11 w-full gap-1.5 rounded-[4px] text-sm" onClick={() => setCreateOpen(true)}>
+                    <Button variant="outline" className="h-11 w-full gap-1.5 rounded-md text-sm" onClick={() => setCreateOpen(true)}>
                       <RouteIcon className="h-4 w-4" />
                       Opret rute
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11" aria-label="Flere planlægningshandlinger"><MoreHorizontal /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setDate(todayStr())}><CalendarIcon />I dag</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDayOptimizerOpen(true)}><Gauge />Optimér dagen</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setPrintOpen(true)}><Printer />Print / PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openSickLeaveDialog()}><AlertTriangle />Meld medarbejder syg</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem disabled={!history.canUndo} onClick={() => void history.undo()}><Undo2 />Fortryd seneste handling</DropdownMenuItem>
+                        <DropdownMenuItem disabled={!history.canRedo} onClick={() => void history.redo()}><Redo2 />Gentag seneste fortryd</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                 </div>
-                  <div className="planner-mobile-board min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-background">
+                  <div className="planner-mobile-board min-h-0 flex-1 overflow-hidden bg-background">
                   <section className="h-full min-h-0" aria-label="Rutekalender">
                     {mobileCalendarBlock}
                   </section>
