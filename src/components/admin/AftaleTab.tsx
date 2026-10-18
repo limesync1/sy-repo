@@ -2850,6 +2850,7 @@ const AftaleTab = ({
           </div>
         )}
       </DragOverlay>
+      <CancelOrderDialog order={orderToCancel} onClose={() => setOrderToCancel(null)} onCancel={(id) => handleProgressStatus(id, "cancelled")} />
     </DndContext>
   );
 };
