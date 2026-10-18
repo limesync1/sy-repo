@@ -487,7 +487,7 @@ const SortableStopRow = ({
               <span className="min-w-0 break-words decoration-muted-foreground/50 underline-offset-4 group-hover/title:underline">{stop.customer_name || "Ukendt kunde"}</span>
             </button>
             {assigneeEmps.length > 0 && (
-              <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
+              <EmployeeAvatars employees={assigneeEmps} size={22} max={3} leadId={leadId} />
             )}
           </div>
 

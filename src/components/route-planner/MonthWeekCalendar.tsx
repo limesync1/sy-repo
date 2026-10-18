@@ -45,7 +45,7 @@ import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { WeatherBadge } from "./WeatherBadge";
 import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
 import { PILL_BASE, PILL_VIRTUAL, PILL_COMPLETED, CARD_CONTENT } from "./lib/card-styles";
@@ -1726,15 +1726,43 @@ const RoutePillInner = ({
   );
 };
 
+let lastPlannerPointerDown = 0;
+let previewTrackerInstalled = false;
+const installPreviewPointerTracker = () => {
+  if (previewTrackerInstalled || typeof document === "undefined") return;
+  previewTrackerInstalled = true;
+  document.addEventListener("pointerdown", () => { lastPlannerPointerDown = Date.now(); }, true);
+};
+
 /** Hover-forhåndsvisning: kunder og medarbejdere på ruten. Kun på enheder
  *  med mus — på touch åbner et tryk ruten direkte. */
 const RouteHoverPreview = ({ route, disabled, children }: { route: CalendarRoute; disabled?: boolean; children: React.ReactNode }) => {
   const stops = route.stops;
   const emps = route.attachedEmployees;
+  // Lukkes ved ethvert klik/tryk, så forhåndsvisningen aldrig bliver hængende
+  // oven på rutevinduet, der åbner når man klikker på ruten.
+  const [open, setOpenState] = useState(false);
+  useEffect(installPreviewPointerTracker, []);
+  const setOpen = (next: boolean) => {
+    // Et klik/tryk (fx for at åbne ruten) må ikke efterfølges af en
+    // forsinket åbning, der lægger sig oven på rutevinduet.
+    if (next && Date.now() - lastPlannerPointerDown < 1500) return;
+    setOpenState(next);
+  };
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpenState(false);
+    document.addEventListener("pointerdown", close, true);
+    document.addEventListener("dragstart", close, true);
+    return () => {
+      document.removeEventListener("pointerdown", close, true);
+      document.removeEventListener("dragstart", close, true);
+    };
+  }, [open]);
   return (
-    <HoverCard openDelay={350} closeDelay={60} {...(disabled ? { open: false } : {})}>
+    <HoverCard openDelay={350} closeDelay={60} open={disabled ? false : open} onOpenChange={setOpen}>
       {children}
-      <HoverCardContent side="right" align="start" className="hidden w-64 p-0 [@media(hover:hover)]:block">
+      <HoverCardContent side="right" align="start" collisionPadding={8} className="hidden w-64 p-0 [@media(hover:hover)]:block">
         <div className="flex items-center gap-2 border-b border-border px-3 py-2">
           <span className="h-3 w-1 shrink-0 rounded-full" style={{ background: route.color }} aria-hidden />
           <p className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{route.name?.trim() || "Rute"}</p>
