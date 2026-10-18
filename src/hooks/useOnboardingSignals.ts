@@ -3,16 +3,16 @@
 // "Kom godt i gang"-fanen, så de aldrig kan vise forskellige tal.
 //
 // Selve fremgangen detekteres automatisk fra databasen. Brugerens egne valg
-// — sprunget over-trin og hvad de vil bruge platformen til — gemmes i
-// `business_onboarding_progress`, så de følger virksomheden på tværs af
-// browsere og kolleger. Fokus lægges i `current_step` med præfikset
-// `focus:` for at undgå en migration for ét enkelt felt.
+// — sprunget over-trin — gemmes i `business_onboarding_progress`, så de følger
+// virksomheden på tværs af browsere og kolleger.
+
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  CORE_STEPS, coreStepsForFocus, NEXT_LEVEL_STEPS,
-  type OnboardingFocus, type OnboardingStep, type OnboardingStepId,
+  CORE_STEPS, NEXT_LEVEL_STEPS,
+  type OnboardingStep, type OnboardingStepId,
+
 } from "@/components/admin/onboarding/steps";
 import { useOnboardingProgress, useUpdateOnboardingProgress } from "@/hooks/useOnboarding";
 
@@ -26,8 +26,6 @@ export type OnboardingCounts = {
   routesCount: number;
 };
 
-const FOCUS_PREFIX = "focus:";
-const isFocus = (v: string): v is OnboardingFocus => ["routes", "jobs", "both"].includes(v);
 
 export type OnboardingState = {
   counts: OnboardingCounts | undefined;
@@ -36,13 +34,10 @@ export type OnboardingState = {
   done: Record<OnboardingStepId, boolean>;
   skipped: Record<string, boolean>;
   toggleSkip: (id: OnboardingStepId) => void;
-  /** Kerne-trin filtreret efter virksomhedens fokus. */
+  /** Alle kerne-trin — både faste aftaler og enkeltstående aftaler. */
   steps: OnboardingStep[];
   nextLevelSteps: OnboardingStep[];
-  focus: OnboardingFocus | null;
-  setFocus: (focus: OnboardingFocus) => void;
-  /** Nulstil svaret så spørgsmålet vises igen. */
-  clearFocus: () => void;
+
   completedCount: number;
   totalCount: number;
   allDone: boolean;
@@ -100,11 +95,6 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     return map;
   }, [progress?.skipped_steps]);
 
-  const rawFocus = progress?.current_step ?? "";
-  const focus: OnboardingFocus | null =
-    rawFocus.startsWith(FOCUS_PREFIX) && isFocus(rawFocus.slice(FOCUS_PREFIX.length))
-      ? (rawFocus.slice(FOCUS_PREFIX.length) as OnboardingFocus)
-      : null;
 
   const patchProgress = useCallback(
     (patch: Record<string, unknown>) => {
@@ -127,15 +117,10 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     [progress?.skipped_steps, patchProgress],
   );
 
-  const setFocus = useCallback(
-    (next: OnboardingFocus) => patchProgress({ current_step: `${FOCUS_PREFIX}${next}` }),
-    [patchProgress],
-  );
-
-  const clearFocus = useCallback(() => patchProgress({ current_step: null }), [patchProgress]);
 
   const effective = counts ?? EMPTY_COUNTS;
-  const steps = useMemo(() => coreStepsForFocus(focus ?? "both"), [focus]);
+  const steps = CORE_STEPS;
+
 
   const done = useMemo(() => {
     const map = {} as Record<OnboardingStepId, boolean>;
@@ -156,9 +141,6 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     toggleSkip,
     steps,
     nextLevelSteps: NEXT_LEVEL_STEPS,
-    focus,
-    setFocus,
-    clearFocus,
     completedCount,
     totalCount: steps.length,
     allDone: !isLoading && !!counts && completedCount === steps.length,
