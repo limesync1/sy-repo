@@ -1,3 +1,6 @@
+## Automatisk oprettelse efter timeinterval
+- [ ] Undersøg forfalden næste aftale, automatisk oprettelse og aftalelistens opdatering; ret kun bekræftede fejl
+
 ## Demosiden fjernet
 - [x] Slet /demo, demo-data og kurv-/chat-undtagelser; gamle /demo-links sendes til /virksomheder og er bekræftet i browser
 
