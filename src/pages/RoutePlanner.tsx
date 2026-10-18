@@ -69,6 +69,7 @@ import {
 import { createPortal } from "react-dom";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { UnassignedJobCard, UnassignedJobCardSkeleton } from "@/components/route-planner/UnassignedJobCard";
+import { MobileDayMapButton } from "@/components/route-planner/MobileDayMapSheet";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
@@ -4072,6 +4073,7 @@ const Planner = () => {
                         </div>
                       </SheetContent>
                     </Sheet>
+                    <MobileDayMapButton routes={calendarRoutesAll as any} date={date} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-md" aria-label="Flere planlægningshandlinger">
