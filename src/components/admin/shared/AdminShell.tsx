@@ -20,7 +20,6 @@ import {
   SidebarCollapsibleRow, SidebarWorkspaceRow, SidebarProgressCard, SidebarProfileMenu,
   type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
-import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/PanelBottomNav";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { AccountProfileSheet } from "@/components/shared/AccountProfileSheet";
@@ -151,10 +150,6 @@ export const AdminShell = ({
   };
 
   const currentNav = findAdminNavItem(activeTab);
-  const primaryKeys = adminMobilePrimaryKeys(flags);
-  const mobileItems: BottomNavItem[] = ADMIN_NAV_ITEMS
-    .filter((item) => isAdminNavVisible(item, flags) && (item.value !== "getting-started" || showGettingStarted))
-    .map((item) => ({ key: item.value, label: item.label, icon: item.icon, active: activeTab === item.value, onSelect: () => go(item), onPrefetch: () => prefetchAdminTab(item.value) }));
   const displayName =
     accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
   const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
