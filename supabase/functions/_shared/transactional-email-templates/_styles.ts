@@ -9,33 +9,37 @@ export const LOGO_URL =
   'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo-dark.png?v=2'
 
 // Palette
-const ink = '#212121'        // foreground (matches site --foreground 0 0% 13%)
-const inkSoft = '#525252'    // body text
-const mutedColor = '#737373'      // labels
-const subtle = '#a3a3a3'     // footer
-const line = '#ececec'       // borders / dividers
-const surface = '#fafafa'    // very subtle surfaces
-const teal = '#1a7399'       // ny brandblå, matcher platformens illustrationer
-const blueLight = '#3fb4dc'
+const ink = '#0f172a'        // foreground (matches site --foreground 0 0% 13%)
+const inkSoft = '#475569'    // body text
+const mutedColor = '#64748b'      // labels
+const subtle = '#94a3b8'     // footer
+const line = '#e2e8f0'       // borders / dividers
+const surface = '#f8fafc'    // very subtle surfaces
+const teal = '#0b8a96'       // ny brandblå, matcher platformens illustrationer
+const blueLight = '#0b8a96'
 
 export const main = {
-  backgroundColor: '#ffffff',
+  backgroundColor: '#f1f5f9',
   fontFamily:
     'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
   margin: 0,
-  padding: '32px 16px',
+  padding: '40px 12px',
   color: ink,
 }
 export const wrapper = {
   backgroundColor: '#ffffff',
-  maxWidth: '560px',
+  maxWidth: '580px',
   margin: '0 auto',
+  borderRadius: '16px',
+  border: `1px solid ${line}`,
+  borderTop: `4px solid ${teal}`,
+  padding: '28px 36px 32px',
 }
 export const container = { padding: 0 }
 export const headerBar = {
-  padding: '0 0 24px',
+  padding: '0 0 22px',
   borderBottom: `1px solid ${line}`,
-  marginBottom: '32px',
+  marginBottom: '28px',
 }
 export const logoSection = { margin: 0 }
 export const logo = { display: 'block', height: '32px' }
@@ -52,14 +56,14 @@ export const heroSection = {
 export const heroTitle = {
   color: ink,
   fontSize: '26px',
-  fontWeight: 600 as const,
-  margin: '0 0 8px',
+  fontWeight: 700 as const,
+  margin: '0 0 10px',
   lineHeight: '1.2',
   letterSpacing: '-0.015em',
 }
 export const heroSubtitle = {
-  color: mutedColor,
-  fontSize: '14px',
+  color: inkSoft,
+  fontSize: '16px',
   margin: 0,
   lineHeight: '1.6',
 }
@@ -79,7 +83,7 @@ export const h2 = {
   letterSpacing: '0.02em',
 }
 export const text = {
-  fontSize: '15px',
+  fontSize: '16px',
   color: inkSoft,
   lineHeight: '1.65',
   margin: '0 0 14px',
@@ -102,10 +106,10 @@ export const button = {
   backgroundColor: teal,
   backgroundImage: `linear-gradient(180deg, ${blueLight}, ${teal})`,
   color: '#ffffff',
-  fontSize: '14px',
+  fontSize: '16px',
   fontWeight: 600 as const,
-  borderRadius: '8px',
-  padding: '12px 22px',
+  borderRadius: '10px',
+  padding: '15px 28px',
   textDecoration: 'none',
   display: 'inline-block',
   letterSpacing: '0.01em',
@@ -122,6 +126,7 @@ export const buttonSecondary = {
   border: `1px solid ${line}`,
 }
 export const card = {
+  backgroundColor: surface,
   border: `1px solid ${line}`,
   borderRadius: '10px',
   padding: '18px 20px',

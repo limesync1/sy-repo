@@ -1,82 +1,18 @@
 /// <reference types="npm:@types/react@18.3.1" />
-
 import * as React from 'npm:react@18.3.1'
+import { AuthLayout, P } from './_layout.tsx'
 
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
-} from 'npm:@react-email/components@0.0.22'
+interface MagicLinkEmailProps { siteName: string; confirmationUrl: string }
 
-interface MagicLinkEmailProps {
-  siteName: string
-  confirmationUrl: string
-}
-
-export const MagicLinkEmail = ({
-  siteName,
-  confirmationUrl,
-}: MagicLinkEmailProps) => (
-  <Html lang="en" dir="ltr">
-    <Head>
-      <style>{darkModeCss}</style>
-    </Head>
-    <Preview>Your login link for {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Your login link</Heading>
-        <Text style={text}>
-          Click the button below to log in to {siteName}. This link will expire
-          shortly.
-        </Text>
-        <Button className="dm-btn" style={button} href={confirmationUrl}>
-          Log In
-        </Button>
-        <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+export const MagicLinkEmail = ({ confirmationUrl }: MagicLinkEmailProps) => (
+  <AuthLayout
+    preview="Dit login-link til Serviceydere"
+    eyebrow="Log ind"
+    title="Dit login-link"
+    cta={{ label: 'Log ind', href: confirmationUrl }}
+    note="Linket virker kun kort tid og kun én gang. Har du ikke bedt om det, kan du se bort fra mailen."
+  >
+    <P>Tryk på knappen for at logge ind på Serviceydere. Du skal ikke bruge en adgangskode.</P>
+  </AuthLayout>
 )
-
 export default MagicLinkEmail
-
-const main = { backgroundColor: '#f5f8fa', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif', padding: '32px 12px' }
-const container = { padding: '28px', maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const button = {
-  backgroundColor: '#1a7399',
-  backgroundImage: 'linear-gradient(180deg, #3fb4dc, #1a7399)',
-  color: '#ffffff',
-  fontSize: '14px',
-  border: '1px solid #1a7399',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-// Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
-const darkModeCss = `
-  @media (prefers-color-scheme: dark) {
-    .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
-  }
-  [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
-  [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
-`

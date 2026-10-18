@@ -4,6 +4,7 @@
 // dnd-kit IDs som MonthWeekCalendar (`day:<date>`, `route:<id>`,
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
+import { compareDayRoutes } from "./lib/day-route-order";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle, CalendarArrowDown } from "lucide-react";
 import { CloudOff } from "lucide-react";
@@ -91,12 +92,7 @@ export const AgendaCalendar = ({
       m.set(r.route_date, arr);
     }
     for (const [k, arr] of m) {
-      arr.sort((a, b) => {
-        const av = a.isVirtual ? 0 : 1;
-        const bv = b.isVirtual ? 0 : 1;
-        if (av !== bv) return av - bv;
-        return (a.name || "").localeCompare(b.name || "");
-      });
+      arr.sort(compareDayRoutes);
       m.set(k, arr);
     }
     return m;
