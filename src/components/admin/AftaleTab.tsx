@@ -1122,9 +1122,11 @@ const AftaleTab = ({
         case "amount_asc":
           return (a.adjusted_amount ?? a.total_amount ?? 0) - (b.adjusted_amount ?? b.total_amount ?? 0);
         case "next_service": {
-          const ad = a.next_service_date ? new Date(a.next_service_date).getTime() : Infinity;
-          const bd = b.next_service_date ? new Date(b.next_service_date).getTime() : Infinity;
-          return ad - bd;
+          const aNext = nextSeriesDates.get(a.id);
+          const bNext = nextSeriesDates.get(b.id);
+          const ad = aNext ? Date.parse(aNext) : Infinity;
+          const bd = bNext ? Date.parse(bNext) : Infinity;
+          return ad === bd ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : ad - bd;
         }
         case "needs_action": {
           const diff = needsActionScore(b) - needsActionScore(a);
@@ -1136,7 +1138,7 @@ const AftaleTab = ({
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [searchedOrders, sortBy]);
+  }, [searchedOrders, sortBy, nextSeriesDates]);
 
   const pagedOrders = useMemo(
     () => filteredOrders.slice(aftalePage * aftalePageSize, (aftalePage + 1) * aftalePageSize),

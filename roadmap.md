@@ -97,4 +97,5 @@
 - [ ] Gennemgå hvert vindue gruppevis med skærmbilleder — kræver testkonto med virksomhed (egen konto har ingen)
 
 ## Aftalernes gentagelser
-- [ ] Ret kørselsnumre og vis kun næste udførelse for den aktuelle aktive serie; kontrollér med faktiske data og tests uden at udføre aftaler
+- [x] Ret kørselsnumre og vis kun næste udførelse for den aktuelle aktive serie; kontrolleret mod faktiske data og seks tests uden at udføre aftaler
+- [ ] Visuel kontrol af DK Renfyns aftaleliste — testsessionen har ingen virksomhedstilknytning
