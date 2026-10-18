@@ -63,6 +63,7 @@ import {
   type ServiceStepDetail,
 } from "@/lib/service-pricing";
 import { relativeFromNow } from "@/lib/relative-time";
+import { nextDatesByOrder, orderCycleNumber } from "@/lib/order-recurrence-display";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
 import { CancelOrderDialog } from "@/components/admin/CancelOrderDialog";
@@ -773,6 +774,12 @@ const AftaleTab = ({
   const { data: services } = useServices(businessId);
   const hasActiveServices = (services || []).some((service) => service.is_active !== false);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
+  const nextSeriesDates = useMemo(() => nextDatesByOrder(orders || [], subscriptions || []), [orders, subscriptions]);
+  const [displayNow, setDisplayNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setDisplayNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const qc = useQueryClient();
   // Default-filter: "active" — viser åbne aftaler (ikke udført/annulleret) så
   // listen ikke bliver overvældet af afsluttede sager.
@@ -1115,9 +1122,11 @@ const AftaleTab = ({
         case "amount_asc":
           return (a.adjusted_amount ?? a.total_amount ?? 0) - (b.adjusted_amount ?? b.total_amount ?? 0);
         case "next_service": {
-          const ad = a.next_service_date ? new Date(a.next_service_date).getTime() : Infinity;
-          const bd = b.next_service_date ? new Date(b.next_service_date).getTime() : Infinity;
-          return ad - bd;
+          const aNext = nextSeriesDates.get(a.id);
+          const bNext = nextSeriesDates.get(b.id);
+          const ad = aNext ? Date.parse(aNext) : Infinity;
+          const bd = bNext ? Date.parse(bNext) : Infinity;
+          return ad === bd ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : ad - bd;
         }
         case "needs_action": {
           const diff = needsActionScore(b) - needsActionScore(a);
@@ -1129,7 +1138,7 @@ const AftaleTab = ({
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [searchedOrders, sortBy]);
+  }, [searchedOrders, sortBy, nextSeriesDates]);
 
   const pagedOrders = useMemo(
     () => filteredOrders.slice(aftalePage * aftalePageSize, (aftalePage + 1) * aftalePageSize),
@@ -1962,18 +1971,19 @@ const AftaleTab = ({
             const serviceSummary = serviceList.length > 0
               ? serviceList.slice(0, 2).join(", ") + (serviceList.length > 2 ? ` +${serviceList.length - 2}` : "")
               : "Ingen services";
-            const cycles = (order as any).completed_cycles || 0;
-            const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
+            const cycleNumber = orderCycleNumber(order);
+            const nextSeriesDate = nextSeriesDates.get(order.id);
+            const nextDate = nextSeriesDate ? new Date(nextSeriesDate) : null;
             const interval = getOrderInterval(order);
             // Dage til næste udførelse — beregnes fra midnat-til-midnat så
             // "i dag" og "i morgen" er korrekte uanset klokkeslæt.
             const daysUntilNext = (() => {
               if (!nextDate) return null;
-              const a = new Date(); a.setHours(0,0,0,0);
+              const a = new Date(displayNow); a.setHours(0,0,0,0);
               const b = new Date(nextDate); b.setHours(0,0,0,0);
               return Math.round((b.getTime() - a.getTime()) / 86400000);
             })();
-            const minutesUntilNext = nextDate ? Math.round((nextDate.getTime() - Date.now()) / 60000) : null;
+            const minutesUntilNext = nextDate ? Math.ceil((nextDate.getTime() - displayNow) / 60000) : null;
             const routeStop = stopByOrder[order.id];
             const routeInfo = routeStop?.route;
             const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
@@ -2059,17 +2069,15 @@ const AftaleTab = ({
                         {hasRecurring && (
                           <span
                             className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                            title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval}${cycles > 0 ? ` · gennemført ${cycles} gange` : ""}`}
+                            title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval} · ${cycleNumber}. kørsel i serien`}
                           >
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
-                            {cycles > 0 && (
+                            {cycleNumber > 0 && (
                               <span
                                 className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground"
-                                title={order.status === "completed"
-                                  ? `Denne aftale er gennemført ${cycles} gange — vises som ${cycles}. kørsel`
-                                  : `Næste planlagte: ${cycles + 1}. kørsel — systemet opretter den automatisk på næste interval-dato`}
+                                title={`${cycleNumber}. kørsel i denne aftaleserie`}
                               >
-                                {order.status === "completed" ? `${cycles}. kørsel` : `${cycles + 1}. kørsel`}
+                                {cycleNumber}. kørsel
                               </span>
                             )}
                           </span>
@@ -2141,11 +2149,11 @@ const AftaleTab = ({
                                   ? "font-medium text-warning"
                                   : ""
                               }
-                              title={cycles === 0
-                                ? "Opstartsdato — første udførelse af aftalen."
-                                : "Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."}
+                              title="Næste udførelse i den aktive serie. Den nye bestilling oprettes automatisk, når intervallet er gået."
                             >
-                              {cycles === 0 ? "Opstart" : "Næste"}: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} · {relativeFromNow(nextDate)}
+                              Næste i serien: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                              {interval === "every_1_hour_test" && <> kl. {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</>}
+                              {" · "}{minutesUntilNext !== null && minutesUntilNext <= 0 ? "Afventer oprettelse" : relativeFromNow(nextDate)}
                             </span>
                           </>
                         )}

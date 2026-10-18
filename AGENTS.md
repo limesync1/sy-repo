@@ -39,4 +39,4 @@
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation validates assigned stops server-side. Business cancellation probes credit capabilities; credit must succeed before cancellation, preventing uncredited invoices.
-- Temporary hourly tests use the exact isolated test key and legacy completed-order cycles; normal calendar-day recurrence safeguards remain unchanged.
+- Hourly tests stay isolated. Order-list progress uses recurrence sequence; only the active subscription owner shows its next date, not historical counters/dates.
