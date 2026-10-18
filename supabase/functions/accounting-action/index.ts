@@ -8,15 +8,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { makeAdapter } from "../_shared/accounting/index.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { z } from 'npm:zod@3';
+import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts';
+import { documentMailKey, mayCancelAppointment, shouldCreateCredit } from '../_shared/accounting/action-rules.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -32,12 +31,15 @@ Deno.serve(async (req) => {
     if ("error" in auth) return json({ error: auth.error }, auth.status);
     const userClient = auth.userClient;
 
-    const { order_id, action, params } = await req.json();
-    if (!order_id || !action) return json({ error: "Missing order_id/action" }, 400);
+    const parsed = z.object({ order_id: z.string().uuid(), action: z.enum(['check_capabilities','resend_invoice','download_invoice','sync_now','send_reminder','credit_invoice','void_draft','mark_paid','cancel_appointment']), params: z.object({ stop_id: z.string().uuid().optional(), credit_mode: z.enum(['now','office']).optional(), amount: z.number().positive().optional(), paid_at: z.string().datetime().optional(), reason: z.string().max(2000).nullable().optional() }).optional() }).safeParse(await req.json());
+    if (!parsed.success) return json({ error: 'Ugyldig handling eller oplysninger' }, 400);
+    const { order_id, params } = parsed.data;
+    let action: string = parsed.data.action;
+    const cancellation = action === 'cancel_appointment';
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: order } = await admin.from("orders")
-      .select("id, business_id, invoice_external_id, total_amount, customer_email, customer_id, payment_status, status")
+      .select("id, business_id, invoice_external_id, total_amount, customer_email, customer_id, customer_name, payment_status, status, credit_note_external_id, credit_note_external_number")
       .eq("id", order_id).maybeSingle();
     if (!order) {
       // Capability-probes må ALDRIG bryde UI'et — hvis ordren ikke findes
@@ -63,11 +65,11 @@ Deno.serve(async (req) => {
     let isEmployee = false;
     if (!isOwner) {
       const { data: emp } = await admin.from("employees")
-        .select("id, business_id, active")
+        .select("id, business_id, is_active")
         .eq("user_id", auth.userId)
         .eq("business_id", order.business_id)
         .maybeSingle();
-      isEmployee = !!emp && emp.active !== false;
+      isEmployee = !!emp && emp.is_active === true;
     }
     // Kunden der ejer ordren må også downloade sin egen faktura + probe caps.
     const isCustomer = !!order.customer_id && order.customer_id === auth.userId;
@@ -76,7 +78,19 @@ Deno.serve(async (req) => {
         && action !== "download_invoice" && action !== "check_capabilities") {
       return json({ error: "Forbidden" }, 403);
     }
-    if (!isOwner && !isCustomer && action !== "resend_invoice" && action !== "check_capabilities") {
+    if (cancellation) {
+      if (!params?.stop_id || !params.credit_mode) return json({ error: 'Vælg aftale og kreditnota' }, 400);
+      const { data: context, error } = await userClient.rpc('_employee_stop_context', { _stop_id: params.stop_id });
+      if (error || !mayCancelAppointment(isOwner, context?.[0]?.order_id ?? null, order_id)) return json({ error: 'Du har ikke adgang til denne aftale' }, 403);
+      if (context?.[0]?.order_id !== order_id) return json({ error: 'Aftalen hører ikke til dette stop' }, 403);
+      if (params.credit_mode === 'office') {
+        const { data, error: cancelError } = await userClient.rpc('employee_cancel_appointment', { _stop_id: params.stop_id, _credit_mode: 'office' });
+        if (cancelError) return json({ error: cancelError.message }, 400);
+        return json({ ok: true, ...data });
+      }
+      action = 'credit_invoice';
+    }
+    if (!isOwner && !isCustomer && !cancellation && action !== "resend_invoice" && action !== "check_capabilities") {
       return json({ error: "Forbidden" }, 403);
     }
 
@@ -97,6 +111,34 @@ Deno.serve(async (req) => {
       ? (order.invoice_external_id ?? link?.external_id ?? null)
       : null;
     const externalId = order.invoice_external_id ?? link?.external_id ?? null;
+    const sendDocument = async (adapter: ReturnType<typeof makeAdapter>, documentId: string, isCredit: boolean) => {
+      if (!order.customer_email || !z.string().email().safeParse(order.customer_email).success) throw new Error('Kunden mangler en gyldig e-mailadresse.');
+      if (!adapter.getInvoicePdf) throw new Error('Regnskabsprogrammet kan ikke levere dokumentet.');
+      const pdf = await adapter.getInvoicePdf({ invoice_external_id: documentId, external_type: 'invoice_booked' });
+      const bytes = Uint8Array.from(atob(pdf.pdf_base64), c => c.charCodeAt(0));
+      const path = `${order.business_id}/${order.id}/${isCredit ? 'credit' : 'invoice'}-${documentId}.pdf`;
+      const storage = admin.storage.from('accounting-documents');
+      const { error: uploadError } = await storage.upload(path, bytes, { contentType: 'application/pdf', upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: signed, error: linkError } = await storage.createSignedUrl(path, 7 * 86400);
+      if (linkError || !signed) throw new Error('Dokumentlinket kunne ikke oprettes.');
+      const { data: business } = await admin.from('businesses').select('name,email').eq('id', order.business_id).single();
+      return sendTemplateEmail('accounting-document', order.customer_email, {
+        idempotencyKey: documentMailKey(order.id, documentId, isCredit, Date.now()),
+        replyTo: business?.email || undefined,
+        templateData: { customerName: order.customer_name, businessName: business?.name, documentNumber: documentId, amount: Number(order.total_amount), downloadUrl: signed.signedUrl, isCredit },
+      });
+    };
+    const finalize = async (adapter: ReturnType<typeof makeAdapter>) => {
+      if (localInvoiceType === 'invoice_booked' && externalId) return externalId;
+      if (!link?.external_id || !adapter.finalizeInvoice || !['order','invoice_draft'].includes(link.external_type)) throw new Error('Fakturaen findes ikke i regnskabsprogrammet endnu.');
+      const fin = await adapter.finalizeInvoice({ external_id: link.external_id, external_type: link.external_type as 'order' | 'invoice_draft' });
+      const { error: linkError } = await admin.from('accounting_order_links').update({ external_id: fin.invoice_external_id, external_number: fin.invoice_external_number ?? fin.invoice_external_id, external_type: 'invoice_booked', last_status_synced: 'booked' }).eq('business_id',order.business_id).eq('provider',integ.provider).eq('order_id',order_id);
+      if (linkError) throw linkError;
+      const { error: orderError } = await admin.from('orders').update({ invoice_external_id: fin.invoice_external_id, invoice_external_number: fin.invoice_external_number ?? fin.invoice_external_id, invoice_status: 'booked', invoiced_at: new Date().toISOString() }).eq('id', order_id);
+      if (orderError) throw orderError;
+      return fin.invoice_external_id;
+    };
 
     // Capability probe — kaldes af UI for at afgøre om knapper kan vises.
     // Vi prøver at slå fakturaen op hos udbyderen; hvis den ikke findes
@@ -181,6 +223,7 @@ Deno.serve(async (req) => {
           caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
         }
       } catch { /* ignorer — vi har stadig fallback-caps fra externalId-blokken ovenfor */ }
+      caps.can_resend = !!externalId && !!adapter.getInvoicePdf && !!order.customer_email && (localInvoiceType === 'invoice_booked' || !!adapter.finalizeInvoice) && order.payment_status !== 'credited';
       return json({ ok: true, caps });
     }
 
@@ -189,18 +232,11 @@ Deno.serve(async (req) => {
     if (action === "resend_invoice") {
       if (!integ) return json({ error: "Ingen aktiv regnskabsintegration" }, 400);
       const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
-      if (typeof adapter.resendInvoice !== "function") {
-        return json({ error: `${integ.provider} understøtter ikke gensending af faktura` }, 400);
-      }
-      const sendId = bookedInvoiceId ?? link?.external_id ?? null;
-      if (!sendId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
-      const externalType: "invoice_booked" | "invoice_draft" = localInvoiceType ?? (bookedInvoiceId ? "invoice_booked" : "invoice_draft");
+      let sendId = externalId;
       try {
-        const res = await adapter.resendInvoice({
-          invoice_external_id: sendId,
-          external_type: externalType,
-          customer_email: order.customer_email ?? null,
-        });
+        sendId = await finalize(adapter);
+        const res = await sendDocument(adapter, sendId, false);
+        if (!res.sent) return json({ ok: true, sent: false, note: 'Kunden har fravalgt mails eller adressen er blokeret. Mailen blev ikke sendt.' });
         await admin.from("accounting_sync_log").insert({
           business_id: order.business_id, provider: integ.provider,
           direction: "push", entity_type: "invoice", entity_id: order_id,
@@ -306,41 +342,30 @@ Deno.serve(async (req) => {
         if (typeof adapter.creditInvoice !== "function") {
           return json({ error: `${integ.provider} understøtter ikke kreditering via API` }, 400);
         }
-        let toCredit: string | null = localInvoiceType === "invoice_booked" ? externalId : null;
-        if (!toCredit && link?.external_id && typeof adapter.finalizeInvoice === "function"
-            && (link.external_type === "order" || link.external_type === "invoice_draft")) {
-          // Kun bogførte fakturaer kan krediteres — bogfør først.
-          const fin = await adapter.finalizeInvoice({
-            external_id: link.external_id,
-            external_type: link.external_type as "order" | "invoice_draft",
-          });
-          toCredit = fin.invoice_external_id;
-          await admin.from("accounting_order_links").update({
-            external_id: fin.invoice_external_id,
-            external_number: fin.invoice_external_number ?? fin.invoice_external_id,
-            external_type: "invoice_booked",
-            last_status_synced: "booked",
-          }).eq("business_id", order.business_id).eq("provider", integ.provider).eq("order_id", order_id);
-          await admin.from("orders").update({
-            invoice_external_id: fin.invoice_external_id,
-            invoice_external_number: fin.invoice_external_number ?? fin.invoice_external_id,
-            invoice_status: "booked",
-            invoiced_at: new Date().toISOString(),
-          }).eq("id", order_id);
+        let creditId = order.credit_note_external_id;
+        let creditNumber = order.credit_note_external_number;
+        if (shouldCreateCredit(order.payment_status)) {
+          const toCredit = await finalize(adapter);
+          const res = await adapter.creditInvoice({ invoice_external_id: toCredit, reason: params?.reason ?? null });
+          creditId = res.credit_note_external_id;
+          creditNumber = res.credit_note_external_number;
+          const { error } = await admin.from('orders').update({ payment_status: 'credited', credited_at: new Date().toISOString(), credit_note_external_id: creditId, credit_note_external_number: creditNumber }).eq('id',order_id);
+          if (error) throw error;
         }
-        if (!toCredit) toCredit = externalId;
-        if (!toCredit) return json({ error: "Aftalen findes ikke i regnskabsprogrammet endnu — synkronisér og prøv igen." }, 400);
-        const res = await adapter.creditInvoice({
-          invoice_external_id: toCredit,
-          reason: params?.reason ?? null,
-        });
-        await admin.from("orders").update({
-          payment_status: "credited",
-          credited_at: new Date().toISOString(),
-          credit_note_external_id: res.credit_note_external_id,
-          credit_note_external_number: res.credit_note_external_number,
-        }).eq("id", order_id);
-        result = { ok: true, credit_note: res };
+        if (!creditId) throw new Error('Kreditnotaens nummer mangler. Kontakt kontoret.');
+        let note: string | undefined;
+        try {
+          const mail = await sendDocument(adapter, creditId, true);
+          if (!mail.sent) note = 'Kreditnotaen er oprettet, men kunden har fravalgt mails eller adressen er blokeret.';
+        } catch (error) {
+          note = 'Kreditnotaen er oprettet, men mailen kunne ikke sendes. Prøv Kreditér igen for at gensende uden at oprette en ny kreditnota.';
+          console.error('credit document email failed', error instanceof Error ? error.message : 'send failed');
+        }
+        if (cancellation && params?.stop_id) {
+          const { error } = await userClient.rpc('employee_cancel_appointment', { _stop_id: params.stop_id, _credit_mode: 'now' });
+          if (error) throw error;
+        }
+        result = { ok: true, credit_note: { credit_note_external_id: creditId, credit_note_external_number: creditNumber }, cancelled: cancellation, note };
       } else if (action === "void_draft") {
         if (typeof adapter.voidDraft !== "function") {
           return json({ error: `${integ.provider} understøtter ikke annullering via API` }, 400);
