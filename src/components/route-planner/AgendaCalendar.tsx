@@ -534,15 +534,21 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           )}
           <span className="break-words">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground tabular-nums">
-            <span className="font-semibold text-foreground/80">{stopCount} stop</span>
-          {completedCount > 0 && !showAsCompleted && (
-            <span className="text-emerald-600 dark:text-emerald-400">{completedCount}/{stopCount}</span>
-          )}
-          {showAsCompleted && (
-            <span className="inline-flex items-center gap-0.5 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-feature-cool-foreground">
-              ✓ Udført
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
+          {showAsCompleted ? (
+            <span className="inline-flex items-center gap-0.5 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-feature-cool-foreground">
+              ✓ Udført · {stopCount} stop
             </span>
+          ) : isVirtual ? (
+            <span className="font-semibold text-foreground/80">{stopCount} stop</span>
+          ) : (
+            <span className="font-semibold text-foreground/80">{completedCount} af {stopCount} udført</span>
+          )}
+          {compactLayout && route.attachedEmployees.length > 0 && (
+            <span className="min-w-0 truncate">{route.attachedEmployees.map((e) => e.name.split(" ")[0]).join(", ")}</span>
+          )}
+          {compactLayout && route.attachedEmployees.length === 0 && !isVirtual && (
+            <span className="text-destructive">Ingen medarbejder</span>
           )}
         </div>
       </div>
@@ -572,6 +578,11 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
       )}
 
+      {compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2 && (
+        <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" aria-label={`Optimér ${route.name || "ruten"}`} disabled={busy || optimizing} onKeyDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onOptimize(); }}>
+          {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}<span>Optimér</span>
+        </Button>
+      )}
       {onAddAppointment && !isVirtual && !isPast && !showAsCompleted && (
         <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" aria-label={`Tilføj aftale til ${route.name || "ruten"}`} disabled={busy} onKeyDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onAddAppointment(); }}>
           <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">Tilføj aftale</span><span className="sm:hidden">Tilføj</span>
@@ -586,8 +597,8 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>
-      {stopCount > 0 && !showAsCompleted && completedCount > 0 && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-secondary">
+      {stopCount > 0 && !showAsCompleted && !isVirtual && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-secondary" aria-hidden="true">
           <div
             className="h-full bg-emerald-500 transition-all duration-500"
             style={{ width: `${progressPct}%` }}
