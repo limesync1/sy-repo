@@ -42,7 +42,6 @@ import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
-import { statusBadgeClass, statusLabel } from "@/lib/statusColors";
 import { stripPrices } from "@/lib/employee-display";
 import { orderDayRoutes } from "@/lib/employee-day-order";
 
@@ -58,34 +57,6 @@ const formatWorkDuration = (seconds: number) => {
 
 // Vis ALTID ører — så medarbejderen ser præcist beløb i hele appen.
 const formatKr = (n?: number | null) => formatKrShared(Number(n) || 0);
-
-// Status-badge til medarbejderens aftaleliste. Betaling/faktura kommer
-// udelukkende fra det integrerede regnskabsprogram (orders.payment_status /
-// invoice_status synces af accounting-cron). Vi blander ALDRIG ordre-status
-// ind i betalingsvisningen, da en aftale kan være "completed" uden faktura
-// endnu.
-const paymentMeta = (
-  orderStatus?: string | null,
-  paymentStatus?: string | null,
-  invoiceStatus?: string | null,
-  isPast?: boolean,
-) => {
-  if (orderStatus !== "completed") {
-    if (isPast && orderStatus !== "cancelled" && orderStatus !== "rejected") {
-      return { label: "Ikke udført", className: "border-border bg-secondary/50 text-muted-foreground" };
-    }
-    if (orderStatus === "pending") return { label: "Afventer godkendelse", className: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground" };
-    return {
-      label: statusLabel(orderStatus || "confirmed"),
-      className: statusBadgeClass(orderStatus || "confirmed"),
-    };
-  }
-  if (paymentStatus === "overdue") return { label: "Forfalden", className: "border-destructive/40 bg-destructive/10 text-destructive" };
-  if (paymentStatus === "unpaid") return { label: "Afventer betaling", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
-  if (invoiceStatus === "booked" || invoiceStatus === "draft") return { label: "Faktureret", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
-  // Udført, men endnu ingen sync fra regnskabsprogrammet.
-  return { label: "Afventer fakturering", className: "border-border bg-secondary/50 text-muted-foreground" };
-};
 
 const miniStopIcon = (n: number, color: string, done: boolean) =>
   L.divIcon({
@@ -570,6 +541,8 @@ const EmployeeApp = () => {
           // ───── Færdig rute = kompakt, ikke-klikbar opsummering ─────
           // Brugeren skal ikke kunne "åbne" en færdig rute igen — vi viser
           // kun et roligt resumé så listen forbliver overskuelig.
+          // Udførte ruter vises ikke under Ruter — de findes under Aftaler.
+          if (allDone) return null;
           if (allDone) {
             const lastDoneAt = myStops
               .map((s) => s.completed_at)
@@ -733,8 +706,14 @@ const EmployeeApp = () => {
                   <div className="overflow-hidden rounded-[4px] border border-border bg-card">
                     <div className="divide-y divide-border">
                       {myStops.map((s, i) => {
+                        // Udførte aftaler og betalingsstatus hører til under Aftaler.
+                        if (s.status === "completed") return null;
                         const isNext = s.id === firstPendingId;
-                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status, !isCurrentDay && !isFutureDay);
+                        const pay = !isCurrentDay && !isFutureDay
+                          ? { label: "Ikke udført", className: "border-border bg-secondary/50 text-muted-foreground" }
+                          : isNext
+                            ? { label: "Næste", className: "border-foreground/30 bg-secondary text-foreground" }
+                            : { label: "Klar", className: "border-border bg-secondary/50 text-muted-foreground" };
                         return (
                           <Button
                             key={s.id}
