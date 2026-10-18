@@ -10,6 +10,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 export type EmpAvatar = {
   id: string;
   name: string;
+  /** Medarbejderens titel (fx "Pudser") — vises i navne-boksen. */
+  title?: string | null;
   avatar_url?: string | null;
   color?: string | null;
 };
