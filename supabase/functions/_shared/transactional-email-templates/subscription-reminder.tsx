@@ -2,6 +2,7 @@
 import * as React from 'npm:react@18.3.1'
 import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import { Button } from '../email-button.tsx'
+import { formatServicePrice } from './_service-price.ts'
 import type { TemplateEntry } from './registry.ts'
 import {
  SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
@@ -33,7 +34,7 @@ interface SubscriptionReminderProps {
 const INTERVAL_LABEL: Record<string, string> = {
  ugentlig: 'ugentligt', hver_14_dag: 'hver 14. dag', månedlig: 'månedligt', kvartalsvis: 'kvartalsvis', weekly: 'ugentligt', biweekly: 'hver 14. dag', monthly: 'månedligt', quarterly: 'kvartalsvis', yearly: 'årligt',
 }
-const fmt = (n: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(n)
+const fmt = formatServicePrice
 const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) } catch { return s } }
 
 const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, businessEmail, serviceName, nextServiceDate, interval, totalPrice, daysUntil, completedCycles, details }: SubscriptionReminderProps) => {

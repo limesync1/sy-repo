@@ -15,6 +15,16 @@ const SENDER_DOMAIN = "notify.serviceydere.dk"
 // Can be the root domain when display_from_root is enabled — this is cosmetic only.
 const FROM_DOMAIN = "serviceydere.dk"
 
+// Plain-text cleanup: numbered step badges duplicate list numbers, and
+// label/value table cells are joined without a separator.
+export function tidyPlainText(text: string): string {
+  return text
+    .replace(/^(\s*)(\d+)\. \2(?=\S)/gm, '$1$2. ')
+    .replace(/^(Nyt total|I alt|Total|Subtotal|Moms|Pris)(?=[\d-])/gm, '$1: ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 export type SendTemplateEmailResult =
   | { sent: true }
   | { sent: false; reason: 'recipient_suppressed' }
@@ -60,7 +70,7 @@ export async function sendTemplateEmail(
   const templateData = options.templateData ?? {}
   const element = React.createElement(template.component, templateData)
   const html = await render(element)
-  const text = await render(element, { plainText: true })
+  const text = tidyPlainText(await render(element, { plainText: true }))
   const subject =
     typeof template.subject === 'function'
       ? template.subject(templateData)

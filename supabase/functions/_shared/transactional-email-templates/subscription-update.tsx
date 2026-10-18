@@ -2,6 +2,7 @@
 import * as React from 'npm:react@18.3.1'
 import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import { Button } from '../email-button.tsx'
+import { formatServicePrice } from './_service-price.ts'
 import type { TemplateEntry } from './registry.ts'
 import {
  SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
@@ -55,7 +56,7 @@ const EVENT_NEXT: Record<SubscriptionEvent, string[]> = {
  cancelled: ['Aftalen er afsluttet, og der kommer ikke flere serviceringer eller opkrævninger.', 'Hvis du vil i gang igen, kan du altid bestille en ny service.'],
  rescheduled: ['Sørg for adgang til adressen på den nye dato.', 'Kontakt virksomheden direkte, hvis den nye dato ikke passer.'],
 }
-const fmt = (n: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(n)
+const fmt = formatServicePrice
 const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) } catch { return s } }
 
 const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, businessEmail, serviceName = 'din service', intervalLabel, totalPrice, event = 'paused', nextServiceDate, previousServiceDate, pausedAt, cancelledAt, reason, completedCycles }: SubscriptionUpdateProps) => {
