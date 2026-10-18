@@ -1,7 +1,10 @@
 ## Fakturamails, annullering og timeinterval
-- [ ] Ret og test Gensend faktura samt mail ved kreditnota
-- [ ] Medarbejder kan annullere med valg mellem kreditnota nu og kontoret
-- [ ] Midlertidigt interval hver time med normal regnskabssynkronisering
+- [x] Ret Gensend faktura (afsendelse accepteret) og tilføj kreditnota-mail med privat PDF-link
+- [ ] Bekræft kreditnota-mail hos modtageren — indbakken er ikke tilgængelig i testmiljøet
+- [x] Tilføj medarbejderannullering med kreditnotavalg og serverkontrol; uvedkommende stop afvises
+- [ ] Bekræft annullering som tildelt medarbejder — testsessionen er virksomhedsejer
+- [x] Tilføj fjernbart timeinterval og isoleret servergentagelse med almindelig regnskabskø
+- [ ] Bekræft en hel times gentagelse og regnskabsmodtagelse — kræver forløbet af en faktisk testtime
 
 ## Servicepriser og tom virksomhedsside
 - [x] Vis servicepriser som uden moms ved oprettelse, bestilling og i servicemails; mailfunktioner opdateret
