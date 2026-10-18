@@ -500,13 +500,13 @@ const CartSheet = () => {
             {/* Footer — kompakt så knappen altid er synlig, også på små skærme */}
             <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
               <div className="mb-2.5 flex items-baseline justify-between px-1">
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
+                <span className="text-xs font-medium text-muted-foreground">Total uden moms</span>
                 <span className="text-xl font-bold text-foreground tabular-nums">{formatPrice(total)}</span>
               </div>
               <Button onClick={() => setCheckout(true)} size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
                 Gå til bestilling →
               </Button>
-              <p className="mt-1.5 text-center text-[11px] text-muted-foreground">Oplysninger og adresse udfyldes i næste trin.</p>
+              <p className="mt-1.5 text-center text-xs text-muted-foreground">Alle priser er uden moms. Moms kommer oveni.</p>
             </div>
           </div>
         ) : (
@@ -733,9 +733,10 @@ const CartSheet = () => {
             {/* Submit footer */}
               <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2 shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
               <div className="flex items-baseline justify-between px-1">
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
+                <span className="text-xs font-medium text-muted-foreground">Total uden moms</span>
                 <span className="text-xl font-bold text-foreground tabular-nums">{formatPrice(total)}</span>
               </div>
+              <p className="text-center text-xs text-muted-foreground">Alle priser er uden moms. Moms kommer oveni.</p>
               <Button
                 onClick={handleOrder}
                 disabled={createOrder.isPending || submitting}
