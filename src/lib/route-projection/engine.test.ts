@@ -83,3 +83,18 @@ describe("route-projection engine", () => {
     expect(shiftsByOriginal.get("route-A|2026-06-22")).toBe("2026-06-19");
   });
 });
+describe("timeinterval (test)", () => {
+  it("viser en forventet rute for hver kommende time", () => {
+    const input = baseInput();
+    input.sources[0].interval = "every_1_hour_test";
+    input.rangeEnd = "2026-06-02";
+    input.now = new Date(2026, 5, 1, 13, 20);
+    input.realRouteDates = new Set(["route-A|2026-06-01"]);
+    const { projections } = runProjection(input);
+    const today = projections.filter((p) => p.date === "2026-06-01");
+    expect(today.map((p) => p.hour)).toEqual(
+      ["14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"],
+    );
+    expect(projections.filter((p) => p.date === "2026-06-02")).toHaveLength(24);
+  });
+});

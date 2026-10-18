@@ -151,6 +151,8 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
       exceptions: routeOccurrenceExceptions as any[],
+      // Rundet til hele timen, så cachen fornyes når en ny time starter.
+      now: new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000),
     };
     const { projections: shifted, movedReplacementRouteIds, shiftsByOriginal } = businessId
       ? runProjectionCached(projectionInput, { businessId })
@@ -184,7 +186,8 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           .filter(isProjectableStop)
           .map((s: any, i: number) => ({
             ...s,
-            id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.slice(0, 2)}` : ""}:${s.id}`,
+            ...(p.hour ? { time_window_start: p.hour, planned_start_time: p.hour } : {}),
             route_id: p.id,
             status: "planned",
             isVirtual: true,
@@ -207,7 +210,8 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           const ph = src.placeholder;
           projectedStops.push({
             ...ph,
-            id: `virtual-stop:${p.baseRouteId}:${p.date}:agr:${ph.agreement_id}`,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.slice(0, 2)}` : ""}:agr:${ph.agreement_id}`,
+            ...(p.hour ? { time_window_start: p.hour, planned_start_time: p.hour } : {}),
             route_id: p.id,
             status: "planned",
             isVirtual: true,
@@ -242,10 +246,11 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           // fejlagtigt fremstå som allerede udført. Hver projiceret dato
           // er en frisk forekomst der skal kunne udføres som ny.
           status: "planned",
+          ...(p.hour ? { planned_start_time: p.hour } : {}),
           name:
-            (resolved?.name && resolved.name.trim()) ||
+            ((resolved?.name && resolved.name.trim()) ||
             (base.name && String(base.name).trim()) ||
-            `Rute (${format(parseISO(p.date), "d. MMM", { locale: da })})`,
+            `Rute (${format(parseISO(p.date), "d. MMM", { locale: da })})`) + (p.hour ? ` · kl. ${p.hour}` : ""),
           color: resolved?.color || base.color || null,
           stops: projectedStops,
           attachedEmployees: emps,

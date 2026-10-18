@@ -57,6 +57,7 @@ export const hashProjectionInput = (input: ProjectionInput): string => {
     pauses: input.pauses,
     holidayDates: input.holidayDates ? [...input.holidayDates] : undefined,
     exceptions: input.exceptions,
+    now: input.now ? input.now.getTime() : undefined,
   });
 };
 

@@ -59,6 +59,7 @@ export type ProjectionInput = {
   overrides?: AgreementOccurrenceOverride[];
   pauses?: AgreementPauseRange[];
   holidayDates?: Iterable<string>;
+  now?: Date;
   exceptions?: RouteOccurrenceExceptionLike[];
   onUnprojectable?: (source: ProjectionSource, reason: "missing_route" | "missing_seed" | "invalid_interval") => void;
 };
@@ -110,6 +111,7 @@ export const runProjection = (input: ProjectionInput): ProjectionResult => {
     overrides: input.overrides,
     pauses: input.pauses,
     holidayDates: input.holidayDates,
+    now: input.now,
     onUnprojectable: input.onUnprojectable as any,
   });
 
@@ -134,6 +136,8 @@ export const runProjection = (input: ProjectionInput): ProjectionResult => {
 
   const projections: ProjectedRoute[] = [];
   for (const p of shifted) {
+    // Timeforekomster (test): det rigtige stop dækker kun den aktuelle time.
+    if (p.hour) { projections.push(p); continue; }
     const dateRealKeys = realSourceKeysByDate.get(p.date);
     if (!dateRealKeys || dateRealKeys.size === 0) {
       projections.push(p);
