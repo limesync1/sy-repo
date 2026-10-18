@@ -65,6 +65,7 @@ import {
 import { relativeFromNow } from "@/lib/relative-time";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
+import { CancelOrderDialog } from "@/components/admin/CancelOrderDialog";
 import OrderTimeline from "@/components/admin/OrderTimeline";
 import NextStepCard from "@/components/admin/NextStepCard";
 import { AccountingStatusRow, type OrderForStatus } from "@/components/shared/OrderStatusBadges";
@@ -784,6 +785,7 @@ const AftaleTab = ({
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<{ id: string; payment_status?: string | null } | null>(null);
   // Opret-rute dialog (samme design som ruteplanlægger).
   const [createRouteOpen, setCreateRouteOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
@@ -1279,15 +1281,16 @@ const AftaleTab = ({
       const { error } = await supabase.from("orders").update({
         status: newStatus as any,
       }).eq("id", orderId);
-      if (error) { toast.error(error.message); return; }
+      if (error) { if (newStatus === "cancelled") throw error; toast.error(error.message); return; }
       // Hvis aftalen annulleres, så annullér også eventuelle aktive/pending
       // abonnementsrækker — ellers vil de blive ved med at dukke op under
       // "Kommende aftaler" selvom selve ordren er annulleret.
       if (newStatus === "cancelled") {
-        await supabase.from("subscriptions")
+        const { error: subscriptionError } = await supabase.from("subscriptions")
           .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
           .eq("order_id", orderId)
           .in("status", ["pending", "active", "paused"]);
+        if (subscriptionError) throw subscriptionError;
       }
       // Når et engangskøb markeres udført, sæt eventuelt abonnement til
       // completed så det ikke længere vises som kommende.
@@ -2271,7 +2274,7 @@ const AftaleTab = ({
                                 duplikerer dem ikke her, så brugeren ikke ser to
                                 forskellige knapper for samme handling. */}
                             {(order.status === "confirmed" || order.status === "in_progress") && (
-                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
+                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setOrderToCancel(order); }}
                                 className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
                               <XCircle className="h-3.5 w-3.5" /> Annullér
                               </Button>
