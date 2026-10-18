@@ -1,6 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js@0.3.1'
+import { sendLovableEmail, setEmailUnsubscribe } from 'npm:@lovable.dev/email-js@0.3.1'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 import { SignupEmail } from '../_shared/email-templates/signup.tsx'
 import { InviteEmail } from '../_shared/email-templates/invite.tsx'
@@ -31,7 +31,11 @@ function list() {
 }
 
 Deno.serve(async (req) => {
-  const { from = 0, count = 1 } = await req.json().catch(() => ({}))
+  const { from = 0, count = 1, unblock = false } = await req.json().catch(() => ({}))
+  if (unblock) {
+    const r = await setEmailUnsubscribe({ recipient: TO, domain: 'serviceydere.dk', subscribed: true }, { apiKey: Deno.env.get('LOVABLE_API_KEY')! })
+    return new Response(JSON.stringify(r))
+  }
   const items = list()
   const results: string[] = []
   for (let i = from; i < Math.min(items.length, from + count); i++) {
