@@ -23,7 +23,12 @@ export type ProjectedRoute = {
   date: string;          // yyyy-MM-dd
   /** De konkrete aftale-/abonnementskilder der falder på denne dato. */
   sourceKeys: string[];
+  /** Kun for testintervallet «Hver 1 time»: forventet starttid (HH:mm). */
+  hour?: string;
 };
+
+/** Midlertidigt testinterval — projiceres som én forventet rute pr. time. */
+export const HOURLY_TEST_INTERVAL = "every_1_hour_test";
 
 /**
  * Override-række pr. forekomst af en gentagende aftale. Bruges til at flytte,
@@ -368,6 +373,31 @@ export const expandRecurringRoutes = (params: {
       // Spring helligdage og pause-perioder over — forekomster på disse dage
       // skal hverken vises i kalenderen eller materialiseres.
       if (holidaySet.has(ds) || isPausedForAgreement(s.agreement_id, ds)) {
+        stepIndex += 1;
+        cursor = advance(seed, stepIndex);
+        continue;
+      }
+      if (s.interval === HOURLY_TEST_INTERVAL) {
+        const cursorDay = ds === rawDs ? cursor : parseISO(ds);
+        if (!isBefore(cursorDay, start) && !isBefore(cursorDay, earliest)) {
+          const now = params.now ?? new Date();
+          const todayDs = format(now, "yyyy-MM-dd");
+          if (ds >= todayDs) {
+            // Den nuværende time dækkes af den rigtige rute; vis de kommende.
+            const firstHour = ds === todayDs ? now.getHours() + 1 : 0;
+            const sourceKeys = (s.sourceKeys && s.sourceKeys.length > 0) ? s.sourceKeys : [s.id];
+            for (let h = firstHour; h < 24; h++) {
+              const hh = `${String(h).padStart(2, "0")}:00`;
+              out.push({
+                id: `virtual:${routeId}:${ds}:h${String(h).padStart(2, "0")}`,
+                baseRouteId: routeId,
+                date: ds,
+                hour: hh,
+                sourceKeys: Array.from(new Set(sourceKeys)),
+              });
+            }
+          }
+        }
         stepIndex += 1;
         cursor = advance(seed, stepIndex);
         continue;
