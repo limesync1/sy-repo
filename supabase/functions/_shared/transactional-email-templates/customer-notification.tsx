@@ -19,7 +19,7 @@ interface Props {
 // osv.). Selve teksten bestemmes pr. virksomhed via customer_notification_templates
 // og pladsholdere er allerede udfyldt af dispatcheren.
 const CustomerNotificationEmail = ({ subject, body, businessName }: Props) => {
-  const lines = (body ?? '').split(/\n+/).filter((l) => l.trim().length > 0)
+  const paragraphs = (body ?? '').split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean)).filter((p) => p.length > 0)
   return (
     <Html lang="da" dir="ltr">
       <Head />
@@ -31,10 +31,10 @@ const CustomerNotificationEmail = ({ subject, body, businessName }: Props) => {
           </Section>
           <Container style={container}>
             <Heading style={h1}>{subject}</Heading>
-            {lines.map((l, i) => (
-              <Text key={i} style={text}>{l}</Text>
+            {paragraphs.map((p, i) => (
+              <Text key={i} style={text}>{p.map((l, j) => <React.Fragment key={j}>{j > 0 && <br />}{l}</React.Fragment>)}</Text>
             ))}
-            <Text style={footerText}>Eventuelle servicepriser er uden moms. Moms kommer oveni.</Text>
+            <Text style={{ ...footerText, marginTop: '20px' }}>Eventuelle servicepriser er uden moms. Moms kommer oveni.</Text>
           </Container>
           <Section style={footer}>
             <Text style={footerText}>
