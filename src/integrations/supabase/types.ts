@@ -5284,6 +5284,7 @@ export type Database = {
           source_order_id: string
         }[]
       }
+      auto_recur_hourly_test_orders: { Args: never; Returns: number }
       bulk_shift_routes: {
         Args: { _delta_days: number; _route_ids: string[] }
         Returns: {

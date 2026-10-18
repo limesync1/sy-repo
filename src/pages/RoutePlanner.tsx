@@ -1064,7 +1064,9 @@ const Planner = () => {
         .eq("details->>interval", "every_1_hour_test")
         .eq("orders.business_id", businessId!)
         .neq("orders.status", "cancelled");
-      const hourlyOrderIds = Array.from(new Set((hourlyItems || []).map((i: any) => i.order_id as string)));
+      const subOrderIds = new Set((subsRes.data || []).map((x: any) => x.order_id).filter(Boolean));
+      const hourlyOrderIds = Array.from(new Set((hourlyItems || []).map((i: any) => i.order_id as string)))
+        .filter((id) => !subOrderIds.has(id));
       if (hourlyOrderIds.length > 0) {
         const { data: hourlyStops } = await supabase
           .from("route_stops")
