@@ -389,7 +389,7 @@ const App = () => (
               <Route path="/afmeld" element={<Unsubscribe />} />
               <Route path="/godkend-bestilling/:orderId" element={<ApproveOrder />} />
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
-              {/* Demosiden er fjernet — gamle links sendes tilvirksomhedssøgningen */}
+              {/* Demosiden er fjernet — gamle links sendes til virksomhedssøgningen */}
               <Route path="/demo" element={<RedirectWithQuery to="/virksomheder" />} />
               <Route path="/opret-virksomhed" element={<BusinessOnboarding />} />
 
