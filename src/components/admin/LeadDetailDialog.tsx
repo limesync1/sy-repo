@@ -506,7 +506,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92dvh] max-w-3xl gap-0 overflow-y-auto p-0">
+      <DialogContent className="modal-large max-h-[92dvh] max-w-3xl gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-5 pb-5 pt-6 text-left sm:px-7">
           <DialogTitle className="flex flex-wrap items-center gap-2 text-xl sm:text-2xl">
             {qr?.customer_name || "Anonym kunde"}

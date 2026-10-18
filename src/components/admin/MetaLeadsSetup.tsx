@@ -247,7 +247,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
         </div>
       )}
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
-        <DialogContent className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
+        <DialogContent className="modal-large max-h-[92dvh] overflow-y-auto p-0 sm:max-w-2xl">
           <DialogHeader className="border-b border-border px-5 pb-5 pt-6 sm:px-7">
             <div className="mb-2 flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card"><FacebookBrandIcon className="h-5 w-5" /></span>

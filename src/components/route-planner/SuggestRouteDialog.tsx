@@ -199,7 +199,7 @@ export const SuggestRouteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl overflow-hidden rounded-md flex flex-col gap-0 p-0">
+      <DialogContent className="modal-large planner-overlay max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl overflow-hidden rounded-md flex flex-col gap-0 p-0">
         <DialogHeader className="planner-overlay-header space-y-0 text-left shrink-0 px-5 py-3 pr-12 border-b">
           <SheetHeaderBlock
             icon={<Sparkles className="h-4 w-4" />}

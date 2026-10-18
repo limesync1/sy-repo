@@ -223,7 +223,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay flex h-[min(94dvh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-md p-0">
+      <DialogContent className="modal-large planner-overlay flex h-[min(94dvh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-md p-0">
         <div className="planner-overlay-header flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3 pr-14 sm:px-5">
           <div className="min-w-0">
             <DialogTitle className="truncate text-sm font-semibold text-foreground">{title}</DialogTitle>
