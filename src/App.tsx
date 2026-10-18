@@ -92,7 +92,6 @@ const lazyRoute = <T,>(key: string, loader: () => Promise<T>) => {
 const CartSheet              = lazyRoute("cart-sheet", () => import("@/components/business/CartSheet"));
 const CartFab                = lazyRoute("cart-fab", () => import("@/components/business/CartFab"));
 const LiveChatWidget         = lazyRoute("livechat-widget", () => import("@/components/livechat/LiveChatWidget"));
-const BusinessPage           = lazyRoute("business-page", () => import("./pages/BusinessPage"));
 const DynamicBusinessPage    = lazyRoute("dynamic-business-page", () => import("./pages/DynamicBusinessPage"));
 const Admin                  = lazyRoute("admin", () => import("./pages/Admin"));
 const PlatformAdmin          = lazyRoute("platform-admin", () => import("./pages/PlatformAdmin"));
@@ -390,7 +389,8 @@ const App = () => (
               <Route path="/afmeld" element={<Unsubscribe />} />
               <Route path="/godkend-bestilling/:orderId" element={<ApproveOrder />} />
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
-              <Route path="/demo" element={<BusinessPage />} />
+              {/* Demosiden er fjernet — gamle links sendes til virksomhedssøgningen */}
+              <Route path="/demo" element={<RedirectWithQuery to="/virksomheder" />} />
               <Route path="/opret-virksomhed" element={<BusinessOnboarding />} />
 
               {/* ── Produktsider (software) ── */}

@@ -730,7 +730,7 @@ const LiveChatWidget = () => {
   const cartFabVisible =
     cartCount > 0 &&
     !cartSheetOpen &&
-    (pathname.startsWith("/v/") || pathname === "/demo" || pathname === "/tilbud");
+    (pathname.startsWith("/v/") || pathname === "/tilbud");
   const isMobile = useIsMobile();
 
   // Layout: CartFab er rykket mod venstre på desktop, så livechat altid kan

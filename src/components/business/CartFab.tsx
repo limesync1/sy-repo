@@ -7,7 +7,7 @@ import { useCart } from "@/contexts/CartContext";
  * deres bestillings-sheet hvis de lukkede den. Skjult når kurven er tom
  * eller sheeten allerede er åben — vi vil ikke distrahere fra hovedindholdet.
  *
- * Vises kun på virksomhedssider (/v/:slug, /demo) eller på tilbudssiden
+ * Vises kun på virksomhedssider (/v/:slug) eller på tilbudssiden
  * (/tilbud) hvor brugeren netop har indhentet tilbud. På resten af platformen
  * (forside, søgning, admin osv.) skal knappen ikke distrahere.
  */
@@ -17,7 +17,6 @@ const CartFab = () => {
   if (count === 0 || sheetOpen) return null;
   const allowed =
     pathname.startsWith("/v/") ||
-    pathname === "/demo" ||
     pathname === "/tilbud";
   if (!allowed) return null;
   // Livechat-FAB'en sidder altid yderst til højre, så vi rykker bestilling
