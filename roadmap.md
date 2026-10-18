@@ -101,4 +101,5 @@
 - [ ] Visuel kontrol af DK Renfyns aftaleliste — testsessionen har ingen virksomhedstilknytning
 
 ## Medarbejderannullering
-- [ ] Ret og verificér adgangstjek før begge kreditnotavalg uden at annullere aktuelle aftaler
+- [x] Ret adgangstjek før begge kreditnotavalg; syv tests bestået, aktiv funktion deployet, indlogget afvisning af uvedkommende stop verificeret uden annullering
+- [ ] Kontrollér faktisk annullering som tildelt medarbejder — kræver godkendt medarbejdersession og isoleret testaftale
