@@ -34,8 +34,6 @@ export const INTERVAL_UNITS: { value: IntervalUnit; singular: string; plural: st
 
 /** Tilbagefald for legacy-nøgler → {n, unit}. */
 const LEGACY_MAP: Record<string, { n: number; unit: IntervalUnit }> = {
-  "10_min":      { n: 1,  unit: "day" }, // teknisk test-værdi; vi behandler den som "daglig" for projektion
-  "every_1_hour": { n: 1, unit: "day" }, // time-baseret test/teknisk værdi — projektion = daglig (cap 1/dag)
   daglig:        { n: 1,  unit: "day" },
   hver_2_dag:    { n: 2,  unit: "day" },
   ugentlig:      { n: 1,  unit: "week" },
@@ -264,7 +262,8 @@ export function toAgreementEnum(value: string | null | undefined): { interval: s
   if (!p) return { interval: "engangskøb", interval_days: null };
   if (p.once) return { interval: "engangskøb", interval_days: null };
   const legacy = toLegacyEnum(value);
-  if (legacy && legacy !== "10_min") {
+  // Dagligt er en service-nøgle, ikke en agreement_interval enum-værdi.
+  if (legacy && legacy !== "daglig") {
     return { interval: legacy, interval_days: null };
   }
   return { interval: "custom", interval_days: intervalToDays(value) };

@@ -105,6 +105,16 @@ describe("intervalToCadence", () => {
 });
 
 describe("buildInterval / toLegacyEnum", () => {
+  it("keeps one day daily when building and reopening a service interval", () => {
+    const key = toLegacyEnum(buildInterval(1, "day"));
+    expect(key).toBe("daglig");
+    expect(intervalToDays(key)).toBe(1);
+    const parsed = parseInterval(key);
+    expect(parsed).toMatchObject({ n: 1, unit: "day" });
+    if (!parsed) throw new Error("Daily interval must parse");
+    expect(toLegacyEnum(buildInterval(parsed.n, parsed.unit))).toBe("daglig");
+  });
+
   it("normalises common combinations to legacy enums", () => {
     expect(toLegacyEnum(buildInterval(1, "week"))).toBe("ugentlig");
     expect(toLegacyEnum(buildInterval(2, "week"))).toBe("hver_14_dag");
@@ -119,6 +129,11 @@ describe("buildInterval / toLegacyEnum", () => {
 });
 
 describe("toAgreementEnum", () => {
+  it("stores one day as a one-day custom agreement instead of a minute interval", () => {
+    expect(toAgreementEnum("every_1_day")).toEqual({ interval: "custom", interval_days: 1 });
+    expect(toAgreementEnum("daglig")).toEqual({ interval: "custom", interval_days: 1 });
+  });
+
   it("maps known values to legacy enum", () => {
     expect(toAgreementEnum("ugentlig")).toEqual({ interval: "ugentlig", interval_days: null });
     expect(toAgreementEnum("every_1_week")).toEqual({ interval: "ugentlig", interval_days: null });
