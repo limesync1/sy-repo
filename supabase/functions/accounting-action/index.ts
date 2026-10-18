@@ -138,7 +138,11 @@ Deno.serve(async (req) => {
           caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
         } else {
           // External link er en ordre/kladdeordre — der findes endnu ingen faktura
-          // at downloade. Vis ikke download-knappen.
+          // at downloade. Kreditering bogfører først ordren.
+          caps.can_credit = link?.external_type === "order"
+            && typeof adapter.finalizeInvoice === "function"
+            && typeof adapter.creditInvoice === "function"
+            && order.payment_status !== "credited" && !isCancelled;
         }
       }
       try {
