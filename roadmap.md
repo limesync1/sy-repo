@@ -1,4 +1,5 @@
 ## Mobil ruteplanlægning og navigation
+- [x] Faste ruter øverst på dagen: rækkefølgen anvendes i både måned/uge-kalenderen og mobilagendaen; bekræftet med test, database-data og skærmbillede
 - [x] Gennemgå aftalekortenes afstande, tekstombrydning og handlinger i pulje, rutevindue og dagsoversigt; 10 tests bestået, isoleret kontrol ved 320/390/768/1100/1280 px i lys/mørk visning med lange navne og intervaller; arbejdspladsflow afventer adgang
 - [x] Ensret aftale- og rutekort på mobil og i vinduer med computerens design; 9 tests bestået, isolerede kort og stopvindue kontrolleret ved 390/768/1280 px i lys/mørk visning uden dataændringer
 - [x] Mobil dagsoversigt, dato-/periodevalg og synlige rutehandlinger; aftaler og gentagelser uændrede
