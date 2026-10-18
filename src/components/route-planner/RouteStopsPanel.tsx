@@ -476,10 +476,16 @@ const SortableStopRow = ({
         >
           {/* Header: branche-ikon + kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={onSelect} className="h-auto min-h-11 min-w-0 flex-1 justify-start gap-2 whitespace-normal rounded-md px-0 py-1 text-left text-sm font-semibold text-foreground">
-              {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-5 w-5 shrink-0 object-contain" alt="" />}
-              <span className="min-w-0 break-words">{stop.customer_name || "Ukendt kunde"}</span>
-            </Button>
+            {/* Titlen er et rent tekst-link uden hover-boks — kun understregning
+                og pil-feedback, så kortet ikke får en forvirrende ramme om titlen. */}
+            <button
+              type="button"
+              onClick={onSelect}
+              className="group/title flex min-h-11 min-w-0 flex-1 items-center justify-start gap-2 rounded-sm px-0 py-1 text-left text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+               {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-5 w-5 shrink-0 object-contain" alt="" />}
+              <span className="min-w-0 break-words decoration-muted-foreground/50 underline-offset-4 group-hover/title:underline">{stop.customer_name || "Ukendt kunde"}</span>
+            </button>
             {assigneeEmps.length > 0 && (
               <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
             )}

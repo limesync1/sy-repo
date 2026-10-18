@@ -55,49 +55,50 @@ export const EmployeeAvatars = ({
 
   return (
     <div className={cn("flex -space-x-1.5 shrink-0", className)} title={tooltip}>
-      {visible.map((e) =>
-        e.avatar_url ? (
-          // Stort billede ved hover/fokus, så man kan verificere at det er den
-          // rigtige medarbejder uden at forlade planlægningen.
-          <HoverCard key={e.id} openDelay={150} closeDelay={80}>
-            <HoverCardTrigger asChild>
+      {visible.map((e) => (
+        // Hver avatar løftes over stakken ved hover/fokus, så den aldrig er
+        // halvt skjult bag den næste avatar. Alle varianter får samme
+        // hover-kort med navn (og billede, hvis det findes).
+        <HoverCard key={e.id} openDelay={150} closeDelay={80}>
+          <HoverCardTrigger asChild>
+            {e.avatar_url ? (
               <img
                 src={e.avatar_url}
                 alt={e.name}
-                title={e.name}
                 loading="lazy"
                 tabIndex={0}
-                className="rounded-full object-cover ring-2 ring-background focus:outline-none focus-visible:ring-foreground/40"
+                className="relative rounded-full object-cover ring-2 ring-background transition-transform hover:z-10 hover:scale-110 focus:z-10 focus:outline-none focus-visible:ring-foreground/40"
                 style={{ width: size, height: size }}
               />
-            </HoverCardTrigger>
-            <HoverCardContent side="top" align="center" className="w-48 p-2">
+            ) : (
+              <span
+                tabIndex={0}
+                className="relative inline-flex items-center justify-center rounded-full ring-2 ring-background font-semibold leading-none transition-transform hover:z-10 hover:scale-110 focus:z-10 focus:outline-none focus-visible:ring-foreground/40"
+                style={{
+                  width: size,
+                  height: size,
+                  background: e.color || "hsl(220 13% 46%)",
+                  color: readableTokenOn(e.color),
+                  fontSize,
+                }}
+                aria-label={e.name}
+              >
+                {initials(e.name)}
+              </span>
+            )}
+          </HoverCardTrigger>
+          <HoverCardContent side="top" align="center" className={e.avatar_url ? "w-48 p-2" : "w-auto px-3 py-1.5"}>
+            {e.avatar_url && (
               <img
                 src={e.avatar_url}
                 alt={e.name}
                 className="aspect-square w-full rounded-xl border border-border object-cover"
               />
-              <p className="mt-2 truncate text-center text-xs font-semibold text-foreground">{e.name}</p>
-            </HoverCardContent>
-          </HoverCard>
-        ) : (
-          <span
-            key={e.id}
-            className="inline-flex items-center justify-center rounded-full ring-2 ring-background font-semibold leading-none"
-            style={{
-              width: size,
-              height: size,
-              background: e.color || "hsl(220 13% 46%)",
-              color: readableTokenOn(e.color),
-              fontSize,
-            }}
-            title={e.name}
-            aria-label={e.name}
-          >
-            {initials(e.name)}
-          </span>
-        ),
-      )}
+            )}
+            <p className={cn("truncate text-center text-xs font-semibold text-foreground", e.avatar_url && "mt-2")}>{e.name}</p>
+          </HoverCardContent>
+        </HoverCard>
+      ))}
       {extra > 0 && (
         <span
           className="inline-flex items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground font-bold"
