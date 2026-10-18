@@ -88,3 +88,7 @@
 - [x] Bølge 2: elektriker, VVS, tømrer, murer, kloakmester, skadedyr i 18 byer + /by-hubs
 - [x] Bølge 3: sidste 8 brancher + 16 forstæder/mindre byer (fremrykket efter brugerens ønske)
 - [ ] Bølge 4: 16 mellemstore byer (Viborg, Fredericia …) — venter på indeksering i Search Console (ca. 6.–13. nov.)
+
+## Vinduer (plan 2026-10-18)
+- [x] Fælles vinduesstandard: bundvindue på mobil, fast knaplinje, 44 px knapper, større tekst
+- [ ] Gennemgå hvert vindue gruppevis med skærmbilleder — kræver testkonto med virksomhed (egen konto har ingen)
