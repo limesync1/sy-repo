@@ -47,7 +47,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo, useState } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
-import { PILL_BASE, PILL_VIRTUAL, PILL_COMPLETED } from "./lib/card-styles";
+import { PILL_BASE, PILL_VIRTUAL, PILL_COMPLETED, CARD_CONTENT } from "./lib/card-styles";
 import type { StopCapacity } from "./lib/stop-capacity";
 import { stopCapacity } from "./lib/stop-capacity";
 import {
@@ -333,7 +333,7 @@ const DayOverviewSheet = ({
         )}
 
         {/* Liste over dagens ruter — i planlagt rækkefølge */}
-        <div className="planner-overlay-body flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-2">
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-2">
           {routes.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-12">
               Ingen ruter på denne dag endnu.
@@ -346,13 +346,16 @@ const DayOverviewSheet = ({
               const isVirtual = !!r.isVirtual;
               const isCompleted = (r as any).status === "completed";
               return (
-                <button
+                <div
                   key={r.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Åbn ${r.name || "rute"}`}
+                  onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelectRoute(r); } }}
                   data-route-pill=""
                   onClick={() => onSelectRoute(r)}
                   className={cn(
-                    "planner-card group w-full text-left rounded-[5px] border border-border/70 bg-card p-3 hover:border-accent/40 hover:shadow-sm transition-all relative overflow-hidden",
+                    PILL_BASE, CARD_CONTENT, "w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                     isVirtual && "border-dashed bg-muted/40",
                   )}
                 >
@@ -381,7 +384,7 @@ const DayOverviewSheet = ({
                             <ArrowRightLeft className="h-2 w-2" /> Flyttet
                           </span>
                         )}
-                        <span className={cn("text-sm font-semibold truncate", isVirtual && "italic text-muted-foreground")}>
+                        <span className={cn("min-w-0 break-words text-sm font-semibold", isVirtual && "italic text-muted-foreground")}>
                           {r.name || `Rute (${format(parseISO(r.route_date), "d. MMM", { locale: da })})`}
                         </span>
                       </div>
@@ -413,9 +416,9 @@ const DayOverviewSheet = ({
                               role="button"
                               tabIndex={0}
                               onClick={(e) => { e.stopPropagation(); onSelectStop(s); }}
-                              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSelectStop(s); } }}
+                              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onSelectStop(s); } }}
                               className={cn(
-                                "flex items-center gap-2 text-[11px] rounded px-1 -mx-1 py-0.5 cursor-pointer",
+                                "flex min-h-11 items-center gap-2 text-xs leading-4 rounded px-1 -mx-1 py-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                                 selectedStopIds?.has(s.id)
                                   ? "text-foreground bg-accent/[0.06] ring-1 ring-accent/40"
                                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
@@ -424,7 +427,7 @@ const DayOverviewSheet = ({
                               <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[9px] font-bold text-foreground shrink-0">
                                 {i + 1}
                               </span>
-                              <span className="truncate flex-1">
+                              <span className="min-w-0 break-words flex-1">
                                 {(s as any).customer_name || (s as any).address || "Stop"}
                               </span>
                               {s.status === "completed" && (
@@ -441,7 +444,7 @@ const DayOverviewSheet = ({
                       )}
                     </div>
                   </div>
-                </button>
+                </div>
               );
             })
           )}
