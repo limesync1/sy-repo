@@ -1,7 +1,7 @@
 ## SEO-fund (18. oktober)
-- [ ] Kontrollér og ret demoens overskrift samt forsidens HowTo/FAQ-data
-- [ ] Kontrollér og forbedr haveguidens søgetekst uden nye faktapåstande
-- [ ] Verificér siderne og registrér fuldt rettede fund til næste scanning
+- [x] Kontrollér og ret demoens overskrift samt forsidens HowTo/FAQ-data
+- [x] Kontrollér og forbedr haveguidens søgetekst uden nye faktapåstande; samme metadata i register og side
+- [x] Verificér tre offentlige sider i browser, seks SEO-tests og build OK; fund registreres til næste scanning
 
 ## Mobil ruteplanlægning og navigation
 - [x] Faste ruter øverst på dagen: rækkefølgen anvendes i både måned/uge-kalenderen og mobilagendaen; bekræftet med test, database-data og skærmbillede
