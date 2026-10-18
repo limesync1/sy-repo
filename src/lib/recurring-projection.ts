@@ -166,6 +166,11 @@ export const applyProjectedOccurrenceShifts = (
 
   for (const projection of projections) {
     const shiftTarget = shiftsByOriginal.get(`${projection.baseRouteId}|${projection.date}`);
+    if (projection.hour) {
+      // Timeforekomster (test) flyttes/sammenlægges ikke — hver time er sin egen.
+      byKey.set(projection.id, projection);
+      continue;
+    }
     if (shiftTarget && occupiedRouteDates.has(`${projection.baseRouteId}|${shiftTarget}`)) {
       continue;
     }
@@ -250,6 +255,8 @@ export const expandRecurringRoutes = (params: {
   pauses?: AgreementPauseRange[];
   /** Datoer (yyyy-MM-dd) hvor INGEN gentagende aftaler projiceres (helligdage/lukkedage). */
   holidayDates?: Iterable<string>;
+  /** Tidspunkt til timeprojektion (test) — standard er nu. */
+  now?: Date;
   /** Callback når en kilde IKKE kan projiceres — bruges til UI-advarsler så fejl ikke bare "forsvinder". */
   onUnprojectable?: (source: RecurringSource, reason: "missing_route" | "missing_seed" | "invalid_interval") => void;
 }): ProjectedRoute[] => {
