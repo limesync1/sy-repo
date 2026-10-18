@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, GripVertical, Check, Sparkles, AlertCircle } from "lucide-react";
+import { Plus, Trash2, GripVertical, Sparkles, AlertCircle } from "lucide-react";
 import {
   buildInterval,
   formatInterval,
@@ -243,57 +244,55 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
   return (
     <div className="space-y-4">
       {/* Engangskøb-toggle */}
-      <button
+      <Button
         type="button"
+        variant="outline"
+        aria-pressed={includeOnce}
         onClick={toggleOnce}
-        className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-all ${
-          includeOnce ? "border-accent bg-accent/10" : "border-border bg-card hover:bg-secondary"
+        className={`flex h-auto min-h-14 w-full items-center justify-between gap-3 whitespace-normal rounded-lg border px-4 py-3 text-left transition-colors ${
+          includeOnce ? "border-foreground bg-secondary" : "border-border bg-card hover:bg-secondary"
         }`}
       >
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">Engangskøb</p>
           <p className="mt-0.5 text-xs text-muted-foreground">Kunden bestiller én gang uden abonnement.</p>
         </div>
-        <span
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-            includeOnce ? "border-accent bg-accent text-accent-foreground" : "border-border bg-card"
-          }`}
-        >
-          {includeOnce && <Check className="h-3 w-3" />}
-        </span>
-      </button>
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">{includeOnce ? "Valgt" : "Ikke valgt"}</span>
+      </Button>
 
       {/* Hurtig-vælg-chips */}
       <div>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Hurtig-vælg
+        <p className="mb-2 text-sm font-semibold text-foreground">
+          Abonnement — vælg en eller flere
         </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {QUICK_PICKS.map(({ n, unit }) => {
             const key = buildKey(n, unit);
             const active = items.includes(key);
             const invalid = !!validateIntervalKey(key);
             return (
-              <button
+              <label
                 key={key}
-                type="button"
-                disabled={invalid}
-                onClick={() => {
-                  if (invalid) return;
-                  active ? remove(key) : add(n, unit);
-                }}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                className={`flex min-h-12 items-center gap-3 rounded-lg border px-3 py-3 text-sm font-medium transition-colors ${
                   invalid
-                    ? "cursor-not-allowed border-border bg-card text-muted-foreground/40 line-through"
+                    ? "cursor-not-allowed border-border bg-card text-muted-foreground line-through"
                     :
                   active
-                    ? "border-accent bg-accent/15 text-foreground"
-                    : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                    ? "cursor-pointer border-foreground bg-secondary text-foreground"
+                    : "cursor-pointer border-border bg-card text-foreground hover:border-foreground/30 hover:bg-secondary"
                 }`}
               >
-                {active && <Check className="-ml-0.5 mr-1 inline h-3 w-3" />}
+                <Checkbox
+                  checked={active}
+                  disabled={invalid}
+                  onCheckedChange={() => {
+                    if (invalid) return;
+                    active ? remove(key) : add(n, unit);
+                  }}
+                  className="h-5 w-5 shrink-0"
+                />
                 {formatInterval(key)}
-              </button>
+              </label>
             );
           })}
         </div>
@@ -302,9 +301,10 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
       {/* Liste af tilbagevendende intervaller (drag-and-drop) */}
       {items.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Valgte abonnement-intervaller ({items.length}) — træk for at ændre rækkefølge
+          <p className="text-sm font-semibold text-foreground">
+            Kundens valgmuligheder ({value.length})
           </p>
+          {includeOnce && <p className="text-sm text-muted-foreground">Engangskøb + {items.map(formatInterval).join(", ")}</p>}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
             <SortableContext items={items} strategy={verticalListSortingStrategy}>
               <ul className="space-y-1.5">
@@ -332,9 +332,9 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
       )}
 
       {/* Brugerdefineret interval */}
-      <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Brugerdefineret interval
+      <div className="border-t border-border pt-4">
+        <p className="text-sm font-semibold text-foreground">
+          Tilføj et andet interval
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="text-sm text-foreground">Hver</span>
@@ -345,7 +345,8 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
             inputMode="numeric"
             value={draftN}
             onChange={(e) => setDraftN(e.target.value)}
-            className="h-9 w-20 text-sm tabular-nums"
+            aria-label="Antal mellem besøg"
+            className="h-11 w-20 text-sm tabular-nums"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -354,7 +355,7 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
             }}
           />
           <Select value={draftUnit} onValueChange={(v) => setDraftUnit(v as IntervalUnit)}>
-            <SelectTrigger className="h-9 w-32 text-sm">
+            <SelectTrigger className="h-11 w-32 text-sm" aria-label="Intervalenhed">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -369,12 +370,12 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
             type="button"
             size="sm"
             onClick={() => add()}
-            className="h-9"
+            className="h-11"
             disabled={
               !!draftPreview.error || items.includes(draftPreview.key)
             }
           >
-            <Plus className="mr-1 h-3.5 w-3.5" /> Tilføj
+            <Plus className="mr-1 h-3.5 w-3.5" /> Tilføj interval
           </Button>
         </div>
         <p
