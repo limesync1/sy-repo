@@ -7,7 +7,7 @@ import { MapPin, CalendarDays } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_CONTENT } from "./lib/card-styles";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { SheetHeaderBlock } from "./SheetSection";
 
@@ -40,7 +40,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="planner-overlay w-full sm:max-w-md flex flex-col bg-background p-0">
+      <SheetContent side="right" className="planner-overlay w-full sm:max-w-lg flex flex-col bg-background p-0">
         <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<CalendarDays className="h-4 w-4" />}
@@ -70,7 +70,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
           </SheetHeaderBlock>
         </SheetHeader>
 
-        <div className="planner-overlay-body flex-1 overflow-auto px-5 py-4 bg-secondary/[0.16]">
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-auto overscroll-contain p-3 bg-secondary/[0.16]">
           {sorted.length === 0 ? (
             <EmptyState
               icon={<CalendarDays className="h-5 w-5" />}
@@ -79,16 +79,13 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
               compact
             />
           ) : (
-            <ol className="relative ml-2 border-l border-border space-y-2 py-1">
+            <ol className="space-y-2">
               {sorted.map((s, idx) => {
                 return (
-                  <li key={s.id} className="pl-4 relative">
-                    <span
-                      className="absolute -left-[5px] top-3 h-2.5 w-2.5 rounded-full border-2 border-background"
-                      style={{ backgroundColor: s.routeColor ?? "hsl(var(--primary))" }}
-                    />
+                  <li key={s.id} className="relative">
                     <div
-                      className={cn(CARD_BASE, CARD_BORDER, CARD_HOVER, "p-2.5 pl-3.5")}
+                      data-appointment-card=""
+                      className={cn(CARD_BASE, CARD_BORDER, CARD_CONTENT)}
                     >
                       <span
                         aria-hidden
@@ -98,7 +95,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {s.serviceSummary && (
-                            <IndustryIcon name={s.serviceSummary} className="h-7 w-7 shrink-0 object-contain" alt="" />
+                            <IndustryIcon name={s.serviceSummary} className="h-5 w-5 shrink-0 object-contain" alt="" />
                           )}
                           <p className="min-w-0 break-words text-sm font-semibold leading-5">{s.customerName}</p>
                         </div>
@@ -114,8 +111,8 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                         </p>
                       )}
                       {s.routeName && (
-                        <div className="mt-1.5 text-[10.5px] text-muted-foreground">
-                          <span className="truncate font-medium">{s.routeName}</span>
+                        <div className="min-w-0 border-t border-border/60 pt-1 text-xs leading-4 text-muted-foreground">
+                          <span className="break-words font-medium">{s.routeName}</span>
                         </div>
                       )}
                     </div>

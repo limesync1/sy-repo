@@ -44,7 +44,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_CONTENT, CARD_ACTIONS, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useRouteLivePositions, type RouteLivePosition } from "@/hooks/useRouteLivePositions";
@@ -204,7 +204,7 @@ export const RouteStopsPanel = ({
           className={cn(
             "planner-overlay flex flex-col p-0 shadow-xl data-[state=open]:duration-[420ms] data-[state=closed]:duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:![--tw-enter-translate-x:2.5rem] data-[state=closed]:![--tw-exit-translate-x:2.5rem] data-[state=open]:![--tw-enter-translate-y:3rem] data-[state=closed]:![--tw-exit-translate-y:3rem]",
             isCompact
-              ? "h-[86dvh] max-h-[86dvh] rounded-t-md"
+              ? "h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] rounded-t-md sm:h-[90dvh] sm:max-h-[90dvh]"
               : "w-full sm:max-w-sm lg:right-[28rem]",
           )}
           hideOverlay={!isCompact}
@@ -237,7 +237,7 @@ export const RouteStopsPanel = ({
         >
           <SheetHeader
             className={cn(
-              "planner-overlay-header relative px-5 pl-6 py-4 border-b shrink-0 text-left bg-card",
+              "planner-overlay-header relative px-4 py-3 border-b shrink-0 text-left bg-card",
               isCompact && "pr-14",
             )}
           >
@@ -261,7 +261,7 @@ export const RouteStopsPanel = ({
             </SheetTitle>
             <SheetDescription className="text-[13px] leading-snug mt-0.5 text-muted-foreground flex items-center gap-1.5">
               <ListOrdered className="h-3.5 w-3.5 shrink-0 opacity-70" />
-              <span className="truncate">
+              <span className="min-w-0 break-words">
                 {isProjection
                   ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
                    : isCompact ? "Brug pilene til at flytte · tryk på navnet for detaljer" : "Træk for at omrangere · klik for detaljer"}
@@ -269,7 +269,7 @@ export const RouteStopsPanel = ({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="planner-overlay-body flex-1 overflow-y-auto p-4 bg-secondary/20">
+          <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 bg-secondary/20">
             {items.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <EmptyState
@@ -422,6 +422,7 @@ const SortableStopRow = ({
   return (
     <li
       ref={setNodeRef}
+      data-appointment-card=""
       style={style}
       className={cn(
         CARD_BASE,
@@ -459,7 +460,7 @@ const SortableStopRow = ({
         )}
 
         {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
-        <div className="flex shrink-0 items-center pr-1.5">
+        <div className="flex shrink-0 items-start pt-3 pl-1 pr-1">
           <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-sm ring-1 ring-card"
             style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
@@ -471,28 +472,13 @@ const SortableStopRow = ({
 
         {/* Content */}
         <div
-          className="min-w-0 flex-1 text-left pr-2 py-2 space-y-0.5"
+          className={cn(CARD_CONTENT, "min-w-0 flex-1 text-left pl-1.5")}
         >
           {/* Header: branche-ikon + kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-2">
-            {/* Tintet branche-ikon-tile foran navnet — gør aftalens type
-                synlig på et splitsekund. Bruger samme ikon-pakke som
-                services og ordrer. */}
-            {stop.service_summary && (
-              <span
-                aria-hidden
-                title={stop.service_summary}
-                className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded-md bg-secondary/70 p-0.5"
-              >
-                <IndustryIcon
-                  name={stop.service_summary}
-                  className="h-full w-full object-contain"
-                  alt=""
-                />
-              </span>
-            )}
-            <Button variant="ghost" onClick={onSelect} className="h-auto min-h-10 min-w-0 flex-1 justify-start whitespace-normal p-0 text-left text-sm font-semibold text-foreground">
-              {stop.customer_name || "Ukendt kunde"}
+            <Button variant="ghost" onClick={onSelect} className="h-auto min-h-11 min-w-0 flex-1 justify-start gap-2 whitespace-normal rounded-md px-0 py-1 text-left text-sm font-semibold text-foreground">
+              {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-5 w-5 shrink-0 object-contain" alt="" />}
+              <span className="min-w-0 break-words">{stop.customer_name || "Ukendt kunde"}</span>
             </Button>
             {assigneeEmps.length > 0 && (
               <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
@@ -537,34 +523,10 @@ const SortableStopRow = ({
                 </Badge>
               ) : null;
             })()}
-            {stop.status === "completed" ? (
-              <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1">
-                <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium border-success/35 bg-success/10 text-success">
-                  <Check className="h-3 w-3" /> Udført
-                </Badge>
-                {!isProjection && (
-                  <Button type="button" variant="outline" size="sm" className={cn("h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium", compact && "h-11")} disabled={undoPending} onClick={(event) => { event.stopPropagation(); onUndoCompleted(); }} aria-label="Fortryd udførsel" title="Fortryd udførsel">
-                    {undoPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Undo2 className="h-3 w-3" />}
-                    <span className="truncate">Fortryd udførsel</span>
-                  </Button>
-                )}
-              </span>
-            ) : (
-              !isProjection && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn("h-5 min-w-0 shrink gap-1 rounded-md px-1.5 text-[11px] font-medium border-success/35 text-success hover:bg-success/10 hover:text-success", compact && "h-11")}
-                  disabled={markCompletedPending}
-                  onClick={(event) => { event.stopPropagation(); onMarkCompleted(); }}
-                  aria-label="Markér som udført"
-                  title="Markér som udført"
-                >
-                  {markCompletedPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                  <span className="truncate">Markér som udført</span>
-                </Button>
-              )
+            {stop.status === "completed" && (
+              <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium border-success/35 bg-success/10 text-success">
+                <Check className="h-3 w-3" /> Udført
+              </Badge>
             )}
             {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
               <Badge
@@ -589,7 +551,16 @@ const SortableStopRow = ({
         )}
 
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
-        <div className={cn("flex shrink-0 items-center gap-1 px-1.5", compact ? "basis-full justify-end border-t border-border/70 bg-secondary/20 py-1" : "flex-col justify-center")}>
+        <div className={cn(compact ? CARD_ACTIONS : "flex flex-col items-center justify-center gap-1 px-1.5", "shrink-0", compact && "basis-full justify-end")}>
+          {!isProjection && (
+            <Button variant="ghost" size="icon" className={cn("h-11 w-11 shrink-0", compact ? "mr-auto" : "lg:h-8 lg:w-8", stop.status !== "completed" && "text-success hover:bg-success/10 hover:text-success")}
+              disabled={stop.status === "completed" ? undoPending : markCompletedPending}
+              onClick={(event) => { event.stopPropagation(); if (stop.status === "completed") onUndoCompleted(); else onMarkCompleted(); }}
+              aria-label={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}
+              title={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}>
+              {(stop.status === "completed" ? undoPending : markCompletedPending) ? <Loader2 className="h-4 w-4 animate-spin" /> : stop.status === "completed" ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+            </Button>
+          )}
           {compact && !isProjection && <>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>
@@ -601,18 +572,20 @@ const SortableStopRow = ({
             onChange={onSetAssignees}
           />
           {!isProjection && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               type="button"
               onClick={onRemove}
               className={cn(
-                "flex h-11 w-11 lg:h-8 lg:w-8 rounded-md",
+                "flex h-11 w-11 lg:h-8 lg:w-8 rounded-md p-0",
                 ICON_BTN_DESTRUCTIVE,
               )}
               aria-label="Fjern stop"
               title="Fjern stop fra rute"
             >
               <Trash2 className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

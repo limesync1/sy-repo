@@ -13,7 +13,7 @@ import { relativeFromNow } from "@/lib/relative-time";
 import { parseInterval, formatInterval } from "@/lib/interval";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, SEGMENT_BTN } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, CARD_CONTENT, CARD_ACTIONS } from "./lib/card-styles";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { CalendarPlus } from "lucide-react";
 
@@ -262,6 +262,7 @@ export const UnassignedJobCard = ({
   return (
     <div
       ref={setNodeRef}
+      data-appointment-card=""
       data-card-layout={compact ? "compact" : "full"}
       {...(isPending || isCompact ? {} : listeners)}
       {...(isPending || isCompact ? {} : attributes)}
@@ -289,7 +290,8 @@ export const UnassignedJobCard = ({
       <div aria-hidden className={cn("w-[3px] shrink-0", selected ? "bg-accent" : urgency.rail)} />
 
       {canSelect && (
-        <button
+        <Button
+          variant="ghost"
           type="button"
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
@@ -297,7 +299,7 @@ export const UnassignedJobCard = ({
           aria-label={selected ? `Fravælg ${job.customer_name}` : `Vælg ${job.customer_name}`}
           aria-pressed={selected}
           title={selected ? "Fravælg" : "Vælg flere aftaler"}
-          className="flex w-11 shrink-0 items-center justify-center border-0 bg-transparent p-0 !shadow-none outline-none ring-0 touch-manipulation group/check"
+          className="absolute left-1 top-1 z-10 flex h-11 w-11 items-center justify-center rounded-md border-0 bg-transparent p-0 !shadow-none touch-manipulation group/check"
         >
           <span
             className={cn(
@@ -311,7 +313,7 @@ export const UnassignedJobCard = ({
           >
             {selected && <Check className="h-3 w-3" strokeWidth={3.5} />}
           </span>
-        </button>
+        </Button>
       )}
 
       <div className="min-w-0 flex-1 flex flex-col">
@@ -326,15 +328,14 @@ export const UnassignedJobCard = ({
             "aria-label": `Åbn detaljer for ${job.customer_name}`,
           })}
           className={cn(
-            "flex-1 pr-3",
-            compact ? "py-1.5 space-y-0.5" : "py-3 space-y-1.5",
-            canSelect ? "pl-0" : "pl-3",
+            CARD_CONTENT,
+            "flex-1",
             !isPending && "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none",
           )}
         >
           {/* Linje 1: navn + pris */}
-          <div className="flex items-baseline justify-between gap-3">
-            <h3 className="min-w-0 flex-1 truncate text-sm font-semibold leading-5 text-foreground">
+          <div className={cn("flex flex-wrap items-start justify-between gap-x-2 gap-y-1", canSelect && "pl-10 min-h-9")}>
+            <h3 className="min-w-0 flex-1 basis-[8rem] break-words text-sm font-semibold leading-5 text-foreground">
               {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
               {job.customer_name}
             </h3>
@@ -354,24 +355,24 @@ export const UnassignedJobCard = ({
           {/* Linje 3: adresse */}
           {!isPending && fullAddress && (
             <p
-              className="flex items-center gap-1 text-xs leading-4 text-muted-foreground"
+              className="flex items-start gap-1 text-xs leading-4 text-muted-foreground"
               title={hasGps ? fullAddress : `${fullAddress} — adressen kunne ikke placeres på kortet`}
             >
-              <MapPin className={cn("h-3 w-3 shrink-0", hasGps ? "text-muted-foreground/60" : "text-orange-500")} />
+              <MapPin className={cn("mt-0.5 h-3 w-3 shrink-0", hasGps ? "text-muted-foreground/60" : "text-orange-500")} />
               <span className="min-w-0 break-words">{fullAddress}</span>
             </p>
           )}
 
           {/* Linje 4: dato + interval */}
           {!isPending && (
-            <div className="flex items-center gap-2 pt-0.5 text-[11px] leading-4">
-              <span className={cn("inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-semibold tabular-nums", urgency.pillText)}>
+            <div className="flex flex-wrap items-start gap-x-2 gap-y-1 pt-0.5 text-xs leading-4">
+              <span className={cn("inline-flex max-w-full items-center gap-1 font-semibold tabular-nums", urgency.pillText)}>
                 <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", urgency.rail)} />
                 {urgency.label}
               </span>
               <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
                 {isRecurring && <Repeat className="h-3 w-3 shrink-0 opacity-60" />}
-                <span className="truncate">{intervalLabel}</span>
+                <span className="min-w-0 break-words">{intervalLabel}</span>
               </span>
               {job.notes && (
                 <span title={job.notes} className="ml-auto inline-flex shrink-0 items-center text-muted-foreground">
@@ -390,14 +391,15 @@ export const UnassignedJobCard = ({
                 Kan planlægges, når kunden har godkendt tilbuddet.
               </p>
               {onClick && (
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onClick(); }}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-900 underline underline-offset-2 dark:text-amber-200"
+                  className="h-auto min-h-11 max-w-full justify-start gap-1 whitespace-normal px-0 text-left text-xs font-medium text-foreground underline underline-offset-2"
                 >
                   <Info className="h-3 w-3" />
                   Se årsag og send påmindelse
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -405,7 +407,7 @@ export const UnassignedJobCard = ({
 
         {/* På touch/mobil kan kort ikke trækkes — derfor en tydelig knap. */}
         {isCompact && !isPending && onChooseRoute && (
-          <div className="border-t border-border/70 bg-secondary/20 px-2 py-1">
+          <div className={CARD_ACTIONS}>
             <Button
               type="button"
               size="sm"
@@ -423,16 +425,17 @@ export const UnassignedJobCard = ({
 
       {/* Desktop: diskret "Læg på rute" ved hover/fokus — træk virker også. */}
       {!isCompact && !isPending && onChooseRoute && (
-        <button
+        <Button
+          variant="ghost"
           type="button"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onChooseRoute(); }}
           title="Læg på rute"
           aria-label={`Læg ${job.customer_name} på rute`}
-          className="flex w-9 shrink-0 items-center justify-center border-l border-border/60 text-muted-foreground opacity-60 transition hover:bg-secondary hover:text-foreground hover:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+          className="flex h-auto min-h-11 w-11 shrink-0 items-center justify-center rounded-none border-l border-border/60 p-0 text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:ring-inset"
         >
           <CalendarPlus className="h-4 w-4" />
-        </button>
+        </Button>
       )}
     </div>
   );
