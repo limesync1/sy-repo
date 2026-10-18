@@ -1,3 +1,6 @@
+## Profilredigering
+- [x] Ret fejlen ved manglende kontoprofil; 3 tests bestået, gemning og genåbning efter genindlæsning kontrolleret indlogget
+
 ## Fakturamails, annullering og timeinterval
 - [x] Ret Gensend faktura (afsendelse accepteret) og tilføj kreditnota-mail med privat PDF-link
 - [ ] Bekræft kreditnota-mail hos modtageren — indbakken er ikke tilgængelig i testmiljøet

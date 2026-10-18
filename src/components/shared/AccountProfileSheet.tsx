@@ -32,6 +32,7 @@ export function AccountProfileSheet({ open, onOpenChange, userId, name: initialN
     if (!dirty || await askConfirm({ title: "Kassér ændringer?", description: "Dit navn eller profilbillede er ikke gemt.", confirmLabel: "Kassér", cancelLabel: "Bliv her" })) onOpenChange(false);
   };
   const save = async () => {
+    if (saving) return;
     const nextName = name.trim();
     if (nextName.length < 2) {
       toast.error("Skriv dit navn", { description: "Navnet skal være mindst 2 tegn." });
@@ -42,8 +43,11 @@ export function AccountProfileSheet({ open, onOpenChange, userId, name: initialN
       if (!userId) throw new Error("Din profil kunne ikke findes.");
       await updateProfile.mutateAsync({ userId, display_name: nextName, avatar_url: avatarUrl || null });
       const { error } = await supabase.auth.updateUser({ data: { display_name: nextName, avatar_url: avatarUrl || null } });
-      if (error) throw error;
-      toast.success("Din profil er opdateret");
+      if (error) {
+        toast.warning("Din profil er gemt", { description: "Kontooplysningerne kunne ikke opdateres endnu. Dit navn og billede er gemt i profilen." });
+      } else {
+        toast.success("Din profil er opdateret");
+      }
       onOpenChange(false);
     } catch {
       toast.error("Profilen kunne ikke gemmes", { description: "Kontrollér forbindelsen og prøv igen." });
