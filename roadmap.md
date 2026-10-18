@@ -95,3 +95,6 @@
 ## Vinduer (plan 2026-10-18)
 - [x] Fælles vinduesstandard: bundvindue på mobil, fast knaplinje, 44 px knapper, større tekst
 - [ ] Gennemgå hvert vindue gruppevis med skærmbilleder — kræver testkonto med virksomhed (egen konto har ingen)
+
+## Aftalernes gentagelser
+- [ ] Ret kørselsnumre og vis kun næste udførelse for den aktuelle aktive serie; kontrollér med faktiske data og tests uden at udføre aftaler
