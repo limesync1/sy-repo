@@ -99,3 +99,6 @@
 ## Aftalernes gentagelser
 - [x] Ret kørselsnumre og vis kun næste udførelse for den aktuelle aktive serie; kontrolleret mod faktiske data og seks tests uden at udføre aftaler
 - [ ] Visuel kontrol af DK Renfyns aftaleliste — testsessionen har ingen virksomhedstilknytning
+
+## Medarbejderannullering
+- [ ] Ret og verificér adgangstjek før begge kreditnotavalg uden at annullere aktuelle aftaler
