@@ -18,6 +18,9 @@ export const CARD_SUCCESS = "border-success/45 bg-success/[0.035]";
 export const CARD_BUSY = "pointer-events-none animate-pulse opacity-65";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
 export const CARD_RAIL_WIDTH = "w-[3px]";
+/** Shared content rhythm and action strip; density must not shrink touch targets. */
+export const CARD_CONTENT = "px-3 py-2.5 space-y-1";
+export const CARD_ACTIONS = "flex flex-wrap items-center gap-1 border-t border-border/70 bg-secondary/20 px-2 py-1";
 
 /** Basis-container for et aftalekort — bygget oven på de fælles PILL-tokens
  *  så aftalekort og rute-piller deler præcis samme radius, kant, skygge og
