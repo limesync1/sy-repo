@@ -1,3 +1,6 @@
+## Kreditnota ved annullering under Aftaler
+- [x] Tilføj relevant kreditnotavalg; 5 tests kontrollerer rækkefølge, fejl og fravalg. Spørgsmål og Fortryd kontrolleret på rigtig aftale uden at ændre den.
+
 ## Profilredigering
 - [x] Ret fejlen ved manglende kontoprofil; 3 tests bestået, gemning og genåbning efter genindlæsning kontrolleret indlogget
 
