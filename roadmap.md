@@ -1,4 +1,5 @@
 ## Mobil ruteplanlægning og navigation
+- [x] Ensret aftale- og rutekort på mobil og i vinduer med computerens design; 9 tests bestået, isolerede kort og stopvindue kontrolleret ved 390/768/1280 px i lys/mørk visning uden dataændringer
 - [x] Mobil dagsoversigt, dato-/periodevalg og synlige rutehandlinger; aftaler og gentagelser uændrede
 - [x] Fælles bundnavigation, Mere-menu og sikker afstand til indhold i begge paneler
 - [x] 14 tests bestået; isoleret kalender og navigation kontrolleret i browser ved 320/390/768 px og mørkt tema

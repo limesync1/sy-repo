@@ -967,7 +967,7 @@
     box-shadow: 0 1px 2px hsl(var(--foreground) / 0.035);
   }
 
-  .route-planner-workspace .planner-card {
+  :is(.route-planner-workspace, .planner-overlay) .planner-card {
     box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
   }
 
@@ -985,14 +985,14 @@
     background: hsl(var(--planner-surface-raised));
   }
 
-  .dark .route-planner-workspace .planner-card {
+  .dark :is(.route-planner-workspace, .planner-overlay) .planner-card {
     border-color: hsl(var(--border) / 0.92);
     background: hsl(var(--card));
     box-shadow: 0 1px 2px hsl(222 60% 2% / 0.62);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .dark .route-planner-workspace .planner-card:hover {
+    .dark :is(.route-planner-workspace, .planner-overlay) .planner-card:hover {
       border-color: hsl(var(--accent) / 0.55);
       background: hsl(var(--secondary) / 0.72);
       box-shadow: 0 10px 26px -18px hsl(var(--accent) / 0.38);
@@ -1016,12 +1016,12 @@
     background: hsl(var(--background) / 0.78);
   }
 
-  .route-planner-workspace .planner-card:active {
+  :is(.route-planner-workspace, .planner-overlay) .planner-card:active {
     transform: translateY(0);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .route-planner-workspace .planner-card:hover {
+    :is(.route-planner-workspace, .planner-overlay) .planner-card:hover {
       transform: translateY(-1px);
     }
   }
