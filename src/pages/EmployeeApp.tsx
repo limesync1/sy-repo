@@ -570,6 +570,8 @@ const EmployeeApp = () => {
           // ───── Færdig rute = kompakt, ikke-klikbar opsummering ─────
           // Brugeren skal ikke kunne "åbne" en færdig rute igen — vi viser
           // kun et roligt resumé så listen forbliver overskuelig.
+          // Udførte ruter vises ikke under Ruter — de findes under Aftaler.
+          if (allDone) return null;
           if (allDone) {
             const lastDoneAt = myStops
               .map((s) => s.completed_at)
@@ -733,8 +735,14 @@ const EmployeeApp = () => {
                   <div className="overflow-hidden rounded-[4px] border border-border bg-card">
                     <div className="divide-y divide-border">
                       {myStops.map((s, i) => {
+                        // Udførte aftaler og betalingsstatus hører til under Aftaler.
+                        if (s.status === "completed") return null;
                         const isNext = s.id === firstPendingId;
-                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status, !isCurrentDay && !isFutureDay);
+                        const pay = !isCurrentDay && !isFutureDay
+                          ? { label: "Ikke udført", className: "border-border bg-secondary/50 text-muted-foreground" }
+                          : isNext
+                            ? { label: "Næste", className: "border-foreground/30 bg-secondary text-foreground" }
+                            : { label: "Klar", className: "border-border bg-secondary/50 text-muted-foreground" };
                         return (
                           <Button
                             key={s.id}
