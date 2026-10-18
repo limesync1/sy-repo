@@ -557,12 +557,7 @@ export const MonthWeekCalendar = ({
     }
     // Sortér deterministisk uden at bruge aftalernes udførelsestid.
     for (const [k, arr] of m) {
-      arr.sort((a, b) => {
-        const av = a.isVirtual ? 0 : 1;
-        const bv = b.isVirtual ? 0 : 1;
-        if (av !== bv) return av - bv;
-        return (a.name || "").localeCompare(b.name || "");
-      });
+      arr.sort(compareDayRoutes);
       m.set(k, arr);
     }
     return m;
