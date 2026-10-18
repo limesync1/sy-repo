@@ -284,7 +284,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
-        <DialogContent className="planner-overlay max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogContent className="modal-large planner-overlay flex flex-col p-0 gap-0 overflow-hidden">
           <DialogHeader className="planner-overlay-header px-4 py-3 border-b shrink-0 text-left sm:px-5 sm:py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
               {type === "business" ? <Building2 className="h-4 w-4 text-accent" /> : <User className="h-4 w-4 text-accent" />}

@@ -1050,7 +1050,7 @@ const EmployeeRow = ({
         </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
+        <DialogContent className="modal-large flex flex-col p-0 gap-0 overflow-hidden">
           {/* Header med avatar — skaber visuel kontekst, så man med det samme
               ved hvilken medarbejder man redigerer. */}
           {/* Status-badge er flyttet ned under titel, så den ikke kolliderer
