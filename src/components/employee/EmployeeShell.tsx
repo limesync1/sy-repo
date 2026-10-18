@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, MessageCircle, Briefcase, Building2,
-  Bell, ChevronsUpDown, ListChecks, TrendingUp, UserRound,
+  Bell, ChevronsUpDown, ListChecks, TrendingUp,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -43,6 +43,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { EmployeeNotifications, type EmployeeRouteNotification } from "@/components/employee/EmployeeNotifications";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { EmployeeProfileSheet } from "@/components/employee/EmployeeProfileSheet";
+import { PanelIcons } from "@/components/shared/PanelIcon";
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
@@ -258,7 +259,7 @@ export const EmployeeShell = ({
             <span className="truncate text-xs font-normal text-muted-foreground">{subLabel}</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setProfileOpen(true)}><UserRound className="mr-2 h-4 w-4" />Rediger profil</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setProfileOpen(true)}><PanelIcons.EditProfile className="mr-2 h-4 w-4" />Rediger profil</DropdownMenuItem>
           {multiWorkspace && (
             <DropdownMenuItem onClick={() => setPickerOpen(true)}><Building2 className="mr-2 h-4 w-4" />Skift virksomhed</DropdownMenuItem>
           )}
@@ -273,7 +274,7 @@ export const EmployeeShell = ({
 
   /* ---------------- Sidebar-profil ---------------- */
   const sidebarProfileItems: ProfileMenuItem[] = [
-    { key: "profile", icon: UserRound, label: "Rediger profil", onSelect: () => setProfileOpen(true) },
+    { key: "profile", icon: PanelIcons.EditProfile, label: "Rediger profil", onSelect: () => setProfileOpen(true) },
     ...(multiWorkspace
       ? [{ key: "switch", icon: Building2, label: "Skift arbejdsplads", onSelect: () => setPickerOpen(true) }]
       : []),

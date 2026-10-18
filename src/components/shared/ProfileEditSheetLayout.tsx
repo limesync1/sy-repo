@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ImageUpload from "@/components/business/ImageUpload";
 import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 type Props = {
   open: boolean;
@@ -36,7 +37,8 @@ export function ProfileEditSheetLayout({
       <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:max-h-[92vh] sm:p-0">
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            icon={<UserRound className="h-4 w-4" />}
+            icon={<PanelIcon name="editProfile" className="h-7 w-7" />}
+            iconClassName="h-11 w-11 rounded-md bg-card border border-border"
             title={<DialogTitle className="text-base">Rediger profil</DialogTitle>}
             description={<DialogDescription className="text-xs leading-snug">{description}</DialogDescription>}
           >

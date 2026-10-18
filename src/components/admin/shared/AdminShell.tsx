@@ -8,7 +8,7 @@
 // Navigationen defineres i ./adminNav (én sandhed for sidebar, drawer og bundnav).
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
-import { ExternalLink, LogOut, Rocket, Truck, UserRound } from "lucide-react";
+import { ExternalLink, LogOut, Rocket, Truck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -23,6 +23,7 @@ import {
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { AccountProfileSheet } from "@/components/shared/AccountProfileSheet";
+import { PanelIcons } from "@/components/shared/PanelIcon";
 import { useMyProfile } from "@/hooks/useDatabase";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import {
@@ -156,7 +157,7 @@ export const AdminShell = ({
 
   /* ---------------- Profil-menu (sidebar-bund) ---------------- */
   const profileItems: ProfileMenuItem[] = [
-    { key: "profile", icon: UserRound, label: "Rediger profil", onSelect: () => setProfileOpen(true) },
+    { key: "profile", icon: PanelIcons.EditProfile, label: "Rediger profil", onSelect: () => setProfileOpen(true) },
     { key: "public", icon: ExternalLink, label: "Se din side", href: `/v/${business.slug}` },
     { key: "logout", icon: LogOut, label: "Log ud", onSelect: signOut, danger: true, separatorBefore: true },
   ];
