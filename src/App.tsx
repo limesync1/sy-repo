@@ -1,5 +1,5 @@
 import { ConfirmDialogHost } from "@/components/ConfirmDialogHost";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -46,6 +46,21 @@ const isChunkLoadError = (err: any) => {
     msg.includes("Importing a module script failed")
   );
 };
+// Valgfrie globale widgets (kurv, chat) må aldrig give hvid skærm, hvis deres
+// fil ikke kan hentes — så skjules de bare.
+class SilentBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(err: unknown) { if (import.meta.env.DEV) console.warn("[SilentBoundary]", err); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
+
+// Efter 30 s stabil kørsel må en senere udgivelse igen udløse én genindlæsning
+// (uden risiko for genindlæsnings-loop, hvis en fil fortsat mangler).
+if (typeof window !== "undefined") {
+  setTimeout(() => { try { sessionStorage.removeItem(RELOAD_FLAG); } catch {} }, 30000);
+}
+
 const retryImport = <T,>(loader: () => Promise<T>): Promise<T> =>
   loader().catch((err) => {
     if (!isChunkLoadError(err)) throw err;
@@ -335,13 +350,19 @@ const App = () => (
             <ScrollToTop />
             {/* Global bestillings-sheet + flydende genåbn-knap — lazy-loadede,
                 så de ikke blokerer FCP for forsiden. */}
-            <Suspense fallback={null}>
-              <CartSheet />
-              <CartFab />
-              <IdleMount>
-                <LiveChatWidget />
-              </IdleMount>
-            </Suspense>
+            <SilentBoundary>
+              <Suspense fallback={null}>
+                <CartSheet />
+                <CartFab />
+              </Suspense>
+            </SilentBoundary>
+            <SilentBoundary>
+              <Suspense fallback={null}>
+                <IdleMount>
+                  <LiveChatWidget />
+                </IdleMount>
+              </Suspense>
+            </SilentBoundary>
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
             <IdlePrefetcher />
