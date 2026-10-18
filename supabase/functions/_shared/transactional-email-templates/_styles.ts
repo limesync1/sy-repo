@@ -104,7 +104,7 @@ export const link = { color: ink, textDecoration: 'underline', fontWeight: 500 a
 export const buttonSection = { margin: '24px 0 8px', textAlign: 'left' as const }
 export const button = {
   backgroundColor: teal,
-  backgroundImage: `linear-gradient(180deg, ${blueLight}, ${teal})`,
+  
   color: '#ffffff',
   fontSize: '16px',
   fontWeight: 600 as const,

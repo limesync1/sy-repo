@@ -1,6 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
+import { Body, Container, Head, Heading, Html, Img, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
+import { Button } from '../email-button.tsx'
 import type { TemplateEntry } from './registry.ts'
 import { SITE_NAME, LOGO_URL, main, wrapper, container, headerBar, heroSection, heroTitle, heroSubtitle, text, buttonSection, button, card, cardLabel, cardValue, footer, footerText } from './_styles.ts'
 
