@@ -1084,7 +1084,16 @@ const Planner = () => {
           cur.orderIds.add((st as any).order_id);
           latestByRoute.set(routeId, cur);
         }
+        // Ruter, der allerede dækkes af et aktivt timeabonnement, projiceres
+        // kun via abonnementet — ellers vises hver time to gange.
+        const hourlySubRoutes = new Set(
+          (subsRes.data || [])
+            .filter((x: any) => ((x.details as any)?.interval || x.interval) === "every_1_hour_test")
+            .map((x: any) => x.preferred_route_id)
+            .filter(Boolean),
+        );
         for (const [routeId, info] of latestByRoute) {
+          if (hourlySubRoutes.has(routeId)) continue;
           fromHourlyTest.push({
             id: `hourly:${routeId}`,
             interval: "every_1_hour_test",
