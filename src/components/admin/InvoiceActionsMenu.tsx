@@ -155,7 +155,8 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         resend_invoice: "Faktura gensendt til kunden",
       };
       const note = ((data as any)?.result?.note ?? (data as any)?.note) as string | undefined;
-      toast.success(labels[action], note ? { description: note } : undefined);
+      if (data?.sent === false) toast.warning(note || 'Mailen blev ikke sendt');
+      else toast.success(labels[action], note ? { description: note } : undefined);
       qc.invalidateQueries({ queryKey: ["orders"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Handlingen mislykkedes");

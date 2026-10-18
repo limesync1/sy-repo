@@ -103,6 +103,18 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const cancelAppointment = useMutation({
+    mutationFn: async (creditMode: 'now' | 'office') => {
+      assertOnline();
+      const { data, error } = await supabase.functions.invoke('accounting-action', { body: { order_id: order.id, action: 'cancel_appointment', params: { stop_id: stopId, credit_mode: creditMode } } });
+      if (error) { const detail = await error.context?.json?.().catch(() => null); throw new Error(detail?.error || error.message); }
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => { setCancelOpen(false); toast.success('Aftalen er annulleret', { description: data?.note }); ['routes','orders','order-for-stop','employee-stop-notes','invoice-caps'].forEach(key => qc.invalidateQueries({ queryKey: [key] })); },
+    onError: (error) => toast.error('Aftalen blev ikke annulleret', { description: errText(error) }),
+  });
   const [editOpen, setEditOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
@@ -377,6 +389,17 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {!hideNotesList && <EmployeeStopNotesList stopId={stopId} />}
       </>)}
 
+      {!noteOnly && !compact && order?.status !== 'cancelled' && <Button variant="outline" className="h-11 w-full text-destructive" onClick={() => setCancelOpen(true)} disabled={!order || cancelAppointment.isPending}><Trash2 className="h-4 w-4" />Annullér aftale</Button>}
+      <Sheet open={cancelOpen} onOpenChange={open => { if (!cancelAppointment.isPending) setCancelOpen(open); }}>
+        <SheetContent side={sheetSide} className={sheetClass}>
+          <SheetHeader className="border-b border-border p-5 pr-14"><SheetTitle>Annullér aftale</SheetTitle><SheetDescription>Skal kreditnotaen oprettes nu, eller skal kontoret håndtere den? Kun dette besøg annulleres.</SheetDescription></SheetHeader>
+          <div className="space-y-3 p-5">
+            <Button variant="destructive" className="h-auto min-h-12 w-full whitespace-normal" disabled={cancelAppointment.isPending} onClick={() => cancelAppointment.mutate('now')}>Annullér og opret kreditnota</Button>
+            <Button variant="outline" className="h-auto min-h-12 w-full whitespace-normal" disabled={cancelAppointment.isPending} onClick={() => cancelAppointment.mutate('office')}>Annullér — kontoret håndterer kreditnota</Button>
+            {cancelAppointment.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
+          </div>
+        </SheetContent>
+      </Sheet>
       {/* Ret aftale */}
       <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
