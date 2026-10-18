@@ -279,6 +279,12 @@ export interface AccountingAdapter {
    * Markér en faktura som betalt manuelt (kontant, MobilePay osv.).
    * Bogføres i regnskabsprogrammet som indbetaling på fakturaen.
    */
+  /** Bogfør en ordre/fakturakladde som endelig faktura (bruges før betaling). */
+  finalizeInvoice?(input: {
+    external_id: string;
+    external_type: "order" | "invoice_draft";
+  }): Promise<{ invoice_external_id: string; invoice_external_number?: string | null }>;
+
   markInvoicePaid?(input: {
     invoice_external_id: string;
     amount: number;

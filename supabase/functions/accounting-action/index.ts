@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
             caps.can_credit = isBooked
               && typeof adapter.creditInvoice === "function"
               && s.status !== "credited";
-            caps.can_mark_paid = isBooked
+            caps.can_mark_paid = (isBooked || (isDraft && typeof adapter.finalizeInvoice === "function"))
               && typeof adapter.markInvoicePaid === "function"
               && !fullyPaid;
             caps.can_void = isDraft && typeof adapter.voidDraft === "function";
@@ -352,14 +352,36 @@ Deno.serve(async (req) => {
         const amount = Number(params?.amount ?? order.total_amount ?? 0);
         if (!amount || amount <= 0) return json({ error: "Mangler beløb" }, 400);
         const paidAt = params?.paid_at ?? new Date().toISOString();
-        if (!bookedInvoiceId) {
+        let invoiceToPay = bookedInvoiceId;
+        if (!invoiceToPay && link?.external_id && typeof adapter.finalizeInvoice === "function"
+            && (link.external_type === "order" || link.external_type === "invoice_draft")) {
+          // Betaling kan kun registreres på en bogført faktura — bogfør først.
+          const fin = await adapter.finalizeInvoice({
+            external_id: link.external_id,
+            external_type: link.external_type as "order" | "invoice_draft",
+          });
+          invoiceToPay = fin.invoice_external_id;
+          await admin.from("accounting_order_links").update({
+            external_id: fin.invoice_external_id,
+            external_number: fin.invoice_external_number ?? fin.invoice_external_id,
+            external_type: "invoice_booked",
+            last_status_synced: "booked",
+          }).eq("business_id", order.business_id).eq("provider", integ.provider).eq("order_id", order_id);
+          await admin.from("orders").update({
+            invoice_external_id: fin.invoice_external_id,
+            invoice_external_number: fin.invoice_external_number ?? fin.invoice_external_id,
+            invoice_status: "booked",
+            invoiced_at: new Date().toISOString(),
+          }).eq("id", order_id);
+        }
+        if (!invoiceToPay) {
           result = await markPaidLocally(amount, paidAt, "Betalingen er registreret i Serviceydere. Fakturaen er ikke bogført endnu, så der var intet at markere i regnskabsprogrammet.");
         } else {
           if (typeof adapter.markInvoicePaid !== "function") {
             return json({ error: `${integ.provider} understøtter ikke manuel betalingsmarkering via API` }, 400);
           }
           await adapter.markInvoicePaid({
-            invoice_external_id: bookedInvoiceId,
+            invoice_external_id: invoiceToPay,
             amount,
             paid_at: paidAt,
           });

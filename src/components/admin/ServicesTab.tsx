@@ -1911,6 +1911,29 @@ const ServiceForm = ({
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
+                {accountingGroups.product_groups.length > 0 && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      {accountingGroups.labels?.product_groups ?? "Varegruppe"}
+                    </label>
+                    <Select
+                      value={accountingProductGroup || "__default__"}
+                      onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
+                    >
+                      <SelectTrigger className="bg-card" aria-label="Varegruppe for denne service"><SelectValue placeholder="Brug standard" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          Brug virksomhedens standard{accountingDefaults.default_product_group ? ` (${accountingGroups.product_groups.find(g => g.id === accountingDefaults.default_product_group)?.name ?? accountingDefaults.default_product_group})` : ""}
+                        </SelectItem>
+                        {accountingGroups.product_groups.map(g => (
+                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-xs text-muted-foreground">Gælder kun denne service.</p>
+                  </div>
+                )}
+
                 {accountingGroups.income_accounts.length > 0 && (
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-foreground">
