@@ -1,3 +1,4 @@
+import { compareDayRoutes } from "./lib/day-route-order";
 import { formatPrice } from "@/lib/price-format";
 // MonthWeekCalendar — klassisk kalender-overblik med måned/uge visning.
 // - Ingen timer/tidsrum: hver dag er ét helt felt
