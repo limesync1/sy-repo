@@ -187,7 +187,6 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           .map((s: any, i: number) => ({
             ...s,
             id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.slice(0, 2)}` : ""}:${s.id}`,
-            ...(p.hour ? { time_window_start: p.hour, planned_start_time: p.hour } : {}),
             route_id: p.id,
             status: "planned",
             isVirtual: true,
@@ -211,7 +210,6 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           projectedStops.push({
             ...ph,
             id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.slice(0, 2)}` : ""}:agr:${ph.agreement_id}`,
-            ...(p.hour ? { time_window_start: p.hour, planned_start_time: p.hour } : {}),
             route_id: p.id,
             status: "planned",
             isVirtual: true,
@@ -246,11 +244,10 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           // fejlagtigt fremstå som allerede udført. Hver projiceret dato
           // er en frisk forekomst der skal kunne udføres som ny.
           status: "planned",
-          ...(p.hour ? { planned_start_time: p.hour } : {}),
           name:
-            ((resolved?.name && resolved.name.trim()) ||
+            (resolved?.name && resolved.name.trim()) ||
             (base.name && String(base.name).trim()) ||
-            `Rute (${format(parseISO(p.date), "d. MMM", { locale: da })})`) + (p.hour ? ` · kl. ${p.hour}` : ""),
+            `Rute (${format(parseISO(p.date), "d. MMM", { locale: da })})`,
           color: resolved?.color || base.color || null,
           stops: projectedStops,
           attachedEmployees: emps,

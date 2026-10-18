@@ -1055,7 +1055,45 @@ const Planner = () => {
             s.order_id ? `order:${s.order_id}` : null,
           ].filter(Boolean) as string[],
         }));
-      return [...fromAgreements, ...fromSubs];
+      // Midlertidigt testinterval «Hver 1 time»: ordrer uden abonnement
+      // projiceres fra den rute, hvor seneste forekomst ligger.
+      const fromHourlyTest: any[] = [];
+      const { data: hourlyItems } = await supabase
+        .from("order_items")
+        .select("order_id, orders!inner(id, business_id, status, created_at)")
+        .eq("details->>interval", "every_1_hour_test")
+        .eq("orders.business_id", businessId!)
+        .neq("orders.status", "cancelled");
+      const hourlyOrderIds = Array.from(new Set((hourlyItems || []).map((i: any) => i.order_id as string)));
+      if (hourlyOrderIds.length > 0) {
+        const { data: hourlyStops } = await supabase
+          .from("route_stops")
+          .select("order_id, route_id, routes!inner(id, route_date, base_route_id)")
+          .in("order_id", hourlyOrderIds);
+        const latestByRoute = new Map<string, { date: string; orderIds: Set<string> }>();
+        for (const st of hourlyStops || []) {
+          const r = (st as any).routes;
+          const routeId = (r?.base_route_id || r?.id) as string | undefined;
+          if (!routeId) continue;
+          const date = String(r.route_date).slice(0, 10);
+          const cur = latestByRoute.get(routeId) ?? { date, orderIds: new Set<string>() };
+          if (date < cur.date) cur.date = date;
+          cur.orderIds.add((st as any).order_id);
+          latestByRoute.set(routeId, cur);
+        }
+        for (const [routeId, info] of latestByRoute) {
+          fromHourlyTest.push({
+            id: `hourly:${routeId}`,
+            interval: "every_1_hour_test",
+            interval_days: null,
+            seed_date: info.date,
+            anchor_date: info.date,
+            preferred_route_id: routeId,
+            sourceKeys: Array.from(info.orderIds).map((id) => `order:${id}`),
+          });
+        }
+      }
+      return [...fromAgreements, ...fromSubs, ...fromHourlyTest];
     },
   });
 
