@@ -1,3 +1,8 @@
+## SEO-fund (18. oktober)
+- [ ] Kontrollér og ret demoens overskrift samt forsidens HowTo/FAQ-data
+- [ ] Kontrollér og forbedr haveguidens søgetekst uden nye faktapåstande
+- [ ] Verificér siderne og registrér fuldt rettede fund til næste scanning
+
 ## Mobil ruteplanlægning og navigation
 - [x] Faste ruter øverst på dagen: rækkefølgen anvendes i både måned/uge-kalenderen og mobilagendaen; bekræftet med test, database-data og skærmbillede
 - [x] Gennemgå aftalekortenes afstande, tekstombrydning og handlinger i pulje, rutevindue og dagsoversigt; 10 tests bestået, isoleret kontrol ved 320/390/768/1100/1280 px i lys/mørk visning med lange navne og intervaller; arbejdspladsflow afventer adgang
