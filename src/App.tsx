@@ -55,12 +55,14 @@ class SilentBoundary extends Component<{ children: ReactNode }, { failed: boolea
   render() { return this.state.failed ? null : this.props.children; }
 }
 
+// Efter 30 s stabil kørsel må en senere udgivelse igen udløse én genindlæsning
+// (uden risiko for genindlæsnings-loop, hvis en fil fortsat mangler).
+if (typeof window !== "undefined") {
+  setTimeout(() => { try { sessionStorage.removeItem(RELOAD_FLAG); } catch {} }, 30000);
+}
+
 const retryImport = <T,>(loader: () => Promise<T>): Promise<T> =>
-  loader().then((mod) => {
-    // Lykkedes indlæsningen, må en senere udgivelse igen udløse én genindlæsning.
-    try { sessionStorage.removeItem(RELOAD_FLAG); } catch {}
-    return mod;
-  }).catch((err) => {
+  loader().catch((err) => {
     if (!isChunkLoadError(err)) throw err;
     // One in-memory retry first (covers transient network blips)
     return new Promise<T>((resolve, reject) => {
