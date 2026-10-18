@@ -37,7 +37,6 @@ import {
   RoleSwitchFooterItem, SidebarGroupLabel, SidebarNavButton, SidebarProfileMenu,
   SidebarWorkspaceRow, initialsOf, type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
-import PanelBottomNav from "@/components/shared/sidebar/PanelBottomNav";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
