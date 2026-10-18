@@ -1,3 +1,6 @@
+## Kreditnota ved annullering under Aftaler
+- [ ] Tilføj relevant kreditnotavalg og test at kreditering sker før annullering
+
 ## Profilredigering
 - [x] Ret fejlen ved manglende kontoprofil; 3 tests bestået, gemning og genåbning efter genindlæsning kontrolleret indlogget
 
