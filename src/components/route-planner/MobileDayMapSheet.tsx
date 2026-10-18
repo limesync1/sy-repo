@@ -11,13 +11,15 @@ const RouteMap = lazy(() => import("./RouteMap"));
 type AnyRoute = { id: string; name?: string | null; color?: string | null; route_date: string; stops?: any[]; isVirtual?: boolean };
 
 /** Bygger kortdata for én dag. Stop uden koordinater tælles som manglende. */
-export const buildDayMapRoutes = (routes: AnyRoute[], date: string) => {
+export const buildDayMapRoutes = (routes: AnyRoute[], date: string, fullStops: any[] = []) => {
   let missing = 0;
+  const byId = new Map(fullStops.map((s: any) => [String(s.id), s]));
   const mapRoutes: MapRoute[] = routes
     .filter((r) => r.route_date === date)
     .map((r) => {
       const stops = (r.stops ?? [])
-        .map((s: any, i: number) => {
+        .map((raw: any, i: number) => {
+          const s = { ...(byId.get(String(raw.id)) ?? {}), ...raw, latitude: raw.latitude ?? byId.get(String(raw.id))?.latitude, longitude: raw.longitude ?? byId.get(String(raw.id))?.longitude };
           const lat = Number(s.latitude ?? s.lat);
           const lng = Number(s.longitude ?? s.lng);
           if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) { missing += 1; return null; }
@@ -30,9 +32,9 @@ export const buildDayMapRoutes = (routes: AnyRoute[], date: string) => {
   return { mapRoutes, missing };
 };
 
-export const MobileDayMapButton = ({ routes, date }: { routes: AnyRoute[]; date: string }) => {
+export const MobileDayMapButton = ({ routes, date, stops = [] }: { routes: AnyRoute[]; date: string; stops?: any[] }) => {
   const [open, setOpen] = useState(false);
-  const { mapRoutes, missing } = useMemo(() => (open ? buildDayMapRoutes(routes, date) : { mapRoutes: [], missing: 0 }), [open, routes, date]);
+  const { mapRoutes, missing } = useMemo(() => (open ? buildDayMapRoutes(routes, date, stops) : { mapRoutes: [], missing: 0 }), [open, routes, date, stops]);
   const dayRoutes = routes.filter((r) => r.route_date === date).length;
   return (
     <>

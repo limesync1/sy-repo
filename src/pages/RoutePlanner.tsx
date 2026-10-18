@@ -4073,7 +4073,7 @@ const Planner = () => {
                         </div>
                       </SheetContent>
                     </Sheet>
-                    <MobileDayMapButton routes={calendarRoutesAll as any} date={date} />
+                    <MobileDayMapButton routes={calendarRoutesAll as any} date={date} stops={calendarStops as any[]} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-md" aria-label="Flere planlægningshandlinger">
