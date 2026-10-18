@@ -4,7 +4,7 @@
 - Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.
 - Validate suggestion stops against the route and employees against its business before RLS-protected writes.
 
-- Role shells share `PanelShell`/`SidebarParts` and registry-based bottom navigation; PanelShell owns bottom clearance to prevent overlap. Keep admin compatibility exports.
+- Role shells share `PanelShell`/`SidebarParts` and registry-based top navigation (no bottom bar); PanelShell owns bottom clearance. Keep admin compatibility exports.
 - Resolve checklist versus map guide before mounting Leaflet or continuous GPS to prevent map flashes and battery waste.
 - Header/session icons use monochrome `PanelIcon`; compact artwork uses `UiArtwork`. Filled-button artwork uses a light contrast chip.
 - Illustrations use `BrandedIllustration`; `PanelIcon`/customer variants reuse assets to avoid duplicates.
