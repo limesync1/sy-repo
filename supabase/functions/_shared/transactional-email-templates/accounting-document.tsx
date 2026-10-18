@@ -1,5 +1,6 @@
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Html, Img, Preview, Text } from 'npm:@react-email/components@0.0.22'
+import { Body, Container, Head, Heading, Html, Img, Preview, Text } from 'npm:@react-email/components@0.0.22'
+import { Button } from '../email-button.tsx'
 import type { TemplateEntry } from './registry.ts'
 import { main, wrapper, h1, text, button, LOGO_URL } from './_styles.ts'
 import { formatServicePrice } from './_service-price.ts'

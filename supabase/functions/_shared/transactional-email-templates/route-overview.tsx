@@ -1,5 +1,6 @@
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Hr, Html, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
+import { Body, Container, Head, Heading, Hr, Html, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
+import { Button } from '../email-button.tsx'
 import type { TemplateEntry } from './registry.ts'
 
 type Stop = { number: number; customerName: string; address: string; service?: string }

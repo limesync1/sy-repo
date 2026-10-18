@@ -5,4 +5,4 @@ export const formatServicePrice = (amount: number): string =>
     currency: 'DKK',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(Number.isFinite(amount) ? amount : 0)} uden moms (+ moms)`
+  }).format(Number.isFinite(amount) ? amount : 0)} uden moms`

@@ -2,7 +2,7 @@
 // så platform-admin kan se hvordan en mail ser ud uden at sende den.
 // Bevidst adskilt fra preview-transactional-email (som er gated til Go-API).
 import * as React from 'npm:react@18.3.1'
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
+import { render } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     let html = ''
     let renderError: string | null = null
     try {
-      html = await renderAsync(React.createElement(entry.component, data))
+      html = await render(React.createElement(entry.component, data))
     } catch (e) {
       renderError = (e as Error).message
     }
