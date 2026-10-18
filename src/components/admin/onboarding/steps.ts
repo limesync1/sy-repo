@@ -17,14 +17,6 @@ import type { OnboardingCounts } from "@/hooks/useOnboardingSignals";
 export type OnboardingStepId =
   | "categories" | "accounting" | "employees" | "services" | "order" | "route";
 
-/** Hvad virksomheden primært vil bruge platformen til. Styrer hvilke trin der vises. */
-export type OnboardingFocus = "routes" | "jobs" | "both";
-
-export const FOCUS_OPTIONS: { value: OnboardingFocus; title: string; body: string }[] = [
-  { value: "routes", title: "Faste aftaler og ruter", body: "Tilbagevendende besøg som planlægges på ruter." },
-  { value: "jobs", title: "Enkeltaftaler og tilbud", body: "Aftaler ad gangen — uden fast ruteplan." },
-  { value: "both", title: "Begge dele", body: "Både faste og enkeltstående aftaler." },
-];
 
 export type StepRequirement = {
   label: string;
@@ -47,8 +39,6 @@ export type OnboardingStep = {
   cta: (c: OnboardingCounts) => string;
   isDone: (c: OnboardingCounts) => boolean;
   requires?: StepRequirement[];
-  /** Skjul trinet for virksomheder hvis fokus ikke passer. */
-  appliesTo?: (focus: OnboardingFocus) => boolean;
 };
 
 /** Obligatoriske trin — tælleren og badgen bygger på disse. */
@@ -125,7 +115,6 @@ export const CORE_STEPS: OnboardingStep[] = [
       { label: "Mindst én medarbejder", met: (c) => c.employeesCount > 0, tab: "employees" },
       { label: "Mindst én bestilling", met: (c) => c.ordersCount > 0, tab: "orders" },
     ],
-    appliesTo: (focus) => focus !== "jobs",
   },
 ];
 
@@ -148,8 +137,5 @@ export const NEXT_LEVEL_STEPS: OnboardingStep[] = [
 
 export const ALL_STEPS = [...CORE_STEPS, ...NEXT_LEVEL_STEPS];
 
-/** Trin der gælder for et givent fokus. */
-export const coreStepsForFocus = (focus: OnboardingFocus) =>
-  CORE_STEPS.filter((s) => !s.appliesTo || s.appliesTo(focus));
 
 export const getStep = (id: OnboardingStepId) => ALL_STEPS.find((s) => s.id === id)!;
