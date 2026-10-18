@@ -3,6 +3,7 @@
 // the Services tab in their business panel, removing it from the
 // initial /virksomhed chunk.
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
@@ -173,6 +174,29 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
     productGroups: Record<string, string>;       // id -> name
     incomeAccounts: Record<string, string>;      // id -> name
   }>({ provider: null, productLabel: "Vare-nr", groupLabel: "Varegruppe", accountLabel: "Indtægtskonto", productLinks: {}, productGroups: {}, incomeAccounts: {} });
+
+  // Hent prisændringer fra regnskabsprogrammet, når fanen er åben, så en
+  // pris rettet i fx e-conomic også ses her uden at vente på den faste kørsel.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const accountingEnabled = !!(business?.settings as any)?.accounting_integration_enabled;
+    if (!accountingEnabled || !businessId) return;
+    let cancelled = false;
+    const pull = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const { data } = await supabase.functions.invoke("accounting-sync", {
+          body: { business_id: businessId, mode: "pull" },
+        });
+        if (!cancelled && (data as any)?.products > 0) {
+          queryClient.invalidateQueries({ queryKey: ["services", businessId] });
+        }
+      } catch { /* næste forsøg om lidt */ }
+    };
+    pull();
+    const t = window.setInterval(pull, 60_000);
+    return () => { cancelled = true; window.clearInterval(t); };
+  }, [businessId, business?.settings, queryClient]);
 
   useEffect(() => {
     let cancelled = false;
