@@ -1,3 +1,9 @@
+## Servicepriser og tom virksomhedsside
+- [x] Vis servicepriser som uden moms ved oprettelse, bestilling og i servicemails; mailfunktioner opdateret
+- [x] Brug vedhæftet ikon ved Ingen services oprettet endnu
+- [x] Kontrollér uændrede prisbeløb (10 tests), offentlig prisvisning og indloggede prisfelter
+- [ ] Visuel kontrol af tom virksomhedsside med ikonet — ingen tilgængelig tom virksomhed i testmiljøet
+
 ## Rutekørsel: småfejl og roligere kort (10/10)
 - [x] Forenkle ankomsthandlinger og forkorte sikker ankomstregistrering
 - [ ] Bekræft rækkefølgeændring på den aktuelle rute — testsession har ikke adgang; flytning forenklet og hente-fejl giver Prøv igen

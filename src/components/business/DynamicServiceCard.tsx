@@ -339,13 +339,14 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 {isFixed ? "Fast pris" : "Prisoverslag"}
               </p>
               <div
-                className="mt-0.5 flex items-baseline gap-1"
+                className="mt-0.5 flex flex-wrap items-baseline gap-1"
                 aria-live="polite"
-                aria-label={`${isFixed ? "Fast pris" : "Prisoverslag"} ${priceLabel}, ${intervalLabel}`}
+                aria-label={`${isFixed ? "Fast pris" : "Prisoverslag"} ${priceLabel} uden moms, ${intervalLabel}`}
               >
                 <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{formatPrice(roundPrice(total))}</p>
                 <span className="ml-1 truncate text-[10px] text-muted-foreground">· {intervalLabel}</span>
               </div>
+              <p className="mt-1 text-xs text-muted-foreground">Uden moms (+ moms)</p>
             </div>
           </div>
 
@@ -355,7 +356,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             aria-label={
               justAdded
                 ? `${service.name} er tilføjet til bestillingen`
-                : `Tilføj ${service.name} til bestilling, ${priceLabel}`
+                : `Tilføj ${service.name} til bestilling, ${priceLabel} uden moms`
             }
             className={`h-11 w-full justify-between gap-2 rounded-lg px-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
               justAdded

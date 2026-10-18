@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import BusinessSEO from "@/components/business/BusinessSEO";
 import { imageSrc, imageSrcSet } from "@/lib/image-url";
 import { formatPrice } from "@/lib/price-format";
@@ -535,9 +536,7 @@ const DynamicBusinessContent = () => {
                 aria-labelledby="services-heading"
                 className="rounded-[2rem] border border-dashed border-border bg-card/60 p-6 text-center md:p-8"
               >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground/60">
-                  <Wrench className="h-5 w-5" />
-                </div>
+                <BrandedIllustration name="noServices" className="mx-auto h-20 w-20" />
                 <h2 id="services-heading" className="mt-3 text-lg font-bold text-foreground">
                   Ingen services oprettet endnu
                 </h2>

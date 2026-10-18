@@ -550,7 +550,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
             {/* Hovedstats — pris stort, resten kompakte celler */}
             <div className="mt-2.5 grid grid-cols-2 items-stretch gap-1.5 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
               <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
-                <p className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
+                <p className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">Pris uden moms</p>
                 <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums truncate">{priceSummary}</p>
               </div>
               <CompactStat label="Interval" value={intervalSummary} />
@@ -1418,7 +1418,7 @@ const ServiceForm = ({
         <div className="space-y-5">
           <div>
             <h4 className="text-base font-semibold text-foreground">Hvordan vil du prissætte?</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Vælg den prismodel der passer bedst til din service</p>
+            <p className="mt-1 text-sm text-muted-foreground">Alle servicepriser indtastes og vises uden moms. Moms kommer oveni.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
@@ -1443,7 +1443,7 @@ const ServiceForm = ({
             <div className="flex gap-3 pt-2">
               <div className="flex-1">
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
+                  {pricingType === "fast_pris" ? "Pris uden moms (kr)" : "Timepris uden moms (kr)"}
                   <span className="ml-1 text-destructive">*</span>
                 </label>
                 <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-card h-11 text-base" />
@@ -1671,7 +1671,7 @@ const ServiceForm = ({
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
-                        { label: `Pris pr. ${step.unit || "enhed"}`, help: `Kr. pr. ${step.unit || "enhed"}, fx 12 kr/m²`, hint: "kr", field: "price_per_unit", value: step.price_per_unit },
+                        { label: `Pris uden moms pr. ${step.unit || "enhed"}`, help: `Kr. uden moms pr. ${step.unit || "enhed"}, fx 12 kr/m² + moms`, hint: "kr", field: "price_per_unit", value: step.price_per_unit },
                         { label: "Mindste antal", help: "Det laveste kunden kan vælge", hint: step.unit, field: "min_value", value: step.min_value },
                         { label: "Højeste antal", help: "Det højeste kunden kan vælge", hint: step.unit, field: "max_value", value: step.max_value },
                         { label: "Forudvalgt antal", help: "Vist som udgangspunkt hos kunden", hint: step.unit, field: "default_value", value: step.default_value },

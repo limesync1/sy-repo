@@ -82,6 +82,7 @@ import helpGuidesAsset from "@/assets/help-center/guides-og-priser.webp.asset.js
 
 import routeReady from "@/assets/illustrations/employee/start-rute.svg.asset.json";
 import noItems from "@/assets/content-icons/ingen-emner-generel.svg.asset.json";
+import noServices from "@/assets/content-icons/ingen-services-oprettet.svg.asset.json";
 import routeDone from "@/assets/content-icons/ruten-er-koert-faerdig.svg.asset.json";
 import chooseRouteMode from "@/assets/illustrations/employee/hvordan-vil-du-koere-ruten.svg.asset.json";
 import checklist from "@/assets/illustrations/employee/tjekliste.svg.asset.json";
@@ -159,6 +160,7 @@ export const BRANDED_ILLUSTRATIONS = {
   routeReady: routeReady.url,
   routeDone: routeDone.url,
   noItems: noItems.url,
+  noServices: noServices.url,
   chooseRouteMode: chooseRouteMode.url,
   checklist: checklist.url,
   drivingGuide: drivingGuide.url,

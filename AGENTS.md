@@ -8,6 +8,7 @@
 - Resolve checklist versus map guide before mounting Leaflet or continuous GPS to prevent map flashes and battery waste.
 - Header/session icons use monochrome `PanelIcon`; compact artwork uses `UiArtwork`. Filled-button artwork uses a light contrast chip.
 - Illustrations use `BrandedIllustration`; `PanelIcon`/customer variants reuse assets to avoid duplicates.
+- Service VAT wording is presentation-only; service emails share `_service-price.ts`, while stored amounts and server pricing stay unchanged to avoid double taxation or changing platform-plan pricing.
 - Official profile URLs use `src/lib/social-links.ts` for consistent links and organization data.
 - Public SEO uses registries and seo-prerender-head; client tags preserve full text and public-origin canonicals unless a business supplies its domain.
 - Leads normalize into `quote_requests`/`quote_request_matches`; provider connections/credentials stay server-side and business-scoped for one secure source of truth.

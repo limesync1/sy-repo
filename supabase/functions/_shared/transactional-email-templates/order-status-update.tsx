@@ -4,6 +4,7 @@ import {
  Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
+import { formatServicePrice as fmt } from './_service-price.ts'
 import {
  SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
  main, wrapper, container, headerBar,
@@ -135,9 +136,6 @@ const STATUS_NEXT: Record<EventType, string[]> = {
  'Hvis du har spørgsmål til annulleringen, så kontakt serviceyderen direkte.',
  ],
 }
-
-const fmt = (n: number) =>
- new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(n)
 
 const fmtDate = (s?: string) => {
  if (!s) return null

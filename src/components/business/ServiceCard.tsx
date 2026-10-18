@@ -274,6 +274,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
         </div>
       </CardHeader>
       <CardContent>
+        <p className="mb-3 text-xs text-muted-foreground">Alle priser er uden moms (+ moms).</p>
         {service.priceType === "fixed" && <FixedPriceService service={service} />}
         {service.priceType === "hourly" && <HourlyService service={service} />}
         {service.priceType === "calculator" && <CalculatorService service={service} />}
