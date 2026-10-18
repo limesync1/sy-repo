@@ -14,6 +14,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import useSidebarCollapsed from "./useSidebarCollapsed";
 import { NavIconGradientDefs, SidebarEdgeHandle } from "./SidebarParts";
@@ -48,6 +49,7 @@ export type PanelShellProps = {
   topbarRight?: ReactNode;
   /** Ekstra række lige under topbaren (fx handlinger på mobil). */
   topbarExtra?: ReactNode;
+  bottomNavigation?: ReactNode;
 
   contentPadding?: boolean;
   contentClassName?: string;
@@ -89,14 +91,14 @@ const SidebarBody = ({
           )}
         </Link>
         {inDrawer && (
-          <button
+          <Button variant="ghost" size="icon"
             type="button"
             onClick={onClose}
-            className="-mr-1 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="-mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             aria-label="Luk menu"
           >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -130,7 +132,7 @@ const SidebarBody = ({
 export const PanelShell = ({
   storageKey, collapsible = true, animateLayout = true,
   sidebarTop, sidebarNav, sidebarFooter,
-  title, subtitle, topbarRight, topbarExtra,
+  title, subtitle, topbarRight, topbarExtra, bottomNavigation,
   contentPadding = true, contentClassName, workspaceClassName, children,
 }: PanelShellProps) => {
   const { collapsed: collapsedPref, toggle } = useSidebarCollapsed(storageKey);
@@ -167,6 +169,7 @@ export const PanelShell = ({
           "service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-clip bg-secondary/30",
           collapsed ? "[--sidebar-w:68px]" : "[--sidebar-w:224px] 2xl:[--sidebar-w:248px]",
           workspaceClassName,
+          bottomNavigation && "[--panel-bottom-clearance:calc(60px+env(safe-area-inset-bottom))] lg:[--panel-bottom-clearance:0px]",
         )}
       >
         <a
@@ -196,6 +199,7 @@ export const PanelShell = ({
         {/* Mobil/tablet-drawer — monteres kun når den er åben. */}
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
           <SheetContent
+            id="panel-navigation-drawer"
             side="left"
             hideCloseButton
             onTouchStart={(e) => {
@@ -209,7 +213,7 @@ export const PanelShell = ({
               const t = e.changedTouches[0];
               if (t.clientX - s.x < -64 && Math.abs(t.clientY - s.y) < 48) setDrawerOpen(false);
             }}
-            className="flex w-[86vw] max-w-[320px] flex-col gap-0 border-r border-border/60 bg-card p-0 lg:hidden"
+            className="flex max-h-dvh min-h-0 w-[86vw] max-w-[320px] overflow-hidden flex-col gap-0 border-r border-border/60 bg-card p-0 lg:hidden"
           >
             <SheetTitle className="sr-only">Menu</SheetTitle>
             <SheetDescription className="sr-only">Hovednavigation</SheetDescription>
@@ -231,15 +235,17 @@ export const PanelShell = ({
           )}
         >
           <header className="service-panel-topbar sticky top-0 z-30 flex min-h-14 shrink-0 flex-wrap items-center gap-2 border-b border-border/60 bg-card/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:gap-3 sm:px-6">
-            <button
+            <Button variant="ghost" size="icon"
               type="button"
               onClick={() => setDrawerOpen(true)}
               className="-ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent/60 lg:hidden"
               aria-label="Åbn menu"
               aria-haspopup="dialog"
+              aria-expanded={drawerOpen}
+              aria-controls="panel-navigation-drawer"
             >
               <Menu className="h-5 w-5" />
-            </button>
+            </Button>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-base font-semibold leading-tight text-foreground sm:text-[17px]">{title}</h1>
               {subtitle ? <p className="hidden truncate text-[11px] text-muted-foreground sm:block">{subtitle}</p> : null}
@@ -259,10 +265,12 @@ export const PanelShell = ({
                 ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
                 : "pb-[calc(env(safe-area-inset-bottom))] lg:pb-0",
               contentClassName,
+              bottomNavigation && "mb-[var(--panel-bottom-clearance)]",
             )}
           >
             {children}
           </main>
+          {bottomNavigation}
 
         </div>
       </div>

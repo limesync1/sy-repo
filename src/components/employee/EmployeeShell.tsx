@@ -37,6 +37,7 @@ import {
   RoleSwitchFooterItem, SidebarGroupLabel, SidebarNavButton, SidebarProfileMenu,
   SidebarWorkspaceRow, initialsOf, type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
+import PanelBottomNav from "@/components/shared/sidebar/PanelBottomNav";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -288,6 +289,15 @@ export const EmployeeShell = ({
       subtitle={activeBusinessName}
       contentPadding={contentPadding}
       contentClassName={contentClassName}
+      bottomNavigation={!needsWorkspaceChoice ? <PanelBottomNav
+        primary={visibleNav.map((item) => ({ key: item.value, label: item.label, icon: item.icon, active: activeTab === item.value, onSelect: () => navigateWithinEmployeePanel(navigate, item.href), onPrefetch: () => prefetchTab(item.value) }))}
+        more={[
+          { key: "profile", label: "Rediger profil", icon: UserRound, active: false, onSelect: () => setProfileOpen(true) },
+          ...(multiWorkspace ? [{ key: "workspace", label: "Skift arbejdsplads", icon: Building2, active: false, onSelect: () => setPickerOpen(true) }] : []),
+          ...(myBusiness || isSoloOwner ? [{ key: "business", label: "Virksomhedspanel", icon: Briefcase, active: false, onSelect: () => navigate("/virksomhed") }] : []),
+          { key: "logout", label: "Log ud", icon: LogOut, active: false, onSelect: signOut },
+        ]}
+      /> : undefined}
       topbarRight={
         <>
           {topbarRight}

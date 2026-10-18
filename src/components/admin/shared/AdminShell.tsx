@@ -20,13 +20,14 @@ import {
   SidebarCollapsibleRow, SidebarWorkspaceRow, SidebarProgressCard, SidebarProfileMenu,
   type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
+import PanelBottomNav, { type BottomNavItem } from "@/components/shared/sidebar/PanelBottomNav";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { AccountProfileSheet } from "@/components/shared/AccountProfileSheet";
 import { useMyProfile } from "@/hooks/useDatabase";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 import {
-  ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminNeighbours,
+  ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminNeighbours, adminMobilePrimaryKeys,
   findAdminNavItem, isAdminNavVisible, prefetchAdminTab,
   type AdminFeatureFlags, type AdminNavItem, type AdminTabKey,
 } from "./adminNav";
@@ -150,6 +151,10 @@ export const AdminShell = ({
   };
 
   const currentNav = findAdminNavItem(activeTab);
+  const primaryKeys = adminMobilePrimaryKeys(flags);
+  const mobileItems: BottomNavItem[] = ADMIN_NAV_ITEMS
+    .filter((item) => isAdminNavVisible(item, flags) && (item.value !== "getting-started" || showGettingStarted))
+    .map((item) => ({ key: item.value, label: item.label, icon: item.icon, active: activeTab === item.value, onSelect: () => go(item), onPrefetch: () => prefetchAdminTab(item.value) }));
   const displayName =
     accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
   const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
@@ -206,6 +211,7 @@ export const AdminShell = ({
       animateLayout={animateLayout ?? contentPadding !== false}
       title={title ?? currentNav?.label}
       topbarRight={topbarActions}
+      bottomNavigation={<PanelBottomNav primary={primaryKeys.flatMap((key) => mobileItems.filter((item) => item.key === key))} more={mobileItems.filter((item) => !primaryKeys.some((key) => key === item.key))} />}
       topbarExtra={
         topbarRight && !hideActions && mobileTopbar ? (
           <div className="sticky top-14 z-20 border-b border-border/60 bg-card px-3 py-2 sm:hidden">
