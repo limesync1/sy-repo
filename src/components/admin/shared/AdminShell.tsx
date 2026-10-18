@@ -211,7 +211,6 @@ export const AdminShell = ({
       animateLayout={animateLayout ?? contentPadding !== false}
       title={title ?? currentNav?.label}
       topbarRight={topbarActions}
-      bottomNavigation={<PanelBottomNav primary={primaryKeys.flatMap((key) => mobileItems.filter((item) => item.key === key))} more={mobileItems.filter((item) => !primaryKeys.some((key) => key === item.key))} />}
       topbarExtra={
         topbarRight && !hideActions && mobileTopbar ? (
           <div className="sticky top-14 z-20 border-b border-border/60 bg-card px-3 py-2 sm:hidden">
