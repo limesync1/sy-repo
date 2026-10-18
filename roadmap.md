@@ -1,3 +1,6 @@
+## Demosiden fjernet
+- [x] Slet /demo, demo-data og kurv-/chat-undtagelser; gamle /demo-links sendes til /virksomheder og er bekræftet i browser
+
 ## SEO-fund (18. oktober)
 - [x] Kontrollér og ret demoens overskrift samt forsidens HowTo/FAQ-data
 - [x] Kontrollér og forbedr haveguidens søgetekst uden nye faktapåstande; samme metadata i register og side
