@@ -1,7 +1,8 @@
 ## Mobil ruteplanlægning og navigation
-- [ ] Modernisér mobilens ruteplanlægning uden at ændre aftaler eller gentagelser
-- [ ] Gennemgå og forbedr fælles mobilnavigation i virksomhed og medarbejderpanel
-- [ ] Kontrollér mobil/tablet, mørkt tema og centrale handlinger uden at udføre aftaler
+- [x] Mobil dagsoversigt, dato-/periodevalg og synlige rutehandlinger; aftaler og gentagelser uændrede
+- [x] Fælles bundnavigation, Mere-menu og sikker afstand til indhold i begge paneler
+- [x] 14 tests bestået; isoleret kalender og navigation kontrolleret i browser ved 320/390/768 px og mørkt tema
+- [ ] Kontrollér samlet flow på rigtig arbejdsplads — den indloggede egen konto har ingen virksomhed eller medarbejderadgang
 
 ## Kreditnota ved annullering under Aftaler
 - [x] Tilføj relevant kreditnotavalg; 5 tests kontrollerer rækkefølge, fejl og fravalg. Spørgsmål og Fortryd kontrolleret på rigtig aftale uden at ændre den.
