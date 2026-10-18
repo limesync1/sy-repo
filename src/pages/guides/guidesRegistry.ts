@@ -23,6 +23,16 @@ export interface GuideMeta {
   updatedAt?: string;
 }
 
+export const GARDEN_GUIDE_META: GuideMeta = {
+  href: "/guides/have",
+  title: "Haveservice 2026 — priser, havehjælp og valg af firma",
+  desc: "Se gennemsnitspriser på havemand, græsslåning og hækklipning. Få råd om sæsonens havearbejde, faste aftaler, haveaffald og valg af havefirma.",
+  category: "Haveservice",
+  tag: "Prisguide",
+  priority: "0.9",
+  updatedAt: "2026-10-18",
+};
+
 export const GUIDES: GuideMeta[] = [
   // Eksisterende prisguides
   { href: "/priser/rengoering", title: "Rengøringsfirma priser 2026 — privat rengøring fra 250 kr./t", desc: "Komplet prisguide for privat- og erhvervsrengøring — timepris, fast pris og BoligJob-fradrag.", category: "Rengøring", tag: "Prisguide", priority: "0.8" },
@@ -61,7 +71,7 @@ export const GUIDES: GuideMeta[] = [
   { href: "/guides/vinduespudsning", title: "Vinduespudsning 2026 — find vinduespudser & se priser", desc: "Priser pr. vindue, abonnement vs. engangsbesøg, BoligJob-fradrag og 3 gratis tilbud fra lokale vinduespudsere.", category: "Vinduespudsning", tag: "How-to", priority: "0.9", updatedAt: "2026-10-02" },
   { href: "/guides/privatrengoering", title: "Privatrengøring 2026 — pris, fradrag & rengøringshjælp", desc: "Privatrengøring fra 250 kr. i timen, fast aftale vs. engangsrengøring, BoligJob-fradrag og 3 gratis tilbud.", category: "Rengøring", tag: "How-to", priority: "0.9", updatedAt: "2026-10-02" },
   { href: "/guides/erhvervsrengoering", title: "Erhvervsrengøring 2026 — pris pr. m² & rengøringsfirma", desc: "Erhvervsrengøring fra 8 kr. pr. m² pr. måned, aftalens indhold og 3 gratis tilbud fra rengøringsfirmaer.", category: "Rengøring", tag: "How-to", priority: "0.9", updatedAt: "2026-10-02" },
-  { href: "/guides/have", title: "Gartner priser 2026: Havemand 400–700 kr./t · Få 3 tilbud", desc: "Se hvad en gartner koster i 2026: havemand 400–700 kr./t, græsslåning fra 250 kr., hækklipning fra ca. 30 kr./m. Få 3 gratis tilbud fra lokale gartnere — med fradrag.", category: "Haveservice", tag: "Prisguide", priority: "0.9", updatedAt: "2026-10-11" },
+  GARDEN_GUIDE_META,
   { href: "/guides/have/faq", title: "Havemand FAQ 2026 — pris, fradrag og opgaver", desc: "Svar på de mest stillede spørgsmål om havemand: timepris, græsslåning, hækklipning, haveaffald og servicefradrag.", category: "Haveservice", tag: "How-to", priority: "0.7", updatedAt: "2026-10-08" },
   { href: "/guides/priser-2026", title: "Priser 2026 — master prisindeks", desc: "Komplet oversigt over alle serviceydelser i Danmark i 2026 — 50+ prisguides samlet ét sted.", category: "Økonomi", tag: "Prisguide", priority: "0.95", updatedAt: "2026-07-27" },
 ];

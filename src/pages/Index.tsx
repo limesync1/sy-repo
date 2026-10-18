@@ -18,8 +18,7 @@ const CTABand           = lazy(() => import("@/components/landing/CTABand"));
 const Footer            = lazy(() => import("@/components/landing/Footer"));
 
 const Index = () => {
-  // Struktureret data for forsiden — hjælper Google med at vise rich results
-  // (sitelinks searchbox, organisation knowledge panel, FAQ accordion).
+  // Beskriv hjemmesiden og organisationen, ikke skjulte FAQ’er eller udfasede HowTo-resultater.
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -48,48 +47,7 @@ const Index = () => {
       },
       sameAs: OFFICIAL_PROFILE_URLS,
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "HowTo",
-      name: "Sådan finder du den rette serviceyder",
-      description:
-        "Find, sammenlign og book lokale serviceydere i Danmark på under 5 minutter.",
-      step: [
-        { "@type": "HowToStep", position: 1, name: "Søg", text: "Fortæl kort hvad du skal have hjælp til." },
-        { "@type": "HowToStep", position: 2, name: "Sammenlign", text: "Få overblik over de stærkeste muligheder." },
-        { "@type": "HowToStep", position: 3, name: "Book", text: "Vælg det tilbud eller den profil, der passer bedst." },
-      ],
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "Koster det noget at bruge Serviceydere?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Nej. Det er gratis for private at finde, sammenligne og kontakte serviceydere på platformen.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Hvor mange tilbud kan jeg få?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Du kan modtage op til 3 tilbud fra relevante, verificerede udbydere i dit område.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Er virksomhederne på Serviceydere verificerede?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Ja, vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel.",
-          },
-        },
-      ],
-    },
+
   ];
 
   return (
