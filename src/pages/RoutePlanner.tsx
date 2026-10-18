@@ -69,6 +69,7 @@ import {
 import { createPortal } from "react-dom";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { UnassignedJobCard, UnassignedJobCardSkeleton } from "@/components/route-planner/UnassignedJobCard";
+import { MobileDayMapButton } from "@/components/route-planner/MobileDayMapSheet";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
@@ -3958,7 +3959,7 @@ const Planner = () => {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-1.5">
+                  <div className="grid grid-cols-[minmax(0,1fr)_44px_44px_44px] items-center gap-1.5">
                     <Tabs value={mobileDayView ? "day" : view} onValueChange={(v) => { setMobileDayView(v === "day"); if (v !== "day") setView(v as "month" | "week"); }}>
                       <TabsList className="grid h-11 w-full grid-cols-3 rounded-md bg-secondary p-0">
                         {[{ value: "day", label: "Dag" }, { value: "week", label: "Uge" }, { value: "month", label: "Måned" }].map((item) => <TabsTrigger key={item.value} value={item.value} className="h-11 min-w-0 px-1 text-sm data-[state=active]:bg-card data-[state=active]:text-foreground">{item.label}</TabsTrigger>)}
@@ -4072,6 +4073,7 @@ const Planner = () => {
                         </div>
                       </SheetContent>
                     </Sheet>
+                    <MobileDayMapButton routes={calendarRoutesAll as any} date={date} stops={calendarStops as any[]} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-md" aria-label="Flere planlægningshandlinger">
