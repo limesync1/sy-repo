@@ -151,6 +151,8 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
       exceptions: routeOccurrenceExceptions as any[],
+      // Rundet til hele timen, så cachen fornyes når en ny time starter.
+      now: new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000),
     };
     const { projections: shifted, movedReplacementRouteIds, shiftsByOriginal } = businessId
       ? runProjectionCached(projectionInput, { businessId })
