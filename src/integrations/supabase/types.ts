@@ -5392,6 +5392,10 @@ export type Database = {
         Args: { _dlq_id: string; _note?: string }
         Returns: undefined
       }
+      employee_can_cancel_appointment: {
+        Args: { _order_id: string; _stop_id: string }
+        Returns: boolean
+      }
       employee_cancel_appointment: {
         Args: { _credit_mode: string; _stop_id: string }
         Returns: Json

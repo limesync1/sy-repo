@@ -11,7 +11,7 @@ import { requireAuthenticatedUser } from "../_shared/auth.ts";
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3';
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts';
-import { documentMailKey, mayCancelAppointment, shouldCreateCredit } from '../_shared/accounting/action-rules.ts';
+import { documentMailKey, checkCancellationAccess, shouldCreateCredit } from '../_shared/accounting/action-rules.ts';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -80,9 +80,9 @@ Deno.serve(async (req) => {
     }
     if (cancellation) {
       if (!params?.stop_id || !params.credit_mode) return json({ error: 'Vælg aftale og kreditnota' }, 400);
-      const { data: context, error } = await userClient.rpc('_employee_stop_context', { _stop_id: params.stop_id });
-      if (error || !mayCancelAppointment(isOwner, context?.[0]?.order_id ?? null, order_id)) return json({ error: 'Du har ikke adgang til denne aftale' }, 403);
-      if (context?.[0]?.order_id !== order_id) return json({ error: 'Aftalen hører ikke til dette stop' }, 403);
+      // Keep the caller's JWT: the read-only SECURITY DEFINER preflight checks
+      // route assignment and the exact order before any accounting side effect.
+      if (!await checkCancellationAccess(userClient, params.stop_id, order_id)) return json({ error: 'Du har ikke adgang til denne aftale' }, 403);
       if (params.credit_mode === 'office') {
         const { data, error: cancelError } = await userClient.rpc('employee_cancel_appointment', { _stop_id: params.stop_id, _credit_mode: 'office' });
         if (cancelError) return json({ error: cancelError.message }, 400);
