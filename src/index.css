@@ -1756,7 +1756,9 @@ img[loading="lazy"].is-error {
     border-radius: 0.5rem 0.5rem 0 0;
     top: auto;
     bottom: 0;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    transform: none;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
