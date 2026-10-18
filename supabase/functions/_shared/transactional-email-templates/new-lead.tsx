@@ -134,7 +134,7 @@ const NewLeadEmail = ({
               )}
               {estimatedPrice && (
                 <>
-                  <Text style={{ ...cardLabel, marginTop: description ? '14px' : '0' }}>Estimeret pris</Text>
+                  <Text style={{ ...cardLabel, marginTop: description ? '14px' : '0' }}>Estimeret pris uden moms (+ moms)</Text>
                   <Text style={cardValue}>{estimatedPrice}</Text>
                 </>
               )}

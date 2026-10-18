@@ -611,6 +611,7 @@ const OrderCard = ({ order, onRespond }: {
                 <span className="text-sm font-bold text-foreground">
                   {formatPrice(hasProposal ? order.adjusted_amount : order.total_amount)}
                 </span>
+                <span className="block text-xs text-muted-foreground">Uden moms</span>
                 {hasProposal && order.adjusted_amount !== order.total_amount && (
                   <span className="block text-[11px] text-muted-foreground line-through">{formatPrice(order.total_amount)}</span>
                 )}
@@ -668,7 +669,7 @@ const OrderCard = ({ order, onRespond }: {
                 </div>
               ))}
               <div className="px-4 py-2.5 flex justify-between bg-muted/30">
-                <span className="text-sm font-bold text-foreground">I alt</span>
+                <span className="text-sm font-bold text-foreground">I alt uden moms (+ moms)</span>
                 <span className="text-sm font-bold text-foreground">{formatPrice(order.total_amount)}</span>
               </div>
             </div>
@@ -770,7 +771,7 @@ const OrderCard = ({ order, onRespond }: {
                 <div className={`px-4 py-2.5 flex justify-between ${
                   hasProposal ? "bg-amber-50" : customerAccepted ? "bg-green-50" : "bg-destructive/5"
                 }`}>
-                  <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
+                  <span className="text-sm font-bold text-foreground">Tilpasset pris uden moms (+ moms)</span>
                   <div className="text-right">
                     <span className="text-sm font-bold text-foreground">{formatPrice(order.adjusted_amount)}</span>
                     {order.adjusted_amount !== order.total_amount && (
@@ -1112,6 +1113,7 @@ const SubscriptionsView = () => {
                         </div>
                         <div className="text-right shrink-0">
                           <span className="text-lg font-bold text-foreground">{formatPrice(sub.total_price)}</span>
+                          <span className="block text-xs text-muted-foreground">Uden moms (+ moms)</span>
                           {sub.interval !== "engangskøb" && (
                             <span className="block text-xs text-muted-foreground">
                               /{(INTERVAL_LABELS[sub.interval] || sub.interval).toLowerCase()}
@@ -1286,7 +1288,10 @@ const InvoicesView = () => {
                   <AccountingStatusRow order={o as OrderForStatus} size="xs" />
                 </div>
               </div>
-              <span className="text-sm font-bold whitespace-nowrap">{formatPrice(o.total_amount)}</span>
+              <div className="text-right shrink-0">
+                <span className="text-sm font-bold whitespace-nowrap">{formatPrice(o.total_amount)}</span>
+                <span className="block text-xs text-muted-foreground">Uden moms</span>
+              </div>
               <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
             </CardContent>
           </Card>

@@ -256,9 +256,10 @@ const ApproveOrder = () => {
                   );
                 })}
                 <div className="flex items-center justify-between pt-3 border-t">
-                  <span className="font-semibold text-foreground">I alt</span>
+                  <span className="font-semibold text-foreground">I alt uden moms</span>
                   <span className="text-xl font-bold text-foreground tabular-nums">{fmt(Number(order.total_amount))}</span>
                 </div>
+                <p className="text-xs text-muted-foreground">Alle priser er uden moms. Moms kommer oveni.</p>
               </div>
             </Card>
 

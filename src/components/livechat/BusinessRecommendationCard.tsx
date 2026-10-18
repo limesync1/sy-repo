@@ -119,6 +119,7 @@ const BusinessRecommendationCard = ({
               ))}
             </ul>
           )}
+          {services.length > 0 && <p className="px-3.5 pb-2 text-xs text-muted-foreground">Servicepriser er uden moms (+ moms).</p>}
           <div className="flex items-center justify-between gap-2 border-t border-border px-3.5 py-2">
             <Link
               to={`/b/${business.slug}`}

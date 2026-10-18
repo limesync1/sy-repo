@@ -34,6 +34,7 @@ const CustomerNotificationEmail = ({ subject, body, businessName }: Props) => {
             {lines.map((l, i) => (
               <Text key={i} style={text}>{l}</Text>
             ))}
+            <Text style={footerText}>Eventuelle servicepriser er uden moms. Moms kommer oveni.</Text>
           </Container>
           <Section style={footer}>
             <Text style={footerText}>
