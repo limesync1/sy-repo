@@ -1127,8 +1127,10 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
     description: (changed as any).description,
     unit_price: (changed as any).unit_price ?? fullPayload.unit_price,
     vat_rate: (changed as any).vat_rate,
-    account_number: (changed as any).account_number,
-    product_group: (changed as any).product_group,
+    // Send altid servicens egen varegruppe/konto — ellers falder PUT tilbage
+    // til virksomhedens standard og overskriver det valgte ved fx prisændring.
+    account_number: (changed as any).account_number ?? fullPayload.account_number,
+    product_group: (changed as any).product_group ?? fullPayload.product_group,
     external_id: existing?.external_id,
     product_number: (changed as any).product_number ?? fullPayload.product_number,
     vat_zone: (changed as any).vat_zone ?? fullPayload.vat_zone,
