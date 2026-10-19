@@ -130,7 +130,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                 const varenr = productNumbers?.get(s.id);
                 const selected = selectedIds.includes(s.id);
                 const open = openId === s.id;
-                const hasDetails = steps.length > 0 || !!s.description;
+                const hasDetails = steps.length > 0 || !!s.description || intervals.length > 4;
                 return (
                   <li key={s.id} id={`svc-row-${s.id}`}
                     className={cn("min-w-0 scroll-mt-4 overflow-hidden rounded-lg border bg-background transition-colors",
@@ -143,12 +143,15 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                           <p className="shrink-0 text-sm font-bold tabular-nums text-foreground">{priceLine(s)} <span className="text-xs font-normal text-muted-foreground">uden moms</span></p>
                         </div>
                         <div className="flex min-w-0 flex-wrap gap-1.5">
-                          {intervals.map((iv) => (
+                          {(open ? intervals : intervals.slice(0, 4)).map((iv) => (
                             <span key={iv} className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
                               iv === "engangskøb" ? "bg-secondary text-secondary-foreground" : "bg-accent/15 text-foreground")}>
                               {iv !== "engangskøb" && <Repeat className="h-3 w-3 text-accent" />}{intervalLabel(iv)}
                             </span>
                           ))}
+                          {!open && intervals.length > 4 && (
+                            <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground" title={intervals.map(intervalLabel).join(", ")}>+{intervals.length - 4} mere</span>
+                          )}
                           {integration && (
                             <span className={cn("inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] tabular-nums",
                               varenr ? "border-border text-muted-foreground" : "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200")}>
