@@ -75,7 +75,7 @@ import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { ConflictBanner } from "@/components/route-planner/ConflictBanner";
-import { RouteEditSheet, ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import PlanningPanel from "@/components/route-planner/PlanningPanel";
 import SEO from "@/components/SEO";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
@@ -2563,21 +2563,21 @@ const Planner = () => {
 
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                  <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
-                  <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
+                  <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
                       accent={newRouteColor}
-                      title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
+                      title={<DialogTitle className="text-base">Opret rute</DialogTitle>}
                       description={
-                        <DialogDescription className="text-[13px] leading-snug">
-                          Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og aftaler bagefter.
+                        <DialogDescription className="text-xs leading-snug">
+                          Vælg dato og aftaler til ruten.
                         </DialogDescription>
                       }
                     />
                   </DialogHeader>
 
-                   <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
+                   <div className="planner-overlay-body min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3 sm:px-5 [&_input]:min-h-11 sm:[&_input]:min-h-10">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
-                      <div className="space-y-2.5">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Field label="Navn (valgfrit)">
                           <Input
                             id="route-name"
@@ -2585,8 +2585,7 @@ const Planner = () => {
                             value={newRouteName}
                             onChange={(e) => setNewRouteName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
-                            className="h-9"
-                            autoFocus
+                            className="h-11 sm:h-10"
                           />
                         </Field>
                         <Field label="Dato" required>
@@ -2596,6 +2595,7 @@ const Planner = () => {
                             routeDates={routeDatesSet}
                             busyDates={busyDatesSet}
                             overloadedDates={overloadedDatesSet}
+                            className="h-11 sm:h-10"
                           />
                         </Field>
                       </div>
@@ -2606,25 +2606,27 @@ const Planner = () => {
                       title="Farve"
                       hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
                     >
-                      <div className={ROUTE_COLOR_GRID}>
+                      <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(44px,1fr))] gap-2">
                         {ROUTE_COLORS.map((c) => (
-                          <button
+                          <Button
+                            variant="ghost"
                             key={c.value}
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square w-full rounded-md transition-all duration-150 hover:scale-105 ring-offset-2 ring-offset-background shadow-sm ${
+                            className={`relative h-11 w-full rounded-md p-0 transition-all duration-150 ring-offset-2 ring-offset-background ${
                               newRouteColor === c.value
                                 ? "ring-2 ring-foreground scale-105 shadow-md"
                                 : "hover:ring-2 hover:ring-foreground/40"
                             }`}
                             style={{ background: c.value }}
                             aria-label={`Vælg farve ${c.name}`}
+                            aria-pressed={newRouteColor === c.value}
                           >
                             {newRouteColor === c.value && (
                               <Check className="absolute inset-0 m-auto h-3 w-3 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
                             )}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </Section>
@@ -2634,8 +2636,8 @@ const Planner = () => {
                       title="Aftaler på ruten"
                       hint={`${newRouteJobIds.length} valgt`}
                     >
-                      <p className="text-[11px] text-muted-foreground mb-2">
-                        Vælg mindst én aftale fra aftalepoolen — ruter kan ikke oprettes uden aftaler.
+                      <p className="text-xs text-muted-foreground">
+                        Vælg mindst én aftale.
                       </p>
                       <div className="relative mb-2">
                         <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
@@ -2643,10 +2645,10 @@ const Planner = () => {
                           placeholder="Søg kunde eller adresse..."
                           value={newRouteJobSearch}
                           onChange={(e) => setNewRouteJobSearch(e.target.value)}
-                          className="h-9 pl-6 text-sm"
+                          className="h-11 pl-7 sm:h-10"
                         />
                       </div>
-                      <div className="max-h-56 overflow-y-auto rounded border divide-y bg-background">
+                      <div className="divide-y divide-border">
                         {unassigned.length === 0 && (
                           <div className="p-4 text-center text-xs text-muted-foreground">
                             Ingen aftaler i poolen. Opret en bestilling først — se
@@ -2679,7 +2681,7 @@ const Planner = () => {
                               <label
                                 key={j.id}
                                 className={cn(
-                                  "flex items-start gap-2 p-2 cursor-pointer hover:bg-secondary/50 text-xs",
+                                  "flex min-h-11 items-start gap-3 rounded-md p-2 cursor-pointer hover:bg-secondary/50 text-sm",
                                   checked && "bg-accent/5",
                                 )}
                               >
@@ -2693,12 +2695,12 @@ const Planner = () => {
                                   className="mt-0.5"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">{j.customer_name}</p>
-                                  <p className="text-[10px] text-muted-foreground truncate">
+                                  <p className="font-medium break-words">{j.customer_name}</p>
+                                  <p className="text-xs text-muted-foreground break-words">
                                     {serviceSummaryForJob(j)}
                                   </p>
                                   {(j.address || j.city) && (
-                                    <p className="text-[10px] text-muted-foreground truncate">
+                                    <p className="text-xs text-muted-foreground break-words">
                                       {[j.address, [j.zip_code, j.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
                                     </p>
                                   )}
@@ -2732,18 +2734,21 @@ const Planner = () => {
                   </div>
 
                   <SheetFooterBar>
-                     <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:justify-end">
-                       <Button variant="outline" className="w-full sm:w-auto" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
+                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                       <span className="text-xs text-muted-foreground">{newRouteJobIds.length} {newRouteJobIds.length === 1 ? "aftale valgt" : "aftaler valgt"}</span>
+                       <div className="flex gap-2">
+                       <Button variant="outline" className="h-11 flex-1 sm:h-10 sm:flex-none" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
                         Annullér
                       </Button>
                       <Button
-                         className="w-full sm:w-auto"
+                         className="h-11 flex-1 sm:h-10 sm:flex-none"
                         onClick={handleCreateRoute}
                         disabled={createRoute.isPending || newRouteJobIds.length === 0}
                       >
                         {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                        Opret rute{newRouteJobIds.length > 0 ? ` med ${newRouteJobIds.length} aftale${newRouteJobIds.length === 1 ? "" : "r"}` : ""}
+                        Opret rute
                       </Button>
+                      </div>
                     </div>
                   </SheetFooterBar>
                 </DialogContent>

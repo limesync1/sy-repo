@@ -1,3 +1,7 @@
+## Kompakte oprettelsesvinduer
+- [x] Ensret Opret rute og Opret kunde med Opret bestilling uden ændringer i gemning eller aftalelogik
+- [x] Kontrollér vinduer, udfoldelige felter og knaplinjer ved 390/1351 px i lyst og mørkt tema med virksomhedssession; ingen vandret overlap eller sidefejl, testdata ikke gemt
+
 ## Automatisk oprettelse efter timeinterval
 - [x] Undersøg beskeden: aktiv timegentagelse forfalder 19. oktober kl. 01:10:06 dansk tid; aktiv automatisk kontrol kører hvert femte minut, så næste kontrol er kl. 01:15. Ingen bekræftet fejl eller ændringer i aftalerne; faktisk næste oprettelse er endnu ikke verificeret.
 
