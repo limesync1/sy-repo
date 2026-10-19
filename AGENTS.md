@@ -1,6 +1,6 @@
 # Project architecture rules
 
-- Appointment details share `AppointmentDetailsHeader` and `appointment-details-overlay` for themed portals; creation dialogs share `SheetHeaderBlock`, `Section`, `SheetFooterBar` and one scrolling body for consistent clearance.
+- Appointment details use `AppointmentDetailsHeader`/`appointment-details-overlay`; creation uses `SheetHeaderBlock`/`Section`/`SheetFooterBar`; planner utilities use `PlannerDialogHeader` with fixed footer and scrolling body for consistent artwork and clearance.
 - Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.
 - Validate suggestion stops against the route and employees against its business before RLS-protected writes.
 
@@ -17,7 +17,7 @@
 - Restarted employee workdays preserve prior elapsed seconds in `accumulated_seconds` and open a new active interval, so completed appointments and precise time history remain intact.
 - Employee pages share `EmployeePage`; driving is full-screen; profiles share `ProfileEditSheetLayout`, with employee self-edits limited to name/avatar. Account saves upsert by user ID to repair missing rows; auth metadata is secondary.
 - Archived routes cannot remain recurrence anchors or enter projection queries, preventing deleted routes from resurfacing as ghost routes.
-- Route printing consumes the loaded calendar route collection and applies date and content selection inside the print workspace, keeping one source of truth for preview and paper output.
+- Printing filters loaded calendar routes in its workspace so preview and paper share one source.
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
 - Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
 
