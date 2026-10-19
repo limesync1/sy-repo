@@ -1338,6 +1338,8 @@ const Planner = () => {
       // Manuelt oprettede tomme ruter må stadig vises, så brugeren kan lægge
       // aftaler på dem.
       if (r.base_route_id && (r.stops?.length ?? 0) === 0) return false;
+      // Ruter hvor alle stop er udført (og derfor skjult) vises ikke som tomme.
+      if ((r.stops?.length ?? 0) === 0 && calendarStops.some((s: any) => s.route_id === r.id)) return false;
       // Skjul den oprindelige basisrute-row på dens ankerdato hvis brugeren
       // har flyttet den til en anden dato (se kommentaren ovenfor).
       if (!r.base_route_id && movedBaseKeys.has(`${r.id}|${r.route_date}`)) return false;
