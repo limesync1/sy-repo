@@ -30,8 +30,14 @@ import editProfileAsset from "@/assets/content-icons/rediger-profil.svg.asset.js
 import routeMapAsset from "@/assets/panel-icons/vis-rute-kortvisning.svg.asset.json";
 import routeListAsset from "@/assets/panel-icons/vis-rute-listevisning.svg.asset.json";
 import routeOverviewAsset from "@/assets/panel-icons/vis-rute-som-kort.svg.asset.json";
+import dayOverviewAsset from "@/assets/content-icons/vis-hele-dagen.svg.asset.json";
+import shortcutsAsset from "@/assets/content-icons/tastaturgenveje.svg.asset.json";
+import sickLeaveAsset from "@/assets/content-icons/meld-medarbejder-syg.svg.asset.json";
 
 export const PANEL_ICON_ASSETS = {
+  dayOverview: dayOverviewAsset.url,
+  shortcuts: shortcutsAsset.url,
+  sickLeave: sickLeaveAsset.url,
   appointments: appointmentsAsset.url,
   appointmentView: appointmentViewAsset.url,
   guide: guideAsset.url,

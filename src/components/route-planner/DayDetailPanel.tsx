@@ -4,12 +4,14 @@ import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { MapPin, CalendarDays } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import PlannerDialogHeader from "./PlannerDialogHeader";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_CONTENT } from "./lib/card-styles";
 import { IndustryIcon } from "@/components/IndustryIcon";
-import { SheetHeaderBlock } from "./SheetSection";
+import { SheetFooterBar } from "./SheetSection";
 
 export type DayStop = {
   id: string;
@@ -39,36 +41,12 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
   }, [sorted]);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="planner-overlay w-full sm:max-w-lg flex flex-col bg-background p-0">
-        <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 shrink-0 space-y-0 text-left">
-          <SheetHeaderBlock
-            icon={<CalendarDays className="h-4 w-4" />}
-            title={<SheetTitle className="text-base first-letter:uppercase">{date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}</SheetTitle>}
-            description={sorted.length === 0 ? <span className="text-xs text-muted-foreground">Ingen aftaler denne dag.</span> : undefined}
-          >
-            {sorted.length > 0 && (
-              <>
-                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
-                  <MapPin className="h-3 w-3" />
-                  {sorted.length} stop
-                </span>
-                {routes.length > 1 && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
-                    {routes.slice(0, 4).map(([name, color]) => (
-                      <span
-                        key={name}
-                        className="h-2 w-2 rounded-full ring-1 ring-background"
-                        style={{ background: color || "hsl(var(--primary))" }}
-                      />
-                    ))}
-                    {routes.length} ruter
-                  </span>
-                )}
-              </>
-            )}
-          </SheetHeaderBlock>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="appointment-details-overlay planner-overlay flex w-[calc(100vw-1rem)] max-w-xl sm:max-w-xl max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0">
+        <PlannerDialogHeader icon="dayOverview" title="Dagens tidslinje" description={date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"} />
+        <div className="flex shrink-0 flex-wrap gap-x-4 gap-y-1 border-b px-4 py-2 text-xs text-muted-foreground">
+          <span>{sorted.length} stop</span><span>{routes.length} ruter</span>
+        </div>
 
         <div className="planner-overlay-body min-h-0 flex-1 overflow-auto overscroll-contain p-3 bg-secondary/[0.16]">
           {sorted.length === 0 ? (
@@ -82,7 +60,8 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
             <ol className="space-y-2">
               {sorted.map((s, idx) => {
                 return (
-                  <li key={s.id} className="relative">
+                  <li key={s.id} className="relative grid grid-cols-[1.75rem_minmax(0,1fr)] gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-xs font-semibold text-foreground">{idx + 1}</span>
                     <div
                       data-appointment-card=""
                       className={cn(CARD_BASE, CARD_BORDER, CARD_CONTENT)}
@@ -122,7 +101,8 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
             </ol>
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      <SheetFooterBar className="flex justify-end"><Button variant="outline" className="h-11" onClick={() => onOpenChange(false)}>Luk</Button></SheetFooterBar>
+      </DialogContent>
+    </Dialog>
   );
 }

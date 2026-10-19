@@ -1,4 +1,7 @@
 import { isFixedRoute, compareDayRoutes } from "./lib/day-route-order";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import PlannerDialogHeader from "./PlannerDialogHeader";
+import { SheetFooterBar } from "./SheetSection";
 import { formatPrice } from "@/lib/price-format";
 // MonthWeekCalendar — klassisk kalender-overblik med måned/uge visning.
 // - Ingen timer/tidsrum: hver dag er ét helt felt
@@ -226,34 +229,10 @@ const DayOverviewSheet = ({
   })();
 
   return (
-    <Sheet open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="planner-overlay w-full sm:max-w-lg p-0 flex flex-col">
-        <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 space-y-1">
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold tabular-nums",
-              isToday ? "bg-foreground text-background" : "bg-secondary text-foreground",
-            )}>
-              {format(day, "d")}
-            </span>
-            <div className="min-w-0">
-              <SheetTitle className="text-lg leading-tight">
-                {format(day, "EEEE d. MMMM yyyy", { locale: da })}
-              </SheetTitle>
-              <div className="text-[11px] text-muted-foreground flex items-center gap-2">
-                <span>Uge {getISOWeek(day)}</span>
-                {isToday && <span className="text-foreground font-semibold">· I dag</span>}
-                {isPast && !isToday && <span>· Tidligere dag</span>}
-                {weather && (
-                  <span className="inline-flex items-center gap-1">
-                    · {Math.round(weather.tempMax ?? weather.tempMin ?? 0)}°
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </SheetHeader>
-
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="appointment-details-overlay planner-overlay flex w-[calc(100vw-1rem)] max-w-2xl sm:max-w-2xl max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0">
+        <PlannerDialogHeader icon="dayOverview" title="Hele dagen" description={`${format(day, "EEEE d. MMMM yyyy", { locale: da })} · Uge ${getISOWeek(day)}${isToday ? " · I dag" : ""}`} />
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20">
         {/* Opsummering */}
         <div className="planner-overlay-body px-4 sm:px-5 py-3 grid grid-cols-2 gap-2 border-b border-border/70">
           <div className="rounded-[5px] border border-border/70 bg-card p-3">
@@ -334,7 +313,7 @@ const DayOverviewSheet = ({
         )}
 
         {/* Liste over dagens ruter — i planlagt rækkefølge */}
-        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-2">
+        <div className="p-3 space-y-2">
           {routes.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-12">
               Ingen ruter på denne dag endnu.
@@ -451,20 +430,24 @@ const DayOverviewSheet = ({
           )}
         </div>
 
+        </div>
+        <SheetFooterBar className="flex items-center justify-between gap-2">
+          <Button variant="outline" className="h-11" onClick={onClose}>Luk</Button>
         {!isPast && (
-          <div className="border-t border-border/70 px-5 py-3 bg-card">
+          <div>
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="h-11"
               onClick={() => onCreateRoute(date)}
             >
-              <Plus className="mr-2 h-4 w-4" /> Opret ny rute denne dag
+              <Plus className="mr-2 h-4 w-4" /> Opret rute
             </Button>
           </div>
         )}
-      </SheetContent>
-    </Sheet>
+        </SheetFooterBar>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -1,8 +1,9 @@
 // Tastatur-genveje for ruteplanlæggeren — vist i en dialog så hele listen
 // er læsbar (i stedet for en lille tooltip). Åbnes med "?" eller via knappen.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Keyboard } from "lucide-react";
-import { SheetHeaderBlock } from "./SheetSection";
+import { Button } from "@/components/ui/button";
+import PlannerDialogHeader from "./PlannerDialogHeader";
+import { SheetFooterBar } from "./SheetSection";
 
 const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] = [
   {
@@ -54,14 +55,9 @@ export default function RoutePlannerShortcutsHelp({
 }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md">
-        <DialogHeader className="planner-overlay-header space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-3 pr-12 border-b">
-          <SheetHeaderBlock
-            icon={<Keyboard className="h-4 w-4" />}
-            title={<DialogTitle className="text-base">Tastaturgenveje</DialogTitle>}
-            description={<DialogDescription className="text-xs">Hurtigere planlægning. Genveje ignoreres, mens du skriver i et felt.</DialogDescription>}
-          />
-        </DialogHeader>
+      <DialogContent className="appointment-details-overlay planner-overlay flex w-[calc(100vw-1rem)] max-w-2xl sm:max-w-2xl max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0">
+        <PlannerDialogHeader icon="shortcuts" title="Tastaturgenveje" description="Genveje er slået fra, mens du skriver i et felt." />
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20 p-4 sm:p-5">
         <div className="grid gap-5 sm:grid-cols-2">
           {SECTIONS.map((s) => (
             <div key={s.title}>
@@ -70,8 +66,8 @@ export default function RoutePlannerShortcutsHelp({
               </p>
               <ul className="space-y-1.5">
                 {s.rows.map((r) => (
-                  <li key={r.label} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-foreground">{r.label}</span>
+                  <li key={r.label} className="flex min-w-0 items-start justify-between gap-3 text-xs sm:text-sm">
+                    <span className="min-w-0 break-words text-foreground">{r.label}</span>
                     <span className="flex shrink-0 items-center gap-1">
                       {r.keys.map((k, i) => (
                         <kbd
@@ -88,6 +84,8 @@ export default function RoutePlannerShortcutsHelp({
             </div>
           ))}
         </div>
+        </div>
+        <SheetFooterBar className="flex justify-end"><Button variant="outline" className="h-11" onClick={() => onOpenChange(false)}>Luk</Button></SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
