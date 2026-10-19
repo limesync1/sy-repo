@@ -1121,7 +1121,12 @@ const DayCellInner = ({
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
                 >
-                  +{overflow} {overflow === 1 ? "rute" : "ruter"}
+                  {(() => {
+                    const virtualCount = routes.slice(MAX_VISIBLE).filter((r) => (r as { isVirtual?: boolean }).isVirtual).length;
+                    if (virtualCount === overflow) return <>+{overflow} forventede</>;
+                    if (virtualCount > 0) return <>+{overflow - virtualCount} {overflow - virtualCount === 1 ? "rute" : "ruter"} · {virtualCount} forventede</>;
+                    return <>+{overflow} {overflow === 1 ? "rute" : "ruter"}</>;
+                  })()}
                 </button>
               )}
               {expanded && compact && routes.length > 3 && (
