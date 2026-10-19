@@ -140,8 +140,8 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                   <li key={s.id} id={`svc-row-${s.id}`}
                     className={cn("min-w-0 scroll-mt-4 overflow-hidden rounded-lg border bg-background transition-colors",
                       selected ? "border-accent/60 ring-1 ring-accent/30" : "border-border hover:border-foreground/25")}>
-                    <div className="flex min-w-0 items-start gap-2.5 px-3 py-2">
-                      <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-0.5 h-7 w-7 shrink-0" />
+                    <div className="flex min-w-0 items-start gap-2 px-2.5 py-1.5">
+                      <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-0.5 h-6 w-6 shrink-0" />
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                           <p className="min-w-0 break-words text-sm font-semibold leading-snug text-foreground">{s.name}</p>

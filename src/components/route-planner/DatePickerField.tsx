@@ -64,13 +64,13 @@ export const DatePickerField = ({
           type="button"
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal h-9 bg-background",
-            "hover:bg-secondary hover:text-foreground hover:border-border",
+            "w-full justify-start text-left font-medium h-10 border-accent/40 bg-accent/5",
+            "hover:bg-accent/10 hover:text-foreground hover:border-accent/60",
             !date && "text-muted-foreground",
             className,
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-accent" />
           {date ? (
             <span className="min-w-0 truncate capitalize">{format(date, "EEEE d. MMMM yyyy", { locale: da })}</span>
           ) : (
