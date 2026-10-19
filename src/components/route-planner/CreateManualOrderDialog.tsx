@@ -448,6 +448,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           })()}
 
           {/* Services */}
+          <div id="cmo-services">
+          {errors.services && <p className="mb-1 text-sm font-medium text-destructive">{errors.services}</p>}
           <Section
             icon={<ListPlus className="h-3.5 w-3.5" />}
             title="Services"
@@ -458,7 +460,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               businessId={businessId}
               services={activeServices as any}
               selectedIds={items.map((i) => i.serviceId)}
-              onAdd={addService}
+              onAdd={(id) => { addService(id); clearErr("services"); }}
               onRemove={removeItem}
               summary={<>{items.length} valgt · {fmt(totalAmount)} <span className="font-normal text-muted-foreground">uden moms</span></>}
               renderSelected={(id) => {
@@ -538,6 +540,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               }}
             />
           </Section>
+          </div>
 
           {!showMsg && !businessMessage ? (
             <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline">
