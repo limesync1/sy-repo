@@ -504,20 +504,22 @@ const Planner = () => {
     enabled: orderIdsForStops.length > 0,
     staleTime: 60_000,
     queryFn: async () => {
-      const map = new Map<string, { preferred_date: string | null; completed_cycles: number }>();
+      const map = new Map<string, { preferred_date: string | null; completed_cycles: number; cycle_number: number }>();
       // Chunk i batches af 500 så vi ikke rammer .in()-limits ved meget store kalendre.
       const chunkSize = 500;
       for (let i = 0; i < orderIdsForStops.length; i += chunkSize) {
         const chunk = orderIdsForStops.slice(i, i + chunkSize);
         const { data, error } = await supabase
           .from("orders")
-          .select("id, preferred_date, completed_cycles")
+          .select("id, preferred_date, completed_cycles, parent_order_id, recurrence_cycle, status")
           .in("id", chunk);
         if (error) throw error;
-        for (const o of data || []) {
+        for (const o of (data || []) as any[]) {
           map.set(o.id as string, {
             preferred_date: (o.preferred_date as string | null) ?? null,
             completed_cycles: Number(o.completed_cycles ?? 0),
+            // Samme kørselsnummer som på "Aftaler"-siden.
+            cycle_number: orderCycleNumber(o),
           });
         }
       }
@@ -537,6 +539,7 @@ const Planner = () => {
         start_date: info.preferred_date,
         is_first_occurrence: info.completed_cycles === 0,
         completed_cycles: info.completed_cycles,
+        cycle_number: info.cycle_number,
       } as RouteStop;
     });
   }, [rawCalendarStops, orderStartInfo]);
@@ -726,24 +729,20 @@ const Planner = () => {
 
   /** Stops efter filter — bruges både til rute-bygger og kalender-kort. */
   const visibleCalendarStops = useMemo(() => {
-    // Udførte stops BLIVER på ruten som "fortid" — så basisruten bevarer
-    // sin historik visuelt (vigtigt fx for korte intervaller hvor en
-    // afsluttet kørsel ellers ville få ruten til at se tom ud). De vises
-    // dæmpet med "Færdig"-badge i RouteStopsPanel.
-    if (!filtersActive) return calendarStops;
+    // Udførte stops skjules i ruteplanlæggeren — de hører til på "Aftaler"-
+    // siden. De vises kun, når man eksplicit filtrerer på "Udført".
+    const showCompleted = filterStatuses.includes("completed");
+    const effStatus = (s: any) => ((s.occurrence_status as string | undefined) ?? null) ?? s.status;
     return calendarStops.filter((s: any) => {
+      if (!showCompleted && effStatus(s) === "completed") return false;
       if (filterAssigneeIds.length > 0) {
         const ids = (s.assignee_ids || []) as string[];
         if (!ids.some((id) => filterAssigneeIds.includes(id))) return false;
       }
-      if (filterStatuses.length > 0) {
-        const occ = (s.occurrence_status as string | undefined) ?? null;
-        const eff = occ ?? s.status; // forekomst-status er kanonisk, fallback til legacy stop-status
-        if (!filterStatuses.includes(eff)) return false;
-      }
+      if (filterStatuses.length > 0 && !filterStatuses.includes(effStatus(s))) return false;
       return true;
     });
-  }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
+  }, [calendarStops, filterAssigneeIds, filterStatuses]);
 
   // ─── Drag-sensorer ───
   // Mouse + Touch er den kombination der har vist sig mest pålidelig på
