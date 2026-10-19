@@ -82,7 +82,12 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
       <div className="space-y-2">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={integration ? "Søg navn, kategori eller varenr.…" : "Søg service…"} className="h-11 bg-background pl-9 pr-11 text-base sm:text-sm" aria-label="Søg efter service" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => {
+            if (e.key !== "Enter" || e.ctrlKey || e.metaKey) return;
+            e.preventDefault();
+            const first = groups.flatMap(([, list]) => list).find((s) => !selectedIds.includes(s.id));
+            if (first && q.trim()) { onAdd(first.id); setQ(""); }
+          }} placeholder={integration ? "Søg navn, kategori eller varenr.…" : "Søg service…"} className="h-11 bg-background pl-9 pr-11 text-base sm:text-sm" aria-label="Søg efter service" enterKeyHint="done" />
           {q && (
             <button type="button" onClick={() => setQ("")} aria-label="Ryd søgning" className="absolute right-1 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary">
               <X className="h-4 w-4" />
