@@ -29,6 +29,7 @@ import { NumberStepper } from "@/components/shared/NumberStepper";
 
 import { IndustryIcon } from "@/components/IndustryIcon";
 import ActiveServiceRequired from "./ActiveServiceRequired";
+import ServicePicker from "./ServicePicker";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
@@ -447,55 +448,17 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             required
             hint={items.length > 0 ? `${items.length} valgt` : undefined}
           >
-            <Select value="" onValueChange={addService}>
-              <SelectTrigger className="h-10 bg-background">
-                <SelectValue placeholder="+ Tilføj service fra dit katalog…" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[320px]">
-                {activeServices.length === 0 && (
-                  <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>
-                )}
-                {servicesByCategory.map(([category, group], idx) => (
-                  <SelectGroup key={category}>
-                    {idx > 0 && <SelectSeparator />}
-                    <SelectLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {category}
-                    </SelectLabel>
-                    {group.map((s) => {
-                      const sub = (s as any).subcategory as string | null;
-                      return (
-                        <SelectItem
-                          key={s.id}
-                          value={s.id}
-                          className="py-2 pr-3 pl-2 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground focus:bg-secondary focus:text-foreground"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span
-                              className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden"
-                              aria-hidden="true"
-                            >
-                              <IndustryIcon category={s.service_category} subcategory={sub} name={s.name} className="h-6 w-6" />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
-                              {sub && (
-                                <div className="truncate text-[11px] text-muted-foreground">{sub}</div>
-                              )}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+            <ServicePicker
+              services={activeServices as any}
+              selectedIds={items.map((i) => i.serviceId)}
+              onAdd={addService}
+            />
 
             {items.length === 0 && activeServices.length > 0 && (
               <div className="mt-3 rounded-lg border border-dashed border-border bg-card/40 px-3 py-4 text-center">
                 <Package className="mx-auto h-5 w-5 text-muted-foreground/60" />
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  Ingen services valgt endnu. Tilføj én fra dropdown'en ovenfor for at komme i gang.
+                  Ingen services valgt endnu. Vælg en service på listen ovenfor for at komme i gang.
                 </p>
               </div>
             )}
