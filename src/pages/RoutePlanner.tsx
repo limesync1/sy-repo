@@ -1068,23 +1068,28 @@ const Planner = () => {
         .select("order_id, orders!inner(id, business_id, status, created_at)")
         .eq("details->>interval", "every_1_hour_test")
         .eq("orders.business_id", businessId!)
-        .neq("orders.status", "cancelled");
+        .not("orders.status", "in", "(cancelled,completed)");
       const subOrderIds = new Set((subsRes.data || []).map((x: any) => x.order_id).filter(Boolean));
       const hourlyOrderIds = Array.from(new Set((hourlyItems || []).map((i: any) => i.order_id as string)))
         .filter((id) => !subOrderIds.has(id));
       if (hourlyOrderIds.length > 0) {
+        // Kun åbne aftaler på ruter, der ikke er slettet. Projektionen
+        // udgår fra den rute, hvor den åbne aftale faktisk ligger — så en
+        // slettet rute eller udførte stop aldrig fører forventede ruter videre.
         const { data: hourlyStops } = await supabase
           .from("route_stops")
-          .select("order_id, route_id, routes!inner(id, route_date, base_route_id)")
-          .in("order_id", hourlyOrderIds);
+          .select("order_id, route_id, status, routes!inner(id, route_date, archived_at, deleted_at)")
+          .in("order_id", hourlyOrderIds)
+          .is("routes.archived_at", null)
+          .is("routes.deleted_at", null)
+          .neq("status", "completed");
         const latestByRoute = new Map<string, { date: string; orderIds: Set<string> }>();
         for (const st of hourlyStops || []) {
           const r = (st as any).routes;
-          const routeId = (r?.base_route_id || r?.id) as string | undefined;
+          const routeId = r?.id as string | undefined;
           if (!routeId) continue;
           const date = String(r.route_date).slice(0, 10);
           const cur = latestByRoute.get(routeId) ?? { date, orderIds: new Set<string>() };
-          if (date < cur.date) cur.date = date;
           cur.orderIds.add((st as any).order_id);
           latestByRoute.set(routeId, cur);
         }
