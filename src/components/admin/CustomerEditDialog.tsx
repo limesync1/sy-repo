@@ -94,7 +94,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [showNotes, setShowNotes] = useState(!!initial?.notes);
-  const [showPhoto, setShowPhoto] = useState(false);
+  const [showAccounting, setShowAccounting] = useState(false);
   const { data: activeAccountingIntegration } = useActiveAccountingIntegration(open ? businessId : undefined);
   const accountingEnabled = !!activeAccountingIntegration;
   const { data: services = [] } = useServices(businessId);
@@ -388,56 +388,65 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             </Section>
 
-            <Collapsible open={showPhoto} onOpenChange={setShowPhoto}>
-              <CollapsibleTrigger asChild><Button variant="ghost" className="h-11 w-full justify-start px-2 sm:h-10"><Camera />{avatarUrl ? "Profilbillede" : "Tilføj billede"}<ChevronDown className="ml-auto" /></Button></CollapsibleTrigger>
-              <CollapsibleContent>            {/* Profilbillede */}
-            <div className="flex items-center gap-3 pt-2">
-              <div className="relative h-12 w-12 shrink-0 group/avatar sm:h-14 sm:w-14">
+            {/* Profilbillede — altid synligt */}
+            <div className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
+              <label className="group/avatar relative h-14 w-14 shrink-0 cursor-pointer" title="Vælg profilbillede">
                 {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Profil"
-                    className="h-12 w-12 rounded-full object-cover border sm:h-14 sm:w-14"
-                    width={56}
-                    height={56}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <img src={avatarUrl} alt="Profilbillede" className="h-14 w-14 rounded-full border-2 border-accent/40 object-cover" width={56} height={56} loading="lazy" decoding="async" />
                 ) : (
-                  <div className="h-12 w-12 rounded-full bg-accent/10 border flex items-center justify-center text-accent sm:h-14 sm:w-14">
-                    {type === "business" ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
-                  </div>
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-accent/50 bg-background text-accent">
+                    <Camera className="h-6 w-6" />
+                  </span>
                 )}
-                <label className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[10px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity" title="Skift profilbillede">
-                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skift"}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
-                </label>
-              </div>
-              <div className="text-xs text-muted-foreground flex-1 min-w-0">
-                <p className="font-medium text-foreground">Profilbillede</p>
-                <p className="truncate sm:whitespace-normal">Tryk på billedet for at skifte. Maks 5MB.</p>
-                {avatarUrl && (
-                  <Button type="button" variant="ghost" onClick={() => setAvatarUrl(null)} className="h-11 px-2 text-destructive hover:text-destructive">
-                    Fjern billede
+                {uploadingAvatar && <span className="absolute inset-0 flex items-center justify-center rounded-full bg-background/70"><Loader2 className="h-5 w-5 animate-spin text-accent" /></span>}
+                <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarUpload} disabled={uploadingAvatar} aria-label="Vælg profilbillede" />
+              </label>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">Profilbillede <span className="font-normal text-muted-foreground">(valgfrit)</span></p>
+                <p className="text-xs text-muted-foreground">JPG eller PNG, maks. 5 MB.</p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  <Button asChild size="sm" className="h-11 cursor-pointer bg-accent text-accent-foreground hover:bg-accent/90 sm:h-9">
+                    <label><Camera className="h-4 w-4" />{avatarUrl ? "Skift billede" : "Tilføj billede"}<input type="file" accept="image/*" className="sr-only" onChange={handleAvatarUpload} disabled={uploadingAvatar} /></label>
                   </Button>
-                )}
+                  {avatarUrl && (
+                    <Button type="button" size="sm" variant="outline" onClick={() => setAvatarUrl(null)} className="h-11 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-9">Fjern</Button>
+                  )}
+                </div>
               </div>
             </div>
 
-              </CollapsibleContent>
-            </Collapsible>
-            <Collapsible open={showNotes} onOpenChange={setShowNotes}>
-              <CollapsibleTrigger asChild><Button variant="ghost" className="h-11 w-full justify-start px-2 sm:h-10"><StickyNote />{notes ? "Interne noter" : "Tilføj intern note"}<ChevronDown className="ml-auto" /></Button></CollapsibleTrigger>
-              <CollapsibleContent className="pt-1">
-                <Textarea aria-label="Interne noter" value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
+            <Collapsible open={showNotes} onOpenChange={setShowNotes} className="rounded-lg border border-warning/40 bg-warning/5">
+              <CollapsibleTrigger asChild>
+                <button type="button" className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-warning/20 text-warning-foreground dark:text-warning"><StickyNote className="h-4 w-4" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-foreground">Intern note <span className="font-normal text-muted-foreground">(valgfrit)</span></span>
+                    <span className="block text-xs text-muted-foreground">Kun synlig for jer — fx kode til hoveddør.</span>
+                  </span>
+                  <span className="shrink-0 text-xs font-semibold text-accent">{showNotes ? "Skjul" : notes ? "Vis" : "Tilføj"}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${showNotes ? "rotate-180" : ""}`} />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-3 pb-3">
+                <Textarea aria-label="Intern note" value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
               </CollapsibleContent>
             </Collapsible>
 
             {/* Regnskabs-felter — vises kun hvis virksomheden har integreret et regnskabsprogram */}
             {accountingEnabled && (
-            <Collapsible>
-              <CollapsibleTrigger asChild><Button variant="ghost" className="h-11 w-full justify-start px-2 sm:h-10"><Building2 />Regnskab & fakturering<ChevronDown className="ml-auto" /></Button></CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
+            <Collapsible open={showAccounting} onOpenChange={setShowAccounting} className="rounded-lg border border-primary/20 bg-secondary/40">
+              <CollapsibleTrigger asChild>
+                <button type="button" className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-foreground"><Building2 className="h-4 w-4" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-foreground">Regnskab & fakturering <span className="font-normal text-muted-foreground">(valgfrit)</span></span>
+                    <span className="block text-xs text-muted-foreground">Kunde-nr., betaling, moms og EAN.</span>
+                  </span>
+                  <span className="shrink-0 text-xs font-semibold text-accent">{showAccounting ? "Skjul" : "Vis"}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${showAccounting ? "rotate-180" : ""}`} />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 px-3 pb-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <FieldLabel optional>Kunde-nr.</FieldLabel>
