@@ -5061,6 +5061,15 @@ export type Database = {
         Args: { _after: string; _base_route_id: string }
         Returns: string
       }
+      _notif_override_lead: {
+        Args: {
+          p_business: string
+          p_channel: string
+          p_email: string
+          p_order: string
+        }
+        Returns: number
+      }
       _recurrence_interval_duration: {
         Args: { _custom_days?: number; _interval: string }
         Returns: string
