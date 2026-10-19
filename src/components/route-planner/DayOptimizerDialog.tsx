@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
 import { useOptimizeRoute } from "@/hooks/useRoutes";
 import { toast } from "sonner";
-import { PanelIcon } from "@/components/shared/PanelIcon";
+import PlannerDialogHeader from "./PlannerDialogHeader";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; businessId: string | null | undefined; date: string };
 
@@ -29,10 +29,11 @@ function useDayData(businessId: string | null | undefined, date: string, enabled
     queryKey: ["day-optimizer", businessId, date],
     enabled: enabled && !!businessId,
     queryFn: async () => {
+      if (!businessId) throw new Error("Virksomhed mangler");
       const { data: routes, error } = await supabase
         .from("routes")
         .select("id, name, employee_id, color")
-        .eq("business_id", businessId!)
+        .eq("business_id", businessId)
         .eq("route_date", date)
         .is("deleted_at", null)
         .is("archived_at", null);
@@ -112,18 +113,12 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) { onOpenChange(v); if (!v) setBefore(null); } }}>
-      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
-        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
-          <SheetHeaderBlock
-            icon={<PanelIcon name="optimizeDay" className="h-6 w-6" />}
-            title={<DialogTitle className="text-base">Optimér dagen</DialogTitle>}
-            description={<DialogDescription className="text-xs leading-snug first-letter:uppercase">{dateLabel}: find den hurtigste rækkefølge mellem stoppene og se køretiden pr. medarbejder.</DialogDescription>}
-          />
-        </DialogHeader>
+      <DialogContent className="appointment-details-overlay planner-overlay w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
+        <PlannerDialogHeader icon="optimizeDay" title="Optimér dagen" description={<span className="first-letter:uppercase">{dateLabel} · Hurtigste rækkefølge og køretid pr. medarbejder</span>} />
 
         <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto space-y-4 bg-secondary/20 p-4 sm:p-5">
           <Section icon={<Car className="h-4 w-4" />} title="Samlet køretid" tone="sky" hint={`${routeCount} rute${routeCount === 1 ? "" : "r"}`}>
-            <div className="flex items-baseline gap-3 tabular-nums">
+            <div className="flex flex-wrap items-baseline gap-3 tabular-nums">
               <span className="text-2xl font-bold text-foreground">{fmtMin(totalNow)}</span>
               {totalBefore != null && totalBefore - totalNow >= 1 && (
                 <span className="text-sm font-semibold text-success">sparet {fmtMin(totalBefore - totalNow)}</span>

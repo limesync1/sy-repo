@@ -51,9 +51,9 @@ export default function StepConfirm({
         description="Tjek konsekvensen igennem. Intet ændres før du bekræfter."
       />
 
-      <div className="rounded-lg border bg-secondary/30 p-3.5">
+      <div className="rounded-lg border border-warning/30 bg-warning/10 p-3.5">
         <p className="text-sm font-semibold">{employeeName}</p>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Syg {prettyDate(from)}
           {from !== to && ` — ${prettyDate(to)}`} · {days} dag{days === 1 ? "" : "e"}
         </p>
@@ -61,7 +61,7 @@ export default function StepConfirm({
 
       {routes.length === 0 ? (
          <div className="flex items-center gap-2 rounded-lg border bg-secondary/30 px-3 py-3 text-xs">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
           Ingen aftaler berøres — fraværet registreres blot i kalenderen.
         </div>
       ) : (
@@ -71,7 +71,7 @@ export default function StepConfirm({
               <span className="text-xs font-medium">
                 {shortDate(r.route_date)} — {r.name || "Rute uden navn"}
               </span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {describe(decisions[r.id], r.name || "rute", r.stops.length, empById)}
               </span>
             </li>
@@ -85,15 +85,15 @@ export default function StepConfirm({
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
           rows={2}
-          className="resize-none bg-card text-xs"
+          className="resize-none bg-card text-base sm:text-sm"
           placeholder="Fx: Sygemeldt om morgenen, forventes tilbage mandag"
         />
       </div>
 
       {problems.length > 0 && (
-        <ul className="space-y-1 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2">
+        <ul className="space-y-1 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2">
           {problems.map((p) => (
-            <li key={p} className="flex items-start gap-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+            <li key={p} className="flex items-start gap-1.5 text-xs text-foreground">
               <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
               {p}
             </li>

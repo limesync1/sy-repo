@@ -32,17 +32,17 @@ export default function RouteDecisionCard({
   ).length;
   const crew = route.crewIds
     .map((id) => empById.get(id))
-    .filter(Boolean)
-    .map((e) => ({ id: e!.id, name: e!.name, title: e!.title, avatar_url: e!.avatar_url, color: e!.color }));
+    .filter((e): e is Emp => e != null)
+    .map((e) => ({ id: e.id, name: e.name, title: e.title, avatar_url: e.avatar_url, color: e.color }));
 
   const disabledReason = (a: SickLeaveAction) =>
     a === "spread" && route.crewIds.length === 0 ? "Ingen andre på holdet" : null;
 
   return (
-    <section className="space-y-4 rounded-lg border bg-card p-3.5">
+    <section className="space-y-3 rounded-md border border-border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{route.name || "Rute uden navn"}</p>
+          <p className="break-words text-sm font-semibold">{route.name || "Rute uden navn"}</p>
           <p className="text-[11px] text-muted-foreground">
             {shortDate(route.route_date)} · {route.stops.length} aftale
             {route.stops.length === 1 ? "" : "r"}
@@ -52,7 +52,7 @@ export default function RouteDecisionCard({
           {crew.length > 0 && <EmployeeAvatars employees={crew} size={20} max={3} />}
           {route.isPrimary && <Badge variant="secondary" className="text-[10px]">Ansvarlig</Badge>}
           {understaffed > 0 && (
-            <Badge variant="outline" className="border-amber-500/40 text-[10px] text-amber-600">
+            <Badge variant="outline" className="border-warning/40 text-[10px] text-warning-foreground">
               {understaffed} underbemandet
             </Badge>
           )}
@@ -60,12 +60,12 @@ export default function RouteDecisionCard({
       </div>
 
       {/* Handlingsvalg som radiokort */}
-      <div role="radiogroup" aria-label="Løsning for ruten" className="grid gap-2">
+      <div role="radiogroup" aria-label="Løsning for ruten" className="grid gap-2 sm:grid-cols-2">
         {ACTIONS.map((a) => {
           const reason = disabledReason(a);
           const selected = action === a;
           return (
-            <button
+            <Button variant="outline"
               key={a}
               type="button"
               role="radio"
@@ -73,8 +73,8 @@ export default function RouteDecisionCard({
               disabled={!!reason}
               onClick={() => onChange({ action: a })}
               className={cn(
-                "rounded-md border px-3 py-2.5 text-left transition-colors",
-                selected ? "border-foreground bg-secondary/60" : "border-border hover:bg-secondary/40",
+                "h-auto min-h-11 flex-col items-stretch whitespace-normal px-3 py-2.5 text-left",
+                selected ? "border-accent bg-accent/10" : "border-border hover:bg-secondary/40",
                 reason && "cursor-not-allowed opacity-50",
               )}
             >
@@ -92,7 +92,7 @@ export default function RouteDecisionCard({
                <span className="mt-1 block pl-5 text-[11px] leading-relaxed text-muted-foreground">
                 {reason || ACTION_HINT[a]}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -108,19 +108,19 @@ export default function RouteDecisionCard({
             </p>
           ) : (
             <>
-              <div className="space-y-1">
+              <div role="radiogroup" aria-label="Afløser" className="space-y-1">
                 {visible.map((c) => {
                   const selected = decision?.replacementId === c.employeeId;
                   return (
-                    <button
+                    <Button variant="outline"
                       key={c.employeeId}
                       type="button"
                       role="radio"
                       aria-checked={selected}
                       onClick={() => onChange({ replacementId: c.employeeId })}
                       className={cn(
-                        "flex w-full flex-col items-stretch gap-2 rounded-md border px-3 py-2.5 text-left transition-colors sm:flex-row sm:items-center sm:justify-between",
-                        selected ? "border-foreground bg-secondary/60" : "hover:bg-secondary/40",
+                        "flex h-auto min-h-11 w-full flex-col items-stretch gap-2 whitespace-normal px-3 py-2.5 text-left sm:flex-row sm:items-center sm:justify-between",
+                        selected ? "border-accent bg-accent/10" : "hover:bg-secondary/40",
                       )}
                     >
                       <EmpLine emp={empById.get(c.employeeId)} size={22} className="text-xs" />
@@ -131,17 +131,17 @@ export default function RouteDecisionCard({
                           </Badge>
                         )}
                         {c.conflicts > 0 ? (
-                          <Badge variant="outline" className="border-amber-500/40 text-[10px] text-amber-600">
+                          <Badge variant="outline" className="border-warning/40 text-[10px] text-warning-foreground">
                             {c.conflicts} konflikt{c.conflicts === 1 ? "" : "er"}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="border-emerald-500/40 text-[10px] text-emerald-600">
+                          <Badge variant="outline" className="border-success/40 text-[10px] text-success">
                             Ledig
                           </Badge>
                         )}
                         {c.onCrew && <Badge variant="secondary" className="text-[10px]">På holdet</Badge>}
                         {c.overCapacity && (
-                          <Badge variant="outline" className="border-amber-500/40 text-[10px] text-amber-600">
+                          <Badge variant="outline" className="border-warning/40 text-[10px] text-warning-foreground">
                             Over kapacitet
                           </Badge>
                         )}
@@ -149,7 +149,7 @@ export default function RouteDecisionCard({
                           {c.currentLoad} aftaler
                         </span>
                       </span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -158,7 +158,7 @@ export default function RouteDecisionCard({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-[11px]"
+                  className="h-11 px-2 text-xs"
                   onClick={() => setShowAll((v) => !v)}
                 >
                   {showAll ? "Vis færre" : `Vis alle (${candidates.length})`}
@@ -183,7 +183,7 @@ export default function RouteDecisionCard({
       )}
 
       {route.stops.length > 0 && (
-        <p className="truncate text-[11px] text-muted-foreground">
+        <p className="break-words text-xs text-muted-foreground">
           {route.stops.slice(0, 3).map((s) => s.customer_name || s.address || "Aftale").join(" · ")}
           {route.stops.length > 3 && ` +${route.stops.length - 3} mere`}
         </p>

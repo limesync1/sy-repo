@@ -10,9 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { SheetHeaderBlock } from "@/components/route-planner/SheetSection";
+import PlannerDialogHeader from "./PlannerDialogHeader";
+import { SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, Thermometer } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import {
   scoreCandidate, sortCandidates, useCommitSickLeave, useSickLeaveImpact,
   type RouteDecision, type SickLeaveAction,
@@ -165,57 +166,48 @@ export default function SickLeaveDialog({
   };
 
   const submit = async () => {
-    if (!employeeId || !sickEmp) return;
+    if (!employeeId || !sickEmp || !impact) return;
     await commit.mutateAsync({
       businessId,
       employeeId,
       employeeName: sickEmp.name,
       absence: { from, to: safeTo, type: "sick", note: note.trim() || undefined },
       decisions: decisionList,
-      impact: impact!,
+      impact,
     });
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh]">
-        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
-          <SheetHeaderBlock
-            icon={<Thermometer className="h-4 w-4" />}
-            title={<DialogTitle className="text-base">Meld medarbejder syg</DialogTitle>}
-            description={
-              <DialogDescription className="max-w-md text-xs leading-relaxed">
-                Registrér fraværet, og vælg hvad der skal ske med medarbejderens aftaler.
-              </DialogDescription>
-            }
-          />
+      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[90vh]">
+        <PlannerDialogHeader icon="sickLeave" title="Meld medarbejder syg" description="Vælg periode, fordel aftaler og bekræft fraværet.">
           <ol className="mt-4 grid grid-cols-3 gap-2" aria-label="Trin">
             {STEPS.map((label, i) => (
               <li
                 key={label}
                 className={cn(
                   "min-w-0 border-t-2 pt-2 transition-colors",
-                  i <= step ? "border-foreground" : "border-border",
+                  i <= step ? "border-accent" : "border-border",
                 )}
                 aria-current={i === step ? "step" : undefined}
               >
                 <span
                   className={cn(
-                    "block truncate text-[11px] font-medium",
+                    "flex items-start gap-1 text-[11px] font-medium leading-snug sm:text-xs",
                     i === step ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
-                  <span className="mr-1 tabular-nums">{i + 1}.</span>{label}
+                  <span className="shrink-0 tabular-nums">{i < step ? <Check className="h-3.5 w-3.5" /> : `${i + 1}.`}</span><span className="break-words">{label}</span>
                 </span>
               </li>
             ))}
           </ol>
-        </DialogHeader>
+        </PlannerDialogHeader>
 
-        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto">
-          <div className="space-y-5 px-4 py-5 sm:px-6 sm:py-6">
-            <div ref={headingRef} tabIndex={-1} className="outline-none" />
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20">
+          <div className="space-y-3 px-3 py-4 sm:px-5">
+            <div ref={headingRef} tabIndex={-1} role="heading" aria-level={2} className="sr-only">{STEPS[step]}</div>
 
             {step === 0 && (
               <StepWho
@@ -243,8 +235,8 @@ export default function SickLeaveDialog({
 
                 {loading ? (
                   <>
-                    <Skeleton className="h-40 w-full rounded-xl" />
-                    <Skeleton className="h-40 w-full rounded-xl" />
+                    <Skeleton className="h-40 w-full rounded-md" />
+                    <Skeleton className="h-40 w-full rounded-md" />
                   </>
                 ) : (
                   <>
@@ -254,7 +246,7 @@ export default function SickLeaveDialog({
                           Brug samme løsning på alle ruter
                         </span>
                         <Select onValueChange={(v) => applyToAll(v as SickLeaveAction)}>
-                          <SelectTrigger className="h-8 w-full text-xs sm:w-56">
+                          <SelectTrigger className="min-h-11 w-full text-sm sm:w-56">
                             <SelectValue placeholder="Vælg løsning…" />
                           </SelectTrigger>
                           <SelectContent>
@@ -300,25 +292,25 @@ export default function SickLeaveDialog({
           </div>
         </div>
 
-        <DialogFooter className="planner-overlay-footer shrink-0 flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <SheetFooterBar className="flex items-center justify-between gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="w-full sm:w-auto"
+            className="h-11 flex-1 sm:flex-none"
             onClick={step === 0 ? () => onOpenChange(false) : goBack}
           >
             {step === 0 ? "Annullér" : <><ArrowLeft className="mr-1 h-3.5 w-3.5" /> Tilbage</>}
           </Button>
           {step === 2 ? (
-            <Button size="sm" className="w-full sm:w-auto" onClick={submit} disabled={!canSubmit}>
+            <Button size="sm" className="h-11 flex-1 sm:flex-none" onClick={submit} disabled={!canSubmit}>
               {commit.isPending ? "Gennemfører…" : "Bekræft sygemelding"}
             </Button>
           ) : (
-            <Button size="sm" className="w-full sm:w-auto" onClick={goNext} disabled={!canLeaveStep1}>
+            <Button size="sm" className="h-11 flex-1 sm:flex-none" onClick={goNext} disabled={!canLeaveStep1}>
               Videre <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           )}
-        </DialogFooter>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );

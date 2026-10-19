@@ -20,6 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { formatKr } from "@/lib/commission";
+import PlannerDialogHeader from "./PlannerDialogHeader";
+import { SheetFooterBar } from "./SheetSection";
 import { formatClockTime, formatRunDuration } from "@/components/employee-route/route-run-clock";
 
 export type PrintRoute = {
@@ -223,18 +225,8 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-large planner-overlay flex h-[min(94dvh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-md p-0">
-        <div className="planner-overlay-header flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-3 pr-14 sm:px-5">
-          <div className="min-w-0">
-            <DialogTitle className="truncate text-sm font-semibold text-foreground">{title}</DialogTitle>
-            <DialogDescription className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Vælg periode og indhold, før du printer eller gemmer som PDF.</DialogDescription>
-          </div>
-          <Button size="sm" onClick={() => window.print()} disabled={printDisabled} className="hidden shrink-0 gap-2 lg:inline-flex">
-            <Printer className="h-4 w-4" />
-            <span className="hidden sm:inline">Print / Gem som PDF</span>
-            <span className="sm:hidden">Print</span>
-          </Button>
-        </div>
+      <DialogContent className="modal-large appointment-details-overlay planner-overlay flex h-[min(94dvh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden rounded-md p-0">
+        <PlannerDialogHeader icon="routeList" title={title} description="Vælg periode og indhold til print eller PDF." />
 
         <div className="grid shrink-0 grid-cols-2 gap-1 border-b border-border p-2 lg:hidden" role="group" aria-label="Printvisning">
           <Button variant={mobileView === "preview" ? "secondary" : "ghost"} className="h-11 gap-2" aria-pressed={mobileView === "preview"} onClick={() => setMobileView("preview")}><FileText className="h-4 w-4" />Forhåndsvisning</Button>
@@ -298,7 +290,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
               </div>
               <div className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-1">
                 {optionRows.map((item) => (
-                  <Label key={item.key} htmlFor={`print-option-${item.key}`} className="flex min-h-9 cursor-pointer items-center justify-between gap-3 rounded-md px-2 text-xs font-normal text-foreground transition-colors hover:bg-secondary">
+                  <Label key={item.key} htmlFor={`print-option-${item.key}`} className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-md px-2 text-xs font-normal text-foreground transition-colors hover:bg-secondary">
                     {item.label}
                     <Checkbox id={`print-option-${item.key}`} checked={options[item.key]} onCheckedChange={() => toggleOption(item.key)} />
                   </Label>
@@ -417,10 +409,13 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
             </div>
           </main>
         </div>
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
-          <span className="min-w-0 text-xs text-muted-foreground">{selectedRoutes.length} {selectedRoutes.length === 1 ? "rute" : "ruter"} · {totalStops} stop</span>
-          <Button className="h-11 shrink-0 gap-2" onClick={() => window.print()} disabled={printDisabled}><Printer className="h-4 w-4" />Print / PDF</Button>
-        </div>
+        <SheetFooterBar className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground">{selectedRoutes.length} {selectedRoutes.length === 1 ? "rute" : "ruter"} · {totalStops} stop</span>
+          <div className="flex w-full gap-2 sm:w-auto">
+            <Button variant="outline" className="h-11 flex-1 sm:flex-none" onClick={() => onOpenChange(false)}>Luk</Button>
+            <Button className="h-11 flex-1 gap-2 sm:flex-none" onClick={() => window.print()} disabled={printDisabled}><Printer className="h-4 w-4" />Print / PDF</Button>
+          </div>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
