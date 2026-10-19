@@ -494,7 +494,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
                     <div>
                       <Label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Calendar className="h-3.5 w-3.5" />Startdato{it.interval && it.interval !== "engangskøb" ? " (første gang)" : ""}</Label>
-                      <DatePickerField value={it.startDate} onChange={(v) => updateItem(id, { startDate: v })} minDate={format(new Date(), "yyyy-MM-dd")} />
+                      <div className="mb-1.5 flex flex-wrap gap-1.5">
+                        {[{ l: "I dag", d: 0 }, { l: "I morgen", d: 1 }].map(({ l, d }) => {
+                          const v = format(addDays(new Date(), d), "yyyy-MM-dd");
+                          return (
+                            <button key={l} type="button" onClick={() => setStartDate(id, v)} aria-pressed={it.startDate === v}
+                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors sm:min-h-9 ${it.startDate === v ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary"}`}>
+                              {l}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <DatePickerField value={it.startDate} onChange={(v) => setStartDate(id, v)} minDate={format(new Date(), "yyyy-MM-dd")} />
+                      {items.length > 1 && (
+                        <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 text-sm sm:min-h-9">
+                          <input type="checkbox" className="h-4 w-4 accent-[hsl(var(--accent))]" checked={sameDate} onChange={(e) => { setSameDate(e.target.checked); if (e.target.checked) setItems((p) => p.map((x) => ({ ...x, startDate: it.startDate }))); }} />
+                          Samme dato for alle services
+                        </label>
+                      )}
                       <p className="mt-1 text-xs text-muted-foreground">Tidspunktet planlægges på ruten.</p>
                     </div>
 
@@ -536,31 +553,40 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 <span className="text-lg font-bold tabular-nums">{fmt(totalAmount)}</span>
                 <span className="text-xs text-muted-foreground">uden moms</span>
               </div>
-              {items.length === 0 && (
-                <span className="text-[11px] text-muted-foreground">Vælg mindst én service for at oprette bestillingen</span>
-              )}
-              {items.length > 0 && (
-                <span className="text-[11px] text-muted-foreground">
+              <span className={`text-[11px] ${missing ? "font-medium text-destructive" : "text-muted-foreground"}`}>
+                {missing ? missing : <>
                   {items.length} {items.length === 1 ? "service" : "services"}
-                  {recurringCount > 0 && (
-                    <> · <span className="font-medium text-foreground">{recurringCount}</span> tilbagevendende</>
-                  )}
-                </span>
-              )}
+                  {recurringCount > 0 && <> · <span className="font-medium text-foreground">{recurringCount}</span> tilbagevendende</>}
+                  <span className="hidden lg:inline"> · Ctrl+Enter opretter</span>
+                </>}
+              </span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => onOpenChange(false)} disabled={submitting}>
+              <Button variant="outline" className="min-h-11 flex-1 sm:min-h-10 sm:flex-none" onClick={requestClose} disabled={submitting}>
                 Annullér
               </Button>
-              <Button className="flex-1 sm:flex-none" onClick={handleSubmit} disabled={submitting || items.length === 0}>
+              <Button className="min-h-11 flex-1 sm:min-h-10 sm:flex-none" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Plus className="mr-1.5 h-4 w-4" />}
-                Opret bestilling
+                {items.length > 1 ? `Opret ${items.length} bestillinger` : "Opret bestilling"}
               </Button>
             </div>
           </div>
         </SheetFooterBar>}
       </DialogContent>
     </Dialog>
+    <AlertDialog open={confirmClose} onOpenChange={setConfirmClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Kassér bestilling?</AlertDialogTitle>
+          <AlertDialogDescription>Det, du har udfyldt, bliver ikke gemt.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="min-h-11">Fortsæt redigering</AlertDialogCancel>
+          <AlertDialogAction className="min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { reset(); setConfirmClose(false); onOpenChange(false); }}>Kassér</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
