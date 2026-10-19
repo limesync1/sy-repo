@@ -477,6 +477,44 @@ export function CustomerNotificationsSettings({
             </div>
           </div>
 
+          {/* Hvornår — kun for påmindelsen før besøg. Gælder både e-mail og SMS. */}
+          {activeEvent === "service_upcoming" && (
+            <div className="border-b border-border bg-card px-4 py-3 sm:px-5">
+              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Bell className="h-3 w-3" /> Hvornår sendes påmindelsen?
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { v: 60, label: "1 time før" },
+                  { v: 120, label: "2 timer før" },
+                  { v: 240, label: "4 timer før" },
+                  { v: 1440, label: "1 dag før" },
+                  { v: 2880, label: "2 dage før" },
+                ].map((p) => {
+                  const active = upcomingMinutesBefore === p.v;
+                  return (
+                    <button
+                      key={p.v}
+                      type="button"
+                      onClick={() => onUpcomingMinutesChange(p.v)}
+                      className={cn(
+                        "min-h-11 rounded-md border px-3 text-[12.5px] font-medium transition-colors sm:min-h-10",
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-background text-foreground hover:border-foreground/40",
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Tiden regnes fra den planlagte ankomst på ruten. Gemmes sammen med resten af indstillingerne.
+              </p>
+            </div>
+          )}
+
           {/* Channel tabs */}
           <div className="flex overflow-x-auto border-b border-border bg-card px-2 sm:px-3">
             {(["email", "sms"] as const).map((c) => {
