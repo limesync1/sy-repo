@@ -17,7 +17,8 @@ import {
 import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat, ListPlus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
-import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
+import { roundPrice, buildPricingSnapshot, getSmartStep } from "@/lib/service-pricing";
+import { calcItemTotal as calcItemTotalBase, clampStep } from "@/lib/order-item-total";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, BadgeCheck } from "lucide-react";
@@ -42,6 +43,8 @@ interface BuilderItem {
   serviceId: string;
   service: Service;
   hours: number;
+  /** Antal ved fast pris. */
+  quantity: number;
   stepValues: Record<string, number>;
   interval: string;
   /** Opstartsdato pr. service (yyyy-MM-dd). */
@@ -51,12 +54,7 @@ interface BuilderItem {
 const fmt = (n: number) =>
   new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(n || 0);
 
-const calcItemTotal = (it: BuilderItem): number => {
-  const s = it.service;
-  if (s.pricing_type === "fast_pris") return Number(s.base_price || 0);
-  if (s.pricing_type === "timepris") return Number(s.base_price || 0) * it.hours;
-  return (s.calculator_steps || []).reduce((t, step) => t + (it.stepValues[step.id] || 0) * Number(step.price_per_unit), 0);
-};
+const calcItemTotal = (it: BuilderItem): number => calcItemTotalBase(it);
 
 interface Props {
   open: boolean;
