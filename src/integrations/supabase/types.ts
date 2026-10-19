@@ -4907,6 +4907,7 @@ export type Database = {
       }
     }
     Functions: {
+      _accounting_health_check_run_impl: { Args: never; Returns: Json }
       _acct_health_record: {
         Args: {
           p_business_id: string
