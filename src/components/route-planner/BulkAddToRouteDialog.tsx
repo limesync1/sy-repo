@@ -208,7 +208,7 @@ export const BulkAddToRouteDialog = ({
             </Button>
             <Button
               type="button"
-              variant="accent"
+              variant="default"
               className="h-11 flex-1 sm:flex-none"
               onClick={() => selectedRouteId && onConfirm(selectedRouteId)}
               disabled={loading || !selectedRouteId || jobs.length === 0}
