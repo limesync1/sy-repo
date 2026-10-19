@@ -60,6 +60,8 @@ import {
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInCalendarDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { PanelIcon } from "@/components/shared/PanelIcon";
+import RouteOptimizerDialog, { type RouteOptimizationView } from "@/components/route-planner/RouteOptimizerDialog";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import { pushBatchedToast } from "@/lib/toast-batch";
@@ -668,6 +670,7 @@ const Planner = () => {
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
+  const [routeOptimizationView, setRouteOptimizationView] = useState<RouteOptimizationView | null>(null);
   const geocode = useGeocodeAddress();
 
   // Undo-stak (Rutekalender 3.0 — Fase B.3). Sidste 50 handlinger kan
@@ -2344,6 +2347,7 @@ const Planner = () => {
   const handleOptimize = async (routeId: string, routeName: string | null) => {
     setOptimizingRouteId(routeId);
     const label = routeName || "Rute";
+    setRouteOptimizationView({ name: label, busy: true });
     const runner = (async () => {
       const result = await optimizeRoute.mutateAsync(routeId);
       const savedKm = Math.max(
@@ -2363,7 +2367,6 @@ const Planner = () => {
     })();
     toast.promise(runner, {
       loading: `${label}: optimerer rækkefølgen…`,
-      icon: <PanelIcon name="optimizeRoute" className="h-5 w-5" />,
       success: ({ savedKm, savedMin, orderChanged, meaningful }) => {
         if (meaningful) {
           const parts: string[] = [];
@@ -2376,7 +2379,13 @@ const Planner = () => {
       },
       error: (e: any) => `${label}: ${e?.message || "kunne ikke optimere"}`,
     });
-    try { await runner; } catch { /* */ }
+    try {
+      const result = await runner;
+      const parts = [result.savedMin >= 1 ? `${Math.round(result.savedMin)} min` : "", result.savedKm >= 0.05 ? `${result.savedKm.toFixed(1)} km` : ""].filter(Boolean);
+      setRouteOptimizationView({ name: label, busy: false, message: result.meaningful ? `Sparet ${parts.join(" · ")}. Rækkefølgen er opdateret.` : result.orderChanged ? "Rækkefølgen er opdateret." : "Ruten har allerede den hurtigste rækkefølge." });
+    } catch (error) {
+      setRouteOptimizationView({ name: label, busy: false, error: true, message: error instanceof Error ? error.message : "Ruten kunne ikke optimeres. Prøv igen." });
+    }
     setOptimizingRouteId(null);
   };
 
@@ -4917,6 +4926,7 @@ const Planner = () => {
           ))}
       />
       )}
+      <RouteOptimizerDialog result={routeOptimizationView} onClose={() => setRouteOptimizationView(null)} />
       {historyRoute && (
         <Suspense fallback={null}>
           <RouteHistoryDialog
