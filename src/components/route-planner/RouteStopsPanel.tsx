@@ -208,7 +208,7 @@ export const RouteStopsPanel = ({
             "planner-overlay flex flex-col p-0 shadow-xl data-[state=open]:duration-[420ms] data-[state=closed]:duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:![--tw-enter-translate-x:2.5rem] data-[state=closed]:![--tw-exit-translate-x:2.5rem] data-[state=open]:![--tw-enter-translate-y:3rem] data-[state=closed]:![--tw-exit-translate-y:3rem]",
             isCompact
               ? "h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] rounded-t-md sm:h-[90dvh] sm:max-h-[90dvh]"
-              : "w-full sm:max-w-sm lg:right-[28rem]",
+              : "w-full sm:max-w-sm lg:right-[28rem] [@media(min-width:1100px)_and_(max-width:1499px)]:!max-w-[20rem] [@media(min-width:1100px)_and_(max-width:1499px)]:!right-[24rem]",
           )}
           hideOverlay={!isCompact}
           hideCloseButton={!isCompact}
