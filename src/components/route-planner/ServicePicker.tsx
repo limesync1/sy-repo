@@ -173,24 +173,24 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-2 px-3 pb-2 pl-12">
+                    <div className="flex items-center justify-between gap-2 px-3 pb-2 pl-3 min-[360px]:pl-12">
                       {hasDetails ? (
                         <button type="button" onClick={() => setOpenId(open ? null : s.id)} aria-expanded={open}
-                          className="inline-flex min-h-9 items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
+                          className="inline-flex min-h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
                           {open ? "Skjul detaljer" : "Detaljer"}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
                         </button>
                       ) : <span />}
                       {selected ? (
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground"><Check className="h-4 w-4 text-accent" />Valgt</span>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <span className="hidden min-[400px]:inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-foreground"><Check className="h-4 w-4 text-accent" />Valgt</span>
                           <button type="button" onClick={() => onRemove(s.id)} aria-label={`Fjern ${s.name}`}
-                            className="inline-flex h-11 sm:h-9 items-center justify-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                            className="inline-flex h-11 sm:h-9 shrink-0 whitespace-nowrap items-center justify-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground">
                             <Trash2 className="h-4 w-4" />Fjern
                           </button>
                         </div>
                       ) : (
                         <button type="button" onClick={() => onAdd(s.id)} aria-label={`Tilføj ${s.name}`}
-                          className="inline-flex h-11 sm:h-9 items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
+                          className="inline-flex h-11 sm:h-9 shrink-0 whitespace-nowrap items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
                           <Plus className="h-4 w-4" />Tilføj
                         </button>
                       )}
