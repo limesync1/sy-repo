@@ -15,6 +15,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const DEFAULTS: Record<string, { subject: string; body: string }> = {
+  service_upcoming: {
+    subject: "Vi kommer og udfører {{service}}",
+    body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
+  },
   service_completed: {
     subject: "Vi har udført {{service}}",
     body: "Hej {{kundens_navn}},\n\nVi har i dag været forbi og udført {{service}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{firmanavn}}",
@@ -22,6 +26,9 @@ const DEFAULTS: Record<string, { subject: string; body: string }> = {
 };
 
 const SMS_DEFAULTS: Record<string, { body: string }> = {
+  service_upcoming: {
+    body: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
+  },
   service_completed: {
     body: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
   },
@@ -79,14 +86,6 @@ Deno.serve(async (req) => {
       if (!biz || !order) {
         await admin.from("customer_notification_queue").update({
           status: "cancelled", last_error: "Ordre eller virksomhed ikke fundet",
-        }).eq("id", job.id);
-        continue;
-      }
-
-      // Påmindelser med planlagt tidspunkt er udfaset — send dem aldrig.
-      if (job.event_type === "service_upcoming") {
-        await admin.from("customer_notification_queue").update({
-          status: "cancelled", last_error: "Påmindelse med tidspunkt er udfaset",
         }).eq("id", job.id);
         continue;
       }
