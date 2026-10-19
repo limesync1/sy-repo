@@ -449,6 +449,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             hint={items.length > 0 ? `${items.length} valgt` : undefined}
           >
             <ServicePicker
+              businessId={businessId}
               services={activeServices as any}
               selectedIds={items.map((i) => i.serviceId)}
               onAdd={addService}

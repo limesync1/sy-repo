@@ -505,7 +505,7 @@ const Planner = () => {
     enabled: orderIdsForStops.length > 0,
     staleTime: 60_000,
     queryFn: async () => {
-      const map = new Map<string, { preferred_date: string | null; completed_cycles: number; cycle_number: number }>();
+      const map = new Map<string, { preferred_date: string | null; completed_cycles: number; cycle_number: number; order_status: string | null }>();
       // Chunk i batches af 500 så vi ikke rammer .in()-limits ved meget store kalendre.
       const chunkSize = 500;
       for (let i = 0; i < orderIdsForStops.length; i += chunkSize) {
@@ -521,6 +521,7 @@ const Planner = () => {
             completed_cycles: Number(o.completed_cycles ?? 0),
             // Samme kørselsnummer som på "Aftaler"-siden.
             cycle_number: orderCycleNumber(o),
+            order_status: (o.status as string | null) ?? null,
           });
         }
       }
@@ -541,6 +542,7 @@ const Planner = () => {
         is_first_occurrence: info.completed_cycles === 0,
         completed_cycles: info.completed_cycles,
         cycle_number: info.cycle_number,
+        order_status: info.order_status,
       } as RouteStop;
     });
   }, [rawCalendarStops, orderStartInfo]);
@@ -733,7 +735,8 @@ const Planner = () => {
     // Udførte stops skjules i ruteplanlæggeren — de hører til på "Aftaler"-
     // siden. De vises kun, når man eksplicit filtrerer på "Udført".
     const showCompleted = filterStatuses.includes("completed");
-    const effStatus = (s: any): string => (s.occurrence_status as string | undefined) ?? s.status;
+    // En aftale der er udført på en anden rute tæller også som udført her.
+    const effStatus = (s: any): string => s.order_status === "completed" ? "completed" : ((s.occurrence_status as string | undefined) ?? s.status);
     return calendarStops.filter((s: any) => {
       if (!showCompleted && effStatus(s) === "completed") return false;
       if (filterAssigneeIds.length > 0) {
