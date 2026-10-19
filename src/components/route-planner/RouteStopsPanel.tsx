@@ -570,15 +570,16 @@ const SortableStopRow = ({
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
         <div className={cn(compact ? CARD_ACTIONS : "flex flex-col items-center justify-center gap-1 px-1.5", "shrink-0", compact && "basis-full justify-end")}>
           {!isProjection && (
-            <Button variant="ghost" size="icon" className={cn("h-11 w-11 shrink-0", compact ? "mr-auto" : "lg:h-8 lg:w-8", stop.status !== "completed" && "text-success hover:bg-success/10 hover:text-success")}
+            <Button variant="ghost" size={compact ? "sm" : "icon"} className={cn("h-11 shrink-0", compact ? "mr-auto gap-1.5 px-3 text-sm font-semibold" : "w-11 lg:h-8 lg:w-8", stop.status !== "completed" && "text-success hover:bg-success/10 hover:text-success")}
               disabled={stop.status === "completed" ? undoPending : markCompletedPending}
               onClick={(event) => { event.stopPropagation(); if (stop.status === "completed") onUndoCompleted(); else onMarkCompleted(); }}
               aria-label={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}
               title={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}>
               {(stop.status === "completed" ? undoPending : markCompletedPending) ? <Loader2 className="h-4 w-4 animate-spin" /> : stop.status === "completed" ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+              {compact && <span>{stop.status === "completed" ? "Fortryd" : "Udført"}</span>}
             </Button>
           )}
-          {compact && !isProjection && <>
+          {compact && !isProjection && (canMoveUp || canMoveDown) && <>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>
           </>}
