@@ -3,7 +3,7 @@
 // Vises ved siden af RouteEditSheet.
 
 import { useRetainedValue } from "@/hooks/useRetainedValue";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
