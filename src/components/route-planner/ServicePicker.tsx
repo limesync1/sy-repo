@@ -188,7 +188,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                       )}
                     </div>
                     {open && (
-                      <div className="space-y-1.5 px-3 pb-2.5 pl-12 text-xs leading-5 text-muted-foreground">
+                      <div className="space-y-1.5 border-t border-border px-3 py-2.5 text-xs leading-5 text-muted-foreground sm:pl-14">
                         {s.description && <p className="line-clamp-4 break-words" title={s.description}>{s.description}</p>}
                         {steps.length > 0 && (
                           <div>
@@ -205,7 +205,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                         )}
                       </div>
                     )}
-                    {selected && <div className="px-2.5 pb-3 sm:pl-12 lg:hidden">{renderSelected(s.id)}</div>}
+                    {selected && <div className="p-3 lg:hidden">{renderSelected(s.id)}</div>}
                   </li>
                 );
               })}
@@ -215,7 +215,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
       </div>
     </div>
     <aside className="hidden min-w-0 lg:sticky lg:top-0 lg:block" aria-label="Valgte services">
-      <h4 className="mb-2 text-sm font-semibold text-foreground">Valgte services</h4>
+      <div className="mb-2 flex items-baseline justify-between gap-2"><h4 className="text-sm font-semibold text-foreground">Valgte services</h4>{selectedIds.length > 0 && <span className="text-xs text-muted-foreground">{summary}</span>}</div>
       {selectedIds.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">Tryk «Tilføj» ved en service. Dens interval, felter og startdato vises her.</p>
       ) : (
@@ -226,7 +226,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
               <div key={id} className="min-w-0">
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <p className="min-w-0 break-words text-sm font-semibold">{svc?.name}</p>
-                  <button type="button" onClick={() => onRemove(id)} aria-label={`Fjern ${svc?.name ?? "service"}`} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => onRemove(id)} aria-label={`Fjern ${svc?.name ?? "service"}`} className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="h-4 w-4" />Fjern</button>
                 </div>
                 {renderSelected(id)}
               </div>
