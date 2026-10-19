@@ -432,6 +432,20 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
+  const canOptimizeInline = compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2;
+  const canAddInline = !!onAddAppointment && !isVirtual && !isPast && !showAsCompleted;
+  const showFooter = canOptimizeInline || canAddInline;
+  const actionMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
+      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
+        {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles />Optimér rute</DropdownMenuItem>}
+        {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
+        {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
   const pill = (
     <div
       ref={setRefs}
@@ -548,8 +562,9 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
       </div>
 
+      <div className="flex shrink-0 items-start gap-1">
       {visibleEmployees.length > 0 && (
-        <div className="flex -space-x-1 shrink-0">
+        <div className="flex -space-x-1 shrink-0 pt-0.5">
           {visibleEmployees.map((emp) =>
             emp.avatar_url ? (
               <img key={emp.id} src={emp.avatar_url} alt={emp.name} loading="lazy" className="h-5 w-5 rounded-full object-cover ring-1 ring-background" />
@@ -572,7 +587,10 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           )}
         </div>
       )}
+      {!showFooter && <div className="-mr-1.5 -mt-1.5" onClick={(e) => e.stopPropagation()}>{actionMenu}</div>}
+      </div>
 
+      {showFooter && (
       <div className="col-span-2 -mx-2.5 -mb-2.5 ml-[-0.75rem] flex items-center justify-end gap-1 border-t border-border/70 bg-secondary/20 px-2 py-1" onClick={(e) => e.stopPropagation()}>
       {compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2 && (
         <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" aria-label={`Optimér ${route.name || "ruten"}`} disabled={busy || optimizing} onKeyDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onOptimize(); }}>
@@ -584,16 +602,9 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           <Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">Tilføj aftale</span><span className="sm:hidden">Tilføj</span>
         </Button>
       )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
-        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
-          {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles />Optimér rute</DropdownMenuItem>}
-          {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
-          {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {actionMenu}
       </div>
+      )}
       {stopCount > 0 && !showAsCompleted && !isVirtual && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-secondary" aria-hidden="true">
           <div

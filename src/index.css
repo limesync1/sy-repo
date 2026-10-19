@@ -1092,9 +1092,9 @@
     .route-planner-workspace .service-panel-content .planner-toolbar button,
     .route-planner-workspace .service-panel-content .planner-toolbar [role="tab"],
     .route-planner-workspace .service-panel-content .planner-toolbar [role="combobox"] {
-      min-height: 1.75rem;
-      height: 1.75rem;
-      font-size: 0.6875rem;
+      min-height: 2.25rem;
+      height: 2.25rem;
+      font-size: 0.75rem;
     }
 
     .route-planner-workspace .service-panel-content .planner-toolbar [role="tab"] {
