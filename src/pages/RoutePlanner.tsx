@@ -2805,14 +2805,6 @@ const Planner = () => {
                         </span>
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      onClick={requestCreateOrder}
-                      className="hidden h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold [@media(min-width:1100px)]:inline-flex"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Opret bestilling
-                    </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
