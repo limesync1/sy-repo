@@ -474,12 +474,14 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               onAdd={(id) => { addService(id); clearErr("services"); }}
               onRemove={removeItem}
               summary={<>{items.length} valgt · {fmt(totalAmount)} <span className="font-normal text-muted-foreground">uden moms</span></>}
+              summaryAmount={<>{fmt(totalAmount)} uden moms</>}
+              subtotalOf={(id) => { const it = items.find((x) => x.serviceId === id); return it ? fmt(roundPrice(calcItemTotal(it))) : null; }}
               renderSelected={(id) => {
                 const it = items.find((x) => x.serviceId === id);
                 if (!it) return null;
                 const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
                 return (
-                  <div className="space-y-2.5 rounded-lg border border-accent/30 bg-card p-2.5">
+                  <div className="space-y-2.5 p-1">
                     <div>
                       <Label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Repeat className="h-3.5 w-3.5" />Interval</Label>
                       {intervals.length === 1 ? (
