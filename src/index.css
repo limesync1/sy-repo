@@ -1972,6 +1972,19 @@ img[loading="lazy"].is-error {
   }
 }
 
+.ui-modal.planner-move-dialog {
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(100dvh - 0.75rem);
+}
+@media (min-width: 640px) {
+  .ui-modal.planner-move-dialog {
+    width: min(36rem, calc(100vw - 3rem));
+    max-width: min(36rem, calc(100vw - 3rem));
+    max-height: calc(100dvh - 3rem);
+  }
+}
+
 @layer utilities {
   .modal-large {
     width: calc(100vw - 1rem) !important;
