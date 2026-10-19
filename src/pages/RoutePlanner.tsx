@@ -4149,7 +4149,10 @@ const Planner = () => {
           const realStopsForActive = activeEditingRoute
             ? visibleCalendarStops.filter((s: any) => s.route_id === activeEditingRoute.id)
             : [];
-          const hasRealCompleted = realStopsForActive.some((s: any) => s.status === "completed");
+          const hasRealCompleted = activeEditingRoute
+            ? calendarStops.some((s: any) => s.route_id === activeEditingRoute.id && s.status === "completed")
+            : false;
+          void realStopsForActive;
           const projectionActive = !hasRealCompleted && !!(
             editingProjectedContext
             && activeEditingRoute
