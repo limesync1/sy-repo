@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload, ChevronDown, StickyNote } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, ChevronDown, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { useServices } from "@/hooks/useDatabase";
@@ -524,10 +524,10 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
           </div>
 
           <SheetFooterBar>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between">
               <Button variant="outline" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-11 sm:h-10">Annullér</Button>
-              <div className="grid grid-cols-2 gap-2 sm:flex">
-                <Button variant={initial?.id ? "default" : "outline"} onClick={() => handleSave(false)} disabled={saving} className="h-11 sm:h-10 col-span-2 sm:col-span-1">
+              <div className="contents sm:flex sm:gap-2">
+                <Button variant={initial?.id ? "default" : "outline"} onClick={() => handleSave(false)} disabled={saving} className="h-11 sm:h-10">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {initial?.id ? "Gem ændringer" : "Opret kunde"}
                 </Button>

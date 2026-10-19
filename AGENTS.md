@@ -1,6 +1,6 @@
 # Project architecture rules
 
-- Appointment details share `AppointmentDetailsHeader` and `appointment-details-overlay` so portals retain the planner theme.
+- Appointment details share `AppointmentDetailsHeader` and `appointment-details-overlay` for themed portals; creation dialogs share `SheetHeaderBlock`, `Section`, `SheetFooterBar` and one scrolling body for consistent clearance.
 - Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.
 - Validate suggestion stops against the route and employees against its business before RLS-protected writes.
 
@@ -31,9 +31,9 @@
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
 - Panel headers share `PageHeader`/`.panel-page-hero` styling.
-- Public navigation persists outside suspense; local headers defer to avoid duplicates.
+- Public navigation stays outside suspense; local headers avoid duplicates.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
-- City landing pages for new trades come from `src/pages/cities/branchRegistry.ts` + shared `cityFacts.ts`; sitemap, prerender titles and `/by` hubs derive from it so one registry drives every trade-city page.
+- Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
