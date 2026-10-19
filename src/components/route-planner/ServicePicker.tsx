@@ -101,28 +101,29 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
           </div>
         )}
         {selectedIds.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 rounded-lg bg-secondary/50 px-2.5 py-1.5 text-sm">
-            <span className="font-semibold">{summary}</span>
+          <div className="flex flex-wrap items-center gap-1.5 lg:hidden">
             {selectedIds.map((id) => {
               const s = services.find((x) => x.id === id);
               return s ? (
-                <button key={id} type="button" onClick={() => jumpTo(id)} className="min-h-9 max-w-[12rem] truncate rounded-full border border-border bg-background px-2.5 text-xs hover:bg-secondary">{s.name}</button>
+                <button key={id} type="button" onClick={() => jumpTo(id)} className="inline-flex min-h-9 max-w-[14rem] items-center gap-1 truncate rounded-full border border-accent/40 bg-accent/10 px-3 text-xs font-medium text-foreground hover:bg-accent/20">
+                  <Check className="h-3.5 w-3.5 shrink-0 text-accent" /><span className="truncate">{s.name}</span>
+                </button>
               ) : null;
             })}
           </div>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-background lg:max-h-[min(62vh,640px)] lg:overflow-y-auto lg:overscroll-contain">
+      <div className="space-y-3 lg:max-h-[min(62vh,640px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
         {groups.length === 0 && (
-          <p className="px-3 py-6 text-center text-sm text-muted-foreground">Ingen services matcher din søgning.</p>
+          <p className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">Ingen services matcher din søgning.</p>
         )}
         {groups.map(([group, list]) => (
-          <section key={group}>
+          <section key={group} className="space-y-2">
             {categories.length > 1 && !cat && (
-              <h4 className="border-b border-border bg-secondary/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group}</h4>
+              <h4 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group}</h4>
             )}
-            <ul className="divide-y divide-border">
+            <ul className="space-y-2">
               {list.map((s) => {
                 const steps = [...(s.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
                 const intervals = s.interval_options?.length ? s.interval_options : ["engangskøb"];
@@ -131,51 +132,63 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                 const open = openId === s.id;
                 const hasDetails = steps.length > 0 || !!s.description;
                 return (
-                  <li key={s.id} id={`svc-row-${s.id}`} className={cn("min-w-0 scroll-mt-32", selected && "bg-accent/5")}>
-                    <div className="flex min-w-0 items-start gap-2 px-2.5 py-2">
-                      <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-1 h-7 w-7 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="break-words text-sm font-semibold leading-snug text-foreground">{s.name}</p>
-                        <p className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs leading-5 text-muted-foreground">
-                          <span className="font-semibold tabular-nums text-foreground">{priceLine(s)} <span className="font-normal text-muted-foreground">uden moms</span></span>
-                          <span className="inline-flex items-center gap-1"><Repeat className="h-3 w-3" />{intervals.length === 1 ? intervalLabel(intervals[0]) : intervals.map(intervalLabel).join(" · ")}</span>
+                  <li key={s.id} id={`svc-row-${s.id}`}
+                    className={cn("min-w-0 scroll-mt-32 overflow-hidden rounded-xl border bg-background transition-colors",
+                      selected ? "border-accent/60 ring-1 ring-accent/30" : "border-border hover:border-foreground/25")}>
+                    <div className="flex min-w-0 items-start gap-3 p-3">
+                      <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-0.5 h-8 w-8 shrink-0" />
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                          <p className="min-w-0 break-words text-sm font-semibold leading-snug text-foreground">{s.name}</p>
+                          <p className="shrink-0 text-sm font-bold tabular-nums text-foreground">{priceLine(s)} <span className="text-xs font-normal text-muted-foreground">uden moms</span></p>
+                        </div>
+                        <div className="flex min-w-0 flex-wrap gap-1.5">
+                          {intervals.map((iv) => (
+                            <span key={iv} className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                              iv === "engangskøb" ? "bg-secondary text-secondary-foreground" : "bg-accent/15 text-foreground")}>
+                              {iv !== "engangskøb" && <Repeat className="h-3 w-3 text-accent" />}{intervalLabel(iv)}
+                            </span>
+                          ))}
                           {integration && (
-                            <span className={cn("inline-flex items-center gap-0.5 tabular-nums", !varenr && "text-amber-700 dark:text-amber-300")}>
-                              <Hash className="h-3 w-3" />{varenr ? `Varenr. ${varenr}` : "Intet varenr."}
+                            <span className={cn("inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] tabular-nums",
+                              varenr ? "border-border text-muted-foreground" : "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200")}>
+                              <Hash className="h-3 w-3" />{varenr ? varenr : "Intet varenr."}
                             </span>
                           )}
-                        </p>
+                        </div>
                         {(steps.length > 0 || s.description) && !open && (
-                          <p className="mt-0.5 line-clamp-2 break-words text-xs leading-5 text-muted-foreground">
+                          <p className="line-clamp-2 break-words text-xs leading-5 text-muted-foreground">
                             {steps.length > 0
                               ? steps.map((c) => `${c.label} ${formatPrice(c.price_per_unit)}/${c.unit}`).join(" · ")
                               : s.description}
                           </p>
                         )}
-                        {hasDetails && (
-                          <button type="button" onClick={() => setOpenId(open ? null : s.id)} aria-expanded={open}
-                            className="mt-0.5 inline-flex min-h-9 items-center gap-1 text-xs font-medium text-foreground underline-offset-2 hover:underline">
-                            {open ? "Skjul detaljer" : "Detaljer"}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
-                          </button>
-                        )}
                       </div>
+                    </div>
+                    <div className={cn("flex items-center justify-between gap-2 border-t px-3 py-1.5", selected ? "border-accent/30 bg-accent/10" : "border-border bg-secondary/30")}>
+                      {hasDetails ? (
+                        <button type="button" onClick={() => setOpenId(open ? null : s.id)} aria-expanded={open}
+                          className="inline-flex min-h-11 items-center gap-1 rounded-md px-1 text-xs font-medium text-foreground hover:underline">
+                          {open ? "Skjul detaljer" : "Detaljer"}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+                        </button>
+                      ) : <span />}
                       {selected ? (
-                        <div className="flex shrink-0 items-center gap-1">
-                          <span className="hidden items-center gap-1 text-xs font-semibold text-accent sm:inline-flex"><Check className="h-3.5 w-3.5" />Valgt</span>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground"><Check className="h-4 w-4 text-accent" />Valgt</span>
                           <button type="button" onClick={() => onRemove(s.id)} aria-label={`Fjern ${s.name}`}
-                            className="inline-flex h-11 min-w-11 items-center justify-center gap-1 rounded-md border border-border px-2.5 text-sm text-muted-foreground hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive">
-                            <Trash2 className="h-4 w-4" /><span className="hidden sm:inline">Fjern</span>
+                            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                            <Trash2 className="h-4 w-4" />Fjern
                           </button>
                         </div>
                       ) : (
                         <button type="button" onClick={() => onAdd(s.id)} aria-label={`Tilføj ${s.name}`}
-                          className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-                          <Plus className="h-4 w-4" /><span className="hidden sm:inline">Tilføj</span>
+                          className="inline-flex h-11 items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
+                          <Plus className="h-4 w-4" />Tilføj
                         </button>
                       )}
                     </div>
                     {open && (
-                      <div className="space-y-1.5 px-3 pb-2.5 pl-12 text-xs leading-5 text-muted-foreground">
+                      <div className="space-y-1.5 border-t border-border px-3 py-2.5 text-xs leading-5 text-muted-foreground sm:pl-14">
                         {s.description && <p className="line-clamp-4 break-words" title={s.description}>{s.description}</p>}
                         {steps.length > 0 && (
                           <div>
@@ -192,7 +205,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                         )}
                       </div>
                     )}
-                    {selected && <div className="px-2.5 pb-3 sm:pl-12 lg:hidden">{renderSelected(s.id)}</div>}
+                    {selected && <div className="p-3 lg:hidden">{renderSelected(s.id)}</div>}
                   </li>
                 );
               })}
@@ -202,7 +215,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
       </div>
     </div>
     <aside className="hidden min-w-0 lg:sticky lg:top-0 lg:block" aria-label="Valgte services">
-      <h4 className="mb-2 text-sm font-semibold text-foreground">Valgte services</h4>
+      <div className="mb-2 flex items-baseline justify-between gap-2"><h4 className="text-sm font-semibold text-foreground">Valgte services</h4>{selectedIds.length > 0 && <span className="text-xs text-muted-foreground">{summary}</span>}</div>
       {selectedIds.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">Tryk «Tilføj» ved en service. Dens interval, felter og startdato vises her.</p>
       ) : (
@@ -213,7 +226,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
               <div key={id} className="min-w-0">
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <p className="min-w-0 break-words text-sm font-semibold">{svc?.name}</p>
-                  <button type="button" onClick={() => onRemove(id)} aria-label={`Fjern ${svc?.name ?? "service"}`} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => onRemove(id)} aria-label={`Fjern ${svc?.name ?? "service"}`} className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="h-4 w-4" />Fjern</button>
                 </div>
                 {renderSelected(id)}
               </div>
