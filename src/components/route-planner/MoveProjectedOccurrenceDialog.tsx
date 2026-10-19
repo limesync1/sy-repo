@@ -4,7 +4,7 @@
 // responsive opførsel.
 
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Dialog, DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,7 +13,9 @@ import { da } from "date-fns/locale";
 import { Route as RouteIcon, ArrowRight, Loader2, AlertTriangle, Info, Repeat, Sparkles, SkipForward, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { mapPostgresError } from "@/lib/route-errors";
-import { SheetFooterBar, SheetHeaderBlock, Section } from "./SheetSection";
+import PlannerDialogHeader from "./PlannerDialogHeader";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { SheetFooterBar, Section } from "./SheetSection";
 
 type Props = {
   open: boolean;
@@ -74,20 +76,15 @@ export const MoveProjectedOccurrenceDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => { if (!loading && !submitting) onOpenChange(nextOpen); }}>
-      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
-        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
-          <SheetHeaderBlock
-            title={<DialogTitle className="text-base">Flyt rute til ny dato</DialogTitle>}
-            description={
-              <DialogDescription className="text-xs leading-snug">
-                Vælg den nye dato for denne ene rute.
-              </DialogDescription>
-            }
-          />
-        </DialogHeader>
+      <DialogContent className="planner-overlay planner-move-dialog flex min-w-0 flex-col gap-0 overflow-hidden p-0 sm:p-0">
+        <PlannerDialogHeader
+          artwork={<BrandedIllustration name="calendarWeek" className="h-14 w-14" />}
+          title="Flyt rute til ny dato"
+          description="Vælg den nye dato for denne ene rute."
+        />
 
         <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
-          <Section icon={<RouteIcon />} title="Rute">
+          <Section icon={<RouteIcon className="h-4 w-4" />} title="Rute" tone="sky">
             <div className="min-w-0 space-y-2 text-sm">
               <div className="min-w-0 text-foreground">
                 <span className="block min-w-0 [overflow-wrap:anywhere] font-medium sm:truncate">{routeName}</span>

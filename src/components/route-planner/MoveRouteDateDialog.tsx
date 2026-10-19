@@ -7,14 +7,16 @@
 // indvendig vinduespudsning der bør flytte sammen med den udvendige.
 
 import { useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { Route as RouteIcon, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mapPostgresError } from "@/lib/route-errors";
-import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
+import PlannerDialogHeader from "./PlannerDialogHeader";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { Section, SheetFooterBar } from "./SheetSection";
 import { ScopeOption } from "./ScopeOption";
 
 export type MoveRouteScope = "single" | "future";
@@ -97,20 +99,15 @@ export const MoveRouteDateDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!busy) onOpenChange(o); }}>
-      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
-        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
-          <SheetHeaderBlock
-            title={<DialogTitle className="text-base">Flyt rute til ny dato</DialogTitle>}
-            description={
-              <DialogDescription className="text-xs leading-snug">
-                Vælg om kun denne dag skal flyttes, eller også de næste.
-              </DialogDescription>
-            }
-          />
-        </DialogHeader>
+      <DialogContent className="planner-overlay planner-move-dialog flex min-w-0 flex-col gap-0 overflow-hidden p-0 sm:p-0">
+        <PlannerDialogHeader
+          artwork={<BrandedIllustration name="calendarWeek" className="h-14 w-14" />}
+          title="Flyt rute til ny dato"
+          description="Vælg om kun denne dag skal flyttes, eller også de næste."
+        />
 
         <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
-          <Section icon={<RouteIcon />} title="Rute">
+          <Section icon={<RouteIcon className="h-4 w-4" />} title="Rute" tone="sky">
             <div className="space-y-2 text-sm">
               <p className="min-w-0 truncate font-medium text-foreground" title={routeName}>{routeName}</p>
               <div className="grid min-w-0 gap-2 tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
@@ -140,7 +137,7 @@ export const MoveRouteDateDialog = ({
             </div>
           )}
 
-          <Section icon={<Repeat />} title="Hvad skal flyttes?">
+          <Section icon={<Repeat className="h-4 w-4" />} title="Hvad skal flyttes?" tone="muted">
             <div className="space-y-2">
               <ScopeOption
                 selected={scope === "single"}
