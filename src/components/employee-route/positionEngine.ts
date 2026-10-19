@@ -114,7 +114,28 @@ export class RouteLine {
   }
 }
 
+/** Første (laveste kørte meter) punkt inden for tol, fra `from`. Undgår at matche senere dele af ruten, der passerer tæt forbi. */
+export function projectFirst(line: RouteLine, p: [number, number], tol: number, from = 0): { d: number; dist: number } | null {
+  const k = Math.cos((p[0] * Math.PI) / 180) * 111320, m = 111320;
+  let best: { d: number; dist: number } | null = null;
+  for (let i = 0; i < line.pts.length - 1; i++) {
+    if (line.cum[i + 1] < from) continue;
+    const a = line.pts[i], b = line.pts[i + 1];
+    const ax = (a[1] - p[1]) * k, ay = (a[0] - p[0]) * m, bx = (b[1] - p[1]) * k, by = (b[0] - p[0]) * m;
+    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+    const t = len2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+    const dist = Math.hypot(ax + dx * t, ay + dy * t);
+    if (dist <= tol) {
+      const d = line.cum[i] + (line.cum[i + 1] - line.cum[i]) * t;
+      if (!best || dist < best.dist) best = { d, dist };
+    } else if (best) break; // første sammenhængende match er fundet
+  }
+  return best;
+}
+
 export class PositionEngine {
+  /** Seneste kendte kørte meter, så genmatch efter afvigelse ikke hopper til en senere del af ruten. */
+  private lastKnownProgress = 0;
   private line: RouteLine | null = null;
   private last: RawFix | null = null;
   private lastRecv = 0;
@@ -134,7 +155,7 @@ export class PositionEngine {
     const next = pts.length > 1 ? new RouteLine(pts) : null;
     if (next && this.line && next.total === this.line.total && next.pts[0][0] === this.line.pts[0][0] && next.pts[0][1] === this.line.pts[0][1]) return;
     this.line = next;
-    this.progress = null; this.onRoute = false; this.offHits = 0; this.offRouteFixes = 0; this.backHits = 0;
+    this.progress = null; this.onRoute = false; this.offHits = 0; this.offRouteFixes = 0; this.backHits = 0; this.lastKnownProgress = 0;
     if (this.disp) this.disp.progress = null;
     if (this.line && this.last) this.match(this.last, 0, true);
   }
@@ -160,7 +181,11 @@ export class PositionEngine {
       if (fix.t <= prev.t) return false;
       dt = (fix.t - prev.t) / 1000;
       moved = haversineMeters(prev.lat, prev.lng, fix.lat, fix.lng);
-      if (fix.t - prev.t < LONG_GAP_MS) {
+      // Første grove fix (wifi/mast) erstattes straks, når et langt bedre fix kommer — ellers starter bilen et forkert sted.
+      const upgrade = prev.accuracy > 60 && fix.accuracy < prev.accuracy / 2 && fix.accuracy <= 50;
+      if (upgrade) {
+        this.forceJump = true; this.progress = null; this.onRoute = false; this.speed = 0; this.moving = false;
+      } else if (fix.t - prev.t < LONG_GAP_MS) {
         const limit = Math.max(45, 2.5 * this.speed + 15);
         if (moved / dt > limit && moved > Math.max(30, fix.accuracy * 2)) {
           const p = this.pending;
@@ -203,7 +228,8 @@ export class PositionEngine {
         } else this.offHits = 0;
       }
       if (!this.onRoute) {
-        const g = line.project(p);
+        const tol = Math.max(ON_ROUTE_M, Math.min(35, fix.accuracy));
+        const g = projectFirst(line, p, tol, Math.max(0, this.lastKnownProgress - 60)) ?? line.project(p);
         if (g.dist <= Math.max(ON_ROUTE_M, Math.min(35, fix.accuracy))) { this.onRoute = true; m = g; this.offHits = 0; this.progress = null; }
       }
       if (this.onRoute && this.offHits === 0) {
@@ -216,6 +242,7 @@ export class PositionEngine {
           this.backHits = 0;
           if (this.moving) this.progress = Math.max(this.progress, m.d);
         }
+        this.lastKnownProgress = this.progress;
         const heading = this.moving || this.target?.heading == null ? line.headingAt(this.progress) : this.target.heading;
         this.target = { pos: line.pointAt(this.progress), heading };
         return;
