@@ -24,8 +24,18 @@ export type PickerService = {
 const priceLine = (s: PickerService) => {
   if (s.pricing_type === "timepris") return `${formatPrice(s.base_price)} pr. time`;
   if (s.pricing_type === "fast_pris") return `${formatPrice(s.base_price)}${s.unit ? ` pr. ${s.unit}` : ""}`;
-  return Number(s.base_price) > 0 ? `Fra ${formatPrice(s.base_price)}` : "Prisberegner";
+  const steps = s.calculator_steps || [];
+  if (steps.length === 1) return `${formatPrice(steps[0].price_per_unit)} pr. ${steps[0].unit}`;
+  return steps.length ? `Prisberegner · ${steps.length} felter` : "Prisberegner";
 };
+const norm = (v: string) => v.toLocaleLowerCase("da").normalize("NFC").trim();
+function Hl({ text, q }: { text: string; q: string }) {
+  const n = norm(q);
+  if (!n) return <>{text}</>;
+  const i = text.toLocaleLowerCase("da").indexOf(n);
+  if (i < 0) return <>{text}</>;
+  return <>{text.slice(0, i)}<mark className="rounded bg-accent/25 px-0.5 text-foreground">{text.slice(i, i + n.length)}</mark>{text.slice(i + n.length)}</>;
+}
 export const intervalLabel = (iv: string) => INTERVAL_LABELS[iv as keyof typeof INTERVAL_LABELS] || iv;
 
 type Props = {
@@ -54,30 +64,65 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
     },
   });
 
+  const { data: usage } = useQuery({
+    queryKey: ["service-usage", businessId],
+    enabled: !!businessId,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("order_items").select("service_id, orders!inner(business_id)")
+        .eq("orders.business_id", businessId!).not("service_id", "is", null).limit(1000);
+      const m = new Map<string, number>();
+      for (const r of (data || []) as any[]) m.set(r.service_id, (m.get(r.service_id) || 0) + 1);
+      return m;
+    },
+  });
+  const mostUsed = useMemo(() => {
+    if (!usage || services.length < 6) return [] as string[];
+    return [...usage.entries()].filter(([id]) => services.some((s) => s.id === id)).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => id);
+  }, [usage, services]);
+
   const categories = useMemo(
     () => Array.from(new Set(services.map((s) => s.service_category || "Andet"))).sort((a, b) => a.localeCompare(b, "da")),
     [services],
   );
 
   const groups = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = norm(q);
     const filtered = services
       .filter((s) => !cat || (s.service_category || "Andet") === cat)
-      .filter((s) => selectedIds.includes(s.id) || !needle || [s.name, s.service_category, s.subcategory, s.description, productNumbers?.get(s.id), ...(s.calculator_steps || []).map((c) => c.label)]
-        .some((v) => v?.toLowerCase().includes(needle)))
+      .filter((s) => !needle || [s.name, s.service_category, s.subcategory, s.description, productNumbers?.get(s.id), ...(s.calculator_steps || []).map((c) => c.label)]
+        .some((v) => v && norm(v).includes(needle)))
       .sort((a, b) => a.name.localeCompare(b.name, "da"));
     const map = new Map<string, PickerService[]>();
+    const showTop = !needle && !cat && mostUsed.length > 0;
+    if (showTop) map.set("Mest brugt", filtered.filter((s) => mostUsed.includes(s.id)).sort((a, b) => mostUsed.indexOf(a.id) - mostUsed.indexOf(b.id)));
     for (const s of filtered) {
+      if (showTop && mostUsed.includes(s.id)) continue;
       const k = s.service_category || "Andet";
       map.set(k, [...(map.get(k) || []), s]);
     }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b, "da"));
-  }, [services, selectedIds, q, cat, productNumbers]);
+    return Array.from(map.entries()).filter(([, l]) => l.length).sort(([a], [b]) => a === "Mest brugt" ? -1 : b === "Mest brugt" ? 1 : a.localeCompare(b, "da"));
+  }, [services, q, cat, productNumbers, mostUsed]);
+  const shownCount = groups.reduce((n, [, l]) => n + l.length, 0);
+  const hiddenSelected = selectedIds.filter((id) => !groups.some(([, l]) => l.some((s) => s.id === id)));
 
-  const jumpTo = (id: string) => document.getElementById(`svc-row-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (services.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center">
+        <p className="text-sm font-semibold text-foreground">Ingen aktive services</p>
+        <p className="mt-1 text-xs text-muted-foreground">Opret eller aktivér en service først.</p>
+        <a href="/virksomhed?tab=services" className="mt-3 inline-flex min-h-11 items-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground hover:bg-accent/90">Gå til Services</a>
+      </div>
+    );
+  }
+
+  const jumpTo = (id: string) => {
+    if (hiddenSelected.includes(id)) { setQ(""); setCat(null); setTimeout(() => jumpTo(id), 50); return; }
+    document.getElementById(`svc-row-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+    <div className={cn("grid gap-3 lg:items-start", selectedIds.length ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)_15rem]")}>
     <div className="min-w-0 space-y-2">
       <div className="space-y-2">
         <div className="relative">
@@ -119,13 +164,21 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
         )}
       </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-muted-foreground" aria-live="polite">
+        <span>{shownCount} {shownCount === 1 ? "service" : "services"}{q.trim() || cat ? " matcher" : ""}</span>
+        {hiddenSelected.length > 0 && (
+          <button type="button" onClick={() => { setQ(""); setCat(null); }} className="min-h-9 rounded-md border border-accent/40 bg-accent/10 px-2.5 font-medium text-foreground hover:bg-accent/20">
+            {hiddenSelected.length} valgt skjult af søgning · Vis alle
+          </button>
+        )}
+      </div>
       <div className="space-y-3">
         {groups.length === 0 && (
           <p className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">Ingen services matcher din søgning.</p>
         )}
         {groups.map(([group, list]) => (
           <section key={group} className="space-y-2">
-            {categories.length > 1 && !cat && (
+            {(group === "Mest brugt" || (categories.length > 1 && !cat)) && (
               <h4 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group}</h4>
             )}
             <ul className="space-y-1.5">
@@ -135,7 +188,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                 const varenr = productNumbers?.get(s.id);
                 const selected = selectedIds.includes(s.id);
                 const open = openId === s.id;
-                const hasDetails = steps.length > 0 || !!s.description || intervals.length > 4;
+                const hasDetails = steps.length > 0 || !!s.description || intervals.length > 1;
                 return (
                   <li key={s.id} id={`svc-row-${s.id}`}
                     className={cn("min-w-0 scroll-mt-4 overflow-hidden rounded-lg border bg-background transition-colors",
@@ -144,19 +197,25 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                       <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-0.5 h-6 w-6 shrink-0" />
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                          <p className="min-w-0 break-words text-sm font-semibold leading-snug text-foreground">{s.name}</p>
+                          <p className="min-w-0 break-words text-sm font-semibold leading-snug text-foreground"><Hl text={s.name} q={q} /></p>
                           <p className="shrink-0 text-sm font-bold tabular-nums text-foreground">{priceLine(s)} <span className="text-xs font-normal text-muted-foreground">uden moms</span></p>
                         </div>
                         <div className="flex min-w-0 flex-wrap gap-1.5">
-                          {(open ? intervals : intervals.slice(0, 4)).map((iv) => (
+                          {!open && (intervals.length === 1 ? (
+                            <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", intervals[0] === "engangskøb" ? "bg-secondary text-secondary-foreground" : "bg-accent/15 text-foreground")}>
+                              {intervals[0] !== "engangskøb" && <Repeat className="h-3 w-3 text-accent" />}{intervalLabel(intervals[0])}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-medium text-foreground">
+                              <Repeat className="h-3 w-3 text-accent" />{intervals.length} intervaller
+                            </span>
+                          ))}
+                          {open && intervals.map((iv) => (
                             <span key={iv} className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
                               iv === "engangskøb" ? "bg-secondary text-secondary-foreground" : "bg-accent/15 text-foreground")}>
                               {iv !== "engangskøb" && <Repeat className="h-3 w-3 text-accent" />}{intervalLabel(iv)}
                             </span>
                           ))}
-                          {!open && intervals.length > 4 && (
-                            <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground" title={intervals.map(intervalLabel).join(", ")}>+{intervals.length - 4} mere</span>
-                          )}
                           {integration && (
                             <span className={cn("inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] tabular-nums",
                               varenr ? "border-border text-muted-foreground" : "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200")}>
@@ -225,7 +284,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
     <aside className="hidden min-w-0 lg:sticky lg:top-0 lg:block lg:self-start" aria-label="Valgte services">
       <div className="mb-2 flex items-baseline justify-between gap-2"><h4 className="text-sm font-semibold text-foreground">Valgte services</h4>{selectedIds.length > 0 && <span className="text-xs text-muted-foreground">{summary}</span>}</div>
       {selectedIds.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">Tryk «Tilføj» ved en service. Dens interval, felter og startdato vises her.</p>
+        <p className="rounded-lg border border-dashed border-accent/40 bg-accent/5 px-3 py-6 text-center text-sm text-muted-foreground">Tryk «Tilføj» ved en service. Interval, antal/felter og opstartsdato vælges her.</p>
       ) : (
         <div className="space-y-3">
           {selectedIds.map((id) => {
