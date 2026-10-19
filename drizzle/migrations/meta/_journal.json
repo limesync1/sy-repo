@@ -141,6 +141,13 @@
       "when": 1792412217914,
       "tag": "0019_guard_accounting_health_check_run",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792412319670,
+      "tag": "0020_workdays_active_employees_only",
+      "breakpoints": true
     }
   ]
 }
