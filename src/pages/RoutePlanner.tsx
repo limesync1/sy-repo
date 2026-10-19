@@ -1,3 +1,4 @@
+import { orderCycleNumber } from "@/lib/order-recurrence-display";
 import { formatPrice } from "@/lib/price-format";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
 // Refaktoreringsplan: .lovable/plan.md (Fase 1–5).
@@ -4129,7 +4130,7 @@ const Planner = () => {
           // En rute med rigtige, udførte stops vises altid som den faktiske
           // rute — så "Fortryd udført" er tilgængelig, også på mobil.
           const realStopsForActive = activeEditingRoute
-            ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id)
+            ? visibleCalendarStops.filter((s: any) => s.route_id === activeEditingRoute.id)
             : [];
           const hasRealCompleted = realStopsForActive.some((s: any) => s.status === "completed");
           const projectionActive = !hasRealCompleted && !!(
@@ -4186,7 +4187,7 @@ const Planner = () => {
                 }) as RouteStop[];
               stopsForActive = sourced;
             } else {
-              stopsForActive = calendarStops.filter((s) => s.route_id === activeEditingRoute.id);
+              stopsForActive = visibleCalendarStops.filter((s: any) => s.route_id === activeEditingRoute.id);
             }
           }
           const closeAll = () => {
