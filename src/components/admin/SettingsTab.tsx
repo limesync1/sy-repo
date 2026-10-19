@@ -25,6 +25,7 @@ import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/A
 import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
+import { OwnerAlertsEditor } from "@/components/admin/OwnerAlertsEditor";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
 import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -456,7 +457,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {}
   );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
-  const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
+  const [notifSettings, setNotifSettings] = useState<Record<string, any>>({
     new_order: true,
     upcoming_service: true,
     subscription_change: true,
@@ -727,7 +728,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, [logoUrl, coverUrl, description, phone, email, address, zipCode, selectedCategories, openHours]);
 
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
-  const origNotif = business.notification_settings as Record<string, boolean> || {};
+  const origNotif = business.notification_settings as Record<string, any> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
   // Behold for kompatibilitet — bruges ikke længere som "ændret"-signal da
   // accounting-toggle er fjernet fra UI'et.
@@ -1576,43 +1577,12 @@ const SettingsTab = ({ business }: { business: any }) => {
             icon={<Bell />}
             description="Bestem hvilke begivenheder, I vil have besked om på e-mail. Slå fra det, der ikke er relevant — så undgår I at drukne i e-mails."
           >
-            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
-              {([
-                { key: "new_order",           icon: ShoppingCart,    label: "Nye bestillinger",       desc: "Få e-mail med det samme, når en kunde booker hos jer." },
-                { key: "upcoming_service",    icon: CalendarClock,   label: "Kommende services",      desc: "Påmindelse dagen før et abonnement skal udføres — så I kan planlægge dagen." },
-                { key: "subscription_change", icon: RefreshCcw,      label: "Ændringer i abonnementer", desc: "Bliv adviseret, når en kunde pauser, opsiger eller ændrer sit abonnement." },
-                { key: "new_review",          icon: Star,            label: "Nye anmeldelser",        desc: "Få besked, så snart en kunde anmelder jer — godt eller skidt." },
-                ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Få e-mail, når et lead fra ‘Indhent 3 tilbud’ matcher jeres brancher og område. Slå fra, hvis I hellere vil tjekke leads inde i panelet." } as const] : []),
-              ] as const).map(({ key, icon: Icon, label, desc }) => {
-                const on = !!notifSettings[key];
-                return (
-                  <label
-                    key={key}
-                    className="flex cursor-pointer items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-secondary/30"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                        on ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground"
-                      }`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground">{label}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
-                      </div>
-                    </div>
-                    <ToggleSwitch
-                      checked={on}
-                      onChange={() => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }))}
-                    />
-                  </label>
-                );
-              })}
-            </div>
-            <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-              Alle e-mails ovenfor sendes til <span className="font-medium text-foreground">{email || "jeres kontakt-e-mail"}</span> — ret den under "Kontakt og adresse".
-            </p>
+            <OwnerAlertsEditor
+              value={notifSettings}
+              onChange={setNotifSettings}
+              leadsEnabled={leadsEnabled}
+              fallbackEmail={email}
+            />
           </SectionCard>
         </div>
 
