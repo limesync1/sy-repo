@@ -160,7 +160,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setItems((prev) => [
       ...prev,
       {
-        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0], startDate: today,
+        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0], startDate: sameDate && prev[0] ? prev[0].startDate : today,
       },
     ]);
   };
