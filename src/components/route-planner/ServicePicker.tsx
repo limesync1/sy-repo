@@ -77,7 +77,8 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
   const jumpTo = (id: string) => document.getElementById(`svc-row-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div className="space-y-2">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+    <div className="min-w-0 space-y-2">
       <div className="sticky -top-1 z-10 space-y-2 bg-card pb-1 pt-1">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -112,7 +113,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-background">
+      <div className="overflow-hidden rounded-lg border border-border bg-background lg:max-h-[min(62vh,640px)] lg:overflow-y-auto lg:overscroll-contain">
         {groups.length === 0 && (
           <p className="px-3 py-6 text-center text-sm text-muted-foreground">Ingen services matcher din søgning.</p>
         )}
@@ -144,6 +145,13 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                             </span>
                           )}
                         </p>
+                        {(steps.length > 0 || s.description) && !open && (
+                          <p className="mt-0.5 line-clamp-2 break-words text-xs leading-5 text-muted-foreground">
+                            {steps.length > 0
+                              ? steps.map((c) => `${c.label} ${formatPrice(c.price_per_unit)}/${c.unit}`).join(" · ")
+                              : s.description}
+                          </p>
+                        )}
                         {hasDetails && (
                           <button type="button" onClick={() => setOpenId(open ? null : s.id)} aria-expanded={open}
                             className="mt-0.5 inline-flex min-h-9 items-center gap-1 text-xs font-medium text-foreground underline-offset-2 hover:underline">
@@ -184,7 +192,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                         )}
                       </div>
                     )}
-                    {selected && <div className="px-2.5 pb-3 sm:pl-12">{renderSelected(s.id)}</div>}
+                    {selected && <div className="px-2.5 pb-3 sm:pl-12 lg:hidden">{renderSelected(s.id)}</div>}
                   </li>
                 );
               })}
@@ -192,6 +200,28 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
           </section>
         ))}
       </div>
+    </div>
+    <aside className="hidden min-w-0 lg:sticky lg:top-0 lg:block" aria-label="Valgte services">
+      <h4 className="mb-2 text-sm font-semibold text-foreground">Valgte services</h4>
+      {selectedIds.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">Tryk «Tilføj» ved en service. Dens interval, felter og startdato vises her.</p>
+      ) : (
+        <div className="max-h-[min(70vh,720px)] space-y-3 overflow-y-auto overscroll-contain pr-1">
+          {selectedIds.map((id) => {
+            const svc = services.find((x) => x.id === id);
+            return (
+              <div key={id} className="min-w-0">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <p className="min-w-0 break-words text-sm font-semibold">{svc?.name}</p>
+                  <button type="button" onClick={() => onRemove(id)} aria-label={`Fjern ${svc?.name ?? "service"}`} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                </div>
+                {renderSelected(id)}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </aside>
     </div>
   );
 }
