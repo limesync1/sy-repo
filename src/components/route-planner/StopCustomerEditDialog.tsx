@@ -3,12 +3,15 @@
 // en ny kartotekspost med aftalens oplysninger.
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import CustomerEditDialog, { type EditableCustomer } from "@/components/admin/CustomerEditDialog";
 
 type Props = { orderId: string | null; onClose: () => void };
 
 export default function StopCustomerEditDialog({ orderId, onClose }: Props) {
+  const qc = useQueryClient();
   const [ctx, setCtx] = useState<{ businessId: string; businessName: string; initial: EditableCustomer } | null>(null);
 
   useEffect(() => {
@@ -69,6 +72,23 @@ export default function StopCustomerEditDialog({ orderId, onClose }: Props) {
       businessId={ctx.businessId}
       businessName={ctx.businessName}
       initial={ctx.initial}
+      onSaved={async (c) => {
+        // Kundens nye oplysninger skrives straks videre til aftalen og dens
+        // stop, så aftalekortene på ruten opdateres uden at genåbne vinduet.
+        const displayName = (c.type === "business" ? c.company_name : c.name) || null;
+        const address = [c.address, [c.zip_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || null;
+        await Promise.all([
+          supabase.from("orders").update({
+            customer_name: displayName, customer_email: c.email, customer_phone: c.phone ?? null,
+            address: c.address ?? null, zip_code: c.zip_code ?? null, city: c.city ?? null,
+          } as any).eq("id", orderId!),
+          supabase.from("route_stops").update({
+            customer_name: displayName, customer_phone: c.phone ?? null, address,
+            ...(c.latitude != null && c.longitude != null ? { latitude: c.latitude, longitude: c.longitude } : {}),
+          } as any).eq("order_id", orderId!),
+        ]);
+        invalidateRouteSyncQueries(qc);
+      }}
     />
   );
 }
