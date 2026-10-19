@@ -3,7 +3,7 @@
 // Vises ved siden af RouteEditSheet.
 
 import { useRetainedValue } from "@/hooks/useRetainedValue";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -48,6 +48,7 @@ import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_CONTENT, CARD
 import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useRouteLivePositions, type RouteLivePosition } from "@/hooks/useRouteLivePositions";
+import StopCustomerEditDialog from "./StopCustomerEditDialog";
 
 const readableTokenOn = (color?: string | null) => {
   const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
@@ -102,6 +103,8 @@ export const RouteStopsPanel = ({
   const updateStopStatus = useUpdateStopStatus();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
   const [confirmUndo, setConfirmUndo] = useState<RouteStop | null>(null);
+  const [editCustomerOrderId, setEditCustomerOrderId] = useState<string | null>(null);
+  const closeCustomerEdit = useCallback(() => setEditCustomerOrderId(null), []);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
   const firstSeenAtStopRef = useRef(new Map<string, string>());
 
@@ -302,6 +305,7 @@ export const RouteStopsPanel = ({
                           setAssignees.mutate({ stop_id: stop.id, employee_ids: ids, lead_id: lead })
                         }
                         onSelect={() => onSelectStop(stop)}
+                        onEditCustomer={stop.order_id ? () => setEditCustomerOrderId(stop.order_id as string) : undefined}
                         onRemove={() => setConfirmDelete(stop)}
                         onUndoCompleted={() => setConfirmUndo(stop)}
                         undoPending={undoCompleted.isPending && undoCompleted.variables === stop.id}
@@ -322,6 +326,8 @@ export const RouteStopsPanel = ({
           )}
         </SheetContent>
       </Sheet>
+
+      <StopCustomerEditDialog orderId={editCustomerOrderId} onClose={closeCustomerEdit} />
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
@@ -385,6 +391,7 @@ type RowProps = {
   isProjection?: boolean;
   onSetAssignees: (ids: string[], lead: string | null) => void;
   onSelect: () => void;
+  onEditCustomer?: () => void;
   onRemove: () => void;
   onUndoCompleted: () => void;
   undoPending: boolean;
@@ -398,7 +405,7 @@ type RowProps = {
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false, compact, reorderPending, canMoveUp, canMoveDown, onMove,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onEditCustomer, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false, compact, reorderPending, canMoveUp, canMoveDown, onMove,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
@@ -480,7 +487,8 @@ const SortableStopRow = ({
                 og pil-feedback, så kortet ikke får en forvirrende ramme om titlen. */}
             <button
               type="button"
-              onClick={onSelect}
+              onClick={onEditCustomer ?? onSelect}
+              title={onEditCustomer ? "Redigér kundens oplysninger" : undefined}
               className="group/title flex min-h-11 min-w-0 flex-1 items-center justify-start gap-2 rounded-sm px-0 py-1 text-left text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
                {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-5 w-5 shrink-0 object-contain" alt="" />}

@@ -1395,7 +1395,9 @@ const RoutePillInner = ({
         // accent så de tydeligt skiller sig ud fra både engangsruter og
         // projicerede forekomster — uden at flytte indholdet i pillen.
         isBaseRecurring && !isVirtual && "shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.35)]",
-        isPast && "opacity-50 saturate-50 hover:opacity-90",
+        // Kun forventede ruter må fremstå gennemsigtige — faste og
+        // almindelige ruter bevarer fuld synlighed, også på passerede dage.
+        isPast && isVirtual && "opacity-50 saturate-50 hover:opacity-90",
         // Helt udført rute: emerald-tint på baggrunden, dæmpet skrift —
         // gør "færdig" til den klart mest scanbare tilstand i kalenderen.
         showAsCompleted && !isPast && PILL_COMPLETED,
@@ -1535,15 +1537,6 @@ const RoutePillInner = ({
                 </span>
               </>
             )}
-            {routeSpan && (
-              <span
-                className="inline-flex shrink-0 items-center gap-0.5 font-semibold text-foreground/80"
-                title={routeSpan.title}
-                aria-label={routeSpan.title}
-              >
-                <Clock className="h-3 w-3" />{routeSpan.label}
-              </span>
-            )}
             {!isVirtual && (hasAssigneeConflict || hasSkillMismatch) && (
               <AlertTriangle
                 className={cn("h-3 w-3 shrink-0", hasAssigneeConflict ? "text-destructive" : "text-amber-500")}
@@ -1563,6 +1556,15 @@ const RoutePillInner = ({
               </span>
             )}
           </div>
+          {routeSpan && (
+            <div
+              className={cn("mt-0.5 flex min-w-0 items-center gap-0.5 text-[9.5px] font-medium leading-3 text-muted-foreground tabular-nums", (canOptimize || canDelete || canHistory) ? "pr-5" : "pr-0")}
+              title={routeSpan.title}
+              aria-label={routeSpan.title}
+            >
+              <Clock className="h-2.5 w-2.5 shrink-0" /><span className="truncate">{routeSpan.label}</span>
+            </div>
+          )}
         </div>
         {/* Handlings-cluster: optimér + ⋯-menu vises i en samlet ramme på
             hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
