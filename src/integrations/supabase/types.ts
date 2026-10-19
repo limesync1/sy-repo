@@ -1422,6 +1422,56 @@ export type Database = {
         }
         Relationships: []
       }
+      business_owner_alerts: {
+        Row: {
+          attempts: number
+          business_id: string
+          created_at: string
+          id: string
+          kind: string
+          last_error: string | null
+          payload: Json
+          ref: string
+          send_at: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          business_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          last_error?: string | null
+          payload?: Json
+          ref: string
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          business_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          last_error?: string | null
+          payload?: Json
+          ref?: string
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_owner_alerts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_plans: {
         Row: {
           accounting_integration_enabled: boolean
