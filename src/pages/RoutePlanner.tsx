@@ -733,7 +733,7 @@ const Planner = () => {
     // Udførte stops skjules i ruteplanlæggeren — de hører til på "Aftaler"-
     // siden. De vises kun, når man eksplicit filtrerer på "Udført".
     const showCompleted = filterStatuses.includes("completed");
-    const effStatus = (s: any) => ((s.occurrence_status as string | undefined) ?? null) ?? s.status;
+    const effStatus = (s: any): string => (s.occurrence_status as string | undefined) ?? s.status;
     return calendarStops.filter((s: any) => {
       if (!showCompleted && effStatus(s) === "completed") return false;
       if (filterAssigneeIds.length > 0) {
