@@ -5,6 +5,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
+import { processOwnerAlerts } from "./owner-alerts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -290,7 +291,9 @@ Deno.serve(async (req) => {
       failed++;
     }
   }
-  return new Response(JSON.stringify({ ok: true, sent, failed, total: jobs?.length ?? 0 }), {
+  let ownerSent = 0;
+  try { ownerSent = await processOwnerAlerts(admin); } catch (e) { console.warn("owner alerts failed", e); }
+  return new Response(JSON.stringify({ ok: true, sent, failed, total: jobs?.length ?? 0, ownerSent }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });

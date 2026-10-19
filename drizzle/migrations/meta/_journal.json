@@ -148,6 +148,20 @@
       "when": 1792412319670,
       "tag": "0020_workdays_active_employees_only",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792440658196,
+      "tag": "0021_migration",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792440695413,
+      "tag": "0022_migration",
+      "breakpoints": true
     }
   ]
 }
