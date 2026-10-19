@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
         admin.from("businesses").select("id, name, phone, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
         admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle(),
         job.route_stop_id
-          ? admin.from("route_stops").select("service_summary").eq("id", job.route_stop_id).maybeSingle()
+          ? admin.from("route_stops").select("service_summary, planned_arrival, route_id").eq("id", job.route_stop_id).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
       const biz = bizRes.data;
