@@ -3366,7 +3366,13 @@ const Planner = () => {
           );
 
           return (
-              <div className="planner-canvas min-h-0 w-full shrink-0 overflow-hidden p-2 2xl:p-3 h-[calc(100dvh-56px-var(--panel-bottom-clearance,0px))]">
+              <div className={cn(
+                "planner-canvas min-h-0 w-full shrink-0 overflow-hidden p-2 2xl:p-3 h-[calc(100dvh-56px-var(--panel-bottom-clearance,0px))] transition-[padding] duration-300",
+                // Åben rute på brede skærme: giv plads til de to sidepaneler (~52rem),
+                // så kalender og værktøjslinje forbliver synlige og klikbare.
+                activeEditingRoute && "[@media(min-width:1500px)]:pr-[52.5rem] 2xl:pr-[52.75rem]",
+              )}>
+
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
