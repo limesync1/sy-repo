@@ -3552,8 +3552,9 @@ const Planner = () => {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Flere handlinger">
+                              <Button variant="outline" size="sm" className="h-8 gap-1.5 px-2.5 text-xs font-semibold" aria-label="Flere handlinger">
                                 <MoreHorizontal className="h-4 w-4" />
+                                Mere
                               </Button>
                             </DropdownMenuTrigger>
                           </TooltipTrigger>
