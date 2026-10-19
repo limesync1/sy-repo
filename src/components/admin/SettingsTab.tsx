@@ -1575,13 +1575,14 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="E-mail-beskeder til jer"
             icon={<Bell />}
-            description="Bestem hvilke begivenheder, I vil have besked om på e-mail. Slå fra det, der ikke er relevant — så undgår I at drukne i e-mails."
+            description="Vælg hvad I selv får e-mail om, hvornår og til hvilken adresse. Slået fra betyder, at der ikke sendes noget."
           >
             <OwnerAlertsEditor
               value={notifSettings}
               onChange={setNotifSettings}
               leadsEnabled={leadsEnabled}
               fallbackEmail={email}
+              businessId={business.id}
             />
           </SectionCard>
         </div>
