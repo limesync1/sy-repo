@@ -6,6 +6,7 @@
 
 import { compareDayRoutes } from "./lib/day-route-order";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle, CalendarArrowDown } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -440,7 +441,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
-        {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles />Optimér rute</DropdownMenuItem>}
+        {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><PanelIcon name="optimizeRoute" className="h-5 w-5 dark:invert" />Optimér rute</DropdownMenuItem>}
         {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
         {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
       </DropdownMenuContent>
