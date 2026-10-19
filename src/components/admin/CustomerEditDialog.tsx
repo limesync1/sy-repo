@@ -164,7 +164,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     setEanNumber(initial?.ean_number || "");
     setSavedCustomer(null);
     setShowNotes(!!initial?.notes);
-    setShowPhoto(false);
+    setShowAccounting(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial?.id]);
 
