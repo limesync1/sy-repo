@@ -3809,6 +3809,7 @@ const Planner = () => {
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayDetailOpen(true)}><ListOrdered className="h-4 w-4" />Vis dagen som tidslinje</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setPrintOpen(true)}><Printer className="h-4 w-4" />Print / PDF</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => openSickLeaveDialog()}><AlertTriangle className="h-4 w-4" />Meld medarbejder syg</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setShortcutsOpen(true)}><Keyboard className="h-4 w-4" />Tastatur-genveje</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="min-h-11 gap-2" disabled={!history.canUndo} onClick={() => void history.undo()}><Undo2 className="h-4 w-4" />Fortryd seneste handling</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" disabled={!history.canRedo} onClick={() => void history.redo()}><Redo2 className="h-4 w-4" />Gentag seneste fortryd</DropdownMenuItem>

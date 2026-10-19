@@ -9,7 +9,7 @@ export type RouteOptimizationView = { name: string; busy: boolean; message?: str
 export default function RouteOptimizerDialog({ result, onClose }: { result: RouteOptimizationView | null; onClose: () => void }) {
   return (
     <Dialog open={result !== null} onOpenChange={(open) => { if (!open && !result?.busy) onClose(); }}>
-      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0">
+      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl sm:max-w-xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0">
         <PlannerDialogHeader icon="optimizeRoute" title="Optimér rute" description={result?.name} />
         <div className="planner-overlay-body min-h-0 overflow-y-auto bg-secondary/20 p-4 sm:p-5">
           <p role={result?.error ? "alert" : "status"} className={result?.error ? "text-sm text-destructive" : "flex items-center gap-2 text-sm text-foreground"}>

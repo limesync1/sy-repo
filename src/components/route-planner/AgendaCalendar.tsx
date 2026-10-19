@@ -6,7 +6,6 @@
 
 import { compareDayRoutes } from "./lib/day-route-order";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { PanelIcon } from "@/components/shared/PanelIcon";
 import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle, CalendarArrowDown } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {

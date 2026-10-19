@@ -180,7 +180,7 @@ export default function SickLeaveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[90vh]">
+      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0 sm:max-h-[90vh]">
         <PlannerDialogHeader icon="sickLeave" title="Meld medarbejder syg" description="Vælg periode, fordel aftaler og bekræft fraværet.">
           <ol className="mt-4 grid grid-cols-3 gap-2" aria-label="Trin">
             {STEPS.map((label, i) => (

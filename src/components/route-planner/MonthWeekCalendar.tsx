@@ -230,7 +230,7 @@ const DayOverviewSheet = ({
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="appointment-details-overlay planner-overlay flex w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden rounded-md p-0">
+      <DialogContent className="appointment-details-overlay planner-overlay flex w-[calc(100vw-1rem)] max-w-2xl sm:max-w-2xl max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0">
         <PlannerDialogHeader icon="dayOverview" title="Hele dagen" description={`${format(day, "EEEE d. MMMM yyyy", { locale: da })} · Uge ${getISOWeek(day)}${isToday ? " · I dag" : ""}`} />
         <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20">
         {/* Opsummering */}

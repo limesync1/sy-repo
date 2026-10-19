@@ -113,7 +113,7 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) { onOpenChange(v); if (!v) setBefore(null); } }}>
-      <DialogContent className="appointment-details-overlay planner-overlay w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
+      <DialogContent className="appointment-details-overlay planner-overlay w-[calc(100vw-1rem)] max-w-xl sm:max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 pb-0 sm:p-0 overflow-hidden gap-0">
         <PlannerDialogHeader icon="optimizeDay" title="Optimér dagen" description={<span className="first-letter:uppercase">{dateLabel} · Hurtigste rækkefølge og køretid pr. medarbejder</span>} />
 
         <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto space-y-4 bg-secondary/20 p-4 sm:p-5">
