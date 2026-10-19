@@ -453,130 +453,67 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               services={activeServices as any}
               selectedIds={items.map((i) => i.serviceId)}
               onAdd={addService}
-            />
-
-            {items.length === 0 && activeServices.length > 0 && (
-              <div className="mt-3 rounded-lg border border-dashed border-border bg-card/40 px-3 py-4 text-center">
-                <Package className="mx-auto h-5 w-5 text-muted-foreground/60" />
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Ingen services valgt endnu. Vælg en service på listen ovenfor for at komme i gang.
-                </p>
-              </div>
-            )}
-
-            {items.length > 0 && (
-              <div className="mt-3 space-y-2.5">
-                {items.map((it) => {
-                  const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
-                  const sub = (it.service as any).subcategory as string | null;
-                  return (
-                    <Card key={it.serviceId} className="p-3 bg-background shadow-sm">
-                      <div className="flex items-start gap-2.5 mb-2.5">
-                        <span
-                          className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden"
-                          aria-hidden="true"
-                        >
-                          <IndustryIcon category={it.service.service_category} subcategory={sub} name={it.service.name} className="h-8 w-8" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-semibold text-sm leading-tight text-foreground">{it.service.name}</p>
-                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                            {(sub || it.service.service_category) && (
-                              <span className="text-[11px] text-muted-foreground">
-                                {sub || it.service.service_category}
-                              </span>
-                            )}
-                            <Badge variant="outline" className="text-[11px] font-normal">
-                              {it.service.pricing_type === "fast_pris" ? "Specifik pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
-                            </Badge>
-                            {it.interval && it.interval !== "engangskøb" && (
-                              <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-[11px] font-medium">
-                                <Repeat className="h-2.5 w-2.5 mr-0.5" />
-                                {INTERVAL_LABELS[it.interval] || it.interval}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(it.serviceId)}
-                          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          aria-label={`Fjern ${it.service.name}`}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-
-                      {it.service.pricing_type === "timepris" && (
-                        <div className="flex flex-wrap items-center gap-2 mb-2 text-sm">
-                          <Label className="text-xs text-muted-foreground">Timer</Label>
-                          <NumberStepper
-                            value={it.hours}
-                            min={0.5}
-                            max={24}
-                            step={0.5}
-                            ariaLabel="Antal timer"
-                            onChange={(v) => updateItem(it.serviceId, { hours: v })}
-                            className="w-32"
-                          />
-                          <span className="text-muted-foreground text-xs">× {formatPrice(it.service.base_price)}</span>
-                        </div>
-                      )}
-
-                      {it.service.pricing_type === "prisberegner" && (it.service.calculator_steps?.length ?? 0) > 0 && (
-                        <div className="space-y-2 mb-2 rounded-md bg-secondary/40 p-2">
-                          {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
-                            <div key={step.id} className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="flex-1 min-w-[120px] truncate">{step.label} <span className="text-muted-foreground">({formatPrice(step.price_per_unit)}/{step.unit})</span></span>
-                              <NumberStepper
-                                value={it.stepValues[step.id] ?? 0}
-                                min={Number(step.min_value ?? 0)}
-                                max={Number(step.max_value ?? 9999)}
-                                unit={step.unit}
-                                ariaLabel={step.label}
-                                onChange={(v) => updateItem(it.serviceId, { stepValues: { ...it.stepValues, [step.id]: v } })}
-                                className="w-36"
-                              />
-                            </div>
+              onRemove={removeItem}
+              summary={<>{items.length} valgt · {fmt(totalAmount)} <span className="font-normal text-muted-foreground">uden moms</span></>}
+              renderSelected={(id) => {
+                const it = items.find((x) => x.serviceId === id);
+                if (!it) return null;
+                const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
+                return (
+                  <div className="space-y-3 rounded-lg border border-accent/30 bg-card p-3">
+                    <div>
+                      <Label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Repeat className="h-3.5 w-3.5" />Interval</Label>
+                      {intervals.length === 1 ? (
+                        <p className="text-sm">{INTERVAL_LABELS[intervals[0]] || intervals[0]}</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Interval">
+                          {intervals.map((iv) => (
+                            <button key={iv} type="button" role="radio" aria-checked={it.interval === iv}
+                              onClick={() => updateItem(id, { interval: iv })}
+                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors ${it.interval === iv ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary"}`}>
+                              {INTERVAL_LABELS[iv] || iv}
+                            </button>
                           ))}
                         </div>
                       )}
+                    </div>
 
-
-                      {intervals.length > 1 && (
-                        <Select value={it.interval} onValueChange={(v) => updateItem(it.serviceId, { interval: v })}>
-                          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {intervals.map((iv) => <SelectItem key={iv} value={iv} className="text-sm">{INTERVAL_LABELS[iv] || iv}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      )}
-
-                      {/* Opstartsdato — pr. service, så hver aftale kan have sin egen startdato */}
-                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
-                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
-                          <Calendar className="h-3 w-3" />
-                          Foreløbig opstartsdato
-                        </Label>
-                        <DatePickerField
-                          value={it.startDate}
-                          onChange={(v) => updateItem(it.serviceId, { startDate: v })}
-                          minDate={format(new Date(), "yyyy-MM-dd")}
-                        />
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          Datoen hvor denne service skal starte{it.interval && it.interval !== "engangskøb" ? " (første gentagelse)" : ""}. Tidspunkt planlægges på ruten.
-                        </p>
+                    {it.service.pricing_type === "timepris" && (
+                      <div>
+                        <Label className="mb-1.5 block text-xs font-semibold text-foreground">Timer <span className="font-normal text-muted-foreground">× {formatPrice(it.service.base_price)} uden moms</span></Label>
+                        <NumberStepper value={it.hours} min={0.5} max={24} step={0.5} ariaLabel="Antal timer"
+                          onChange={(v) => updateItem(id, { hours: v })} className="w-full sm:w-44" />
                       </div>
+                    )}
 
-                      <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/60">
-                        <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Subtotal</span>
-                        <span className="font-bold text-sm tabular-nums">{fmt(roundPrice(calcItemTotal(it)))}</span>
+                    {it.service.pricing_type === "prisberegner" && (it.service.calculator_steps?.length ?? 0) > 0 && (
+                      <div className="space-y-2">
+                        {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
+                          <div key={step.id} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                            <span className="min-w-0 flex-1 break-words text-xs">{step.label} <span className="text-muted-foreground">({formatPrice(step.price_per_unit)}/{step.unit})</span></span>
+                            <NumberStepper value={it.stepValues[step.id] ?? 0} min={Number(step.min_value ?? 0)} max={Number(step.max_value ?? 9999)}
+                              unit={step.unit} ariaLabel={step.label}
+                              onChange={(v) => updateItem(id, { stepValues: { ...it.stepValues, [step.id]: v } })}
+                              className="w-full sm:w-44" />
+                          </div>
+                        ))}
                       </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+                    )}
+
+                    <div>
+                      <Label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Calendar className="h-3.5 w-3.5" />Startdato{it.interval && it.interval !== "engangskøb" ? " (første gang)" : ""}</Label>
+                      <DatePickerField value={it.startDate} onChange={(v) => updateItem(id, { startDate: v })} minDate={format(new Date(), "yyyy-MM-dd")} />
+                      <p className="mt-1 text-xs text-muted-foreground">Tidspunktet planlægges på ruten.</p>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-border/60 pt-2">
+                      <span className="text-xs text-muted-foreground">Subtotal</span>
+                      <span className="text-sm font-bold tabular-nums">{fmt(roundPrice(calcItemTotal(it)))} <span className="text-xs font-normal text-muted-foreground">uden moms</span></span>
+                    </div>
+                  </div>
+                );
+              }}
+            />
           </Section>
 
           {/* Besked */}
@@ -599,6 +536,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               <div className="flex items-baseline gap-2">
                 <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
                 <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+                <span className="text-xs text-muted-foreground">uden moms</span>
               </div>
               {items.length === 0 && (
                 <span className="text-[11px] text-muted-foreground">Vælg mindst én service for at oprette bestillingen</span>
