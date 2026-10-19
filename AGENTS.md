@@ -30,13 +30,11 @@
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - BlueFlowBackground is lazy, token-based, pointer-free and pauses when hidden; heroLight/heroDark variants isolate CTA contrast from brand gradients.
-- Panel headers share `PageHeader`/`.panel-page-hero` styling.
-- Public navigation stays outside suspense; local headers avoid duplicates.
+- Panel headers share `PageHeader`/`.panel-page-hero`; public navigation stays outside suspense without duplicate local headers.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
 - Hourly tests stay isolated. Order-list progress uses recurrence sequence; only the active subscription owner shows its next date, not historical counters/dates.
-- Business-owner e-mails queue in `business_owner_alerts` (DB triggers + daily digest) and drain in `customer-notifications-dispatch`; settings are re-checked at send time so disabled alerts never send.
-- Visit-reminder lead time resolves agreement override > customer override > business default inside the queue trigger, so per-customer timing is honored server-side.
+- Owner e-mails queue in `business_owner_alerts`, drained by `customer-notifications-dispatch` with send-time setting checks; reminder lead time resolves agreement > customer > business in the queue trigger.
