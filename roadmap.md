@@ -1,3 +1,7 @@
+## Aftalepuljens vinduer (20. oktober)
+- [x] Ret Tilføj aftale til rute og Flyt opstartsdato med fælles bredde, ny vinduestop og mobilvenlig forhåndsvisning
+- [x] Isoleret browserkontrol ved 1351/768/390/320 px i lyst/mørkt tema: rutevalg, datoforskydning og kalender; fire tests bestået. Reel gemning ikke testet: egen konto har ingen virksomhed.
+
 ## Ruteplanlæggerens vinduer (19. oktober)
 - [x] Ensret optimering, sygemelding, tastaturgenveje og dagsoversigter med profilvinduets store frie ikoner; genskab optimeringsknappers oprindelige ikoner
 - [x] Ret printvinduets overlap og gennemgå sygemeldingens trin, rulning og knaplinje; behold gemmelogikken

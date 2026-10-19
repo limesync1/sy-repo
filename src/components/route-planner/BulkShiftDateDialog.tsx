@@ -3,10 +3,9 @@ import { addDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { CalendarDays, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-} from "@/components/ui/dialog";
-import { Field, Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Field, Section, SheetFooterBar } from "./SheetSection";
+import PlannerDialogHeader from "./PlannerDialogHeader";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -70,9 +69,10 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
     try {
       const byDate = new Map<string, string[]>();
       for (const p of willUpdate) {
-        const list = byDate.get(p.next!) ?? [];
+        if (!p.next) continue;
+        const list = byDate.get(p.next) ?? [];
         list.push(p.job.id);
-        byDate.set(p.next!, list);
+        byDate.set(p.next, list);
       }
       for (const [date, ids] of byDate.entries()) {
         const { error } = await supabase
@@ -129,26 +129,19 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) onOpenChange(v); }}>
-      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
-        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
-          <SheetHeaderBlock
-            icon={<BrandedIllustration name="calendarWeek" className="h-8 w-8" />}
-            iconClassName="h-10 w-10 bg-card border border-border"
-            title={<DialogTitle className="text-base">Flyt opstartsdato for {jobs.length} aftale{jobs.length === 1 ? "" : "r"}</DialogTitle>}
-            description={
-              <DialogDescription className="text-xs leading-snug">
-                Vælg en ny dato eller forskyd alle valgte med et antal dage. Se forhåndsvisningen før du bekræfter.
-              </DialogDescription>
-            }
-          />
-        </DialogHeader>
+      <DialogContent className="planner-overlay planner-bulk-dialog flex min-w-0 flex-col gap-0 overflow-hidden p-0 sm:p-0">
+        <PlannerDialogHeader
+          artwork={<BrandedIllustration name="calendarWeek" className="h-14 w-14" />}
+          title={`Flyt opstartsdato for ${jobs.length} aftale${jobs.length === 1 ? "" : "r"}`}
+          description="Vælg en fælles dato eller forskyd opstarten med et antal dage."
+        />
 
-        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto space-y-4 bg-secondary/20 p-4 sm:p-5">
-          <Section icon={<CalendarDays className="h-4 w-4" />} title="Ny opstartsdato" tone="sky">
-            <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
-              <TabsList className="grid grid-cols-2 w-full h-9">
-                <TabsTrigger value="set" className="text-xs">Sæt fælles dato</TabsTrigger>
-                <TabsTrigger value="shift" className="text-xs">Forskyd med dage</TabsTrigger>
+        <div className="planner-overlay-body grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overflow-x-hidden bg-secondary/20 p-3 sm:p-4 md:grid-cols-2">
+          <Section icon={<CalendarDays className="h-4 w-4" />} title="Ny opstartsdato" tone="sky" className="min-w-0 self-start">
+            <Tabs value={mode} onValueChange={(v) => { if (v === "set" || v === "shift") setMode(v); }}>
+              <TabsList className="grid grid-cols-2 w-full h-auto min-h-11">
+                <TabsTrigger value="set" className="min-h-11 whitespace-normal text-xs">Sæt fælles dato</TabsTrigger>
+                <TabsTrigger value="shift" className="min-h-11 whitespace-normal text-xs">Forskyd med dage</TabsTrigger>
               </TabsList>
               <TabsContent value="set" className="mt-3">
                 <Field label="Ny opstartsdato" required>
@@ -158,14 +151,15 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
               <TabsContent value="shift" className="mt-3 space-y-3">
                 <Field label="Antal dage" hint="Brug negativt tal for at trække dage fra">
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="outline" size="sm" className="h-10 w-10 p-0" onClick={() => setShiftDays((n) => n - 1)}>−</Button>
+                    <Button type="button" variant="outline" size="sm" aria-label="Én dag mindre" className="h-11 w-11 shrink-0 p-0" onClick={() => setShiftDays((n) => n - 1)}>−</Button>
                     <Input
                       type="number"
                       value={shiftDays}
                       onChange={(e) => setShiftDays(Number(e.target.value) || 0)}
-                      className="h-10 text-center tabular-nums text-base sm:text-sm"
+                      aria-label="Antal dage"
+                      className="h-11 min-w-0 text-center tabular-nums text-base sm:text-sm"
                     />
-                    <Button type="button" variant="outline" size="sm" className="h-10 w-10 p-0" onClick={() => setShiftDays((n) => n + 1)}>+</Button>
+                    <Button type="button" variant="outline" size="sm" aria-label="Én dag mere" className="h-11 w-11 shrink-0 p-0" onClick={() => setShiftDays((n) => n + 1)}>+</Button>
                   </div>
                 </Field>
                 <div className="flex flex-wrap gap-1.5">
@@ -176,9 +170,9 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
                       variant="outline"
                       onClick={() => setShiftDays(n)}
                       className={cn(
-                        "h-10 min-w-11 px-2.5 text-xs",
+                        "h-11 min-w-11 px-2.5 text-xs",
                         shiftDays === n
-                          ? "border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:text-primary-foreground"
+                          ? "border-accent bg-accent/15 text-foreground shadow-sm hover:bg-accent/20 hover:text-foreground"
                           : "text-muted-foreground",
                       )}
                     >
@@ -194,6 +188,7 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
             icon={<ArrowRight className="h-4 w-4" />} 
             title="Forhåndsvisning" 
             tone="muted"
+            className="min-w-0 self-start"
             hint={
               <span className="tabular-nums">
                 {willUpdate.length} flyttes
@@ -202,18 +197,18 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
               </span>
             }
           >
-            <div className="max-h-64 overflow-y-auto overscroll-contain rounded-md border bg-card divide-y divide-border/60">
+            <div className="min-w-0 divide-y divide-border/60">
               {preview.map(({ job, current, next, willSkip: skip }) => (
-                <div key={job.id} className="flex items-center gap-3 px-3 py-2 text-[13px]">
-                  <span className="flex-1 truncate font-medium text-foreground">{job.customer_name}</span>
-                  <div className="flex items-center gap-2 shrink-0">
+                <div key={job.id} className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 py-2 text-[13px]">
+                  <span className="min-w-0 basis-full break-words font-medium text-foreground lg:flex-1 lg:basis-auto">{job.customer_name}</span>
+                  <div className="flex min-w-0 items-center gap-2">
                     <span className="text-muted-foreground tabular-nums text-xs">
                       {current ? format(parseISO(current), "d. MMM", { locale: da }) : "—"}
                     </span>
                     <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
                     <span className={cn(
                       "tabular-nums font-semibold min-w-[3.5rem] text-right",
-                      skip ? "text-muted-foreground italic text-[11px]" : next !== current ? "text-primary" : "text-muted-foreground",
+                      skip ? "text-muted-foreground italic text-[11px]" : next !== current ? "text-foreground" : "text-muted-foreground",
                     )}>
                       {skip ? "springes over" : next ? format(parseISO(next), "d. MMM", { locale: da }) : "—"}
                     </span>
@@ -228,10 +223,10 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
         </div>
 
         <SheetFooterBar className="flex items-center gap-2 bg-card">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy} className="flex-1 h-10">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy} className="flex-1 h-11">
             Annullér
           </Button>
-          <Button type="button" onClick={handleConfirm} disabled={busy || willUpdate.length === 0} className="flex-[1.5] h-10">
+          <Button type="button" onClick={handleConfirm} disabled={busy || willUpdate.length === 0} className="flex-[1.5] h-11">
             {busy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CalendarDays className="h-4 w-4 mr-2" />}
             Flyt {willUpdate.length} aftale{willUpdate.length === 1 ? "" : "r"}
           </Button>
