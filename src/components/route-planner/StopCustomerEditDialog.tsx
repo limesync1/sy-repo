@@ -76,7 +76,7 @@ export default function StopCustomerEditDialog({ orderId, onClose }: Props) {
         // Kundens nye oplysninger skrives straks videre til aftalen og dens
         // stop, så aftalekortene på ruten opdateres uden at genåbne vinduet.
         const displayName = (c.type === "business" ? c.company_name : c.name) || null;
-        const address = [c.address, [c.zip_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || null;
+        const address = c.address ?? null;
         await Promise.all([
           supabase.from("orders").update({
             customer_name: displayName, customer_email: c.email, customer_phone: c.phone ?? null,
