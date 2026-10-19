@@ -191,12 +191,41 @@ Deno.serve(async (req) => {
       const businessName = biz.name ?? "";
       const businessPhone = (biz as any).phone ?? "";
       const serviceName = stop?.service_summary ?? "din service";
+
+      // {{tidspunkt}} — forventet ankomst for påmindelser før besøg.
+      // Bruger stoppets planned_arrival, ellers rutens dato + starttid.
+      let tidspunkt = "snarest";
+      if (job.event_type === "service_upcoming") {
+        let arrival: Date | null = stop?.planned_arrival ? new Date(stop.planned_arrival) : null;
+        if (!arrival && stop?.route_id) {
+          const { data: route } = await admin
+            .from("routes")
+            .select("route_date, planned_start_time")
+            .eq("id", stop.route_id)
+            .maybeSingle();
+          if (route?.route_date) {
+            const t = (route.planned_start_time ?? "08:00").slice(0, 5);
+            // Rutens dato/tid er lokal dansk tid (Europe/Copenhagen, UTC+1/+2).
+            arrival = new Date(`${route.route_date}T${t}:00+02:00`);
+          }
+        }
+        if (arrival && !isNaN(arrival.getTime())) {
+          const dato = arrival.toLocaleDateString("da-DK", {
+            weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Copenhagen",
+          });
+          const kl = arrival.toLocaleTimeString("da-DK", {
+            hour: "2-digit", minute: "2-digit", timeZone: "Europe/Copenhagen",
+          }).replace(":", ".");
+          tidspunkt = `${dato} kl. ${kl}`;
+        }
+      }
       const vars: Record<string, string> = {
         // Danske navne
         kundens_navn: customerName,
         firmanavn: businessName,
         telefon: businessPhone,
         service: serviceName,
+        tidspunkt,
         // Bagudkompatibilitet
         customer_name: customerName,
         business_name: businessName,
