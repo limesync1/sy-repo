@@ -1347,7 +1347,7 @@ const Planner = () => {
       if (filtersActive && (r.stops?.length ?? 0) === 0) return false;
       return true;
     });
-  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes, filtersActive, routeOccurrenceExceptions]);
+  }, [calendarRoutesRaw, calendarStops, visibleCalendarStops, activeEmployees, recurringBaseRoutes, filtersActive, routeOccurrenceExceptions]);
 
   // Bygges nu af `useProjectedCalendar`-hook'en (Fase 2 — orkestrering
   // udtrukket fra ~200 inline-linjer her). Projektions-kæden ligger fortsat
