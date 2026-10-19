@@ -349,7 +349,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
             return (
-              <Section icon={<User className="h-3.5 w-3.5" />} title={isBusiness ? "Erhvervskunde" : "Kunde"} hint="Skriv email for at finde en tidligere kunde" required>
+              <Section icon={<User className="h-3.5 w-3.5" />} tone="sky" title={isBusiness ? "Erhvervskunde" : "Kunde"} hint="Skriv email for at finde en tidligere kunde" required>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div id="cmo-name">
                   <Field label={isBusiness ? "Firmanavn" : "Navn"} required>
@@ -450,7 +450,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           {/* Services */}
           <div id="cmo-services">
           {errors.services && <p className="mb-1 text-sm font-medium text-destructive">{errors.services}</p>}
-          <Section
+          <Section tone="accent"
             icon={<ListPlus className="h-3.5 w-3.5" />}
             title="Services"
             required
@@ -509,7 +509,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                     )}
 
                     <div>
-                      <Label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Calendar className="h-3.5 w-3.5" />Startdato{it.interval && it.interval !== "engangskøb" ? " (første gang)" : ""}</Label>
+                      <Label className="mb-2 flex items-center gap-2 text-sm font-bold text-foreground"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent/15 text-accent"><Calendar className="h-4 w-4" /></span>Foreløbig opstartsdato</Label>
                       <div className="mb-1.5 flex flex-wrap gap-1.5">
                         {[{ l: "I dag", d: 0 }, { l: "I morgen", d: 1 }].map(({ l, d }) => {
                           const v = format(addDays(new Date(), d), "yyyy-MM-dd");
@@ -548,7 +548,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             </button>
           ) : (
           
-          <Section icon={<MessageSquare className="h-3.5 w-3.5" />} title="Besked til kunden" hint="Valgfrit — vises i mailen">
+          <Section icon={<MessageSquare className="h-3.5 w-3.5" />} tone="amber" title="Besked til kunden" hint="Valgfrit — vises i mailen">
             <Textarea
               value={businessMessage}
               onChange={(e) => setBusinessMessage(e.target.value.slice(0, 500))}

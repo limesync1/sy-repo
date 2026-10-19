@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInCalendarDays } from "date-fns";
 import { da } from "date-fns/locale";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import { pushBatchedToast } from "@/lib/toast-batch";
@@ -2362,6 +2363,7 @@ const Planner = () => {
     })();
     toast.promise(runner, {
       loading: `${label}: optimerer rækkefølgen…`,
+      icon: <PanelIcon name="optimizeRoute" className="h-5 w-5" />,
       success: ({ savedKm, savedMin, orderChanged, meaningful }) => {
         if (meaningful) {
           const parts: string[] = [];
@@ -3576,7 +3578,7 @@ const Planner = () => {
                             <Printer className="h-3.5 w-3.5" /> Print / PDF
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setDayOptimizerOpen(true)} className="text-xs gap-2">
-                            <Gauge className="h-3.5 w-3.5" /> Optimér dagen
+                            <PanelIcon name="optimizeDay" className="h-4 w-4" /> Optimér dagen
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
                             <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
@@ -3794,7 +3796,7 @@ const Planner = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-64 p-1.5">
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDate(todayStr())}><CalendarIcon className="h-4 w-4" />Gå til i dag</DropdownMenuItem>
-                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayOptimizerOpen(true)}><Gauge className="h-4 w-4" />Optimér dagen</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayOptimizerOpen(true)}><PanelIcon name="optimizeDay" className="h-5 w-5" />Optimér dagen</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayDetailOpen(true)}><ListOrdered className="h-4 w-4" />Vis dagen som tidslinje</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setPrintOpen(true)}><Printer className="h-4 w-4" />Print / PDF</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => openSickLeaveDialog()}><AlertTriangle className="h-4 w-4" />Meld medarbejder syg</DropdownMenuItem>

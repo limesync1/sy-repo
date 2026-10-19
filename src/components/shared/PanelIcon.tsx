@@ -24,6 +24,8 @@ import addServiceAsset from "@/assets/content-icons/tilfoej-service.svg.asset.js
 import addRouteStopAsset from "@/assets/panel-icons/tilfoej-stop-paa-rute.svg.asset.json";
 import addBusinessAsset from "@/assets/panel-icons/tilfoej-virksomhed.svg.asset.json";
 import businessAsset from "@/assets/panel-icons/virksomhed.svg.asset.json";
+import optimizeDayAsset from "@/assets/content-icons/optimer-dagen.svg.asset.json";
+import optimizeRouteAsset from "@/assets/content-icons/optimer-rute.svg.asset.json";
 import editProfileAsset from "@/assets/content-icons/rediger-profil.svg.asset.json";
 import routeMapAsset from "@/assets/panel-icons/vis-rute-kortvisning.svg.asset.json";
 import routeListAsset from "@/assets/panel-icons/vis-rute-listevisning.svg.asset.json";
@@ -35,6 +37,8 @@ export const PANEL_ICON_ASSETS = {
   guide: guideAsset.url,
   shareProfile: shareProfileAsset.url,
   editProfile: editProfileAsset.url,
+  optimizeDay: optimizeDayAsset.url,
+  optimizeRoute: optimizeRouteAsset.url,
   settings: settingsAsset.url,
   customers: customersAsset.url,
   appointmentStarted: appointmentStartedAsset.url,
@@ -87,6 +91,8 @@ export const PanelIcons = {
   AppointmentView: createPanelIcon("appointmentView"),
   ShareProfile: createPanelIcon("shareProfile"),
   EditProfile: createPanelIcon("editProfile"),
+  OptimizeDay: createPanelIcon("optimizeDay"),
+  OptimizeRoute: createPanelIcon("optimizeRoute"),
   Settings: createPanelIcon("settings"),
   Customers: createPanelIcon("customers"),
   AppointmentStarted: createPanelIcon("appointmentStarted"),

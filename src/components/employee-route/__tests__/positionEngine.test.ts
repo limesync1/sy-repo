@@ -176,3 +176,26 @@ describe("PositionEngine bilmodel", () => {
     expect(h1).toBe(h2);
   });
 });
+
+describe("robust start", () => {
+  it("replaces a coarse first fix immediately when a precise fix arrives", () => {
+    const e = new PositionEngine();
+    e.setRoute(road);
+    // Grov wifi-position 900 m væk, derefter præcis position ved starten.
+    e.ingest(fix(at(0, 900), 0, { accuracy: 800, speed: null }), 0);
+    e.sample(0);
+    expect(e.ingest(fix(at(10, 0), 1000, { accuracy: 8, speed: 0 }), 1000)).toBe(true);
+    const s = e.sample(1000)!;
+    expect(dist(s.pos, at(10, 0))).toBeLessThan(15);
+  });
+
+  it("matches the start of an out-and-back route, not the return leg", () => {
+    const back: [number, number][] = [];
+    for (let x = 0; x <= 500; x += 50) back.push(at(x, 0));
+    for (let x = 500; x >= 0; x -= 50) back.push(at(x, 8)); // retur 8 m ved siden af
+    const e = new PositionEngine();
+    e.setRoute(back);
+    e.ingest(fix(at(20, 6), 0, { speed: 0 }), 0);
+    expect(e.state!.progressM!).toBeLessThan(60);
+  });
+});

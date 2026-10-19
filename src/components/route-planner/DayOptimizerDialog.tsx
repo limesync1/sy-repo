@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Section, SheetFooterBar, SheetHeaderBlock } from "./SheetSection";
 import { useOptimizeRoute } from "@/hooks/useRoutes";
 import { toast } from "sonner";
+import { PanelIcon } from "@/components/shared/PanelIcon";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; businessId: string | null | undefined; date: string };
 
@@ -114,7 +115,7 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
       <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] flex flex-col rounded-md p-0 overflow-hidden gap-0">
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
-            icon={<Gauge className="h-5 w-5" />}
+            icon={<PanelIcon name="optimizeDay" className="h-6 w-6" />}
             title={<DialogTitle className="text-base">Optimér dagen</DialogTitle>}
             description={<DialogDescription className="text-xs leading-snug first-letter:uppercase">{dateLabel}: find den hurtigste rækkefølge mellem stoppene og se køretiden pr. medarbejder.</DialogDescription>}
           />
