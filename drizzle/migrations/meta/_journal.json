@@ -134,6 +134,13 @@
       "when": 1792362688155,
       "tag": "0018_employee_cancel_readonly_authorization",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792412217914,
+      "tag": "0019_guard_accounting_health_check_run",
+      "breakpoints": true
     }
   ]
 }

@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
       startupFeeDkk,
     });
 
-    console.log("[create-checkout-session] stripe payload:", JSON.stringify(sessionPayload));
+    console.log("[create-checkout-session] creating session", { mode: (sessionPayload as any)?.mode, has_email: Boolean((sessionPayload as any)?.customer_email) });
 
     let session;
     try {
