@@ -303,13 +303,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
-      <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]">
+      <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vælg services fra dit katalog og udfyld kundens oplysninger. Bestillingen oprettes som forhåndsgodkendt og kunden modtager en bekræftelses-mail med det samme.
+                Udfyld kunden og vælg services. Kunden får en bekræftelse på mail med det samme.
               </DialogDescription>
             }
           >

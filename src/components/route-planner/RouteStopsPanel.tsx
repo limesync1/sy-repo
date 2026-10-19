@@ -253,7 +253,7 @@ export const RouteStopsPanel = ({
             />
             <SheetTitle className="flex items-center gap-2 text-base leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
-                 Stop på ruten
+                {route.name?.trim() || (route.route_date ? `Rute ${format(parseISO(route.route_date), "d. MMM", { locale: da })}` : "Stop på ruten")}
               </span>
               <span
                 className="shrink-0 inline-flex h-[18px] min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums bg-foreground/[0.08] text-foreground/80 ring-1 ring-inset ring-foreground/10"
@@ -267,7 +267,9 @@ export const RouteStopsPanel = ({
               <span className="min-w-0 break-words">
                 {isProjection
                   ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
-                   : isCompact ? "Brug pilene til at flytte · tryk på navnet for detaljer" : "Træk for at omrangere · klik for detaljer"}
+                   : items.length < 2
+                    ? (isCompact ? "Stop på ruten · tryk på navnet for detaljer" : "Stop på ruten · klik for detaljer")
+                    : isCompact ? "Brug pilene til at flytte · tryk på navnet for detaljer" : "Træk for at omrangere · klik for detaljer"}
               </span>
             </SheetDescription>
           </SheetHeader>
@@ -570,15 +572,16 @@ const SortableStopRow = ({
         {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
         <div className={cn(compact ? CARD_ACTIONS : "flex flex-col items-center justify-center gap-1 px-1.5", "shrink-0", compact && "basis-full justify-end")}>
           {!isProjection && (
-            <Button variant="ghost" size="icon" className={cn("h-11 w-11 shrink-0", compact ? "mr-auto" : "lg:h-8 lg:w-8", stop.status !== "completed" && "text-success hover:bg-success/10 hover:text-success")}
+            <Button variant="ghost" size={compact ? "sm" : "icon"} className={cn("h-11 shrink-0", compact ? "mr-auto gap-1.5 px-3 text-sm font-semibold" : "w-11 lg:h-8 lg:w-8", stop.status !== "completed" && "text-success hover:bg-success/10 hover:text-success")}
               disabled={stop.status === "completed" ? undoPending : markCompletedPending}
               onClick={(event) => { event.stopPropagation(); if (stop.status === "completed") onUndoCompleted(); else onMarkCompleted(); }}
               aria-label={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}
               title={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}>
               {(stop.status === "completed" ? undoPending : markCompletedPending) ? <Loader2 className="h-4 w-4 animate-spin" /> : stop.status === "completed" ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+              {compact && <span>{stop.status === "completed" ? "Fortryd" : "Udført"}</span>}
             </Button>
           )}
-          {compact && !isProjection && <>
+          {compact && !isProjection && (canMoveUp || canMoveDown) && <>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
             <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>
           </>}
