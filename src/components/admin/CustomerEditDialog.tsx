@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Section, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FieldLabel } from "@/components/admin/shared/AdminUI";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload, ChevronDown, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { useServices } from "@/hooks/useDatabase";
@@ -91,6 +93,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [showNotes, setShowNotes] = useState(!!initial?.notes);
+  const [showPhoto, setShowPhoto] = useState(false);
   const { data: activeAccountingIntegration } = useActiveAccountingIntegration(open ? businessId : undefined);
   const accountingEnabled = !!activeAccountingIntegration;
   const { data: services = [] } = useServices(businessId);
@@ -159,6 +163,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     setPaymentTermsDays(initial?.payment_terms_days != null ? String(initial.payment_terms_days) : "");
     setEanNumber(initial?.ean_number || "");
     setSavedCustomer(null);
+    setShowNotes(!!initial?.notes);
+    setShowPhoto(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial?.id]);
 
@@ -288,30 +294,104 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
         <DialogContent className="modal-large planner-overlay flex flex-col p-0 gap-0 overflow-hidden">
-          <DialogHeader className="planner-overlay-header px-4 py-3 border-b shrink-0 text-left sm:px-5 sm:py-4">
-            <DialogTitle className="flex items-center gap-2 text-base">
-              {type === "business" ? <Building2 className="h-4 w-4 text-accent" /> : <User className="h-4 w-4 text-accent" />}
-              {initial?.id ? "Rediger kunde" : "Opret ny kunde"}
-            </DialogTitle>
-            <DialogDescription className="text-[13px] leading-snug">
-              {initial?.id
-                ? "Ret kundens oplysninger. Ændringerne gemmes i kartoteket."
-                : "Gem kunden i kartoteket — eller fortsæt direkte til første bestilling."}
-            </DialogDescription>
+          <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
+            <SheetHeaderBlock
+              title={<DialogTitle className="text-base">{initial?.id ? "Rediger kunde" : "Opret kunde"}</DialogTitle>}
+              description={<DialogDescription className="text-xs leading-snug">{initial?.id ? "Ret kundens oplysninger i kartoteket." : "Gem kunden eller fortsæt til en bestilling."}</DialogDescription>}
+            />
           </DialogHeader>
 
-          <div className="planner-overlay-body flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-secondary/20 sm:px-5 sm:py-4 sm:space-y-4">
+          <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto px-3 sm:px-5 py-3 space-y-2 [&_input]:min-h-11 sm:[&_input]:min-h-10 [&_[role=combobox]]:min-h-11 sm:[&_[role=combobox]]:min-h-10">
             {!initial?.id && (
               <Tabs value={type} onValueChange={(v) => setType(v as CustomerType)}>
-                <TabsList className="grid h-10 w-full grid-cols-2">
-                  <TabsTrigger value="private" className="gap-1.5"><User className="h-3.5 w-3.5" /> Privatkunde</TabsTrigger>
-                  <TabsTrigger value="business" className="gap-1.5"><Building2 className="h-3.5 w-3.5" /> Erhvervskunde</TabsTrigger>
+                <TabsList className="grid h-11 sm:h-10 w-full grid-cols-2">
+                  <TabsTrigger value="private" className="h-full gap-1.5"><User className="h-3.5 w-3.5" /> Privatkunde</TabsTrigger>
+                  <TabsTrigger value="business" className="h-full gap-1.5"><Building2 className="h-3.5 w-3.5" /> Erhvervskunde</TabsTrigger>
                 </TabsList>
               </Tabs>
             )}
 
-            {/* Profilbillede */}
-            <div className="flex items-center gap-3 rounded-lg border bg-card p-3 sm:border-0 sm:bg-transparent sm:p-0">
+            <Section icon={type === "business" ? <Building2 /> : <User />} title={type === "business" ? "Erhvervskunde" : "Kunde"}>
+            {type === "business" && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <FieldLabel optional>CVR</FieldLabel>
+                  <CvrLookupField
+                    value={cvr}
+                    onChange={setCvr}
+                    onResult={(r: CvrResult | null) => {
+                      if (!r) return;
+                      setCompanyName(r.name);
+                      if (r.address) setAddress(r.address);
+                      if (r.zip_code) setZipCode(r.zip_code);
+                      if (r.city) setCity(r.city);
+                      if (r.phone && !phone) setPhone(r.phone);
+                      if (r.email && !email) setEmail(r.email);
+                      // Geocode den nye adresse straks så den ikke vises som "ikke fundet"
+                      setLatitude(null); setLongitude(null);
+                      if (r.address && r.zip_code && r.city) {
+                        const { address: companyAddress, zip_code: companyZip, city: companyCity } = r;
+                        setTimeout(() => geocodeCurrentAddress(companyAddress, companyZip, companyCity), 50);
+                      }
+                    }}
+                  />
+                  <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Slå virksomheden op for at udfylde navn og adresse automatisk.</p>
+                </div>
+                <div>
+                  <FieldLabel required>Firmanavn</FieldLabel>
+                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-10" />
+                </div>
+                <div>
+                  <FieldLabel optional>Kontaktperson</FieldLabel>
+                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {type === "private" && (
+              <div>
+                <FieldLabel required>Navn</FieldLabel>
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:col-span-2">
+              <div>
+                <FieldLabel required>E-mail</FieldLabel>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-10" />
+              </div>
+              <div>
+                <FieldLabel optional>Telefon</FieldLabel>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-10" />
+              </div>
+            </div>
+            </div>
+
+            <div className="relative z-20 space-y-1.5">
+              <FieldLabel optional>Adresse</FieldLabel>
+              <AddressAutocomplete
+                value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                onChange={(v) => {
+                  setAddress(v.address); setZipCode(v.zip_code); setCity(v.city);
+                  setLatitude(v.latitude ?? null); setLongitude(v.longitude ?? null);
+                }}
+              />
+            </div>
+
+            {(zipCode || city) && (
+              <div className="grid grid-cols-3 gap-3">
+                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-10" /></div>
+                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-10" /></div>
+              </div>
+            )}
+
+            </Section>
+
+            <Collapsible open={showPhoto} onOpenChange={setShowPhoto}>
+              <CollapsibleTrigger asChild><Button variant="ghost" className="h-11 w-full justify-start px-2 sm:h-10"><Camera />{avatarUrl ? "Profilbillede" : "Tilføj billede"}<ChevronDown className="ml-auto" /></Button></CollapsibleTrigger>
+              <CollapsibleContent>            {/* Profilbillede */}
+            <div className="flex items-center gap-3 pt-2">
               <div className="relative h-12 w-12 shrink-0 group/avatar sm:h-14 sm:w-14">
                 {avatarUrl ? (
                   <img
@@ -337,95 +417,27 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 <p className="font-medium text-foreground">Profilbillede</p>
                 <p className="truncate sm:whitespace-normal">Tryk på billedet for at skifte. Maks 5MB.</p>
                 {avatarUrl && (
-                  <button type="button" onClick={() => setAvatarUrl(null)} className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline mt-0.5">
+                  <Button type="button" variant="ghost" onClick={() => setAvatarUrl(null)} className="h-11 px-2 text-destructive hover:text-destructive">
                     Fjern billede
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
 
-            {type === "business" && (
-              <div className="rounded-lg border bg-card p-3 space-y-3">
-                <div>
-                  <FieldLabel optional>CVR</FieldLabel>
-                  <CvrLookupField
-                    value={cvr}
-                    onChange={setCvr}
-                    onResult={(r: CvrResult | null) => {
-                      if (!r) return;
-                      setCompanyName(r.name);
-                      if (r.address) setAddress(r.address);
-                      if (r.zip_code) setZipCode(r.zip_code);
-                      if (r.city) setCity(r.city);
-                      if (r.phone && !phone) setPhone(r.phone);
-                      if (r.email && !email) setEmail(r.email);
-                      // Geocode den nye adresse straks så den ikke vises som "ikke fundet"
-                      setLatitude(null); setLongitude(null);
-                      if (r.address && r.zip_code && r.city) {
-                        setTimeout(() => geocodeCurrentAddress(r.address!, r.zip_code!, r.city!), 50);
-                      }
-                    }}
-                  />
-                  <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Slå virksomheden op for at udfylde navn og adresse automatisk.</p>
-                </div>
-                <div>
-                  <FieldLabel required>Firmanavn</FieldLabel>
-                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-10" />
-                </div>
-                <div>
-                  <FieldLabel optional>Kontaktperson</FieldLabel>
-                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-3 rounded-lg border bg-card p-3">
-            {type === "private" && (
-              <div>
-                <FieldLabel required>Navn</FieldLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <FieldLabel required>E-mail</FieldLabel>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-10" />
-              </div>
-              <div>
-                <FieldLabel optional>Telefon</FieldLabel>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-10" />
-              </div>
-            </div>
-            </div>
-
-            <div className="relative z-20 space-y-2 rounded-lg border bg-card p-3">
-              <FieldLabel optional>Adresse</FieldLabel>
-              <AddressAutocomplete
-                value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                onChange={(v) => {
-                  setAddress(v.address); setZipCode(v.zip_code); setCity(v.city);
-                  setLatitude(v.latitude ?? null); setLongitude(v.longitude ?? null);
-                }}
-              />
-            </div>
-
-            {(zipCode || city) && (
-              <div className="grid grid-cols-3 gap-3">
-                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-10" /></div>
-                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-10" /></div>
-              </div>
-            )}
-
-            <div>
-              <FieldLabel optional>Interne noter</FieldLabel>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
+            <Collapsible open={showNotes} onOpenChange={setShowNotes}>
+              <CollapsibleTrigger asChild><Button variant="ghost" className="h-11 w-full justify-start px-2 sm:h-10"><StickyNote />{notes ? "Interne noter" : "Tilføj intern note"}<ChevronDown className="ml-auto" /></Button></CollapsibleTrigger>
+              <CollapsibleContent className="pt-1">
+                <Textarea aria-label="Interne noter" value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Regnskabs-felter — vises kun hvis virksomheden har integreret et regnskabsprogram */}
             {accountingEnabled && (
-            <div className="rounded-lg border bg-card p-3 space-y-3">
-              <p className="text-xs font-medium text-foreground">Regnskab & fakturering</p>
+            <Collapsible>
+              <CollapsibleTrigger asChild><Button variant="ghost" className="h-11 w-full justify-start px-2 sm:h-10"><Building2 />Regnskab & fakturering<ChevronDown className="ml-auto" /></Button></CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <FieldLabel optional>Kunde-nr.</FieldLabel>
@@ -474,7 +486,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 </div>
                 <Switch checked={isBlocked} onCheckedChange={setIsBlocked} />
               </div>
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
             )}
 
             {/* Ekstra kontaktpersoner & dokumenter — kun for erhvervskunder
@@ -510,26 +523,24 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             )}
           </div>
 
-          <DialogFooter className="planner-overlay-footer px-4 py-3 border-t shrink-0 gap-2 sm:gap-2 sm:px-5 sm:flex-row sm:justify-between">
-            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-10">Annullér</Button>
-            <div className="grid w-full gap-2 sm:flex sm:w-auto">
-              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving} className="h-10">
-                {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
-                Gem kunde
-              </Button>
-              {!initial?.id && (
-                <Button
-                  onClick={() => handleSave(true)}
-                  disabled={saving}
-                  title={hasActiveServices ? "Gem kunden og opret en bestilling" : "Opret en aktiv service før du kan oprette bestillinger"}
-                  className="h-10 bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  <ShoppingBag className="h-4 w-4 mr-1.5" />
-                  Gem og opret bestilling
+          <SheetFooterBar>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <Button variant="outline" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-11 sm:h-10">Annullér</Button>
+              <div className="grid grid-cols-2 gap-2 sm:flex">
+                <Button variant={initial?.id ? "default" : "outline"} onClick={() => handleSave(false)} disabled={saving} className="h-11 sm:h-10 col-span-2 sm:col-span-1">
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {initial?.id ? "Gem ændringer" : "Opret kunde"}
                 </Button>
-              )}
+                {!initial?.id && (
+                  <Button onClick={() => handleSave(true)} disabled={saving}
+                    title={hasActiveServices ? "Gem kunden og opret en bestilling" : "Opret en aktiv service før du kan oprette bestillinger"}
+                    className="h-11 sm:h-10 col-span-2">
+                    <ShoppingBag className="h-4 w-4" />Gem og opret bestilling
+                  </Button>
+                )}
+              </div>
             </div>
-          </DialogFooter>
+          </SheetFooterBar>
         </DialogContent>
       </Dialog>
 
