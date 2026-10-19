@@ -16,7 +16,7 @@
 - Meta OAuth uses `https://serviceydere.dk/meta/callback`, forwarding authorization to the server callback to keep preview/production configuration stable.
 - Restarted employee workdays preserve prior elapsed seconds in `accumulated_seconds` and open a new active interval, so completed appointments and precise time history remain intact.
 - Employee pages share `EmployeePage`; driving is full-screen; profiles share `ProfileEditSheetLayout`, with employee self-edits limited to name/avatar. Account saves upsert by user ID to repair missing rows; auth metadata is secondary.
-- Archived routes cannot remain recurrence anchors or enter projection queries, preventing deleted routes from resurfacing as ghost routes.
+- Archived routes are never recurrence anchors or projection inputs, preventing ghost routes.
 - Printing filters loaded calendar routes in its workspace so preview and paper share one source.
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
 - Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
@@ -36,5 +36,5 @@
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
-- Hourly tests stay isolated. Order-list progress uses recurrence sequence; only the active subscription owner shows its next date, not historical counters/dates.
+- Hourly tests stay isolated; order progress uses recurrence sequence and only the active subscription owner shows a next date.
 - Owner e-mails queue in `business_owner_alerts`, drained by `customer-notifications-dispatch` with send-time setting checks; reminder lead time resolves agreement > customer > business in the queue trigger.
