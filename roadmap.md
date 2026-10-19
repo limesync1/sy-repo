@@ -1,3 +1,7 @@
+## Aftalepuljens vinduer (20. oktober)
+- [ ] Ret Tilføj aftale til rute og Flyt opstartsdato med fælles bredde, ny vinduestop og mobilvenlig forhåndsvisning
+- [ ] Kontrollér begge vinduer på computer og mobil i lyst og mørkt tema
+
 ## Ruteplanlæggerens vinduer (19. oktober)
 - [x] Ensret optimering, sygemelding, tastaturgenveje og dagsoversigter med profilvinduets store frie ikoner; genskab optimeringsknappers oprindelige ikoner
 - [x] Ret printvinduets overlap og gennemgå sygemeldingens trin, rulning og knaplinje; behold gemmelogikken

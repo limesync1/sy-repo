@@ -1958,6 +1958,20 @@ img[loading="lazy"].is-error {
 @media (max-width: 439px) { .employee-action-tile { min-height: 3.75rem; } .employee-action-tile-hint { display: none; } }
 
 /* Store vinduer (opret service, opret bestilling, ny rute m.fl.): fylder næsten hele skærmen på alle enheder. */
+/* Fælles dimensioner for aftalepuljens to handlinger; ingen sm:max-w-lg fallback. */
+.ui-modal.planner-bulk-dialog {
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(100dvh - 0.75rem);
+}
+@media (min-width: 640px) {
+  .ui-modal.planner-bulk-dialog {
+    width: min(56rem, calc(100vw - 3rem));
+    max-width: min(56rem, calc(100vw - 3rem));
+    max-height: calc(100dvh - 3rem);
+  }
+}
+
 @layer utilities {
   .modal-large {
     width: calc(100vw - 1rem) !important;

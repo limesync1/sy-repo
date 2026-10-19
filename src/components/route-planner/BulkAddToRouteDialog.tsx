@@ -74,14 +74,14 @@ export const BulkAddToRouteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
-      <DialogContent className="planner-overlay flex max-h-[calc(100dvh-0.75rem)] min-w-0 flex-col gap-0 overflow-hidden p-0 sm:w-[calc(100vw-2rem)] sm:max-w-3xl sm:max-h-[calc(100dvh-2rem)] sm:p-0">
+      <DialogContent className="planner-overlay planner-bulk-dialog flex min-w-0 flex-col gap-0 overflow-hidden p-0 sm:p-0">
         <PlannerDialogHeader
           artwork={<UiArtwork name="addAppointmentToRoute" className="h-14 w-14" />}
           title={`Tilføj ${jobs.length} ${jobs.length === 1 ? "aftale" : "aftaler"} til rute`}
           description="Vælg ruten, som aftalerne skal tilføjes til."
         />
 
-        <div className="planner-overlay-body grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overflow-x-hidden bg-secondary/20 p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)] sm:p-4">
+        <div className="planner-overlay-body grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overflow-x-hidden bg-secondary/20 p-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)] sm:p-4">
           {/* Venstre: valgte aftaler */}
           <Section 
             icon={<Check className="h-4 w-4" />} 
