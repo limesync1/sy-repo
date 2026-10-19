@@ -412,7 +412,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 </div>
                 <div className="mt-2">
                   {!showCvr && !(cvr.replace(/\D/g, "").length === 8 || companyName) ? (
-                    <button type="button" onClick={() => setShowCvr(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline sm:min-h-9">
+                    <button type="button" onClick={() => setShowCvr(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-secondary/60 px-3 text-sm font-medium text-foreground hover:bg-secondary sm:min-h-9">
                       <Building2 className="h-4 w-4 text-accent" />Erhvervskunde? Slå CVR op
                     </button>
                   ) : (
@@ -543,7 +543,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           </div>
 
           {!showMsg && !businessMessage ? (
-            <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline">
+            <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-secondary/60 px-3 text-sm font-medium text-foreground hover:bg-secondary">
               <MessageSquare className="h-4 w-4 text-accent" />Tilføj besked til kunden
             </button>
           ) : (
