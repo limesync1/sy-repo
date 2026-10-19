@@ -125,8 +125,8 @@
 - [ ] Kontrollér faktisk annullering som tildelt medarbejder — kræver godkendt medarbejdersession og isoleret testaftale
 
 ## Nye opgaver (19. okt. 16:08)
-- [ ] Slet-rute-modal: nyt vedhæftede ikon + samme nye design som øvrige vinduer
-- [ ] Fjern «Opret bestilling»-knappen under «Alle aftaler er planlagt» i aftalepuljen
-- [ ] Browser-autofill udfylder «Søg navn eller adresse...» i Aftaler uden rute — spær feltet
-- [ ] Genindfør «Påmindelse før besøg» (e-mail + SMS): virksomhedsindstillinger, opret/rediger kunde, aftale-overrides, afsender
-- [ ] «Opret bestilling»: mere kompakte servicekort, tydeligere farvede knapper, datoknap nem at finde
+- [x] Slet-rute-modal: nyt vedhæftede ikon + samme nye design som øvrige vinduer
+- [x] Fjern «Opret bestilling»-knappen under «Alle aftaler er planlagt» i aftalepuljen
+- [x] Browser-autofill udfylder «Søg navn eller adresse...» i Aftaler uden rute — spær feltet
+- [x] Genindfør «Påmindelse før besøg» (e-mail + SMS): virksomhedsindstillinger, opret/rediger kunde, aftale-overrides, afsender
+- [x] «Opret bestilling»: mere kompakte servicekort, tydeligere farvede knapper, datoknap nem at finde
