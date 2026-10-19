@@ -48,6 +48,7 @@ import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_CONTENT, CARD
 import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useRouteLivePositions, type RouteLivePosition } from "@/hooks/useRouteLivePositions";
+import StopCustomerEditDialog from "./StopCustomerEditDialog";
 
 const readableTokenOn = (color?: string | null) => {
   const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
@@ -102,6 +103,8 @@ export const RouteStopsPanel = ({
   const updateStopStatus = useUpdateStopStatus();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
   const [confirmUndo, setConfirmUndo] = useState<RouteStop | null>(null);
+  const [editCustomerOrderId, setEditCustomerOrderId] = useState<string | null>(null);
+  const closeCustomerEdit = useCallback(() => setEditCustomerOrderId(null), []);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
   const firstSeenAtStopRef = useRef(new Map<string, string>());
 
