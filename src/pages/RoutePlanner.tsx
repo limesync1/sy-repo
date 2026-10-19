@@ -4258,7 +4258,7 @@ const Planner = () => {
                 onRouteDeleted={closeAll}
           onSelectStop={(s) => setSelectedStopId(s.id)}
           employees={activeEmployees.map((e: any) => ({
-            id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
+            id: e.id, name: e.name, title: e.title, avatar_url: e.avatar_url, color: e.color,
           }))}
                 isProjection={projectionActive}
               />

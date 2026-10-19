@@ -33,7 +33,7 @@ export default function RouteDecisionCard({
   const crew = route.crewIds
     .map((id) => empById.get(id))
     .filter(Boolean)
-    .map((e) => ({ id: e!.id, name: e!.name, avatar_url: e!.avatar_url, color: e!.color }));
+    .map((e) => ({ id: e!.id, name: e!.name, title: e!.title, avatar_url: e!.avatar_url, color: e!.color }));
 
   const disabledReason = (a: SickLeaveAction) =>
     a === "spread" && route.crewIds.length === 0 ? "Ingen andre på holdet" : null;

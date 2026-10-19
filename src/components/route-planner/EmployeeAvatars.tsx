@@ -10,6 +10,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 export type EmpAvatar = {
   id: string;
   name: string;
+  /** Medarbejderens titel (fx "Pudser") — vises i navne-boksen. */
+  title?: string | null;
   avatar_url?: string | null;
   color?: string | null;
 };
@@ -61,9 +63,9 @@ const NameCard = ({ children, wide }: { children: React.ReactNode; wide?: boolea
     </HoverCardContent>
 );
 
-const LeadTag = () => (
+const TitleTag = ({ label }: { label: string }) => (
   <span className="mt-1 inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-foreground">
-    Ansvarlig
+    {label}
   </span>
 );
 
@@ -126,7 +128,9 @@ export const EmployeeAvatars = ({
               />
             )}
             <p className="break-words text-center text-sm font-semibold leading-snug text-foreground">{e.name}</p>
-            {e.id === leadId && <div className="text-center"><LeadTag /></div>}
+            {(e.title || e.id === leadId) && (
+              <div className="text-center"><TitleTag label={e.title || "Ansvarlig"} /></div>
+            )}
           </NameCard>
         </HoverCard>
       ))}
@@ -147,8 +151,8 @@ export const EmployeeAvatars = ({
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Også på aftalen</p>
             <ul className="space-y-0.5">
               {hidden.map((e) => (
-                <li key={e.id} className="break-words text-sm font-medium text-foreground">
-                  {e.name}{e.id === leadId ? " · ansvarlig" : ""}
+                 <li key={e.id} className="break-words text-sm font-medium text-foreground">
+                  {e.name}{e.title ? ` · ${e.title}` : e.id === leadId ? " · ansvarlig" : ""}
                 </li>
               ))}
             </ul>
