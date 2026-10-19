@@ -158,12 +158,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setItems((prev) => [
       ...prev,
       {
-        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0], startDate: sameDate && prev[0] ? prev[0].startDate : today,
+        serviceId, service: svc, hours: 1, quantity: 1, stepValues, interval: intervals[0], startDate: sameDate && prev[0] ? prev[0].startDate : today,
       },
     ]);
   };
 
-  const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.serviceId !== id));
+  const removeItem = (id: string) => {
+    const idx = items.findIndex((i) => i.serviceId === id);
+    const removed = items[idx];
+    setItems((prev) => prev.filter((i) => i.serviceId !== id));
+    if (!removed) return;
+    toast(`${removed.service.name} fjernet`, {
+      duration: 6000,
+      action: {
+        label: "Fortryd",
+        onClick: () => setItems((prev) => prev.some((i) => i.serviceId === id) ? prev : [...prev.slice(0, idx), removed, ...prev.slice(idx)]),
+      },
+    });
+  };
 
   const updateItem = (id: string, patch: Partial<BuilderItem>) =>
     setItems((prev) => prev.map((i) => i.serviceId === id ? { ...i, ...patch } : i));
@@ -267,20 +279,21 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       // Indsæt ét order_item pr. ordre
       const orderItems = items.map((it, idx) => {
         const total = roundPrice(calcItemTotal(it));
-        const stepDetails = (it.service.calculator_steps || []).map((s) => ({
-          id: s.id, label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
-          price_per_unit: Number(s.price_per_unit),
-          subtotal: roundPrice((it.stepValues[s.id] || 0) * Number(s.price_per_unit)),
-        }));
+        const stepDetails = (it.service.calculator_steps || []).map((s) => {
+          const v = clampStep(s, it.stepValues[s.id] ?? 0);
+          return { id: s.id, label: s.label, value: v, unit: s.unit, price_per_unit: Number(s.price_per_unit), subtotal: roundPrice(v * Number(s.price_per_unit)) };
+        });
+        const isFast = it.service.pricing_type === "fast_pris";
+        const qty = isFast ? Math.max(1, it.quantity || 1) : 1;
         const description = it.service.pricing_type === "timepris"
           ? `${it.hours} timer`
-          : it.service.pricing_type === "fast_pris" ? "Specifik pris" : "";
+          : isFast ? (qty > 1 ? `${qty} ${it.service.unit || "stk"}` : "Specifik pris") : "";
         return {
           order_id: childOrderIds[idx],
           service_id: it.serviceId,
           service_name: it.service.name,
-          quantity: 1,
-          unit_price: total,
+          quantity: qty,
+          unit_price: isFast ? roundPrice(Number(it.service.base_price || 0)) : total,
           total_price: total,
           details: {
             description,
@@ -492,17 +505,33 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       </div>
                     )}
 
+                    {it.service.pricing_type === "fast_pris" && (
+                      <div>
+                        <Label className="mb-1.5 block text-xs font-semibold text-foreground">Antal <span className="font-normal text-muted-foreground">× {formatPrice(it.service.base_price)}{it.service.unit ? ` pr. ${it.service.unit}` : ""} uden moms</span></Label>
+                        <NumberStepper value={it.quantity} min={1} max={10000} unit={it.service.unit || "stk"} ariaLabel="Antal"
+                          onChange={(v) => updateItem(id, { quantity: Math.max(1, v) })} className="w-full sm:w-44" />
+                      </div>
+                    )}
+
+                    {it.service.pricing_type === "prisberegner" && (it.service.calculator_steps?.length ?? 0) === 0 && (
+                      <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-900 dark:text-amber-100">Denne prisberegner har ingen felter — prisen bliver 0 kr. Tilføj felter under Services.</p>
+                    )}
+
                     {it.service.pricing_type === "prisberegner" && (it.service.calculator_steps?.length ?? 0) > 0 && (
                       <div className="space-y-2">
-                        {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
+                        {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => {
+                          const min = Number(step.min_value ?? 0), max = Number(step.max_value ?? 100000);
+                          return (
                           <div key={step.id} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-                            <span className="min-w-0 flex-1 break-words text-xs">{step.label} <span className="text-muted-foreground">({formatPrice(step.price_per_unit)}/{step.unit})</span></span>
-                            <NumberStepper value={it.stepValues[step.id] ?? 0} min={Number(step.min_value ?? 0)} max={Number(step.max_value ?? 9999)}
-                              unit={step.unit} ariaLabel={step.label}
-                              onChange={(v) => updateItem(id, { stepValues: { ...it.stepValues, [step.id]: v } })}
+                            <span className="min-w-0 flex-1 break-words text-xs">{step.label} <span className="text-muted-foreground">({formatPrice(step.price_per_unit)}/{step.unit})</span>
+                              {step.max_value != null && <span className="block text-[11px] text-muted-foreground">{min}–{max} {step.unit}</span>}</span>
+                            <NumberStepper value={it.stepValues[step.id] ?? min} min={min} max={max} step={getSmartStep(step.unit, min, max)}
+                              unit={step.unit} ariaLabel={`${step.label} i ${step.unit}`}
+                              onChange={(v) => updateItem(id, { stepValues: { ...it.stepValues, [step.id]: clampStep(step, v) } })}
                               className="w-full sm:w-44" />
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 
