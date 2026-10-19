@@ -20,7 +20,7 @@ interface Props {
   onSmsEnabledChange: (v: boolean) => void;
 }
 
-type EventKey = "service_completed";
+type EventKey = "service_upcoming" | "service_completed";
 
 const EVENTS: {
   key: EventKey;
@@ -30,6 +30,17 @@ const EVENTS: {
   Icon: typeof Bell;
   defaults: { subject: string; body: string };
 }[] = [
+  {
+    key: "service_upcoming",
+    label: "Påmindelse før besøg",
+    shortLabel: "Sendes før vi kommer",
+    help: "En påmindelse til kunden før besøget — fx dagen før eller en time før. Tids-punktet vælger I under «Hvornår» herunder.",
+    Icon: Bell,
+    defaults: {
+      subject: "Vi kommer og udfører {{service}}",
+      body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
+    },
+  },
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
@@ -44,6 +55,7 @@ const EVENTS: {
 ];
 
 const SMS_DEFAULTS: Record<EventKey, string> = {
+  service_upcoming: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
   service_completed: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
 };
 
@@ -54,6 +66,7 @@ const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
   { key: "firmanavn", label: "Jeres firmanavn", example: "Rengøring København" },
   { key: "telefon", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
   { key: "service", label: "Service", example: "ugentlig rengøring" },
+  { key: "tidspunkt", label: "Tidspunkt", example: "tirsdag d. 20. oktober kl. 08.00" },
 ];
 
 // Mapping: dansk eller gammelt engelsk navn → eksempel-værdi
@@ -62,6 +75,7 @@ const ALIASES: Record<string, string> = {
   firmanavn: "firmanavn", business_name: "firmanavn",
   telefon: "telefon", business_phone: "telefon",
   service: "service", service_name: "service",
+  tidspunkt: "tidspunkt",
 };
 const EXAMPLE_VARS: Record<string, string> = Object.fromEntries(PLACEHOLDERS.map((p) => [p.key, p.example]));
 
