@@ -2818,6 +2818,11 @@ const Planner = () => {
                       <Input
                         ref={unassignedSearchRef}
                         placeholder="Søg navn eller adresse..."
+                        autoComplete="off"
+                        name="planner-unassigned-search"
+                        data-1p-ignore
+                        data-lpignore="true"
+                        data-form-type="other"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Escape") { setSearch(""); (e.target as HTMLInputElement).blur(); } }}
