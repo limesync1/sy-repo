@@ -514,11 +514,14 @@ const SortableStopRow = ({
           <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
             <IntervalBadge interval={stop.agreement_interval} size="sm" />
             {(() => {
-              const label = formatCycleLabel({
-                completedCycles: stop.completed_cycles,
-                interval: stop.agreement_interval,
-                isCompleted: stop.status === "completed",
-              });
+              const cycleNo = (stop as any).cycle_number as number | undefined;
+              const label = typeof cycleNo === "number" && stop.agreement_interval !== "engangskøb"
+                ? `${cycleNo}. kørsel`
+                : formatCycleLabel({
+                    completedCycles: stop.completed_cycles,
+                    interval: stop.agreement_interval,
+                    isCompleted: stop.status === "completed",
+                  });
               return label ? (
                 <Badge
                   variant="outline"
