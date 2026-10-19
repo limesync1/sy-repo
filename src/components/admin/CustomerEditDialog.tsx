@@ -57,9 +57,11 @@ interface Props {
   businessId: string;
   businessName: string;
   initial?: EditableCustomer | null;
+  /** Kaldes efter gem, så fx ruteplanlæggeren kan opdatere sine aftalekort. */
+  onSaved?: (saved: EditableCustomer) => void | Promise<void>;
 }
 
-const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial }: Props) => {
+const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial, onSaved }: Props) => {
   const qc = useQueryClient();
   const [type, setType] = useState<CustomerType>(initial?.type || "private");
   const [name, setName] = useState(initial?.name || "");
@@ -260,6 +262,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         longitude: savedRow.longitude,
         notes: savedRow.notes,
       };
+      if (onSaved) await onSaved(saved);
 
       if (alsoCreateOrder && !hasActiveServices) {
         toast.error("Kunden er gemt, men bestillingen kan ikke oprettes", {
