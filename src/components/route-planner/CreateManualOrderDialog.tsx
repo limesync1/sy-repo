@@ -24,7 +24,11 @@ import { Building2, BadgeCheck } from "lucide-react";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { NumberStepper } from "@/components/shared/NumberStepper";
 
 import { IndustryIcon } from "@/components/IndustryIcon";
@@ -118,6 +122,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
   const [showCvr, setShowCvr] = useState(false);
   const [showMsg, setShowMsg] = useState(false);
+  const [sameDate, setSameDate] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; services?: string }>({});
+  const clearErr = (k: "name" | "email" | "services") => setErrors((e) => (e[k] ? { ...e, [k]: undefined } : e));
   const totalAmount = useMemo(() => roundPrice(items.reduce((s, it) => s + calcItemTotal(it), 0)), [items]);
 
   // Hvor mange af de valgte aftaler er tilbagevendende? Bruges til en lille
@@ -162,6 +170,9 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const updateItem = (id: string, patch: Partial<BuilderItem>) =>
     setItems((prev) => prev.map((i) => i.serviceId === id ? { ...i, ...patch } : i));
 
+  const setStartDate = (id: string, v: string) =>
+    setItems((prev) => prev.map((i) => (sameDate || i.serviceId === id) ? { ...i, startDate: v } : i));
+
   const reset = () => {
     setCustomerName(""); setCustomerEmail(""); setCustomerPhone(""); setContactPerson("");
     setAddress(""); setZipCode(""); setCity("");
@@ -169,7 +180,20 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setCvr(""); setCompanyName("");
     setBusinessMessage("");
     setItems([]);
+    setErrors({}); setShowCvr(false); setShowMsg(false); setSameDate(false);
   };
+
+  const isDirty = !!(customerName || customerEmail || customerPhone || address || cvr || businessMessage || items.length);
+  const requestClose = () => {
+    if (submitting) return;
+    if (isDirty) setConfirmClose(true); else onOpenChange(false);
+  };
+
+  const emailValid = /^\S+@\S+\.\S+$/.test(customerEmail.trim());
+  const missing = !customerName.trim() ? "Mangler kundens navn"
+    : !customerEmail.trim() ? "Mangler email"
+    : !emailValid ? "Email ser forkert ud"
+    : items.length === 0 ? "Vælg mindst én service" : "";
 
   const handleSubmit = async () => {
     if (submittingRef.current) return;
@@ -179,18 +203,15 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       submittingRef.current = false;
       return;
     }
-    if (!customerName.trim() || !customerEmail.trim()) {
-      toast.error("Udfyld kundens navn og email");
-      submittingRef.current = false;
-      return;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(customerEmail)) {
-      toast.error("Ugyldig email-adresse");
-      submittingRef.current = false;
-      return;
-    }
-    if (items.length === 0) {
-      toast.error("Tilføj mindst én service til bestillingen");
+    const errs: typeof errors = {};
+    if (!customerName.trim()) errs.name = "Skriv kundens navn";
+    if (!customerEmail.trim()) errs.email = "Skriv kundens email";
+    else if (!emailValid) errs.email = "Tjek email — fx navn@firma.dk";
+    if (items.length === 0) errs.services = "Tilføj mindst én service";
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      const first = errs.name ? "cmo-name" : errs.email ? "cmo-email" : "cmo-services";
+      document.getElementById(first)?.scrollIntoView({ behavior: "smooth", block: "center" });
       submittingRef.current = false;
       return;
     }
@@ -304,8 +325,9 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
-      <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
+    <>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) requestClose(); else onOpenChange(v); }}>
+      <DialogContent onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSubmit(); } }} className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             title={<DialogTitle className="text-base">Opret bestilling</DialogTitle>}
@@ -327,17 +349,22 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
             return (
-              <Section icon={<User className="h-3.5 w-3.5" />} title={isBusiness ? "Erhvervskunde" : "Kunde"} required>
+              <Section icon={<User className="h-3.5 w-3.5" />} title={isBusiness ? "Erhvervskunde" : "Kunde"} hint="Skriv email for at finde en tidligere kunde" required>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div id="cmo-name">
                   <Field label={isBusiness ? "Firmanavn" : "Navn"} required>
-                    <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className="h-11 sm:h-10" />
+                    <Input value={customerName} aria-invalid={!!errors.name} onChange={(e) => { setCustomerName(e.target.value); clearErr("name"); }} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className={`h-11 sm:h-10 ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`} />
+                    {errors.name && <p className="mt-1 text-xs font-medium text-destructive">{errors.name}</p>}
                   </Field>
+                  </div>
+                  <div id="cmo-email">
                   <Field label="E-mail" required>
                     <CustomerEmailAutocomplete
                       businessId={businessId}
                       value={customerEmail}
-                      onChange={setCustomerEmail}
+                      onChange={(v) => { setCustomerEmail(v); clearErr("email"); }}
                       onSelect={(c) => {
+                        clearErr("email"); clearErr("name");
                         setCustomerEmail(c.customer_email);
                         if (c.company_name) setCompanyName(c.company_name);
                         if (c.cvr) setCvr(c.cvr);
@@ -355,34 +382,21 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         toast.success("Kundeoplysninger udfyldt");
                       }}
                       placeholder="kunde@email.dk"
-                      className="h-11 sm:h-10"
+                      className={`h-11 sm:h-10 ${errors.email ? "border-destructive" : ""}`}
                     />
+                    {errors.email && <p className="mt-1 text-xs font-medium text-destructive">{errors.email}</p>}
                   </Field>
+                  </div>
                   <Field label="Telefon">
                     <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-11 sm:h-10" />
                   </Field>
-                  {isBusiness ? (
+                  {isBusiness && (
                     <Field label="Kontaktperson">
                       <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Fx Mette Hansen" className="h-11 sm:h-10" />
                     </Field>
-                  ) : (
-                    <Field label={"Adresse"}>
-                      <AddressAutocomplete
-                        value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                        onChange={(v) => {
-                          setAddress(v.address);
-                          setZipCode(v.zip_code);
-                          setCity(v.city);
-                          setLatitude(v.latitude ?? null);
-                          setLongitude(v.longitude ?? null);
-                        }}
-                      />
-                    </Field>
                   )}
-                </div>
-                {isBusiness && (
-                  <div className="mt-3">
-                    <Field label="Service-adresse">
+                  <div className={isBusiness ? "sm:col-span-2" : ""}>
+                    <Field label={isBusiness ? "Service-adresse" : "Adresse"}>
                       <AddressAutocomplete
                         value={{ address, zip_code: zipCode, city, latitude, longitude }}
                         onChange={(v) => {
@@ -395,7 +409,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       />
                     </Field>
                   </div>
-                )}
+                </div>
                 <div className="mt-2">
                   {!showCvr && !(cvr.replace(/\D/g, "").length === 8 || companyName) ? (
                     <button type="button" onClick={() => setShowCvr(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline sm:min-h-9">
