@@ -226,7 +226,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-large appointment-details-overlay planner-overlay flex h-[min(94dvh,880px)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0">
-        <PlannerDialogHeader icon="routeList" title={title} description="Vælg periode og indhold til print eller PDF." />
+        <PlannerDialogHeader title={title} description="Vælg periode og indhold til print eller PDF." />
 
         <div className="grid shrink-0 grid-cols-2 gap-1 border-b border-border p-2 lg:hidden" role="group" aria-label="Printvisning">
           <Button variant={mobileView === "preview" ? "secondary" : "ghost"} className="h-11 gap-2" aria-pressed={mobileView === "preview"} onClick={() => setMobileView("preview")}><FileText className="h-4 w-4" />Forhåndsvisning</Button>
