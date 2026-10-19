@@ -308,7 +308,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">Valgte ({selectedIds.length}){summaryAmount ? <> · {summaryAmount}</> : null}</span>
               <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", !trayOpen && "rotate-180")} />
             </button>
-            {trayOpen && <div className="max-h-[60dvh] overflow-y-auto border-t border-border p-2">{selectedList(true)}</div>}
+            {trayOpen && <div className="max-h-[50dvh] overflow-y-auto border-t border-border p-2">{selectedList(true)}</div>}
           </div>
         </div>
       )}

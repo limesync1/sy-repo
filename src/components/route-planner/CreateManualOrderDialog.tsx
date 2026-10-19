@@ -151,7 +151,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     const svc = activeServices.find((s) => s.id === serviceId);
     if (!svc || items.some((i) => i.serviceId === serviceId)) return;
     const stepValues: Record<string, number> = {};
-    (svc.calculator_steps || []).forEach((s) => { stepValues[s.id] = Number(s.default_value ?? s.min_value ?? 0); });
+    (svc.calculator_steps || []).forEach((s) => { stepValues[s.id] = clampStep(s as any, Number(s.default_value ?? s.min_value ?? 0)); });
     const intervals = svc.interval_options && svc.interval_options.length > 0 ? svc.interval_options : ["engangskøb"];
     // Default opstartsdato = i dag (gør UI venligt — brugeren kan altid ændre).
     const today = format(new Date(), "yyyy-MM-dd");
