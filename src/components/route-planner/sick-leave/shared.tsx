@@ -6,6 +6,7 @@ import type { SickLeaveAction } from "@/hooks/route-planner/useSickLeave";
 export type Emp = {
   id: string;
   name: string;
+  title?: string | null;
   is_active?: boolean;
   max_stops_per_day?: number | null;
   avatar_url?: string | null;
@@ -74,7 +75,7 @@ export const EmpLine = ({
   <span className={cn("flex items-center gap-2 min-w-0", className)}>
     <EmployeeAvatars
       employees={
-        emp ? [{ id: emp.id, name: emp.name, avatar_url: emp.avatar_url, color: emp.color }] : []
+        emp ? [{ id: emp.id, name: emp.name, title: emp.title, avatar_url: emp.avatar_url, color: emp.color }] : []
       }
       size={size}
       max={1}
