@@ -1,4 +1,4 @@
-import { compareDayRoutes } from "./lib/day-route-order";
+import { isFixedRoute, compareDayRoutes } from "./lib/day-route-order";
 import { formatPrice } from "@/lib/price-format";
 // MonthWeekCalendar — klassisk kalender-overblik med måned/uge visning.
 // - Ingen timer/tidsrum: hver dag er ét helt felt
@@ -1263,9 +1263,7 @@ const RoutePillInner = ({
   // gentagende serie: mindst ét stop er knyttet til et abonnement eller en
   // aftale med interval. Vi markerer disse tydeligt så brugeren kan skelne
   // basisruten (kilden) fra de projicerede forekomster (kopierne).
-  const isBaseRecurring = !isVirtual && route.stops.some(
-    (s: any) => !!(s?.subscription_id || s?.agreement_id || s?.agreement_interval),
-  );
+  const isBaseRecurring = isFixedRoute(route as any);
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
   // - kilden må aldrig være sit eget mål
   // - projicerede ruter må aldrig modtage en merge (de findes ikke fysisk endnu)
