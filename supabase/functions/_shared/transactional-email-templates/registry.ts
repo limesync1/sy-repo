@@ -29,6 +29,7 @@ import { template as businessDeletionCode } from './business-deletion-code.tsx'
 import { template as betaLaunch } from './beta-launch.tsx'
 import { template as businessWelcome } from './business-welcome.tsx'
 import { template as accountingDocument } from './accounting-document.tsx'
+import { template as businessAlert } from './business-alert.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'accounting-document': accountingDocument,
@@ -51,4 +52,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'business-deletion-code': businessDeletionCode,
   'beta-launch': betaLaunch,
   'business-welcome': businessWelcome,
+  'business-alert': businessAlert,
 }
