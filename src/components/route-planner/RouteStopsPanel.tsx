@@ -253,7 +253,7 @@ export const RouteStopsPanel = ({
             />
             <SheetTitle className="flex items-center gap-2 text-base leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
-                 Stop på ruten
+                {route.name?.trim() || "Stop på ruten"}
               </span>
               <span
                 className="shrink-0 inline-flex h-[18px] min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums bg-foreground/[0.08] text-foreground/80 ring-1 ring-inset ring-foreground/10"
@@ -267,7 +267,9 @@ export const RouteStopsPanel = ({
               <span className="min-w-0 break-words">
                 {isProjection
                   ? "Forventet besøg · ret den faste rute for at ændre rækkefølgen"
-                   : isCompact ? "Brug pilene til at flytte · tryk på navnet for detaljer" : "Træk for at omrangere · klik for detaljer"}
+                   : items.length < 2
+                    ? (isCompact ? "Stop på ruten · tryk på navnet for detaljer" : "Stop på ruten · klik for detaljer")
+                    : isCompact ? "Brug pilene til at flytte · tryk på navnet for detaljer" : "Træk for at omrangere · klik for detaljer"}
               </span>
             </SheetDescription>
           </SheetHeader>
