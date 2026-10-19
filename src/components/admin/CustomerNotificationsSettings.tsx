@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { FieldLabel } from "@/components/admin/shared/AdminUI";
+import { LeadTimeChooser } from "@/components/admin/shared/LeadTimeChooser";
 
 interface Props {
   businessId: string;
@@ -483,34 +484,9 @@ export function CustomerNotificationsSettings({
               <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <Bell className="h-3 w-3" /> Hvornår sendes påmindelsen?
               </p>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { v: 60, label: "1 time før" },
-                  { v: 120, label: "2 timer før" },
-                  { v: 240, label: "4 timer før" },
-                  { v: 1440, label: "1 dag før" },
-                  { v: 2880, label: "2 dage før" },
-                ].map((p) => {
-                  const active = upcomingMinutesBefore === p.v;
-                  return (
-                    <button
-                      key={p.v}
-                      type="button"
-                      onClick={() => onUpcomingMinutesChange(p.v)}
-                      className={cn(
-                        "min-h-11 rounded-md border px-3 text-[12.5px] font-medium transition-colors sm:min-h-10",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border bg-background text-foreground hover:border-foreground/40",
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
+              <LeadTimeChooser value={upcomingMinutesBefore} onChange={(m) => m != null && onUpcomingMinutesChange(m)} />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                Tiden regnes fra den planlagte ankomst på ruten. Gemmes sammen med resten af indstillingerne.
+                Gælder alle kunder. Enkelte kunder eller aftaler kan få deres eget tidspunkt under kunden eller aftalen. Gemmes med «Gem ændringer».
               </p>
             </div>
           )}
