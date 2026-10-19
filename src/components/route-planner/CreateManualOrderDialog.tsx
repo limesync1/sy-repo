@@ -116,6 +116,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const [showCvr, setShowCvr] = useState(false);
+  const [showMsg, setShowMsg] = useState(false);
   const totalAmount = useMemo(() => roundPrice(items.reduce((s, it) => s + calcItemTotal(it), 0)), [items]);
 
   // Hvor mange af de valgte aftaler er tilbagevendende? Bruges til en lille
@@ -304,31 +306,15 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
       <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
-        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
+        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
-            title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
+            title={<DialogTitle className="text-base">Opret bestilling</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Udfyld kunden og vælg services. Kunden får en bekræftelse på mail med det samme.
+                Kunden får en bekræftelse på mail.
               </DialogDescription>
             }
           >
-            {/* Live status-chips — opdaterer mens brugeren bygger bestillingen */}
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[11px] font-semibold text-foreground/80">
-              <Package className="h-3 w-3" />
-              {items.length} {items.length === 1 ? "service" : "services"}
-            </span>
-            {recurringCount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
-                <Repeat className="h-3 w-3" />
-                {recurringCount} tilbagevendende
-              </span>
-            )}
-            {totalAmount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-bold tabular-nums text-foreground">
-                {fmt(totalAmount)}
-              </span>
-            )}
           </SheetHeaderBlock>
         </DialogHeader>
 
@@ -336,7 +322,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           <div className="flex min-h-[260px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : activeServices.length === 0 ? (
           <ActiveServiceRequired />
-        ) : <div className="planner-overlay-body min-h-0 flex-1 overflow-x-visible overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
+        ) : <div className="planner-overlay-body min-h-0 flex-1 overflow-x-visible overflow-y-auto px-3 sm:px-5 py-3 space-y-2">
           {/* Kunde */}
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
@@ -344,7 +330,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               <Section icon={<User className="h-3.5 w-3.5" />} title={isBusiness ? "Erhvervskunde" : "Kunde"} required>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label={isBusiness ? "Firmanavn" : "Navn"} required>
-                    <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className="h-9" />
+                    <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className="h-11 sm:h-10" />
                   </Field>
                   <Field label="E-mail" required>
                     <CustomerEmailAutocomplete
@@ -369,15 +355,15 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         toast.success("Kundeoplysninger udfyldt");
                       }}
                       placeholder="kunde@email.dk"
-                      className="h-9"
+                      className="h-11 sm:h-10"
                     />
                   </Field>
                   <Field label="Telefon">
-                    <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
+                    <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-11 sm:h-10" />
                   </Field>
                   {isBusiness ? (
                     <Field label="Kontaktperson">
-                      <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Fx Mette Hansen" className="h-9" />
+                      <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Fx Mette Hansen" className="h-11 sm:h-10" />
                     </Field>
                   ) : (
                     <Field label={"Adresse"}>
@@ -410,12 +396,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                     </Field>
                   </div>
                 )}
-              </Section>
-            );
-          })()}
-
-          {/* CVR (valgfrit) */}
-          <Section icon={<Building2 className="h-3.5 w-3.5" />} title="Virksomhed (CVR)" hint="Valgfrit — auto-udfylder felter">
+                <div className="mt-2">
+                  {!showCvr && !(cvr.replace(/\D/g, "").length === 8 || companyName) ? (
+                    <button type="button" onClick={() => setShowCvr(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline sm:min-h-9">
+                      <Building2 className="h-4 w-4 text-accent" />Erhvervskunde? Slå CVR op
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
             <CvrLookupField
               value={cvr}
               onChange={setCvr}
@@ -439,7 +426,12 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 </p>
               </div>
             )}
-          </Section>
+                    </div>
+                  )}
+                </div>
+              </Section>
+            );
+          })()}
 
           {/* Services */}
           <Section
@@ -516,7 +508,12 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             />
           </Section>
 
-          {/* Besked */}
+          {!showMsg && !businessMessage ? (
+            <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline">
+              <MessageSquare className="h-4 w-4 text-accent" />Tilføj besked til kunden
+            </button>
+          ) : (
+          
           <Section icon={<MessageSquare className="h-3.5 w-3.5" />} title="Besked til kunden" hint="Valgfrit — vises i mailen">
             <Textarea
               value={businessMessage}
@@ -527,15 +524,16 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             />
             <p className="text-[11px] text-muted-foreground text-right mt-1">{businessMessage.length}/500</p>
           </Section>
+          )}
         </div>}
 
         {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
         {activeServices.length > 0 && <SheetFooterBar>
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
-                <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+                <span className="text-lg font-bold tabular-nums">{fmt(totalAmount)}</span>
                 <span className="text-xs text-muted-foreground">uden moms</span>
               </div>
               {items.length === 0 && (
