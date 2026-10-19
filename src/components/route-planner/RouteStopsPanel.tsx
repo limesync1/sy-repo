@@ -253,7 +253,7 @@ export const RouteStopsPanel = ({
             />
             <SheetTitle className="flex items-center gap-2 text-base leading-tight">
               <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
-                {route.name?.trim() || "Stop på ruten"}
+                {route.name?.trim() || (route.route_date ? `Rute ${format(parseISO(route.route_date), "d. MMM", { locale: da })}` : "Stop på ruten")}
               </span>
               <span
                 className="shrink-0 inline-flex h-[18px] min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums bg-foreground/[0.08] text-foreground/80 ring-1 ring-inset ring-foreground/10"
