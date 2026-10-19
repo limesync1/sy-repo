@@ -432,6 +432,20 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
+  const canOptimizeInline = compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2;
+  const canAddInline = !!onAddAppointment && !isVirtual && !isPast && !showAsCompleted;
+  const showFooter = canOptimizeInline || canAddInline;
+  const actionMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
+      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
+        {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles />Optimér rute</DropdownMenuItem>}
+        {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
+        {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
   const pill = (
     <div
       ref={setRefs}
@@ -607,20 +621,6 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
   const canOptimize = !isVirtualRoute && stopCount >= 2 && !busy;
   const canHistory = !!onShowHistory && !isVirtualRoute;
 
-  const canOptimizeInline = compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2;
-  const canAddInline = !!onAddAppointment && !isVirtual && !isPast && !showAsCompleted;
-  const showFooter = canOptimizeInline || canAddInline;
-  const actionMenu = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
-      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-        <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
-        {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles />Optimér rute</DropdownMenuItem>}
-        {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
-        {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
   return (
     <RouteContextMenu
       hide={{
