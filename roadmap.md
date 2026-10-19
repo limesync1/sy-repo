@@ -1,7 +1,7 @@
 ## Ruteplanlæggerens vinduer (19. oktober)
-- [ ] Ensret optimering, sygemelding, tastaturgenveje og dagsoversigter med profilvinduets store frie ikoner; genskab optimeringsknappers oprindelige ikoner
-- [ ] Ret printvinduets overlap og gennemgå sygemeldingens trin, rulning og knaplinje
-- [ ] Kontrollér vinduerne på computer og mobil i lyst og mørkt tema
+- [x] Ensret optimering, sygemelding, tastaturgenveje og dagsoversigter med profilvinduets store frie ikoner; genskab optimeringsknappers oprindelige ikoner
+- [x] Ret printvinduets overlap og gennemgå sygemeldingens trin, rulning og knaplinje; behold gemmelogikken
+- [x] Kontrollér indlogget ved 1351/390/320 px i lyst/mørkt tema; 8 tests bestået, build OK. Sygemelding frem til bekræftelse uden gemning. Ruteoptimeringens resultatvindue kontrolleret isoleret uden virkelig optimering; printknapper overlapper ikke.
 
 ## Kompakte oprettelsesvinduer
 - [x] Ensret Opret rute og Opret kunde med Opret bestilling uden ændringer i gemning eller aftalelogik
