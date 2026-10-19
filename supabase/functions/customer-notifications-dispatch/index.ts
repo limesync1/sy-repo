@@ -15,6 +15,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const DEFAULTS: Record<string, { subject: string; body: string }> = {
+  service_upcoming: {
+    subject: "Vi kommer og udfører {{service}}",
+    body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
+  },
   service_completed: {
     subject: "Vi har udført {{service}}",
     body: "Hej {{kundens_navn}},\n\nVi har i dag været forbi og udført {{service}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{firmanavn}}",
@@ -22,6 +26,9 @@ const DEFAULTS: Record<string, { subject: string; body: string }> = {
 };
 
 const SMS_DEFAULTS: Record<string, { body: string }> = {
+  service_upcoming: {
+    body: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
+  },
   service_completed: {
     body: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
   },
@@ -70,7 +77,7 @@ Deno.serve(async (req) => {
         admin.from("businesses").select("id, name, phone, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
         admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle(),
         job.route_stop_id
-          ? admin.from("route_stops").select("service_summary").eq("id", job.route_stop_id).maybeSingle()
+          ? admin.from("route_stops").select("service_summary, planned_arrival, route_id").eq("id", job.route_stop_id).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
       const biz = bizRes.data;
@@ -79,14 +86,6 @@ Deno.serve(async (req) => {
       if (!biz || !order) {
         await admin.from("customer_notification_queue").update({
           status: "cancelled", last_error: "Ordre eller virksomhed ikke fundet",
-        }).eq("id", job.id);
-        continue;
-      }
-
-      // Påmindelser med planlagt tidspunkt er udfaset — send dem aldrig.
-      if (job.event_type === "service_upcoming") {
-        await admin.from("customer_notification_queue").update({
-          status: "cancelled", last_error: "Påmindelse med tidspunkt er udfaset",
         }).eq("id", job.id);
         continue;
       }
@@ -192,12 +191,41 @@ Deno.serve(async (req) => {
       const businessName = biz.name ?? "";
       const businessPhone = (biz as any).phone ?? "";
       const serviceName = stop?.service_summary ?? "din service";
+
+      // {{tidspunkt}} — forventet ankomst for påmindelser før besøg.
+      // Bruger stoppets planned_arrival, ellers rutens dato + starttid.
+      let tidspunkt = "snarest";
+      if (job.event_type === "service_upcoming") {
+        let arrival: Date | null = stop?.planned_arrival ? new Date(stop.planned_arrival) : null;
+        if (!arrival && stop?.route_id) {
+          const { data: route } = await admin
+            .from("routes")
+            .select("route_date, planned_start_time")
+            .eq("id", stop.route_id)
+            .maybeSingle();
+          if (route?.route_date) {
+            const t = (route.planned_start_time ?? "08:00").slice(0, 5);
+            // Rutens dato/tid er lokal dansk tid (Europe/Copenhagen, UTC+1/+2).
+            arrival = new Date(`${route.route_date}T${t}:00+02:00`);
+          }
+        }
+        if (arrival && !isNaN(arrival.getTime())) {
+          const dato = arrival.toLocaleDateString("da-DK", {
+            weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Copenhagen",
+          });
+          const kl = arrival.toLocaleTimeString("da-DK", {
+            hour: "2-digit", minute: "2-digit", timeZone: "Europe/Copenhagen",
+          }).replace(":", ".");
+          tidspunkt = `${dato} kl. ${kl}`;
+        }
+      }
       const vars: Record<string, string> = {
         // Danske navne
         kundens_navn: customerName,
         firmanavn: businessName,
         telefon: businessPhone,
         service: serviceName,
+        tidspunkt,
         // Bagudkompatibilitet
         customer_name: customerName,
         business_name: businessName,

@@ -20,7 +20,7 @@ interface Props {
   onSmsEnabledChange: (v: boolean) => void;
 }
 
-type EventKey = "service_completed";
+type EventKey = "service_upcoming" | "service_completed";
 
 const EVENTS: {
   key: EventKey;
@@ -30,6 +30,17 @@ const EVENTS: {
   Icon: typeof Bell;
   defaults: { subject: string; body: string };
 }[] = [
+  {
+    key: "service_upcoming",
+    label: "Påmindelse før besøg",
+    shortLabel: "Sendes før vi kommer",
+    help: "En påmindelse til kunden før besøget — fx dagen før eller en time før. Tids-punktet vælger I under «Hvornår» herunder.",
+    Icon: Bell,
+    defaults: {
+      subject: "Vi kommer og udfører {{service}}",
+      body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
+    },
+  },
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
@@ -44,6 +55,7 @@ const EVENTS: {
 ];
 
 const SMS_DEFAULTS: Record<EventKey, string> = {
+  service_upcoming: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
   service_completed: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
 };
 
@@ -54,6 +66,7 @@ const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
   { key: "firmanavn", label: "Jeres firmanavn", example: "Rengøring København" },
   { key: "telefon", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
   { key: "service", label: "Service", example: "ugentlig rengøring" },
+  { key: "tidspunkt", label: "Tidspunkt", example: "tirsdag d. 20. oktober kl. 08.00" },
 ];
 
 // Mapping: dansk eller gammelt engelsk navn → eksempel-værdi
@@ -62,6 +75,7 @@ const ALIASES: Record<string, string> = {
   firmanavn: "firmanavn", business_name: "firmanavn",
   telefon: "telefon", business_phone: "telefon",
   service: "service", service_name: "service",
+  tidspunkt: "tidspunkt",
 };
 const EXAMPLE_VARS: Record<string, string> = Object.fromEntries(PLACEHOLDERS.map((p) => [p.key, p.example]));
 
@@ -462,6 +476,44 @@ export function CustomerNotificationsSettings({
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
           </div>
+
+          {/* Hvornår — kun for påmindelsen før besøg. Gælder både e-mail og SMS. */}
+          {activeEvent === "service_upcoming" && (
+            <div className="border-b border-border bg-card px-4 py-3 sm:px-5">
+              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Bell className="h-3 w-3" /> Hvornår sendes påmindelsen?
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { v: 60, label: "1 time før" },
+                  { v: 120, label: "2 timer før" },
+                  { v: 240, label: "4 timer før" },
+                  { v: 1440, label: "1 dag før" },
+                  { v: 2880, label: "2 dage før" },
+                ].map((p) => {
+                  const active = upcomingMinutesBefore === p.v;
+                  return (
+                    <button
+                      key={p.v}
+                      type="button"
+                      onClick={() => onUpcomingMinutesChange(p.v)}
+                      className={cn(
+                        "min-h-11 rounded-md border px-3 text-[12.5px] font-medium transition-colors sm:min-h-10",
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-background text-foreground hover:border-foreground/40",
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Tiden regnes fra den planlagte ankomst på ruten. Gemmes sammen med resten af indstillingerne.
+              </p>
+            </div>
+          )}
 
           {/* Channel tabs */}
           <div className="flex overflow-x-auto border-b border-border bg-card px-2 sm:px-3">

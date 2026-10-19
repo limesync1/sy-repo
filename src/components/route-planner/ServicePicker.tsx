@@ -140,8 +140,8 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                   <li key={s.id} id={`svc-row-${s.id}`}
                     className={cn("min-w-0 scroll-mt-4 overflow-hidden rounded-lg border bg-background transition-colors",
                       selected ? "border-accent/60 ring-1 ring-accent/30" : "border-border hover:border-foreground/25")}>
-                    <div className="flex min-w-0 items-start gap-2.5 px-3 py-2">
-                      <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-0.5 h-7 w-7 shrink-0" />
+                    <div className="flex min-w-0 items-start gap-2 px-2.5 py-1.5">
+                      <IndustryIcon category={s.service_category} subcategory={s.subcategory ?? undefined} name={s.name} className="mt-0.5 h-6 w-6 shrink-0" />
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                           <p className="min-w-0 break-words text-sm font-semibold leading-snug text-foreground">{s.name}</p>
@@ -173,10 +173,10 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-2 px-3 pb-2 pl-3 min-[360px]:pl-12">
+                    <div className="flex items-center justify-between gap-2 px-2.5 pb-1.5 pl-2.5 min-[360px]:pl-10">
                       {hasDetails ? (
                         <button type="button" onClick={() => setOpenId(open ? null : s.id)} aria-expanded={open}
-                          className="inline-flex min-h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
+                          className="inline-flex min-h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-border bg-secondary/60 px-2.5 text-xs font-medium text-foreground hover:bg-secondary">
                           {open ? "Skjul detaljer" : "Detaljer"}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
                         </button>
                       ) : <span />}
@@ -196,7 +196,7 @@ export default function ServicePicker({ businessId, services, selectedIds, onAdd
                       )}
                     </div>
                     {open && (
-                      <div className="space-y-1.5 border-t border-border px-3 py-2.5 text-xs leading-5 text-muted-foreground sm:pl-14">
+                      <div className="space-y-1.5 border-t border-border px-3 py-2 text-xs leading-5 text-muted-foreground sm:pl-12">
                         {s.description && <p className="line-clamp-4 break-words" title={s.description}>{s.description}</p>}
                         {steps.length > 0 && (
                           <div>

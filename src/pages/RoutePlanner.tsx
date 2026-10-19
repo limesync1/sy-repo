@@ -2805,19 +2805,16 @@ const Planner = () => {
                         </span>
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      onClick={requestCreateOrder}
-                      className="hidden h-9 w-full gap-1.5 rounded-[4px] text-xs font-semibold [@media(min-width:1100px)]:inline-flex"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Opret bestilling
-                    </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
                         ref={unassignedSearchRef}
                         placeholder="Søg navn eller adresse..."
+                        autoComplete="off"
+                        name="planner-unassigned-search"
+                        data-1p-ignore
+                        data-lpignore="true"
+                        data-form-type="other"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Escape") { setSearch(""); (e.target as HTMLInputElement).blur(); } }}
@@ -3055,7 +3052,6 @@ const Planner = () => {
                               icon={<Inbox className="h-5 w-5" />}
                               title="Kom godt i gang"
                               description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
-                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                               compact
                             />
                           );
@@ -3071,7 +3067,6 @@ const Planner = () => {
                           <EmptyState
                             title="Alle aftaler er planlagt"
                             description="Nye aftaler lander her, så snart de oprettes."
-                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                             compact
                             animated={false}
                           />

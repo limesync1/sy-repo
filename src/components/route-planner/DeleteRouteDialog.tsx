@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import deleteRouteIcon from "@/assets/content-icons/slet-rute.svg.asset.json";
+import deleteRouteIcon from "@/assets/content-icons/slet-rute-2.svg.asset.json";
 
 interface Props {
   route: { id: string; name: string } | null;
@@ -50,15 +50,19 @@ export function DeleteRouteDialog({ route, onOpenChange, onConfirm, pending }: P
 
   return (
     <AlertDialog open={open} onOpenChange={(o) => !o && onOpenChange(false)}>
-      <AlertDialogContent className="planner-overlay max-w-md gap-0 p-0 overflow-hidden">
-        <AlertDialogHeader className="items-center space-y-2 px-6 pt-6 pb-4 text-center sm:text-center">
-          <img src={deleteRouteIcon.url} alt="" draggable={false} className="h-16 w-16 select-none object-contain" />
-          <AlertDialogTitle className="text-lg">Slet rute?</AlertDialogTitle>
-          <AlertDialogDescription className="text-sm leading-6">
-            <strong className="text-foreground">{route?.name}</strong> slettes permanent, og medarbejderne fjernes fra ruten.
-          </AlertDialogDescription>
+      <AlertDialogContent className="planner-overlay max-w-md gap-0 overflow-hidden p-0">
+        <AlertDialogHeader className="shrink-0 space-y-0 border-b px-4 py-3 text-left sm:px-5">
+          <div className="flex items-center gap-3">
+            <img src={deleteRouteIcon.url} alt="" draggable={false} className="h-14 w-14 shrink-0 select-none object-contain" />
+            <div className="min-w-0">
+              <AlertDialogTitle className="text-base leading-snug">Slet rute?</AlertDialogTitle>
+              <AlertDialogDescription className="mt-0.5 text-xs leading-snug">
+                <strong className="text-foreground">{route?.name}</strong> slettes permanent, og medarbejderne fjernes fra ruten.
+              </AlertDialogDescription>
+            </div>
+          </div>
         </AlertDialogHeader>
-        <div className="px-6 pb-5">
+        <div className="px-4 py-3 sm:px-5">
           {isLoading ? (
             <div role="status" className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Tjekker aftaler på ruten…
@@ -82,7 +86,7 @@ export function DeleteRouteDialog({ route, onOpenChange, onConfirm, pending }: P
             <p className="rounded-lg border border-border bg-secondary/40 p-3 text-center text-sm text-muted-foreground">Ingen aftaler påvirkes.</p>
           )}
         </div>
-        <AlertDialogFooter className="planner-overlay-footer flex-col-reverse gap-2 border-t border-border/70 bg-secondary/30 px-6 py-4 sm:flex-row sm:justify-end sm:space-x-0">
+        <AlertDialogFooter className="planner-overlay-footer flex-col-reverse gap-2 border-t border-border/70 bg-secondary/30 px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0 sm:px-5">
           <AlertDialogCancel disabled={pending} className="mt-0 min-h-11 sm:min-h-10">Annullér</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}

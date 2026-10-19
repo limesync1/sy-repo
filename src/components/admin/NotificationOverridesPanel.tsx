@@ -29,11 +29,12 @@ import { Skeleton } from "@/components/ui/skeleton";
  *   3. Aftale    (scope='agreement', match på subscription_id)
  */
 
-type EventKey = "service_completed";
+type EventKey = "service_upcoming" | "service_completed";
 type Channel = "email" | "sms";
 type Scope = "customer" | "agreement";
 
 const EVENTS: { key: EventKey; label: string; help: string; Icon: typeof Bell }[] = [
+  { key: "service_upcoming",  label: "Påmindelse før besøg", help: "Sendes før besøget — tidspunktet kan tilpasses herunder.", Icon: Bell },
   { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når aftalen er udført.", Icon: CheckCircle2 },
 ];
 
@@ -293,6 +294,13 @@ function EventRow({
           onCustomize={toggleOnly ? undefined : () => setCustomizeChannel("sms")}
         />
       </div>
+
+      {event.key === "service_upcoming" && (
+        <LeadTimePicker
+          value={leadOverride}
+          onChange={(m) => onSetLeadTime(event.key, m)}
+        />
+      )}
 
       <CustomizeSheet
         open={customizeChannel !== null}

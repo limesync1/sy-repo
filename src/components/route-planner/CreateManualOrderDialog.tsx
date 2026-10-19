@@ -412,7 +412,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 </div>
                 <div className="mt-2">
                   {!showCvr && !(cvr.replace(/\D/g, "").length === 8 || companyName) ? (
-                    <button type="button" onClick={() => setShowCvr(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline sm:min-h-9">
+                    <button type="button" onClick={() => setShowCvr(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-secondary/60 px-3 text-sm font-medium text-foreground hover:bg-secondary sm:min-h-9">
                       <Building2 className="h-4 w-4 text-accent" />Erhvervskunde? Slå CVR op
                     </button>
                   ) : (
@@ -468,7 +468,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 if (!it) return null;
                 const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
                 return (
-                  <div className="space-y-3 rounded-lg border border-accent/30 bg-card p-3">
+                  <div className="space-y-2.5 rounded-lg border border-accent/30 bg-card p-2.5">
                     <div>
                       <Label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Repeat className="h-3.5 w-3.5" />Interval</Label>
                       {intervals.length === 1 ? (
@@ -478,7 +478,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           {intervals.map((iv) => (
                             <button key={iv} type="button" role="radio" aria-checked={it.interval === iv}
                               onClick={() => updateItem(id, { interval: iv })}
-                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors ${it.interval === iv ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary"}`}>
+                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors sm:min-h-9 ${it.interval === iv ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary/50 hover:bg-secondary"}`}>
                               {INTERVAL_LABELS[iv] || iv}
                             </button>
                           ))}
@@ -515,7 +515,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           const v = format(addDays(new Date(), d), "yyyy-MM-dd");
                           return (
                             <button key={l} type="button" onClick={() => setStartDate(id, v)} aria-pressed={it.startDate === v}
-                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors sm:min-h-9 ${it.startDate === v ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary"}`}>
+                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors sm:min-h-9 ${it.startDate === v ? "border-primary bg-primary text-primary-foreground" : "border-accent/40 bg-accent/5 hover:bg-accent/10"}`}>
                               {l}
                             </button>
                           );
@@ -543,7 +543,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           </div>
 
           {!showMsg && !businessMessage ? (
-            <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-foreground hover:underline">
+            <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-secondary/60 px-3 text-sm font-medium text-foreground hover:bg-secondary">
               <MessageSquare className="h-4 w-4 text-accent" />Tilføj besked til kunden
             </button>
           ) : (
