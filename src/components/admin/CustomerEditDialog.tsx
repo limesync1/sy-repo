@@ -311,7 +311,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </Tabs>
             )}
 
-            <Section icon={type === "business" ? <Building2 /> : <User />} title={type === "business" ? "Erhvervskunde" : "Kunde"}>
+            <Section tone="sky" icon={type === "business" ? <Building2 /> : <User />} title={type === "business" ? "Erhvervskunde" : "Kunde"}>
             {type === "business" && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
