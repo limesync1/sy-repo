@@ -228,26 +228,21 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
              loading="eager"/>
           </Link>
 
-          <div className="hidden items-center gap-3 xl:gap-5 lg:flex" role="navigation" aria-label="Hovednavigation">
-            {NAV_GROUPS.map((group, i) => (
-              <div key={group.id}>
-                <p className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] font-semibold text-muted-foreground">
-                  <span className={`h-1 w-1 rounded-full ${i ? "bg-muted-foreground/60" : "bg-accent"}`} aria-hidden="true" />{group.label}
-                </p>
-                <div className="flex items-center gap-0.5 rounded-lg border border-border/70 bg-secondary/45 p-0.5">
-                  {group.items.map((item) => {
-                    const Icon = MOBILE_ICONS[item.key];
-                    return (
-                      <SmartLink key={item.key} to={item.to} aria-current={isActive(item.key) ? "page" : undefined}
-                        className={`group relative inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-2 text-sm font-semibold transition-[background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${isActive(item.key) ? "bg-card text-foreground shadow-sm" : "text-foreground/80 hover:bg-card hover:text-foreground"}`}>
-                        <Icon className={`h-4 w-4 shrink-0 transition-colors ${isActive(item.key) ? "text-accent" : "text-muted-foreground group-hover:text-accent"}`} aria-hidden="true" />{item.label}
-                        <span aria-hidden="true" className={`absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-accent transition-transform duration-200 motion-reduce:transition-none ${isActive(item.key) ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
-                      </SmartLink>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+          <div className="hidden items-center gap-2 lg:flex" role="navigation" aria-label="Hovednavigation">
+            {NAV_GROUPS.flatMap((g) => g.items).map((item, i) => {
+              const on = isActive(item.key);
+              const Icon = MOBILE_ICONS[item.key];
+              return (
+                <SmartLink key={item.key} to={item.to} aria-current={on ? "page" : undefined}
+                  className={`flex min-h-12 items-center gap-2.5 rounded-lg border py-1.5 pl-1.5 pr-3 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] motion-reduce:transition-none ${on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground hover:border-accent/40 hover:bg-secondary/60"}`}>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${on ? "bg-background/15" : "bg-accent/10 text-accent"}`}><Icon className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+                  <span className="min-w-0">
+                    <span className={`block whitespace-nowrap text-[11px] font-semibold leading-tight ${on ? "text-background/70" : "text-muted-foreground"}`}>{i < 2 ? "For kunder" : "For virksomheder"}</span>
+                    <span className="block whitespace-nowrap text-sm font-bold leading-tight">{item.label}</span>
+                  </span>
+                </SmartLink>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
