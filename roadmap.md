@@ -147,4 +147,4 @@
 - [x] Alle vinduer: lettere baggrund (ingen sløring) og kortere åbne/lukke-animation
 - [x] «Opret bestilling» på Aftaler åbner/lukker uden at tegne hele siden om
 - [x] Forsiden: blå baggrund starter efter første visning, lavere opløsning/30 fps, sektioner hentes i forvejen
-- [ ] Ruteplanlægger-guide (PDF + guide i appen) opdateret og nyt design
+- [x] Ruteplanlægger-guide (PDF + guide i appen) opdateret og nyt design
