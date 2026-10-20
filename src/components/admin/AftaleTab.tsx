@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import NotificationOverridesPanel from "./NotificationOverridesPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
