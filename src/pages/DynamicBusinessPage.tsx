@@ -248,7 +248,7 @@ const DynamicBusinessContent = () => {
               i sin egen flow nedenunder, så branche-chips aldrig lander oven i billedet. */}
           <div className="relative flex flex-col gap-4 pb-6 md:flex-row md:items-start md:gap-6 md:pb-8">
             {/* Logo — alene om at overlappe cover */}
-            <div className="relative z-10 -mt-10 shrink-0 md:-mt-12">
+            <div className="relative z-10 -mt-10 w-fit shrink-0 self-start md:-mt-12">
               {/* Logo-rammen tilpasser sig bredden, så brede ordmærker (fx
                   "Ready2Clean") ikke bliver klemt sammen i et lille kvadrat. */}
               <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card p-1.5 shadow-xl md:h-28 md:w-28 md:p-2">
