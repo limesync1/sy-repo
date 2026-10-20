@@ -28,11 +28,11 @@ const fragmentShader = `
     float current = flow(p + warp * 2.4 + vec2(-t * 0.22, t * 0.3));
     float depth = smoothstep(0.22, 0.78, current);
     float sheen = smoothstep(0.48, 0.72, current) * (1.0 - smoothstep(0.72, 0.91, current));
-    float readability = mix(0.48, 1.0, smoothstep(0.0, 0.85, vUv.x));
-    vec3 col = mix(uBase, uBlue, depth * 0.65 * readability);
-    col = mix(col, uLight, sheen * 0.16 * readability);
+    float readability = mix(0.3, 0.8, smoothstep(0.0, 0.9, vUv.x));
+    vec3 col = mix(uBase, uBlue, depth * 0.42 * readability);
+    col = mix(col, uLight, sheen * 0.05 * readability);
     float edge = smoothstep(0.0, 0.18, vUv.y) * (1.0 - smoothstep(0.85, 1.0, vUv.y));
-    col = mix(uBase, col, 0.68 + 0.32 * edge);
+    col = mix(uBase, col, 0.6 + 0.4 * edge);
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
   }

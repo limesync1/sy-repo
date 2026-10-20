@@ -1848,12 +1848,16 @@ img[loading="lazy"].is-error {
 .home-hero-photo { box-shadow: var(--home-photo-shadow); }
 .home-photo-shade { background: var(--home-photo-shade); }
 .home-step, .home-reason {
-  background: hsl(var(--home-glass-surface) / 0.72);
-  box-shadow: inset 0 1px 0 hsl(var(--ocean-foreground) / 0.06);
+  background: hsl(var(--hero-bg) / 0.9);
+  border-color: hsl(var(--ocean-foreground) / 0.28);
+  box-shadow: 0 10px 30px -18px hsl(var(--shadow-color) / 0.7), inset 0 1px 0 hsl(var(--ocean-foreground) / 0.08);
   transition: transform 350ms ease, background 350ms ease, border-color 350ms ease;
 }
+/* Dark scrim keeps text readable over the moving blue. */
+.blue-flow-background::after { content: ""; position: absolute; inset: 0; background: hsl(var(--hero-bg) / 0.35); }
 .home-process ol { position: relative; }
-.homepage :is(.home-process, .home-founder) p { color: hsl(var(--ocean-foreground) / 0.85); }
+.homepage :is(.home-hero, .home-process, .home-founder, .home-closing) :is(h1, h2, h3) { text-shadow: 0 1px 12px hsl(var(--hero-bg) / 0.6); }
+.homepage :is(.home-process, .home-founder) p { color: hsl(var(--ocean-foreground) / 0.92); }
 .homepage :is(.home-process, .home-founder) .icon-tile-glass { background: hsl(var(--ocean-foreground)); }
 .homepage #main > div > section:not(.brand-blue-section):not(.home-closing) { background-image: linear-gradient(155deg, hsl(var(--background)) 35%, hsl(var(--surface-strong) / 0.55)); }
 .homepage #main > div > section.bg-surface { background-image: linear-gradient(155deg, hsl(var(--surface)), hsl(var(--background))); }
@@ -1868,7 +1872,7 @@ img[loading="lazy"].is-error {
   .home-step { position: relative; }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .home-step:hover, .home-reason:hover { transform: translateY(-4px); background: hsl(var(--home-glass-surface) / 0.88); border-color: hsl(var(--ocean-foreground) / 0.4); }
+  .home-step:hover, .home-reason:hover { transform: translateY(-4px); background: hsl(var(--hero-bg) / 0.96); border-color: hsl(var(--ocean-foreground) / 0.45); }
   .homepage a:hover .icon-tile, .home-step:hover .icon-tile-glass { transform: translateY(-3px) rotate(-2deg); }
   .homepage :is(.icon-tile, .icon-tile-glass) { transition: transform 400ms ease; }
   .homepage #all-service-categories a:hover { border-color: hsl(var(--accent) / 0.65); }
