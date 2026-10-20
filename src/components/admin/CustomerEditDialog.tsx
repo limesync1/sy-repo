@@ -185,17 +185,6 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     })();
   }, [open, businessId, accountingEnabled]);
 
-  const reset = () => {
-    setType("private");
-    setName(""); setCompanyName(""); setCvr(""); setContactName("");
-    setEmail(""); setPhone(""); setAddress(""); setZipCode(""); setCity("");
-    setLatitude(null); setLongitude(null); setNotes("");
-    setAvatarUrl(null);
-    setCustomerNumber(""); setCustomerGroup(""); setVatZone("domestic");
-    setIsBlocked(false); setPaymentTermsDays(""); setEanNumber("");
-    setSavedCustomer(null);
-  };
-
   const validate = (): string | null => {
     const missing: string[] = [];
     if (type === "private" && !name.trim()) missing.push("navn");
