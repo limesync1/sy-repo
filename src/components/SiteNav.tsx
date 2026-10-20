@@ -331,7 +331,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
           role="region"
           aria-label="Mobilmenu"
           aria-hidden={!open}
-          inert={!open ? "" : undefined}
+          {...(!open ? ({ inert: "" } as Record<string, string>) : {})}
           className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none lg:hidden ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
         >
           <div className="overflow-hidden">
