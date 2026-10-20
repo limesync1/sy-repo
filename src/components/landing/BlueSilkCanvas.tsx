@@ -22,7 +22,7 @@ const fragmentShader = `
   void main() {
     // Domain-warped currents give continuous depth instead of stripes or blobs.
     vec2 p = vec2(vUv.x * min(uAspect, 2.4), vUv.y) * 2.0;
-    float t = uTime * 0.075;
+    float t = uTime * 0.03;
     vec2 drift = vec2(t * 0.45, -t * 0.32);
     vec2 warp = vec2(flow(p + drift + uPhase), flow(p - drift + 4.8 + uPhase));
     float current = flow(p + warp * 2.4 + vec2(-t * 0.22, t * 0.3));

@@ -236,8 +236,8 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                 <div key={item.key} className="flex items-center">
                   {i === 2 && <span aria-hidden="true" className="mx-2 h-7 w-px bg-border" />}
                   <SmartLink to={item.to} aria-current={on ? "page" : undefined}
-                    className={`group flex min-h-11 items-center gap-2 rounded-full py-1 pl-1 pr-3.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${on ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"}`}>
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${on ? "bg-background/15" : "bg-accent/10 text-accent group-hover:bg-accent/15"}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
+                    className={`group flex min-h-11 items-center gap-2 rounded-full py-1 pl-1 pr-3.5 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${on ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"}`}>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${on ? "bg-background/15" : "bg-accent/10 text-accent"}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="whitespace-nowrap text-sm font-semibold">{item.label}</span>
                   </SmartLink>
                 </div>
