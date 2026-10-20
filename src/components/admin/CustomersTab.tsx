@@ -26,7 +26,7 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
-import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
+import CustomerDialogHost, { openCustomerDialog } from "./CustomerDialogHost";
 import { PageHeader, PrimaryButton, SearchInput, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,7 +42,7 @@ import {
 } from "@/components/shared/OrderStatusBadges";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { CustomerIllustration, type CustomerIllustrationName } from "@/components/shared/CustomerIllustration";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 
 type Customer = {
   email: string;
@@ -580,9 +580,8 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
-  const [orderCustomer, setOrderCustomer] = useState<Customer | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<EditableCustomer | null>(null);
+  const customerChannel = `customers:${businessId}`;
+  const orderChannel = `customer-orders:${businessId}`;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; targets: Customer[] } | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -629,14 +628,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   }, [customers]);
 
   const openCreateDialog = () => {
-    setEditing(null);
-    setEditDialogOpen(true);
+    openCustomerDialog(customerChannel);
   };
 
   const openEditDialog = async (c: Customer) => {
     if (!c.saved_id || !c.type || c.type === "unknown") {
       // Tillad redigering også af ikke-gemte (fra ordrer) — opret ny kartotek-entry
-      setEditing({
+      openCustomerDialog(customerChannel, {
         type: c.cvr || c.company_name ? "business" : "private",
         name: c.name,
         company_name: c.company_name || undefined,
@@ -658,7 +656,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         .select("*")
         .eq("id", c.saved_id)
         .maybeSingle();
-      setEditing({
+      openCustomerDialog(customerChannel, {
         id: c.saved_id,
         type: c.type,
         name: c.name,
@@ -680,7 +678,6 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         ean_number: (full as any)?.ean_number ?? null,
       });
     }
-    setEditDialogOpen(true);
   };
 
   const toggleSelect = (id: string) => {
@@ -776,7 +773,16 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   };
 
   const openCreateOrderForCustomer = (c: Customer) => {
-    setOrderCustomer(c);
+    openCreateOrderDialog(orderChannel, {
+      customer_name: c.name,
+      customer_email: c.email,
+      customer_phone: c.phone ?? null,
+      address: c.address ?? null,
+      zip_code: c.zip_code ?? null,
+      city: c.city ?? null,
+      cvr: c.cvr ?? null,
+      company_name: c.company_name ?? null,
+    });
   };
 
   const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
@@ -1139,12 +1145,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       />
 
       {/* Create / edit dialog */}
-      <CustomerEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
+      <CustomerDialogHost
+        channel={customerChannel}
         businessId={businessId}
         businessName={businessName || ""}
-        initial={editing}
       />
 
       {/* Confirm delete */}
@@ -1172,21 +1176,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <CreateManualOrderDialog
-        open={!!orderCustomer}
-        onOpenChange={(v) => { if (!v) setOrderCustomer(null); }}
+      <CreateOrderDialogHost
+        channel={orderChannel}
         businessId={businessId}
-        businessName={businessName}
-        initialCustomer={orderCustomer ? {
-          customer_name: orderCustomer.name,
-          customer_email: orderCustomer.email,
-          customer_phone: orderCustomer.phone ?? null,
-          address: orderCustomer.address ?? null,
-          zip_code: orderCustomer.zip_code ?? null,
-          city: orderCustomer.city ?? null,
-          cvr: orderCustomer.cvr ?? null,
-          company_name: orderCustomer.company_name ?? null,
-        } : null}
+        businessName={businessName || ""}
       />
     </div>
     </TooltipProvider>

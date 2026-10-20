@@ -5,7 +5,7 @@
 // Her holdes state i en lille ekstern store, så kun denne host re-renderer,
 // og selve dialogen lazy-loades + unmountes når den er lukket.
 // `channel` adskiller værter, hvis flere sider er monteret samtidig.
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentProps } from "react";
 
 const loadDialog = () => import("@/components/route-planner/CreateManualOrderDialog");
 const CreateManualOrderDialog = lazy(loadDialog);
@@ -13,11 +13,12 @@ const CreateManualOrderDialog = lazy(loadDialog);
 /** Hent koden i forvejen (fx ved hover), så første åbning er øjeblikkelig. */
 export const preloadCreateOrderDialog = () => { void loadDialog(); };
 
-type Listener = (open: boolean) => void;
+export type OrderInitialCustomer = ComponentProps<typeof CreateManualOrderDialog>["initialCustomer"];
+type Listener = (customer?: OrderInitialCustomer) => void;
 const channels = new Map<string, Set<Listener>>();
 
-export function openCreateOrderDialog(channel = "planner") {
-  channels.get(channel)?.forEach((l) => l(true));
+export function openCreateOrderDialog(channel = "planner", customer?: OrderInitialCustomer) {
+  channels.get(channel)?.forEach((l) => l(customer));
 }
 
 export default function CreateOrderDialogHost({
@@ -32,11 +33,13 @@ export default function CreateOrderDialogHost({
   const [open, setOpen] = useState(false);
   // Holder dialogen monteret et øjeblik efter luk, så exit-animationen kan køre.
   const [mounted, setMounted] = useState(false);
+  const [initialCustomer, setInitialCustomer] = useState<OrderInitialCustomer>(null);
 
   useEffect(() => {
-    const listener: Listener = (v) => {
-      if (v) setMounted(true);
-      setOpen(v);
+    const listener: Listener = (customer) => {
+      setInitialCustomer(customer ?? null);
+      setMounted(true);
+      setOpen(true);
     };
     let set = channels.get(channel);
     if (!set) { set = new Set(); channels.set(channel, set); }
@@ -45,14 +48,16 @@ export default function CreateOrderDialogHost({
     const idle = (window as any).requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
     const id = idle(preloadCreateOrderDialog);
     return () => {
-      set!.delete(listener);
+      set?.delete(listener);
+      if (set?.size === 0) channels.delete(channel);
       (window as any).cancelIdleCallback?.(id);
+      clearTimeout(id);
     };
   }, [channel]);
 
   useEffect(() => {
     if (open) return;
-    const t = setTimeout(() => setMounted(false), 260);
+    const t = setTimeout(() => setMounted(false), 180);
     return () => clearTimeout(t);
   }, [open]);
 
@@ -65,6 +70,7 @@ export default function CreateOrderDialogHost({
         onOpenChange={setOpen}
         businessId={businessId}
         businessName={businessName}
+        initialCustomer={initialCustomer}
       />
     </Suspense>
   );

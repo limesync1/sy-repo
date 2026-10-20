@@ -1,3 +1,7 @@
+## Resterende hastighed i virksomhedspanelets vinduer (20. oktober)
+- [ ] Isolér kundevinduets åbn/luk fra kundelisten og hent bestillingsvinduer kun ved brug
+- [ ] Bevar kundeoplysninger gennem lukkeanimation og kontrollér åbning/lukning samt forudfyldning
+
 ## Blå baggrunde på undersider og login (20. oktober)
 - [x] Udvid læsbare blå animationer til fælles sidetoppe, mørke sektioner, afslutninger, login og ny adgangskode; behold loginregler
 - [x] Browserkontrol ved 1280/390 px: undersider, loginvalg, glemt kode, kontaktområder og reduceret bevægelse; ingen sidefejl eller vandret overflow. Loginindsendelse uændret og ikke gentestet.

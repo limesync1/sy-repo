@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -17,12 +17,13 @@ import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, User, Loader2, Save, ShoppingBag, Camera, ChevronDown, StickyNote } from "lucide-react";
 import { toast } from "sonner";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { useServices } from "@/hooks/useDatabase";
 import { useActiveAccountingIntegration } from "@/hooks/useActiveAccountingIntegration";
 import CustomerContactsSection from "./CustomerContactsSection";
 import CustomerDocumentsSection from "./CustomerDocumentsSection";
 import NotificationOverridesPanel from "./NotificationOverridesPanel";
+
+const CreateManualOrderDialog = lazy(() => import("@/components/route-planner/CreateManualOrderDialog"));
 
 export type CustomerType = "private" | "business";
 
@@ -274,13 +275,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         toast.error("Kunden er gemt, men bestillingen kan ikke oprettes", {
           description: "Opret eller aktivér først en service.",
         });
-        reset();
         onOpenChange(false);
       } else if (alsoCreateOrder) {
         setSavedCustomer(saved);
         setOrderDialogOpen(true);
       } else {
-        reset();
         onOpenChange(false);
       }
     } catch (e: any) {
@@ -292,7 +291,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
+      <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { onOpenChange(false); } else if (v) onOpenChange(true); }}>
         <DialogContent className="modal-large planner-overlay flex flex-col p-0 gap-0 overflow-hidden">
           <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
             <SheetHeaderBlock
@@ -534,7 +533,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
           <SheetFooterBar>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between">
-              <Button variant="outline" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-11 sm:h-10">Annullér</Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving} className="h-11 sm:h-10">Annullér</Button>
               <div className="contents sm:flex sm:gap-2">
                 <Button variant={initial?.id ? "default" : "outline"} onClick={() => handleSave(false)} disabled={saving} className="h-11 sm:h-10">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -555,12 +554,12 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
       {/* Genbrug eksisterende manuel-bestilling-dialog. Den læser nu kunden via autocomplete eller udfyld initial via key remount */}
       {savedCustomer && (
+        <Suspense fallback={null}>
         <CreateManualOrderDialog
           open={orderDialogOpen}
           onOpenChange={(v) => {
             setOrderDialogOpen(v);
             if (!v) {
-              reset();
               onOpenChange(false);
             }
           }}
@@ -579,9 +578,10 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             company_name: savedCustomer.type === "business" ? (savedCustomer.company_name || null) : null,
           }}
         />
+        </Suspense>
       )}
     </>
   );
 };
 
-export default CustomerEditDialog;
+export default memo(CustomerEditDialog);
