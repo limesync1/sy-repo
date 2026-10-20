@@ -1,3 +1,8 @@
+## Offentlig computernavigation og hjemmeside (20. oktober)
+- [ ] Tydelige kunde-/virksomhedsgrupper, kompakte kontohandlinger og stabil menu ved skift af skærmbredde
+- [ ] Gennemgå forsiden og ret konkrete problemer uden ændringer af priser eller bestillingslogik
+- [ ] Kontrollér navigation, kontomenu og relevante sider på computer/mobil i lyst og mørkt tema
+
 ## Resterende hastighed i virksomhedspanelets vinduer (20. oktober)
 - [x] Isolér kundevinduets åbn/luk fra kundelisten og hent bestillingsvinduer kun ved brug
 - [x] Bevar kundeoplysninger gennem lukkeanimation; tre tests bestået for isoleret state, forudfyldning og profilramme. Kundevinduets indtastning/lukning/genåbning kontrolleret isoleret ved 1280/390 px i lys/mørk visning.
