@@ -393,7 +393,7 @@ const DashboardTab = ({
   }, [pendingOrders, servicesCount, completeness.pct, missingItems.length, reviewsCount, ordersCount, newReviews, shareUrl, copied]);
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
+    <div className="w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* Roligt velkomstfelt i panelets nye mørke/blå designsprog. */}
       <section
         className="panel-overview-hero relative isolate overflow-hidden rounded-md px-4 py-4 text-background shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7"
@@ -554,14 +554,14 @@ const DashboardTab = ({
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
                       className={cn(
                         "group flex min-h-11 w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      a.tone === "primary" && "brand-blue-action border-transparent text-background hover:-translate-y-0.5",
+                      a.tone === "primary" && "border-accent/60 bg-accent/10 hover:border-accent hover:bg-accent/15",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
                     )}
                   >
                     <div className={cn(
                         "flex h-12 w-12 shrink-0 items-center justify-center rounded-md p-0.5 [&_img]:h-11 [&_img]:w-11 [&_img]:object-contain [&_svg]:h-6 [&_svg]:w-6",
-                      a.tone === "primary" && "bg-background/15 text-background",
+                      a.tone === "primary" && "border border-accent/30 bg-card text-accent",
                       a.tone === "accent" && "bg-accent/15 text-accent",
                       a.tone === "muted" && "border border-border bg-secondary text-foreground",
                     )}>
@@ -569,22 +569,22 @@ const DashboardTab = ({
                     </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <div className="flex min-w-0 items-center gap-2">
-                        <p className={cn("truncate text-sm font-semibold", a.tone === "primary" ? "text-background" : "text-foreground")}>{a.label}</p>
+                        <p className={cn("truncate text-sm font-semibold", "text-foreground")}>{a.label}</p>
                         {a.badge && (
                           <span className={cn(
                             "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
-                            a.tone === "primary" ? "bg-background/20 text-background" : "bg-accent/15 text-accent",
+                            a.tone === "primary" ? "bg-accent text-accent-foreground" : "bg-accent/15 text-accent",
                           )}>{a.badge}</span>
                         )}
                       </div>
                       <p className={cn(
                         "truncate text-xs",
-                        a.tone === "primary" ? "text-background/70" : "text-muted-foreground",
+                        "text-muted-foreground",
                       )}>{a.meta}</p>
                     </div>
                     <ChevronRight className={cn(
                       "h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5",
-                      a.tone === "primary" ? "text-background/60" : "text-muted-foreground",
+                      a.tone === "primary" ? "text-accent" : "text-muted-foreground",
                     )} />
                   </button>
                 ))}
