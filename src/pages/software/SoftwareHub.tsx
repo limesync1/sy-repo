@@ -4,8 +4,6 @@ import { Search, ArrowRight, Check, Download, ShieldCheck } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
-import HeroHighlights from "@/components/landing/HeroHighlights";
-import { Route as HhRoute, Smartphone as HhPhone, Receipt as HhReceipt } from "lucide-react";
 import SectionShell from "@/components/landing/SectionShell";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { BRAND_DEFINITION, BRAND_FEATURE_LIST } from "@/lib/brand";
@@ -117,7 +115,6 @@ const SoftwareHub = () => {
         tone="emerald"
         eyebrow="Systemet til virksomheder"
         title="Ét system til planlægning, drift og nye kunder"
-        aside={<HeroHighlights items={[{ icon: HhRoute, title: "Ruter og kalender", text: "Faste aftaler, drag & drop og sygemelding." }, { icon: HhPhone, title: "Medarbejder-app", text: "Dagens rute, kørsel og tidsregistrering." }, { icon: HhReceipt, title: "Fakturering", text: "Direkte til e-conomic eller Dinero." }]} />}
         subtitle="Ruteplanlægning, medarbejder-app, booking, kunder og fakturering — samlet ét sted."
 
         actions={
