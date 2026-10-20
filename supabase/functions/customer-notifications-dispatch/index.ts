@@ -6,6 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 import { processOwnerAlerts } from "./owner-alerts.ts";
+import { formatCustomerVisitDate } from "../_shared/customer-visit-date.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
         admin.from("businesses").select("id, name, phone, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
         admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle(),
         job.route_stop_id
-          ? admin.from("route_stops").select("service_summary, planned_arrival, route_id").eq("id", job.route_stop_id).maybeSingle()
+          ? admin.from("route_stops").select("service_summary, route_id").eq("id", job.route_stop_id).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
       const biz = bizRes.data;
@@ -193,32 +194,17 @@ Deno.serve(async (req) => {
       const businessPhone = (biz as any).phone ?? "";
       const serviceName = stop?.service_summary ?? "din service";
 
-      // {{tidspunkt}} — forventet ankomst for påmindelser før besøg.
-      // Bruger stoppets planned_arrival, ellers rutens dato + starttid.
+      // Legacy placeholder name: date only. Route start/arrival values are
+      // internal estimates, not explicitly agreed customer visit times.
       let tidspunkt = "snarest";
-      if (job.event_type === "service_upcoming") {
-        let arrival: Date | null = stop?.planned_arrival ? new Date(stop.planned_arrival) : null;
-        if (!arrival && stop?.route_id) {
-          const { data: route } = await admin
-            .from("routes")
-            .select("route_date, planned_start_time")
-            .eq("id", stop.route_id)
-            .maybeSingle();
-          if (route?.route_date) {
-            const t = (route.planned_start_time ?? "08:00").slice(0, 5);
-            // Rutens dato/tid er lokal dansk tid (Europe/Copenhagen, UTC+1/+2).
-            arrival = new Date(`${route.route_date}T${t}:00+02:00`);
-          }
-        }
-        if (arrival && !isNaN(arrival.getTime())) {
-          const dato = arrival.toLocaleDateString("da-DK", {
-            weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Copenhagen",
-          });
-          const kl = arrival.toLocaleTimeString("da-DK", {
-            hour: "2-digit", minute: "2-digit", timeZone: "Europe/Copenhagen",
-          }).replace(":", ".");
-          tidspunkt = `${dato} kl. ${kl}`;
-        }
+      if (job.event_type === "service_upcoming" && stop?.route_id) {
+        const { data: route, error: routeError } = await admin
+          .from("routes")
+          .select("route_date")
+          .eq("id", stop.route_id)
+          .maybeSingle();
+        if (routeError) throw routeError;
+        tidspunkt = formatCustomerVisitDate(route?.route_date);
       }
       const vars: Record<string, string> = {
         // Danske navne

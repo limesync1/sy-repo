@@ -37,4 +37,4 @@
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
 - Hourly tests stay isolated; order progress uses recurrence sequence and only the active subscription owner shows a next date.
-- Owner e-mails queue in `business_owner_alerts`, drained by `customer-notifications-dispatch` with send-time setting checks; reminder lead time resolves agreement > customer > business in the queue trigger.
+- Owner alerts queue with send-time checks; reminder lead time resolves agreement > customer > business. `customer-visit-date.ts` formats dates without internal arrival/start estimates to avoid false promises.
