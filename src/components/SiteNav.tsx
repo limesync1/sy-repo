@@ -316,12 +316,12 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               variant="ghost"
               size="icon"
               onClick={() => setOpen((v) => !v)}
-              className="h-11 w-11 rounded-md border border-transparent text-foreground hover:border-border hover:bg-secondary active:bg-secondary focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border p-0 text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring lg:hidden ${open ? "border-foreground bg-foreground text-background hover:bg-foreground/90 hover:text-background" : "border-border bg-card hover:bg-secondary"}`}
               aria-label={open ? "Luk menu" : "Åbn menu"}
               aria-expanded={open}
               aria-controls="public-mobile-menu"
             >
-              <span className="relative h-5 w-5">
+              <span className="relative block h-5 w-5" aria-hidden="true">
                 <Menu className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
                 <X className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
               </span>
