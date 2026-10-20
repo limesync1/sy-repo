@@ -1,212 +1,115 @@
-# Genererer PDF-brugerguiden ud fra samme datakilde som den søgbare guide i
-# appen (src/data/routePlannerFeatures.ts). Kør aldrig manuelt — den bygges
-# automatisk af scripts/build-planner-guide.mjs (predev/prebuild + dev-watch).
-import json, subprocess, sys
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
+"""Byg den fælles, danske brugerguide. Kaldes fra build-planner-guide.mjs."""
+import json
+import subprocess
+import sys
+from html import escape
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (BaseDocTemplate, PageTemplate, Frame, Paragraph,
-                                Spacer, KeepTogether, Table, TableStyle, PageBreak,
-                                NextPageTemplate, Flowable)
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
 
-DATA = json.load(open(sys.argv[1]))
-OUT = sys.argv[2]
-
-reg = lambda name, q: pdfmetrics.registerFont(TTFont(name, subprocess.check_output(["fc-match","-f","%{file}",q],text=True).strip()))
-reg("DJ", "DejaVu Sans"); reg("DJB", "DejaVu Sans:bold"); reg("DJM", "DejaVu Sans Mono")
-
-INK    = colors.HexColor("#0F172A")
-MUTED  = colors.HexColor("#64748B")
-ACCENT = colors.HexColor("#0B8FA0")
-LINE   = colors.HexColor("#E2E8F0")
-SOFT   = colors.HexColor("#F6F8FA")
-PAPER  = colors.HexColor("#FFFFFF")
-
-S = lambda **kw: ParagraphStyle(**kw)
-h1      = S(name="h1", fontName="DJB", fontSize=30, leading=35, textColor=PAPER, spaceAfter=8)
-h2      = S(name="h2", fontName="DJB", fontSize=15, leading=19, textColor=INK, spaceAfter=8)
-h3      = S(name="h3", fontName="DJB", fontSize=11.5, leading=15, textColor=INK, spaceAfter=2)
-body    = S(name="body", fontName="DJ", fontSize=9.5, leading=14, textColor=INK)
-mut     = S(name="mut", fontName="DJ", fontSize=9, leading=13.5, textColor=MUTED)
-eyebrow = S(name="eyebrow", fontName="DJB", fontSize=8, leading=11, textColor=ACCENT)
-eyebrow_light = S(name="eyebrowl", fontName="DJB", fontSize=8.5, leading=12, textColor=colors.HexColor("#7FD8E3"))
-lead    = S(name="lead", fontName="DJ", fontSize=11.5, leading=17, textColor=colors.HexColor("#CBD5E1"))
-step    = S(name="step", fontName="DJ", fontSize=9.5, leading=13.5, textColor=INK,
-            leftIndent=14, firstLineIndent=-14, spaceAfter=1.5)
-kbd     = S(name="kbd", fontName="DJM", fontSize=8.5, leading=12, textColor=INK)
-
+DATA = json.load(open(sys.argv[1], encoding='utf-8'))
+for name, query in [('DJ', 'DejaVu Sans'), ('DJB', 'DejaVu Sans:bold'), ('DJM', 'DejaVu Sans Mono')]:
+    font = subprocess.check_output(['fc-match', '-f', '%{file}', query], text=True).strip()
+    pdfmetrics.registerFont(TTFont(name, font))
+pdfmetrics.registerFontFamily('DJ', normal='DJ', bold='DJB', italic='DJ', boldItalic='DJB')
+NAVY = colors.HexColor('#0F172A')
+TEAL = colors.HexColor('#0996A5')
+BRIGHT = colors.HexColor('#0BB5C6')
+MUTED = colors.HexColor('#475569')
+LINE = colors.HexColor('#DEE7EC')
+SOFT = colors.HexColor('#F1F7F8')
 PW, PH = A4
-M = 20*mm
+M = 19 * mm
+W = PW - 2 * M
 
+def style(name, size=10, leading=15, font='DJ', color=NAVY, **kw):
+    return ParagraphStyle(name, fontName=font, fontSize=size, leading=leading, textColor=color, **kw)
+BODY = style('body')
+SMALL = style('small', 9, 13, color=MUTED)
+TITLE = style('title', 14, 19, 'DJB', spaceAfter=7)
+LABEL = style('label', 8, 12, 'DJB', TEAL, spaceAfter=7)
+HERO = style('hero', 36, 44, 'DJB', colors.white)
+LEAD = style('lead', 12, 19, color=colors.HexColor('#CBD5E1'))
+CHIP = style('chip', 8, 12, 'DJM', TEAL)
 
-class Rule(Flowable):
-    """Tynd vandret streg i fuld tekstbredde."""
-    def __init__(self, w, color=LINE, thickness=0.6):
-        super().__init__(); self.w, self.color, self.thickness = w, color, thickness
-    def wrap(self, *a): return (self.w, self.thickness + 2)
-    def draw(self):
-        self.canv.setStrokeColor(self.color); self.canv.setLineWidth(self.thickness)
-        self.canv.line(0, 1, self.w, 1)
+def p(text, st=BODY):
+    return Paragraph(escape(text), st)
 
+def page(canvas, doc):
+    canvas.saveState()
+    if doc.page == 1:
+        canvas.setFillColor(NAVY)
+        canvas.rect(0, 0, PW, PH, fill=1, stroke=0)
+        canvas.setFillColor(BRIGHT)
+        canvas.rect(M, PH - 31*mm, 25*mm, 3*mm, fill=1, stroke=0)
+        canvas.setFillColor(colors.HexColor('#16283B'))
+        canvas.circle(PW, 15*mm, 76*mm, fill=1, stroke=0)
+        canvas.setFillColor(colors.HexColor('#CBD5E1'))
+        canvas.setFont('DJ', 9)
+        canvas.drawString(M, 19*mm, 'serviceydere.dk / software / funktioner')
+    else:
+        canvas.setFillColor(TEAL)
+        canvas.rect(0, PH-2*mm, PW, 2*mm, fill=1, stroke=0)
+        canvas.setFont('DJB', 8)
+        canvas.setFillColor(NAVY)
+        canvas.drawString(M, PH-13*mm, 'SERVICEYDERE')
+        canvas.setFont('DJ', 8)
+        canvas.setFillColor(MUTED)
+        canvas.drawRightString(PW-M, PH-13*mm, 'Ruteplanlægger · Brugerguide')
+        canvas.setStrokeColor(LINE)
+        canvas.line(M, 17*mm, PW-M, 17*mm)
+        canvas.drawString(M, 11*mm, 'Korte trin. Overblik over dagen.')
+        canvas.drawRightString(PW-M, 11*mm, f'{doc.page:02d}')
+    canvas.restoreState()
 
-def cover_page(canv, doc):
-    canv.saveState()
-    canv.setFillColor(INK); canv.rect(0, 0, PW, PH, stroke=0, fill=1)
-    canv.setFillColor(ACCENT); canv.rect(0, PH-8*mm, PW, 8*mm, stroke=0, fill=1)
-    canv.setFillColor(colors.HexColor("#132033"))
-    canv.circle(PW+10*mm, 40*mm, 70*mm, stroke=0, fill=1)
-    canv.setFont("DJ", 8); canv.setFillColor(colors.HexColor("#7C8DA5"))
-    canv.drawString(M, 16*mm, "serviceydere.dk/software/funktioner")
-    canv.restoreState()
+features = DATA['features']
+groups = [(c, [f for f in features if f['category'] == c]) for c in DATA['categories']]
+groups = [(c, fs) for c, fs in groups if fs]
+# To hele kort pr. side. Faste sideskift giver ro og præcise indholdshenvisninger.
+category_pages = {}
+next_page = 3
+for category, fs in groups:
+    category_pages[category] = next_page
+    next_page += (len(fs)+1)//2
+flow = [Spacer(1, 39*mm), p('SERVICEYDERE / BRUGERGUIDE', style('brand', 10, 15, 'DJB', BRIGHT)),
+        Spacer(1, 9*mm), p('Få ro på\nruteplanlægningen'.replace('\n', ' '), HERO), Spacer(1, 8*mm),
+        p('Planlæg dagen. Fordel aftaler. Hjælp medarbejderne godt afsted.', LEAD), Spacer(1, 14*mm),
+        p(f'{len(features)} funktioner  /  {len(groups)} områder', style('stats', 12, 19, 'DJB', BRIGHT)),
+        Spacer(1, 7*mm), p('Den samme guide findes søgbart i appen. Brug indholdet på næste side til at finde det, du har brug for.', LEAD), PageBreak()]
+flow += [p('FIND HURTIGT RUNDT', LABEL), p('Indhold', style('contents', 29, 36, 'DJB')), Spacer(1, 7*mm)]
+for i, (category, fs) in enumerate(groups, 1):
+    row = Table([[p(f'{i:02d}', LABEL), p(category, TITLE), p(str(category_pages[category]), TITLE)]], colWidths=[12*mm,W-26*mm,14*mm])
+    row.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LINEBELOW',(0,0),(-1,-1),.5,LINE),('TOPPADDING',(0,0),(-1,-1),10),('BOTTOMPADDING',(0,0),(-1,-1),8)]))
+    flow += [row]
+flow += [Spacer(1, 10*mm), p('Sådan bruger du guiden', TITLE), p('Hvert kort forklarer én funktion. Læs først den korte forklaring. Følg derefter trinene. Eksemplet viser en hverdagssituation.'), Spacer(1,4*mm), p('Genveje står i lyse felter. Command bruges på Mac. Ctrl bruges på Windows. Genveje virker ikke, mens du skriver i et felt.', SMALL), PageBreak()]
 
-
-def inner_page(canv, doc):
-    canv.saveState()
-    canv.setFillColor(ACCENT); canv.rect(0, PH-3*mm, PW, 3*mm, stroke=0, fill=1)
-    canv.setFont("DJ", 8); canv.setFillColor(MUTED)
-    canv.drawString(M, 12*mm, "Serviceydere · Brugerguide til ruteplanlæggeren")
-    canv.drawRightString(PW-M, 12*mm, "Side %d" % (canv.getPageNumber() - 1))
-    canv.setStrokeColor(LINE); canv.setLineWidth(0.5)
-    canv.line(M, 15.5*mm, PW-M, 15.5*mm)
-    canv.restoreState()
-
-
-doc = BaseDocTemplate(OUT, pagesize=A4,
-                      title="Brugerguide til ruteplanlæggeren – Serviceydere",
-                      author="Serviceydere", subject="Funktioner i Serviceyderes ruteplanlægger",
-                      leftMargin=M, rightMargin=M, topMargin=20*mm, bottomMargin=22*mm)
-W = doc.width
-cover_frame = Frame(M, 22*mm, W, PH-44*mm, id="cover")
-inner_frame = Frame(M, doc.bottomMargin, W, PH - doc.bottomMargin - 20*mm, id="inner")
-doc.addPageTemplates([
-    PageTemplate(id="cover", frames=[cover_frame], onPage=cover_page),
-    PageTemplate(id="inner", frames=[inner_frame], onPage=inner_page),
-])
-
-cats = DATA["categories"]
-feats = DATA["features"]
-flow = []
-
-# ---------- Forside ----------
-flow += [NextPageTemplate("inner"),
-         Spacer(1, 46*mm),
-         Paragraph("SERVICEYDERE · SOFTWARE TIL SERVICEVIRKSOMHEDER", eyebrow_light),
-         Spacer(1, 5*mm),
-         Paragraph("Brugerguide til<br/>ruteplanlæggeren", h1),
-         Spacer(1, 4*mm),
-         Paragraph("Alle funktioner forklaret med et konkret eksempel og korte trin. "
-                   "Samme indhold findes søgbart på serviceydere.dk/software/funktioner.", lead),
-         Spacer(1, 10*mm)]
-
-meta = Table([[Paragraph(f"<font color='#7FD8E3'>{len(feats)}</font>  funktioner", 
-                         S(name="m1", fontName="DJB", fontSize=11, textColor=PAPER)),
-               Paragraph(f"<font color='#7FD8E3'>{len(cats)}</font>  områder",
-                         S(name="m2", fontName="DJB", fontSize=11, textColor=PAPER))]],
-             colWidths=[W*0.5, W*0.5])
-meta.setStyle(TableStyle([("LEFTPADDING",(0,0),(-1,-1),0), ("TOPPADDING",(0,0),(-1,-1),0)]))
-flow += [meta, PageBreak()]
-
-# ---------- Indhold ----------
-flow += [Paragraph("INDHOLD", eyebrow), Spacer(1, 2*mm),
-         Paragraph("Sådan er guiden bygget op", h2)]
-rows = []
-for c in cats:
-    titles = [f["title"] for f in feats if f["category"] == c]
-    rows.append([Paragraph(f"<b>{c}</b>", body),
-                 Paragraph(" · ".join(titles), mut)])
-t = Table(rows, colWidths=[W*0.30, W*0.70])
-style = [("VALIGN", (0,0), (-1,-1), "TOP"),
-         ("LEFTPADDING", (0,0), (-1,-1), 10), ("RIGHTPADDING", (0,0), (-1,-1), 10),
-         ("TOPPADDING", (0,0), (-1,-1), 9), ("BOTTOMPADDING", (0,0), (-1,-1), 9),
-         ("LINEBELOW", (0,0), (-1,-2), 0.5, LINE),
-         ("BOX", (0,0), (-1,-1), 0.6, LINE),
-         ("BACKGROUND", (0,0), (-1,-1), SOFT)]
-t.setStyle(TableStyle(style))
-flow += [t, Spacer(1, 6*mm)]
-
-shortcuts = [f for f in feats if f.get("shortcut")]
-if shortcuts:
-    flow += [Paragraph("Genveje i overblik", h2)]
-    sc_rows, row = [], []
-    for f in shortcuts:
-        row.append(Paragraph(f"<font name='DJM'>{f['shortcut']}</font>  {f['title']}", body))
-        if len(row) == 2:
-            sc_rows.append(row); row = []
-    if row:
-        row.append(Paragraph("", body)); sc_rows.append(row)
-    st = Table(sc_rows, colWidths=[W*0.5, W*0.5])
-    st.setStyle(TableStyle([
-        ("VALIGN", (0,0), (-1,-1), "TOP"),
-        ("LEFTPADDING", (0,0), (-1,-1), 0), ("RIGHTPADDING", (0,0), (-1,-1), 8),
-        ("TOPPADDING", (0,0), (-1,-1), 4), ("BOTTOMPADDING", (0,0), (-1,-1), 4),
-    ]))
-    flow += [st]
-flow += [PageBreak()]
-
-# ---------- Funktioner ----------
-for c in cats:
-    items = [f for f in feats if f["category"] == c]
-    if not items:
-        continue
-    for idx, f in enumerate(items):
-        block = []
-        if idx == 0:
-            head = Table([[Paragraph(c.upper(), S(name="cat", fontName="DJB", fontSize=9,
-                                                  leading=12, textColor=PAPER))]], colWidths=[W])
-            head.setStyle(TableStyle([
-                ("BACKGROUND", (0,0), (-1,-1), INK),
-                ("LEFTPADDING", (0,0), (-1,-1), 10), ("RIGHTPADDING", (0,0), (-1,-1), 10),
-                ("TOPPADDING", (0,0), (-1,-1), 6), ("BOTTOMPADDING", (0,0), (-1,-1), 6),
-            ]))
-            block += [head, Spacer(1, 4*mm)]
-
-        title_bits = f["title"]
-        if f.get("shortcut"):
-            title_bits += f"   <font name='DJM' size='8.5' color='#0B8FA0'>{f['shortcut']}</font>"
-        block += [Paragraph(title_bits, h3),
-                  Paragraph(f["summary"], mut),
-                  Spacer(1, 2.5*mm)]
-
-        ex = Table([[Paragraph(f"<b>Eksempel</b><br/>{f['example']}", body)]], colWidths=[W])
-        ex.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,-1), SOFT),
-            ("LEFTPADDING", (0,0), (-1,-1), 10), ("RIGHTPADDING", (0,0), (-1,-1), 10),
-            ("TOPPADDING", (0,0), (-1,-1), 7), ("BOTTOMPADDING", (0,0), (-1,-1), 7),
-            ("LINEBEFORE", (0,0), (0,-1), 2.2, ACCENT),
-        ]))
-        block += [ex, Spacer(1, 3*mm),
-                  Paragraph("Sådan gør du", S(name="sg", fontName="DJB", fontSize=8.5,
-                                              leading=11, textColor=MUTED)),
-                  Spacer(1, 1.5*mm)]
-        for i, s in enumerate(f["steps"], 1):
-            block.append(Paragraph(f"<font color='#0B8FA0'><b>{i}</b></font>&nbsp;&nbsp;&nbsp;{s}", step))
-        block += [Spacer(1, 4*mm), Rule(W), Spacer(1, 4*mm)]
-        flow.append(KeepTogether(block))
-
-# ---------- Afslutning ----------
-flow += [PageBreak(), Paragraph("KOM VIDERE", eyebrow), Spacer(1, 2*mm),
-         Paragraph("Prøv det med jeres egne kunder", h2),
-         Paragraph("Ruteplanlægning er inkluderet i basisprisen på 289 kr./md. ekskl. moms. "
-                   "Der er 14 dages gratis prøve uden betalingskort og ingen binding. "
-                   "Skal jeres eksisterende kunder flyttes ind, står Serviceyderes support for importen.", body),
-         Spacer(1, 5*mm)]
-links = Table([[Paragraph("<b>Søgbar funktionsguide</b><br/>serviceydere.dk/software/funktioner", body),
-                Paragraph("<b>Om ruteplanlæggeren</b><br/>serviceydere.dk/software/ruteplanlaegger", body)],
-               [Paragraph("<b>Priser</b><br/>serviceydere.dk/software/priser", body),
-                Paragraph("<b>Kontakt og support</b><br/>serviceydere.dk/kontakt", body)]],
-              colWidths=[W*0.5, W*0.5])
-links.setStyle(TableStyle([
-    ("VALIGN", (0,0), (-1,-1), "TOP"),
-    ("BACKGROUND", (0,0), (-1,-1), SOFT),
-    ("BOX", (0,0), (-1,-1), 0.6, LINE),
-    ("INNERGRID", (0,0), (-1,-1), 0.6, colors.white),
-    ("LEFTPADDING", (0,0), (-1,-1), 10), ("RIGHTPADDING", (0,0), (-1,-1), 10),
-    ("TOPPADDING", (0,0), (-1,-1), 9), ("BOTTOMPADDING", (0,0), (-1,-1), 9),
-]))
-flow += [links]
-
-doc.build(flow)
-print("wrote", OUT)
+def card(feature, number):
+    content = [p(f'FUNKTION {number:02d}', LABEL), p(feature['title'], TITLE), p(feature['summary']), Spacer(1, 3*mm)]
+    if feature.get('shortcut'):
+        chip = Table([[p(feature['shortcut'], CHIP)]], colWidths=[W-12*mm])
+        chip.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),SOFT),('BOX',(0,0),(-1,-1),.5,LINE),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
+        content += [chip, Spacer(1, 3*mm)]
+    for i, text in enumerate(feature['steps'], 1):
+        row = Table([[p(f'{i}.', LABEL), p(text)]], colWidths=[8*mm,W-20*mm])
+        row.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),0),('RIGHTPADDING',(0,0),(-1,-1),0),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
+        content.append(row)
+    content += [Spacer(1, 2*mm), p('EKSEMPEL', LABEL), p(feature['example'], SMALL)]
+    box = Table([[content]], colWidths=[W])
+    box.setStyle(TableStyle([('BOX',(0,0),(-1,-1),.7,LINE),('LINEBEFORE',(0,0),(0,0),3,TEAL),('BACKGROUND',(0,0),(-1,-1),colors.white),('LEFTPADDING',(0,0),(-1,-1),6*mm),('RIGHTPADDING',(0,0),(-1,-1),6*mm),('TOPPADDING',(0,0),(-1,-1),5*mm),('BOTTOMPADDING',(0,0),(-1,-1),5*mm)]))
+    return box
+number = 0
+for gi, (category, fs) in enumerate(groups, 1):
+    for offset in range(0, len(fs), 2):
+        flow += [p(f'{gi:02d} / {category.upper()}', LABEL), p(category, style('section', 23, 29, 'DJB')), Spacer(1, 5*mm)]
+        for feature in fs[offset:offset+2]:
+            number += 1
+            flow += [card(feature, number), Spacer(1, 5*mm)]
+        if not (gi == len(groups) and offset+2 >= len(fs)):
+            flow.append(PageBreak())
+SimpleDocTemplate(sys.argv[2], pagesize=A4, leftMargin=M, rightMargin=M, topMargin=23*mm, bottomMargin=23*mm,
+                  title='Brugerguide til ruteplanlæggeren – Serviceydere', author='Serviceydere').build(flow, onFirstPage=page, onLaterPages=page)
+print(f'PDF skrevet: {sys.argv[2]}')
