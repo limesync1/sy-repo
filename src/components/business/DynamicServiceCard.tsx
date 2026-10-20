@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "sonner";
 import { ShoppingCart, Minus, Plus, Check } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
@@ -173,7 +172,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     });
 
     setJustAdded(true);
-    toast.success(`${service.name} tilføjet til bestilling`);
     setTimeout(() => setJustAdded(false), 1500);
   };
 
