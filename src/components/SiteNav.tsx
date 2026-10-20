@@ -249,14 +249,14 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
             {right}
 
             {user ? (
-              <div className="hidden items-center rounded-lg border border-foreground bg-foreground lg:flex">
-                {preferredRole && <Button variant="ghost" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-l-lg rounded-r-none gap-2 px-3 font-semibold text-background hover:bg-background/10 hover:text-background">
+              <div className="hidden items-center rounded-full border border-foreground bg-foreground lg:flex">
+                {preferredRole && <Button variant="ghost" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-l-full rounded-r-none gap-2 pl-4 pr-3 font-semibold text-background hover:bg-background/10 hover:text-background">
                   <PanelIcon role={preferredRole} selected />
                   <span>{preferredRole.label}</span>
                 </Button>}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="group h-11 w-11 rounded-l-none rounded-r-lg border-l border-background/20 text-background hover:bg-background/10 hover:text-background" aria-label="Åbn kontomenu">
+                    <Button variant="ghost" size="icon" className="group h-11 w-11 rounded-l-none rounded-r-full border-l border-background/20 text-background hover:bg-background/10 hover:text-background" aria-label="Åbn kontomenu">
                       <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -284,13 +284,13 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               </div>
             ) : (
               <>
-                <Button asChild variant="ghost" className="hidden h-11 rounded-lg px-3 font-semibold lg:inline-flex">
+                <Button asChild variant="ghost" className="hidden h-11 rounded-full px-4 font-semibold lg:inline-flex">
                   <Link to="/log-ind">
                     <LogIn className="h-4 w-4" aria-hidden="true" />
                     Log ind
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="hidden h-11 rounded-lg border-foreground bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:inline-flex">
+                <Button asChild variant="outline" className="hidden h-11 rounded-full border-foreground bg-foreground px-5 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:inline-flex">
                   <Link to="/log-ind?signup=1">
                     Opret konto
                   </Link>
