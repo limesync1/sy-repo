@@ -75,6 +75,11 @@
     --hero-mid: 201 99% 33%;         /* #016EA4 */
     --hero-cyan: 189 100% 45%;       /* #00C0E3 */
     --hero-cyan-bright: 188 100% 49%;/* #00DCFA */
+    --home-search-surface: 204 75% 18%;
+    --home-glass-surface: 204 85% 15%;
+    --home-photo-shadow: 0 24px 60px -24px hsl(var(--shadow-color) / 0.65);
+    --home-flow-fallback: linear-gradient(125deg, hsl(var(--hero-bg)) 12%, hsl(var(--hero-mid) / 0.65) 70%, hsl(var(--hero-bg)));
+    --home-photo-shade: linear-gradient(180deg, hsl(var(--hero-bg) / 0.02), hsl(var(--hero-bg) / 0.22));
 
     /* Sektions-flader til de offentlige sider — skiftevis lys/dæmpet
        så lange sider får rytme i stedet for én hvid flade. */
@@ -1827,10 +1832,50 @@ img[loading="lazy"].is-error {
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  background: hsl(var(--hero-bg));
+  background: var(--home-flow-fallback);
 }
-.blue-flow-background canvas { display: block; width: 100%; height: 100%; }
+.blue-flow-background canvas { display: block; width: 100%; height: 100%; opacity: 1; animation: home-canvas-in 1.2s ease-out both; }
 .blue-flow-background canvas[hidden] { display: none; }
+
+/* Public homepage art direction; panel and other public page styles stay intact. */
+.homepage { letter-spacing: 0; }
+.homepage :is(h1, h2, h3, span, a, p) { letter-spacing: 0; }
+.homepage main > div > section { border-top: 1px solid hsl(var(--border) / 0.45); }
+.homepage h2 { line-height: 1.16; text-wrap: balance; }
+.home-hero { border-bottom: 1px solid hsl(var(--ocean-foreground) / 0.2); }
+.home-hero-highlight { color: hsl(var(--hero-cyan-bright)); }
+.home-search-panel { background: hsl(var(--home-search-surface) / 0.92); box-shadow: 0 8px 24px -12px hsl(var(--shadow-color) / 0.4); }
+.home-hero-photo { box-shadow: var(--home-photo-shadow); }
+.home-photo-shade { background: var(--home-photo-shade); }
+.home-step, .home-reason {
+  background: hsl(var(--home-glass-surface) / 0.72);
+  box-shadow: inset 0 1px 0 hsl(var(--ocean-foreground) / 0.06);
+  transition: transform 350ms ease, background 350ms ease, border-color 350ms ease;
+}
+.home-process ol { position: relative; }
+.homepage :is(.home-process, .home-founder) p { color: hsl(var(--ocean-foreground) / 0.85); }
+.homepage :is(.home-process, .home-founder) .icon-tile-glass { background: hsl(var(--ocean-foreground)); }
+.homepage #main > div > section:not(.brand-blue-section):not(.home-closing) { background-image: linear-gradient(155deg, hsl(var(--background)) 35%, hsl(var(--surface-strong) / 0.55)); }
+.homepage #main > div > section.bg-surface { background-image: linear-gradient(155deg, hsl(var(--surface)), hsl(var(--background))); }
+.homepage #main > div > section.bg-surface > div > .overflow-hidden { border-radius: 0; border-left: 0; border-right: 0; box-shadow: none; background: transparent; }
+.homepage #main > div > section.bg-surface .tracking-tight { letter-spacing: 0; }
+.home-closing { background: hsl(var(--ocean)); padding-left: 0; padding-right: 0; }
+.home-closing > div { overflow: visible; border-radius: 0; }
+.home-closing .blue-flow-background { inset: -4rem calc((min(100vw, 100%) - 100vw) / 2); }
+@keyframes home-canvas-in { from { opacity: 0; } to { opacity: 1; } }
+@media (min-width: 768px) {
+  .home-process ol::before { content: ""; position: absolute; top: 2.3rem; left: 3rem; right: 3rem; height: 1px; background: hsl(var(--ocean-foreground) / 0.25); }
+  .home-step { position: relative; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .home-step:hover, .home-reason:hover { transform: translateY(-4px); background: hsl(var(--home-glass-surface) / 0.88); border-color: hsl(var(--ocean-foreground) / 0.4); }
+  .homepage a:hover .icon-tile, .home-step:hover .icon-tile-glass { transform: translateY(-3px) rotate(-2deg); }
+  .homepage :is(.icon-tile, .icon-tile-glass) { transition: transform 400ms ease; }
+  .homepage #all-service-categories a:hover { border-color: hsl(var(--accent) / 0.65); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homepage *, .blue-flow-background canvas { animation: none !important; transition: none !important; }
+}
 
 /* Solid CTA surfaces stay readable independently of the animated artwork. */
 .hero-action-light {

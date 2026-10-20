@@ -1,3 +1,7 @@
+## Forsidens design (20. oktober)
+- [x] Forbedr blå WebGL-flader, sektionsrytme, kort og animationer uden ændring af indhold/priser
+- [x] Kontrollér alle fire blå sektioner ved 1280/390 px i lys/mørk visning; ingen overflow eller sidefejl. Synlig animation og statisk reduceret bevægelse målt; Find services gennemført. Build OK.
+
 ## Aftalepuljens vinduer (20. oktober)
 - [x] Ret Tilføj aftale til rute og Flyt opstartsdato med fælles bredde, ny vinduestop og mobilvenlig forhåndsvisning
 - [x] Isoleret browserkontrol ved 1351/768/390/320 px i lyst/mørkt tema: rutevalg, datoforskydning og kalender; fire tests bestået. Reel gemning ikke testet: egen konto har ingen virksomhed.

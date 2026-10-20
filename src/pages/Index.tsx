@@ -51,7 +51,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="homepage min-h-screen bg-background">
       <SEO
         title="Serviceydere – Find & book lokale serviceydere i Danmark"
         description="Find, sammenlign og book verificerede serviceydere i hele Danmark. Få op til 3 gratis tilbud på rengøring, håndværker, flyttehjælp, haveservice og meget mere."
@@ -82,6 +82,7 @@ const Index = () => {
         <Suspense fallback={<SectionSkeleton cards={0} className="bg-background" dark />}>
           <Reveal className="bg-background">
             <CTABand
+              animated
               eyebrow="Kom i gang"
               title="Beskriv opgaven én gang — få op til 3 tilbud"
               body="Det er gratis og uforpligtende. Du taler direkte med virksomhederne."
