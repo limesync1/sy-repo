@@ -1771,8 +1771,8 @@ img[loading="lazy"].is-error {
    eller en knap. */
 @keyframes ui-fade-in { from { opacity: 0; } }
 @keyframes ui-fade-out { to { opacity: 0; } }
-@keyframes ui-modal-in { from { opacity: 0; translate: 0 14px; scale: 0.975; } }
-@keyframes ui-modal-out { to { opacity: 0; translate: 0 10px; scale: 0.985; } }
+@keyframes ui-modal-in { from { opacity: 0; translate: 0 10px; } }
+@keyframes ui-modal-out { to { opacity: 0; translate: 0 6px; } }
 @keyframes ui-sheet-in { from { opacity: 0; translate: var(--ui-sheet-x, 0) var(--ui-sheet-y, 0); } }
 @keyframes ui-sheet-out { to { opacity: 0; translate: var(--ui-sheet-x, 0) var(--ui-sheet-y, 0); } }
 @keyframes sidebar-onboarding-nudge {
@@ -1933,17 +1933,18 @@ img[loading="lazy"].is-error {
   box-shadow: 0 1px 2px hsl(var(--foreground) / 0.035), 0 10px 24px -22px hsl(var(--brand-blue-end) / 0.45);
 }
 
-.ui-overlay[data-state="open"] { animation: ui-fade-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
-.ui-overlay[data-state="closed"] { animation: ui-fade-out 220ms cubic-bezier(0.4, 0, 1, 1) both !important; }
-.ui-modal[data-state="open"] { animation: ui-modal-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
-.ui-modal[data-state="closed"] { animation: ui-modal-out 220ms cubic-bezier(0.4, 0, 1, 1) both !important; }
-.ui-sheet { will-change: translate, opacity; }
+.ui-overlay[data-state="open"] { animation: ui-fade-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
+.ui-overlay[data-state="closed"] { animation: ui-fade-out 140ms cubic-bezier(0.4, 0, 1, 1) both !important; }
+.ui-modal[data-state="open"] { animation: ui-modal-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
+.ui-modal[data-state="closed"] { animation: ui-modal-out 140ms cubic-bezier(0.4, 0, 1, 1) both !important; }
+.ui-sheet, .ui-modal[data-state] { will-change: translate, opacity; }
+.ui-modal[data-state="closed"], .ui-sheet[data-state="closed"] { pointer-events: none; }
 .ui-sheet-right { --ui-sheet-x: 2.75rem; }
 .ui-sheet-left { --ui-sheet-x: -2.75rem; }
 .ui-sheet-top { --ui-sheet-y: -2.5rem; }
 .ui-sheet-bottom { --ui-sheet-y: 2.5rem; }
-.ui-sheet[data-state="open"] { animation: ui-sheet-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
-.ui-sheet[data-state="closed"] { animation: ui-sheet-out 260ms cubic-bezier(0.4, 0, 1, 1) both !important; }
+.ui-sheet[data-state="open"] { animation: ui-sheet-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both !important; }
+.ui-sheet[data-state="closed"] { animation: ui-sheet-out 160ms cubic-bezier(0.4, 0, 1, 1) both !important; }
 
 /* Ved "begræns bevægelse" bevarer vi en kort, rolig fade (ingen bevægelse),
    så vinduer stadig ikke blinker hårdt frem. */
