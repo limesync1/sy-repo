@@ -50,7 +50,7 @@ const SectionShell = ({
         "w-full",
         TONE[tone],
         dark && "public-blue-surface relative isolate overflow-hidden",
-        compact ? "py-10 sm:py-12" : "py-14 sm:py-20 lg:py-24",
+        compact ? "py-10 sm:py-12" : "py-12 sm:py-16 lg:py-20",
         className,
       )}
     >
@@ -68,7 +68,7 @@ const SectionShell = ({
               {title && (
                 <h2
                   className={cn(
-                    "text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]",
+                    "text-balance text-[1.6rem] font-semibold leading-[1.12] tracking-tight sm:text-[2rem] lg:text-[2.25rem]",
                     dark ? "text-ocean-foreground" : "text-foreground",
                   )}
                 >
