@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import { usePersistentPublicNavigation } from "./PublicNavigation";
 import BetaNotice from "./BetaNotice";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Search, FileText, Store, LayoutGrid, ChevronRight } from "lucide-react";
+const MOBILE_ICONS = { search: Search, quote: FileText, business: Store, software: LayoutGrid } as const;
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
@@ -187,7 +188,9 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [open]);
   if (hasPersistentNavigation && !persistent) return null;
 
@@ -346,14 +349,19 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                       onClick={() => setOpen(false)}
                       aria-current={on ? "page" : undefined}
                       style={{ transitionDelay: open ? `${60 + i * 40}ms` : "0ms" }}
-                      className={`flex min-h-12 flex-col justify-center rounded-lg border px-3 py-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"} ${
+                      className={`flex min-h-14 flex-col justify-center rounded-lg border px-2.5 py-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"} ${
                         on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground active:bg-secondary"
                       }`}
                     >
-                      <span className={`text-[11px] font-semibold ${on ? "text-background/70" : "text-muted-foreground"}`}>
-                        {i < 2 ? "For kunder" : "For virksomheder"}
-                      </span>
-                      <span className="text-sm font-bold">{item.label}</span>
+                      {(() => { const Icon = MOBILE_ICONS[item.key]; return (
+                        <span className="flex items-center gap-2.5">
+                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${on ? "bg-background/15" : "bg-accent/10 text-accent"}`}><Icon className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+                          <span className="min-w-0">
+                            <span className={`block text-[11px] font-semibold leading-tight ${on ? "text-background/70" : "text-muted-foreground"}`}>{i < 2 ? "For kunder" : "For virksomheder"}</span>
+                            <span className="block truncate text-sm font-bold leading-tight">{item.label}</span>
+                          </span>
+                        </span>
+                      ); })()}
                     </SmartLink>
                   );
                 })}
@@ -364,7 +372,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     {preferredRole && (
                       <Button type="button" onClick={() => { setOpen(false); navigate(preferredRole.to); }} className="min-h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
                         <img src={preferredRole.icon} alt="" className="h-4 w-4 object-contain brightness-0 invert" width={16} height={16} />
-                        <span className="truncate">{preferredRole.label}</span>
+                        <span className="truncate">{preferredRole.label}</span><ChevronRight className="ml-auto h-4 w-4 opacity-70" aria-hidden="true" />
                       </Button>
                     )}
                     <Button type="button" variant="outline" onClick={() => { setOpen(false); handleSignOut(); }} className="min-h-11 rounded-lg font-semibold">
@@ -402,6 +410,13 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
         </div>
       </div>
     </nav>
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-hidden="true"
+      onClick={() => setOpen(false)}
+      className={`fixed inset-x-0 bottom-0 top-0 -z-10 bg-foreground/40 transition-opacity duration-300 motion-reduce:transition-none lg:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+    />
     </header>
   );
 };
