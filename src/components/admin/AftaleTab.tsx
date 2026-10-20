@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import NotificationOverridesPanel from "./NotificationOverridesPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -791,7 +791,6 @@ const AftaleTab = ({
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<{ id: string; payment_status?: string | null } | null>(null);
   // Opret-rute dialog (samme design som ruteplanlægger).
   const [createRouteOpen, setCreateRouteOpen] = useState(false);
@@ -822,7 +821,7 @@ const AftaleTab = ({
       toast.error("Opret en aktiv service først", { description: "Bestillinger skal knyttes til en aktiv service." });
       return;
     }
-    setCreateOrderOpen(true);
+    openCreateOrderDialog("aftaler");
   }, [autoOpenCreate, hasActiveServices, services]);
 
   // ─── Drag & drop til rute-pool ───
@@ -1671,7 +1670,7 @@ const AftaleTab = ({
                 toast.error("Opret en aktiv service først", { description: "Bestillinger skal knyttes til en aktiv service." });
                 return;
               }
-              setCreateOrderOpen(true);
+              openCreateOrderDialog("aftaler");
             }}
             icon={<Plus />}
           >
@@ -2599,12 +2598,7 @@ const AftaleTab = ({
         )}
       </div>
 
-      <CreateManualOrderDialog
-        open={createOrderOpen}
-        onOpenChange={setCreateOrderOpen}
-        businessId={businessId}
-        businessName={businessName}
-      />
+      <CreateOrderDialogHost channel="aftaler" businessId={businessId} businessName={businessName} />
 
       {/* Opret-rute dialog — samme design og felter som ruteplanlæggerens "Opret rute". */}
       <Dialog open={createRouteOpen} onOpenChange={setCreateRouteOpen}>
