@@ -52,8 +52,8 @@ export const template = {
   subject: (data: Record<string, any>) => data?.subject ?? 'Besked',
   displayName: 'Kunde-notifikation (generisk)',
   previewData: {
-    subject: 'Vi kommer i morgen kl. 10:00',
-    body: 'Hej Mette,\n\nVi kigger forbi i morgen kl. 10:00 og udfører jeres aftalte rengøring.\n\nVenlig hilsen,\nRengøring København',
+    subject: 'Vi kommer i morgen',
+    body: 'Hej Mette,\n\nVi kigger forbi i morgen og udfører jeres aftalte rengøring.\n\nVenlig hilsen,\nRengøring København',
     businessName: 'Rengøring København',
   },
 } satisfies TemplateEntry

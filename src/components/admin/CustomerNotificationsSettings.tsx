@@ -35,7 +35,7 @@ const EVENTS: {
     key: "service_upcoming",
     label: "Påmindelse før besøg",
     shortLabel: "Sendes før vi kommer",
-    help: "En påmindelse til kunden før besøget — fx dagen før eller en time før. Tids-punktet vælger I under «Hvornår» herunder.",
+    help: "En påmindelse til kunden før besøget. Vælg under «Hvornår», hvor længe før den sendes — ikke et aftalt besøgstidspunkt.",
     Icon: Bell,
     defaults: {
       subject: "Vi kommer og udfører {{service}}",
@@ -67,7 +67,7 @@ const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
   { key: "firmanavn", label: "Jeres firmanavn", example: "Rengøring København" },
   { key: "telefon", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
   { key: "service", label: "Service", example: "ugentlig rengøring" },
-  { key: "tidspunkt", label: "Tidspunkt", example: "tirsdag d. 20. oktober kl. 08.00" },
+  { key: "tidspunkt", label: "Besøgsdato", example: "tirsdag 20. oktober" },
 ];
 
 // Mapping: dansk eller gammelt engelsk navn → eksempel-værdi
@@ -486,7 +486,7 @@ export function CustomerNotificationsSettings({
               </p>
               <LeadTimeChooser value={upcomingMinutesBefore} onChange={(m) => m != null && onUpcomingMinutesChange(m)} />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                Gælder alle kunder. Enkelte kunder eller aftaler kan få deres eget tidspunkt under kunden eller aftalen. Gemmes med «Gem ændringer».
+                Gælder alle kunder. Kunder og aftaler kan have deres egen påmindelsesfrist. Beskeden viser kun besøgsdatoen; et aftalt klokkeslæt skal I selv skrive. Gemmes med «Gem ændringer».
               </p>
             </div>
           )}
