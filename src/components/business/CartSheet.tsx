@@ -308,7 +308,7 @@ const CartSheet = () => {
         className={cn(
           "flex flex-col overflow-hidden overscroll-contain p-0 gap-0 shadow-2xl",
           isMobile
-            ? "h-[88dvh] max-h-[88dvh] w-auto rounded-2xl"
+            ? cn("max-h-[88dvh] w-auto rounded-t-2xl", checkout || orderSuccess ? "h-[88dvh]" : "h-auto")
             : "w-full sm:max-w-lg lg:max-w-xl",
         )}
       >

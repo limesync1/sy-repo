@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "sonner";
 import { ShoppingCart, Minus, Plus, Check } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
@@ -50,23 +49,23 @@ const StepperInput = ({
     <div className="inline-flex items-center gap-0">
       <button type="button" onClick={dec} disabled={value <= min}
         aria-label={`Færre ${unit}`}
-        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-r-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-card">
+        className="flex h-11 w-11 items-center justify-center rounded-l-lg border border-r-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-card">
         <Minus className="h-3.5 w-3.5" />
       </button>
       {isLargeRange ? (
         <input type="number" value={value}
           onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v))); }}
           min={min} max={max} step={step}
-          className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none focus:bg-background [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="flex h-11 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none focus:bg-background [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
       ) : (
-        <div className="flex h-9 min-w-[3rem] items-center justify-center border-y border-border bg-card px-2 text-sm font-semibold text-foreground">
+        <div className="flex h-11 min-w-[3rem] items-center justify-center border-y border-border bg-card px-2 text-sm font-semibold text-foreground">
           {value}
         </div>
       )}
       <button type="button" onClick={inc} disabled={value >= max}
         aria-label={`Flere ${unit}`}
-        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-card">
+        className="flex h-11 w-11 items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-card">
         <Plus className="h-3.5 w-3.5" />
       </button>
       <span className="ml-2 text-xs text-muted-foreground">{unit}</span>
@@ -173,7 +172,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     });
 
     setJustAdded(true);
-    toast.success(`${service.name} tilføjet til bestilling`);
     setTimeout(() => setJustAdded(false), 1500);
   };
 
@@ -224,23 +222,15 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             {isFixed ? "Fast pris" : "Prisoverslag"}
           </span>
         </div>
-      ) : (
-        <div
-          aria-hidden
-          className="relative aspect-[16/6] w-full bg-[linear-gradient(135deg,hsl(var(--ind)_60%_95%),hsl(var(--ind)_45%_88%))]"
-        >
-          <span
-            className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-              isFixed ? "bg-foreground text-background" : "bg-card text-foreground ring-1 ring-border"
-            }`}
-          >
-            {isFixed ? "Fast pris" : "Prisoverslag"}
-          </span>
-        </div>
-      )}
+      ) : null}
 
       <CardContent className="flex flex-1 flex-col p-3 sm:p-4">
         <div className="border-b border-border/70 pb-2.5">
+          {!service.image_url && (
+            <span className={`mb-1.5 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${isFixed ? "bg-foreground text-background" : "bg-accent/10 text-accent ring-1 ring-accent/20"}`}>
+              {isFixed ? "Fast pris" : "Prisoverslag"}
+            </span>
+          )}
           <h3 className="text-[15px] font-bold leading-tight text-foreground sm:text-base">{service.name}</h3>
           {(service as any).subcategory && (
             <span className="mt-1.5 inline-flex rounded-full bg-[hsl(var(--ind)_55%_95%)] px-2 py-0.5 text-[10px] font-semibold text-[hsl(var(--ind)_55%_25%)] ring-1 ring-[hsl(var(--ind)_45%_45%_/_0.2)]">{(service as any).subcategory}</span>
@@ -267,7 +257,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               {intervals.map((iv) => (
                 <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
                   aria-pressed={selectedInterval === iv}
-                  className={`inline-flex h-8 items-center rounded-full border px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
+                  className={`inline-flex min-h-10 items-center rounded-full border px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
                     selectedInterval === iv
                       ? "border-accent bg-accent text-accent-foreground shadow-sm"
                       : "border-border bg-card text-muted-foreground hover:border-accent/40"
@@ -279,6 +269,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
 
+        {!isFixed && (
         <div className="rounded-lg border border-border bg-secondary/20 p-2">
           {!isFixed && (
             <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -286,13 +277,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             </p>
           )}
 
-
-        {/* Fast pris */}
-        {service.pricing_type === "fast_pris" && (
-          <div className="inline-flex w-fit items-end gap-1 rounded-lg bg-card px-2.5 py-1.5 ring-1 ring-border">
-            <span className="text-xl font-bold text-foreground">{formatPrice(service.base_price)}</span>
-          </div>
-        )}
 
         {/* Timepris */}
         {service.pricing_type === "timepris" && (
@@ -331,6 +315,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
         </div>
+        )}
 
         <div className="mt-auto rounded-xl border border-border bg-secondary/40 p-2.5">
           <div className="mb-2 flex items-center justify-between gap-2">
@@ -346,7 +331,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{formatPrice(roundPrice(total))}</p>
                 <span className="ml-1 truncate text-[10px] text-muted-foreground">· {intervalLabel}</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Uden moms (+ moms)</p>
+              <p className="mt-1 text-xs text-muted-foreground">Pris uden moms</p>
             </div>
           </div>
 
