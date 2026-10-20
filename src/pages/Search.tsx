@@ -335,7 +335,7 @@ const SearchPage = () => {
         allowOverflow
         eyebrow="Find services"
         title="Find verificerede serviceydere."
-        aside={<HeroHighlights items={[{ icon: HhShield, title: "Verificerede virksomheder", text: "Alle udbydere er tjekket via CVR." }, { icon: HhStar, title: "Ægte anmeldelser", text: "Kun fra kunder, der har fået udført opgaven." }, { icon: HhCal, title: "Book direkte", text: "Vælg service og dato uden mellemled." }]} />}
+        aside={<HeroHighlights items={[{ icon: HhShield, title: "Verificerede virksomheder", text: "Virksomheder oprettet med CVR-nummer." }, { icon: HhStar, title: "Sammenlign", text: "Se priser og anmeldelser side om side." }, { icon: HhCal, title: "Book direkte", text: "Vælg service og dato uden mellemled." }]} />}
         subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."
       >
         <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />
