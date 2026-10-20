@@ -72,430 +72,664 @@ export const PLANNER_FEATURE_CATEGORIES: PlannerFeatureCategory[] = [
 ];
 
 export const PLANNER_FEATURES: PlannerFeature[] = [
-  // ───────────────────────── Ruteplanlægger ─────────────────────────
+  // Ruteplanlægger: kontrolleret mod de aktuelle komponenter og menuer.
   {
-    id: "drag-and-drop",
-    title: "Træk aftaler ind på en rute",
-    area: "Ruteplanlægger",
-    category: "Planlægning",
-    summary:
-      "Fordel aftaler på rute, dag og rækkefølge ved at trække dem på plads — tiderne for resten af dagen opdateres med det samme.",
-    example:
-      "En hasteopgave i Odense kommer ind tirsdag. Du trækker den fra “Aftaler uden rute” ned mellem stop 2 og 3 på Peters rute og ser straks den nye ankomsttid på det sidste stop.",
-    steps: [
+    "id": "drag-and-drop",
+    "title": "Træk aftaler ind på en rute",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Fordel aftaler på rute, dag og rækkefølge ved at trække dem på plads — tiderne for resten af dagen opdateres med det samme.",
+    "example": "En hasteopgave i Odense kommer ind tirsdag. Du trækker den fra “Aftaler uden rute” ned mellem stop 2 og 3 på Peters rute og ser straks den nye ankomsttid på det sidste stop.",
+    "steps": [
       "Find aftalen i panelet “Aftaler uden rute”.",
       "Træk kortet ind på den ønskede rute eller dag.",
       "Slip på den plads i rækkefølgen, hvor stoppet skal ligge.",
-      "Tjek den nye tid i forhåndsvisningen, og fortryd med ⌘Z hvis det ikke passer.",
+      "Tjek den nye tid i forhåndsvisningen, og fortryd med Ctrl/Command + Z hvis det ikke passer."
     ],
-    keywords: ["dnd", "flyt", "fordel", "tildel", "planlæg"],
+    "keywords": [
+      "dnd",
+      "flyt",
+      "fordel",
+      "tildel",
+      "planlæg"
+    ]
   },
   {
-    id: "unassigned-panel",
-    title: "Aftaler uden rute",
-    area: "Ruteplanlægger",
-    category: "Planlægning",
-    summary:
-      "Alle aftaler der endnu ikke ligger på en rute samles i én liste med søgning, filtre og sideopdeling, så intet bliver glemt.",
-    example:
-      "Fredag eftermiddag står der 12 aftaler tilbage i listen. Du søger på “Aarhus” og lægger dem samlet ind på mandagens rute.",
-    steps: [
-      "Åbn panelet i højre side (eller som ark på mobil).",
-      "Søg på kunde, adresse eller service — tryk “/” for at hoppe direkte i søgefeltet.",
-      "Brug filtrene til at afgrænse listen.",
-      "Træk aftalen ind på en rute, eller markér flere med Shift+klik og brug bjælken.",
+    "id": "unassigned-panel",
+    "title": "Aftaler uden rute",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Find aftaler, som mangler en rute. Brug søgning og filtre.",
+    "example": "Fredag eftermiddag står der 12 aftaler tilbage i listen. Du søger på “Aarhus” og lægger dem samlet ind på mandagens rute.",
+    "steps": [
+      "Find “Aftaler uden rute” i venstre side. På mobil åbner du listen med knappen til aftaler uden rute.",
+      "Søg på kunde, adresse eller service. Brug / som genvej.",
+      "Klik for at vælge en aftale. Brug Shift+klik til et interval.",
+      "Træk aftalen til kalenderen, eller brug “Tilføj til rute”."
     ],
-    shortcut: "/",
-    keywords: ["uplanlagt", "backlog", "liste", "filter", "søg"],
+    "shortcut": "/",
+    "keywords": [
+      "uplanlagt",
+      "backlog",
+      "liste",
+      "filter",
+      "søg"
+    ]
   },
   {
-    id: "auto-distribute",
-    title: "Auto-fordel aftaler",
-    area: "Ruteplanlægger",
-    category: "Planlægning",
-    summary:
-      "Systemet foreslår en fordeling af uplanlagte aftaler på ruter og dage — forslaget vises, før noget gemmes.",
-    example:
-      "20 aftaler uden rute fordeles på tre ruter hen over ugen, og du retter bagefter to stop manuelt.",
-    steps: [
+    "id": "auto-distribute",
+    "title": "Auto-fordel aftaler",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Systemet foreslår en fordeling af uplanlagte aftaler på ruter og dage — forslaget vises, før noget gemmes.",
+    "example": "20 aftaler uden rute fordeles på tre ruter hen over ugen, og du retter bagefter to stop manuelt.",
+    "steps": [
       "Tryk “A”, eller klik “Auto-fordel alle” / “Auto-fordel valgte” i panelet med aftaler uden rute.",
       "Gennemgå forslaget i forhåndsvisningen.",
-      "Godkend, eller fortryd med ⌘Z hvis fordelingen ikke passer.",
+      "Godkend, eller fortryd med Ctrl/Command + Z hvis fordelingen ikke passer."
     ],
-    shortcut: "A",
-    keywords: ["automatisk", "fordeling", "forslag"],
+    "shortcut": "A",
+    "keywords": [
+      "automatisk",
+      "fordeling",
+      "forslag"
+    ]
   },
   {
-    id: "bulk-actions",
-    title: "Handlinger på flere ad gangen",
-    area: "Ruteplanlægger",
-    category: "Planlægning",
-    summary:
-      "Markér flere aftaler i listen uden rute og læg dem samlet på en rute eller ryk deres opstartsdato — eller markér flere stop i kalenderen og slet dem samlet.",
-    example:
-      "Regnvejr onsdag: du markerer de udendørs aftaler i listen og bruger “Flyt opstartsdato” til at rykke dem til torsdag.",
-    steps: [
-      "I “Aftaler uden rute”: klik en aftale og hold Shift nede for at markere et interval.",
-      "Brug bjælken der dukker op: “Tilføj til rute”, “Flyt opstartsdato” eller “Annullér”.",
-      "I kalenderen: hold ⌘/Ctrl nede og klik flere stop — herefter kan de slettes samlet med “Slet valgte”.",
+    "id": "bulk-actions",
+    "title": "Handlinger på flere ad gangen",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Vælg flere aftaler uden rute. Tilføj dem til en rute, eller flyt deres opstartsdato.",
+    "example": "Regnvejr onsdag: du markerer de udendørs aftaler i listen og bruger “Flyt opstartsdato” til at rykke dem til torsdag.",
+    "steps": [
+      "Klik på aftalerne i “Aftaler uden rute”. Brug Shift+klik til et interval.",
+      "Vælg “Tilføj til rute”. Vælg rute og dato i vinduet.",
+      "Vælg i stedet “Flyt opstartsdato”, hvis aftalerne skal starte senere.",
+      "Kontrollér valget, og bekræft."
     ],
-    shortcut: "⇧ + klik · ⌘/Ctrl + klik",
-    keywords: ["bulk", "flere", "markér", "masseflyt"],
+    "shortcut": "Shift + klik",
+    "keywords": [
+      "bulk",
+      "flere",
+      "markér",
+      "masseflyt"
+    ]
   },
   {
-    id: "create-order",
-    title: "Opret bestilling direkte i planlæggeren",
-    area: "Ruteplanlægger",
-    category: "Planlægning",
-    summary:
-      "Opret en manuel aftale uden at forlade planlægningen — med kunde, service, varighed, pris og evt. fast interval.",
-    example:
-      "En kunde ringer om en akut afrensning. Du opretter aftalen i planlæggeren, lægger den på dagens rute og sender bekræftelsen med det samme.",
-    steps: [
-      "Vælg “Opret bestilling manuelt” i menuen “Flere handlinger” i topbaren.",
-      "Vælg eller opret kunden (CVR-opslag ved erhverv).",
-      "Vælg service, varighed og evt. gentagelsesinterval.",
-      "Gem — aftalen lander i “Aftaler uden rute”, klar til at blive planlagt.",
+    "id": "create-order",
+    "title": "Opret bestilling direkte i planlæggeren",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Opret en bestilling med kunde, service og en foreløbig opstartsdato.",
+    "example": "En kunde ringer om vinduespudsning. Du opretter bestillingen og planlægger ruten bagefter.",
+    "steps": [
+      "Klik “Opret bestilling” øverst i planlæggeren.",
+      "Udfyld kunden. Søg på e-mail for at hente en eksisterende kunde.",
+      "Vælg en eller flere services i servicevælgeren. Tilpas antal, timer og interval.",
+      "Vælg “Foreløbig opstartsdato”. Kontrollér bestillingen, og gem."
     ],
-    keywords: ["ny ordre", "manuel", "opret", "booking", "cvr"],
+    "keywords": [
+      "ny ordre",
+      "manuel",
+      "opret",
+      "booking",
+      "cvr"
+    ]
   },
   {
-    id: "create-route",
-    title: "Opret og redigér ruter",
-    area: "Ruteplanlægger",
-    category: "Planlægning",
-    summary:
-      "En rute er en dag med en eller flere medarbejdere, et starttidspunkt og en række stop. Ruter oprettes, redigeres, flettes og slettes fra kalenderen.",
-    example:
-      "Du opretter “Nord – tirsdag” med start kl. 07:30 og fletter senere en næsten tom rute ind i den.",
-    steps: [
+    "id": "create-route",
+    "title": "Opret og redigér ruter",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "En rute er en dag med en eller flere medarbejdere, et starttidspunkt og en række stop. Ruter oprettes, redigeres, flettes og slettes fra kalenderen.",
+    "example": "Du opretter “Nord – tirsdag” med start kl. 07:30 og fletter senere en næsten tom rute ind i den.",
+    "steps": [
       "Tryk “N” eller klik “Opret rute”, og vælg dato, medarbejdere og starttid.",
       "Træk stop ind på ruten.",
-      "Åbn rutens menu for at redigere, flytte dato, flette eller slette.",
+      "Åbn rutens menu for at redigere, flytte dato, flette eller slette."
     ],
-    shortcut: "N",
-    keywords: ["rute", "opret", "flet", "merge", "slet"],
+    "shortcut": "N",
+    "keywords": [
+      "rute",
+      "opret",
+      "flet",
+      "merge",
+      "slet"
+    ]
   },
   {
-    id: "calendar-views",
-    title: "Uge-, måneds- og agendavisning",
-    area: "Ruteplanlægger",
-    category: "Kalender og visninger",
-    summary:
-      "Skift mellem uge, måned og agenda alt efter om du planlægger detaljer eller ser strukturen i hele måneden.",
-    example: "Måned bruges til at se hvornår de faste 14-dagesbesøg falder, uge til den daglige planlægning.",
-    steps: [
+    "id": "calendar-views",
+    "title": "Uge-, måneds- og agendavisning",
+    "area": "Ruteplanlægger",
+    "category": "Kalender og visninger",
+    "summary": "Skift mellem uge, måned og agenda alt efter om du planlægger detaljer eller ser strukturen i hele måneden.",
+    "example": "Måned bruges til at se hvornår de faste 14-dagesbesøg falder, uge til den daglige planlægning.",
+    "steps": [
       "Vælg visning i topbaren.",
       "Naviger med ← og → mellem perioder; “T” hopper til i dag.",
-      "Klik på en dag for at se dagens ruter og stop.",
+      "Klik på en dag for at se dagens ruter og stop."
     ],
-    shortcut: "← → · T",
-    keywords: ["kalender", "uge", "måned", "agenda", "visning"],
+    "shortcut": "← → · T",
+    "keywords": [
+      "kalender",
+      "uge",
+      "måned",
+      "agenda",
+      "visning"
+    ]
   },
   {
-    id: "day-timeline",
-    title: "Dagen som tidslinje",
-    area: "Ruteplanlægger",
-    category: "Kalender og visninger",
-    summary:
-      "Se dagen fra kl. 06 til 20 i 15-minutters slots med én kolonne pr. rute, så du kan se hvor der reelt er plads til mere.",
-    example:
-      "Tidslinjen viser 90 minutters hul mellem kl. 11 og 12:30 på rute “Nord” — plads til et ekstra stop i samme område.",
-    steps: [
-      "Vælg “Vis dag som tidslinje” i menuen “Flere handlinger”, eller tryk “D”.",
-      "Zoom mellem Kompakt, Normal og Bred.",
-      "Træk stop mellem kolonnerne — der snappes til 15 minutter.",
+    "id": "day-timeline",
+    "title": "Vis hele dagen: dagens tidslinje",
+    "area": "Ruteplanlægger",
+    "category": "Kalender og visninger",
+    "summary": "Se dagens stop i én ordnet liste. Listen viser kunde, service, adresse og rute.",
+    "example": "Du gennemgår dagens adresser, før medarbejderne kører.",
+    "steps": [
+      "Vælg “Visning” og “Vis dagen som tidslinje”. Du kan også trykke D.",
+      "Se dato, antal stop og antal ruter.",
+      "Læs dagens stop i rækkefølge. Luk vinduet for at vende tilbage."
     ],
-    shortcut: "D",
-    keywords: ["tidslinje", "timeline", "huller", "kapacitet", "zoom"],
+    "shortcut": "D",
+    "keywords": [
+      "tidslinje",
+      "timeline",
+      "huller",
+      "kapacitet",
+      "zoom"
+    ]
   },
   {
-    id: "density-theme",
-    title: "Tæthed og mørk tilstand",
-    area: "Ruteplanlægger",
-    category: "Kalender og visninger",
-    summary: "Vælg hvor kompakt kalenderen skal være, og skift til mørk tilstand. Valget huskes til næste gang.",
-    example: "På en stor skærm bruger du den tætte visning, så hele ugen er synlig uden at scrolle.",
-    steps: [
-      "Åbn menuen “Flere handlinger” (⋯) i topbaren.",
+    "id": "density-theme",
+    "title": "Tæthed og mørk tilstand",
+    "area": "Ruteplanlægger",
+    "category": "Kalender og visninger",
+    "summary": "Vælg hvor kompakt kalenderen skal være, og skift til mørk tilstand. Valget huskes til næste gang.",
+    "example": "På en stor skærm bruger du den tætte visning, så hele ugen er synlig uden at scrolle.",
+    "steps": [
+      "Åbn “Visning” i topbaren.",
       "Vælg tæthed.",
-      "Slå mørk tilstand til eller fra.",
+      "Slå mørk tilstand til eller fra."
     ],
-    keywords: ["density", "kompakt", "dark mode", "tema"],
+    "keywords": [
+      "density",
+      "kompakt",
+      "dark mode",
+      "tema"
+    ]
   },
   {
-    id: "map",
-    title: "Kortvisning med stop og rækkefølge",
-    area: "Ruteplanlægger",
-    category: "Kort og kørsel",
-    summary:
-      "Ruterne tegnes på kortet med nummererede stop, så du kan se om dagen kører i en logisk sløjfe eller på kryds og tværs.",
-    example: "Kortet afslører at stop 4 ligger 30 km fra de andre — du flytter det til fredagens rute i samme område.",
-    steps: [
+    "id": "map",
+    "title": "Kortvisning med stop og rækkefølge",
+    "area": "Ruteplanlægger",
+    "category": "Kort og kørsel",
+    "summary": "Ruterne tegnes på kortet med nummererede stop, så du kan se om dagen kører i en logisk sløjfe eller på kryds og tværs.",
+    "example": "Kortet afslører at stop 4 ligger 30 km fra de andre — du flytter det til fredagens rute i samme område.",
+    "steps": [
       "Skift til kortvisning i planlæggeren.",
       "Vælg rute eller dag for at fremhæve dens stop.",
-      "Klik på en pin for at åbne stoppet.",
+      "Klik på en pin for at åbne stoppet."
     ],
-    keywords: ["kort", "map", "geokodning", "pins", "adresser"],
+    "keywords": [
+      "kort",
+      "map",
+      "geokodning",
+      "pins",
+      "adresser"
+    ]
   },
   {
-    id: "eta",
-    title: "Kørselstid og ankomsttider",
-    area: "Ruteplanlægger",
-    category: "Kort og kørsel",
-    summary:
-      "Kørselstiden mellem adresserne beregnes ud fra stoppenes koordinater, så hvert stop får en realistisk ankomsttid — også mens du trækker.",
-    example: "Mens du trækker et stop ind, viser forhåndsvisningen at dagen bliver 18 minutter længere.",
-    steps: [
+    "id": "eta",
+    "title": "Kørselstid og ankomsttider",
+    "area": "Ruteplanlægger",
+    "category": "Kort og kørsel",
+    "summary": "Kørselstiden mellem adresserne beregnes ud fra stoppenes koordinater, så hvert stop får en realistisk ankomsttid — også mens du trækker.",
+    "example": "Mens du trækker et stop ind, viser forhåndsvisningen at dagen bliver 18 minutter længere.",
+    "steps": [
       "Læg stop ind på ruten — tiderne beregnes automatisk.",
       "Se ankomsttiden på hvert stop i rutens liste.",
-      "Justér starttid eller rækkefølge, hvis dagen bliver for lang.",
+      "Justér starttid eller rækkefølge, hvis dagen bliver for lang."
     ],
-    keywords: ["eta", "kørselstid", "ankomst", "transport"],
+    "keywords": [
+      "eta",
+      "kørselstid",
+      "ankomst",
+      "transport"
+    ]
   },
   {
-    id: "optimize",
-    title: "Optimér rækkefølge",
-    area: "Ruteplanlægger",
-    category: "Kort og kørsel",
-    summary:
-      "Systemet foreslår en kortere rækkefølge på dagens stop. Forslaget vises først — du godkender selv.",
-    example: "Optimering af tirsdagens otte stop giver en kortere rækkefølge med mindre kørsel mellem adresserne.",
-    steps: [
-      "Åbn ruten.",
-      "Klik “Optimér rækkefølge” (eller tryk “O” når ruten er åben).",
-      "Sammenlign før/efter i forhåndsvisningen.",
-      "Godkend eller afvis forslaget.",
+    "id": "optimize",
+    "title": "Optimér rute",
+    "area": "Ruteplanlægger",
+    "category": "Kort og kørsel",
+    "summary": "Beregn en ny rækkefølge for stoppene på én rute.",
+    "example": "Optimering af tirsdagens otte stop giver en kortere rækkefølge med mindre kørsel mellem adresserne.",
+    "steps": [
+      "Åbn rutens menu, og vælg “Optimér rute”. Du kan også trykke O med en åben rute.",
+      "Se resultatet i vinduet “Optimér rute”.",
+      "Kontrollér rækkefølgen og køretiden."
     ],
-    shortcut: "O",
-    keywords: ["optimering", "kortere rute", "besparelse", "rækkefølge"],
+    "shortcut": "O",
+    "keywords": [
+      "optimering",
+      "kortere rute",
+      "besparelse",
+      "rækkefølge"
+    ]
   },
   {
-    id: "next-free-slot",
-    title: "Næste ledige",
-    area: "Ruteplanlægger",
-    category: "Kort og kørsel",
-    summary:
-      "Springer kalenderen frem til den første kommende dag, hvor belastningen er under grænsen — hurtig navigation til en dag med luft.",
-    example: "Du skal placere et ekstra besøg og klikker “Næste ledige”, som hopper til første dag med plads i kalenderen.",
-    steps: [
-      "Klik “Næste ledige” i topbaren.",
-      "Kalenderen hopper til den første dag under belastningsgrænsen.",
-      "Læg aftalen ind på dagen som normalt.",
-    ],
-    keywords: ["ledig tid", "kapacitet", "belastning", "navigation"],
-  },
-  {
-    id: "recurring",
-    title: "Faste aftaler og intervaller",
-    area: "Ruteplanlægger",
-    category: "Faste aftaler",
-    summary:
-      "Ugentlig, hver 14. dag, månedlig, kvartalsvis eller et frit interval — kommende besøg fremskrives automatisk i kalenderen.",
-    example: "En vinduespudsningsaftale hver 6. uge oprettes én gang og dukker herefter op i kalenderen af sig selv.",
-    steps: [
+    "id": "recurring",
+    "title": "Faste aftaler og intervaller",
+    "area": "Ruteplanlægger",
+    "category": "Faste aftaler",
+    "summary": "Ugentlig, hver 14. dag, månedlig, kvartalsvis eller et frit interval — kommende besøg fremskrives automatisk i kalenderen.",
+    "example": "En vinduespudsningsaftale hver 6. uge oprettes én gang og dukker herefter op i kalenderen af sig selv.",
+    "steps": [
       "Sæt interval og varighed på aftalen.",
       "Vælg startdato.",
-      "Kommende besøg vises som fremskrevne forekomster i kalenderen.",
+      "Kommende besøg vises som fremskrevne forekomster i kalenderen."
     ],
-    keywords: ["gentagelse", "interval", "fast kunde", "abonnement", "serie"],
+    "keywords": [
+      "gentagelse",
+      "interval",
+      "fast kunde",
+      "abonnement",
+      "serie"
+    ]
   },
   {
-    id: "series-scope",
-    title: "Denne gang eller hele serien",
-    area: "Ruteplanlægger",
-    category: "Faste aftaler",
-    summary:
-      "Når du ændrer en fast aftale, spørger systemet om ændringen gælder dette besøg, alle fremtidige eller hele serien.",
-    example: "Kunden vil rykkes en dag frem i juli, men ikke permanent — du vælger “kun denne gang”.",
-    steps: [
+    "id": "series-scope",
+    "title": "Denne gang eller hele serien",
+    "area": "Ruteplanlægger",
+    "category": "Faste aftaler",
+    "summary": "Når du ændrer en fast aftale, spørger systemet om ændringen gælder dette besøg, alle fremtidige eller hele serien.",
+    "example": "Kunden vil rykkes en dag frem i juli, men ikke permanent — du vælger “kun denne gang”.",
+    "steps": [
       "Flyt eller redigér et stop i en serie.",
       "Vælg omfang i dialogen: denne, fremtidige eller alle.",
-      "Se hvilke besøg der påvirkes, inden du gemmer.",
+      "Se hvilke besøg der påvirkes, inden du gemmer."
     ],
-    keywords: ["serie", "scope", "kun denne", "fremtidige"],
+    "keywords": [
+      "serie",
+      "scope",
+      "kun denne",
+      "fremtidige"
+    ]
   },
   {
-    id: "pauses",
-    title: "Pauser i en aftale",
-    area: "Ruteplanlægger",
-    category: "Faste aftaler",
-    summary: "Sæt en fast aftale på pause i en periode — fx kundens sommerferie — uden at slette serien.",
-    example: "Kontoret holder lukket i uge 29 og 30; aftalen sættes på pause og genoptages automatisk i uge 31.",
-    steps: [
-      "Åbn aftalen.",
-      "Tilføj en pause med fra- og til-dato.",
-      "Besøgene i perioden forsvinder fra kalenderen og kommer igen bagefter.",
+    "id": "sick-leave",
+    "title": "Meld medarbejder syg",
+    "area": "Ruteplanlægger",
+    "category": "Medarbejdere og fravær",
+    "summary": "En guide i tre trin dækker sygdom af: vælg medarbejder og periode, vælg handling pr. berørt rute, og bekræft.",
+    "example": "Peter melder sig syg mandag og tirsdag. To ruter overtages af Maria, én rute fordeles på holdet, og et enkelt stop frigives til omplanlægning.",
+    "steps": [
+      "Åbn “Mere”, og vælg “Meld medarbejder syg”.",
+      "Vælg medarbejder og periode.",
+      "Vælg en handling for hver berørt rute.",
+      "Gennemgå opsummeringen og eventuelle konflikter. Bekræft."
     ],
-    keywords: ["pause", "ferie", "midlertidig", "sæt i bero"],
+    "keywords": [
+      "sygdom",
+      "fravær",
+      "afløser",
+      "erstat",
+      "omfordel"
+    ]
   },
   {
-    id: "sick-leave",
-    title: "Meld medarbejder syg",
-    area: "Ruteplanlægger",
-    category: "Medarbejdere og fravær",
-    summary:
-      "En guide i tre trin dækker sygdom af: vælg medarbejder og periode, vælg handling pr. berørt rute, og bekræft.",
-    example:
-      "Peter melder sig syg mandag og tirsdag. To ruter overtages af Maria, én rute fordeles på holdet, og et enkelt stop frigives til omplanlægning.",
-    steps: [
-      "Vælg “Meld medarbejder syg” i menuen “Flere handlinger”.",
-      "Vælg medarbejder og periode (genveje: I dag, I dag + i morgen, Resten af ugen, Hele næste uge).",
-      "Vælg pr. rute: Erstat med kollega, Fordel på holdet, Frigiv aftalerne eller Flyt ruten til anden dato.",
-      "Gennemgå opsummeringen med konflikter, og bekræft.",
-    ],
-    keywords: ["sygdom", "fravær", "afløser", "erstat", "omfordel"],
-  },
-  {
-    id: "employee-availability",
-    title: "Fravær, ferie og helligdage",
-    area: "Ruteplanlægger",
-    category: "Medarbejdere og fravær",
-    summary:
-      "Registreret fravær, virksomhedens lukkedage og danske helligdage markeres i kalenderen og advarer, hvis du lægger arbejde på dem.",
-    example: "Du planlægger en rute på en helligdag — dagen er markeret, og du får en advarsel inden du gemmer.",
-    steps: [
+    "id": "employee-availability",
+    "title": "Fravær, ferie og helligdage",
+    "area": "Ruteplanlægger",
+    "category": "Medarbejdere og fravær",
+    "summary": "Registreret fravær, virksomhedens lukkedage og danske helligdage markeres i kalenderen og advarer, hvis du lægger arbejde på dem.",
+    "example": "Du planlægger en rute på en helligdag — dagen er markeret, og du får en advarsel inden du gemmer.",
+    "steps": [
       "Registrér fravær på medarbejderen.",
       "Sæt virksomhedens lukkedage i indstillingerne.",
-      "Kalenderen markerer dagene og advarer ved konflikt.",
+      "Kalenderen markerer dagene og advarer ved konflikt."
     ],
-    keywords: ["ferie", "helligdag", "lukkedag", "fri"],
+    "keywords": [
+      "ferie",
+      "helligdag",
+      "lukkedag",
+      "fri"
+    ]
   },
   {
-    id: "employee-columns",
-    title: "Én kolonne pr. rute",
-    area: "Ruteplanlægger",
-    category: "Medarbejdere og fravær",
-    summary:
-      "I dagsvisningen står ruterne side om side med tilknyttede medarbejdere, antal stop og status, så du kan udligne belastningen.",
-    example: "Kolonnerne viser at én rute har 9 stop og en anden 3 — du trækker to stop over.",
-    steps: [
-      "Åbn dagen som tidslinje.",
-      "Se antal stop og tilknyttede medarbejdere i kolonnens hoved.",
-      "Træk stop mellem kolonnerne for at udligne.",
-    ],
-    keywords: ["medarbejder", "kolonner", "belastning", "fordeling"],
-  },
-  {
-    id: "conflicts",
-    title: "Konfliktadvarsler",
-    area: "Ruteplanlægger",
-    category: "Kvalitet og kontrol",
-    summary:
-      "Et banner øverst viser overbookede dage og ruter, hvor en påkrævet færdighed mangler. Overlap, fravær, helligdage og for lange dage markeres direkte på dagen og stoppet.",
-    example: "Banneret melder om en overbooket torsdag, og et stop på ruten er markeret, fordi to besøg overlapper.",
-    steps: [
+    "id": "conflicts",
+    "title": "Konfliktadvarsler",
+    "area": "Ruteplanlægger",
+    "category": "Kvalitet og kontrol",
+    "summary": "Et banner øverst viser overbookede dage og ruter, hvor en påkrævet færdighed mangler. Overlap, fravær, helligdage og for lange dage markeres direkte på dagen og stoppet.",
+    "example": "Banneret melder om en overbooket torsdag, og et stop på ruten er markeret, fordi to besøg overlapper.",
+    "steps": [
       "Kig efter banneret øverst i kalenderen og markeringerne på dagene.",
       "Åbn den markerede dag eller rute.",
-      "Ret rækkefølge, tid eller medarbejder.",
+      "Ret rækkefølge, tid eller medarbejder."
     ],
-    keywords: ["konflikt", "overlap", "advarsel", "overbooking", "færdighed"],
+    "keywords": [
+      "konflikt",
+      "overlap",
+      "advarsel",
+      "overbooking",
+      "færdighed"
+    ]
   },
   {
-    id: "simulation",
-    title: "Forhåndsvisning før ændringer gemmes",
-    area: "Ruteplanlægger",
-    category: "Kvalitet og kontrol",
-    summary:
-      "Større ændringer simuleres først: du ser hvad der bliver flyttet, hvad det betyder for tiderne, og hvilke konflikter det giver.",
-    example: "Inden en optimering vises et panel med de berørte stop og de nye tider.",
-    steps: [
+    "id": "simulation",
+    "title": "Forhåndsvisning før ændringer gemmes",
+    "area": "Ruteplanlægger",
+    "category": "Kvalitet og kontrol",
+    "summary": "Større ændringer simuleres først: du ser hvad der bliver flyttet, hvad det betyder for tiderne, og hvilke konflikter det giver.",
+    "example": "Inden en optimering vises et panel med de berørte stop og de nye tider.",
+    "steps": [
       "Start handlingen (optimér, auto-fordel, træk flere stop).",
       "Læs forhåndsvisningen.",
-      "Godkend eller annullér.",
+      "Godkend eller annullér."
     ],
-    keywords: ["simulering", "preview", "diff", "forhåndsvisning"],
+    "keywords": [
+      "simulering",
+      "preview",
+      "diff",
+      "forhåndsvisning"
+    ]
   },
   {
-    id: "undo",
-    title: "Fortryd og gentag",
-    area: "Ruteplanlægger",
-    category: "Kvalitet og kontrol",
-    summary: "Planlægningshandlinger kan fortrydes, så en fejltrækning ikke koster tid.",
-    example: "Du trækker et stop forkert, trykker ⌘Z, og alt står som før.",
-    steps: [
-      "Tryk ⌘Z (Ctrl+Z) for at fortryde.",
-      "⌘⇧Z — eller Ctrl+Y på Windows — gentager.",
-      "Brug også “Fortryd” i beskeden der vises efter en handling.",
+    "id": "undo",
+    "title": "Fortryd og gentag",
+    "area": "Ruteplanlægger",
+    "category": "Kvalitet og kontrol",
+    "summary": "Planlægningshandlinger kan fortrydes, så en fejltrækning ikke koster tid.",
+    "example": "Du trækker et stop forkert, trykker Ctrl/Command + Z, og alt står som før.",
+    "steps": [
+      "Tryk Ctrl/Command + Z (Ctrl+Z) for at fortryde.",
+      "Ctrl/Command + Shift + Z — eller Ctrl+Y på Windows — gentager.",
+      "Brug også “Fortryd” i beskeden der vises efter en handling."
     ],
-    shortcut: "⌘Z / ⌘⇧Z",
-    keywords: ["fortryd", "undo", "redo", "gentag"],
+    "shortcut": "Ctrl/Command + Z / Ctrl/Command + Shift + Z",
+    "keywords": [
+      "fortryd",
+      "undo",
+      "redo",
+      "gentag"
+    ]
   },
   {
-    id: "history",
-    title: "Historik på ruter",
-    area: "Ruteplanlægger",
-    category: "Kvalitet og kontrol",
-    summary: "Se hvem der ændrede hvad og hvornår på en rute — nyttigt når flere planlægger.",
-    example: "Rutens historik viser at et stop blev fjernet om eftermiddagen af kontoret, ikke af medarbejderen.",
-    steps: ["Åbn rutens menu i kalenderen.", "Vælg historik.", "Gennemgå ændringerne kronologisk."],
-    keywords: ["log", "historik", "audit", "ændringer"],
+    "id": "history",
+    "title": "Historik på ruter",
+    "area": "Ruteplanlægger",
+    "category": "Kvalitet og kontrol",
+    "summary": "Se hvem der ændrede hvad og hvornår på en rute — nyttigt når flere planlægger.",
+    "example": "Rutens historik viser at et stop blev fjernet om eftermiddagen af kontoret, ikke af medarbejderen.",
+    "steps": [
+      "Åbn rutens menu i kalenderen.",
+      "Vælg historik.",
+      "Gennemgå ændringerne kronologisk."
+    ],
+    "keywords": [
+      "log",
+      "historik",
+      "audit",
+      "ændringer"
+    ]
   },
   {
-    id: "diagnostics",
-    title: "Diagnostik af aftaler der ikke kan vises",
-    area: "Ruteplanlægger",
-    category: "Kvalitet og kontrol",
-    summary:
-      "Hvis en aftale ikke kan placeres i kalenderen — fx manglende adresse eller en serie der ikke er fremskrevet — vises en advarsel med årsagen.",
-    example: "Advarslen viser tre aftaler uden brugbar adresse, som derfor ikke kan placeres på kortet.",
-    steps: [
+    "id": "diagnostics",
+    "title": "Diagnostik af aftaler der ikke kan vises",
+    "area": "Ruteplanlægger",
+    "category": "Kvalitet og kontrol",
+    "summary": "Hvis en aftale ikke kan placeres i kalenderen — fx manglende adresse eller en serie der ikke er fremskrevet — vises en advarsel med årsagen.",
+    "example": "Advarslen viser tre aftaler uden brugbar adresse, som derfor ikke kan placeres på kortet.",
+    "steps": [
       "Advarslen vises automatisk øverst i kalenderen, når der findes aftaler der ikke kan vises.",
       "Klik på advarslen for at åbne diagnostikken.",
-      "Gennemgå listen og ret dataene på aftalen eller kunden.",
+      "Gennemgå listen og ret dataene på aftalen eller kunden."
     ],
-    keywords: ["diagnostik", "fejl", "geokodning", "datakvalitet"],
+    "keywords": [
+      "diagnostik",
+      "fejl",
+      "geokodning",
+      "datakvalitet"
+    ]
   },
   {
-    id: "print",
-    title: "Print / PDF af dagen",
-    area: "Ruteplanlægger",
-    category: "Print, eksport og deling",
-    summary: "Udskriv en ren køreseddel med dagens stop, adresser, tider og noter — eller gem den som PDF.",
-    example: "Til en vikar uden login printes dagens rute på papir med adresser og noter.",
-    steps: [
-      "Tryk “P”, eller vælg “Print / PDF af dagen” i menuen “Flere handlinger”.",
-      "Vælg dag og ruter.",
-      "Klik “Print / Gem som PDF”.",
+    "id": "print",
+    "title": "Udskriv ruter eller gem PDF",
+    "area": "Ruteplanlægger",
+    "category": "Print, eksport og deling",
+    "summary": "Udskriv en ren køreseddel med dagens stop, adresser, tider og noter — eller gem den som PDF.",
+    "example": "Til en vikar uden login printes dagens rute på papir med adresser og noter.",
+    "steps": [
+      "Åbn “Mere”, og vælg “Print / PDF”. Du kan også trykke P.",
+      "Vælg dato og ruter i printvinduet.",
+      "Åbn udskriften. Vælg printer eller Gem som PDF i browseren."
     ],
-    shortcut: "P",
-    keywords: ["print", "udskriv", "køreseddel", "pdf"],
+    "shortcut": "P",
+    "keywords": [
+      "print",
+      "udskriv",
+      "køreseddel",
+      "pdf"
+    ]
   },
   {
-    id: "send-to-app",
-    title: "Ruten i medarbejder-appen",
-    area: "Ruteplanlægger",
-    category: "Print, eksport og deling",
-    summary:
-      "Så snart en medarbejder er tildelt et stop, er ruten synlig i medarbejder-appen — der er ingen separat udsendelse.",
-    example: "Du tildeler morgendagens rute til Maria, og hun kan se stoppene på telefonen med det samme.",
-    steps: [
+    "id": "send-to-app",
+    "title": "Ruten i medarbejder-appen",
+    "area": "Ruteplanlægger",
+    "category": "Print, eksport og deling",
+    "summary": "Så snart en medarbejder er tildelt et stop, er ruten synlig i medarbejder-appen — der er ingen separat udsendelse.",
+    "example": "Du tildeler morgendagens rute til Maria, og hun kan se stoppene på telefonen med det samme.",
+    "steps": [
       "Tildel medarbejdere til ruten eller de enkelte stop.",
       "Stoppet viser om det er synligt for medarbejderen.",
-      "Medarbejderen ser dagen i appen og tjekker ind og ud undervejs.",
+      "Medarbejderen ser dagen i appen og tjekker ind og ud undervejs."
     ],
-    keywords: ["app", "udsend", "medarbejder", "tildel"],
+    "keywords": [
+      "app",
+      "udsend",
+      "medarbejder",
+      "tildel"
+    ]
   },
   {
-    id: "weather",
-    title: "Vejr på dagen",
-    area: "Ruteplanlægger",
-    category: "Print, eksport og deling",
-    summary: "Vejrudsigten vises på dagen i kalenderen, så udendørsarbejde kan flyttes inden det bliver et problem.",
-    example: "Torsdag viser blæst og regn — de udendørs stop rykkes til fredag.",
-    steps: ["Se vejrikonet på dagen i kalenderen.", "Hold musen over for detaljer.", "Flyt udendørs stop hvis nødvendigt."],
-    keywords: ["vejr", "regn", "vind", "udendørs"],
+    "id": "weather",
+    "title": "Vejr på dagen",
+    "area": "Ruteplanlægger",
+    "category": "Print, eksport og deling",
+    "summary": "Vejrudsigten vises på dagen i kalenderen, så udendørsarbejde kan flyttes inden det bliver et problem.",
+    "example": "Torsdag viser blæst og regn — de udendørs stop rykkes til fredag.",
+    "steps": [
+      "Se vejrikonet på dagen i kalenderen.",
+      "Hold musen over for detaljer.",
+      "Flyt udendørs stop hvis nødvendigt."
+    ],
+    "keywords": [
+      "vejr",
+      "regn",
+      "vind",
+      "udendørs"
+    ]
   },
   {
-    id: "shortcuts",
-    title: "Tastaturgenveje",
-    area: "Ruteplanlægger",
-    category: "Print, eksport og deling",
-    summary: "Planlægningen kan styres fra tastaturet — genvejsoversigten åbnes med “?”.",
-    example: "T for i dag, ← → for forrige og næste periode, A for auto-fordel, P for print.",
-    steps: ["Tryk “?” i planlæggeren.", "Find genvejen i oversigten.", "Genveje ignoreres mens du skriver i et felt."],
-    shortcut: "?",
-    keywords: ["genveje", "keyboard", "shortcuts", "hurtig"],
+    "id": "shortcuts",
+    "title": "Tastaturgenveje",
+    "area": "Ruteplanlægger",
+    "category": "Print, eksport og deling",
+    "summary": "Planlægningen kan styres fra tastaturet — genvejsoversigten åbnes med “?”.",
+    "example": "T for i dag, ← → for forrige og næste periode, A for auto-fordel, P for print.",
+    "steps": [
+      "Åbn “Mere”, og vælg “Tastatur-genveje”. Du kan også trykke ?.",
+      "Find genvejen under navigation, handlinger eller valg.",
+      "Genveje er slået fra, mens du skriver i et felt."
+    ],
+    "shortcut": "?",
+    "keywords": [
+      "genveje",
+      "keyboard",
+      "shortcuts",
+      "hurtig"
+    ]
+  },
+  {
+    "id": "more-menu",
+    "title": "Menuen Mere",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Saml dagens ekstra handlinger i menuen Mere.",
+    "example": "Du vil printe ruter og derefter se dagens køretid.",
+    "steps": [
+      "Klik “Mere” i topbaren.",
+      "Vælg “Print / PDF”, “Optimér dagen” eller “Meld medarbejder syg”.",
+      "Vælg “Tastatur-genveje” for hjælp. “Optimér rute” findes i den enkelte rutes menu."
+    ]
+  },
+  {
+    "id": "optimize-day",
+    "title": "Optimér dagen og se køretid",
+    "area": "Ruteplanlægger",
+    "category": "Kort og kørsel",
+    "summary": "Se køretid og afstand pr. medarbejder. Optimér rækkefølgen på dagens ruter.",
+    "example": "Du sammenligner medarbejdernes kørsel før dagens start.",
+    "steps": [
+      "Åbn “Mere” og “Optimér dagen”.",
+      "Se samlet køretid samt minutter og kilometer pr. medarbejder.",
+      "Start optimeringen i vinduet. Hver rute beholder medarbejdere og faste stop.",
+      "Se besparelsen. Du kan fortryde via rutens historik."
+    ]
+  },
+  {
+    "id": "projected-routes",
+    "title": "Forventede ruter og faste ruter",
+    "area": "Ruteplanlægger",
+    "category": "Faste aftaler",
+    "summary": "Gennemsigtige ruter viser forventede besøg. De faste ruter står øverst.",
+    "example": "Du ser næste måneds forventede besøg uden at forveksle dem med gemte ruter.",
+    "steps": [
+      "Åbn uge- eller månedsvisningen.",
+      "Se de faste ruter øverst. Find de gennemsigtige, forventede ruter nedenunder.",
+      "Åbn en rute for at kontrollere stop og dato. Forventede besøg er ikke det samme som en gemt rute."
+    ]
+  },
+  {
+    "id": "empty-routes",
+    "title": "Tomme ruter ryddes op",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Når alle stop flyttes fra en rute via flyttevinduet, slettes den tomme kilderute automatisk.",
+    "example": "Du flytter de sidste to stop til torsdag. Den gamle rute ryddes op.",
+    "steps": [
+      "Åbn ruten, og flyt stoppene til en anden rute eller dato.",
+      "Bekræft flytningen. En tom kilderute slettes automatisk.",
+      "En ny, manuelt oprettet rute kan godt stå tom, mens du planlægger."
+    ]
+  },
+  {
+    "id": "completed-hidden",
+    "title": "Udførte aftaler skjules",
+    "area": "Ruteplanlægger",
+    "category": "Kalender og visninger",
+    "summary": "Udførte stop skjules som udgangspunkt i kalenderen.",
+    "example": "Dagens liste bliver kortere, når arbejdet afsluttes.",
+    "steps": [
+      "Markér et stop som udført.",
+      "Kalenderen skjuler udførte stop. En rute med kun udførte stop skjules også.",
+      "Vælg statusfilteret “Udført”, hvis du vil se dem igen."
+    ]
+  },
+  {
+    "id": "move-route-date",
+    "title": "Flyt rute til ny dato",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Vælg om en datoflytning gælder én gang eller også fremtidige aftaler.",
+    "example": "En fast tirsdagsrute skal kun flyttes denne uge.",
+    "steps": [
+      "Flyt ruten til en ny dato i kalenderen.",
+      "Læs vinduet “Flyt rute til ny dato”.",
+      "Vælg “Kun denne gang” eller fremtidige aftaler, når valget er muligt.",
+      "Kontrollér eventuelle tilknyttede aftaler og advarsler. Bekræft."
+    ]
+  },
+  {
+    "id": "edit-customer",
+    "title": "Klik på kundenavnet",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Åbn kundens oplysninger direkte fra rutens stopliste.",
+    "example": "Du retter et telefonnummer uden at forlade ruten.",
+    "steps": [
+      "Åbn ruten og dens stopliste.",
+      "Klik på kundenavnet for at redigere kundens oplysninger.",
+      "Ret oplysningerne, og gem."
+    ]
+  },
+  {
+    "id": "create-customer",
+    "title": "Opret kunde",
+    "area": "Ruteplanlægger",
+    "category": "Planlægning",
+    "summary": "Opret en kunde i kundekartoteket. Brug kunden ved næste bestilling.",
+    "example": "En ny kunde skal gemmes, før du opretter flere aftaler.",
+    "steps": [
+      "Åbn “Kunder” på administrationssiden.",
+      "Vælg “Opret kunde”. Udfyld kontaktoplysninger og adresse.",
+      "Gem kunden. Brug kundens e-mail ved oprettelse af en bestilling."
+    ]
+  },
+  {
+    "id": "visit-reminder",
+    "title": "Påmindelse før besøg",
+    "area": "Ruteplanlægger",
+    "category": "Print, eksport og deling",
+    "summary": "Indstil kundens påmindelse før besøget i kundens beskedindstillinger.",
+    "example": "Kunden vil gerne have en påmindelse dagen før besøget.",
+    "steps": [
+      "Åbn kundens oplysninger.",
+      "Find indstillingerne for beskeder og “Påmindelse før besøg”.",
+      "Vælg kanal og tidspunkt. Gem ændringerne."
+    ]
+  },
+  {
+    "id": "mobile-agenda",
+    "title": "Mobil dagsagenda og tap-tildeling",
+    "area": "Ruteplanlægger",
+    "category": "Kalender og visninger",
+    "summary": "På mobil kan du vælge aftaler med tryk i stedet for at trække dem.",
+    "example": "Du planlægger en ekstra opgave fra telefonen.",
+    "steps": [
+      "Åbn dagsagendaen på mobil.",
+      "Åbn aftaler uden rute, og tryk på de aftaler, du vil vælge.",
+      "Brug “Tilføj til rute”, og vælg den ønskede rute.",
+      "Kontrollér stoppene i dagsagendaen."
+    ]
+  },
+  {
+    "id": "stop-identification",
+    "title": "Kørselsnummer og medarbejdertitel",
+    "area": "Ruteplanlægger",
+    "category": "Medarbejdere og fravær",
+    "summary": "Stop viser aftalens kørselsnummer. Delte stop viser medarbejdernes titler, når de er angivet.",
+    "example": "Du ser, hvilken kørsel besøget er, og hvem der er ansvarlig.",
+    "steps": [
+      "Åbn rutens stopliste.",
+      "Se kørselsnummeret ved aftalen. Nummeret følger samme tælling som på “Aftaler”.",
+      "Se navn og titel ved medarbejderne på et delt stop."
+    ]
+  },
+  {
+    "id": "undo-completion",
+    "title": "Fortryd udførsel",
+    "area": "Ruteplanlægger",
+    "category": "Kvalitet og kontrol",
+    "summary": "Sæt et udført stop tilbage, hvis det blev afsluttet ved en fejl.",
+    "example": "Et forkert stop blev markeret som udført.",
+    "steps": [
+      "Vis udførte stop med statusfilteret “Udført”, og åbn ruten.",
+      "Klik “Fortryd udførsel” ved stoppet.",
+      "Læs bekræftelsen, og vælg “Fortryd udførsel”."
+    ]
   },
 
   // ───────────────────────── Aftaler og kunder ─────────────────────────

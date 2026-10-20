@@ -142,3 +142,9 @@
 - [x] Browser-autofill udfylder «Søg navn eller adresse...» i Aftaler uden rute — spær feltet
 - [x] Genindfør «Påmindelse før besøg» (e-mail + SMS): virksomhedsindstillinger, opret/rediger kunde, aftale-overrides, afsender
 - [x] «Opret bestilling»: mere kompakte servicekort, tydeligere farvede knapper, datoknap nem at finde
+
+## Hastighed og guide (20. okt.)
+- [x] Alle vinduer: lettere baggrund (ingen sløring) og kortere åbne/lukke-animation
+- [x] «Opret bestilling» på Aftaler åbner/lukker uden at tegne hele siden om
+- [x] Forsiden: blå baggrund starter efter første visning, lavere opløsning/30 fps, sektioner hentes i forvejen
+- [ ] Ruteplanlægger-guide (PDF + guide i appen) opdateret og nyt design
