@@ -197,7 +197,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
       }
       if (e.key !== "Tab") return;
       const focusable = Array.from(headerRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]') ?? [])
-        .filter((el) => el.getClientRects().length > 0 && !el.closest('[inert]'));
+        .filter((el) => el.tabIndex >= 0 && el.getClientRects().length > 0 && !el.closest('[inert]'));
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
