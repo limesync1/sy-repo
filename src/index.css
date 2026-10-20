@@ -1837,7 +1837,17 @@ img[loading="lazy"].is-error {
 .blue-flow-background canvas { display: block; width: 100%; height: 100%; opacity: 1; animation: home-canvas-in 1.2s ease-out both; }
 .blue-flow-background canvas[hidden] { display: none; }
 
-/* Public homepage art direction; panel and other public page styles stay intact. */
+/* Shared public/auth surfaces remain readable before the canvas loads. */
+.public-blue-surface { background-color: hsl(var(--hero-bg)); color: hsl(var(--ocean-foreground)); letter-spacing: 0; }
+.public-blue-surface :is(h1, h2, h3) { text-shadow: 0 1px 12px hsl(var(--hero-bg) / 0.6); letter-spacing: 0; }
+.public-content-enter { animation: public-content-in 650ms ease-out both; }
+@keyframes public-content-in { from { opacity: 0.65; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+.auth-blue-panel :is(.auth-stat, .auth-quote) { background: hsl(var(--hero-bg) / 0.92); border-color: hsl(var(--ocean-foreground) / 0.28); }
+@media (max-width: 1023px) {
+  .auth-mobile-header { background: hsl(var(--hero-bg)); color: hsl(var(--ocean-foreground)); }
+  .auth-mobile-header > a { color: hsl(var(--ocean-foreground)); }
+}
+/* Public homepage art direction; panel styles stay intact. */
 .homepage { letter-spacing: 0; }
 .homepage :is(h1, h2, h3, span, a, p) { letter-spacing: 0; }
 .homepage main > div > section { border-top: 1px solid hsl(var(--border) / 0.45); }
@@ -1878,7 +1888,7 @@ img[loading="lazy"].is-error {
   .homepage #all-service-categories a:hover { border-color: hsl(var(--accent) / 0.65); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .homepage *, .blue-flow-background canvas { animation: none !important; transition: none !important; }
+  .homepage *, .blue-flow-background canvas, .public-content-enter { animation: none !important; transition: none !important; }
 }
 
 /* Solid CTA surfaces stay readable independently of the animated artwork. */

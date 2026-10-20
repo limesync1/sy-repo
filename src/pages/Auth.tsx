@@ -12,6 +12,8 @@ import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 import { detectUserRole, ROLE_HOME } from "@/lib/detect-user-role";
 import { supabase } from "@/integrations/supabase/client";
+import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
+import { Skeleton } from "@/components/ui/skeleton";
 import testimonialPatrick from "@/assets/testimonial-patrick.png";
 
 /** Almindelige tastefejl i e-mail-domæner — vi tilbyder en venlig "mente du …?". */
@@ -80,10 +82,16 @@ const Auth = () => {
   const pwStrength = passwordScore(password);
 
   if (loading) return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Indlæser...</p>
+    <div className="grid min-h-screen bg-background lg:grid-cols-2" aria-busy="true" aria-label="Indlæser login">
+      <div className="public-blue-surface relative isolate hidden lg:block"><BlueFlowBackground /></div>
+      <div className="flex items-center justify-center px-5">
+        <div className="w-full max-w-[420px] space-y-6">
+          <Skeleton className="h-10 w-3/4" />
+          <Skeleton className="h-5 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
       </div>
     </div>
   );
@@ -192,32 +200,9 @@ const Auth = () => {
 
       {/* ── Left: Branding panel (desktop only) — matcher forsidens hero ── */}
       <div
-        className="relative isolate hidden overflow-hidden text-background lg:flex lg:min-h-screen lg:flex-col lg:justify-between px-12 py-10"
-        style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+        className="auth-blue-panel public-blue-surface relative isolate hidden overflow-hidden lg:flex lg:min-h-screen lg:flex-col lg:justify-between px-12 py-10"
       >
-        {/* Ambient hero-glows — samme palet som forsidens hero */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div
-            className="absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] opacity-25 animate-blob-slow"
-            style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
-          />
-          <div
-            className="absolute -top-32 right-[-8%] h-[36rem] w-[36rem] rounded-full blur-[110px] opacity-30"
-            style={{ backgroundColor: "hsl(var(--hero-mid))" }}
-          />
-          <div
-            className="absolute -bottom-40 -left-32 h-[28rem] w-[28rem] rounded-full blur-[100px] opacity-15"
-            style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(ellipse 80% 60% at 70% 50%, hsl(var(--hero-mid) / 0.25), transparent 60%)",
-            }}
-          />
-          <div className="absolute inset-0 bg-noise opacity-[0.06] mix-blend-overlay" />
-        </div>
+        <BlueFlowBackground variant="founder" />
 
         <div className="relative z-10">
           <Link to="/" className="inline-block">
@@ -233,15 +218,15 @@ const Auth = () => {
           </Link>
         </div>
 
-        <div className="relative z-10 max-w-lg">
-          <h2 className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-background xl:text-5xl">
+        <div className="public-content-enter relative z-10 max-w-lg">
+          <h2 className="text-4xl font-semibold leading-[1.05] text-ocean-foreground xl:text-5xl">
             Saml booking, kunder<br />
             og drift{" "}
-            <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
+            <span className="home-hero-highlight">
               ét sted.
             </span>
           </h2>
-          <p className="mt-5 text-base leading-relaxed text-background/75">
+          <p className="mt-5 text-base leading-relaxed text-ocean-foreground/90">
             Hele Danmarks platform for serviceydere. Find kunder, planlæg ruter og hold styr på din forretning — alt sammen i ét værktøj.
           </p>
 
@@ -252,17 +237,17 @@ const Auth = () => {
               { value: "4,9★", label: "Tilfredshed" },
               { value: "24/7", label: "Support" },
             ].map((s) => (
-              <div key={s.label} className="rounded-2xl border border-background/10 bg-background/[0.04] p-4 backdrop-blur-sm">
-                <p className="text-2xl font-semibold text-background">{s.value}</p>
-                <p className="mt-1 text-xs text-background/60">{s.label}</p>
+              <div key={s.label} className="auth-stat rounded-lg border p-4">
+                <p className="text-2xl font-semibold text-ocean-foreground">{s.value}</p>
+                <p className="mt-1 text-xs text-ocean-foreground/85">{s.label}</p>
               </div>
             ))}
           </div>
 
           {/* Testimonial */}
-          <div className="mt-8 rounded-2xl border border-background/10 bg-background/[0.05] p-5 backdrop-blur-md">
+          <div className="auth-quote mt-8 rounded-lg border p-5">
             <Quote className="h-5 w-5" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
-            <p className="mt-3 text-sm leading-6 text-background/85">
+            <p className="mt-3 text-sm leading-6 text-ocean-foreground/85">
               "Serviceydere har samlet hele vores drift. Vi sparer timer hver uge på planlægning og fakturering."
             </p>
             <div className="mt-4 flex items-center gap-3">
@@ -274,25 +259,26 @@ const Auth = () => {
                 decoding="async"
               />
               <div>
-                <p className="text-sm font-semibold text-background">Patrick Nissen</p>
-                <p className="text-xs text-background/55">Vinduespudser hos DK Renfyn</p>
+                <p className="text-sm font-semibold text-ocean-foreground">Patrick Nissen</p>
+                <p className="text-xs text-ocean-foreground/85">Vinduespudser hos DK Renfyn</p>
               </div>
             </div>
           </div>
         </div>
 
-        <p className="relative z-10 text-xs text-background/40">© {new Date().getFullYear()} Serviceydere</p>
+        <p className="relative z-10 text-xs text-ocean-foreground/80">© {new Date().getFullYear()} Serviceydere</p>
       </div>
 
       {/* ── Right: Auth form ── */}
       <div className="flex flex-1 flex-col bg-background">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-5 py-4 sm:px-8 sm:py-6">
+        <div className="auth-mobile-header relative isolate flex items-center justify-between px-5 py-4 sm:px-8 sm:py-6">
+          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden lg:hidden"><BlueFlowBackground /></div>
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             <span className="lg:hidden">
               <img
-                src="/serviceydere-logo-dark.webp"
+                src="/serviceydere-logo.webp"
                 alt="Serviceydere"
                 className="h-9 w-auto"
                 width={1920}
@@ -310,7 +296,7 @@ const Auth = () => {
         </div>
 
         <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-2 sm:px-8 lg:px-12">
-          <div className="w-full max-w-[420px] space-y-7">
+          <div key={`${isResetMode}-${isSignUp}-${mode}`} className="public-content-enter w-full max-w-[420px] space-y-7">
 
             {/* ── Glemt adgangskode ── */}
             {isResetMode && (
