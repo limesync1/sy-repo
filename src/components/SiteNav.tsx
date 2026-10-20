@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import { usePersistentPublicNavigation } from "./PublicNavigation";
 import BetaNotice from "./BetaNotice";
-import { Menu, X, ChevronDown, Search, FileText, Store, LayoutGrid, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronDown, Search, FileText, Store, LayoutGrid, ChevronRight, LogIn, LogOut, UserPlus } from "lucide-react";
 const MOBILE_ICONS = { search: Search, quote: FileText, business: Store, software: LayoutGrid } as const;
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -350,7 +350,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                       aria-current={on ? "page" : undefined}
                       style={{ transitionDelay: open ? `${60 + i * 40}ms` : "0ms" }}
                       className={`flex min-h-14 flex-col justify-center rounded-lg border px-2.5 py-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"} ${
-                        on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground active:bg-secondary"
+                        on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground hover:border-accent/40 active:scale-[0.98] active:bg-secondary"
                       }`}
                     >
                       {(() => { const Icon = MOBILE_ICONS[item.key]; return (
@@ -366,30 +366,39 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   );
                 })}
               </div>
-              <div className="mt-2 flex gap-2">
-                {user ? (
-                  <>
+              {user ? (
+                <div className="mt-2 rounded-lg border border-border bg-card p-2">
+                  <div className="flex items-center gap-2.5 px-1 pb-2">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-bold uppercase text-background" aria-hidden="true">
+                      {(user.email || "?").charAt(0)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[11px] font-semibold leading-tight text-muted-foreground">Logget ind som</span>
+                      <span className="block truncate text-sm font-bold leading-tight text-foreground">{user.email}</span>
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
                     {preferredRole && (
                       <Button type="button" onClick={() => { setOpen(false); navigate(preferredRole.to); }} className="min-h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
                         <img src={preferredRole.icon} alt="" className="h-4 w-4 object-contain brightness-0 invert" width={16} height={16} />
                         <span className="truncate">{preferredRole.label}</span><ChevronRight className="ml-auto h-4 w-4 opacity-70" aria-hidden="true" />
                       </Button>
                     )}
-                    <Button type="button" variant="outline" onClick={() => { setOpen(false); handleSignOut(); }} className="min-h-11 rounded-lg font-semibold">
-                      Log ud
+                    <Button type="button" variant="outline" onClick={() => { setOpen(false); handleSignOut(); }} className="min-h-11 gap-1.5 rounded-lg border-destructive/30 font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive">
+                      <LogOut className="h-4 w-4" aria-hidden="true" />Log ud
                     </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button asChild variant="outline" className="min-h-11 flex-1 rounded-lg font-semibold">
-                      <Link to="/log-ind" onClick={() => setOpen(false)}>Log ind</Link>
-                    </Button>
-                    <Button asChild className="min-h-11 flex-1 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
-                      <Link to="/log-ind?signup=1" onClick={() => setOpen(false)}>Opret konto</Link>
-                    </Button>
-                  </>
-                )}
-              </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-2 flex gap-2">
+                  <Button asChild variant="outline" className="min-h-12 flex-1 gap-2 rounded-lg border-foreground/20 font-semibold">
+                    <Link to="/log-ind" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" aria-hidden="true" />Log ind</Link>
+                  </Button>
+                  <Button asChild className="min-h-12 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
+                    <Link to="/log-ind?signup=1" onClick={() => setOpen(false)}><UserPlus className="h-4 w-4" aria-hidden="true" />Opret konto</Link>
+                  </Button>
+                </div>
+              )}
               {user && showSwitcher && (
                 <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5" aria-label="Skift visning">
                   {roles.filter((r) => r.to !== preferredRole?.to).map((r) => (
