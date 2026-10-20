@@ -28,8 +28,8 @@ const FounderNote = () => {
   const openSupport = () => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"));
 
   return (
-  <section className="brand-blue-section relative isolate py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-24">
-    <BlueFlowBackground />
+  <section className="home-founder brand-blue-section relative isolate py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-24">
+    <BlueFlowBackground variant="founder" />
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
         <div className="flex flex-col items-center justify-center text-center lg:items-start lg:text-left">
@@ -78,7 +78,7 @@ const FounderNote = () => {
           <h3 className="text-sm font-semibold text-ocean-foreground">Derfor lavede jeg Serviceydere</h3>
           <ul className="mt-4 grid gap-3">
             {reasons.map((r) => (
-              <li key={r.title} className="flex gap-4 rounded-lg border border-ocean-foreground/20 bg-ocean/55 p-4 transition-colors hover:bg-ocean/75 sm:p-5">
+              <li key={r.title} className="home-reason flex gap-4 rounded-lg border border-ocean-foreground/20 p-4 sm:p-5">
                 <span className="icon-tile-glass h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                   <BrandedIllustration name={r.icon} className="h-full w-full" />
                 </span>

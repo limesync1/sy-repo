@@ -9,7 +9,9 @@ class BackgroundBoundary extends Component<{ children: ReactNode; onFailure: () 
 }
 
 /** Decoration has no pointer input; content never depends on GPU availability. */
-export default function BlueFlowBackground() {
+export type BlueFlowVariant = "hero" | "process" | "founder" | "closing";
+
+export default function BlueFlowBackground({ variant = "hero" }: { variant?: BlueFlowVariant }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [colors, setColors] = useState<string[]>([]);
   const [animate, setAnimate] = useState(false);
@@ -41,11 +43,11 @@ export default function BlueFlowBackground() {
     };
   }, []);
   return (
-    <div ref={hostRef} aria-hidden="true" className="blue-flow-background" data-webgl={failed ? "fallback" : ready ? "ready" : "loading"}>
+    <div ref={hostRef} aria-hidden="true" className="blue-flow-background" data-flow={variant} data-webgl={failed ? "fallback" : ready ? "ready" : "loading"}>
       {started && colors.length === 3 && !failed && (
         <BackgroundBoundary onFailure={onFailure}>
           <Suspense fallback={null}>
-            <BlueSilkCanvas animate={animate} colors={colors} onFailure={onFailure} onReady={onReady} />
+            <BlueSilkCanvas animate={animate} colors={colors} variant={variant} onFailure={onFailure} onReady={onReady} />
           </Suspense>
         </BackgroundBoundary>
       )}
