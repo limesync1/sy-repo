@@ -1066,20 +1066,20 @@ const OrdersListSection = ({
       <>
         <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">Bestillinger fra kunder lander her, så snart de booker.</p>
+            <h3 className="text-sm font-semibold text-foreground">Seneste aftaler</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">Aftaler fra kunder lander her, så snart de booker.</p>
           </div>
         </div>
           <div className="p-3 sm:p-7">
           <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center sm:rounded-2xl sm:p-8">
             <NoItemsIcon />
-            <h4 className="mt-4 text-base font-semibold text-foreground">Ingen bestillinger endnu</h4>
+            <h4 className="mt-4 text-base font-semibold text-foreground">Ingen aftaler endnu</h4>
             <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
               {servicesCount === 0
                 ? "Først tilføj en service — derefter kan kunder finde og booke jer."
                 : completeness < 80
                   ? "Profilen er næsten klar. Færdiggør den, så I rangerer højere i søgningen."
-                  : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første bestillinger."}
+                  : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første aftaler."}
             </p>
             <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
@@ -1114,7 +1114,7 @@ const OrdersListSection = ({
       <div className="border-b border-border px-4 py-3 sm:px-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
+            <h3 className="text-sm font-semibold text-foreground">Seneste aftaler</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">Filtrér efter status eller søg på kunde, e-mail eller beløb.</p>
           </div>
           <button onClick={() => onNavigate?.("orders")} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -1217,7 +1217,7 @@ const OrdersListSection = ({
               onClick={() => onNavigate?.("orders")}
               className="flex w-full items-center justify-center gap-1.5 bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              Se alle {filtered.length} matchende bestillinger <ArrowRight className="h-3 w-3" />
+              Se alle {filtered.length} matchende aftaler <ArrowRight className="h-3 w-3" />
             </button>
           )}
         </div>
@@ -1226,11 +1226,11 @@ const OrdersListSection = ({
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
             <Search className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Ingen bestillinger matcher</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Ingen aftaler matcher</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {hasActiveFilters
               ? "Justér eller fjern et af de aktive filtre nedenfor."
-              : "Der er ingen bestillinger at vise her endnu."}
+              : "Der er ingen aftaler at vise her endnu."}
           </p>
           {hasActiveFilters && (
             <div className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-1.5">
