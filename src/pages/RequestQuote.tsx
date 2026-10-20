@@ -642,7 +642,7 @@ const RequestQuote = () => {
       {error && !isLoading && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
           <div className="rounded-[1.75rem] border border-border bg-card p-8 text-center animate-fade-in sm:p-10">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-secondary">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center">
               <BrandedIllustration name="noMatches" className="h-16 w-16" />
             </div>
             <p className="text-lg font-semibold tracking-tight text-foreground">Ingen matches lige nu</p>
