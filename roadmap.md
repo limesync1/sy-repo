@@ -1,6 +1,7 @@
 ## Resterende hastighed i virksomhedspanelets vinduer (20. oktober)
-- [ ] Isolér kundevinduets åbn/luk fra kundelisten og hent bestillingsvinduer kun ved brug
-- [ ] Bevar kundeoplysninger gennem lukkeanimation og kontrollér åbning/lukning samt forudfyldning
+- [x] Isolér kundevinduets åbn/luk fra kundelisten og hent bestillingsvinduer kun ved brug
+- [x] Bevar kundeoplysninger gennem lukkeanimation; tre tests bestået for isoleret state, forudfyldning og profilramme. Kundevinduets indtastning/lukning/genåbning kontrolleret isoleret ved 1280/390 px i lys/mørk visning.
+- [ ] Mål samlet hastighed på rigtig virksomhed — egen konto åbner onboarding uden virksomhedstilknytning. To ældre overlay-tests forventer det tidligere mobil-layout; ikke ændret i denne opgave.
 
 ## Blå baggrunde på undersider og login (20. oktober)
 - [x] Udvid læsbare blå animationer til fælles sidetoppe, mørke sektioner, afslutninger, login og ny adgangskode; behold loginregler
