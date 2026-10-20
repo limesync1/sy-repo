@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import BlueFlowBackground from "./BlueFlowBackground";
 
 /** Beholdes i komponentens API, så eksisterende sider ikke skal ændres.
  *  Det visuelle udtryk er bevidst samlet i én rolig brandtone. */
@@ -63,8 +64,7 @@ const PageHero = ({
 
   return (
     <section
-      className={`relative text-background ${allowOverflow ? "" : "isolate overflow-hidden"}`}
-      style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+      className={`public-blue-surface relative text-ocean-foreground ${allowOverflow ? "" : "isolate overflow-hidden"}`}
     >
       {/* Baggrundslagene samles i en overflow-hidden wrapper, så glows og
           gradients stadig klippes ved heroens kanter — også når sektionen
@@ -82,27 +82,7 @@ const PageHero = ({
           loading="eager"
         />
       )}
-      {/* Marine gradient — sikrer kontrast og premium farveindtryk. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.9) 50%, hsl(var(--hero-bg) / 0.55) 100%)",
-        }}
-      />
-      {/* Diskret brandglød, ens på alle undersider. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div
-          className="absolute -top-32 right-[-8%] h-[20rem] w-[20rem] rounded-full opacity-[0.1] blur-[100px] sm:h-[28rem] sm:w-[28rem] sm:opacity-[0.16] sm:blur-[120px]"
-          style={{ backgroundColor: HERO_ACCENT.glowA }}
-        />
-        <div
-          className="absolute -bottom-32 -left-24 h-[16rem] w-[16rem] rounded-full opacity-[0.07] blur-[90px] sm:h-[22rem] sm:w-[22rem] sm:opacity-[0.12] sm:blur-[110px]"
-          style={{ backgroundColor: HERO_ACCENT.glowB }}
-        />
-        <div className="absolute inset-0 bg-noise opacity-[0.04] mix-blend-overlay sm:opacity-[0.05]" />
-      </div>
+      <BlueFlowBackground variant="hero" />
       </div>
       {/* Diskret brandkant mellem topområdet og sidens indhold. */}
       <div
@@ -112,14 +92,14 @@ const PageHero = ({
       />
 
 
-      <div className={`relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding} ${allowOverflow ? "" : "z-10"}`}>
+      <div className={`public-content-enter relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding} ${allowOverflow ? "" : "z-10"}`}>
         <div className="max-w-3xl">
-          <h1 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
+          <h1 className="text-[1.75rem] font-semibold leading-[1.1] text-ocean-foreground sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
             {title}
           </h1>
 
           {subtitle && (
-            <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
+            <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-ocean-foreground/90 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
               {subtitle}
             </p>
           )}

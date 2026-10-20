@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import SEO from "@/components/SEO";
+import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 
 /**
  * /reset-password — siden som recovery-mailen linker til.
@@ -66,15 +67,16 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5 py-10">
+    <div className="public-blue-surface relative isolate flex min-h-screen items-center justify-center overflow-hidden px-5 py-10">
+      <BlueFlowBackground />
       <SEO
         title="Vælg ny adgangskode – Serviceydere"
         description="Vælg en ny adgangskode til din Serviceydere-konto."
         canonicalPath="/reset-password"
         noIndex
       />
-      <div className="w-full max-w-[420px]">
-        <Link to="/log-ind" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+      <div className="public-content-enter relative w-full max-w-[420px]">
+        <Link to="/log-ind" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ocean-foreground/90 transition-colors hover:text-ocean-foreground">
           <ArrowLeft className="h-4 w-4" /> Tilbage til log ind
         </Link>
 

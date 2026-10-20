@@ -20,13 +20,13 @@ type Props = {
   className?: string;
 };
 
-const CTABand = ({ animated = false, eyebrow, title, body, primary, secondary, className }: Props) => (
+const CTABand = ({ animated = true, eyebrow, title, body, primary, secondary, className }: Props) => (
   <section className={cn("w-full bg-background px-4 py-10 sm:px-6 sm:py-12 lg:px-8 2xl:py-16", animated && "home-closing", className)}>
     <div
-      className="relative isolate mx-auto max-w-7xl overflow-hidden rounded-lg bg-ocean px-5 py-9 text-ocean-foreground sm:px-8 sm:py-11 2xl:px-10 2xl:py-16"
+      className="public-blue-surface relative isolate mx-auto max-w-7xl overflow-hidden rounded-lg bg-ocean px-5 py-9 text-ocean-foreground sm:px-8 sm:py-11 2xl:px-10 2xl:py-16"
     >
       {animated && <BlueFlowBackground variant="closing" />}
-      <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="public-content-enter relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           {eyebrow && (
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
@@ -38,7 +38,7 @@ const CTABand = ({ animated = false, eyebrow, title, body, primary, secondary, c
             {title}
           </h2>
 
-          {body && <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/75">{body}</p>}
+          {body && <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/90">{body}</p>}
         </div>
         <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
           <SmartLink to={primary.to}>

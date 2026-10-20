@@ -1,3 +1,7 @@
+## Blå baggrunde på undersider og login (20. oktober)
+- [x] Udvid læsbare blå animationer til fælles sidetoppe, mørke sektioner, afslutninger, login og ny adgangskode; behold loginregler
+- [x] Browserkontrol ved 1280/390 px: undersider, loginvalg, glemt kode, kontaktområder og reduceret bevægelse; ingen sidefejl eller vandret overflow. Loginindsendelse uændret og ikke gentestet.
+
 ## Forsidens design (20. oktober)
 - [x] Forbedr blå WebGL-flader, sektionsrytme, kort og animationer uden ændring af indhold/priser
 - [x] Kontrollér alle fire blå sektioner ved 1280/390 px i lys/mørk visning; ingen overflow eller sidefejl. Synlig animation og statisk reduceret bevægelse målt; Find services gennemført. Build OK.

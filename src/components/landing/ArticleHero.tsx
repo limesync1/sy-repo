@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import BlueFlowBackground from "./BlueFlowBackground";
 import { Link } from "react-router-dom";
 
 export interface Crumb {
@@ -26,33 +27,13 @@ interface ArticleHeroProps {
 const ArticleHero = ({ breadcrumbs, eyebrow, title, subtitle }: ArticleHeroProps) => {
   return (
     <section
-      className="relative isolate overflow-hidden text-background"
-      style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+      className="public-blue-surface relative isolate overflow-hidden text-ocean-foreground"
     >
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.92) 55%, hsl(var(--hero-bg) / 0.6) 100%)",
-        }}
-      />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div
-          className="absolute -top-32 right-[-6%] h-[26rem] w-[26rem] rounded-full opacity-30 blur-[110px]"
-          style={{ backgroundColor: "hsl(var(--hero-mid))" }}
-        />
-        <div
-          className="absolute -bottom-28 -left-20 h-[20rem] w-[20rem] rounded-full opacity-20 blur-[100px]"
-          style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
-        />
-        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
-      </div>
-
-      <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 lg:pb-14 lg:pt-10">
+      <BlueFlowBackground variant="process" />
+      <div className="public-content-enter relative mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 lg:pb-14 lg:pt-10">
         <nav
           aria-label="Brødkrummer"
-          className="text-[12px] font-medium text-background/65 sm:text-[13px]"
+          className="text-[12px] font-medium text-ocean-foreground/85 sm:text-[13px]"
         >
           <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             {breadcrumbs.map((c, i) => {
@@ -60,13 +41,13 @@ const ArticleHero = ({ breadcrumbs, eyebrow, title, subtitle }: ArticleHeroProps
               return (
                 <li key={`${c.label}-${i}`} className="flex items-center gap-x-1.5">
                   {c.to && !isLast ? (
-                    <Link to={c.to} className="transition hover:text-background">
+                    <Link to={c.to} className="transition hover:text-ocean-foreground">
                       {c.label}
                     </Link>
                   ) : (
-                    <span className={isLast ? "text-background" : undefined}>{c.label}</span>
+                    <span className={isLast ? "text-ocean-foreground" : undefined}>{c.label}</span>
                   )}
-                  {!isLast && <span aria-hidden className="text-background/35">/</span>}
+                  {!isLast && <span aria-hidden className="text-ocean-foreground/60">/</span>}
                 </li>
               );
             })}
@@ -75,11 +56,11 @@ const ArticleHero = ({ breadcrumbs, eyebrow, title, subtitle }: ArticleHeroProps
 
         <div className="mt-5 max-w-3xl">
           {eyebrow ? <span className="sr-only">{eyebrow}</span> : null}
-          <h1 className="text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.025em] text-background sm:text-[2.45rem] lg:text-[2.95rem]">
+          <h1 className="text-[1.9rem] font-semibold leading-[1.08] text-ocean-foreground sm:text-[2.45rem] lg:text-[2.95rem]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-background/80 sm:text-[17px] sm:leading-[1.6]">
+            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-ocean-foreground/90 sm:text-[17px] sm:leading-[1.6]">
               {subtitle}
             </p>
           )}

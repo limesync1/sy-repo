@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import BlueFlowBackground from "./BlueFlowBackground";
 
 /**
  * SectionShell — den fælles ramme om alle sektioner på de offentlige sider.
@@ -48,11 +49,13 @@ const SectionShell = ({
       className={cn(
         "w-full",
         TONE[tone],
+        dark && "public-blue-surface relative isolate overflow-hidden",
         compact ? "py-10 sm:py-12" : "py-14 sm:py-20 lg:py-24",
         className,
       )}
     >
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      {dark && <BlueFlowBackground variant="founder" />}
+      <div className={cn("mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8", dark && "public-content-enter relative")}>
         {(eyebrow || title || description) && (
           <div
             className={cn(
@@ -77,7 +80,7 @@ const SectionShell = ({
                 <p
                   className={cn(
                     "mt-3 text-[15px] leading-7",
-                    dark ? "text-ocean-foreground/75" : "text-muted-foreground",
+                    dark ? "text-ocean-foreground/90" : "text-muted-foreground",
                   )}
                 >
                   {description}
