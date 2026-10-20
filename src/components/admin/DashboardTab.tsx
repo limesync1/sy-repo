@@ -311,8 +311,8 @@ const DashboardTab = ({
   // ── Auto-insight — én smart sætning baseret på state ────────────────
   const insight = useMemo(() => {
     if (servicesCount === 0) return "Tilføj din første service — det er det eneste, der mangler før kunder kan booke.";
-    if (pendingOrders >= 3) return `${pendingOrders} bestillinger venter på svar — hver time tæller for konvertering.`;
-    if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første bestillinger.";
+    if (pendingOrders >= 3) return `${pendingOrders} aftaler venter på svar — hver time tæller for konvertering.`;
+    if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første aftaler.";
     if (revTrend.dir === "up" && stats.revenue7 > 0) return `Omsætningen er vokset ${revTrend.pct}% i denne uge — momentum er på jeres side.`;
     if (revTrend.dir === "down" && stats.revenuePrev7 > 0) return `Omsætningen er ${revTrend.pct}% under sidste uge — overvej at dele profilen eller justere priserne.`;
     if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede aftaler uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
@@ -361,7 +361,7 @@ const DashboardTab = ({
   const { actions, primaryActions } = useMemo(() => {
     const arr: Action[] = [];
     if (pendingOrders > 0) arr.push({
-      key: "pending", label: `Svar ${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
+      key: "pending", label: "Svar på aftaler",
       meta: "Hurtigt svar fordobler konverteringen", icon: Zap, illustration: "orders", tab: "orders", priority: 100, badge: String(pendingOrders), tone: "primary",
     });
     if (servicesCount === 0) arr.push({
@@ -377,7 +377,7 @@ const DashboardTab = ({
       meta: "Anmeldelser hæver konvertering markant", icon: Star, illustration: "reviewCount", tab: "reviews", priority: 70, tone: "accent",
     });
     if (newReviews > 0) arr.push({
-      key: "new-reviews", label: `${newReviews} ${newReviews === 1 ? "ny anmeldelse" : "nye anmeldelser"}`,
+      key: "new-reviews", label: "Nye anmeldelser",
       meta: "Kvittér og vis at I lytter", icon: MessageSquare, illustration: "reviewAverage", tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
     });
     if (shareUrl) arr.push({
@@ -393,7 +393,7 @@ const DashboardTab = ({
   }, [pendingOrders, servicesCount, completeness.pct, missingItems.length, reviewsCount, ordersCount, newReviews, shareUrl, copied]);
 
   return (
-    <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
+    <div className="mx-auto w-full max-w-[1600px] min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* Roligt velkomstfelt i panelets nye mørke/blå designsprog. */}
       <section
         className="panel-overview-hero relative isolate overflow-hidden rounded-md px-4 py-4 text-background shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7"
@@ -444,7 +444,7 @@ const DashboardTab = ({
          <div className="mt-4 grid min-w-0 grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-4 lg:mt-6">
           <SnapshotPill label="Aftaler i dag" value={`${stats.todayCount} ${stats.todayCount === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.todayRevenue)} kr. i omsætning`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Aftaler denne uge" value={`${stats.orders7} ${stats.orders7 === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.revenue7)} kr. i omsætning`} onClick={() => setOpenStat("orders")} />
-          <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "forespørgsel" : "forespørgsler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
+          <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "aftale" : "aftaler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
           <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
@@ -527,7 +527,7 @@ const DashboardTab = ({
                 <CardContent className="p-4 sm:p-5">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Ingen omsætning registreret på services endnu — så snart en bestilling med en service er udført, dukker top-listen op her.
+                    Ingen omsætning registreret på services endnu — så snart en aftale med en service er udført, dukker top-listen op her.
                   </p>
                 </CardContent>
               </Card>
