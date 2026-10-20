@@ -228,19 +228,19 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
              loading="eager"/>
           </Link>
 
-          <div className="hidden items-center gap-2 lg:flex" role="navigation" aria-label="Hovednavigation">
+          <div className="hidden items-center gap-1 lg:flex" role="navigation" aria-label="Hovednavigation">
             {NAV_GROUPS.flatMap((g) => g.items).map((item, i) => {
               const on = isActive(item.key);
               const Icon = MOBILE_ICONS[item.key];
               return (
-                <SmartLink key={item.key} to={item.to} aria-current={on ? "page" : undefined}
-                  className={`flex min-h-12 items-center gap-2.5 rounded-lg border py-1.5 pl-1.5 pr-3 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] motion-reduce:transition-none ${on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground hover:border-accent/40 hover:bg-secondary/60"}`}>
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${on ? "bg-background/15" : "bg-accent/10 text-accent"}`}><Icon className="h-[18px] w-[18px]" aria-hidden="true" /></span>
-                  <span className="min-w-0">
-                    <span className={`block whitespace-nowrap text-[11px] font-semibold leading-tight ${on ? "text-background/70" : "text-muted-foreground"}`}>{i < 2 ? "For kunder" : "For virksomheder"}</span>
-                    <span className="block whitespace-nowrap text-sm font-bold leading-tight">{item.label}</span>
-                  </span>
-                </SmartLink>
+                <div key={item.key} className="flex items-center">
+                  {i === 2 && <span aria-hidden="true" className="mx-2 h-7 w-px bg-border" />}
+                  <SmartLink to={item.to} aria-current={on ? "page" : undefined}
+                    className={`group flex min-h-11 items-center gap-2 rounded-full py-1 pl-1 pr-3.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${on ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"}`}>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${on ? "bg-background/15" : "bg-accent/10 text-accent group-hover:bg-accent/15"}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="whitespace-nowrap text-sm font-semibold">{item.label}</span>
+                  </SmartLink>
+                </div>
               );
             })}
           </div>
