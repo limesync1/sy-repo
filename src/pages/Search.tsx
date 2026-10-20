@@ -528,7 +528,7 @@ const SearchPage = () => {
           )
         ) : (
           <div className="rounded-[2rem] border border-dashed border-border bg-card px-6 py-14 text-center shadow-sm sm:px-10 sm:py-16">
-            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-secondary sm:h-28 sm:w-28">
+            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center sm:h-28 sm:w-28">
               <BrandedIllustration name="noMatches" className="h-20 w-20" />
             </div>
             <p className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
