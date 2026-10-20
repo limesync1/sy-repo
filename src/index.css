@@ -1278,8 +1278,7 @@
   .reveal {
     /* Lader browseren springe layout/paint over for off-screen sektioner —
        reducerer arbejde markant på forsider med mange sektioner. */
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 600px;
+
   }
 
   /* Blød glow-ring rundt om søgefeltet når det er fokuseret. */
@@ -1834,14 +1833,14 @@ img[loading="lazy"].is-error {
   pointer-events: none;
   background: var(--home-flow-fallback);
 }
-.blue-flow-background canvas { display: block; width: 100%; height: 100%; opacity: 1; animation: home-canvas-in 1.2s ease-out both; }
+.blue-flow-background canvas { display: block; width: 100%; height: 100%; opacity: 1; animation: home-canvas-in 400ms ease-out both; }
 .blue-flow-background canvas[hidden] { display: none; }
 
 /* Shared public/auth surfaces remain readable before the canvas loads. */
 .public-blue-surface { background-color: hsl(var(--hero-bg)); color: hsl(var(--ocean-foreground)); letter-spacing: 0; }
 .public-blue-surface :is(h1, h2, h3) { text-shadow: 0 1px 12px hsl(var(--hero-bg) / 0.6); letter-spacing: 0; }
 .public-blue-surface .bg-card :is(h1, h2, h3) { text-shadow: none; }
-.public-content-enter { animation: public-content-in 320ms ease-out both; }
+.public-content-enter { animation: none; }
 @keyframes public-content-in { from { opacity: 0; } to { opacity: 1; } }
 .auth-blue-panel :is(.auth-stat, .auth-quote) { background: hsl(var(--hero-bg) / 0.92); border-color: hsl(var(--ocean-foreground) / 0.28); }
 @media (max-width: 1023px) {
