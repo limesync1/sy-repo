@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Color, ShaderMaterial, SRGBColorSpace } from "three";
 
 import type { BlueFlowVariant } from "./BlueFlowBackground";
@@ -49,7 +49,7 @@ function SilkSurface({ animate, colors, variant }: Pick<Props, "animate" | "colo
   }, [colors, variant]);
   useFrame(({ size }, delta) => {
     if (materialRef.current) materialRef.current.uniforms.uAspect.value = size.width / Math.max(size.height, 1);
-    if (animate && materialRef.current) materialRef.current.uniforms.uTime.value += Math.min(delta, 0.05);
+    if (animate && materialRef.current) materialRef.current.uniforms.uTime.value += Math.min(delta, 0.1);
   });
   return (
     <mesh frustumCulled={false}>
@@ -61,6 +61,22 @@ function SilkSurface({ animate, colors, variant }: Pick<Props, "animate" | "colo
   );
 }
 
+/** Langsom bevægelse behøver ikke 60/120 fps — 30 fps halverer GPU-arbejdet. */
+function FrameLimiter({ animate }: { animate: boolean }) {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    if (!animate) return;
+    let raf = 0, last = 0;
+    const tick = (now: number) => {
+      if (now - last >= 33) { last = now; invalidate(); }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [animate, invalidate]);
+  return null;
+}
+
 export default function BlueSilkCanvas({ animate, colors, variant, onFailure, onReady }: Props) {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   useEffect(() => {
@@ -70,7 +86,9 @@ export default function BlueSilkCanvas({ animate, colors, variant, onFailure, on
     return () => canvas.removeEventListener("webglcontextlost", lost);
   }, [canvas, onFailure]);
   return (
-    <Canvas flat dpr={[1, 1.25]} frameloop={animate ? "always" : "demand"}
+    // Bløde gradienter tåler lav opløsning; det skalerer pænt op og sparer
+    // mange pixels på store skærme.
+    <Canvas flat dpr={[0.5, 0.75]} frameloop="demand"
       gl={{ antialias: false, powerPreference: "low-power" }}
       fallback={null}
       onCreated={({ gl, events }) => {
@@ -78,6 +96,7 @@ export default function BlueSilkCanvas({ animate, colors, variant, onFailure, on
         events.disconnect?.();
         onReady();
       }}>
+      <FrameLimiter animate={animate} />
       <SilkSurface animate={animate} colors={colors} variant={variant} />
     </Canvas>
   );

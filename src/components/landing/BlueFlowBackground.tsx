@@ -27,17 +27,26 @@ export default function BlueFlowBackground({ variant = "hero" }: { variant?: Blu
     setColors(["--hero-bg", "--hero-mid", "--brand-blue-start"].map(token => styles.getPropertyValue(token)));
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     let visible = false;
+    // Start først den tunge 3D-kode, når siden er tegnet og browseren er ledig,
+    // så teksten og knapperne kommer frem med det samme.
+    let idleId: number | undefined;
+    const ric = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
+    const startWhenIdle = () => {
+      if (idleId !== undefined) return;
+      idleId = ric ? ric(() => setStarted(true), { timeout: 1200 }) : window.setTimeout(() => setStarted(true), 400);
+    };
     const sync = () => setAnimate(visible && !document.hidden && !motion.matches);
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      if (visible) setStarted(true);
+      if (visible) startWhenIdle();
       sync();
-    });
+    }, { rootMargin: "200px 0px" });
     observer.observe(host);
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
       observer.disconnect();
+      if (idleId !== undefined) (window as any).cancelIdleCallback?.(idleId);
       motion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };
