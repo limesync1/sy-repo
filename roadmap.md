@@ -1,4 +1,5 @@
 ## Offentlig computernavigation og hjemmeside (20. oktober)
+- [x] Finpuds navigation med afgrænsede publikumsgrupper, animeret sidemarkering, samlet panelknap, kontooversigt og tydeligt valgt panel. Verificeret ved 1024/1280/3233 px, kontomenu i begge temaer, faktisk log ud, sidelinks samt mobilens Tab/Escape uden overflow eller sidefejl; build OK.
 - [x] Tydelige kunde-/virksomhedsgrupper, kompakte kontohandlinger og stabil menu ved skift af skærmbredde
 - [x] Ret branchekortenes uens destinationer, dobbelte klikmål i forsidens knapper og menufokus uden ændring af priser/bestillingslogik
 - [x] Browserkontrol ved 1024/1280/3233 px, indlogget kontomenu i begge temaer, faktisk log ud, Systemet og branchevalg; forside ved 1280/390 px i begge temaer uden overflow. Menufokus og Escape verificeret; build OK.
