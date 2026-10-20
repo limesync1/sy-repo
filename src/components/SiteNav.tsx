@@ -322,8 +322,8 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               aria-controls="public-mobile-menu"
             >
               <span className="relative block h-5 w-5" aria-hidden="true">
-                <Menu className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
-                <X className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
+                <Menu className={`absolute inset-0 !size-5 transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
+                <X className={`absolute inset-0 !size-5 transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
               </span>
             </Button>
           </div>
@@ -377,17 +377,33 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                       <span className="block truncate text-sm font-bold leading-tight text-foreground">{user.email}</span>
                     </span>
                   </div>
-                  <div className="flex gap-2">
-                    {preferredRole && (
-                      <Button type="button" onClick={() => { setOpen(false); navigate(preferredRole.to); }} className="min-h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
-                        <img src={preferredRole.icon} alt="" className="h-4 w-4 object-contain brightness-0 invert" width={16} height={16} />
-                        <span className="truncate">{preferredRole.label}</span><ChevronRight className="ml-auto h-4 w-4 opacity-70" aria-hidden="true" />
-                      </Button>
-                    )}
-                    <Button type="button" variant="outline" onClick={() => { setOpen(false); handleSignOut(); }} className="min-h-11 gap-1.5 rounded-lg border-destructive/30 font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive">
-                      <LogOut className="h-4 w-4" aria-hidden="true" />Log ud
-                    </Button>
+                  <p className="px-1 pb-1 text-[11px] font-semibold text-muted-foreground">{roles.length > 1 ? "Vælg panel" : "Dit panel"}</p>
+                  <div className="grid gap-1.5">
+                    {roles.map((r) => {
+                      const main = r.to === preferredRole?.to;
+                      return (
+                        <button
+                          key={r.to}
+                          type="button"
+                          onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
+                          className={`flex min-h-11 items-center gap-2 rounded-lg border px-2.5 text-left text-sm font-semibold transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                            main ? "border-foreground bg-foreground text-background" : "border-border bg-background text-foreground hover:bg-secondary"
+                          }`}
+                        >
+                          <img src={r.icon} alt="" className={`h-4 w-4 shrink-0 object-contain ${main ? "brightness-0 invert" : "opacity-75"}`} width={16} height={16} />
+                          <span className="min-w-0 flex-1 truncate">{r.label}</span>
+                          <ChevronRight className="h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
+                        </button>
+                      );
+                    })}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => { setOpen(false); handleSignOut(); }}
+                    className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />Log ud
+                  </button>
                 </div>
               ) : (
                 <div className="mt-2 flex gap-2">
@@ -397,21 +413,6 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   <Button asChild className="min-h-12 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
                     <Link to="/log-ind?signup=1" onClick={() => setOpen(false)}><UserPlus className="h-4 w-4" aria-hidden="true" />Opret konto</Link>
                   </Button>
-                </div>
-              )}
-              {user && showSwitcher && (
-                <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5" aria-label="Skift visning">
-                  {roles.filter((r) => r.to !== preferredRole?.to).map((r) => (
-                    <button
-                      key={r.to}
-                      type="button"
-                      onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                      className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-semibold text-foreground active:bg-secondary"
-                    >
-                      <img src={r.icon} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} />
-                      {r.label}
-                    </button>
-                  ))}
                 </div>
               )}
             </div>
