@@ -22,7 +22,6 @@ import RadiusPicker from "@/components/RadiusPicker";
 import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
-import HeroHighlights from "@/components/landing/HeroHighlights";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
@@ -324,15 +323,10 @@ const RequestQuote = () => {
             eyebrow="Få tilbud"
             title="Få op til 3 gratis tilbud."
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
-            aside={<HeroHighlights numbered title="Sådan fungerer det" items={[
-              { icon: Check, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for." },
-              { icon: Check, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område." },
-              { icon: Check, title: "Sammenlign og vælg", text: "Se priser, læs anmeldelser og book direkte." },
-            ]} />}
           />
 
           <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
-          <div className="mx-auto grid max-w-4xl gap-5">
+          <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_28px_60px_-38px_hsl(var(--foreground)/0.35)] sm:rounded-[2rem] sm:p-6 md:p-8">
 
@@ -582,11 +576,35 @@ const RequestQuote = () => {
 
           </form>
 
-          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-accent" /> Svar på 3-10 sekunder</li>
-            <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-accent" /> Kun verificerede udbydere</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Gratis og uforpligtende</li>
-          </ul>
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:rounded-[1.75rem] sm:p-6">
+              <h2 className="text-base font-semibold tracking-tight text-foreground">Sådan fungerer det</h2>
+              <ol className="mt-4 space-y-4">
+                {[
+                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", icon: "describeTask" as BrandedIllustrationName },
+                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", icon: "match" as BrandedIllustrationName },
+                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", icon: "compareProviders" as BrandedIllustrationName },
+                ].map((s) => (
+                  <li key={s.n} className="flex gap-3">
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+                      <BrandedIllustration name={s.icon} className="h-12 w-12" alt="" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground">{s.title}</span>
+                      <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">{s.text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="mt-4 rounded-[1.5rem] border border-border bg-surface p-5 sm:rounded-[1.75rem]">
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-accent" /> Svar på 3-10 sekunder</li>
+                <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-accent" /> Kun verificerede udbydere</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Gratis og uforpligtende</li>
+              </ul>
+            </div>
+          </aside>
 
           </div>
           </section>
