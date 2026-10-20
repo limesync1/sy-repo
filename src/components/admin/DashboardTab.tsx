@@ -1319,7 +1319,7 @@ const StatDetailSheet = ({
         };
       case "orders":
         return {
-          title: `Bestillinger · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
+          title: `Aftaler · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
           subtitle: "Skift mellem dag- og ugevisning herunder",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => {
@@ -1341,7 +1341,7 @@ const StatDetailSheet = ({
         };
       case "pending":
         return {
-          title: "Afventende bestillinger",
+          title: "Afventende aftaler",
           subtitle: "Svar hurtigt — hver time tæller for konverteringen",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => o.status === "pending"),
@@ -1425,7 +1425,7 @@ const StatDetailSheet = ({
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {config.mode === "revenue" ? "Total omsætning" : "Antal bestillinger"}
+                {config.mode === "revenue" ? "Total omsætning" : "Antal aftaler"}
               </p>
               <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {rangeDays === 1 ? "I dag" : `Seneste ${rangeDays} dage`}
@@ -1437,8 +1437,8 @@ const StatDetailSheet = ({
             {config.orders.length > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
                 {config.mode === "revenue"
-                  ? `${config.orders.length} bestillinger · gennemsnit ${fmtKr(totalValue / Math.max(1, config.orders.length))}`
-                  : `Ud af ${recentOrders.length} bestillinger i alt`}
+                  ? `${config.orders.length} aftaler · gennemsnit ${fmtKr(totalValue / Math.max(1, config.orders.length))}`
+                  : `Ud af ${recentOrders.length} aftaler i alt`}
               </p>
             )}
           </div>
@@ -1512,7 +1512,7 @@ const StatDetailSheet = ({
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="border-b border-border bg-secondary/40 px-4 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Relevante bestillinger ({config.orders.length})
+                Relevante aftaler ({config.orders.length})
               </p>
             </div>
             {config.orders.length > 0 ? (
@@ -1545,13 +1545,13 @@ const StatDetailSheet = ({
               </div>
             ) : (
               <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                Ingen bestillinger i denne periode.
+                Ingen aftaler i denne periode.
               </div>
             )}
           </div>
 
           <Button variant="outline" className="w-full" onClick={() => { onClose(); onNavigate?.("orders"); }}>
-            Åbn fuld bestillingsliste <ArrowRight className="ml-1.5 h-4 w-4" />
+            Åbn fuld aftaleliste <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         </div>
       </SheetContent>
