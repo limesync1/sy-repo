@@ -4,6 +4,7 @@ import { Search, ArrowRight, Mail, Plus, X } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
+import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import SmartLink from "@/components/SmartLink";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 
@@ -306,21 +307,17 @@ const HelpCenter = () => {
         <section className="bg-background py-20 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div
-              className="relative isolate overflow-hidden rounded-[28px] px-8 py-12 text-background sm:px-12 sm:py-16"
-              style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+              className="public-blue-surface relative isolate overflow-hidden rounded-lg px-8 py-12 text-ocean-foreground sm:px-12 sm:py-16"
             >
-              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-                <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full blur-[100px] opacity-30" style={{ backgroundColor: "hsl(var(--hero-mid))" }} />
-                <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full blur-[90px] opacity-20" style={{ backgroundColor: "hsl(var(--hero-cyan))" }} />
-              </div>
-              <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
+              <BlueFlowBackground variant="closing" />
+              <div className="public-content-enter relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
                 <div className="max-w-xl">
-                  <h2 id="kontakt" className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] sm:text-[2.25rem]">
+                  <h2 id="kontakt" className="text-[1.75rem] font-semibold leading-[1.05] sm:text-[2.25rem]">
                     Kunne du ikke finde svar?
                   </h2>
-                  <p className="mt-3 text-[15px] leading-7 text-background/80">
+                  <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/90">
                     Skriv til os på{" "}
-                    <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-background underline underline-offset-4">
+                    <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-ocean-foreground underline underline-offset-4">
                       kontakt@serviceydere.dk
                     </a>
                     {" "}— vi vender retur så hurtigt vi kan på hverdage.
@@ -329,13 +326,13 @@ const HelpCenter = () => {
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <a
                     href="mailto:kontakt@serviceydere.dk"
-                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+                    className="group inline-flex items-center justify-center gap-2 hero-action-light min-h-11 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all"
                   >
                     <Mail className="h-4 w-4" /> Skriv til support
                   </a>
                   <SmartLink
                     to="/tilbud"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
+                    className="inline-flex items-center justify-center gap-2 hero-action-dark min-h-11 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all"
                   >
                     Få 3 gratis tilbud
                   </SmartLink>
