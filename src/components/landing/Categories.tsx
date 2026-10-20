@@ -5,7 +5,6 @@ import { ALL_INDUSTRIES, TOP_CATEGORY_KEYS } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
 import { SectionLabelMark, UiArtwork } from "@/components/shared/UiArtwork";
-const HUB_BY_KEY: Record<string, string> = { "Rengøring": "/guides/rengoering", "Flyttehjælp": "/guides/flytning", "Håndværker": "/guides/haandvaerker", "Haveservice": "/guides/have" };
 
 const categories = ALL_INDUSTRIES.map((ind) => ({
   key: ind.key,
@@ -27,7 +26,7 @@ const CategoryCard = ({
 }) => (
   <Link
     key={cat.key}
-    to={HUB_BY_KEY[cat.label] || `/search?category=${encodeURIComponent(cat.key)}`}
+    to={`/virksomheder?category=${encodeURIComponent(cat.key)}`}
     className={`group relative isolate flex flex-col justify-between rounded-xl border border-border bg-card p-4 text-foreground shadow-premium transition-[border-color,box-shadow,transform] duration-300 motion-safe:hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-premium-lg 2xl:p-5 ${className ?? ""}`}
   >
     <div className="relative flex items-start justify-between">
@@ -106,7 +105,7 @@ const Categories = () => {
             {(expanded ? sorted : sorted.slice(0, 6)).map((cat) => (
               <Link
                 key={cat.key}
-                to={HUB_BY_KEY[cat.label] || `/search?category=${encodeURIComponent(cat.key)}`}
+                to={`/virksomheder?category=${encodeURIComponent(cat.key)}`}
                 className="flex min-h-[112px] min-w-0 flex-col justify-between rounded-xl border border-border bg-card p-3 text-foreground shadow-sm transition-colors active:border-foreground/30"
               >
                 <IndustryIcon category={cat.key} className="h-10 w-10" alt="" />
