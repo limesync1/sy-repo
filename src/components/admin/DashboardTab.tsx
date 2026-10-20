@@ -311,8 +311,8 @@ const DashboardTab = ({
   // ── Auto-insight — én smart sætning baseret på state ────────────────
   const insight = useMemo(() => {
     if (servicesCount === 0) return "Tilføj din første service — det er det eneste, der mangler før kunder kan booke.";
-    if (pendingOrders >= 3) return `${pendingOrders} bestillinger venter på svar — hver time tæller for konvertering.`;
-    if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første bestillinger.";
+    if (pendingOrders >= 3) return `${pendingOrders} aftaler venter på svar — hver time tæller for konvertering.`;
+    if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første aftaler.";
     if (revTrend.dir === "up" && stats.revenue7 > 0) return `Omsætningen er vokset ${revTrend.pct}% i denne uge — momentum er på jeres side.`;
     if (revTrend.dir === "down" && stats.revenuePrev7 > 0) return `Omsætningen er ${revTrend.pct}% under sidste uge — overvej at dele profilen eller justere priserne.`;
     if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede aftaler uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
@@ -361,7 +361,7 @@ const DashboardTab = ({
   const { actions, primaryActions } = useMemo(() => {
     const arr: Action[] = [];
     if (pendingOrders > 0) arr.push({
-      key: "pending", label: `Svar ${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
+      key: "pending", label: "Svar på aftaler",
       meta: "Hurtigt svar fordobler konverteringen", icon: Zap, illustration: "orders", tab: "orders", priority: 100, badge: String(pendingOrders), tone: "primary",
     });
     if (servicesCount === 0) arr.push({
@@ -377,7 +377,7 @@ const DashboardTab = ({
       meta: "Anmeldelser hæver konvertering markant", icon: Star, illustration: "reviewCount", tab: "reviews", priority: 70, tone: "accent",
     });
     if (newReviews > 0) arr.push({
-      key: "new-reviews", label: `${newReviews} ${newReviews === 1 ? "ny anmeldelse" : "nye anmeldelser"}`,
+      key: "new-reviews", label: "Nye anmeldelser",
       meta: "Kvittér og vis at I lytter", icon: MessageSquare, illustration: "reviewAverage", tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
     });
     if (shareUrl) arr.push({
@@ -393,7 +393,7 @@ const DashboardTab = ({
   }, [pendingOrders, servicesCount, completeness.pct, missingItems.length, reviewsCount, ordersCount, newReviews, shareUrl, copied]);
 
   return (
-    <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
+    <div className="mx-auto w-full max-w-[1600px] min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* Roligt velkomstfelt i panelets nye mørke/blå designsprog. */}
       <section
         className="panel-overview-hero relative isolate overflow-hidden rounded-md px-4 py-4 text-background shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7"
@@ -444,7 +444,7 @@ const DashboardTab = ({
          <div className="mt-4 grid min-w-0 grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-4 lg:mt-6">
           <SnapshotPill label="Aftaler i dag" value={`${stats.todayCount} ${stats.todayCount === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.todayRevenue)} kr. i omsætning`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Aftaler denne uge" value={`${stats.orders7} ${stats.orders7 === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.revenue7)} kr. i omsætning`} onClick={() => setOpenStat("orders")} />
-          <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "forespørgsel" : "forespørgsler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
+          <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "aftale" : "aftaler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
           <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
@@ -527,7 +527,7 @@ const DashboardTab = ({
                 <CardContent className="p-4 sm:p-5">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Ingen omsætning registreret på services endnu — så snart en bestilling med en service er udført, dukker top-listen op her.
+                    Ingen omsætning registreret på services endnu — så snart en aftale med en service er udført, dukker top-listen op her.
                   </p>
                 </CardContent>
               </Card>
@@ -1066,20 +1066,20 @@ const OrdersListSection = ({
       <>
         <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">Bestillinger fra kunder lander her, så snart de booker.</p>
+            <h3 className="text-sm font-semibold text-foreground">Seneste aftaler</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">Aftaler fra kunder lander her, så snart de booker.</p>
           </div>
         </div>
           <div className="p-3 sm:p-7">
           <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center sm:rounded-2xl sm:p-8">
             <NoItemsIcon />
-            <h4 className="mt-4 text-base font-semibold text-foreground">Ingen bestillinger endnu</h4>
+            <h4 className="mt-4 text-base font-semibold text-foreground">Ingen aftaler endnu</h4>
             <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
               {servicesCount === 0
                 ? "Først tilføj en service — derefter kan kunder finde og booke jer."
                 : completeness < 80
                   ? "Profilen er næsten klar. Færdiggør den, så I rangerer højere i søgningen."
-                  : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første bestillinger."}
+                  : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første aftaler."}
             </p>
             <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
@@ -1114,7 +1114,7 @@ const OrdersListSection = ({
       <div className="border-b border-border px-4 py-3 sm:px-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
+            <h3 className="text-sm font-semibold text-foreground">Seneste aftaler</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">Filtrér efter status eller søg på kunde, e-mail eller beløb.</p>
           </div>
           <button onClick={() => onNavigate?.("orders")} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -1217,7 +1217,7 @@ const OrdersListSection = ({
               onClick={() => onNavigate?.("orders")}
               className="flex w-full items-center justify-center gap-1.5 bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              Se alle {filtered.length} matchende bestillinger <ArrowRight className="h-3 w-3" />
+              Se alle {filtered.length} matchende aftaler <ArrowRight className="h-3 w-3" />
             </button>
           )}
         </div>
@@ -1226,11 +1226,11 @@ const OrdersListSection = ({
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
             <Search className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Ingen bestillinger matcher</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Ingen aftaler matcher</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {hasActiveFilters
               ? "Justér eller fjern et af de aktive filtre nedenfor."
-              : "Der er ingen bestillinger at vise her endnu."}
+              : "Der er ingen aftaler at vise her endnu."}
           </p>
           {hasActiveFilters && (
             <div className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-1.5">
@@ -1319,7 +1319,7 @@ const StatDetailSheet = ({
         };
       case "orders":
         return {
-          title: `Bestillinger · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
+          title: `Aftaler · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
           subtitle: "Skift mellem dag- og ugevisning herunder",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => {
@@ -1341,7 +1341,7 @@ const StatDetailSheet = ({
         };
       case "pending":
         return {
-          title: "Afventende bestillinger",
+          title: "Afventende aftaler",
           subtitle: "Svar hurtigt — hver time tæller for konverteringen",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => o.status === "pending"),
@@ -1425,7 +1425,7 @@ const StatDetailSheet = ({
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {config.mode === "revenue" ? "Total omsætning" : "Antal bestillinger"}
+                {config.mode === "revenue" ? "Total omsætning" : "Antal aftaler"}
               </p>
               <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {rangeDays === 1 ? "I dag" : `Seneste ${rangeDays} dage`}
@@ -1437,8 +1437,8 @@ const StatDetailSheet = ({
             {config.orders.length > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
                 {config.mode === "revenue"
-                  ? `${config.orders.length} bestillinger · gennemsnit ${fmtKr(totalValue / Math.max(1, config.orders.length))}`
-                  : `Ud af ${recentOrders.length} bestillinger i alt`}
+                  ? `${config.orders.length} aftaler · gennemsnit ${fmtKr(totalValue / Math.max(1, config.orders.length))}`
+                  : `Ud af ${recentOrders.length} aftaler i alt`}
               </p>
             )}
           </div>
@@ -1512,7 +1512,7 @@ const StatDetailSheet = ({
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="border-b border-border bg-secondary/40 px-4 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Relevante bestillinger ({config.orders.length})
+                Relevante aftaler ({config.orders.length})
               </p>
             </div>
             {config.orders.length > 0 ? (
@@ -1545,13 +1545,13 @@ const StatDetailSheet = ({
               </div>
             ) : (
               <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                Ingen bestillinger i denne periode.
+                Ingen aftaler i denne periode.
               </div>
             )}
           </div>
 
           <Button variant="outline" className="w-full" onClick={() => { onClose(); onNavigate?.("orders"); }}>
-            Åbn fuld bestillingsliste <ArrowRight className="ml-1.5 h-4 w-4" />
+            Åbn fuld aftaleliste <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         </div>
       </SheetContent>
