@@ -378,7 +378,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     </span>
                   </div>
                   <p className="px-1 pb-1 text-[11px] font-semibold text-muted-foreground">{roles.length > 1 ? "Vælg panel" : "Dit panel"}</p>
-                  <div className={`grid gap-1.5 ${roles.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                  <div className="grid gap-1.5">
                     {roles.map((r) => {
                       const main = r.to === preferredRole?.to;
                       return (
