@@ -15,6 +15,8 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/SEO";
 import PageHero from "@/components/landing/PageHero";
+import HeroHighlights from "@/components/landing/HeroHighlights";
+import { Gift as HhGift, Route as HhRoute, Unlock as HhUnlock } from "lucide-react";
 import { translateAuthError } from "@/lib/auth-errors";
 import AnimatedNumber from "@/components/admin/AnimatedNumber";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
@@ -363,6 +365,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         tone="amber"
         eyebrow={`${pricing?.trial_days ?? 14} dages gratis prøve · Intet kort kræves`}
         title={variant === "pricing" ? "Priser — sammensæt jeres abonnement" : "Bliv udbyder på Serviceydere"}
+        aside={<HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 14} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} />}
         subtitle={
           variant === "pricing"
             ? `Basis koster ${formatDkk(pricing?.base_price_dkk ?? 289)} kr./md. ekskl. moms med ruteplanlægningen inkluderet. Indtast CVR, vælg tilvalg og medarbejderlogins — så ser I præcis jeres egen pris, før I opretter noget.`
