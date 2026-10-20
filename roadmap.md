@@ -159,3 +159,8 @@
 - [x] «Opret bestilling» på Aftaler åbner/lukker uden at tegne hele siden om
 - [x] Forsiden: blå baggrund starter efter første visning, lavere opløsning/30 fps, sektioner hentes i forvejen
 - [x] Ruteplanlægger-guide (PDF + guide i appen) opdateret og nyt design
+
+## Overblik (20. okt. 18:20)
+- [x] Handlingskortet «Svar på aftaler»: tallet vises kun i badge, ikke dublet i label
+- [x] Overblik: «bestilling/bestillinger» → «aftale/aftaler» overalt (insight, pille, lister, tomme tilstande, detaljepanel)
+- [x] Overblik centreret med maks. bredde så rækker ikke strækkes på store skærme
