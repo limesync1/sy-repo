@@ -322,8 +322,8 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               aria-controls="public-mobile-menu"
             >
               <span className="relative block h-5 w-5" aria-hidden="true">
-                <Menu className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
-                <X className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
+                <Menu className={`absolute inset-0 !size-5 transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
+                <X className={`absolute inset-0 !size-5 transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
               </span>
             </Button>
           </div>
