@@ -10,15 +10,13 @@ import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
 // stadig så initial JS-bundle bliver markant mindre.
 import Categories from "@/components/landing/Categories";
-const sectionLoaders = [
-  () => import("@/components/landing/HowItWorks"),
-  () => import("@/components/landing/WhyUs"),
-  () => import("@/components/landing/FounderNote"),
-  () => import("@/components/landing/ForBusinesses"),
-  () => import("@/components/landing/CTABand"),
-  () => import("@/components/landing/Footer"),
-] as const;
-const [loadHow, loadWhy, loadFounder, loadFor, loadCta, loadFooter] = sectionLoaders;
+const loadHow = () => import("@/components/landing/HowItWorks");
+const loadWhy = () => import("@/components/landing/WhyUs");
+const loadFounder = () => import("@/components/landing/FounderNote");
+const loadFor = () => import("@/components/landing/ForBusinesses");
+const loadCta = () => import("@/components/landing/CTABand");
+const loadFooter = () => import("@/components/landing/Footer");
+const sectionLoaders = [loadHow, loadWhy, loadFounder, loadFor, loadCta, loadFooter];
 const HowItWorks        = lazy(loadHow);
 const WhyUs             = lazy(loadWhy);
 const FounderNote       = lazy(loadFounder);
