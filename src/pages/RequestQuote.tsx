@@ -481,7 +481,7 @@ const RequestQuote = () => {
                 </div>
               )}
               <p className="mt-2 text-xs text-muted-foreground">
-                💡 Jo mere konkret du er (m², antal, lokation, frekvens), jo bedre bliver matchet.
+                Tip: Jo mere konkret du er (m², antal, lokation, frekvens), jo bedre bliver matchet.
               </p>
             </div>
 

@@ -57,8 +57,8 @@ const PageHero = ({
 }: PageHeroProps) => {
   const padding =
     size === "compact"
-      ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
-      : "pb-9 pt-8 sm:pb-12 sm:pt-10 lg:pb-24 lg:pt-20";
+      ? "py-7 sm:py-9 lg:py-11"
+      : "py-8 sm:py-11 lg:py-14";
 
 
 
@@ -94,18 +94,18 @@ const PageHero = ({
 
       <div className={`public-content-enter relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding} ${allowOverflow ? "" : "z-10"}`}>
         <div className="max-w-3xl">
-          <h1 className="text-[1.75rem] font-semibold leading-[1.1] text-ocean-foreground sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
+          <h1 className="text-balance text-[1.75rem] font-semibold leading-[1.12] tracking-tight text-ocean-foreground sm:text-[2.25rem] lg:text-[2.75rem]">
             {title}
           </h1>
 
           {subtitle && (
-            <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-ocean-foreground/90 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
+            <p className="mt-3 max-w-xl text-[15px] leading-6 text-ocean-foreground/90 sm:mt-4 sm:text-base sm:leading-7">
               {subtitle}
             </p>
           )}
-          {children && <div className="mt-5 w-full max-w-2xl sm:mt-7">{children}</div>}
+          {children && <div className="mt-5 w-full max-w-2xl sm:mt-6">{children}</div>}
           {actions && (
-            <div className="mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:flex-wrap">
               {actions}
             </div>
           )}
