@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import { usePersistentPublicNavigation } from "./PublicNavigation";
 import BetaNotice from "./BetaNotice";
-import { Menu, X, ChevronDown, Search, FileText, Store, LayoutGrid, ChevronRight, LogIn, LogOut, UserPlus } from "lucide-react";
+import { Menu, X, ChevronDown, Search, FileText, Store, LayoutGrid, ChevronRight, LogIn, LogOut, UserPlus, Check } from "lucide-react";
 const MOBILE_ICONS = { search: Search, quote: FileText, business: Store, software: LayoutGrid } as const;
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -216,7 +216,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
     <nav aria-label="Serviceydere navigation" className="border-b border-border bg-site-header-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-14 items-center justify-between gap-2 py-2 lg:gap-4 lg:py-3">
-          <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
+          <Link to="/" className="flex shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Serviceydere forside">
             <img
               src="/serviceydere-logo-dark.webp"
             alt="Serviceydere – find og book lokale serviceydere i Danmark"
@@ -228,17 +228,20 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
              loading="eager"/>
           </Link>
 
-          <div className="hidden items-center gap-4 xl:gap-6 lg:flex" role="navigation" aria-label="Hovednavigation">
+          <div className="hidden items-center gap-3 xl:gap-5 lg:flex" role="navigation" aria-label="Hovednavigation">
             {NAV_GROUPS.map((group, i) => (
-              <div key={group.id} className={i ? "border-l border-border pl-4 xl:pl-6" : ""}>
-                <p className="mb-1 px-2 text-[11px] font-semibold text-muted-foreground">{group.label}</p>
-                <div className="flex items-center gap-1">
+              <div key={group.id}>
+                <p className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] font-semibold text-muted-foreground">
+                  <span className={`h-1 w-1 rounded-full ${i ? "bg-muted-foreground/60" : "bg-accent"}`} aria-hidden="true" />{group.label}
+                </p>
+                <div className="flex items-center gap-0.5 rounded-lg border border-border/70 bg-secondary/45 p-0.5">
                   {group.items.map((item) => {
                     const Icon = MOBILE_ICONS[item.key];
                     return (
                       <SmartLink key={item.key} to={item.to} aria-current={isActive(item.key) ? "page" : undefined}
-                        className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary active:bg-secondary"}`}>
-                        <Icon className="h-4 w-4 shrink-0 opacity-70" aria-hidden="true" />{item.label}
+                        className={`group relative inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-2 text-sm font-semibold transition-[background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${isActive(item.key) ? "bg-card text-foreground shadow-sm" : "text-foreground/80 hover:bg-card hover:text-foreground"}`}>
+                        <Icon className={`h-4 w-4 shrink-0 transition-colors ${isActive(item.key) ? "text-accent" : "text-muted-foreground group-hover:text-accent"}`} aria-hidden="true" />{item.label}
+                        <span aria-hidden="true" className={`absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-accent transition-transform duration-200 motion-reduce:transition-none ${isActive(item.key) ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
                       </SmartLink>
                     );
                   })}
@@ -251,31 +254,34 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
             {right}
 
             {user ? (
-              <div className="hidden items-center gap-1 lg:flex">
-                {preferredRole && <Button variant="outline" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-lg gap-2 border-foreground bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 hover:text-background">
+              <div className="hidden items-center rounded-lg border border-foreground bg-foreground lg:flex">
+                {preferredRole && <Button variant="ghost" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-l-lg rounded-r-none gap-2 px-3 font-semibold text-background hover:bg-background/10 hover:text-background">
                   <PanelIcon role={preferredRole} selected />
                   <span>{preferredRole.label}</span>
                 </Button>}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-11 w-11 rounded-lg" aria-label="Åbn kontomenu">
-                      <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                    <Button variant="ghost" size="icon" className="group h-11 w-11 rounded-l-none rounded-r-lg border-l border-background/20 text-background hover:bg-background/10 hover:text-background" aria-label="Åbn kontomenu">
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)] bg-card text-card-foreground">
-                    <DropdownMenuLabel className="font-normal">
-                      <span className="block text-xs text-muted-foreground">Logget ind som</span>
-                      <span className="block break-all text-sm font-semibold">{user.email}</span>
+                  <DropdownMenuContent align="end" sideOffset={10} className="w-80 max-w-[calc(100vw-2rem)] rounded-lg bg-card p-1.5 text-card-foreground shadow-xl">
+                    <DropdownMenuLabel className="flex items-center gap-3 px-2 py-3 font-normal">
+                      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-base font-semibold text-card-foreground">{(user.email || "?").charAt(0).toUpperCase()}</span>
+                      <span className="min-w-0">
+                        <span className="block text-xs text-muted-foreground">Logget ind som</span>
+                        <span className="block break-all text-sm font-semibold">{user.email}</span>
+                      </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="text-xs text-muted-foreground">{roles.length > 1 ? "Vælg panel" : "Dit panel"}</DropdownMenuLabel>
-                    {roles.map((r) => <DropdownMenuItem key={r.to} onClick={() => { handleSelectPanel(r.to); navigate(r.to); }} className="min-h-11 gap-2">
+                    {roles.map((r) => <DropdownMenuItem key={r.to} onClick={() => { handleSelectPanel(r.to); navigate(r.to); }} className={`min-h-12 gap-3 rounded-md ${r.to === preferredRole?.to ? "bg-secondary" : ""}`}>
                       <PanelIcon role={r} selected={false} />
                       <span className="flex-1">{r.label}</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                      {r.to === preferredRole?.to ? <Check className="h-4 w-4 text-accent" aria-hidden="true" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
                     </DropdownMenuItem>)}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="min-h-11 gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive">
+                    <DropdownMenuItem onClick={handleSignOut} className="min-h-11 gap-3 rounded-md bg-destructive/5 text-destructive focus:bg-destructive/10 focus:text-destructive">
                       <LogOut className="h-4 w-4" aria-hidden="true" />Log ud
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -283,7 +289,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               </div>
             ) : (
               <>
-                <Button asChild variant="outline" className="hidden h-11 rounded-lg px-3 font-semibold lg:inline-flex">
+                <Button asChild variant="ghost" className="hidden h-11 rounded-lg px-3 font-semibold lg:inline-flex">
                   <Link to="/log-ind">
                     <LogIn className="h-4 w-4" aria-hidden="true" />
                     Log ind
@@ -369,7 +375,8 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     {roles.map((r) => {
                       const main = r.to === preferredRole?.to;
                       return (
-                        <button
+                        <Button
+                          variant="outline"
                           key={r.to}
                           type="button"
                           onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
@@ -380,17 +387,18 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                           <img src={r.icon} alt="" className={`h-4 w-4 shrink-0 object-contain ${main ? "brightness-0 invert" : "opacity-75"}`} width={16} height={16} />
                           <span className="min-w-0 flex-1 truncate">{r.label}</span>
                           <ChevronRight className="h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
-                  <button
+                  <Button
+                    variant="outline"
                     type="button"
                     onClick={() => { setOpen(false); handleSignOut(); }}
                     className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <LogOut className="h-4 w-4" aria-hidden="true" />Log ud
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="mt-2 flex gap-2">
