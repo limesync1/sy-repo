@@ -185,6 +185,9 @@ const DynamicBusinessContent = () => {
             <span className="hidden truncate text-sm font-semibold text-foreground sm:inline">{business.name}</span>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/virksomheder" aria-label="Tilbage til søgning" className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-secondary md:hidden">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
             <Link to="/virksomheder" className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:bg-secondary/70">
               <ArrowLeft className="h-3.5 w-3.5" /> Tilbage til søgning
             </Link>
@@ -202,7 +205,7 @@ const DynamicBusinessContent = () => {
             {hasCover ? (
               <div
                 aria-label={`${business.name}${business.city ? ` i ${business.city}` : ""} – coverbillede`}
-                className="relative block aspect-[2/1] max-h-[180px] w-full sm:aspect-[16/6] sm:max-h-[230px] lg:aspect-[24/7] lg:max-h-[290px]"
+                className="relative block aspect-[3/1] w-full"
               >
                 {/* Blurret baggrund udfylder rammen, så smalle billeder ikke
                     efterlader tomme kanter */}
@@ -219,8 +222,8 @@ const DynamicBusinessContent = () => {
                   srcSet={imageSrcSet(business.cover_image_url, [640, 960, 1280, 1600], 78)}
                   alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
                   className="relative h-full w-full object-cover object-center"
-                  width={1600}
-                  height={610}
+                  width={1800}
+                  height={600}
                   sizes="(max-width: 640px) 100vw, (max-width: 1280px) 100vw, 1280px"
                   loading="eager"
                   decoding="async"
@@ -248,18 +251,18 @@ const DynamicBusinessContent = () => {
             <div className="relative z-10 -mt-10 shrink-0 md:-mt-12">
               {/* Logo-rammen tilpasser sig bredden, så brede ordmærker (fx
                   "Ready2Clean") ikke bliver klemt sammen i et lille kvadrat. */}
-              <div className="flex h-20 min-w-[5rem] max-w-[16rem] items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card px-3 shadow-xl md:h-24 md:max-w-[20rem] md:px-4">
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card p-1.5 shadow-xl md:h-28 md:w-28 md:p-2">
                 {business.logo_url ? (
                   <img
                     src={imageSrc(business.logo_url, 512, 85, "contain")}
                     alt={`${business.name} logo${business.city ? ` – ${business.city}` : ""}`}
-                    className="h-full w-auto max-w-full object-contain py-2"
+                    className="h-full w-full object-contain"
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
                   />
                 ) : (
-                  <div className="flex h-full w-20 items-center justify-center bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent md:w-24">
+                  <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent">
                     {business.name.charAt(0)}
                   </div>
                 )}
@@ -332,6 +335,20 @@ const DynamicBusinessContent = () => {
               {business.description && (
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground line-clamp-2 md:text-[0.95rem]">{business.description}</p>
               )}
+
+              {/* Mobil: hurtige handlinger, så kontakt og bestilling altid er ét tryk væk */}
+              <div className="mt-4 grid grid-cols-2 gap-2 md:hidden">
+                {services && services.length > 0 && (
+                  <Button onClick={scrollToServices} className={`h-12 gap-2 rounded-xl bg-accent font-semibold text-accent-foreground hover:bg-accent/90 ${business.phone ? "" : "col-span-2"}`}>
+                    Bestil <ArrowDown className="h-4 w-4" />
+                  </Button>
+                )}
+                {business.phone && (
+                  <Button asChild variant="outline" className={`h-12 gap-2 rounded-xl font-semibold ${services && services.length > 0 ? "" : "col-span-2"}`}>
+                    <a href={`tel:${business.phone}`}><Phone className="h-4 w-4" /> Ring</a>
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* CTA — kun på md+, knappen flyttes ind i sidebar på mobil for et renere hero */}
@@ -575,6 +592,35 @@ const DynamicBusinessContent = () => {
               </section>
             )}
 
+            {/* Kontakt — mobil/tablet, hvor sidebaren er skjult */}
+            {(business.phone || business.email || business.address) && (
+              <Card className="rounded-[2rem] border-border bg-card/90 shadow-sm lg:hidden">
+                <CardContent className="space-y-2 p-5">
+                  <h3 className="mb-1 font-bold text-foreground">Kontakt {business.name}</h3>
+                  {business.phone && (
+                    <a href={`tel:${business.phone}`} className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground active:bg-secondary">
+                      <Phone className="h-4 w-4 text-accent" />{business.phone}
+                    </a>
+                  )}
+                  {business.email && (
+                    <a href={`mailto:${business.email}`} className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground active:bg-secondary">
+                      <Mail className="h-4 w-4 shrink-0 text-accent" /><span className="truncate">{business.email}</span>
+                    </a>
+                  )}
+                  {business.address && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${business.address}${business.zip_code ? `, ${business.zip_code}` : ""}${business.city ? ` ${business.city}` : ""}`)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground active:bg-secondary"
+                    >
+                      <MapPin className="h-4 w-4 shrink-0 text-accent" />
+                      <span>{business.address}{business.zip_code ? `, ${business.zip_code}` : ""}{business.city ? ` ${business.city}` : ""}</span>
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Åbningstider — vises på tablet/mobil hvor sidebaren er skjult,
                 så brugeren stadig kan se hvornår virksomheden er åben. */}
             {openingHours.length > 0 && (
@@ -815,7 +861,7 @@ const BusinessPageSkeleton = () => (
     {/* Hero */}
     <header className="border-b border-border bg-background">
       <div className="mx-auto max-w-[92rem] px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
-        <Skeleton className="h-48 w-full rounded-[1.75rem] sm:h-56 md:h-72 lg:h-80" />
+        <Skeleton className="aspect-[3/1] w-full rounded-[1.75rem]" />
         <div className="relative flex flex-col gap-4 pb-6 md:flex-row md:items-start md:gap-6 md:pb-8">
           <Skeleton className="-mt-10 h-20 w-20 rounded-2xl border-4 border-background md:-mt-12 md:h-24 md:w-24" />
           <div className="flex-1 space-y-2.5 pt-1 md:pt-3">

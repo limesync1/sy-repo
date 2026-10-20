@@ -1323,17 +1323,29 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
-                    Vises lille i toppen af profilen, i søgeresultater og i e-mails. Brug et kvadratisk billede (fx 512×512 px) — gerne med transparent baggrund.
+                    Vises lille i toppen af profilen, i søgeresultater og i e-mails.
                   </p>
+                  <ul className="mt-2 space-y-1 text-[11.5px] leading-snug text-foreground/80">
+                    <li>✓ Kvadratisk, mindst 512×512 px</li>
+                    <li>✓ PNG med gennemsigtig eller hvid baggrund</li>
+                    <li>✓ Kun ikonet/mærket — lang tekst bliver for lille</li>
+                    <li>✓ Lidt luft rundt om kanten</li>
+                  </ul>
                 </div>
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
                   <FieldLabel optional>Coverbillede</FieldLabel>
                   <div className="mt-1">
-                    <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[360px]" />
+                    <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-[3/1]" className="w-full max-w-[420px]" />
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
-                    Vises som bredt banner øverst på jeres profilside. Brug et liggende billede (16:9, fx 1920×1080 px) som viser jeres arbejde, team eller bil.
+                    Vises som bredt banner øverst på jeres profilside i formatet 3:1.
                   </p>
+                  <ul className="mt-2 space-y-1 text-[11.5px] leading-snug text-foreground/80">
+                    <li>✓ Liggende billede, helst 1800×600 px (mindst 1200×400)</li>
+                    <li>✓ Et rigtigt foto af jeres arbejde, team eller bil</li>
+                    <li>✓ Hold det vigtigste i midten — kanterne kan blive skåret lidt</li>
+                    <li>✗ Undgå tekst og logo i billedet; logoet vises allerede nederst til venstre</li>
+                  </ul>
                 </div>
               </div>
             </div>
