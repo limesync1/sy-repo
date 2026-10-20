@@ -205,7 +205,7 @@ const DynamicBusinessContent = () => {
             {hasCover ? (
               <div
                 aria-label={`${business.name}${business.city ? ` i ${business.city}` : ""} – coverbillede`}
-                className="relative block aspect-[3/1] w-full"
+                className="relative block aspect-[3/1] w-full xl:aspect-[7/2]"
               >
                 {/* Blurret baggrund udfylder rammen, så smalle billeder ikke
                     efterlader tomme kanter */}
