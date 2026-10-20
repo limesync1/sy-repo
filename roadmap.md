@@ -1,3 +1,7 @@
+## Blå baggrunde på undersider og login (20. oktober)
+- [ ] Udvid læsbare blå animationer til fælles sidetoppe, afslutninger og login uden ændret indhold eller loginregler
+- [ ] Kontrollér sider, indlæsning, reduceret bevægelse og lyst/mørkt tema på mobil og computer
+
 ## Forsidens design (20. oktober)
 - [x] Forbedr blå WebGL-flader, sektionsrytme, kort og animationer uden ændring af indhold/priser
 - [x] Kontrollér alle fire blå sektioner ved 1280/390 px i lys/mørk visning; ingen overflow eller sidefejl. Synlig animation og statisk reduceret bevægelse målt; Find services gennemført. Build OK.
