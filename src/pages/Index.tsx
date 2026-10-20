@@ -17,7 +17,7 @@ const sectionLoaders = [
   () => import("@/components/landing/ForBusinesses"),
   () => import("@/components/landing/CTABand"),
   () => import("@/components/landing/Footer"),
-];
+] as const;
 const [loadHow, loadWhy, loadFounder, loadFor, loadCta, loadFooter] = sectionLoaders;
 const HowItWorks        = lazy(loadHow);
 const WhyUs             = lazy(loadWhy);
