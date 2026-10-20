@@ -1840,6 +1840,7 @@ img[loading="lazy"].is-error {
 /* Shared public/auth surfaces remain readable before the canvas loads. */
 .public-blue-surface { background-color: hsl(var(--hero-bg)); color: hsl(var(--ocean-foreground)); letter-spacing: 0; }
 .public-blue-surface :is(h1, h2, h3) { text-shadow: 0 1px 12px hsl(var(--hero-bg) / 0.6); letter-spacing: 0; }
+.public-blue-surface .bg-card :is(h1, h2, h3) { text-shadow: none; }
 .public-content-enter { animation: public-content-in 650ms ease-out both; }
 @keyframes public-content-in { from { opacity: 0.65; translate: 0 8px; } to { opacity: 1; translate: none; } }
 .auth-blue-panel :is(.auth-stat, .auth-quote) { background: hsl(var(--hero-bg) / 0.92); border-color: hsl(var(--ocean-foreground) / 0.28); }
