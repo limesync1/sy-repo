@@ -28,6 +28,8 @@ import {
 const ResultsMap = lazy(() => import("@/components/search/ResultsMap"));
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
+import HeroHighlights from "@/components/landing/HeroHighlights";
+import { ShieldCheck as HhShield, Star as HhStar, CalendarCheck as HhCal } from "lucide-react";
 import Footer from "@/components/landing/Footer";
 import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
 import SearchSuggest from "@/components/landing/SearchSuggest";
@@ -333,6 +335,7 @@ const SearchPage = () => {
         allowOverflow
         eyebrow="Find services"
         title="Find verificerede serviceydere."
+        aside={<HeroHighlights items={[{ icon: HhShield, title: "Verificerede virksomheder", text: "Virksomheder oprettet med CVR-nummer." }, { icon: HhStar, title: "Sammenlign", text: "Se priser og anmeldelser side om side." }, { icon: HhCal, title: "Book direkte", text: "Vælg service og dato uden mellemled." }]} />}
         subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."
       >
         <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />

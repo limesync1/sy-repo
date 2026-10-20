@@ -36,6 +36,8 @@ interface PageHeroProps {
    * sig over efterfølgende sticky-bars.
    */
   allowOverflow?: boolean;
+  /** Valgfri boks til højre på computer (under teksten på mobil). */
+  aside?: ReactNode;
 }
 
 /**
@@ -54,6 +56,7 @@ const PageHero = ({
   size = "default",
   tone: _tone = "ocean",
   allowOverflow = false,
+  aside,
 }: PageHeroProps) => {
   const padding =
     size === "compact"
@@ -93,6 +96,7 @@ const PageHero = ({
 
 
       <div className={`public-content-enter relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding} ${allowOverflow ? "" : "z-10"}`}>
+        <div className={aside ? "grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_400px] xl:gap-16" : ""}>
         <div className="max-w-3xl">
           <h1 className="text-balance text-[1.75rem] font-semibold leading-[1.12] tracking-tight text-ocean-foreground sm:text-[2.25rem] lg:text-[2.75rem]">
             {title}
@@ -110,6 +114,8 @@ const PageHero = ({
             </div>
           )}
 
+        </div>
+        {aside && <div className="hidden lg:block">{aside}</div>}
         </div>
 
       </div>
