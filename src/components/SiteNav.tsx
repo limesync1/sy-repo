@@ -183,6 +183,12 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   };
 
   useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
   if (hasPersistentNavigation && !persistent) return null;
 
   return (
@@ -312,94 +318,88 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               aria-expanded={open}
               aria-controls="public-mobile-menu"
             >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <span className="relative h-5 w-5">
+                <Menu className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
+                <X className={`absolute inset-0 h-5 w-5 transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
+              </span>
             </Button>
           </div>
         </div>
 
-        {open && (
-          <div id="public-mobile-menu" role="region" aria-label="Mobilmenu" className="mb-3 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-md border border-border bg-card p-2 shadow-xl lg:hidden">
-            {NAV_GROUPS.map((group, gi) => (
-              <div key={group.id} className={gi > 0 ? "mt-2" : ""}>
-                {gi > 0 && <div className="mb-2 h-px bg-border" />}
-                <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
-                  <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-                  <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">
-                    {group.label}
-                  </p>
-                </div>
-                {group.items.map((item) => (
-                  <SmartLink
-                    key={item.key}
-                    to={item.to}
-                    onClick={() => setOpen(false)}
-                    aria-current={isActive(item.key) ? "page" : undefined}
-                    className={`flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                      isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary active:bg-secondary"
-                    }`}
-                  >
-                    {item.label}
-                  </SmartLink>
-                ))}
+        <div
+          id="public-mobile-menu"
+          role="region"
+          aria-label="Mobilmenu"
+          aria-hidden={!open}
+          {...(!open ? ({ inert: "" } as Record<string, string>) : {})}
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none lg:hidden ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+        >
+          <div className="overflow-hidden">
+            <div className={`pb-3 transition-transform duration-300 ease-out motion-reduce:transition-none ${open ? "translate-y-0" : "-translate-y-2"}`}>
+              <div className="grid grid-cols-2 gap-2">
+                {NAV_GROUPS.flatMap((g) => g.items).map((item, i) => {
+                  const on = isActive(item.key);
+                  return (
+                    <SmartLink
+                      key={item.key}
+                      to={item.to}
+                      onClick={() => setOpen(false)}
+                      aria-current={on ? "page" : undefined}
+                      style={{ transitionDelay: open ? `${60 + i * 40}ms` : "0ms" }}
+                      className={`flex min-h-12 flex-col justify-center rounded-lg border px-3 py-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"} ${
+                        on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground active:bg-secondary"
+                      }`}
+                    >
+                      <span className={`text-[11px] font-semibold ${on ? "text-background/70" : "text-muted-foreground"}`}>
+                        {i < 2 ? "For kunder" : "For virksomheder"}
+                      </span>
+                      <span className="text-sm font-bold">{item.label}</span>
+                    </SmartLink>
+                  );
+                })}
               </div>
-            ))}
-            <div className="my-2 h-px bg-border" />
-            {user ? (
-              <>
-                {showSwitcher && (
+              <div className="mt-2 flex gap-2">
+                {user ? (
                   <>
-                    <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
-                      <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-                      <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Skift visning</p>
-                    </div>
-                    {roles.map((r) => (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        key={r.to}
-                        onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                        className={`min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-medium ${
-                          preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
-                        }`}
-                      >
-                       <PanelIcon role={r} selected={preferredRole?.to === r.to} size="lg" />{r.label}
+                    {preferredRole && (
+                      <Button type="button" onClick={() => { setOpen(false); navigate(preferredRole.to); }} className="min-h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
+                        <img src={preferredRole.icon} alt="" className="h-4 w-4 object-contain brightness-0 invert" width={16} height={16} />
+                        <span className="truncate">{preferredRole.label}</span>
                       </Button>
-                    ))}
-                    <div className="my-2 h-px bg-border" />
+                    )}
+                    <Button type="button" variant="outline" onClick={() => { setOpen(false); handleSignOut(); }} className="min-h-11 rounded-lg font-semibold">
+                      Log ud
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="min-h-11 flex-1 rounded-lg font-semibold">
+                      <Link to="/log-ind" onClick={() => setOpen(false)}>Log ind</Link>
+                    </Button>
+                    <Button asChild className="min-h-11 flex-1 rounded-lg bg-foreground font-semibold text-background hover:bg-foreground/90">
+                      <Link to="/log-ind?signup=1" onClick={() => setOpen(false)}>Opret konto</Link>
+                    </Button>
                   </>
                 )}
-                {preferredRole && !showSwitcher && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { setOpen(false); navigate(preferredRole.to); }}
-                    className="min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary active:bg-secondary"
-                  >
-                     <PanelIcon role={preferredRole} selected={false} size="lg" />Gå til {preferredRole.label}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => { setOpen(false); handleSignOut(); }}
-                  className="min-h-11 w-full justify-start gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary active:bg-secondary"
-                >
-                  <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>Log ud
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/log-ind" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-5 w-5 object-contain opacity-75" width={20} height={20} /></span>
-                  Log ind
-                </Link>
-                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-md px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  Opret konto
-                </Link>
-              </>
-            )}
+              </div>
+              {user && showSwitcher && (
+                <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5" aria-label="Skift visning">
+                  {roles.filter((r) => r.to !== preferredRole?.to).map((r) => (
+                    <button
+                      key={r.to}
+                      type="button"
+                      onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
+                      className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-semibold text-foreground active:bg-secondary"
+                    >
+                      <img src={r.icon} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} />
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
     </header>
