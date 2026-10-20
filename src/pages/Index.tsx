@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import HeroSection from "@/components/landing/HeroSection";
 import SEO from "@/components/SEO";
 import Reveal from "@/components/landing/Reveal";
@@ -10,14 +10,32 @@ import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
 // stadig så initial JS-bundle bliver markant mindre.
 import Categories from "@/components/landing/Categories";
-const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
-const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
-const FounderNote       = lazy(() => import("@/components/landing/FounderNote"));
-const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
-const CTABand           = lazy(() => import("@/components/landing/CTABand"));
-const Footer            = lazy(() => import("@/components/landing/Footer"));
+const sectionLoaders = [
+  () => import("@/components/landing/HowItWorks"),
+  () => import("@/components/landing/WhyUs"),
+  () => import("@/components/landing/FounderNote"),
+  () => import("@/components/landing/ForBusinesses"),
+  () => import("@/components/landing/CTABand"),
+  () => import("@/components/landing/Footer"),
+];
+const [loadHow, loadWhy, loadFounder, loadFor, loadCta, loadFooter] = sectionLoaders;
+const HowItWorks        = lazy(loadHow);
+const WhyUs             = lazy(loadWhy);
+const FounderNote       = lazy(loadFounder);
+const ForBusinesses     = lazy(loadFor);
+const CTABand           = lazy(loadCta);
+const Footer            = lazy(loadFooter);
 
 const Index = () => {
+  // Hent sektionerne længere nede i ledig tid efter første visning, så man
+  // aldrig ser pladsholdere, når man scroller.
+  useEffect(() => {
+    const ric = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
+    const run = () => sectionLoaders.forEach((load) => { void load(); });
+    const id = ric ? ric(run, { timeout: 2500 }) : window.setTimeout(run, 1200);
+    return () => { ric ? (window as any).cancelIdleCallback?.(id) : clearTimeout(id); };
+  }, []);
+
   // Beskriv hjemmesiden og organisationen, ikke skjulte FAQ’er eller udfasede HowTo-resultater.
   const jsonLd = [
     {
