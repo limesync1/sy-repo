@@ -27,6 +27,7 @@ const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 const GettingStartedTab = lazy(() => import("@/components/admin/onboarding/GettingStartedTab"));
+import AccountingSetupPrompt from "@/components/admin/onboarding/AccountingSetupPrompt";
 import NextStepBar from "@/components/admin/onboarding/NextStepBar";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import SEO from "@/components/SEO";
@@ -232,6 +233,7 @@ const AdminDashboard = () => {
 
       {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet
           indtil brugeren har genaktiveret med kortoplysninger. */}
+      {plan?.status !== "expired" && <AccountingSetupPrompt business={business} />}
       {plan?.status === "expired" && (
         <ReactivateDialog open businessId={business.id} businessName={business.name} />
       )}
