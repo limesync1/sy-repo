@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import { usePersistentPublicNavigation } from "./PublicNavigation";
@@ -77,6 +77,8 @@ const PanelIcon = ({ role, selected, size = "md" }: { role: PanelRole; selected:
 const SiteNav = ({ active, right, persistent = false }: Props) => {
   const hasPersistentNavigation = usePersistentPublicNavigation();
   const [open, setOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   // Læs præference synkront ved første render — så panel-knappen aldrig
   // "popper" fra tom → admin når brugeren navigerer mellem sider.
   const [selectedPanel, setSelectedPanel] = useState<string | null>(() => {
@@ -188,7 +190,19 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   }, []);
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        menuButtonRef.current?.focus();
+      }
+      if (e.key !== "Tab") return;
+      const focusable = Array.from(headerRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]') ?? [])
+        .filter((el) => el.getClientRects().length > 0 && !el.closest('[inert]'));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    };
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -197,7 +211,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   if (hasPersistentNavigation && !persistent) return null;
 
   return (
-    <header className="site-nav-light sticky top-0 z-40 bg-site-header-background" data-public-navigation>
+    <header ref={headerRef} className="site-nav-light sticky top-0 z-40 bg-site-header-background" data-public-navigation>
     <BetaNotice />
     <nav aria-label="Serviceydere navigation" className="border-b border-border bg-site-header-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -238,7 +252,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
 
             {user ? (
               <div className="hidden items-center gap-1 lg:flex">
-                {preferredRole && <Button onClick={() => navigate(preferredRole.to)} className="h-11 rounded-lg gap-2 px-3 font-semibold">
+                {preferredRole && <Button variant="outline" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-lg gap-2 border-foreground bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 hover:text-background">
                   <PanelIcon role={preferredRole} selected />
                   <span>{preferredRole.label}</span>
                 </Button>}
@@ -248,7 +262,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                       <ChevronDown className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)]">
+                  <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)] bg-card text-card-foreground">
                     <DropdownMenuLabel className="font-normal">
                       <span className="block text-xs text-muted-foreground">Logget ind som</span>
                       <span className="block break-all text-sm font-semibold">{user.email}</span>
@@ -275,7 +289,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                     Log ind
                   </Link>
                 </Button>
-                <Button asChild className="hidden h-11 rounded-lg bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 lg:inline-flex">
+                <Button asChild variant="outline" className="hidden h-11 rounded-lg border-foreground bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:inline-flex">
                   <Link to="/log-ind?signup=1">
                     Opret konto
                   </Link>
@@ -284,6 +298,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
             )}
 
             <Button
+              ref={menuButtonRef}
               type="button"
               variant="ghost"
               size="icon"
@@ -396,7 +411,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
       type="button"
       tabIndex={-1}
       aria-hidden="true"
-      onClick={() => setOpen(false)}
+      onClick={() => { setOpen(false); menuButtonRef.current?.focus(); }}
       className={`fixed inset-x-0 bottom-0 top-0 -z-10 bg-foreground/40 transition-opacity duration-300 motion-reduce:transition-none lg:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
     />
     </header>
