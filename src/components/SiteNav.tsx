@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import { usePersistentPublicNavigation } from "./PublicNavigation";
@@ -19,8 +19,6 @@ import customerPanelIcon from "@/assets/header-simple/Kundepanel_simpel.svg.asse
 import businessPanelIcon from "@/assets/header-simple/Virksomhedspanel_simpel.svg.asset.json";
 import employeePanelIcon from "@/assets/header-simple/Medarbejder_app_simpel.svg.asset.json";
 import platformAdminIcon from "@/assets/header-simple/Platform_admin_simpel.svg.asset.json";
-import logoutIcon from "@/assets/header-simple/Log_ud_simpel.svg.asset.json";
-import loginIcon from "@/assets/header-simple/Log_ind_simpel.svg.asset.json";
 
 interface Props {
   persistent?: boolean;
@@ -79,6 +77,8 @@ const PanelIcon = ({ role, selected, size = "md" }: { role: PanelRole; selected:
 const SiteNav = ({ active, right, persistent = false }: Props) => {
   const hasPersistentNavigation = usePersistentPublicNavigation();
   const [open, setOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   // Læs præference synkront ved første render — så panel-knappen aldrig
   // "popper" fra tom → admin når brugeren navigerer mellem sider.
   const [selectedPanel, setSelectedPanel] = useState<string | null>(() => {
@@ -134,10 +134,8 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
     return items;
   }, [business, myEmployee, pathname, user, userRoles]);
 
-  const showSwitcher = roles.length > 1;
   // Højest-magt panel er altid det første i listen (admin > business > employee > kunde).
   const highestRole = roles[0] || null;
-  const currentRole = roles.find((r) => r.current) || highestRole;
   const preferredRole = roles.find((role) => role.to === selectedPanel) || highestRole || null;
 
   useEffect(() => {
@@ -185,8 +183,26 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
 
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
+  useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        menuButtonRef.current?.focus();
+      }
+      if (e.key !== "Tab") return;
+      const focusable = Array.from(headerRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]') ?? [])
+        .filter((el) => el.tabIndex >= 0 && el.getClientRects().length > 0 && !el.closest('[inert]'));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    };
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -195,16 +211,16 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   if (hasPersistentNavigation && !persistent) return null;
 
   return (
-    <header className="site-nav-light sticky top-0 z-40 bg-site-header-background" data-public-navigation>
+    <header ref={headerRef} className="site-nav-light sticky top-0 z-40 bg-site-header-background" data-public-navigation>
     <BetaNotice />
     <nav aria-label="Serviceydere navigation" className="border-b border-border bg-site-header-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-14 items-center justify-between gap-2 py-2 lg:py-3.5">
+        <div className="flex min-h-14 items-center justify-between gap-2 py-2 lg:gap-4 lg:py-3">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
             <img
               src="/serviceydere-logo-dark.webp"
             alt="Serviceydere – find og book lokale serviceydere i Danmark"
-              className="h-8 w-auto sm:h-9 lg:h-12"
+              className="h-8 w-auto sm:h-9 lg:h-10"
               width={1920}
               height={539}
               decoding="async"
@@ -212,22 +228,22 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
              loading="eager"/>
           </Link>
 
-          {/* Rolig, enkel navigation. Rolleikonerne er forbeholdt panelhandlinger,
-              hvor de hjælper brugeren med at genkende den rigtige visning. */}
-          <div className="hidden items-center rounded-full border border-border bg-card p-1 shadow-sm lg:flex" role="navigation" aria-label="Hovednavigation">
-            {NAV_GROUPS.flatMap((group) => group.items).map((item) => (
-              <SmartLink
-                key={item.key}
-                to={item.to}
-                aria-current={isActive(item.key) ? "page" : undefined}
-                className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.key)
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground active:bg-secondary"
-                }`}
-              >
-                {item.label}
-              </SmartLink>
+          <div className="hidden items-center gap-4 xl:gap-6 lg:flex" role="navigation" aria-label="Hovednavigation">
+            {NAV_GROUPS.map((group, i) => (
+              <div key={group.id} className={i ? "border-l border-border pl-4 xl:pl-6" : ""}>
+                <p className="mb-1 px-2 text-[11px] font-semibold text-muted-foreground">{group.label}</p>
+                <div className="flex items-center gap-1">
+                  {group.items.map((item) => {
+                    const Icon = MOBILE_ICONS[item.key];
+                    return (
+                      <SmartLink key={item.key} to={item.to} aria-current={isActive(item.key) ? "page" : undefined}
+                        className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary active:bg-secondary"}`}>
+                        <Icon className="h-4 w-4 shrink-0 opacity-70" aria-hidden="true" />{item.label}
+                      </SmartLink>
+                    );
+                  })}
+                </div>
+              </div>
             ))}
           </div>
 
@@ -235,75 +251,45 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
             {right}
 
             {user ? (
-              <>
-                {preferredRole && (
-                  showSwitcher ? (
-                    <div className="hidden lg:inline-flex items-stretch overflow-hidden rounded-full bg-foreground text-background shadow-sm">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => navigate(preferredRole.to)}
-                        className="h-auto rounded-none px-3.5 py-2 text-sm font-semibold text-background hover:bg-foreground/90 hover:text-background"
-                        title={`Gå til ${preferredRole.label}`}
-                      >
-                        <PanelIcon role={preferredRole} selected />
-                        <span className="max-w-[160px] truncate">{preferredRole.label}</span>
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-auto rounded-none border-l border-background/20 px-2 text-background hover:bg-foreground/90 hover:text-background"
-                            aria-label="Skift panel"
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuLabel className="text-xs text-muted-foreground">Skift panel</DropdownMenuLabel>
-                          {roles.map((r) => (
-                            <DropdownMenuItem
-                              key={r.to}
-                              onClick={() => { handleSelectPanel(r.to); navigate(r.to); }}
-                              className={preferredRole.to === r.to ? "bg-secondary" : ""}
-                            >
-                               <span className="mr-2"><PanelIcon role={r} selected={false} size="lg" /></span>{r.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => navigate(preferredRole.to)}
-                      className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 lg:inline-flex"
-                    >
-                      <PanelIcon role={preferredRole} selected />{preferredRole.label}
+              <div className="hidden items-center gap-1 lg:flex">
+                {preferredRole && <Button variant="outline" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-lg gap-2 border-foreground bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 hover:text-background">
+                  <PanelIcon role={preferredRole} selected />
+                  <span>{preferredRole.label}</span>
+                </Button>}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-11 w-11 rounded-lg" aria-label="Åbn kontomenu">
+                      <ChevronDown className="h-4 w-4" aria-hidden="true" />
                     </Button>
-                  )
-                )}
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="hidden rounded-full border-border bg-background text-foreground hover:bg-secondary hover:text-foreground lg:inline-flex"
-                >
-                  <span className="mr-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-secondary"><img src={logoutIcon.url} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} /></span>Log ud
-                </Button>
-              </>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)] bg-card text-card-foreground">
+                    <DropdownMenuLabel className="font-normal">
+                      <span className="block text-xs text-muted-foreground">Logget ind som</span>
+                      <span className="block break-all text-sm font-semibold">{user.email}</span>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">{roles.length > 1 ? "Vælg panel" : "Dit panel"}</DropdownMenuLabel>
+                    {roles.map((r) => <DropdownMenuItem key={r.to} onClick={() => { handleSelectPanel(r.to); navigate(r.to); }} className="min-h-11 gap-2">
+                      <PanelIcon role={r} selected={false} />
+                      <span className="flex-1">{r.label}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    </DropdownMenuItem>)}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="min-h-11 gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive">
+                      <LogOut className="h-4 w-4" aria-hidden="true" />Log ud
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className="hidden rounded-full px-3 font-semibold lg:inline-flex">
+                <Button asChild variant="outline" className="hidden h-11 rounded-lg px-3 font-semibold lg:inline-flex">
                   <Link to="/log-ind">
-                    <span className="mr-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-secondary"><img src={loginIcon.url} alt="" className="h-4 w-4 object-contain opacity-75" width={16} height={16} /></span>
+                    <LogIn className="h-4 w-4" aria-hidden="true" />
                     Log ind
                   </Link>
                 </Button>
-                <Button asChild size="sm" className="hidden rounded-full bg-foreground px-3 font-semibold text-background shadow-sm hover:bg-foreground/90 lg:inline-flex">
+                <Button asChild variant="outline" className="hidden h-11 rounded-lg border-foreground bg-foreground px-3 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:inline-flex">
                   <Link to="/log-ind?signup=1">
                     Opret konto
                   </Link>
@@ -312,6 +298,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
             )}
 
             <Button
+              ref={menuButtonRef}
               type="button"
               variant="ghost"
               size="icon"
@@ -424,7 +411,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
       type="button"
       tabIndex={-1}
       aria-hidden="true"
-      onClick={() => setOpen(false)}
+      onClick={() => { setOpen(false); menuButtonRef.current?.focus(); }}
       className={`fixed inset-x-0 bottom-0 top-0 -z-10 bg-foreground/40 transition-opacity duration-300 motion-reduce:transition-none lg:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
     />
     </header>

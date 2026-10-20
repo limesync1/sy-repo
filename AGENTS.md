@@ -29,8 +29,8 @@
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
-- Public/auth blue areas share BlueFlowBackground: token phases, bounded DPR, visibility/motion pausing and safe entry preserve speed and contrast.
-- Panel headers share `PageHeader`/`.panel-page-hero`; public navigation stays outside suspense without duplicate local headers.
+- Public/auth BlueFlowBackground shares token phases, bounded DPR, visibility/motion pausing and safe entry for speed and contrast.
+- Panel headers share `PageHeader`/`.panel-page-hero`. Persistent public navigation shares audience groups and account actions to avoid drift.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.

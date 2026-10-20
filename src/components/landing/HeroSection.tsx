@@ -47,27 +47,28 @@ const HeroSection = () => {
           </div>
 
           <div className="animate-fade-in [animation-delay:300ms] mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:flex sm:flex-wrap sm:gap-3">
-            <SmartLink to="/tilbud" className="sm:w-auto">
-
               <Button
+                asChild
                 variant="heroLight"
                 size="lg"
                 className="group h-12 w-full gap-2 rounded-lg px-5 text-sm sm:px-7 font-semibold sm:w-auto"
               >
-                Indhent 3 tilbud
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                <SmartLink to="/tilbud">
+                  Indhent 3 tilbud
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </SmartLink>
               </Button>
-            </SmartLink>
-            <SmartLink to="/virksomheder" className="sm:w-auto">
               <Button
+                asChild
                 size="lg"
                 variant="heroDark"
                 className="group h-12 w-full gap-2 rounded-lg px-5 text-sm sm:px-7 font-semibold sm:w-auto"
               >
-                Find services
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                <SmartLink to="/virksomheder">
+                  Find services
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </SmartLink>
               </Button>
-            </SmartLink>
           </div>
         </div>
 
