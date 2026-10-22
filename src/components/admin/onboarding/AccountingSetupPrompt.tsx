@@ -39,6 +39,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
 
   useEffect(() => {
     if (isSuccess && !hasIntegration) setOpen(true);
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("vis-regnskab")) setOpen(true);
   }, [isSuccess, hasIntegration]);
 
   const remember = (choice: string) => window.localStorage.setItem(storageKey(business.id), choice);
