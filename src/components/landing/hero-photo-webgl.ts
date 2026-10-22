@@ -110,7 +110,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           if (!active) { previous = now; frame = requestAnimationFrame(draw); return; }
           if (active) elapsed += Math.min(now - previous, 50);
           previous = now;
-          const progress = Math.min(elapsed / 2600, 1);
+          const progress = Math.min(elapsed / 1500, 1);
           const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           const width = Math.max(1, Math.round(rect.width * dpr));
           const height = Math.max(1, Math.round(rect.height * dpr));
