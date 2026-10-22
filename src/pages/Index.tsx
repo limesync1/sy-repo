@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy } from "react";
+import DeferredSection from "@/components/landing/DeferredSection";
 import HeroSection from "@/components/landing/HeroSection";
 import SEO from "@/components/SEO";
 import Reveal from "@/components/landing/Reveal";
@@ -17,7 +18,6 @@ const loadFounder = () => import("@/components/landing/FounderNote");
 const loadFor = () => import("@/components/landing/ForBusinesses");
 const loadCta = () => import("@/components/landing/CTABand");
 const loadFooter = () => import("@/components/landing/Footer");
-const sectionLoaders = [loadHow, loadWhy, loadFounder, loadFor, loadCta, loadFooter];
 const HowItWorks        = lazy(loadHow);
 const WhyUs             = lazy(loadWhy);
 const FounderNote       = lazy(loadFounder);
@@ -26,15 +26,6 @@ const CTABand           = lazy(loadCta);
 const Footer            = lazy(loadFooter);
 
 const Index = () => {
-  // Hent sektionerne længere nede i ledig tid efter første visning, så man
-  // aldrig ser pladsholdere, når man scroller.
-  useEffect(() => {
-    const ric = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
-    const run = () => sectionLoaders.forEach((load) => { void load(); });
-    const id = ric ? ric(run, { timeout: 2500 }) : window.setTimeout(run, 1200);
-    return () => { ric ? (window as any).cancelIdleCallback?.(id) : clearTimeout(id); };
-  }, []);
-
   // Beskriv hjemmesiden og organisationen, ikke skjulte FAQ’er eller udfasede HowTo-resultater.
   const jsonLd = [
     {
@@ -103,20 +94,20 @@ const Index = () => {
           siden ikke på den langsomste sektion, og der er ingen hop. */}
       <main id="main">
         <Reveal><Categories /></Reveal>
-        <Suspense fallback={<SectionSkeleton cards={3} cardClassName="h-44" />}>
+        <DeferredSection fallback={<SectionSkeleton cards={3} cols="md:grid-cols-3" cardClassName="h-64" dark className="bg-ocean" />}>
           <Reveal><HowItWorks /></Reveal>
-        </Suspense>
-        <Suspense fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-40" />}>
+        </DeferredSection>
+        <DeferredSection fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-64" className="bg-secondary/40" />}>
           <Reveal><WhyUs /></Reveal>
-        </Suspense>
-        <Suspense fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-64" dark className="bg-ocean" />}>
+        </DeferredSection>
+        <DeferredSection fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-96" dark className="bg-ocean" />}>
           <Reveal><FounderNote /></Reveal>
-        </Suspense>
-        <Suspense fallback={<SectionSkeleton cards={6} cardClassName="h-40" />}>
+        </DeferredSection>
+        <DeferredSection fallback={<SectionSkeleton cards={3} cardClassName="h-64" className="bg-surface" />}>
           <Reveal><ForBusinesses /></Reveal>
-        </Suspense>
+        </DeferredSection>
 
-        <Suspense fallback={<SectionSkeleton cards={0} className="bg-background" dark />}>
+        <DeferredSection fallback={<SectionSkeleton cards={0} className="bg-ocean" dark />}>
           <Reveal className="bg-background">
             <CTABand
               animated
@@ -127,11 +118,11 @@ const Index = () => {
               secondary={{ label: "Find services", to: "/virksomheder" }}
             />
           </Reveal>
-        </Suspense>
+        </DeferredSection>
       </main>
-      <Suspense fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-32" dark className="bg-ocean" />}>
+      <DeferredSection fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-32" dark className="bg-ocean" />}>
         <Footer />
-      </Suspense>
+      </DeferredSection>
     </div>
   );
 };

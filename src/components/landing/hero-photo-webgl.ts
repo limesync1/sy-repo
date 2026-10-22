@@ -96,10 +96,18 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
         reverse = !reverse;
         let elapsed = 0, previous = performance.now();
         let revealed = false;
+        let rect = canvas.getBoundingClientRect();
+        const refreshSize = () => { rect = canvas.getBoundingClientRect(); };
+        const resize = new ResizeObserver(refreshSize);
+        resize.observe(canvas);
+        const visibility = new IntersectionObserver(refreshSize);
+        visibility.observe(canvas);
+        const finish = (ok: boolean) => { resize.disconnect(); visibility.disconnect(); complete = undefined; resolve(ok); };
+        complete = finish;
         const draw = (now: number) => {
-          if (disposed || gl.isContextLost()) { resolve(false); return; }
-          const rect = canvas.getBoundingClientRect();
+          if (disposed || gl.isContextLost()) { finish(false); return; }
           const active = !document.hidden && rect.bottom > 0 && rect.top < window.innerHeight && rect.width > 0;
+          if (!active) { previous = now; frame = requestAnimationFrame(draw); return; }
           if (active) elapsed += Math.min(now - previous, 50);
           previous = now;
           const progress = Math.min(elapsed / 2600, 1);
@@ -124,8 +132,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           else {
             textures.splice(0).forEach(t => gl.deleteTexture(t));
             gl.activeTexture(gl.TEXTURE0);
-            complete = undefined;
-            resolve(true);
+            finish(true);
           }
         };
         frame = requestAnimationFrame(draw);

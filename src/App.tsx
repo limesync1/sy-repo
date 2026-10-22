@@ -9,7 +9,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { EmployeeStatsSkeleton, RouteViewSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { AdminTabFallback, tabFromUrl } from "@/components/admin/shared/AdminTabFallback";
 import { PlannerPageSkeleton } from "@/components/route-planner/PlannerSkeleton";
@@ -253,11 +252,10 @@ const PageFallback = () => {
   }
   if (/^\/virksomhed\/?$/.test(path)) return <ShellSkeleton><AdminTabFallback tab={tabFromUrl()} /></ShellSkeleton>;
   if (isPanel) return <ShellSkeleton variant={path.startsWith("/medarbejder") ? "employee" : path.startsWith("/admin") ? "platform" : "business"} />;
-  const hasPublicHero = /^\/(virksomheder|tilbud|by|opret-virksomhed|hjaelp|om-os|kontakt|software|priser|guides|blog|anmeldelser|privatlivspolitik|vilkaar|cookies|databehandleraftale|underdatabehandlere|slet-data)(\/|$)/.test(path);
+  const hasPublicHero = /^\/(virksomheder|tilbud|by|rengoering|flyttehjaelp|haandvaerker|haveservice|opret-virksomhed|hjaelp|om-os|kontakt|software|priser|guides|blog|anmeldelser|privatlivspolitik|vilkaar|cookies|databehandleraftale|underdatabehandlere|slet-data)(\/|$)/.test(path) || TRADE_KINDS.some(kind => path.startsWith(`/${kind}/`));
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-label="Indlæser">
       <div className={hasPublicHero ? "public-blue-surface relative isolate overflow-hidden" : "bg-background"}>
-        {hasPublicHero && <BlueFlowBackground />}
         <div className="public-content-enter relative mx-auto max-w-7xl px-4 py-14 sm:px-8 sm:py-20">
           <Skeleton className="h-9 w-3/4 max-w-xl bg-current/10" />
           <Skeleton className="mt-5 h-4 w-full max-w-md bg-current/10" />

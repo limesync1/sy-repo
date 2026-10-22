@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { seoPrerenderHead } from "./scripts/seo-prerender-head";
+import { imagetools } from "vite-imagetools";
 // @ts-expect-error JavaScript-hjælperen har ikke sin egen TypeScript-erklæring.
 import { buildPlannerGuide } from "./scripts/build-planner-guide.mjs";
 
@@ -37,7 +38,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [react(), plannerGuidePlugin(), seoPrerenderHead(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), imagetools(), plannerGuidePlugin(), seoPrerenderHead(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

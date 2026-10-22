@@ -32,21 +32,25 @@ export default function BlueFlowBackground({ variant = "hero" }: { variant?: Blu
     let idleId: number | undefined;
     const ric = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
     const startWhenIdle = () => {
-      if (idleId !== undefined) return;
-      idleId = ric ? ric(() => setStarted(true), { timeout: 1200 }) : window.setTimeout(() => setStarted(true), 400);
+      if (idleId !== undefined || motion.matches || document.hidden) return;
+      const start = () => { if (visible && !motion.matches && !document.hidden) setStarted(true); idleId = undefined; };
+      idleId = ric ? ric(start, { timeout: 2000 }) : window.setTimeout(start, 1200);
     };
-    const sync = () => setAnimate(visible && !document.hidden && !motion.matches);
+    const sync = () => {
+      setAnimate(visible && !document.hidden && !motion.matches);
+      if (visible) startWhenIdle();
+    };
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       if (visible) startWhenIdle();
       sync();
-    }, { rootMargin: "200px 0px" });
+    });
     observer.observe(host);
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
       observer.disconnect();
-      if (idleId !== undefined) (window as any).cancelIdleCallback?.(idleId);
+      if (idleId !== undefined) { if (ric) (window as any).cancelIdleCallback?.(idleId); else clearTimeout(idleId); }
       motion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };

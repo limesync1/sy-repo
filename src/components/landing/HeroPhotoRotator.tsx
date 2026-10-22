@@ -13,22 +13,30 @@ export default function HeroPhotoRotator() {
     let visible = false;
     let cancelled = false;
     let index = 0;
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let preloadTimer: ReturnType<typeof setTimeout> | undefined;
+    let busy = false;
+    let prepared: HTMLImageElement | undefined;
     let renderer: ReturnType<typeof import("./hero-photo-webgl").createPhotoTransition>;
-    const observer = new IntersectionObserver(([entry]) => { visible = entry?.isIntersecting ?? false; });
-    if (host.current) observer.observe(host.current);
+    const active = () => visible && !document.hidden && !motion.matches;
+    const prepare = () => {
+      if (!active() || cancelled || prepared) return;
+      prepared = new Image();
+      prepared.fetchPriority = "low";
+      prepared.decoding = "async";
+      prepared.src = heroPhotos[(index + 1) % heroPhotos.length].src;
+      void prepared.decode().catch(() => { prepared = undefined; });
+    };
     const advance = async () => {
-      if (cancelled) return;
-      if (!visible || document.hidden || motion.matches) {
-        timer = setTimeout(advance, 1000);
-        return;
-      }
+      timer = undefined;
+      if (cancelled || !active() || busy) return;
+      busy = true;
       const next = (index + 1) % heroPhotos.length;
-      const image = new Image();
+      const image = prepared ?? new Image();
       image.src = heroPhotos[next].src;
       try {
         await image.decode();
-        if (cancelled) return;
+        if (cancelled || !active()) return;
         const from = baseImage.current;
         const target = canvas.current;
         if (!from || !target) return;
@@ -53,13 +61,31 @@ export default function HeroPhotoRotator() {
       } catch {
         if (!cancelled) setRendering(false);
       }
-      if (!cancelled) timer = setTimeout(advance, 16000);
+      finally { busy = false; prepared = undefined; sync(); }
     };
-    timer = setTimeout(advance, 16000);
+    const sync = () => {
+      clearTimeout(timer);
+      clearTimeout(preloadTimer);
+      timer = undefined;
+      if (cancelled || !active() || busy) return;
+      // Fetch only the next photo, after the first paint, never all five.
+      preloadTimer = setTimeout(prepare, 3000);
+      timer = setTimeout(advance, 16000);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+      sync();
+    });
+    if (host.current) observer.observe(host.current);
+    motion.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
     return () => {
       cancelled = true;
       observer.disconnect();
       clearTimeout(timer);
+      clearTimeout(preloadTimer);
+      motion.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
       renderer?.dispose();
     };
   }, []);
@@ -68,7 +94,7 @@ export default function HeroPhotoRotator() {
   return (
     <div ref={host} className="home-hero-photo relative h-[24rem] overflow-hidden rounded-lg border border-ocean-foreground/25 xl:h-[26rem] 2xl:h-[30rem]">
       <img ref={baseImage} src={photo.src} alt={photo.alt} width={photo.width} height={photo.height}
-        fetchPriority="high" decoding="async" loading="eager"
+        fetchPriority={current === 0 ? "high" : "auto"} decoding="async" loading="eager"
         className="absolute inset-0 h-full w-full object-cover object-center" />
       <canvas ref={canvas} aria-hidden="true" className={`pointer-events-none absolute inset-0 h-full w-full ${rendering ? "visible" : "invisible"}`} />
       <div className="home-photo-shade pointer-events-none absolute inset-0" />

@@ -21,7 +21,7 @@
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
 - Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
 
-- Business fallbacks use registry skeletons; empty customers use `NoItemsIcon`. Lazy customer/order hosts isolate modal state and keep values through exit.
+- Business fallbacks use immediate destination-tab registry skeletons; empty customers use `NoItemsIcon`. Shared skeletons constrain widths, wrap filters, and skip offscreen painting; public placeholders never mount WebGL. Lazy customer/order hosts isolate modal state and keep values through exit.
 
 - Mobile/touch field font rules cover portals; prevent focus zoom, preserve pinch zoom.
 
@@ -30,7 +30,7 @@
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - Public/auth BlueFlowBackground shares token phases, bounded DPR, visibility/motion pausing and safe entry for speed and contrast.
-- Homepage photos retain descriptive HTML images and ImageObject metadata; a lazy WebGL renderer uses an opaque photo-to-photo fold with a narrow feather and sideways motion blur, never a background phase, hard line or displaced subjects, with static fallback and reduced-motion/offscreen pausing.
+- Homepage photos use build-time WebP from original photos, matching image metadata, desktop-only mounting and one low-priority next-photo preload; timers stop when hidden or motion is reduced. The lazy WebGL fold preserves opaque coverage and static fallback. Below-fold sections mount near view to avoid competing with first paint.
 - Panel headers share `PageHeader`/`.panel-page-hero`. Persistent public navigation shares audience groups and account actions to avoid drift.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.

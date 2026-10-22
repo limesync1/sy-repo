@@ -1566,6 +1566,12 @@
 }
 
 /* ─── Smooth image loading ───
+ */
+/* Stop decorative placeholder work outside the viewport. */
+.loading-skeleton {
+  content-visibility: auto;
+}
+/* ─── Smooth image loading ───
    Lazy-loadede billeder fader blødt ind når de er færdig med at decode.
    En global capturing 'load'-listener i main.tsx sætter [data-loaded="true"]
    på <img>-elementer (og på dem der allerede er cachede ved mount). */
