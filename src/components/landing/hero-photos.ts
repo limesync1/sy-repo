@@ -1,13 +1,5 @@
-import windowBrush from "@/assets/home-hero/window-brush-enhanced.jpg?w=1280&format=webp&quality=88";
-import windowPolish from "@/assets/home-hero/window-polish-enhanced.jpg?w=1280&format=webp&quality=88";
-import roofCleaning from "@/assets/home-hero/roof-cleaning-enhanced.jpg?w=1280&format=webp&quality=88";
-import solarCleaning from "@/assets/home-hero/solar-cleaning-enhanced.jpg?w=1280&format=webp&quality=88";
-import paving from "@/assets/home-hero/paving-enhanced.jpg?w=1280&format=webp&quality=88";
+import photos from "./hero-photo-data.json";
 
-export const heroPhotos = [
-  { src: windowBrush, alt: "Vinduespudser vasker et udvendigt vindue med en teleskopbørste", width: 1280, height: 956 },
-  { src: windowPolish, alt: "Vinduespudser polerer et vindue med en klud", width: 1280, height: 956 },
-  { src: roofCleaning, alt: "Tagrensning med vand og teleskoplanse på et tegltag", width: 1280, height: 859 },
-  { src: solarCleaning, alt: "Rengøring af solpaneler med en børste på teleskopstang", width: 1280, height: 956 },
-  { src: paving, alt: "Belægningssten med synlige fuger og overfladestruktur i sollys", width: 1280, height: 859 },
-];
+export const heroPhotos = photos;
+export const HERO_PHOTO_SIZES = "(min-width: 1280px) 570px, (min-width: 1024px) 45vw, (min-width: 640px) 640px, calc(100vw - 32px)";
+export const photoSrcSet = (photo: typeof heroPhotos[number]) => `${photo.mobileSrc} 640w, ${photo.src} 1280w`;

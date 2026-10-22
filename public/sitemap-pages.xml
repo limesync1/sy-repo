@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://serviceydere.dk/</loc>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/0501fe37-9a4e-4f0f-885d-92aa99cf29cd/window-brush-1280.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/905e54d7-2a64-4ecf-a903-857e48280f1f/window-polish-1280.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/47138437-160b-453f-b22e-65d4b5ea097a/roof-cleaning-1280.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/d42f96ec-4de0-4abc-aac7-a2240f50602b/solar-cleaning-1280.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/2fc1df03-5992-4c9d-8410-b70cead263fc/paving-1280.webp</image:loc></image:image>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>

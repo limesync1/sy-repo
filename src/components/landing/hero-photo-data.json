@@ -1,0 +1,52 @@
+[
+  {
+    "id": "window-brush",
+    "title": "Udvendig vinduespudsning",
+    "alt": "Vinduespudser vasker et udvendigt vindue med en teleskopbørste",
+    "description": "Vinduespudser vasker et udvendigt vindue med en teleskopbørste. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
+    "src": "/__l5e/assets-v1/0501fe37-9a4e-4f0f-885d-92aa99cf29cd/window-brush-1280.webp",
+    "mobileSrc": "/__l5e/assets-v1/cb0fd1c6-e24e-42e5-8c5c-9a824c64e171/window-brush-640.webp",
+    "width": 1280,
+    "height": 956
+  },
+  {
+    "id": "window-polish",
+    "title": "Vinduespudsning med klud",
+    "alt": "Vinduespudser polerer et vindue med en klud",
+    "description": "Vinduespudser polerer et vindue med en klud. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
+    "src": "/__l5e/assets-v1/905e54d7-2a64-4ecf-a903-857e48280f1f/window-polish-1280.webp",
+    "mobileSrc": "/__l5e/assets-v1/23ba3e6a-c727-4901-8542-b9fa9d3c0073/window-polish-640.webp",
+    "width": 1280,
+    "height": 956
+  },
+  {
+    "id": "roof-cleaning",
+    "title": "Tagrensning",
+    "alt": "Tagrensning med vand og teleskoplanse på et tegltag",
+    "description": "Tagrensning med vand og teleskoplanse på et tegltag. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
+    "src": "/__l5e/assets-v1/47138437-160b-453f-b22e-65d4b5ea097a/roof-cleaning-1280.webp",
+    "mobileSrc": "/__l5e/assets-v1/6eeb083f-f330-4a7f-b3f1-226b5cc05064/roof-cleaning-640.webp",
+    "width": 1280,
+    "height": 859
+  },
+  {
+    "id": "solar-cleaning",
+    "title": "Rengøring af solpaneler",
+    "alt": "Rengøring af solpaneler med en børste på teleskopstang",
+    "description": "Rengøring af solpaneler med en børste på teleskopstang. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
+    "src": "/__l5e/assets-v1/d42f96ec-4de0-4abc-aac7-a2240f50602b/solar-cleaning-1280.webp",
+    "mobileSrc": "/__l5e/assets-v1/38e2d7b3-42b1-4a12-b52c-0c42f020bc15/solar-cleaning-640.webp",
+    "width": 1280,
+    "height": 956
+  },
+  {
+    "id": "paving",
+    "title": "Belægningssten i sollys",
+    "alt": "Belægningssten med synlige fuger og overfladestruktur i sollys",
+    "description": "Belægningssten med synlige fuger og overfladestruktur i sollys. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
+    "src": "/__l5e/assets-v1/2fc1df03-5992-4c9d-8410-b70cead263fc/paving-1280.webp",
+    "mobileSrc": "/__l5e/assets-v1/521f3a52-5a1c-421c-8bc9-34a0828e4dea/paving-640.webp",
+    "width": 1280,
+    "height": 859
+  }
+]
