@@ -30,7 +30,7 @@
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - Public/auth BlueFlowBackground shares token phases, bounded DPR, visibility/motion pausing and safe entry for speed and contrast.
-- Homepage photos share stable CDN WebP variants and a JSON metadata registry across responsive images, SEO and image sitemaps. DOM/WebGL use matching contain geometry to preserve subjects; preload only the next size-matched photo and pause hidden/reduced-motion timers. Below-fold sections mount near view.
+- Homepage photos share CDN WebP variants and JSON metadata across images, SEO and sitemaps. The frame follows each photo's natural ratio; WebGL smoothly adjusts it with contain geometry and temporary edge extension to avoid hard inner bars. Preload only the next photo; pause hidden/reduced-motion timers.
 - Panel headers share `PageHeader`/`.panel-page-hero`. Persistent public navigation shares audience groups and account actions to avoid drift.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.
