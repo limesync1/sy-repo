@@ -1,3 +1,8 @@
+## Rolig forside (22. oktober)
+- [ ] Ens billedformat og stabil ramme uden størrelsesskift
+- [ ] Gennemgå alle forsidens sektioner og ret konkrete designproblemer
+- [ ] Kontrollér billedrotation og hele forsiden på mobil/computer
+
 ## Mobilbilleder og Google (22. oktober)
 - [x] Vis fem fotos på mobil/tablet uden beskæring eller forvrængning med lette billedvarianter
 - [x] Saml titler, beskrivelser, alternativtekst og stabile billedadresser; opdatér Google-billeddata og sitemap
