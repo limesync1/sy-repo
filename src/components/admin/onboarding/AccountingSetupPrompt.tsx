@@ -39,7 +39,6 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
 
   useEffect(() => {
     if (isSuccess && !hasIntegration) setOpen(true);
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("vis-regnskab")) setOpen(true);
   }, [isSuccess, hasIntegration]);
 
   const remember = (choice: string) => window.localStorage.setItem(storageKey(business.id), choice);
@@ -48,7 +47,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) close(); }}>
-      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-lg flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh] sm:p-0">
+      <DialogContent className={`appointment-details-overlay planner-overlay flex flex-col gap-0 overflow-hidden rounded-md p-0 sm:p-0 ${step === "setup" ? "modal-large" : "max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-lg sm:max-h-[92vh]"}`}>
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5 sm:pr-14">
           <SheetHeaderBlock
             icon={<PanelIcon name="connectAccounting" className="h-14 w-14" />}

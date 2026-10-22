@@ -257,7 +257,7 @@ const ConnectCardShell = React.forwardRef<HTMLDivElement, {
   return (
     <div ref={ref} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-4 border-b border-border bg-secondary/40 px-5 py-4">
-        <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border p-2">
+        <div className="logo-chip-light flex h-12 w-16 shrink-0 items-center justify-center rounded-xl p-2 ring-1 ring-border">
           <img src={logo} alt={name} className="max-h-7 max-w-full object-contain" />
         </div>
         <div className="min-w-0 flex-1">
@@ -1455,7 +1455,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               onClick={() => startWizard(p.value)}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
+              <div className="provider-logo-band flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
                 <img src={p.logo} alt={`${p.label} logo`} className="max-h-10 max-w-[150px] object-contain" />
               </div>
               <div className="flex flex-1 flex-col p-5">

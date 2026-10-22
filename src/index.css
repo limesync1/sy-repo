@@ -2045,6 +2045,18 @@ img[loading="lazy"].is-error {
   }
 }
 
+/* Brand logos (e-conomic, Dinero) use dark wordmarks, so their chip stays
+   light in both themes — otherwise the program name is unreadable in dark mode. */
+.logo-chip-light {
+  background: #fff;
+  border-color: hsl(var(--border) / 0.6);
+}
+
+/* Same reason for the plate behind the provider cards in the picker. */
+.dark .provider-logo-band {
+  background: #fff;
+}
+
 @layer utilities {
   .modal-large {
     width: calc(100vw - 1rem) !important;
