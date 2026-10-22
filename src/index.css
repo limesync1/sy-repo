@@ -2091,3 +2091,8 @@ img[loading="lazy"].is-error {
     }
   }
 }
+
+/* Forsidens hero: lysere havflade og mindre mørk overflade, især på mobil. */
+.home-hero { --ocean: 200 78% 21%; --hero-bg: 200 78% 21%; }
+.home-hero .blue-flow-background::after { background: hsl(var(--hero-bg) / 0.12); }
+.dark .home-hero { --ocean: 204 60% 13%; --hero-bg: 204 60% 13%; }
