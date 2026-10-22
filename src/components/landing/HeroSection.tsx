@@ -73,7 +73,7 @@ const HeroSection = () => {
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
-        <div aria-hidden className="relative hidden lg:block">
+        <div className="relative hidden lg:block">
           <HeroPhotoRotator />
 
         </div>
