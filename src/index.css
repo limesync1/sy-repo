@@ -2052,6 +2052,11 @@ img[loading="lazy"].is-error {
   border-color: hsl(var(--border) / 0.6);
 }
 
+/* Same reason for the plate behind the provider cards in the picker. */
+.dark .provider-logo-band {
+  background: #fff;
+}
+
 @layer utilities {
   .modal-large {
     width: calc(100vw - 1rem) !important;

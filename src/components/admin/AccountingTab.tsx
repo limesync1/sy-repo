@@ -1455,7 +1455,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               onClick={() => startWizard(p.value)}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
+              <div className="provider-logo-band flex h-28 items-center justify-center border-b border-border bg-secondary/20 px-6">
                 <img src={p.logo} alt={`${p.label} logo`} className="max-h-10 max-w-[150px] object-contain" />
               </div>
               <div className="flex flex-1 flex-col p-5">
