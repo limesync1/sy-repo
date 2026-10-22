@@ -1891,20 +1891,6 @@ img[loading="lazy"].is-error {
   .homepage *, .blue-flow-background canvas, .public-content-enter { animation: none !important; transition: none !important; }
 }
 
-/* Opaque reveal: no ghosted faces, distortion, zoom or brightness flash. */
-.home-hero-photo .home-photo-incoming {
-  clip-path: inset(0 100% 0 0);
-}
-.home-hero-photo .home-photo-incoming.home-photo-revealed {
-  clip-path: inset(0);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .home-hero-photo .home-photo-incoming {
-    transition: clip-path 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    will-change: clip-path;
-  }
-}
-
 /* Solid CTA surfaces stay readable independently of the animated artwork. */
 .hero-action-light {
   background: hsl(var(--ocean-foreground));
