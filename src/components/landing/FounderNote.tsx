@@ -28,7 +28,7 @@ const FounderNote = () => {
   const openSupport = () => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"));
 
   return (
-  <section className="home-founder brand-blue-section relative isolate py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-24">
+  <section className="home-founder brand-blue-section relative isolate py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-20">
     <BlueFlowBackground variant="founder" />
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">

@@ -1888,8 +1888,8 @@ img[loading="lazy"].is-error {
   .home-step { position: relative; }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .home-step:hover, .home-reason:hover { transform: translateY(-4px); background: hsl(var(--hero-bg) / 0.96); border-color: hsl(var(--ocean-foreground) / 0.45); }
-  .homepage a:hover .icon-tile, .home-step:hover .icon-tile-glass { transform: translateY(-3px) rotate(-2deg); }
+  .home-step:hover, .home-reason:hover { background: hsl(var(--hero-bg) / 0.96); border-color: hsl(var(--ocean-foreground) / 0.45); }
+  .homepage a:hover .icon-tile, .home-step:hover .icon-tile-glass { transform: none; }
   .homepage :is(.icon-tile, .icon-tile-glass) { transition: transform 400ms ease; }
   .homepage #all-service-categories a:hover { border-color: hsl(var(--accent) / 0.65); }
 }

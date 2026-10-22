@@ -96,7 +96,7 @@ export default function HeroPhotoRotator() {
 
   const photo = heroPhotos[current];
   return (
-    <figure ref={host} style={{ aspectRatio: `${photo.width} / ${photo.height}` }} className="home-hero-photo relative w-full overflow-hidden rounded-lg bg-ocean">
+    <figure ref={host} className="home-hero-photo relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-ocean">
       <img ref={baseImage} src={photo.src} srcSet={photoSrcSet(photo)} sizes={HERO_PHOTO_SIZES} alt={photo.alt} title={photo.title} width={photo.width} height={photo.height}
         fetchPriority={current === 0 ? "high" : "auto"} decoding="async" loading="eager"
         className="absolute inset-0 h-full w-full object-contain object-center" />
