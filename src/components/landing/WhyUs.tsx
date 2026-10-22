@@ -36,7 +36,7 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="border-y border-border/70 bg-secondary/40 py-12 text-foreground sm:py-14 lg:py-16 2xl:py-24">
+    <section className="border-y border-border/70 bg-secondary/40 py-12 text-foreground sm:py-14 lg:py-16 2xl:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="max-w-2xl">
@@ -57,10 +57,10 @@ const WhyUs = () => {
           {benefits.map((b, i) => (
             <li
               key={b.title}
-              className="group relative flex h-full flex-col rounded-lg border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25"
+              className="group relative flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5 transition-colors duration-200 hover:border-foreground/25"
             >
               <div className="flex items-center justify-between">
-                <span className="icon-tile h-16 w-16 sm:h-20 sm:w-20">
+                <span className="icon-tile h-12 w-12 sm:h-16 sm:w-16">
                   <BrandedIllustration name={b.icon} className="h-full w-full" alt="" />
                 </span>
                 <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
@@ -80,7 +80,7 @@ const WhyUs = () => {
         <div className="mt-6 flex justify-end">
           <SmartLink
             to="/hjaelp#faq"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
           >
             Se spørgsmål og svar <ArrowRight className="h-4 w-4" />
           </SmartLink>

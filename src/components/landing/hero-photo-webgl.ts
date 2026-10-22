@@ -21,8 +21,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
     varying vec2 uv; uniform sampler2D photo; uniform sampler2D nextPhoto;
     uniform vec2 crop; uniform vec2 nextCrop; uniform float progress; uniform float direction;
     vec3 fitted(sampler2D tex, vec2 p){
-      // Edge extension only while the frame gently changes format:
-      // no hard inner rectangle or solid background strip.
+      // Uniform photo ratios keep the frame and subjects still.
       return texture2D(tex,clamp(p,vec2(0.),vec2(1.))).rgb;
     }
     // Soft-focus sampling: taps fan out sideways only where the fold passes,
@@ -99,7 +98,6 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
         complete = resolve;
         if (disposed || gl.isContextLost()) { resolve(false); return; }
         const a = texture(from), b = texture(to);
-        const host = canvas.parentElement;
         const fromAspect = from.naturalWidth / from.naturalHeight;
         const toAspect = to.naturalWidth / to.naturalHeight;
         gl.uniform1f(directionUniform, reverse ? 1 : 0);
@@ -121,8 +119,6 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           if (active) elapsed += Math.min(now - previous, 50);
           previous = now;
           const progress = Math.min(elapsed / 1500, 1);
-          if (host) host.style.aspectRatio = String(fromAspect + (toAspect - fromAspect) * smooth(progress));
-          refreshSize();
           const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           const width = Math.max(1, Math.round(rect.width * dpr));
           const height = Math.max(1, Math.round(rect.height * dpr));

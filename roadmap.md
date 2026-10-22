@@ -1,3 +1,8 @@
+## Rolig forside (22. oktober)
+- [x] Ens 4:3-billedformat og stabil ramme uden størrelsesskift; hele originalmotiver bevaret med udvidet billedkant
+- [x] Gennemgå alle forsidens sektioner; mere ens afstande, kompakte mobilkort og færre hoppende ikoner
+- [x] 13 tests bestået; fem mobilfotos uden rammebevægelse; seks sektioner ved 390/768/1280/3573 px uden overflow eller sidefejl; WebGL og mørk visning kontrolleret
+
 ## Mobilbilleder og Google (22. oktober)
 - [x] Vis fem fotos på mobil/tablet uden beskæring eller forvrængning med lette billedvarianter
 - [x] Saml titler, beskrivelser, alternativtekst og stabile billedadresser; opdatér Google-billeddata og sitemap

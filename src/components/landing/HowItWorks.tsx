@@ -25,7 +25,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="home-process brand-blue-section relative isolate py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-24">
+    <section className="home-process brand-blue-section relative isolate py-12 text-ocean-foreground sm:py-14 lg:py-16 2xl:py-20">
       <BlueFlowBackground variant="process" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
@@ -41,7 +41,7 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        <ol className="mt-8 grid gap-3 sm:mt-9 md:grid-cols-3 2xl:mt-14">
+        <ol className="mt-8 grid gap-3 sm:mt-9 md:grid-cols-3 2xl:mt-10">
             {steps.map((step, i) => (
               <li key={step.title} className="home-step rounded-lg border border-ocean-foreground/20 p-5 xl:p-6 2xl:p-7">
                 <div className="flex items-center gap-3 md:justify-between md:gap-4">

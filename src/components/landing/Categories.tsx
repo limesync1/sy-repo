@@ -51,7 +51,7 @@ const Categories = () => {
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background py-12 sm:py-14 lg:py-16 2xl:py-24">
+    <section className="bg-background py-12 sm:py-14 lg:py-16 2xl:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-7 flex flex-col gap-5 md:mb-8 md:flex-row md:items-end md:justify-between 2xl:mb-10">
           <div className="max-w-2xl">
@@ -106,7 +106,7 @@ const Categories = () => {
               <Link
                 key={cat.key}
                 to={`/virksomheder?category=${encodeURIComponent(cat.key)}`}
-                className="flex min-h-[112px] min-w-0 flex-col justify-between rounded-xl border border-border bg-card p-3 text-foreground shadow-sm transition-colors active:border-foreground/30"
+                className="flex min-h-[96px] min-w-0 flex-col justify-between rounded-lg border border-border bg-card p-3 text-foreground shadow-sm transition-colors active:border-foreground/30"
               >
                 <IndustryIcon category={cat.key} className="h-10 w-10" alt="" />
                 <span className="mt-2 break-words text-[14px] font-semibold leading-snug">{cat.label}</span>
