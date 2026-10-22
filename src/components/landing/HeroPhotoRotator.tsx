@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { heroPhotos } from "./hero-photos";
+import { heroPhotos, HERO_PHOTO_SIZES, photoSrcSet } from "./hero-photos";
 
 export default function HeroPhotoRotator() {
   const host = useRef<HTMLDivElement>(null);
@@ -24,6 +24,8 @@ export default function HeroPhotoRotator() {
       prepared = new Image();
       prepared.fetchPriority = "low";
       prepared.decoding = "async";
+      prepared.sizes = HERO_PHOTO_SIZES;
+      prepared.srcset = photoSrcSet(heroPhotos[(index + 1) % heroPhotos.length]);
       prepared.src = heroPhotos[(index + 1) % heroPhotos.length].src;
       void prepared.decode().catch(() => { prepared = undefined; });
     };
@@ -33,6 +35,8 @@ export default function HeroPhotoRotator() {
       busy = true;
       const next = (index + 1) % heroPhotos.length;
       const image = prepared ?? new Image();
+      image.sizes = HERO_PHOTO_SIZES;
+      image.srcset = photoSrcSet(heroPhotos[next]);
       image.src = heroPhotos[next].src;
       try {
         await image.decode();
@@ -92,12 +96,11 @@ export default function HeroPhotoRotator() {
 
   const photo = heroPhotos[current];
   return (
-    <div ref={host} className="home-hero-photo relative h-[24rem] overflow-hidden rounded-lg border border-ocean-foreground/25 xl:h-[26rem] 2xl:h-[30rem]">
-      <img ref={baseImage} src={photo.src} alt={photo.alt} width={photo.width} height={photo.height}
+    <figure ref={host} className="home-hero-photo relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-ocean-foreground/25 bg-ocean">
+      <img ref={baseImage} src={photo.src} srcSet={photoSrcSet(photo)} sizes={HERO_PHOTO_SIZES} alt={photo.alt} title={photo.title} width={photo.width} height={photo.height}
         fetchPriority={current === 0 ? "high" : "auto"} decoding="async" loading="eager"
-        className="absolute inset-0 h-full w-full object-cover object-center" />
+        className="absolute inset-0 h-full w-full object-contain object-center" />
       <canvas ref={canvas} aria-hidden="true" className={`pointer-events-none absolute inset-0 h-full w-full ${rendering ? "visible" : "invisible"}`} />
-      <div className="home-photo-shade pointer-events-none absolute inset-0" />
-    </div>
+    </figure>
   );
 }

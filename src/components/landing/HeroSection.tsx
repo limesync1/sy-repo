@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -15,14 +14,6 @@ import BlueFlowBackground from "./BlueFlowBackground";
  * får dybde uden at teksten ligger oven på et grumset foto.
  */
 const HeroSection = () => {
-  // Hidden photos must not compete with mobile text and navigation downloads.
-  const [showPhotos, setShowPhotos] = useState(() => window.matchMedia("(min-width: 1024px)").matches);
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    const sync = () => setShowPhotos(media.matches);
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
   return (
     <header
       className="home-hero relative z-30 isolate bg-ocean text-ocean-foreground"
@@ -82,8 +73,8 @@ const HeroSection = () => {
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
-        <div className="relative hidden lg:block">
-          {showPhotos && <HeroPhotoRotator />}
+        <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
+          <HeroPhotoRotator />
 
         </div>
       </div>

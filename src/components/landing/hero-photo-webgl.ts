@@ -1,3 +1,5 @@
+import { containPhotoScale } from "./photo-fit";
+
 /** Opaque photo-to-photo reveal: no background phase or displaced subjects. */
 export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl", { alpha: false, antialias: false, depth: false, preserveDrawingBuffer: true });
@@ -18,15 +20,20 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const fragment = compile(gl.FRAGMENT_SHADER, `precision mediump float;
     varying vec2 uv; uniform sampler2D photo; uniform sampler2D nextPhoto;
     uniform vec2 crop; uniform vec2 nextCrop; uniform float progress; uniform float direction;
+    uniform vec3 backdrop;
+    vec3 fitted(sampler2D tex, vec2 p){
+      if(p.x<0. || p.x>1. || p.y<0. || p.y>1.) return backdrop;
+      return texture2D(tex,p).rgb;
+    }
     // Soft-focus sampling: taps fan out sideways only where the fold passes,
     // so subjects stay still and the overlap reads as motion blur, not ghosting.
     vec3 soft(sampler2D tex, vec2 cr, vec2 p, float r){
       vec2 o=vec2(r*1.7,r*.5);
-      vec3 s=texture2D(tex,(p-.5)*cr+.5).rgb;
-      s+=texture2D(tex,(p+vec2(o.x,o.y)-.5)*cr+.5).rgb;
-      s+=texture2D(tex,(p+vec2(-o.x,o.y)-.5)*cr+.5).rgb;
-      s+=texture2D(tex,(p+vec2(o.x,-o.y)-.5)*cr+.5).rgb;
-      s+=texture2D(tex,(p+vec2(-o.x,-o.y)-.5)*cr+.5).rgb;
+      vec3 s=fitted(tex,(p-.5)*cr+.5);
+      s+=fitted(tex,(p+vec2(o.x,o.y)-.5)*cr+.5);
+      s+=fitted(tex,(p+vec2(-o.x,o.y)-.5)*cr+.5);
+      s+=fitted(tex,(p+vec2(o.x,-o.y)-.5)*cr+.5);
+      s+=fitted(tex,(p+vec2(-o.x,-o.y)-.5)*cr+.5);
       return s*.2;
     }
     void main(){
@@ -65,6 +72,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const nextCrop = gl.getUniformLocation(program, "nextCrop");
   const progressUniform = gl.getUniformLocation(program, "progress");
   const directionUniform = gl.getUniformLocation(program, "direction");
+  const backdropUniform = gl.getUniformLocation(program, "backdrop");
   gl.uniform1i(gl.getUniformLocation(program, "photo"), 0);
   gl.uniform1i(gl.getUniformLocation(program, "nextPhoto"), 1);
   let frame = 0;
@@ -92,6 +100,8 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
         complete = resolve;
         if (disposed || gl.isContextLost()) { resolve(false); return; }
         const a = texture(from), b = texture(to);
+        const background = getComputedStyle(canvas.parentElement ?? canvas).backgroundColor.match(/[\d.]+/g)?.map(Number);
+        if (background && background.length >= 3) gl.uniform3f(backdropUniform, background[0] / 255, background[1] / 255, background[2] / 255);
         gl.uniform1f(directionUniform, reverse ? 1 : 0);
         reverse = !reverse;
         let elapsed = 0, previous = performance.now();
@@ -119,8 +129,8 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           const aspect = width / height;
           const fromAspect = from.naturalWidth / from.naturalHeight;
           const toAspect = to.naturalWidth / to.naturalHeight;
-          gl.uniform2f(crop, Math.min(aspect / fromAspect, 1), Math.min(fromAspect / aspect, 1));
-          gl.uniform2f(nextCrop, Math.min(aspect / toAspect, 1), Math.min(toAspect / aspect, 1));
+          gl.uniform2f(crop, ...containPhotoScale(aspect, fromAspect));
+          gl.uniform2f(nextCrop, ...containPhotoScale(aspect, toAspect));
           gl.uniform1f(progressUniform, smooth(progress));
           gl.activeTexture(gl.TEXTURE0);
           gl.bindTexture(gl.TEXTURE_2D, a);
