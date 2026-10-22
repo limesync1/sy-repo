@@ -1,9 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calculator, CheckCircle2, Info, ArrowLeft, Loader2 } from "lucide-react";
+import { CheckCircle2, Info, ArrowLeft, Loader2 } from "lucide-react";
+import { PanelIcon } from "@/components/shared/PanelIcon";
+import { Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
 const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 
@@ -14,6 +16,8 @@ const storageKey = (id: string) => `accounting-setup-choice:${id}`;
  * Spørger nyoprettede virksomheder (uden regnskabsintegration) om de vil
  * forbinde deres regnskabsprogram, før de begynder at bruge systemet.
  * "Ja" viser præcis samme trin som Regnskab-siden.
+ * Vinduet følger samme design som Rediger profil: fritstående ikon uden
+ * baggrund eller ramme, sektioner på dæmpet baggrund og fast knaplinje.
  */
 export default function AccountingSetupPrompt({ business }: { business: { id: string; name: string; created_at?: string | null } }) {
   const [open, setOpen] = useState(false);
@@ -35,6 +39,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
 
   useEffect(() => {
     if (isSuccess && !hasIntegration) setOpen(true);
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("vis-regnskab")) setOpen(true);
   }, [isSuccess, hasIntegration]);
 
   const remember = (choice: string) => window.localStorage.setItem(storageKey(business.id), choice);
@@ -43,53 +48,66 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) close(); }}>
-      <DialogContent className={step === "setup" ? "modal-large flex flex-col gap-0 p-0" : "max-w-lg gap-0 p-0"}>
-        {step === "choice" ? (
-          <div className="flex flex-col">
-            <div className="flex flex-col items-center gap-3 px-6 pb-4 pt-7 text-center">
-              <span className="flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-accent">
-                <Calculator className="h-8 w-8" />
-              </span>
-              <DialogTitle className="text-xl font-semibold">Forbind jeres regnskabsprogram?</DialogTitle>
-              <DialogDescription className="text-sm leading-6 text-muted-foreground">
-                Så bliver kunder, fakturaer og betalinger sendt automatisk til fx e-conomic eller Dinero.
+      <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-lg flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh] sm:p-0">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5 sm:pr-14">
+          <SheetHeaderBlock
+            icon={<PanelIcon name="connectAccounting" className="h-14 w-14" />}
+            iconClassName="h-14 w-14 rounded-none !bg-transparent ring-0"
+            title={<DialogTitle className="text-base">{step === "setup" ? "Forbind regnskab" : "Forbind jeres regnskabsprogram?"}</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                {step === "setup"
+                  ? "Samme trin som på Regnskab-siden. I kan altid ændre det senere."
+                  : "Så bliver kunder, fakturaer og betalinger sendt automatisk til fx e-conomic eller Dinero."}
               </DialogDescription>
-            </div>
-            <div className="mx-6 flex gap-2.5 rounded-md border border-accent/40 bg-accent/10 p-3 text-sm leading-6 text-foreground">
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-              <p><strong>Vi anbefaler at gøre det nu</strong>, før I opretter kunder og aftaler. Så kommer alt med fra start, og I slipper for at flytte data bagefter.</p>
-            </div>
-            <ul className="mx-6 mt-3 space-y-1.5 text-sm text-foreground">
-              {["Fakturaer oprettes automatisk ved udført aftale", "Betalinger og kreditnotaer følger med", "Tager kun et par minutter – vi guider jer trin for trin"].map((t) => (
-                <li key={t} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />{t}</li>
-              ))}
-            </ul>
-            <div className="mt-5 flex flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">
-              <Button variant="outline" className="min-h-11" onClick={skip}>Kør uden integration</Button>
-              <Button className="min-h-11" onClick={() => { remember("setup"); setStep("setup"); }}>
+            }
+          />
+        </DialogHeader>
+
+        {step === "choice" ? (
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-secondary/20 px-3 py-4 sm:px-5">
+            <Section icon={<Info className="h-3.5 w-3.5" />} title="Vores anbefaling" tone="accent">
+              <p className="text-[13px] leading-6 text-foreground">
+                <strong>Gør det nu</strong>, før I opretter kunder og aftaler. Så kommer alt med fra start,
+                og I slipper for at flytte data bagefter.
+              </p>
+            </Section>
+            <Section icon={<CheckCircle2 className="h-3.5 w-3.5" />} title="Det får I" tone="emerald">
+              <ul className="space-y-2 text-[13px] leading-6 text-foreground">
+                {["Fakturaer oprettes automatisk ved udført aftale", "Betalinger og kreditnotaer følger med", "Tager kun et par minutter – vi guider jer trin for trin"].map((t) => (
+                  <li key={t} className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          </div>
+        ) : (
+          <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20 px-3 py-4 sm:px-5">
+            <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+              <AccountingTab businessId={business.id} businessName={business.name} />
+            </Suspense>
+          </div>
+        )}
+
+        <SheetFooterBar className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          {step === "choice" ? (
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={skip}>Kør uden integration</Button>
+              <Button className="min-h-11 flex-1 sm:flex-none" onClick={() => { remember("setup"); setStep("setup"); }}>
                 Ja, forbind regnskab
               </Button>
             </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-              <Button variant="ghost" size="sm" className="min-h-11 gap-1" onClick={() => setStep("choice")}>
+          ) : (
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <Button variant="ghost" className="min-h-11 gap-1.5 sm:flex-none" onClick={() => setStep("choice")}>
                 <ArrowLeft className="h-4 w-4" /> Tilbage
               </Button>
-              <DialogTitle className="text-base font-semibold">Forbind regnskab</DialogTitle>
-              <DialogDescription className="sr-only">Samme trin som på Regnskab-siden.</DialogDescription>
+              <Button className="min-h-11 flex-1 sm:flex-none" onClick={close}>Færdig</Button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-              <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
-                <AccountingTab businessId={business.id} businessName={business.name} />
-              </Suspense>
-            </div>
-            <div className="flex justify-end border-t border-border p-3">
-              <Button className="min-h-11" onClick={close}>Færdig</Button>
-            </div>
-          </>
-        )}
+          )}
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
