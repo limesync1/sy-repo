@@ -15,6 +15,7 @@ import { BRANCHES, branchCities } from "../src/pages/cities/branchRegistry";
 import { CITY_FACTS } from "../src/pages/cities/cityFacts";
 import { servicesForCity } from "../src/pages/cities/cityServices";
 import { SOFTWARE_PAGES } from "../src/pages/software/softwareRegistry";
+import heroPhotos from "../src/components/landing/hero-photo-data.json";
 
 const BASE_URL = "https://serviceydere.dk";
 
@@ -118,11 +119,12 @@ const toUrls = (es: SitemapEntry[]) =>
 const buildUrlset = (urls: ReturnType<typeof toUrls>) =>
   [
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`,
     ...urls.map((u) =>
       [
         `  <url>`,
         `    <loc>${escapeXml(u.loc)}</loc>`,
+        ...(u.loc === `${BASE_URL}/` ? heroPhotos.map(photo => `    <image:image><image:loc>${escapeXml(new URL(photo.src, BASE_URL).href)}</image:loc></image:image>`) : []),
         u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>` : null,
         u.changefreq ? `    <changefreq>${u.changefreq}</changefreq>` : null,
         u.priority ? `    <priority>${u.priority}</priority>` : null,

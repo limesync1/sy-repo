@@ -2,7 +2,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HeroPhotoRotator from "./HeroPhotoRotator";
 
-vi.mock("./hero-photos", () => ({ heroPhotos: [
+vi.mock("./hero-photos", () => ({ HERO_PHOTO_SIZES: "100vw", photoSrcSet: (photo: { src: string }) => `${photo.src} 1280w`, heroPhotos: [
   { src: "/first.webp", alt: "First", width: 1280, height: 956 },
   { src: "/second.webp", alt: "Second", width: 1280, height: 956 },
 ] }));

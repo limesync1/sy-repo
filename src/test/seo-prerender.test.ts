@@ -1,10 +1,20 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { renderRouteHead } from "../../scripts/seo-prerender-head";
+import { renderRouteHead, renderHomeHead } from "../../scripts/seo-prerender-head";
 
 const template = readFileSync("index.html", "utf8");
 
 describe("Static public SEO heads", () => {
+  it("exposes five stable image URLs without JS and keeps them off other pages", () => {
+    const home = renderHomeHead(template);
+    const doc = new DOMParser().parseFromString(home, "text/html");
+    const data = JSON.parse(doc.querySelector('[data-seo-home="1"]')?.textContent ?? "{}");
+    expect(data.image).toHaveLength(5);
+    expect(new Set(data.image.map((image: { contentUrl: string }) => image.contentUrl)).size).toBe(5);
+    expect(data.image.every((image: { contentUrl: string }) => image.contentUrl.startsWith("https://serviceydere.dk/__l5e/assets-v1/"))).toBe(true);
+    const other = renderRouteHead(home, { path: "/software", title: "Systemet", description: "Driftssystem" });
+    expect(other).not.toContain('data-seo-home="1"');
+  });
   it.each(["/virksomheder", "/rengoering/odense", "/software", "/blog/kategori/rengoering", "/v/firma"])("renders complete metadata for %s without JavaScript", (path) => {
     const html = renderRouteHead(template, { path, title: 'Priser & tilbud "lokalt"', description: "Find lokale virksomheder" });
     const doc = new DOMParser().parseFromString(html, "text/html");

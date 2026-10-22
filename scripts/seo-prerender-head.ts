@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
+import { HOME_TITLE, HOME_DESCRIPTION, homePageData } from "../src/components/landing/home-seo";
 
 const BASE_URL = "https://serviceydere.dk";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -21,6 +22,7 @@ export const renderRouteHead = (html: string, r: RouteMeta) => {
     isPartOf: { "@type": "WebSite", url: `${BASE_URL}/`, name: "Serviceydere" },
   }).replace(/</g, "\\u003c");
   return html
+    .replace(/<script\b[^>]*data-seo-home="1"[^>]*>[\s\S]*?<\/script>/g, "")
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*(")/, `$1${d}$2`)
     .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${t}$2`)
@@ -38,6 +40,9 @@ export const renderRouteHead = (html: string, r: RouteMeta) => {
 export const seoPrerenderHead = () => ({
   name: "seo-prerender-head",
   apply: "build" as const,
+  transformIndexHtml(html: string) {
+    return renderHomeHead(html);
+  },
   closeBundle() {
     const metaFile = resolve("scripts/.seo-routes.json");
     const indexFile = resolve("dist/index.html");
@@ -54,3 +59,10 @@ export const seoPrerenderHead = () => ({
     console.log(`seo-prerender-head: ${routes.length} routes`);
   },
 });
+
+/** Initial HTML exposes all five photos without depending on JavaScript. */
+export const renderHomeHead = (html: string) => html
+  .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(HOME_TITLE)}</title>`)
+  .replace(/(<meta (?:name="(?:description|twitter:description)"|property="og:description") content=")[^"]*(")/g, `$1${esc(HOME_DESCRIPTION)}$2`)
+  .replace(/<script\b[^>]*data-seo-home="1"[^>]*>[\s\S]*?<\/script>/g, "")
+  .replace(/<\/head>/, `<script type="application/ld+json" data-seo-home="1">${JSON.stringify(homePageData()).replace(/</g, "\\u003c")}</script>\n</head>`);

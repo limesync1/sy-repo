@@ -6,7 +6,7 @@ import Reveal from "@/components/landing/Reveal";
 import SiteNav from "@/components/SiteNav";
 import SectionSkeleton from "@/components/landing/SectionSkeleton";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
-import { heroPhotos } from "@/components/landing/hero-photos";
+import { HOME_TITLE, HOME_DESCRIPTION, homePageData } from "@/components/landing/home-seo";
 // Hero + de to nærmeste below-fold sektioner indlæses ivrigt, så brugeren
 // ikke ser en kort Suspense-flash når de scroller (det føltes som om
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
@@ -58,30 +58,14 @@ const Index = () => {
       },
       sameAs: OFFICIAL_PROFILE_URLS,
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      "@id": "https://serviceydere.dk/#webpage",
-      url: "https://serviceydere.dk/",
-      name: "Serviceydere – Find lokale services og få op til 3 tilbud",
-      inLanguage: "da-DK",
-      isPartOf: { "@id": "https://serviceydere.dk/#website" },
-      about: { "@id": "https://serviceydere.dk/#organization" },
-      image: heroPhotos.map(photo => ({
-        "@type": "ImageObject",
-        contentUrl: new URL(photo.src, "https://serviceydere.dk").href,
-        caption: photo.alt,
-        width: photo.width,
-        height: photo.height,
-      })),
-    },
+    homePageData(),
   ];
 
   return (
     <div className="homepage min-h-screen bg-background">
       <SEO
-        title="Serviceydere – Find lokale services og få op til 3 tilbud"
-        description="Find lokale serviceydere, sammenlign priser og book direkte. Få op til 3 gratis, uforpligtende tilbud på vinduespudsning, rengøring, haveservice og håndværk."
+        title={HOME_TITLE}
+        description={HOME_DESCRIPTION}
         image="https://storage.googleapis.com/gpt-engineer-file-uploads/kE6rxSrBOkSKYUFwx0bE4pFuwR73/social-images/social-1779134586683-Serviceydere-bk.webp"
         canonicalPath="/"
         keywords="serviceydere, find serviceydere, lokale serviceydere, tilbud, rengøring, håndværker, flyttehjælp, haveservice, maler, vvs, elektriker, tømrer, danmark"
