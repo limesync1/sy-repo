@@ -3,7 +3,7 @@ import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
-import heroImage from "@/assets/hero-window-cleaning.webp";
+import HeroPhotoRotator from "./HeroPhotoRotator";
 import BlueFlowBackground from "./BlueFlowBackground";
 
 /**
@@ -74,21 +74,7 @@ const HeroSection = () => {
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
         <div aria-hidden className="relative hidden lg:block">
-          <div className="home-hero-photo relative overflow-hidden rounded-lg border border-ocean-foreground/25">
-            <img
-              src={heroImage}
-              alt=""
-              width={1280}
-              height={960}
-              fetchPriority="high"
-              decoding="async"
-              loading="eager"
-              className="h-[24rem] w-full object-cover object-[65%_center] xl:h-[26rem] 2xl:h-[30rem]"
-            />
-            <div
-              className="home-photo-shade absolute inset-0"
-            />
-          </div>
+          <HeroPhotoRotator />
 
         </div>
       </div>
