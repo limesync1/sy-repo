@@ -17,13 +17,24 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
     void main(){uv=position*.5+.5;gl_Position=vec4(position,0.,1.);}`);
   const fragment = compile(gl.FRAGMENT_SHADER, `precision mediump float;
     varying vec2 uv; uniform sampler2D photo; uniform sampler2D nextPhoto;
-    uniform vec2 crop; uniform vec2 nextCrop; uniform float progress;
+    uniform vec2 crop; uniform vec2 nextCrop; uniform float progress; uniform float direction;
     void main(){
       vec3 a=texture2D(photo,(uv-.5)*crop+.5).rgb;
       vec3 b=texture2D(nextPhoto,(uv-.5)*nextCrop+.5).rgb;
-      float edge=progress*1.18-.09;
-      float mask=1.-smoothstep(edge-.004,edge+.004,uv.x+.08*(uv.y-.5));
-      gl_FragColor=vec4(mix(a,b,mask),1.);
+      // A flowing curtain, not a straight wipe: photographs stay stationary.
+      float envelope=sin(progress*3.14159265);
+      float wave=sin(uv.y*4.2+progress*2.4)*.12
+        +sin(uv.y*8.1-progress*1.8)*.035;
+      float x=mix(uv.x,1.-uv.x,direction);
+      float edge=progress*1.42-.21+wave*envelope;
+      float distance=x-edge;
+      float mask=1.-smoothstep(-.006,.006,distance);
+      vec3 c=mix(a,b,mask);
+      // Local shading gives the moving fold depth without a blank frame.
+      float fold=exp(-abs(distance)*65.)*envelope;
+      float light=exp(-abs(distance+.014)*100.)*envelope;
+      c=c*(1.-.13*fold)+c*.055*light;
+      gl_FragColor=vec4(c,1.);
     }`);
   const program = gl.createProgram();
   if (!program) return null;
@@ -41,10 +52,12 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const crop = gl.getUniformLocation(program, "crop");
   const nextCrop = gl.getUniformLocation(program, "nextCrop");
   const progressUniform = gl.getUniformLocation(program, "progress");
+  const directionUniform = gl.getUniformLocation(program, "direction");
   gl.uniform1i(gl.getUniformLocation(program, "photo"), 0);
   gl.uniform1i(gl.getUniformLocation(program, "nextPhoto"), 1);
   let frame = 0;
   let disposed = false;
+  let reverse = false;
   let complete: ((ok: boolean) => void) | undefined;
   const textures: WebGLTexture[] = [];
   const texture = (image: HTMLImageElement) => {
@@ -67,6 +80,8 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
         complete = resolve;
         if (disposed || gl.isContextLost()) { resolve(false); return; }
         const a = texture(from), b = texture(to);
+        gl.uniform1f(directionUniform, reverse ? 1 : 0);
+        reverse = !reverse;
         let elapsed = 0, previous = performance.now();
         let revealed = false;
         const draw = (now: number) => {
@@ -75,7 +90,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           const active = !document.hidden && rect.bottom > 0 && rect.top < window.innerHeight && rect.width > 0;
           if (active) elapsed += Math.min(now - previous, 50);
           previous = now;
-          const progress = Math.min(elapsed / 1400, 1);
+          const progress = Math.min(elapsed / 1900, 1);
           const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           const width = Math.max(1, Math.round(rect.width * dpr));
           const height = Math.max(1, Math.round(rect.height * dpr));
