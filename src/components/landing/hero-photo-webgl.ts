@@ -18,9 +18,10 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const fragment = compile(gl.FRAGMENT_SHADER, `precision mediump float;
     varying vec2 uv; uniform sampler2D photo; uniform sampler2D nextPhoto;
     uniform vec2 crop; uniform vec2 nextCrop; uniform float progress; uniform float direction;
-    // Soft-focus sampling: taps fan out only where the fold passes, so subjects never move.
+    // Soft-focus sampling: taps fan out sideways only where the fold passes,
+    // so subjects stay still and the overlap reads as motion blur, not ghosting.
     vec3 soft(sampler2D tex, vec2 cr, vec2 p, float r){
-      vec2 o=vec2(r,r*.8);
+      vec2 o=vec2(r*1.7,r*.5);
       vec3 s=texture2D(tex,(p-.5)*cr+.5).rgb;
       s+=texture2D(tex,(p+vec2(o.x,o.y)-.5)*cr+.5).rgb;
       s+=texture2D(tex,(p+vec2(-o.x,o.y)-.5)*cr+.5).rgb;
@@ -36,15 +37,16 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
       float x=mix(uv.x,1.-uv.x,direction);
       float edge=progress*1.30-.15+wave*envelope;
       float distance=x-edge;
-      float band=exp(-abs(distance)*9.);
-      // Wide feather plus local blur: the photos melt together across a soft fold.
-      vec3 a=soft(photo,crop,uv,.009*band);
-      vec3 b=soft(nextPhoto,nextCrop,uv,.009*band);
-      vec3 c=mix(a,b,1.-smoothstep(-.075,.075,distance));
+      float band=exp(-abs(distance)*11.);
+      // Narrow feather + heavy sideways blur: soft melt, no doubled subjects.
+      vec3 a=soft(photo,crop,uv,.016*band);
+      vec3 b=soft(nextPhoto,nextCrop,uv,.016*band);
+      vec3 c=mix(a,b,1.-smoothstep(-.045,.045,distance));
       // Barely-there shading keeps the fold readable without drawing a line.
-      c=c*(1.-.045*band*envelope)+c*.02*exp(-abs(distance+.02)*22.)*envelope;
+      c=c*(1.-.05*band*envelope)+c*.022*exp(-abs(distance+.016)*26.)*envelope;
       gl_FragColor=vec4(c,1.);
     }`);
+
 
   const program = gl.createProgram();
   if (!program) return null;
