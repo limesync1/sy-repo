@@ -1,3 +1,8 @@
+## Indlæsning og ventevisninger (22. oktober)
+- [ ] Optimér forsidens billeder, billedskift og prioritering uden at ændre motiverne
+- [ ] Gennemgå sidernes ventevisninger og ret fælles problemer med layout og animation
+- [ ] Kontrollér indlæsning, billedskift, reduceret bevægelse og relevante tests
+
 ## Forsidens billed-SEO og overgang (22. oktober)
 - [x] Gennemgå forsidens SEO, billedbeskrivelser og ens metadata uden ændring af sitemapmekanismen; frisk grundscanning har 9 beståede kontroller
 - [x] Erstat kantovergangen med rolig WebGL-overgang uden dobbeltbilleder; WebGL, fallback og reduceret bevægelse verificeret
