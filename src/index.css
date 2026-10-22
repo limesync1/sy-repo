@@ -1891,6 +1891,14 @@ img[loading="lazy"].is-error {
   .homepage *, .blue-flow-background canvas, .public-content-enter { animation: none !important; transition: none !important; }
 }
 
+/* Keep photograph blends independent of global control transition durations. */
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero-photo .home-photo-incoming {
+    transition: opacity 6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: opacity;
+  }
+}
+
 /* Solid CTA surfaces stay readable independently of the animated artwork. */
 .hero-action-light {
   background: hsl(var(--ocean-foreground));
