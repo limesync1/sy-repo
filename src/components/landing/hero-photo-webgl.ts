@@ -18,24 +18,34 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const fragment = compile(gl.FRAGMENT_SHADER, `precision mediump float;
     varying vec2 uv; uniform sampler2D photo; uniform sampler2D nextPhoto;
     uniform vec2 crop; uniform vec2 nextCrop; uniform float progress; uniform float direction;
+    // Soft-focus sampling: taps fan out only where the fold passes, so subjects never move.
+    vec3 soft(sampler2D tex, vec2 cr, vec2 p, float r){
+      vec2 o=vec2(r,r*.8);
+      vec3 s=texture2D(tex,(p-.5)*cr+.5).rgb;
+      s+=texture2D(tex,(p+vec2(o.x,o.y)-.5)*cr+.5).rgb;
+      s+=texture2D(tex,(p+vec2(-o.x,o.y)-.5)*cr+.5).rgb;
+      s+=texture2D(tex,(p+vec2(o.x,-o.y)-.5)*cr+.5).rgb;
+      s+=texture2D(tex,(p+vec2(-o.x,-o.y)-.5)*cr+.5).rgb;
+      return s*.2;
+    }
     void main(){
-      vec3 a=texture2D(photo,(uv-.5)*crop+.5).rgb;
-      vec3 b=texture2D(nextPhoto,(uv-.5)*nextCrop+.5).rgb;
-      // A flowing curtain, not a straight wipe: photographs stay stationary.
+      // A slow drifting swell instead of a straight wipe.
       float envelope=sin(progress*3.14159265);
-      float wave=sin(uv.y*4.2+progress*2.4)*.12
-        +sin(uv.y*8.1-progress*1.8)*.035;
+      float wave=sin(uv.y*2.3+progress*1.5)*.055
+        +sin(uv.y*4.7-progress*1.05)*.018;
       float x=mix(uv.x,1.-uv.x,direction);
-      float edge=progress*1.42-.21+wave*envelope;
+      float edge=progress*1.30-.15+wave*envelope;
       float distance=x-edge;
-      float mask=1.-smoothstep(-.006,.006,distance);
-      vec3 c=mix(a,b,mask);
-      // Local shading gives the moving fold depth without a blank frame.
-      float fold=exp(-abs(distance)*65.)*envelope;
-      float light=exp(-abs(distance+.014)*100.)*envelope;
-      c=c*(1.-.13*fold)+c*.055*light;
+      float band=exp(-abs(distance)*9.);
+      // Wide feather plus local blur: the photos melt together across a soft fold.
+      vec3 a=soft(photo,crop,uv,.009*band);
+      vec3 b=soft(nextPhoto,nextCrop,uv,.009*band);
+      vec3 c=mix(a,b,1.-smoothstep(-.075,.075,distance));
+      // Barely-there shading keeps the fold readable without drawing a line.
+      c=c*(1.-.045*band*envelope)+c*.02*exp(-abs(distance+.02)*22.)*envelope;
       gl_FragColor=vec4(c,1.);
     }`);
+
   const program = gl.createProgram();
   if (!program) return null;
   gl.attachShader(program, vertex);
