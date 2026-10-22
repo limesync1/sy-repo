@@ -18,8 +18,8 @@ describe("hero background scheduling", () => {
       constructor(callback: typeof intersect) { intersect = callback; }
       observe() {} disconnect() {}
     });
-    vi.spyOn(window, "matchMedia").mockImplementation(() => ({
-      matches: reduced, addEventListener() {}, removeEventListener() {},
+    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
+      matches: query.includes("min-width") ? true : reduced, addEventListener() {}, removeEventListener() {},
     } as unknown as MediaQueryList));
   });
   afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
