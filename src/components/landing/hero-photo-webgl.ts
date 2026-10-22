@@ -20,10 +20,10 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const fragment = compile(gl.FRAGMENT_SHADER, `precision mediump float;
     varying vec2 uv; uniform sampler2D photo; uniform sampler2D nextPhoto;
     uniform vec2 crop; uniform vec2 nextCrop; uniform float progress; uniform float direction;
-    uniform vec3 backdrop;
     vec3 fitted(sampler2D tex, vec2 p){
-      if(p.x<0. || p.x>1. || p.y<0. || p.y>1.) return backdrop;
-      return texture2D(tex,p).rgb;
+      // Edge extension only while the frame gently changes format:
+      // no hard inner rectangle or solid background strip.
+      return texture2D(tex,clamp(p,vec2(0.),vec2(1.))).rgb;
     }
     // Soft-focus sampling: taps fan out sideways only where the fold passes,
     // so subjects stay still and the overlap reads as motion blur, not ghosting.
@@ -72,7 +72,6 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
   const nextCrop = gl.getUniformLocation(program, "nextCrop");
   const progressUniform = gl.getUniformLocation(program, "progress");
   const directionUniform = gl.getUniformLocation(program, "direction");
-  const backdropUniform = gl.getUniformLocation(program, "backdrop");
   gl.uniform1i(gl.getUniformLocation(program, "photo"), 0);
   gl.uniform1i(gl.getUniformLocation(program, "nextPhoto"), 1);
   let frame = 0;
@@ -100,8 +99,9 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
         complete = resolve;
         if (disposed || gl.isContextLost()) { resolve(false); return; }
         const a = texture(from), b = texture(to);
-        const background = getComputedStyle(canvas.parentElement ?? canvas).backgroundColor.match(/[\d.]+/g)?.map(Number);
-        if (background && background.length >= 3) gl.uniform3f(backdropUniform, background[0] / 255, background[1] / 255, background[2] / 255);
+        const host = canvas.parentElement;
+        const fromAspect = from.naturalWidth / from.naturalHeight;
+        const toAspect = to.naturalWidth / to.naturalHeight;
         gl.uniform1f(directionUniform, reverse ? 1 : 0);
         reverse = !reverse;
         let elapsed = 0, previous = performance.now();
@@ -121,14 +121,14 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           if (active) elapsed += Math.min(now - previous, 50);
           previous = now;
           const progress = Math.min(elapsed / 1500, 1);
+          if (host) host.style.aspectRatio = String(fromAspect + (toAspect - fromAspect) * smooth(progress));
+          refreshSize();
           const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           const width = Math.max(1, Math.round(rect.width * dpr));
           const height = Math.max(1, Math.round(rect.height * dpr));
           if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
           gl.viewport(0, 0, width, height);
           const aspect = width / height;
-          const fromAspect = from.naturalWidth / from.naturalHeight;
-          const toAspect = to.naturalWidth / to.naturalHeight;
           gl.uniform2f(crop, ...containPhotoScale(aspect, fromAspect));
           gl.uniform2f(nextCrop, ...containPhotoScale(aspect, toAspect));
           gl.uniform1f(progressUniform, smooth(progress));
