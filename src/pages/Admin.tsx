@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useEffect, useRef, useState, lazy, Suspense, type ReactNode } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Sparkles } from "lucide-react";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
@@ -44,22 +44,6 @@ import {
 } from "@/lib/service-taxonomy";
 
 /* ─── Constants ─── */
-
-/**
- * DelayedFallback — undgår at skeletonen blinker på hurtige chunk-loads.
- * Først når ventetiden overstiger ~140 ms viser vi en loading-silhuet;
- * ellers går vi direkte fra den gamle fane til den nye uden mellemstation.
- */
-const DelayedFallback = ({ children, delay = 140 }: { children: ReactNode; delay?: number }) => {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const t = window.setTimeout(() => setShow(true), delay);
-    return () => window.clearTimeout(t);
-  }, [delay]);
-  return show ? <>{children}</> : <div className="min-h-[50vh]" />;
-};
-
-
 
 // Branche-katalog ligger centralt i src/lib/service-taxonomy.ts.
 // CreateBusinessForm bruger en kompakt visning af de mest brugte herfra.
