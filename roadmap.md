@@ -1,7 +1,7 @@
 ## Forsidens billed-SEO og overgang (22. oktober)
-- [ ] Gennemgå forsidens SEO, billedbeskrivelser og ens metadata uden ændring af sitemapmekanismen
-- [ ] Erstat kantovergangen med rolig WebGL-overgang uden dobbeltbilleder; kontrollér fallback og reduceret bevægelse
-- [ ] Kør SEO-tests og kontrollér billeder/overgang i browseren
+- [x] Gennemgå forsidens SEO, billedbeskrivelser og ens metadata uden ændring af sitemapmekanismen; frisk grundscanning har 9 beståede kontroller
+- [x] Erstat kantovergangen med rolig WebGL-overgang uden dobbeltbilleder; WebGL, fallback og reduceret bevægelse verificeret
+- [x] Kør SEO-tests og kontrollér billeder/overgang i browseren; 8 tests bestået, 5 billeddataobjekter, korrekt canonical og ingen mobil-overflow
 
 ## Offentlig computernavigation og hjemmeside (20. oktober)
 - [x] Finpuds navigation med afgrænsede publikumsgrupper, animeret sidemarkering, samlet panelknap, kontooversigt og tydeligt valgt panel. Verificeret ved 1024/1280/3233 px, kontomenu i begge temaer, faktisk log ud, sidelinks samt mobilens Tab/Escape uden overflow eller sidefejl; build OK.

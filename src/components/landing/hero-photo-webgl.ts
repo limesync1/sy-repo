@@ -61,6 +61,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement, shade: [number,
         if (disposed || gl.isContextLost()) { resolve(false); return; }
         const a = texture(from), b = texture(to);
         let elapsed = 0, previous = performance.now();
+        let revealed = false;
         const draw = (now: number) => {
           if (disposed || gl.isContextLost()) { resolve(false); return; }
           const rect = canvas.getBoundingClientRect();
@@ -79,7 +80,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement, shade: [number,
           gl.uniform1f(dim, smooth(progress < .5 ? progress * 2 : (1 - progress) * 2));
           gl.bindTexture(gl.TEXTURE_2D, progress < .5 ? a : b);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          if (elapsed === 0 || progress < .02) reveal();
+          if (!revealed) { revealed = true; reveal(); }
           if (progress < 1) frame = requestAnimationFrame(draw);
           else {
             textures.splice(0).forEach(t => gl.deleteTexture(t));
