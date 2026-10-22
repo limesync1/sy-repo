@@ -7,7 +7,7 @@ import paving from "@/assets/home-hero/paving-enhanced.jpg";
 
 const photos = [windowBrush, windowPolish, roofCleaning, solarCleaning, paving];
 
-/** Decode before a slow overblend; keep the outgoing photo fully opaque. */
+/** Reveal a decoded, opaque photo without overlapping translucent subjects. */
 export default function HeroPhotoRotator() {
   const host = useRef<HTMLDivElement>(null);
   const baseImage = useRef<HTMLImageElement>(null);
@@ -67,7 +67,7 @@ export default function HeroPhotoRotator() {
               timer = setTimeout(advance, 11000);
             });
           });
-        }, 6300);
+        }, 1500);
       } catch {
         // A failed image must never replace the visible photograph.
         timer = setTimeout(advance, 12000);
@@ -103,7 +103,7 @@ export default function HeroPhotoRotator() {
           src={photos[incoming]}
           alt=""
           decoding="async"
-          className={`home-photo-incoming absolute inset-0 h-full w-full object-cover object-center ${fading ? "opacity-100" : "opacity-0"}`}
+          className={`home-photo-incoming absolute inset-0 h-full w-full object-cover object-center ${fading ? "home-photo-revealed" : ""}`}
         />
       )}
       <div className="home-photo-shade pointer-events-none absolute inset-0" />

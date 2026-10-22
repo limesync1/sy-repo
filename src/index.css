@@ -1891,11 +1891,17 @@ img[loading="lazy"].is-error {
   .homepage *, .blue-flow-background canvas, .public-content-enter { animation: none !important; transition: none !important; }
 }
 
-/* Keep photograph blends independent of global control transition durations. */
+/* Opaque reveal: no ghosted faces, distortion, zoom or brightness flash. */
+.home-hero-photo .home-photo-incoming {
+  clip-path: inset(0 100% 0 0);
+}
+.home-hero-photo .home-photo-incoming.home-photo-revealed {
+  clip-path: inset(0);
+}
 @media (prefers-reduced-motion: no-preference) {
   .home-hero-photo .home-photo-incoming {
-    transition: opacity 6s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    will-change: opacity;
+    transition: clip-path 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: clip-path;
   }
 }
 

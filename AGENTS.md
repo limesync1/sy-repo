@@ -30,7 +30,7 @@
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - Public/auth BlueFlowBackground shares token phases, bounded DPR, visibility/motion pausing and safe entry for speed and contrast.
-- Homepage photos use an isolated rotator with decoded incoming images over an opaque outgoing image; pause offscreen and respect reduced motion to avoid flashes and unnecessary work.
+- Homepage photos use an isolated rotator with decoded opaque images and clipped reveals, never translucent double exposures; pause offscreen and respect reduced motion to avoid discomfort and unnecessary work.
 - Panel headers share `PageHeader`/`.panel-page-hero`. Persistent public navigation shares audience groups and account actions to avoid drift.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.
