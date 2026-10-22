@@ -4,49 +4,49 @@
     "title": "Udvendig vinduespudsning",
     "alt": "Vinduespudser vasker et udvendigt vindue med en teleskopbørste",
     "description": "Vinduespudser vasker et udvendigt vindue med en teleskopbørste. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
-    "src": "/__l5e/assets-v1/0501fe37-9a4e-4f0f-885d-92aa99cf29cd/window-brush-1280.webp",
-    "mobileSrc": "/__l5e/assets-v1/cb0fd1c6-e24e-42e5-8c5c-9a824c64e171/window-brush-640.webp",
+    "src": "/__l5e/assets-v1/d0df11fd-26e4-4fb6-8176-c4d42ad75ab0/window-brush-1280-uniform.webp",
+    "mobileSrc": "/__l5e/assets-v1/d4fbab16-e2eb-4991-b438-ae6f1bd87f0b/window-brush-640-uniform.webp",
     "width": 1280,
-    "height": 956
+    "height": 960
   },
   {
     "id": "window-polish",
     "title": "Vinduespudsning med klud",
     "alt": "Vinduespudser polerer et vindue med en klud",
     "description": "Vinduespudser polerer et vindue med en klud. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
-    "src": "/__l5e/assets-v1/905e54d7-2a64-4ecf-a903-857e48280f1f/window-polish-1280.webp",
-    "mobileSrc": "/__l5e/assets-v1/23ba3e6a-c727-4901-8542-b9fa9d3c0073/window-polish-640.webp",
+    "src": "/__l5e/assets-v1/373fa75a-c570-4d49-ace3-0e4d7c9f6bb5/window-polish-1280-uniform.webp",
+    "mobileSrc": "/__l5e/assets-v1/81de0e1b-fdfb-474f-b9bc-770865ccfb6f/window-polish-640-uniform.webp",
     "width": 1280,
-    "height": 956
+    "height": 960
   },
   {
     "id": "roof-cleaning",
     "title": "Tagrensning",
     "alt": "Tagrensning med vand og teleskoplanse på et tegltag",
     "description": "Tagrensning med vand og teleskoplanse på et tegltag. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
-    "src": "/__l5e/assets-v1/47138437-160b-453f-b22e-65d4b5ea097a/roof-cleaning-1280.webp",
-    "mobileSrc": "/__l5e/assets-v1/6eeb083f-f330-4a7f-b3f1-226b5cc05064/roof-cleaning-640.webp",
+    "src": "/__l5e/assets-v1/3749119e-a35e-4a90-8740-43fa67234f84/roof-cleaning-1280-uniform.webp",
+    "mobileSrc": "/__l5e/assets-v1/5641c721-ffb9-4d90-9a1e-0bed680cabdb/roof-cleaning-640-uniform.webp",
     "width": 1280,
-    "height": 859
+    "height": 960
   },
   {
     "id": "solar-cleaning",
     "title": "Rengøring af solpaneler",
     "alt": "Rengøring af solpaneler med en børste på teleskopstang",
     "description": "Rengøring af solpaneler med en børste på teleskopstang. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
-    "src": "/__l5e/assets-v1/d42f96ec-4de0-4abc-aac7-a2240f50602b/solar-cleaning-1280.webp",
-    "mobileSrc": "/__l5e/assets-v1/38e2d7b3-42b1-4a12-b52c-0c42f020bc15/solar-cleaning-640.webp",
+    "src": "/__l5e/assets-v1/310221af-2c8f-4ae3-98ba-fab2e2a7e80e/solar-cleaning-1280-uniform.webp",
+    "mobileSrc": "/__l5e/assets-v1/5fc8c9a9-eeaa-4abc-b390-2f1807af4ccb/solar-cleaning-640-uniform.webp",
     "width": 1280,
-    "height": 956
+    "height": 960
   },
   {
     "id": "paving",
     "title": "Belægningssten i sollys",
     "alt": "Belægningssten med synlige fuger og overfladestruktur i sollys",
     "description": "Belægningssten med synlige fuger og overfladestruktur i sollys. Se lokale serviceydere og sammenlign tilbud på Serviceydere.",
-    "src": "/__l5e/assets-v1/2fc1df03-5992-4c9d-8410-b70cead263fc/paving-1280.webp",
-    "mobileSrc": "/__l5e/assets-v1/521f3a52-5a1c-421c-8bc9-34a0828e4dea/paving-640.webp",
+    "src": "/__l5e/assets-v1/85ec67c4-389e-400f-a2f2-0de8ad9d81cc/paving-1280-uniform.webp",
+    "mobileSrc": "/__l5e/assets-v1/8ce81db1-9139-4986-904d-210b6548c2c4/paving-640-uniform.webp",
     "width": 1280,
-    "height": 859
+    "height": 960
   }
 ]
