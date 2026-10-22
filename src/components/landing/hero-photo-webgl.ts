@@ -83,7 +83,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
     return t;
   };
-  const smooth = (x: number) => x * x * (3 - 2 * x);
+  const smooth = (x: number) => x * x * x * (x * (x * 6 - 15) + 10);
   return {
     transition(from: HTMLImageElement, to: HTMLImageElement, reveal: () => void) {
       return new Promise<boolean>((resolve) => {
@@ -100,7 +100,7 @@ export function createPhotoTransition(canvas: HTMLCanvasElement) {
           const active = !document.hidden && rect.bottom > 0 && rect.top < window.innerHeight && rect.width > 0;
           if (active) elapsed += Math.min(now - previous, 50);
           previous = now;
-          const progress = Math.min(elapsed / 1900, 1);
+          const progress = Math.min(elapsed / 2600, 1);
           const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           const width = Math.max(1, Math.round(rect.width * dpr));
           const height = Math.max(1, Math.round(rect.height * dpr));
