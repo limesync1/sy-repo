@@ -103,7 +103,7 @@ export default function HeroPhotoRotator() {
           src={photos[incoming]}
           alt=""
           decoding="async"
-          className={`absolute inset-0 h-full w-full object-cover object-center will-change-[opacity] transition-opacity duration-[6000ms] ease-in-out motion-reduce:transition-none ${fading ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 h-full w-full object-cover object-center will-change-[opacity] transition-opacity !duration-[6000ms] ease-in-out motion-reduce:transition-none ${fading ? "opacity-100" : "opacity-0"}`}
         />
       )}
       <div className="home-photo-shade pointer-events-none absolute inset-0" />
