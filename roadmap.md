@@ -1,3 +1,8 @@
+## Mobilbilleder og Google (22. oktober)
+- [ ] Vis fem fotos på mobil/tablet uden beskæring eller forvrængning med lette billedvarianter
+- [ ] Saml titler, beskrivelser, alternativtekst og stabile billedadresser; opdatér Google-billeddata og sitemap
+- [ ] Test billedskift, størrelser og SEO; Google bestemmer den endelige visning efter publicering og indeksering
+
 ## Indlæsning og ventevisninger (22. oktober)
 - [x] Optimér forsidens billeder: første foto fra 856 KB til 112 KB WebP; desktop-only billeder, næste foto hentes separat, ingen inaktiv polling
 - [x] Gennemgå offentlige/panel-ventevisninger; ret mørk kontrast, bredder, filterombrydning, tabelflow, straksvisning på virksomhedens faner og Systemets footer; ingen WebGL i venteflader
