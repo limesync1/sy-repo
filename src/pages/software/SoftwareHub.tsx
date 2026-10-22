@@ -5,6 +5,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import SectionShell from "@/components/landing/SectionShell";
+import SectionSkeleton from "@/components/landing/SectionSkeleton";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { BRAND_DEFINITION, BRAND_FEATURE_LIST } from "@/lib/brand";
 import { PLANNER_GUIDE_PDF_PATH } from "@/data/routePlannerFeatures";
@@ -281,7 +282,7 @@ const SoftwareHub = () => {
       </main>
 
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-32" dark className="bg-ocean" />}>
         <Footer />
       </Suspense>
     </div>

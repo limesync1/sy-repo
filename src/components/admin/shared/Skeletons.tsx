@@ -285,7 +285,7 @@ export const FilterBarSkeleton = ({
 }: { withAction?: boolean; chips?: number }) => (
   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
     <Skeleton className="h-10 w-full rounded-lg sm:max-w-md" />
-    <div className="flex items-center gap-2">
+  <div className="flex flex-wrap items-center gap-2">
       {Array.from({ length: chips }).map((_, i) => (
         <Skeleton key={i} className="h-9 w-24 rounded-lg" />
       ))}
