@@ -36,14 +36,7 @@ export default function HeroPhotoRotator() {
         if (!renderer) {
           const { createPhotoTransition } = await import("./hero-photo-webgl");
           if (cancelled) return;
-          // Resolve the semantic surface token into the shader's neutral shade.
-          const probe = document.createElement("span");
-          probe.className = "bg-ocean";
-          host.current?.appendChild(probe);
-          const channels = getComputedStyle(probe).backgroundColor.match(/[\d.]+/g);
-          probe.remove();
-          const shade: [number, number, number] = [Number(channels?.[0] ?? 0) / 255, Number(channels?.[1] ?? 0) / 255, Number(channels?.[2] ?? 0) / 255];
-          renderer = createPhotoTransition(target, shade);
+          renderer = createPhotoTransition(target);
         }
         if (renderer && !motion.matches) {
           await renderer.transition(from, image, () => { if (!cancelled) setRendering(true); });
