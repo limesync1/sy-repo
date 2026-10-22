@@ -1,7 +1,7 @@
 ## Mobilbilleder og Google (22. oktober)
-- [ ] Vis fem fotos på mobil/tablet uden beskæring eller forvrængning med lette billedvarianter
-- [ ] Saml titler, beskrivelser, alternativtekst og stabile billedadresser; opdatér Google-billeddata og sitemap
-- [ ] Test billedskift, størrelser og SEO; Google bestemmer den endelige visning efter publicering og indeksering
+- [x] Vis fem fotos på mobil/tablet uden beskæring eller forvrængning med lette billedvarianter
+- [x] Saml titler, beskrivelser, alternativtekst og stabile billedadresser; opdatér Google-billeddata og sitemap
+- [x] 14 tests bestået; fem mobilskift, tablet/WebGL, skarpe 2x-fotos og reduceret bevægelse kontrolleret; Google bestemmer visningen efter publicering og indeksering
 
 ## Indlæsning og ventevisninger (22. oktober)
 - [x] Optimér forsidens billeder: første foto fra 856 KB til 112 KB WebP; desktop-only billeder, næste foto hentes separat, ingen inaktiv polling

@@ -39,7 +39,6 @@ export const renderRouteHead = (html: string, r: RouteMeta) => {
 /** Build-only plugin: writes dist/<route>/index.html with route-specific head tags. */
 export const seoPrerenderHead = () => ({
   name: "seo-prerender-head",
-  apply: "build" as const,
   transformIndexHtml(html: string) {
     return renderHomeHead(html);
   },
