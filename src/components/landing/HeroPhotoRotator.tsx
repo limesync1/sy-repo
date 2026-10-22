@@ -18,7 +18,8 @@ export default function HeroPhotoRotator() {
     let busy = false;
     let prepared: HTMLImageElement | undefined;
     let renderer: ReturnType<typeof import("./hero-photo-webgl").createPhotoTransition>;
-    const active = () => visible && !document.hidden && !motion.matches;
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const active = () => visible && desktop.matches && !document.hidden && !motion.matches;
     const prepare = () => {
       if (!active() || cancelled || prepared) return;
       prepared = new Image();
@@ -82,6 +83,7 @@ export default function HeroPhotoRotator() {
     });
     if (host.current) observer.observe(host.current);
     motion.addEventListener("change", sync);
+    desktop.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
       cancelled = true;
@@ -89,6 +91,7 @@ export default function HeroPhotoRotator() {
       clearTimeout(timer);
       clearTimeout(preloadTimer);
       motion.removeEventListener("change", sync);
+      desktop.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
       renderer?.dispose();
     };
@@ -96,10 +99,10 @@ export default function HeroPhotoRotator() {
 
   const photo = heroPhotos[current];
   return (
-    <figure ref={host} className="home-hero-photo relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-ocean">
+    <figure ref={host} className="home-hero-photo relative aspect-[16/10] w-full sm:aspect-[4/3] overflow-hidden rounded-lg bg-ocean">
       <img ref={baseImage} src={photo.src} srcSet={photoSrcSet(photo)} sizes={HERO_PHOTO_SIZES} alt={photo.alt} title={photo.title} width={photo.width} height={photo.height}
         fetchPriority={current === 0 ? "high" : "auto"} decoding="async" loading="eager"
-        className="absolute inset-0 h-full w-full object-contain object-center" />
+        className="absolute inset-0 h-full w-full object-cover object-center lg:object-contain" />
       <canvas ref={canvas} aria-hidden="true" className={`pointer-events-none absolute inset-0 h-full w-full ${rendering ? "visible" : "invisible"}`} />
     </figure>
   );
