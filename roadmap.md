@@ -1,7 +1,7 @@
 ## Indlæsning og ventevisninger (22. oktober)
-- [ ] Optimér forsidens billeder, billedskift og prioritering uden at ændre motiverne
-- [ ] Gennemgå sidernes ventevisninger og ret fælles problemer med layout og animation
-- [ ] Kontrollér indlæsning, billedskift, reduceret bevægelse og relevante tests
+- [x] Optimér forsidens billeder: første foto fra 856 KB til 112 KB WebP; desktop-only billeder, næste foto hentes separat, ingen inaktiv polling
+- [x] Gennemgå offentlige/panel-ventevisninger; ret mørk kontrast, bredder, filterombrydning, tabelflow, straksvisning på virksomhedens faner og Systemets footer; ingen WebGL i venteflader
+- [x] Kontrollér billedskift og reduceret bevægelse; 16 tests bestået, offentlige sider uden overflow, fælles ventevisninger isoleret ved 320/390/1280 px i begge temaer; build OK. Alle indloggede sider er ikke gennemtestet med reelle data.
 
 ## Forsidens billed-SEO og overgang (22. oktober)
 - [x] Gennemgå forsidens SEO, billedbeskrivelser og ens metadata uden ændring af sitemapmekanismen; frisk grundscanning har 9 beståede kontroller
