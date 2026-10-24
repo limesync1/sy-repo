@@ -31,7 +31,7 @@
     --route-line-casing: 0 0% 100%;
     --route-pin-foreground: 0 0% 100%;
     /* Brandteal — testfase-modalens glød og bekræftelsesfarve. */
-    --beta-accent: 201 99% 33%;
+    --beta-accent: 198 71% 35%;
     --feature-cool: 196 85% 94%;
     --feature-cool-foreground: 195 70% 26%;
     --feature-warm: 42 100% 93%;
@@ -93,7 +93,7 @@
     --silver-surface-strong: 210 16% 93%;
     --silver-border: 210 14% 82%;
     --action-edit: 34 88% 42%;
-    --action-create: 201 99% 33%;
+    --action-create: 198 71% 35%;
     --action-note: 217 78% 48%;
   }
 
@@ -1791,9 +1791,9 @@ img[loading="lazy"].is-error {
   animation: sidebar-onboarding-nudge 4.8s ease-in-out infinite;
 }
 
-/* Gradient-blå til aktive navigationspunkter i panelerne — panelets dybe
-   havblå (#016EA4 → #012941 via --brand-blue-tokens), så navigationen matcher
-   panelets og forsidens blå. Gradienten defineres af NavIconGradientDefs i
+/* Gradient-blå til aktive navigationspunkter i panelerne — hjemmesidens
+   hero-cyan (#00C0E3 → #1a7399, top → bund), så navigationen matcher
+   hjemmesidens blå. Gradienten defineres af NavIconGradientDefs i
    PanelShell og refereres via url(#sy-nav-blue). */
 .nav-icon-gradient {
   stroke: url(#sy-nav-blue) hsl(var(--accent));
@@ -1994,14 +1994,13 @@ img[loading="lazy"].is-error {
   }
 }
 
-/* Panelernes sidehoved genbruger forsidens dybe havblå sektionsstil (uden WebGL):
-   mørk havbund med cyan glød øverst — samme lys som hjemmesidens hero. */
+/* Panelernes sidehoved genbruger forsidens dybe havblå sektionsstil (uden WebGL). */
 .panel-page-hero {
   position: relative; overflow: hidden; border-radius: var(--radius);
   padding: 1rem 1.125rem; color: hsl(var(--ocean-foreground));
   background:
-    radial-gradient(120% 140% at 100% 0%, hsl(var(--hero-cyan) / 0.14), transparent 55%),
-    radial-gradient(90% 120% at 0% 100%, hsl(var(--hero-mid) / 0.35), transparent 60%),
+    radial-gradient(120% 140% at 100% 0%, hsl(var(--accent) / 0.38), transparent 55%),
+    radial-gradient(90% 120% at 0% 100%, hsl(var(--brand-blue-start) / 0.28), transparent 60%),
     hsl(var(--ocean));
   border: 1px solid hsl(var(--ocean-foreground) / 0.12);
   box-shadow: 0 12px 30px -20px hsl(var(--ocean) / 0.7);
@@ -2013,17 +2012,7 @@ img[loading="lazy"].is-error {
   background: hsl(var(--ocean-foreground)); color: hsl(var(--ocean)); border-color: hsl(var(--ocean-foreground));
 }
 .panel-page-hero .border-input:hover, .panel-page-hero button.bg-secondary:hover { background: hsl(var(--ocean-foreground) / 0.9); color: hsl(var(--ocean)); }
-/* Primærknap inde i det blå sidehoved: hvid flade med mørk tekst — samme
-   kontrast som forsidens hero-knapper. Dyb blå på dyb blå ville forsvinde. */
-.panel-page-hero .brand-blue-action {
-  background-image: none;
-  background-color: hsl(var(--ocean-foreground));
-  color: hsl(var(--ocean));
-  box-shadow: 0 0 0 1px hsl(var(--ocean-foreground) / 0.35);
-}
-.panel-page-hero .brand-blue-action:hover {
-  background-color: hsl(var(--ocean-foreground) / 0.9);
-}
+.panel-page-hero .brand-blue-action { box-shadow: 0 0 0 1px hsl(var(--ocean-foreground) / 0.35); }
 
 /* Aftalehandlinger i tjekliste og detaljer: tre ens farvede fliser på én række. */
 .employee-action-tile {
