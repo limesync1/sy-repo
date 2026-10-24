@@ -1,3 +1,9 @@
+## Login og konto-oprettelse (24. oktober)
+- [ ] Ret falsk oprettelsesbekræftelse ved eksisterende e-mail i alle oprettelsesforløb uden konto-opslag
+- [ ] Saml danske fejlbeskeder, robust indsendelse og tydelig bekræftelse/genafsendelse
+- [ ] Ret nulstilling, sessioner og destination efter login; behold eksisterende profiler
+- [ ] Kør målrettede tests og kontrollér centrale forløb i browseren
+
 ## Rolig forside (22. oktober)
 - [x] Ens 4:3-billedformat og stabil ramme uden størrelsesskift; hele originalmotiver bevaret med udvidet billedkant
 - [x] Gennemgå alle forsidens sektioner; mere ens afstande, kompakte mobilkort og færre hoppende ikoner
