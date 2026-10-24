@@ -37,7 +37,7 @@ export const logo = {
 export const eyebrow = {
   fontSize: '12px',
   fontWeight: 600 as const,
-  color: '#015c96',
+  color: '#016EA4',
   letterSpacing: '0.02em',
   margin: '0 0 10px',
 }
