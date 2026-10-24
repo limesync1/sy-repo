@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { Navigate, Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Navigate, Link, useSearchParams } from "react-router-dom";
 import {
   Building2, User, ArrowLeft, ArrowRight, ShieldCheck, Sparkles,
   CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail, AlertCircle,
@@ -11,10 +10,11 @@ import {
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 import { detectUserRole, ROLE_HOME } from "@/lib/detect-user-role";
-import { supabase } from "@/integrations/supabase/client";
 import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { Skeleton } from "@/components/ui/skeleton";
 import testimonialPatrick from "@/assets/testimonial-patrick.png";
+import { isValidAuthEmail, normalizeAuthEmail } from "@/lib/auth-flow";
+import { AuthEmailConfirmation } from "@/components/shared/AuthEmailConfirmation";
 
 /** Almindelige tastefejl i e-mail-domæner — vi tilbyder en venlig "mente du …?". */
 const EMAIL_DOMAIN_TYPOS: Record<string, string> = {
@@ -48,15 +48,15 @@ const passwordScore = (pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string } 
 };
 
 const Auth = () => {
-  const { user, loading, signIn, signUp, resetPassword } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword, resendConfirmation, emailCooldown } = useAuth();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   // "mode" bruges KUN på opret-konto-flowet (vi skal vide hvilken type konto
   // der oprettes). Log-ind kender vi rollen automatisk fra databasen.
-  const mode = searchParams.get("mode");
+  const requestedMode = searchParams.get("mode");
+  const mode = requestedMode && ["business", "customer", "employee"].includes(requestedMode) ? requestedMode : null;
   const signupParam = searchParams.get("signup");
   const isResetMode = searchParams.get("reset") === "1";
-  const [isSignUp, setIsSignUp] = useState(signupParam === "1");
+  const [isSignUp, setIsSignUp] = useState(signupParam === "1" && mode !== "employee");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -64,19 +64,34 @@ const Auth = () => {
   const [resetSent, setResetSent] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [capsLockOn, setCapsLockOn] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [destination, setDestination] = useState<string | null>(null);
+  const submitLock = useRef(false);
 
   // Pre-fill email fra localStorage så folk ikke skal indtaste den hver gang
   useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("sy-last-email") : null;
-    if (stored) setEmail(stored);
+    try {
+      const stored = localStorage.getItem("sy-last-email");
+      if (stored) setEmail(stored);
+    } catch { /* Login remains usable with blocked browser storage. */ }
   }, []);
 
   useEffect(() => {
-    setIsSignUp(signupParam === "1");
-  }, [signupParam]);
+    setIsSignUp(signupParam === "1" && mode !== "employee");
+  }, [signupParam, mode]);
 
   // Skift mode? Nulstil fejl så den ikke hænger fra forrige forsøg
-  useEffect(() => { setFormError(null); }, [isSignUp, mode, isResetMode]);
+  useEffect(() => { setFormError(null); setResetSent(false); setConfirmationEmail(null); setUnconfirmed(false); }, [isSignUp, mode, isResetMode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) { setDestination(null); return; }
+    detectUserRole(user.id).then((role) => {
+      if (!cancelled) setDestination(ROLE_HOME[role]);
+    }).catch(() => { if (!cancelled) setDestination("/min-konto"); });
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const emailSuggestion = suggestEmailFix(email);
   const pwStrength = passwordScore(password);
@@ -100,10 +115,8 @@ const Auth = () => {
     // Hvis brugeren er logget ind men signup-flowet for virksomhed kører,
     // skal de fortsætte til onboarding. Ellers send dem til deres panel.
     if (mode === "business" && isSignUp) return <Navigate to="/opret-virksomhed" replace />;
-    if (mode === "customer") return <Navigate to="/min-konto" replace />;
-    if (mode === "employee") return <Navigate to="/medarbejder" replace />;
-    if (mode === "business") return <Navigate to="/virksomhed" replace />;
-    return <Navigate to="/virksomhed" replace />;
+    if (destination) return <Navigate to={destination} replace />;
+    return <div role="status" className="flex min-h-screen items-center justify-center bg-background text-foreground">Åbner din konto…</div>;
   }
 
   if (mode === "business" && isSignUp) {
@@ -112,13 +125,15 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current) return;
     setFormError(null);
+    setUnconfirmed(false);
     if (!email.trim() || !password) {
       setFormError("Udfyld både e-mail og adgangskode for at fortsætte.");
       return;
     }
     // Basal e-mail-validering inden vi kalder serveren
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (!isValidAuthEmail(email)) {
       setFormError("Det ser ikke ud som en gyldig e-mail. Tjek lige stavemåden.");
       return;
     }
@@ -126,50 +141,54 @@ const Auth = () => {
       setFormError("Adgangskoden er for kort. Vælg mindst 6 tegn.");
       return;
     }
+    submitLock.current = true;
     setSubmitting(true);
-    const { error } = isSignUp ? await signUp(email.trim(), password) : await signIn(email.trim(), password);
-    if (error) {
-      setSubmitting(false);
-      setFormError(translateAuthError(error, isSignUp ? "Vi kunne ikke oprette din konto. Prøv igen." : "Vi kunne ikke logge dig ind. Tjek e-mail og adgangskode."));
-    } else if (isSignUp) {
-      setSubmitting(false);
-      try { localStorage.setItem("sy-last-email", email.trim()); } catch {}
-      toast.success("Konto oprettet! Tjek din e-mail for bekræftelse.");
-    } else {
-      try { localStorage.setItem("sy-last-email", email.trim()); } catch {}
-      // Log-ind: detect rolle og send brugeren direkte til rette panel.
-      try {
-        const { data } = await supabase.auth.getUser();
-        const uid = data.user?.id;
-        if (uid) {
-          const role = await detectUserRole(uid);
-          navigate(ROLE_HOME[role], { replace: true });
-          return;
-        }
-      } catch {
-        /* falder tilbage til standard <Navigate /> i render */
+    try {
+      const result = isSignUp ? await signUp(email, password) : await signIn(email, password);
+      if (result.error) {
+        setUnconfirmed((result.error as { code?: string }).code === "email_not_confirmed" || result.error.message.toLowerCase().includes("email not confirmed"));
+        setFormError(translateAuthError(result.error, isSignUp ? "Vi kunne ikke oprette din konto. Prøv igen." : "Vi kunne ikke logge dig ind. Tjek e-mail og adgangskode."));
+        return;
       }
-      setSubmitting(false);
-    }
+      try { localStorage.setItem("sy-last-email", normalizeAuthEmail(email)); } catch {}
+      if (isSignUp && "status" in result && result.status === "confirmation_required") {
+        setConfirmationEmail(normalizeAuthEmail(email));
+        setPassword("");
+      }
+    } catch (error) {
+      setFormError(translateAuthError(error));
+    } finally { submitLock.current = false; setSubmitting(false); }
   };
 
   /** Send mail med link til /reset-password. Vi viser altid en "tjek din mail"-besked
    *  uanset om e-mailen findes — for at undgå at lække hvilke mails der har konto. */
   const handleSendReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current || emailCooldown > 0) return;
     setFormError(null);
-    if (!email.trim()) {
-      setFormError("Skriv din e-mail for at fortsætte.");
+    if (!isValidAuthEmail(email)) {
+      setFormError("Skriv en gyldig e-mailadresse for at fortsætte.");
       return;
     }
+    submitLock.current = true;
     setSubmitting(true);
-    const { error } = await resetPassword(email.trim());
-    setSubmitting(false);
-    if (error) {
-      setFormError(translateAuthError(error, "Vi kunne ikke sende mailen. Prøv igen."));
-      return;
-    }
-    setResetSent(true);
+    try {
+      const { error } = await resetPassword(email);
+      if (error) setFormError(translateAuthError(error, "Vi kunne ikke sende mailen. Prøv igen."));
+      else setResetSent(true);
+    } catch (error) { setFormError(translateAuthError(error)); }
+    finally { submitLock.current = false; setSubmitting(false); }
+  };
+
+  const handleResend = async () => {
+    if (submitLock.current || emailCooldown > 0) return;
+    submitLock.current = true; setSubmitting(true);
+    try {
+      const { error } = await resendConfirmation(email);
+      if (error) setFormError(translateAuthError(error));
+      else setConfirmationEmail(normalizeAuthEmail(email));
+    } catch (error) { setFormError(translateAuthError(error)); }
+    finally { submitLock.current = false; setSubmitting(false); }
   };
 
   const isBusiness = mode === "business";
@@ -299,7 +318,9 @@ const Auth = () => {
           <div key={`${isResetMode}-${isSignUp}-${mode}`} className="public-content-enter w-full max-w-[420px] space-y-7">
 
             {/* ── Glemt adgangskode ── */}
-            {isResetMode && (
+            {confirmationEmail && <AuthEmailConfirmation email={confirmationEmail} onEdit={() => setConfirmationEmail(null)} />}
+            {unconfirmed && !confirmationEmail && <Button variant="outline" disabled={submitting || emailCooldown > 0} onClick={handleResend} className="w-full">{emailCooldown > 0 ? `Send igen om ${emailCooldown} s` : "Send bekræftelseslink igen"}</Button>}
+            {isResetMode && !confirmationEmail && (
               <div className="space-y-6">
                 <Link
                   to={`/log-ind${mode ? `?mode=${mode}` : ""}`}
@@ -329,7 +350,7 @@ const Auth = () => {
                       <p className="text-sm font-semibold text-foreground">Tjek din indbakke</p>
                     </div>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                      Hvis <span className="font-medium text-foreground">{email.trim()}</span> er knyttet til en konto, har vi sendt dig en mail med et link til at vælge ny adgangskode. Linket virker i 1 time.
+                      Hvis <span className="break-words font-medium text-foreground">{email.trim()}</span> er knyttet til en konto, har vi sendt dig en mail med et link til at vælge ny adgangskode. Brug det nyeste link, og tjek også spam.
                     </p>
                     <div className="mt-4 flex gap-2">
                       <Button asChild variant="outline" size="sm">
@@ -337,16 +358,17 @@ const Auth = () => {
                       </Button>
                       <Button
                         size="sm" variant="ghost"
+                        disabled={emailCooldown > 0}
                         onClick={() => { setResetSent(false); }}
                       >
-                        Send igen
+                        {emailCooldown > 0 ? `Send igen om ${emailCooldown} s` : "Send igen"}
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <form onSubmit={handleSendReset} className="space-y-4">
                     {formError && (
-                      <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                      <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                         <span>{formError}</span>
                       </div>
@@ -376,7 +398,7 @@ const Auth = () => {
                     </div>
                     <Button
                       type="submit"
-                      disabled={submitting}
+                      disabled={submitting || emailCooldown > 0}
                       className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background hover:bg-foreground/90"
                     >
                       {submitting ? (
@@ -396,7 +418,7 @@ const Auth = () => {
             )}
 
             {/* ── Log ind: én samlet formular. Vi gætter rolle automatisk efter login ── */}
-            {showLoginForm && (
+            {showLoginForm && !confirmationEmail && (
               <div className="space-y-7">
                 <div className="flex rounded-full border border-border bg-secondary/60 p-1">
                   <button
@@ -427,7 +449,7 @@ const Auth = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {formError && (
-                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                    <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{formError}</span>
                     </div>
@@ -597,7 +619,7 @@ const Auth = () => {
             )}
 
             {/* ── Login / Signup Form ── */}
-            {(isBusiness || effectiveIsCustomer || isEmployee) && (
+            {!isResetMode && !confirmationEmail && (isBusiness || effectiveIsCustomer || isEmployee) && (
               <div className="space-y-7">
                 {/* Mode chip */}
                 <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
@@ -650,7 +672,7 @@ const Auth = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {formError && (
-                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                    <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{formError}</span>
                     </div>

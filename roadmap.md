@@ -1,3 +1,10 @@
+## Login og konto-oprettelse (24. oktober)
+- [x] Ret falsk oprettelsesbekræftelse ved eksisterende e-mail i begge offentlige oprettelsesforløb uden konto-opslag; virksomhedsoprettelse venter på bekræftelse
+- [x] Saml danske fejlbeskeder, robust indsendelse og tydelig bekræftelse/genafsendelse med 60 sekunders ventetid
+- [x] Ret nulstilling, session-race og destination efter login; behold eksisterende profiler; medarbejder-signup-link viser login frem for generisk kontooprettelse
+- [x] 17 tests bestået; browserkontrol af eksisterende e-mail, forkert adgangskode, netværksfejl, ét glemt-kode-feltforløb, ugyldigt link, almindelig indlogget session uden recovery og administratorens destination. Build OK.
+- [ ] Verificér fuld ny konto og nulstilling via modtaget e-mail — adgang til indbakke/bekræftelseslink er ikke tilgængelig; eksisterende konto og simuleret recovery er testet uden at ændre brugerens adgangskode.
+
 ## Rolig forside (22. oktober)
 - [x] Ens 4:3-billedformat og stabil ramme uden størrelsesskift; hele originalmotiver bevaret med udvidet billedkant
 - [x] Gennemgå alle forsidens sektioner; mere ens afstande, kompakte mobilkort og færre hoppende ikoner

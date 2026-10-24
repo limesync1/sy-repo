@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import SEO from "@/components/SEO";
 import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
+import { translateAuthError } from "@/lib/auth-errors";
+import { isRecoveryLink } from "@/lib/auth-flow";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * /reset-password — siden som recovery-mailen linker til.
@@ -26,44 +29,53 @@ const ResetPassword = () => {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { isPasswordRecovery } = useAuth();
+  const recoveryLink = useRef(isRecoveryLink(window.location.hash));
+  const submitLock = useRef(false);
 
   useEffect(() => {
-    // Lyt FØRST efter recovery-event så vi ikke misser det.
+    let mounted = true;
+    let recovery = isPasswordRecovery || recoveryLink.current;
+    const validate = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (mounted) setHasRecoverySession(recovery && !error && !!data.user);
+      } catch { if (mounted) setHasRecoverySession(false); }
+      finally { if (mounted) setReady(true); }
+    };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-        setHasRecoverySession(true);
-      }
-      setReady(true);
+      if (event === "PASSWORD_RECOVERY") { recovery = true; window.setTimeout(validate, 0); }
+      if (event === "SIGNED_OUT" || !session) setHasRecoverySession(false);
     });
-    // Og tjek om der allerede er en aktiv session (linket åbnet i samme tab).
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setHasRecoverySession(true);
-      setReady(true);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+    void validate();
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, [isPasswordRecovery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current || !hasRecoverySession) return;
+    setFormError(null);
     if (password.length < 6) {
-      toast.error("Adgangskoden skal være mindst 6 tegn.");
+      setFormError("Adgangskoden skal være mindst 6 tegn.");
       return;
     }
     if (password !== confirm) {
-      toast.error("De to adgangskoder er ikke ens.");
+      setFormError("De to adgangskoder er ikke ens.");
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message || "Vi kunne ikke opdatere adgangskoden. Prøv igen.");
-      return;
-    }
-    toast.success("Din adgangskode er opdateret. Du kan nu logge ind.");
-    // Log ud så brugeren bevidst logger ind igen med ny kode.
-    await supabase.auth.signOut();
-    navigate("/log-ind", { replace: true });
+    submitLock.current = true;
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) { setFormError(translateAuthError(error, "Vi kunne ikke opdatere adgangskoden. Prøv igen.")); return; }
+      setPassword(""); setConfirm("");
+      const { error: logoutError } = await supabase.auth.signOut({ scope: "local" });
+      if (logoutError) { setFormError("Adgangskoden er gemt, men du er ikke logget ud. Prøv at logge ud fra din konto."); return; }
+      toast.success("Din adgangskode er opdateret. Du kan nu logge ind.");
+      navigate("/log-ind", { replace: true });
+    } catch (error) { setFormError(translateAuthError(error)); }
+    finally { submitLock.current = false; setSubmitting(false); }
   };
 
   return (
@@ -107,6 +119,7 @@ const ResetPassword = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              {formError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{formError}</p>}
               <div>
                 <label htmlFor="new-password" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Ny adgangskode

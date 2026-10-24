@@ -3,11 +3,9 @@
  * Brug i stedet for at vise rå `error.message` fra signIn/signUp m.m.
  */
 export function translateAuthError(input: unknown, fallback = "Noget gik galt. Prøv igen."): string {
-  const raw =
-    typeof input === "string"
-      ? input
-      : (input as any)?.message || (input as any)?.error_description || (input as any)?.error || "";
-  const msg = String(raw || "").toLowerCase();
+  const details = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  const raw = typeof input === "string" ? input : details.message || details.error_description || details.error || "";
+  const msg = `${String(details.code || "")} ${String(raw || "")}`.trim().toLowerCase();
 
   if (!msg) return fallback;
 
@@ -16,12 +14,14 @@ export function translateAuthError(input: unknown, fallback = "Noget gik galt. P
     return "Forkert e-mail eller adgangskode. Tjek stavemåden — eller tryk på \"Glemt adgangskode?\" hvis du har glemt din kode.";
   if (msg.includes("email not confirmed") || msg.includes("email_not_confirmed"))
     return "Din e-mail er ikke bekræftet endnu. Tjek din indbakke (og spam) for bekræftelseslinket.";
-  if (msg.includes("user not found"))
-    return "Vi kunne ikke finde en konto med denne e-mail. Tjek stavemåden eller opret en ny konto.";
+  if (msg.includes("user not found") || msg.includes("user_not_found"))
+    return "Forkert e-mail eller adgangskode. Tjek oplysningerne, eller vælg Glemt adgangskode.";
 
   // Oprettelse / signup
   if (msg.includes("user already registered") || msg.includes("already registered") || msg.includes("already exists"))
     return "Der findes allerede en konto med denne e-mail. Prøv at logge ind i stedet.";
+  if (msg.includes("pwned") || msg.includes("breached") || msg.includes("weak_password"))
+    return "Vælg en stærkere adgangskode, som du ikke bruger andre steder. Den valgte kode opfylder ikke sikkerhedskravene.";
   if (msg.includes("password") && (msg.includes("short") || msg.includes("at least") || msg.includes("min") || msg.includes("weak")))
     return "Adgangskoden er for kort. Vælg mindst 6 tegn.";
   if (msg.includes("password") && msg.includes("characters"))
@@ -31,22 +31,23 @@ export function translateAuthError(input: unknown, fallback = "Noget gik galt. P
   if (msg.includes("signup") && msg.includes("disabled"))
     return "Oprettelse af nye konti er midlertidigt deaktiveret. Prøv igen senere.";
 
+  if (msg.includes("same_password"))
+    return "Vælg en anden adgangskode end den, du bruger nu.";
+  if (msg.includes("current password") || msg.includes("current_password"))
+    return "Indtast din nuværende adgangskode for at ændre den. Har du glemt den, kan du få et nulstillingslink.";
+
   // Rate limiting
-  if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("over_email_send_rate_limit"))
-    return "Vi har sendt for mange beskeder lige nu. Vent et par minutter og prøv igen.";
+  if (details.status === 429 || msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("rate_limit") || msg.includes("over_request_rate_limit"))
+    return "Der har været for mange forsøg eller mails på kort tid. Vent lidt, før du prøver igen; gentagne klik forlænger ikke adgangen.";
 
   // OTP / magic link
   if (msg.includes("otp") || msg.includes("token") || msg.includes("expired"))
     return "Linket eller koden er udløbet. Anmod om en ny og prøv igen.";
 
   // Netværk
-  if (msg.includes("failed to fetch") || msg.includes("network") || msg.includes("networkerror"))
+  if (msg.includes("failed to fetch") || msg.includes("network") || msg.includes("networkerror") || msg.includes("timeout") || msg.includes("fetch failed"))
     return "Kan ikke nå serveren. Tjek din internetforbindelse og prøv igen.";
 
-  // Default — vis fallback men behold første sætning hvis rimelig kort
-  const firstSentence = String(raw).split(/[.\n]/)[0]?.trim();
-  if (firstSentence && firstSentence.length > 0 && firstSentence.length < 140) {
-    return firstSentence.endsWith(".") ? firstSentence : firstSentence + ".";
-  }
+  // Unknown server errors must not expose internal details or untranslated text.
   return fallback;
 }
