@@ -353,7 +353,7 @@ const RequestQuote = () => {
                 matcher de øvrige trin. */}
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${hasLocation ? "opacity-100" : "opacity-45"}`}>1</span>
+                <StepBadge n={1} done={hasLocation} />
                 <h2 className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</h2>
               </div>
               <div className="rounded-2xl border border-border bg-card/80 px-3 py-2.5">
@@ -371,7 +371,7 @@ const RequestQuote = () => {
                 brugeren skrive sig frem i stedet for at scanne 15 ikoner. */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${category ? "opacity-100" : "opacity-45"}`}>2</span>
+                <StepBadge n={2} done={Boolean(category)} />
                 <h2 className="text-sm font-semibold text-foreground">Vælg kategori</h2>
               </div>
               <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
@@ -467,7 +467,7 @@ const RequestQuote = () => {
             {/* Step 3: Description */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${description.trim() ? "opacity-100" : "opacity-45"}`}>3</span>
+                <StepBadge n={3} done={Boolean(description.trim())} />
                 <h2 id="quote-description-heading" className="text-sm font-semibold text-foreground">Beskriv dit behov</h2>
               </div>
               <Textarea
@@ -506,7 +506,7 @@ const RequestQuote = () => {
             {/* Step 4: Kontaktoplysninger */}
             <div className="mt-7">
               <div className="mb-1 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${customerName.trim() && customerEmail.trim() ? "opacity-100" : "opacity-45"}`}>4</span>
+                <StepBadge n={4} done={Boolean(customerName.trim() && customerEmail.trim())} />
                 <h2 className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</h2>
               </div>
               <p className="mb-4 ml-8 text-xs text-muted-foreground">
