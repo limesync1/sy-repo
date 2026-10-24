@@ -470,7 +470,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                          <BrandedIllustration name={illustration} className="h-full w-full" alt="" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-3">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                           <p className="text-sm font-semibold text-foreground">{title}</p>
                           {price !== undefined && price > 0 && (
                             <span className="shrink-0 text-xs font-semibold text-foreground tabular-nums">
@@ -803,7 +803,7 @@ const Section = ({
   number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
   <section
-    className={`relative rounded-lg border bg-card p-4 shadow-sm transition-all sm:p-6 ${
+    className={`relative rounded-2xl border bg-card p-4 shadow-sm transition-all sm:p-6 ${
       done ? "border-accent/40" : "border-border"
     }`}
   >

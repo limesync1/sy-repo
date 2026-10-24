@@ -23,6 +23,7 @@ import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
+import HeroHighlights from "@/components/landing/HeroHighlights";
 import Footer from "@/components/landing/Footer";
 import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -104,6 +105,18 @@ interface MatchedBusiness {
     services: MatchedService[];
   };
 }
+
+/** Nummereret trin-mærke i formularen. Udfyldte trin får et teal flueben,
+ *  så brugeren hele tiden kan se, hvor langt de er kommet. */
+const StepBadge = ({ n, done }: { n: number; done: boolean }) => (
+  <span
+    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+      done ? "bg-accent text-accent-foreground" : "bg-foreground/10 text-foreground"
+    }`}
+  >
+    {done ? <Check className="h-3.5 w-3.5" /> : n}
+  </span>
+);
 
 const RequestQuote = () => {
   const [category, setCategory] = useState("");
@@ -323,6 +336,11 @@ const RequestQuote = () => {
             eyebrow="Få tilbud"
             title="Få op til 3 gratis tilbud."
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
+            aside={<HeroHighlights items={[
+              { icon: Clock, title: "Svar på 3–10 sekunder", text: "AI'en matcher dig med det samme." },
+              { icon: ShieldCheck, title: "Kun verificerede udbydere", text: "Alle virksomheder er CVR-tjekket." },
+              { icon: Check, title: "Gratis og uforpligtende", text: "Du vælger selv, om du vil bruge et tilbud." },
+            ]} />}
           />
 
           <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
@@ -335,7 +353,7 @@ const RequestQuote = () => {
                 matcher de øvrige trin. */}
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${hasLocation ? "opacity-100" : "opacity-45"}`}>1</span>
+                <StepBadge n={1} done={hasLocation} />
                 <h2 className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</h2>
               </div>
               <div className="rounded-2xl border border-border bg-card/80 px-3 py-2.5">
@@ -353,7 +371,7 @@ const RequestQuote = () => {
                 brugeren skrive sig frem i stedet for at scanne 15 ikoner. */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${category ? "opacity-100" : "opacity-45"}`}>2</span>
+                <StepBadge n={2} done={Boolean(category)} />
                 <h2 className="text-sm font-semibold text-foreground">Vælg kategori</h2>
               </div>
               <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
@@ -449,7 +467,7 @@ const RequestQuote = () => {
             {/* Step 3: Description */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${description.trim() ? "opacity-100" : "opacity-45"}`}>3</span>
+                <StepBadge n={3} done={Boolean(description.trim())} />
                 <h2 id="quote-description-heading" className="text-sm font-semibold text-foreground">Beskriv dit behov</h2>
               </div>
               <Textarea
@@ -488,7 +506,7 @@ const RequestQuote = () => {
             {/* Step 4: Kontaktoplysninger */}
             <div className="mt-7">
               <div className="mb-1 flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity ${customerName.trim() && customerEmail.trim() ? "opacity-100" : "opacity-45"}`}>4</span>
+                <StepBadge n={4} done={Boolean(customerName.trim() && customerEmail.trim())} />
                 <h2 className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</h2>
               </div>
               <p className="mb-4 ml-8 text-xs text-muted-foreground">
@@ -597,12 +615,27 @@ const RequestQuote = () => {
                 ))}
               </ol>
             </div>
+            {/* Tryghedspunkterne står i heroens boks — her giver vi i stedet
+                en hurtig genvej til de mest brugte kategorier. */}
             <div className="mt-4 rounded-[1.5rem] border border-border bg-surface p-5 sm:rounded-[1.75rem]">
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-accent" /> Svar på 3-10 sekunder</li>
-                <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-accent" /> Kun verificerede udbydere</li>
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Gratis og uforpligtende</li>
-              </ul>
+              <h2 className="text-base font-semibold tracking-tight text-foreground">Populære kategorier</h2>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {CATEGORIES.filter((c) => POPULAR_KEYS.includes(c.key)).slice(0, 8).map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setCategory(c.key)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-all hover:-translate-y-0.5 ${
+                      category === c.key
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-card text-foreground hover:border-foreground/30"
+                    }`}
+                  >
+                    <IndustryIcon category={c.key} className="h-5 w-5 shrink-0" alt={c.label} />
+                    {c.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </aside>
 
