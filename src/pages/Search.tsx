@@ -175,30 +175,21 @@ const BusinessCard = ({
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialCategory = searchParams.get("category") || "";
-  const initialQuery = searchParams.get("q") || "";
-  const initialSort = (searchParams.get("sort") as SortOption) || "relevance";
-
-  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [sort, setSort] = useState<SortOption>(initialSort);
+  const selectedCategory = searchParams.get("category") || "";
+  const debouncedQuery = searchParams.get("q") || "";
+  const sort = (searchParams.get("sort") as SortOption) || "relevance";
+  const updateFilter = (key: string, value: string) => setSearchParams((previous) => {
+    const next = new URLSearchParams(previous);
+    if (value) next.set(key, value); else next.delete(key);
+    return next;
+  }, { replace: true });
+  const setSelectedCategory = (value: string) => updateFilter("category", value);
+  const setDebouncedQuery = (value: string) => updateFilter("q", value);
+  const setSort = (value: SortOption) => updateFilter("sort", value === "relevance" ? "" : value);
   const [view, setView] = useState<"grid" | "map">("grid");
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setDebouncedQuery(searchParams.get("q") || "");
-    setSelectedCategory(searchParams.get("category") || "");
-  }, [searchParams]);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (selectedCategory) params.set("category", selectedCategory);
-    if (debouncedQuery) params.set("q", debouncedQuery);
-    if (sort !== "relevance") params.set("sort", sort);
-    setSearchParams(params, { replace: true });
-  }, [selectedCategory, debouncedQuery, sort, setSearchParams]);
-
-  const { data: businesses, isLoading } = useAllBusinesses(
+  const { data: businesses, isLoading, isError, refetch } = useAllBusinesses(
     selectedCategory || undefined,
     debouncedQuery || undefined,
     sort,
@@ -289,9 +280,7 @@ const SearchPage = () => {
 
 
   const clearFilters = () => {
-    setDebouncedQuery("");
-    setSelectedCategory("");
-    setSort("relevance");
+    setSearchParams({}, { replace: true });
     setSearchParams({}, { replace: true });
   };
 
@@ -500,12 +489,12 @@ const SearchPage = () => {
 
         {/* Results — list or map */}
         {isLoading ? (
-          <div className="flex min-h-[320px] flex-col items-center justify-center gap-5 rounded-[2rem] border border-border bg-card px-6 py-12 text-center shadow-sm">
-            <BrandedIllustration name="matchingLoader" className="h-24 w-24" />
-            <div>
-              <p className="text-lg font-bold tracking-tight text-foreground">Finder relevante virksomheder</p>
-              <p className="mt-1 text-sm text-muted-foreground">Vi leder efter de bedste matches til din søgning.</p>
-            </div>
+          <div role="status" aria-label="Indlæser virksomheder"><CardGridSkeleton count={4} /></div>
+        ) : isError ? (
+          <div role="alert" className="py-14 text-center">
+            <p className="text-lg font-semibold text-foreground">Virksomhederne kunne ikke indlæses</p>
+            <p className="mt-2 text-sm text-muted-foreground">Tjek din forbindelse, og prøv igen. Dine søgefiltre er bevaret.</p>
+            <Button variant="outline" onClick={() => void refetch()} className="mt-4">Prøv igen</Button>
           </div>
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           view === "map" ? (
@@ -520,8 +509,8 @@ const SearchPage = () => {
             </Suspense>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-              {rankedBusinesses.map((biz: any, i: number) => (
-                <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
+              {rankedBusinesses.map((biz: any) => (
+                <div key={biz.id}>
                   <BusinessCard
                     biz={biz}
                     onHover={setHighlightedId}
@@ -559,7 +548,7 @@ const SearchPage = () => {
                   <button
                     key={cat.key}
                     type="button"
-                    onClick={() => { setDebouncedQuery(""); setSelectedCategory(cat.key); }}
+                    onClick={() => setSearchParams({ category: cat.key }, { replace: true })}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
                   >
                     <IndustryIcon category={cat.key} className="h-5 w-5 shrink-0" alt={cat.label} />

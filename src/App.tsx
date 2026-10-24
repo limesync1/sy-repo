@@ -19,6 +19,7 @@ import { PublicNavigation } from "@/components/PublicNavigation";
 import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
 import StickyMobileCTA from "@/components/conversion/StickyMobileCTA";
 import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
+import { canPreloadPublicPages } from "@/lib/public-loading";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -275,17 +276,34 @@ const PageFallback = () => {
  *  Bliv udbyder) i browser-idle, så et klik fra forsiden føles instant. */
 const useIdlePrefetch = () => {
   useEffect(() => {
-    const keys = ["/virksomheder", "/tilbud", "/opret-virksomhed"];
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (!canPreloadPublicPages(connection)) return;
+    const keys = ["/virksomheder", "/tilbud", "/opret-virksomhed", "/software"];
+    let cancelled = false;
+    let nextTimer: number | undefined;
     const ric = (window as any).requestIdleCallback as
       | ((cb: () => void, opts?: { timeout: number }) => number)
       | undefined;
     const trigger = () => {
       import("@/lib/route-prefetch").then((m) => {
-        keys.forEach((k) => m.prefetchLazyRoute(k));
+        let index = 0;
+        const next = () => {
+          if (cancelled) return;
+          if (document.hidden) { nextTimer = window.setTimeout(next, 1000); return; }
+          const key = keys[index++];
+          if (key) m.prefetchLazyRoute(key);
+          if (index < keys.length) nextTimer = window.setTimeout(next, 700);
+        };
+        next();
       });
     };
-    if (ric) ric(trigger, { timeout: 2000 });
-    else setTimeout(trigger, 1500);
+    const id = ric ? ric(trigger, { timeout: 3000 }) : window.setTimeout(trigger, 2000);
+    return () => {
+      cancelled = true;
+      if (ric) (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(id);
+      else window.clearTimeout(id);
+      if (nextTimer !== undefined) window.clearTimeout(nextTimer);
+    };
   }, []);
 };
 

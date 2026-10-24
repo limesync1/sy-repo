@@ -1,6 +1,7 @@
 # Project architecture rules
 
 - Auth entry points share normalized email, safe signup outcomes and Danish errors; never infer account existence from obfuscated signup users, and only recovery links/events authorize the public password-reset form, to avoid false success and ordinary-session resets.
+- Public sections prewarm their chunks separately from mounting effects; automatic page prefetch is staggered and respects data-saving connections, so visible content and navigation retain priority.
 
 - Appointment details use `AppointmentDetailsHeader`/`appointment-details-overlay`; creation uses `SheetHeaderBlock`/`Section`/`SheetFooterBar`; planner utilities use `PlannerDialogHeader` with fixed footer and scrolling body for consistent artwork and clearance.
 - Checkout seats use server allocation/active-seat floors and period-matched prices to prevent underpayment.

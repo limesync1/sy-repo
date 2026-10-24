@@ -1,3 +1,9 @@
+## Offentligt design og indlæsning (24. oktober)
+- [x] Tydeligere loginlabels, 16 px felter, større valgknapper og danske fejl; password nulstilles ved skift mellem login/oprettelse
+- [x] Forsidesektioner forvarmes før montering; staggered forvarmning af fire offentlige sider respekterer sparedata/2G; blå baggrund bruger 30 Hz timer frem for hver skærmopdatering
+- [x] Find services: kort-skeleton, korrekt netværksfejl/genforsøg, ingen kaskadeanimation, URL som eneste filterkilde; Få tilbud beholder sidetop under matching og har rolig ventevisning; Bliv udbyder har prisfejl/genforsøg; Systemets søgning og knapkontrast forbedret
+- [x] 25 tests bestået; seks sider ved 1280/390 px, lys/mørk og reduceret bevægelse uden overflow/runtimefejl; alle forsidens sektioner/footer nået; Systemets søgning gennemført; faktiske loginfejl og simulerede netværks-/prisfejl med vellykkede genforsøg kontrolleret. Build OK. Ingen ny virksomhed eller tilbud afsendt; lokale indlæsningstal er ikke en måling af produktion på langsomt mobilnet.
+
 ## Login og konto-oprettelse (24. oktober)
 - [x] Ret falsk oprettelsesbekræftelse ved eksisterende e-mail i begge offentlige oprettelsesforløb uden konto-opslag; virksomhedsoprettelse venter på bekræftelse
 - [x] Saml danske fejlbeskeder, robust indsendelse og tydelig bekræftelse/genafsendelse med 60 sekunders ventetid

@@ -1,5 +1,5 @@
 import { lookupCvr as fetchCvr } from "@/lib/cvr-lookup";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -109,12 +109,16 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
   // ─── Pris-tabel fra platform_settings ───
   const [pricing, setPricing] = useState<Pricing | null>(null);
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.rpc("get_platform_pricing");
-      if (data && data[0]) setPricing(data[0] as Pricing);
-    })();
+  const [pricingError, setPricingError] = useState(false);
+  const loadPricing = useCallback(async () => {
+    setPricingError(false);
+    try {
+      const { data, error } = await supabase.rpc("get_platform_pricing");
+      if (error || !data?.[0]) { setPricingError(true); return; }
+      setPricing(data[0] as Pricing);
+    } catch { setPricingError(true); }
   }, []);
+  useEffect(() => { void loadPricing(); }, [loadPricing]);
 
   // ─── CVR-opslag ───
   const [cvr, setCvr] = useState("");
@@ -623,15 +627,6 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 aria-hidden
                 className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-foreground to-accent"
               />
-              {/* Dekorativ baggrundsglow — gør kortet mere levende uden at forstyrre */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-accent/10 blur-3xl"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-foreground/5 blur-3xl"
-              />
               <div className="relative">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-accent" />
@@ -642,8 +637,11 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 <h3 className="mt-1 text-lg font-semibold text-foreground">Oversigt</h3>
               </div>
 
-              {!pricing ? (
-                <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+              {pricingError ? <div role="alert" className="mt-6 space-y-3 text-sm text-muted-foreground">
+                <p>Priserne kunne ikke indlæses. Dine valg er bevaret.</p>
+                <Button variant="outline" onClick={() => void loadPricing()}>Prøv igen</Button>
+              </div> : !pricing ? (
+                <div role="status" className="mt-6 flex min-h-40 items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" /> Indlæser priser…
                 </div>
               ) : breakdown && (
@@ -737,7 +735,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
               <Button
                 onClick={handleSubmit}
-                disabled={!canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
+                disabled={!pricing || !canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
 
                 className="relative mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
               >
@@ -782,7 +780,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             </div>
             <Button
               onClick={handleSubmit}
-              disabled={!canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
+              disabled={!pricing || !canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
 
               className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-foreground to-foreground/85 px-5 text-sm font-semibold text-background shadow-md transition-all hover:from-foreground hover:to-foreground hover:shadow-lg active:scale-[0.98]"
             >
