@@ -10,6 +10,8 @@ import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { BRAND_DEFINITION, BRAND_FEATURE_LIST } from "@/lib/brand";
 import { PLANNER_GUIDE_PDF_PATH } from "@/data/routePlannerFeatures";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -128,7 +130,7 @@ const SoftwareHub = () => {
             </Link>
             <Link
               to="/software/priser"
-              className="inline-flex h-12 items-center justify-center rounded-full border border-background/25 px-6 text-sm font-semibold text-background transition-colors hover:bg-background/10"
+              className="inline-flex h-12 items-center justify-center rounded-full border border-ocean-foreground/35 px-6 text-sm font-semibold text-ocean-foreground transition-colors hover:bg-ocean-foreground/10"
             >
               Se priser
             </Link>
@@ -136,25 +138,25 @@ const SoftwareHub = () => {
         }
       >
         {/* Søgning direkte i heroen — så funktionsguiden er det første man ser. */}
-        <form onSubmit={submit} className="mt-6 max-w-xl" role="search">
+        <form onSubmit={submit} className="max-w-xl" role="search">
           <label className="relative block">
             <span className="sr-only">Søg i systemets funktioner</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" aria-hidden />
-            <input
+            <Input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Søg fx “sygemelding”, “faktura” eller “fast aftale”"
-              className="h-12 w-full rounded-full border border-border bg-background pl-11 pr-28 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+              className="h-12 w-full rounded-full border border-border bg-background pl-11 pr-24 text-base text-foreground placeholder:text-muted-foreground"
             />
-            <button
+            <Button
               type="submit"
-              className="absolute right-1.5 top-1/2 inline-flex h-9 -translate-y-1/2 items-center rounded-full bg-foreground px-4 text-xs font-semibold text-background hover:opacity-90"
+              className="absolute right-1 top-1/2 h-10 -translate-y-1/2 rounded-full bg-foreground px-4 text-sm font-semibold text-background hover:bg-foreground/90"
             >
               Søg
-            </button>
+            </Button>
           </label>
-          <p className="mt-2 text-xs text-background/70">
+          <p className="mt-2 text-sm text-ocean-foreground/85">
             Søger i funktionsguiden med eksempler og trin for hver funktion.
           </p>
         </form>

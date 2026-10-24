@@ -40,16 +40,17 @@ export default function BlueFlowBackground({ variant = "hero" }: { variant?: Blu
       setAnimate(visible && !document.hidden && !motion.matches);
       if (visible) startWhenIdle();
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+    const observer = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
       if (visible) startWhenIdle();
       sync();
-    });
-    observer.observe(host);
+    }) : null;
+    if (observer) observer.observe(host);
+    else { visible = true; sync(); }
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       if (idleId !== undefined) { if (ric) (window as any).cancelIdleCallback?.(idleId); else clearTimeout(idleId); }
       motion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);

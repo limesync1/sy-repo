@@ -1,3 +1,8 @@
+## Offentligt design og indlæsning (24. oktober)
+- [ ] Forbedr loginformularens læsbarhed, fokus og tilstandsskift
+- [ ] Gennemgå og optimér sektioner, baggrunde og indlæsning på Forside, Find services, Få tilbud, Bliv udbyder og Systemet
+- [ ] Test indlæsning, navigation, formularer og fejl i browseren; behold indhold og regler
+
 ## Login og konto-oprettelse (24. oktober)
 - [x] Ret falsk oprettelsesbekræftelse ved eksisterende e-mail i begge offentlige oprettelsesforløb uden konto-opslag; virksomhedsoprettelse venter på bekræftelse
 - [x] Saml danske fejlbeskeder, robust indsendelse og tydelig bekræftelse/genafsendelse med 60 sekunders ventetid
