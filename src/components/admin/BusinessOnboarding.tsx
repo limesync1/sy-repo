@@ -803,7 +803,7 @@ const Section = ({
   number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
   <section
-    className={`relative rounded-lg border bg-card p-4 shadow-sm transition-all sm:p-6 ${
+    className={`relative rounded-2xl border bg-card p-4 shadow-sm transition-all sm:p-6 ${
       done ? "border-accent/40" : "border-border"
     }`}
   >

@@ -23,6 +23,7 @@ import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
+import HeroHighlights from "@/components/landing/HeroHighlights";
 import Footer from "@/components/landing/Footer";
 import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
