@@ -61,7 +61,7 @@ import howItWorksNew from "@/assets/content-icons/saadan-fungerer-det.svg.asset.
 import independentNew from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
 import verifiedProviderNew from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
 import fairPricesNew from "@/assets/content-icons/fair-priser.svg.asset.json";
-import noMatchesNew from "@/assets/content-icons/ingen-virksomheder-matcher-animated.svg.asset.json";
+import noMatchesNew from "@/assets/content-icons/ingen-matches-lige-nu.svg.asset.json";
 import matchingLoaderNew from "@/assets/content-icons/loader-matches.svg.asset.json";
 import localRootsNew from "@/assets/content-icons/lokal-forankring.svg.asset.json";
 import plannedMonthNew from "@/assets/content-icons/planlagt-denne-maaned.svg.asset.json";
