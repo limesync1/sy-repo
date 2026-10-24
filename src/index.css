@@ -353,14 +353,9 @@
   .route-planner-open [role="menu"],
   .route-planner-open [data-radix-popper-content-wrapper] {
     letter-spacing: 0;
-    /* Panelets blå = forsidens dybe havblå: hero-mid (#016EA4) glider mod
-       hero-bg (#012941) i gradienter, så knapper, ikoner og mærkater matcher
-       hjemmesidens hero. Lys tematik — mørkt tema har sine egne værdier. */
-    --accent: 201 99% 33%;
+    --accent: 198 71% 35%;
     --accent-foreground: 0 0% 100%;
-    --ring: 201 99% 33%;
-    --brand-blue-start: 201 99% 33%;
-    --brand-blue-end: 204 96% 13%;
+    --ring: 198 71% 35%;
     --planner-success: 151 58% 36%;
     --planner-warning: 38 92% 44%;
     --planner-danger: 0 72% 51%;
@@ -387,9 +382,6 @@
     --accent: 195 69% 55%;
     --accent-foreground: 222 47% 8%;
     --ring: 195 69% 55%;
-    /* Mørkt tema beholder sine lysere tokens — den dybe havblå er kun til lys. */
-    --brand-blue-start: 189 100% 55%;
-    --brand-blue-end: 198 71% 42%;
     --planner-success: 151 56% 48%;
     --planner-warning: 40 90% 58%;
     --planner-danger: 0 75% 62%;
@@ -1973,18 +1965,17 @@ img[loading="lazy"].is-error {
   }
 }
 
-/* Serviceydere-blå på knapper: gradienten følger --brand-blue-tokens, så
-   offentlige sider beholder hjemmesidens cyan, mens panelerne via deres
-   token-override får forsidens dybe havblå (#016EA4 → #012941). */
+/* Serviceydere-blå: knapper med accentfarve får hjemmesidens hero-cyan
+   (#00C0E3) der glider over i accentfarven — samme gradient som ikonerne. */
 @layer utilities {
   button.bg-accent,
   a.bg-accent,
   [role="button"].bg-accent {
-    background-image: linear-gradient(180deg, hsl(var(--brand-blue-start)), hsl(var(--brand-blue-end)));
+    background-image: linear-gradient(180deg, #00C0E3 0%, #1a7399 100%);
   }
   button.bg-accent:hover,
   a.bg-accent:hover {
-    background-image: linear-gradient(180deg, hsl(var(--brand-blue-start) / 0.92), hsl(var(--brand-blue-end) / 0.92));
+    background-image: linear-gradient(180deg, #00AFD0 0%, #16658a 100%);
   }
 }
 
