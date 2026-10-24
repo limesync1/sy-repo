@@ -29,6 +29,7 @@ describe("shared auth calls", () => {
   it("returns thrown network failures instead of leaving callers stuck", async () => {
     mocks.signin.mockRejectedValue(new Error("Failed to fetch"));
     const { result } = renderHook(useAuth, { wrapper: AuthProvider });
+    await waitFor(() => expect(result.current.loading).toBe(false));
     const response = await result.current.signIn("a@example.dk", "password");
     expect(response.error?.message).toBe("Failed to fetch");
   });
@@ -41,6 +42,7 @@ describe("shared auth calls", () => {
   it("reports logout failure without claiming logout success", async () => {
     mocks.logout.mockResolvedValue({ error: new Error("Failed to fetch") });
     const { result } = renderHook(useAuth, { wrapper: AuthProvider });
+    await waitFor(() => expect(result.current.loading).toBe(false));
     await result.current.signOut();
     expect(mocks.toastError).toHaveBeenCalledTimes(1);
   });
