@@ -2019,7 +2019,17 @@ img[loading="lazy"].is-error {
   background: hsl(var(--ocean-foreground)); color: hsl(var(--ocean)); border-color: hsl(var(--ocean-foreground));
 }
 .panel-page-hero .border-input:hover, .panel-page-hero button.bg-secondary:hover { background: hsl(var(--ocean-foreground) / 0.9); color: hsl(var(--ocean)); }
-.panel-page-hero .brand-blue-action { box-shadow: 0 0 0 1px hsl(var(--ocean-foreground) / 0.35); }
+/* Primærknap inde i det blå sidehoved: hvid flade med mørk tekst — samme
+   kontrast som forsidens hero-knapper. Dyb blå på dyb blå ville forsvinde. */
+.panel-page-hero .brand-blue-action {
+  background-image: none;
+  background-color: hsl(var(--ocean-foreground));
+  color: hsl(var(--ocean));
+  box-shadow: 0 0 0 1px hsl(var(--ocean-foreground) / 0.35);
+}
+.panel-page-hero .brand-blue-action:hover {
+  background-color: hsl(var(--ocean-foreground) / 0.9);
+}
 
 /* Aftalehandlinger i tjekliste og detaljer: tre ens farvede fliser på én række. */
 .employee-action-tile {
