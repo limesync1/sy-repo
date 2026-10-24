@@ -1965,16 +1965,17 @@ img[loading="lazy"].is-error {
   }
 }
 
-/* Ny Serviceydere-blå: knapper med accentfarve får samme gradient som ikonerne. */
+/* Serviceydere-blå: knapper med accentfarve får hjemmesidens hero-cyan
+   (#00C0E3) der glider over i accentfarven — samme gradient som ikonerne. */
 @layer utilities {
   button.bg-accent,
   a.bg-accent,
   [role="button"].bg-accent {
-    background-image: linear-gradient(180deg, #3fb4dc 0%, #1a7399 100%);
+    background-image: linear-gradient(180deg, #00C0E3 0%, #1a7399 100%);
   }
   button.bg-accent:hover,
   a.bg-accent:hover {
-    background-image: linear-gradient(180deg, #38a6cc 0%, #16658a 100%);
+    background-image: linear-gradient(180deg, #00AFD0 0%, #16658a 100%);
   }
 }
 
