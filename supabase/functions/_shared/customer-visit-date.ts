@@ -31,3 +31,16 @@ export function formatCustomerVisitDate(routeDate: string | null | undefined): s
     weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
   });
 }
+
+/** Employee-facing route date: "i dag"/"i morgen" with the full date in
+ * parentheses so the exact day is never ambiguous. Falls back to the full
+ * Danish date, or "uden dato" when the route has none. */
+export function formatEmployeeRouteDate(routeDate: string | null | undefined): string {
+  const relative = formatCustomerVisitDate(routeDate);
+  if (relative === "snarest") return "uden dato";
+  if (relative !== "i dag" && relative !== "i morgen") return relative;
+  const full = new Date(`${routeDate}T12:00:00Z`).toLocaleDateString("da-DK", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+  });
+  return `${relative} (${full})`;
+}

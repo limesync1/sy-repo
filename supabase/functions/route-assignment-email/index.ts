@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     await admin.from('routes').update({ status: 'dispatched' }).eq('id', routeId)
     const result = await sendTemplateEmail('route-overview', employee.email, { idempotencyKey: requestId ? `route-dispatch-${routeId}-${employeeId}-${requestId}` : `route-dispatch-${routeId}-${employeeId}-${route.updated_at}`, templateData: {
       employeeName: employee.name, businessName: route.businesses?.name, routeName: route.name || 'Din ruteplan',
-      routeDate: new Date(route.route_date).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+      routeDate: formatEmployeeRouteDate(route.route_date),
       stops: stops.map((stop: any, index: number) => ({ number: index + 1, customerName: stop.customer_name || 'Aftale', address: stop.address || 'Adresse ikke angivet', service: stop.service_summary || undefined })),
       appUrl: `https://serviceydere.dk/medarbejder/rute/${routeId}`,
     } })
