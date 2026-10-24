@@ -2,6 +2,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { z } from 'npm:zod@3.23.8'
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
+import { formatEmployeeRouteDate } from '../_shared/customer-visit-date.ts'
 
 const BodySchema = z.object({ routeId: z.string().uuid(), employeeId: z.string().uuid(), requestId: z.string().uuid().optional() })
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
