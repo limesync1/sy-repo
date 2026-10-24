@@ -172,9 +172,9 @@ const SoftwareHub = () => {
               <Link
                 key={title}
                 to={href}
-                className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-md"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-md"
               >
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-md bg-site-header-background p-1 sm:h-14 sm:w-14">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-site-header-background p-1 sm:h-14 sm:w-14">
                   <BrandedIllustration name={icon} className="h-full w-full" alt="" />
                 </span>
                 <h3 className="mt-4 flex items-center gap-1.5 text-base font-semibold tracking-tight text-foreground">
@@ -213,7 +213,7 @@ const SoftwareHub = () => {
           title="Hvad koster det"
           description="14 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjer I kort under Indstillinger."
         >
-          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             {/* Hovedprisen */}
             <div className="relative isolate overflow-hidden bg-ocean p-6 text-ocean-foreground sm:p-8 lg:p-9">
               <span className="inline-flex items-center gap-2 rounded-md border border-ocean-foreground/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]">
@@ -274,9 +274,27 @@ const SoftwareHub = () => {
         </SectionShell>
 
 
-        <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
           <div className="article-content prose prose-neutral max-w-none dark:prose-invert">
             <ArticleFaqSection items={FAQ} />
+          </div>
+        </div>
+
+        {/* Afsluttende handling — så siden ikke bare ender i et tomt hul. */}
+        <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="relative isolate overflow-hidden rounded-[28px] bg-ocean px-6 py-10 text-center text-ocean-foreground shadow-sm sm:px-10 sm:py-12">
+            <h2 className="m-0 text-2xl font-semibold tracking-tight sm:text-3xl">Klar til at prøve systemet?</h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-ocean-foreground/80 sm:text-base">
+              14 dages gratis prøve uden betalingskort. Opret virksomheden på få minutter — vi hjælper med at flytte jeres kunder ind.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <Link to="/opret-virksomhed" className="inline-flex h-12 items-center rounded-full bg-ocean-foreground px-7 text-sm font-semibold text-ocean transition-opacity hover:opacity-90">
+                Start 14 dages gratis prøve
+              </Link>
+              <Link to="/software/priser" className="inline-flex h-12 items-center rounded-full border border-ocean-foreground/30 px-7 text-sm font-semibold text-ocean-foreground transition-colors hover:bg-ocean-foreground/10">
+                Se priser
+              </Link>
+            </div>
           </div>
         </div>
       </main>
