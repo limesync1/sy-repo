@@ -344,6 +344,7 @@ const SearchPage = () => {
       {/* Sticky filter bar */}
       <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <button
               onClick={() => selectedCategory && handleCategoryClick(selectedCategory)}
