@@ -377,6 +377,10 @@ const SearchPage = () => {
               );
             })}
           </div>
+          {/* Blød tone i højre kant, så man kan se at der er flere brancher
+              bagved — ellers ligner listen en afskåret fejl. */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" aria-hidden />
+          </div>
 
           {/* Aktive filtre — hvert filter kan fjernes enkeltvis, så man ikke
               behøver rydde alt for at justere én ting. */}
