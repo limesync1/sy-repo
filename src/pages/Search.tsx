@@ -175,28 +175,19 @@ const BusinessCard = ({
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialCategory = searchParams.get("category") || "";
-  const initialQuery = searchParams.get("q") || "";
-  const initialSort = (searchParams.get("sort") as SortOption) || "relevance";
-
-  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [sort, setSort] = useState<SortOption>(initialSort);
+  const selectedCategory = searchParams.get("category") || "";
+  const debouncedQuery = searchParams.get("q") || "";
+  const sort = (searchParams.get("sort") as SortOption) || "relevance";
+  const updateFilter = (key: string, value: string) => setSearchParams((previous) => {
+    const next = new URLSearchParams(previous);
+    if (value) next.set(key, value); else next.delete(key);
+    return next;
+  }, { replace: true });
+  const setSelectedCategory = (value: string) => updateFilter("category", value);
+  const setDebouncedQuery = (value: string) => updateFilter("q", value);
+  const setSort = (value: SortOption) => updateFilter("sort", value === "relevance" ? "" : value);
   const [view, setView] = useState<"grid" | "map">("grid");
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setDebouncedQuery(searchParams.get("q") || "");
-    setSelectedCategory(searchParams.get("category") || "");
-  }, [searchParams]);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (selectedCategory) params.set("category", selectedCategory);
-    if (debouncedQuery) params.set("q", debouncedQuery);
-    if (sort !== "relevance") params.set("sort", sort);
-    setSearchParams(params, { replace: true });
-  }, [selectedCategory, debouncedQuery, sort, setSearchParams]);
 
   const { data: businesses, isLoading, isError, refetch } = useAllBusinesses(
     selectedCategory || undefined,
@@ -289,9 +280,7 @@ const SearchPage = () => {
 
 
   const clearFilters = () => {
-    setDebouncedQuery("");
-    setSelectedCategory("");
-    setSort("relevance");
+    setSearchParams({}, { replace: true });
     setSearchParams({}, { replace: true });
   };
 
@@ -559,7 +548,7 @@ const SearchPage = () => {
                   <button
                     key={cat.key}
                     type="button"
-                    onClick={() => { setDebouncedQuery(""); setSelectedCategory(cat.key); }}
+                    onClick={() => setSearchParams({ category: cat.key }, { replace: true })}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
                   >
                     <IndustryIcon category={cat.key} className="h-5 w-5 shrink-0" alt={cat.label} />
