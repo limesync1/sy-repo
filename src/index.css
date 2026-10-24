@@ -26,7 +26,7 @@
     --accent: 198 71% 35%;
     --accent-foreground: 0 0% 100%;
     --accent-soft: 196 70% 95%;
-    --brand-blue-start: 195 68% 55%;
+    --brand-blue-start: 189 100% 45%;
     --brand-blue-end: 198 71% 35%;
     --route-line-casing: 0 0% 100%;
     --route-pin-foreground: 0 0% 100%;
@@ -118,7 +118,7 @@
     --accent: 195 69% 55%;
     --accent-foreground: 222 47% 11%;
     --accent-soft: 198 55% 18%;
-    --brand-blue-start: 195 68% 62%;
+    --brand-blue-start: 189 100% 55%;
     --brand-blue-end: 198 71% 42%;
     --beta-accent: 195 69% 55%;
     --feature-cool: 195 40% 18%;
@@ -1791,10 +1791,10 @@ img[loading="lazy"].is-error {
   animation: sidebar-onboarding-nudge 4.8s ease-in-out infinite;
 }
 
-/* Gradient-blå til aktive navigationspunkter i panelerne — samme farvegradient
-   (lyseblå #3fb4dc → mørk blå #1a7399, top → bund) som de brugerleverede
-   ikon-SVG'er, så navigationen matcher illustrationerne. Gradienten defineres
-   af NavIconGradientDefs i PanelShell og refereres via url(#sy-nav-blue). */
+/* Gradient-blå til aktive navigationspunkter i panelerne — hjemmesidens
+   hero-cyan (#00C0E3 → #1a7399, top → bund), så navigationen matcher
+   hjemmesidens blå. Gradienten defineres af NavIconGradientDefs i
+   PanelShell og refereres via url(#sy-nav-blue). */
 .nav-icon-gradient {
   stroke: url(#sy-nav-blue) hsl(var(--accent));
 }
@@ -1965,16 +1965,17 @@ img[loading="lazy"].is-error {
   }
 }
 
-/* Ny Serviceydere-blå: knapper med accentfarve får samme gradient som ikonerne. */
+/* Serviceydere-blå: knapper med accentfarve får hjemmesidens hero-cyan
+   (#00C0E3) der glider over i accentfarven — samme gradient som ikonerne. */
 @layer utilities {
   button.bg-accent,
   a.bg-accent,
   [role="button"].bg-accent {
-    background-image: linear-gradient(180deg, #3fb4dc 0%, #1a7399 100%);
+    background-image: linear-gradient(180deg, #00C0E3 0%, #1a7399 100%);
   }
   button.bg-accent:hover,
   a.bg-accent:hover {
-    background-image: linear-gradient(180deg, #38a6cc 0%, #16658a 100%);
+    background-image: linear-gradient(180deg, #00AFD0 0%, #16658a 100%);
   }
 }
 

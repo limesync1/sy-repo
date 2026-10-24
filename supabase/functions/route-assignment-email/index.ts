@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
+import { formatEmployeeRouteDate } from '../_shared/customer-visit-date.ts'
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' }
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 Deno.serve(async (req) => {
@@ -21,7 +22,7 @@ Deno.serve(async (req) => {
     await admin.from('routes').update({ status: 'dispatched' }).eq('id', routeId)
     const result = await sendTemplateEmail('route-overview', employee.email, { idempotencyKey: requestId ? `route-dispatch-${routeId}-${employeeId}-${requestId}` : `route-dispatch-${routeId}-${employeeId}-${route.updated_at}`, templateData: {
       employeeName: employee.name, businessName: route.businesses?.name, routeName: route.name || 'Din ruteplan',
-      routeDate: new Date(route.route_date).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+      routeDate: formatEmployeeRouteDate(route.route_date),
       stops: stops.map((stop: any, index: number) => ({ number: index + 1, customerName: stop.customer_name || 'Aftale', address: stop.address || 'Adresse ikke angivet', service: stop.service_summary || undefined })),
       appUrl: `https://serviceydere.dk/medarbejder/rute/${routeId}`,
     } })

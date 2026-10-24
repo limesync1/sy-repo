@@ -2,6 +2,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { z } from 'npm:zod@3.23.8'
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
+import { formatEmployeeRouteDate } from '../_shared/customer-visit-date.ts'
 
 const BodySchema = z.object({ routeId: z.string().uuid(), employeeId: z.string().uuid(), requestId: z.string().uuid().optional() })
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -44,7 +45,7 @@ Deno.serve(async (req) => {
         employeeName: employee.name,
         businessName: route.businesses?.name,
         routeName: route.name || 'Din ruteplan',
-        routeDate: new Date(route.route_date).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        routeDate: formatEmployeeRouteDate(route.route_date),
         stops: stops.map((stop: any, index: number) => ({ number: index + 1, customerName: stop.customer_name || 'Aftale', address: stop.address || 'Adresse ikke angivet', service: stop.service_summary || undefined })),
         appUrl: `https://serviceydere.dk/medarbejder/rute/${routeId}`,
       },

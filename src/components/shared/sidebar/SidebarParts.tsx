@@ -36,14 +36,14 @@ export const initialsOf = (name: string, fallback = "V") =>
     .map((p) => p.charAt(0).toUpperCase())
     .join("") || fallback;
 
-/** Skjult SVG-def med panel-navigationens gradientblå (#3fb4dc → #1a7399,
- *  samme gradient som de brugerleverede ikon-SVG'er). Rendres én gang af
+/** Skjult SVG-def med panel-navigationens gradientblå (#00C0E3 → #1a7399,
+ *  hjemmesidens hero-cyan der glider over i accentfarven). Rendres én gang af
  *  PanelShell; .nav-icon-gradient peger på den via `stroke: url(#sy-nav-blue)`. */
 export const NavIconGradientDefs = () => (
   <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
     <defs>
       <linearGradient id="sy-nav-blue" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#3fb4dc" />
+        <stop offset="0" stopColor="#00C0E3" />
         <stop offset="1" stopColor="#1a7399" />
       </linearGradient>
     </defs>
