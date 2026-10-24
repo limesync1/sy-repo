@@ -67,7 +67,7 @@ const WelcomeEmail = ({ name, isBusinessOwner = false }: WelcomeProps) => (
  <Section style={cardAccent}>
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>Tip
 </Text>
- <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
+ <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#016EA4' }}>
  {isBusinessOwner
  ? 'En tydelig servicebeskrivelse og rigtige intervaller gør det lettere for kunderne at bestille med det samme.'
  : 'Du kan gemme favoritter, oprette faste aftaler og følge dine bestillinger ét sted.'}</Text>

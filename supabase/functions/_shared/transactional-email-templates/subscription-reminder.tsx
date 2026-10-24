@@ -57,7 +57,7 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
 
  {date && (
  <Section style={cardAccent}>
- <Text style={{ ...cardLabel, color: '#0e7490' }}>Næste servicedato</Text>
+ <Text style={{ ...cardLabel, color: '#016EA4' }}>Næste servicedato</Text>
  <Text style={{ fontSize: '20px', fontWeight: 700, color: '#0d1729', margin: '0 0 4px', lineHeight: '1.2' }}> {date}</Text>
 </Section>
  )}

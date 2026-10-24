@@ -201,7 +201,7 @@ const scoreCell = {
 const scoreNum = {
   fontSize: '36px',
   fontWeight: 700 as const,
-  color: '#015c96',
+  color: '#016EA4',
   lineHeight: '1',
   letterSpacing: '-0.02em',
 }
@@ -233,12 +233,12 @@ const badgePillSubtle = {
 }
 const contactCard = {
   ...card,
-  borderLeft: '4px solid #015c96',
+  borderLeft: '4px solid #016EA4',
   backgroundColor: '#f8fbfd',
 }
 const contactLabel = {
   ...cardLabel,
-  color: '#015c96',
+  color: '#016EA4',
   fontWeight: 600 as const,
   textTransform: 'uppercase' as const,
   letterSpacing: '0.04em',

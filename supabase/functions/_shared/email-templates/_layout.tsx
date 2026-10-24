@@ -4,7 +4,7 @@ import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text
 import { Button } from '../email-button.tsx'
 
 export const LOGO_URL = 'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo-dark.png?v=2'
-const ink = '#0f172a', soft = '#475569', muted = '#64748b', line = '#e2e8f0', teal = '#0b8a96'
+const ink = '#0f172a', soft = '#475569', muted = '#64748b', line = '#e2e8f0', teal = '#016EA4'
 
 const s = {
   main: { backgroundColor: '#f1f5f9', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif', margin: 0, padding: '40px 12px', color: ink },
