@@ -615,12 +615,27 @@ const RequestQuote = () => {
                 ))}
               </ol>
             </div>
+            {/* Tryghedspunkterne står i heroens boks — her giver vi i stedet
+                en hurtig genvej til de mest brugte kategorier. */}
             <div className="mt-4 rounded-[1.5rem] border border-border bg-surface p-5 sm:rounded-[1.75rem]">
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-accent" /> Svar på 3-10 sekunder</li>
-                <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-accent" /> Kun verificerede udbydere</li>
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Gratis og uforpligtende</li>
-              </ul>
+              <h2 className="text-base font-semibold tracking-tight text-foreground">Populære kategorier</h2>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {CATEGORIES.filter((c) => POPULAR_KEYS.includes(c.key)).slice(0, 8).map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setCategory(c.key)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-all hover:-translate-y-0.5 ${
+                      category === c.key
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-card text-foreground hover:border-foreground/30"
+                    }`}
+                  >
+                    <IndustryIcon category={c.key} className="h-5 w-5 shrink-0" alt={c.label} />
+                    {c.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </aside>
 
