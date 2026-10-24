@@ -374,7 +374,7 @@ const Auth = () => {
                       </div>
                     )}
                     <div>
-                      <label htmlFor="reset-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <label htmlFor="reset-email" className="mb-2 block text-sm font-semibold text-foreground">
                         E-mail
                       </label>
                       <Input
@@ -383,23 +383,23 @@ const Auth = () => {
                         autoComplete="email"
                         placeholder="din@email.dk"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
+                        onChange={(e) => { setEmail(e.target.value); setFormError(null); setUnconfirmed(false); }}
+                        className="h-12 rounded-lg border-border bg-card px-4 text-base"
                       />
                       {emailSuggestion && (
-                        <button
+                        <Button variant="ghost"
                           type="button"
                           onClick={() => setEmail(emailSuggestion)}
                           className="mt-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
                         >
                           Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
-                        </button>
+                        </Button>
                       )}
                     </div>
                     <Button
                       type="submit"
                       disabled={submitting || emailCooldown > 0}
-                      className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background hover:bg-foreground/90"
+                      className="group h-12 w-full rounded-xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
                     >
                       {submitting ? (
                         <span className="inline-flex items-center gap-2">
@@ -421,20 +421,24 @@ const Auth = () => {
             {showLoginForm && !confirmationEmail && (
               <div className="space-y-7">
                 <div className="flex rounded-full border border-border bg-secondary/60 p-1">
-                  <button
+                  <Button variant="ghost"
                     type="button"
-                    onClick={() => setIsSignUp(false)}
-                    className="flex-1 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
+                    disabled={submitting}
+                    aria-pressed={!isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(false); }}
+                    className="h-11 flex-1 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
                   >
                     Log ind
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="ghost"
                     type="button"
-                    onClick={() => setIsSignUp(true)}
-                    className="flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                    disabled={submitting}
+                    aria-pressed={isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(true); }}
+                    className="h-11 flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   >
                     Opret konto
-                  </button>
+                  </Button>
                 </div>
 
                 <div>
@@ -455,29 +459,29 @@ const Auth = () => {
                     </div>
                   )}
                   <div>
-                    <label htmlFor="auth-email-main" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
+                    <label htmlFor="auth-email-main" className="mb-2 block text-sm font-semibold text-foreground">E-mail</label>
                     <Input
                       id="auth-email-main"
                       type="email"
                       autoComplete="email"
                       placeholder="din@email.dk"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
+                      onChange={(e) => { setEmail(e.target.value); setFormError(null); setUnconfirmed(false); }}
+                      className="h-12 rounded-lg border-border bg-card px-4 text-base"
                     />
                     {emailSuggestion && (
-                      <button
+                      <Button variant="ghost"
                         type="button"
                         onClick={() => setEmail(emailSuggestion)}
                         className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
                       >
                         Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label htmlFor="auth-password-main" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adgangskode</label>
+                      <label htmlFor="auth-password-main" className="block text-sm font-semibold text-foreground">Adgangskode</label>
                       <Link
                         to="/log-ind?reset=1"
                         className="text-xs font-semibold text-accent underline-offset-2 transition-colors hover:underline"
@@ -492,20 +496,20 @@ const Auth = () => {
                         autoComplete="current-password"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => { setPassword(e.target.value); setFormError(null); }}
                         onKeyUp={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
                         onKeyDown={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
                         onBlur={() => setCapsLockOn(false)}
-                        className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-[15px]"
+                        className="h-12 rounded-lg border-border bg-card px-4 pr-12 text-base"
                       />
-                      <button
+                      <Button variant="ghost"
                         type="button"
                         onClick={() => setShowPassword((v) => !v)}
                         aria-label={showPassword ? "Skjul adgangskode" : "Vis adgangskode"}
-                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                        className="absolute inset-y-0 right-0 flex h-12 w-12 rounded-lg p-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
+                      </Button>
                     </div>
                     {capsLockOn && (
                       <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
@@ -517,7 +521,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background shadow-[0_12px_30px_-12px_hsl(var(--foreground)/0.5)] transition-all hover:bg-foreground/90 hover:shadow-[0_16px_36px_-12px_hsl(var(--foreground)/0.55)]"
+                    className="group h-12 w-full rounded-xl bg-foreground text-base font-semibold text-background shadow-[0_12px_30px_-12px_hsl(var(--foreground)/0.5)] transition-all hover:bg-foreground/90 hover:shadow-[0_16px_36px_-12px_hsl(var(--foreground)/0.55)]"
                   >
                     {submitting ? (
                       <span className="inline-flex items-center gap-2">
@@ -535,9 +539,11 @@ const Auth = () => {
 
                 <p className="text-center text-sm text-muted-foreground">
                   Har du ikke en konto?{" "}
-                  <button onClick={() => setIsSignUp(true)} className="font-semibold text-foreground hover:underline">
+                  <Button variant="ghost" disabled={submitting}
+                    aria-pressed={isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(true); }} className="font-semibold text-foreground hover:underline">
                     Opret konto
-                  </button>
+                  </Button>
                 </p>
 
                 {/* Trust strip */}
@@ -553,20 +559,24 @@ const Auth = () => {
             {showSignupTypeSelector && (
               <div className="space-y-7">
                 <div className="flex rounded-full border border-border bg-secondary/60 p-1">
-                  <button
+                  <Button variant="ghost"
                     type="button"
-                    onClick={() => setIsSignUp(false)}
-                    className="flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                    disabled={submitting}
+                    aria-pressed={!isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(false); }}
+                    className="h-11 flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   >
                     Log ind
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="ghost"
                     type="button"
-                    onClick={() => setIsSignUp(true)}
-                    className="flex-1 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
+                    disabled={submitting}
+                    aria-pressed={isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(true); }}
+                    className="h-11 flex-1 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
                   >
                     Opret konto
-                  </button>
+                  </Button>
                 </div>
 
                 <div>
@@ -594,7 +604,7 @@ const Auth = () => {
                           <opt.icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-[15px] font-semibold text-foreground">{opt.title}</h3>
+                          <h3 className="text-base font-semibold text-foreground">{opt.title}</h3>
                           <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{opt.sub}</p>
                         </div>
                         <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -605,9 +615,11 @@ const Auth = () => {
 
                 <p className="text-center text-sm text-muted-foreground">
                   Har du allerede en konto?{" "}
-                  <button onClick={() => setIsSignUp(false)} className="font-semibold text-foreground hover:underline">
+                  <Button variant="ghost" disabled={submitting}
+                    aria-pressed={!isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(false); }} className="font-semibold text-foreground hover:underline">
                     Log ind
-                  </button>
+                  </Button>
                 </p>
 
                 <div className="flex items-center justify-center gap-5 border-t border-border/60 pt-5 text-xs text-muted-foreground/80">
@@ -649,24 +661,28 @@ const Auth = () => {
                 {/* Toggle for non-business modes */}
                 {!isBusiness && !isEmployee && (
                   <div className="flex rounded-full border border-border bg-secondary/60 p-1">
-                    <button
+                    <Button variant="ghost"
                       type="button"
-                      onClick={() => setIsSignUp(false)}
-                      className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                      disabled={submitting}
+                    aria-pressed={!isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(false); }}
+                      className={`h-11 flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                         !isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       Log ind
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="ghost"
                       type="button"
-                      onClick={() => setIsSignUp(true)}
-                      className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                      disabled={submitting}
+                    aria-pressed={isSignUp}
+                    onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(true); }}
+                      className={`h-11 flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                         isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       Opret konto
-                    </button>
+                    </Button>
                   </div>
                 )}
 
@@ -678,29 +694,29 @@ const Auth = () => {
                     </div>
                   )}
                   <div>
-                    <label htmlFor="auth-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
+                    <label htmlFor="auth-email" className="mb-2 block text-sm font-semibold text-foreground">E-mail</label>
                     <Input
                       id="auth-email"
                       type="email"
                       autoComplete="email"
                       placeholder="din@email.dk"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
+                      onChange={(e) => { setEmail(e.target.value); setFormError(null); setUnconfirmed(false); }}
+                      className="h-12 rounded-lg border-border bg-card px-4 text-base"
                     />
                     {emailSuggestion && (
-                      <button
+                      <Button variant="ghost"
                         type="button"
                         onClick={() => setEmail(emailSuggestion)}
                         className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
                       >
                         Mente du <span className="font-semibold text-foreground underline-offset-2 group-hover:underline">{emailSuggestion}</span>?
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label htmlFor="auth-password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adgangskode</label>
+                      <label htmlFor="auth-password" className="block text-sm font-semibold text-foreground">Adgangskode</label>
                       {!isSignUp && (
                         <Link
                           to={`/log-ind?reset=1${mode ? `&mode=${mode}` : ""}`}
@@ -717,20 +733,20 @@ const Auth = () => {
                         autoComplete={isSignUp ? "new-password" : "current-password"}
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => { setPassword(e.target.value); setFormError(null); }}
                         onKeyUp={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
                         onKeyDown={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
                         onBlur={() => setCapsLockOn(false)}
-                        className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-[15px]"
+                        className="h-12 rounded-lg border-border bg-card px-4 pr-12 text-base"
                       />
-                      <button
+                      <Button variant="ghost"
                         type="button"
                         onClick={() => setShowPassword((v) => !v)}
                         aria-label={showPassword ? "Skjul adgangskode" : "Vis adgangskode"}
-                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                        className="absolute inset-y-0 right-0 flex h-12 w-12 rounded-lg p-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
+                      </Button>
                     </div>
                     {capsLockOn && (
                       <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
@@ -768,7 +784,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background shadow-[0_12px_30px_-12px_hsl(var(--foreground)/0.5)] transition-all hover:bg-foreground/90 hover:shadow-[0_16px_36px_-12px_hsl(var(--foreground)/0.55)]"
+                    className="group h-12 w-full rounded-xl bg-foreground text-base font-semibold text-background shadow-[0_12px_30px_-12px_hsl(var(--foreground)/0.5)] transition-all hover:bg-foreground/90 hover:shadow-[0_16px_36px_-12px_hsl(var(--foreground)/0.55)]"
                   >
                     {submitting ? (
                       <span className="inline-flex items-center gap-2">
@@ -795,9 +811,9 @@ const Auth = () => {
                   ) : !isEmployee ? (
                     <p className="text-sm text-muted-foreground">
                       {isSignUp ? "Har du allerede en konto?" : "Har du ikke en konto?"}{" "}
-                      <button onClick={() => setIsSignUp(!isSignUp)} className="font-semibold text-foreground hover:underline">
+                      <Button variant="ghost" disabled={submitting} onClick={() => { setPassword(""); setShowPassword(false); setIsSignUp(!isSignUp); }} className="font-semibold text-foreground hover:underline">
                         {isSignUp ? "Log ind" : "Opret konto"}
-                      </button>
+                      </Button>
                     </p>
                   ) : null}
                 </div>
