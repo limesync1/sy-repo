@@ -368,7 +368,7 @@ const Auth = () => {
                 ) : (
                   <form onSubmit={handleSendReset} className="space-y-4">
                     {formError && (
-                      <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                      <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                         <span>{formError}</span>
                       </div>
@@ -449,7 +449,7 @@ const Auth = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {formError && (
-                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                    <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{formError}</span>
                     </div>
@@ -672,7 +672,7 @@ const Auth = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {formError && (
-                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                    <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{formError}</span>
                     </div>
