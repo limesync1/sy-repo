@@ -387,6 +387,9 @@
     --accent: 195 69% 55%;
     --accent-foreground: 222 47% 8%;
     --ring: 195 69% 55%;
+    /* Mørkt tema beholder sine lysere tokens — den dybe havblå er kun til lys. */
+    --brand-blue-start: 189 100% 55%;
+    --brand-blue-end: 198 71% 42%;
     --planner-success: 151 56% 48%;
     --planner-warning: 40 90% 58%;
     --planner-danger: 0 75% 62%;
