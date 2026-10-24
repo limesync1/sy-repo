@@ -106,6 +106,18 @@ interface MatchedBusiness {
   };
 }
 
+/** Nummereret trin-mærke i formularen. Udfyldte trin får et teal flueben,
+ *  så brugeren hele tiden kan se, hvor langt de er kommet. */
+const StepBadge = ({ n, done }: { n: number; done: boolean }) => (
+  <span
+    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+      done ? "bg-accent text-accent-foreground" : "bg-foreground/10 text-foreground"
+    }`}
+  >
+    {done ? <Check className="h-3.5 w-3.5" /> : n}
+  </span>
+);
+
 const RequestQuote = () => {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -324,6 +336,11 @@ const RequestQuote = () => {
             eyebrow="Få tilbud"
             title="Få op til 3 gratis tilbud."
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
+            aside={<HeroHighlights items={[
+              { icon: Clock, title: "Svar på 3–10 sekunder", text: "AI'en matcher dig med det samme." },
+              { icon: ShieldCheck, title: "Kun verificerede udbydere", text: "Alle virksomheder er CVR-tjekket." },
+              { icon: Check, title: "Gratis og uforpligtende", text: "Du vælger selv, om du vil bruge et tilbud." },
+            ]} />}
           />
 
           <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
