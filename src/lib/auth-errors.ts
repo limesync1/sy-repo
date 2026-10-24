@@ -20,6 +20,8 @@ export function translateAuthError(input: unknown, fallback = "Noget gik galt. P
   // Oprettelse / signup
   if (msg.includes("user already registered") || msg.includes("already registered") || msg.includes("already exists"))
     return "Der findes allerede en konto med denne e-mail. Prøv at logge ind i stedet.";
+  if (msg.includes("pwned") || msg.includes("breached") || msg.includes("weak_password"))
+    return "Vælg en stærkere adgangskode, som du ikke bruger andre steder. Den valgte kode opfylder ikke sikkerhedskravene.";
   if (msg.includes("password") && (msg.includes("short") || msg.includes("at least") || msg.includes("min") || msg.includes("weak")))
     return "Adgangskoden er for kort. Vælg mindst 6 tegn.";
   if (msg.includes("password") && msg.includes("characters"))
@@ -33,8 +35,6 @@ export function translateAuthError(input: unknown, fallback = "Noget gik galt. P
     return "Vælg en anden adgangskode end den, du bruger nu.";
   if (msg.includes("current password") || msg.includes("current_password"))
     return "Indtast din nuværende adgangskode for at ændre den. Har du glemt den, kan du få et nulstillingslink.";
-  if (msg.includes("pwned") || msg.includes("breached") || msg.includes("weak_password"))
-    return "Vælg en stærkere adgangskode, som du ikke bruger andre steder. Den valgte kode opfylder ikke sikkerhedskravene.";
 
   // Rate limiting
   if (details.status === 429 || msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("rate_limit") || msg.includes("over_request_rate_limit"))

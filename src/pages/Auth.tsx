@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Navigate, Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Navigate, Link, useSearchParams } from "react-router-dom";
 import {
   Building2, User, ArrowLeft, ArrowRight, ShieldCheck, Sparkles,
   CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail, AlertCircle,
@@ -10,7 +10,6 @@ import {
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 import { detectUserRole, ROLE_HOME } from "@/lib/detect-user-role";
-import { supabase } from "@/integrations/supabase/client";
 import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { Skeleton } from "@/components/ui/skeleton";
 import testimonialPatrick from "@/assets/testimonial-patrick.png";
@@ -51,13 +50,13 @@ const passwordScore = (pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string } 
 const Auth = () => {
   const { user, loading, signIn, signUp, resetPassword, resendConfirmation, emailCooldown } = useAuth();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   // "mode" bruges KUN på opret-konto-flowet (vi skal vide hvilken type konto
   // der oprettes). Log-ind kender vi rollen automatisk fra databasen.
-  const mode = searchParams.get("mode");
+  const requestedMode = searchParams.get("mode");
+  const mode = requestedMode && ["business", "customer", "employee"].includes(requestedMode) ? requestedMode : null;
   const signupParam = searchParams.get("signup");
   const isResetMode = searchParams.get("reset") === "1";
-  const [isSignUp, setIsSignUp] = useState(signupParam === "1");
+  const [isSignUp, setIsSignUp] = useState(signupParam === "1" && mode !== "employee");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -79,8 +78,8 @@ const Auth = () => {
   }, []);
 
   useEffect(() => {
-    setIsSignUp(signupParam === "1");
-  }, [signupParam]);
+    setIsSignUp(signupParam === "1" && mode !== "employee");
+  }, [signupParam, mode]);
 
   // Skift mode? Nulstil fejl så den ikke hænger fra forrige forsøg
   useEffect(() => { setFormError(null); setResetSent(false); setConfirmationEmail(null); setUnconfirmed(false); }, [isSignUp, mode, isResetMode]);
