@@ -203,7 +203,7 @@ const OrderConfirmationEmail = ({
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>
  Du har bestilt en tilbagevendende service
 </Text>
- <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
+ <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#016EA4' }}>
  Næste servicedato planlægges automatisk efter første gennemførsel.
  Du kan pause, ændre interval eller annullere når som helst fra dit kundepanel.
 </Text>

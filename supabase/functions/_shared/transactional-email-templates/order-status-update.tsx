@@ -338,7 +338,7 @@ const OrderStatusUpdateEmail = ({
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>
  Næste service er allerede planlagt
 </Text>
- <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
+ <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#016EA4' }}>
  Du har en tilbagevendende aftale. Næste servicedato planlægges automatisk 
  du kan altid pause, ændre interval eller opsige fra dit kundepanel.
 </Text>

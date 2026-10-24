@@ -6,7 +6,7 @@ import * as React from 'npm:react@18.3.1'
 interface Props { href: string; style?: React.CSSProperties; children: React.ReactNode; className?: string }
 
 export const Button = ({ href, style = {}, children }: Props) => {
-  const bg = (style.backgroundColor as string) || '#0b8a96'
+  const bg = (style.backgroundColor as string) || '#016EA4'
   const color = (style.color as string) || '#ffffff'
   const border = (style.border as string) || `1px solid ${bg}`
   const radius = (style.borderRadius as string) || '10px'

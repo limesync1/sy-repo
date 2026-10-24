@@ -66,7 +66,7 @@ const EmployeeWelcomeEmail = ({ employeeName, businessName = 'en virksomhed', bu
  {password && (
  <Section style={cardAccent}>
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}> Sikkerhed</Text>
- <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>Vi anbefaler, at du ændrer adgangskoden første gang du logger ind.</Text>
+ <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#016EA4' }}>Vi anbefaler, at du ændrer adgangskoden første gang du logger ind.</Text>
 </Section>
  )}
 
