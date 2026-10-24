@@ -329,7 +329,7 @@ const RequestQuote = () => {
       <SiteNav active="quote" />
 
       {/* ─── STEP 1: Hero + form ─── */}
-      {!matches && !isLoading && !selectedBusiness && (
+      {!matches && !selectedBusiness && (
         <>
           <PageHero
             tone="violet"
@@ -343,7 +343,7 @@ const RequestQuote = () => {
             ]} />}
           />
 
-          <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
+          {!isLoading && <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
           <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_28px_60px_-38px_hsl(var(--foreground)/0.35)] sm:rounded-[2rem] sm:p-6 md:p-8">
@@ -640,18 +640,17 @@ const RequestQuote = () => {
           </aside>
 
           </div>
-          </section>
+          </section>}
 
         </>
       )}
 
       {/* ─── Loading ─── */}
       {isLoading && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
-          <div className="flex flex-col items-center gap-6 text-center animate-fade-in">
-            <div className="relative">
-              <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
-              <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-accent/20 bg-card shadow-lg shadow-accent/20">
+        <section role="status" aria-live="polite" className="mx-auto min-h-[480px] max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div>
+              <div className="flex h-24 w-24 items-center justify-center">
                 <BrandedIllustration name="matchingLoader" className="h-20 w-20" />
               </div>
             </div>
@@ -659,11 +658,7 @@ const RequestQuote = () => {
               <p className="text-xl font-semibold text-foreground">AI'en analyserer dit behov...</p>
               <p className="mt-1 text-muted-foreground">Finder de bedste serviceydere i {category}</p>
             </div>
-            <div className="flex gap-1.5">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="h-2 w-2 animate-bounce rounded-full bg-accent/50" style={{ animationDelay: `${i * 0.15}s` }} />
-              ))}
-            </div>
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-accent/20 border-t-accent" aria-hidden />
           </div>
         </section>
       )}

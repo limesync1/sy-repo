@@ -198,7 +198,7 @@ const SearchPage = () => {
     setSearchParams(params, { replace: true });
   }, [selectedCategory, debouncedQuery, sort, setSearchParams]);
 
-  const { data: businesses, isLoading } = useAllBusinesses(
+  const { data: businesses, isLoading, isError, refetch } = useAllBusinesses(
     selectedCategory || undefined,
     debouncedQuery || undefined,
     sort,
@@ -500,12 +500,12 @@ const SearchPage = () => {
 
         {/* Results — list or map */}
         {isLoading ? (
-          <div className="flex min-h-[320px] flex-col items-center justify-center gap-5 rounded-[2rem] border border-border bg-card px-6 py-12 text-center shadow-sm">
-            <BrandedIllustration name="matchingLoader" className="h-24 w-24" />
-            <div>
-              <p className="text-lg font-bold tracking-tight text-foreground">Finder relevante virksomheder</p>
-              <p className="mt-1 text-sm text-muted-foreground">Vi leder efter de bedste matches til din søgning.</p>
-            </div>
+          <div role="status" aria-label="Indlæser virksomheder"><CardGridSkeleton count={4} /></div>
+        ) : isError ? (
+          <div role="alert" className="py-14 text-center">
+            <p className="text-lg font-semibold text-foreground">Virksomhederne kunne ikke indlæses</p>
+            <p className="mt-2 text-sm text-muted-foreground">Tjek din forbindelse, og prøv igen. Dine søgefiltre er bevaret.</p>
+            <Button variant="outline" onClick={() => void refetch()} className="mt-4">Prøv igen</Button>
           </div>
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           view === "map" ? (
@@ -520,8 +520,8 @@ const SearchPage = () => {
             </Suspense>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-              {rankedBusinesses.map((biz: any, i: number) => (
-                <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
+              {rankedBusinesses.map((biz: any) => (
+                <div key={biz.id}>
                   <BusinessCard
                     biz={biz}
                     onHover={setHighlightedId}

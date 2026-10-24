@@ -66,13 +66,8 @@ function FrameLimiter({ animate }: { animate: boolean }) {
   const invalidate = useThree((state) => state.invalidate);
   useEffect(() => {
     if (!animate) return;
-    let raf = 0, last = 0;
-    const tick = (now: number) => {
-      if (now - last >= 33) { last = now; invalidate(); }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    const timer = window.setInterval(() => { if (!document.hidden) invalidate(); }, 1000 / 30);
+    return () => window.clearInterval(timer);
   }, [animate, invalidate]);
   return null;
 }
