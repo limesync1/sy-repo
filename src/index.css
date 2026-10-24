@@ -31,7 +31,7 @@
     --route-line-casing: 0 0% 100%;
     --route-pin-foreground: 0 0% 100%;
     /* Brandteal — testfase-modalens glød og bekræftelsesfarve. */
-    --beta-accent: 198 71% 35%;
+    --beta-accent: 201 99% 33%;
     --feature-cool: 196 85% 94%;
     --feature-cool-foreground: 195 70% 26%;
     --feature-warm: 42 100% 93%;
@@ -93,7 +93,7 @@
     --silver-surface-strong: 210 16% 93%;
     --silver-border: 210 14% 82%;
     --action-edit: 34 88% 42%;
-    --action-create: 198 71% 35%;
+    --action-create: 201 99% 33%;
     --action-note: 217 78% 48%;
   }
 
