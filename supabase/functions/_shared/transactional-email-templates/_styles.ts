@@ -15,8 +15,8 @@ const mutedColor = '#64748b'      // labels
 const subtle = '#94a3b8'     // footer
 const line = '#e2e8f0'       // borders / dividers
 const surface = '#f8fafc'    // very subtle surfaces
-const teal = '#0b8a96'       // ny brandblå, matcher platformens illustrationer
-const blueLight = '#0b8a96'
+const teal = '#016EA4'      // hjemmesidens dybe havblå (--hero-mid fra forsiden)
+const blueLight = '#016EA4'
 
 export const main = {
   backgroundColor: '#f1f5f9',
