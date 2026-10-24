@@ -1,4 +1,5 @@
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
+import { translateAuthError } from "@/lib/auth-errors";
 import { formatPrice } from "@/lib/price-format";
 import { useState, useEffect } from "react";
 import BusinessCover from "@/components/shared/media/BusinessCover";
@@ -1439,7 +1440,8 @@ const DocumentsView = () => {
 /*  Profile & Settings View                         */
 /* ════════════════════════════════════════════════ */
 const ProfileView = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, resetPassword, emailCooldown } = useAuth();
+  const [sendingReset, setSendingReset] = useState(false);
   const { data: profile, isLoading } = useMyProfile();
   const updateProfile = useUpdateProfile();
   const [displayName, setDisplayName] = useState("");
@@ -1688,13 +1690,17 @@ const ProfileView = () => {
               <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Adgangskode</label>
               <p className="mt-1 text-xs text-muted-foreground">Nulstil din kode via email.</p>
               <Button variant="outline" size="sm" className="mt-2 rounded-xl text-xs"
+                disabled={sendingReset || emailCooldown > 0}
                 onClick={async () => {
-                  if (!user?.email) return;
-                  const { error } = await supabase.auth.resetPasswordForEmail(user.email);
-                  if (error) toast.error(error.message);
-                  else toast.success("Vi har sendt dig en email til at nulstille din adgangskode.");
+                  if (!user?.email || sendingReset || emailCooldown > 0) return;
+                  setSendingReset(true);
+                  try {
+                    const { error } = await resetPassword(user.email);
+                    if (error) toast.error(translateAuthError(error));
+                    else toast.success("Tjek din e-mail for et link til at vælge ny adgangskode.");
+                  } finally { setSendingReset(false); }
                 }}>
-                <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Nulstil adgangskode
+                <KeyRound className="h-3.5 w-3.5 mr-1.5" /> {sendingReset ? "Sender…" : emailCooldown > 0 ? `Send igen om ${emailCooldown} s` : "Nulstil adgangskode"}
               </Button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { lookupCvr as fetchCvr } from "@/lib/cvr-lookup";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -20,6 +20,8 @@ import { Gift as HhGift, Route as HhRoute, Unlock as HhUnlock } from "lucide-rea
 import { translateAuthError } from "@/lib/auth-errors";
 import AnimatedNumber from "@/components/admin/AnimatedNumber";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
+import { isValidAuthEmail } from "@/lib/auth-flow";
+import { AuthEmailConfirmation } from "@/components/shared/AuthEmailConfirmation";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * BusinessOnboarding — én side, ingen trin.
@@ -157,6 +159,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
+  const submitLock = useRef(false);
   // Én konto = én virksomhed. Er brugeren logget ind og ejer allerede en
   // aktiv virksomhed, spærrer vi oprettelsen med en tydelig besked.
   const [existingBusiness, setExistingBusiness] = useState<{ id: string; name: string } | null>(null);
@@ -225,36 +229,36 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
   const canSubmit =
     !!cvrData &&
     !!cvrData.name &&
-    (user || (email.trim().length > 3 && password.length >= 6));
+    (user || (isValidAuthEmail(email) && password.length >= 6));
 
   // ─── Submit ───
   const handleSubmit = async () => {
+    if (submitLock.current) return;
     if (!cvrData || !pricing || !breakdown) {
       toast.error("Indtast dit CVR-nummer øverst og vent på vi har hentet virksomhedens oplysninger.");
       return;
     }
-    if (!user && (!email.trim() || password.length < 6)) {
+    if (!user && (!isValidAuthEmail(email) || password.length < 6)) {
       toast.error("Udfyld en gyldig e-mail og vælg en adgangskode på mindst 6 tegn.");
       return;
     }
 
     setSubmitting(true);
+    submitLock.current = true;
     try {
       let activeUserId = user?.id;
 
       if (!activeUserId) {
-        const { error: signUpError } = await signUp(email.trim(), password);
+        const { error: signUpError, status } = await signUp(email, password, "/opret-virksomhed");
         if (signUpError) throw signUpError;
-        // Auto-confirm er aktiveret, så vi kan logge ind med det samme
-        const { data: sessionData } = await supabase.auth.getSession();
-        activeUserId = sessionData.session?.user.id;
-        if (!activeUserId) {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: email.trim(), password,
-          });
-          if (signInError) throw signInError;
-          activeUserId = signInData.session?.user.id;
+        if (status !== "signed_in") {
+          setConfirmationEmail(email.trim());
+          setPassword("");
+          return;
         }
+        const { data: verified, error: verifyError } = await supabase.auth.getUser();
+        if (verifyError) throw verifyError;
+        activeUserId = verified.user?.id;
         if (!activeUserId) {
           throw new Error("Vi oprettede din konto, men kunne ikke logge dig automatisk ind. Prøv at logge ind manuelt.");
         }
@@ -334,6 +338,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
     } catch (e: any) {
       toast.error(translateAuthError(e, "Vi kunne ikke oprette din virksomhed lige nu. Tjek dine oplysninger og prøv igen."));
     } finally {
+      submitLock.current = false;
       setSubmitting(false);
     }
   };
@@ -572,6 +577,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             {/* 5. Konto (kun hvis ikke logget ind) */}
             {!user && (
               <Section number={5} title="Opret din konto" subtitle="Vi sender ordrebekræftelser og notifikationer hertil">
+                {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business loginPath="/log-ind?mode=business" onEdit={() => setConfirmationEmail(null)} /> : <>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -604,6 +610,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     Log ind
                   </Link>
                 </p>
+                </>}
               </Section>
             )}
           </div>
@@ -730,7 +737,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
               <Button
                 onClick={handleSubmit}
-                disabled={!canSubmit || submitting || !!existingBusiness}
+                disabled={!canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
 
                 className="relative mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
               >
@@ -775,7 +782,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             </div>
             <Button
               onClick={handleSubmit}
-              disabled={!canSubmit || submitting || !!existingBusiness}
+              disabled={!canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
 
               className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-foreground to-foreground/85 px-5 text-sm font-semibold text-background shadow-md transition-all hover:from-foreground hover:to-foreground hover:shadow-lg active:scale-[0.98]"
             >

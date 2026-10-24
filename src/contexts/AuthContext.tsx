@@ -15,6 +15,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   resendConfirmation: (email: string, redirectPath?: string) => Promise<{ error: Error | null }>;
   emailCooldown: number;
+  isPasswordRecovery: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [emailCooldown, setEmailCooldown] = useState(0);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (emailCooldown <= 0) return;
@@ -48,6 +50,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "PASSWORD_RECOVERY") setIsPasswordRecovery(true);
+      if (event === "SIGNED_OUT") setIsPasswordRecovery(false);
       // Any newer event supersedes the initial fetch, including sign-out.
       initialResolved = true;
       applySession(nextSession);
@@ -114,7 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, resendConfirmation, emailCooldown }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, resendConfirmation, emailCooldown, isPasswordRecovery }}>
       {children}
     </AuthContext.Provider>
   );
