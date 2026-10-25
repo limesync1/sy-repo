@@ -8,6 +8,10 @@ export interface SoftwarePageMeta {
   label: string;
   blurb: string;
   priority?: string;
+  /** SEO-titel/-beskrivelse — skal matche sidens egen metaTitle/metaDescription,
+   *  så statisk prerender og runtime viser samme snippet. */
+  seoTitle?: string;
+  seoDescription?: string;
   /**
    * "product" = en del af systemet, "industry" = samme system fortalt i én
    * branches sprog, "pricing" = prissiden. Bruges til at holde sidebaren
@@ -30,6 +34,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Planlæg dagens ruter med drag & drop, faste aftaler, kørselstid og konfliktadvarsler.",
     priority: "0.9",
     group: "product",
+    seoTitle: "Ruteplanlægger til servicevirksomheder | Serviceydere",
+    seoDescription: "Planlæg dagens og ugens ruter med drag & drop, faste aftaler, stopbaseret kapacitet og konfliktadvarsler. Ruteplanlægning til rengøring, have, håndværk og service.",
   },
   {
     href: "/software/medarbejder-app",
@@ -37,6 +43,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Medarbejderne ser dagens rute, tjekker ind og ud, tilføjer noter og billeder.",
     priority: "0.8",
     group: "product",
+    seoTitle: "Medarbejder-app til dagens rute | Serviceydere",
+    seoDescription: "Medarbejderne ser dagens rute på telefonen, tjekker ind og ud, tilføjer noter og billeder — og planlæggeren følger med i realtid. Ingen installation.",
   },
   {
     href: "/software/funktioner",
@@ -51,6 +59,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Online booking fra din egen profilside, leads fra markedspladsen og tilbud i ét flow.",
     priority: "0.8",
     group: "product",
+    seoTitle: "Online booking og tilbudsstyring | Serviceydere",
+    seoDescription: "Få online booking på din egen profilside, modtag leads fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
   },
   {
     href: "/software/fakturering-og-regnskab",
@@ -58,6 +68,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Fakturer udført arbejde og send det automatisk videre til E-conomic eller Dinero.",
     priority: "0.8",
     group: "product",
+    seoTitle: "Fakturering og regnskab med E-conomic og Dinero | Serviceydere",
+    seoDescription: "Fakturér udført arbejde direkte fra ruten og send det automatisk videre til E-conomic eller Dinero. Ingen dobbelt indtastning, ingen glemte opgaver.",
   },
   {
     href: "/software/brancher",
@@ -65,6 +77,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Systemet er bygget til alle servicebrancher med kørsel — ikke kun én niche.",
     priority: "0.8",
     group: "product",
+    seoTitle: "Brancher: hvem kan bruge Serviceydere? | Serviceydere",
+    seoDescription: "Serviceydere er bygget til alle servicebrancher med kørsel — rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, autoservice, industriservice og flere.",
   },
   {
     href: "/software/priser",
