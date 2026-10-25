@@ -178,7 +178,7 @@ const DynamicBusinessContent = () => {
                 width={1920}
                 height={539}
                 decoding="async"
-                fetchpriority="high"
+                fetchPriority="high"
                loading="lazy"/>
             </Link>
             <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
@@ -227,7 +227,7 @@ const DynamicBusinessContent = () => {
                   sizes="(max-width: 640px) 100vw, (max-width: 1280px) 100vw, 1280px"
                   loading="eager"
                   decoding="async"
-                  fetchpriority="high"
+                  fetchPriority="high"
                 />
                 <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/35 to-transparent" />
               </div>
@@ -259,7 +259,7 @@ const DynamicBusinessContent = () => {
                     className="h-full w-full object-contain"
                     loading="eager"
                     decoding="async"
-                    fetchpriority="high"
+                    fetchPriority="high"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent">

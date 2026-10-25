@@ -44,7 +44,8 @@ export const renderRouteHead = (html: string, r: RouteMeta) => {
       /<div style="position:absolute;left:-10000px[^>]*>[\s\S]*?<\/div>/,
       `<div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="false"><h1>${t}</h1><p>${d}</p></div>`,
     )
-    .replace(/(<noscript>[\s\S]*?<h1>)[\s\S]*?(<\/h1>)/, `$1${t}$2`);
+    // Body-noscript (ikke font-noscript i head) får sidens egen H1.
+    .replace(/(<noscript>\s*<div[\s\S]*?<h1>)[\s\S]*?(<\/h1>)/, `$1${t}$2`);
 };
 
 /** Build-only plugin: writes dist/<route>/index.html with route-specific head tags. */
