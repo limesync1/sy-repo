@@ -21,3 +21,4 @@ Businesses support multiple categories (categories text[]). Services have interv
 
 - [Mobil rutekørsel](mem://features/mobile-navigation) — Retningsvendt kort, kompakt neutral navigator og automatisk nærhedsvisning
 - [Marketing research](mem://reference/marketing-research) — SEO-research og plan findes i Project Files (16. okt. 2026)
+- [Fakturainterval](mem://features/invoice-interval) — Én samlet faktura pr. kunde pr. periode; standard/kunde/aftale; 14 dage, måned, kvartal, brugerdefineret
