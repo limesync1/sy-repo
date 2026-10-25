@@ -387,6 +387,7 @@ const Planner = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences" }, () => schedule("route"))
       .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" }, () => schedule("route"))
       .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter }, () => schedule("route"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter }, () => { schedule("route"); schedule("recurring"); })
       .subscribe();
     return () => {
       if (timer) clearTimeout(timer);
@@ -968,7 +969,8 @@ const Planner = () => {
   const { data: recurringSources = [] } = useQuery({
     queryKey: ["recurring-agreements-for-planner", businessId],
     enabled: !!businessId,
-    staleTime: 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
     queryFn: async () => {
       const [agreementsRes, subsRes] = await Promise.all([
         supabase
@@ -980,7 +982,7 @@ const Planner = () => {
           .not("preferred_route_id", "is", null),
         supabase
           .from("subscriptions")
-          .select("id, interval, details, next_service_date, created_at, preferred_route_id, status, order_id")
+          .select("id, interval, details, next_service_date, created_at, preferred_route_id, status, order_id, service_name")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
@@ -989,6 +991,16 @@ const Planner = () => {
       if (agreementsRes.error) throw agreementsRes.error;
       if (subsRes.error) throw subsRes.error;
       const subOrderById = new Map((subsRes.data || []).map((s: any) => [s.id, s.order_id as string | null]));
+      const currentOrderIds = (subsRes.data || []).map(s => s.order_id).filter((id): id is string => !!id);
+      const currentOrders = new Map<string, any>();
+      if (currentOrderIds.length) {
+        const { data, error } = await supabase.from("orders")
+          .select("id,status,customer_name,customer_phone,address,zip_code,city,latitude,longitude,total_amount,estimated_duration_minutes")
+          .in("id", currentOrderIds);
+        if (error) throw error;
+        for (const order of data || []) currentOrders.set(order.id, order);
+      }
+
       const agreementIds = (agreementsRes.data || []).map((a: any) => a.id).filter(Boolean);
       const agreementItemIntervalById = new Map<string, string>();
       if (agreementIds.length > 0) {
@@ -1058,6 +1070,16 @@ const Planner = () => {
           interval_days: null,
           seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
           anchor_date: routeDateById.get(s.preferred_route_id) ?? null,
+          next_due_at: s.next_service_date as string | null,
+          has_outstanding_order: currentOrders.get(s.order_id)?.status !== "completed",
+          placeholder: {
+            ...currentOrders.get(s.order_id),
+            subscription_id: s.id,
+            order_id: s.order_id,
+            duration_minutes: currentOrders.get(s.order_id)?.estimated_duration_minutes ?? 30,
+            service_summary: s.service_name ?? null,
+            order_amount: Number(currentOrders.get(s.order_id)?.total_amount ?? 0),
+          },
           preferred_route_id: s.preferred_route_id as string | null,
           sourceKeys: [
             `sub:${s.id}`,
@@ -1115,6 +1137,7 @@ const Planner = () => {
           fromHourlyTest.push({
             id: `hourly:${key}`,
             interval: info.interval,
+            has_outstanding_order: true,
             interval_days: null,
             seed_date: info.date,
             anchor_date: info.date,
@@ -4170,7 +4193,8 @@ const Planner = () => {
             ? calendarStops.some((s: any) => s.route_id === activeEditingRoute.id && s.status === "completed")
             : false;
           void realStopsForActive;
-          const projectionActive = !hasRealCompleted && !!(
+          void hasRealCompleted;
+          const projectionActive = !!(
             editingProjectedContext
             && activeEditingRoute
             && (

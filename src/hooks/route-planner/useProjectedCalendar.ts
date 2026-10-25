@@ -151,8 +151,8 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
       exceptions: routeOccurrenceExceptions as any[],
-      // Rundet til hele timen, så cachen fornyes når en ny time starter.
-      now: new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000),
+      // Minute-resolution fallback; exact next_due_at comes from the subscription.
+      now: new Date(Math.floor(Date.now() / 60_000) * 60_000),
     };
     const { projections: shifted, movedReplacementRouteIds, shiftsByOriginal } = businessId
       ? runProjectionCached(projectionInput, { businessId })
@@ -186,7 +186,7 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           .filter(isProjectableStop)
           .map((s: any, i: number) => ({
             ...s,
-            id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.slice(0, 2)}` : ""}:${s.id}`,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.replace(":", "")}` : ""}:${s.id}`,
             route_id: p.id,
             status: "planned",
             isVirtual: true,
@@ -209,14 +209,14 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           const ph = src.placeholder;
           projectedStops.push({
             ...ph,
-            id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.slice(0, 2)}` : ""}:agr:${ph.agreement_id}`,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}${p.hour ? `-${p.hour.replace(":", "")}` : ""}:agr:${ph.agreement_id}`,
             route_id: p.id,
             status: "planned",
             isVirtual: true,
             sequence: synthIndex++,
             agreement_interval: src.interval ?? null,
-            order_id: null,
-            subscription_id: null,
+            order_id: ph.order_id ?? null,
+            subscription_id: ph.subscription_id ?? null,
           } as any);
           for (const k of keys) coveredKeys.add(k);
         }
