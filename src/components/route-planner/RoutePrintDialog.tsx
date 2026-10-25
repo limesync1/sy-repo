@@ -240,7 +240,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                 <h3 className="text-xs font-semibold text-foreground">Vælg datoer</h3>
               </div>
               <div className="grid grid-cols-2 gap-1 rounded-md border border-border bg-background p-1">
-                <Button type="button" size="sm" variant={mode === "day" ? "default" : "ghost"} className="h-8 text-xs" onClick={() => {
+                <Button type="button" size="sm" variant={mode === "day" ? "default" : "ghost"} className="h-10 text-xs" onClick={() => {
                   const selected = range.from ?? initial;
                   setMode("day");
                   setRange({ from: selected, to: selected });
