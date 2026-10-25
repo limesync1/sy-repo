@@ -183,6 +183,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     const items = ((order?.order_items || []) as any[]).filter((i) => i.id);
     if (!items.length) { 
       toast.error("Aftalen har ingen services at rette", { description: "Kontakt kontoret, eller skriv en note." }); 
+      if (editOnly) onEditClosed?.();
       return; 
     }
     const next: Line[] = items.map((i) => ({
