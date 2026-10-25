@@ -2,8 +2,9 @@ import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 const hasDb = Boolean(process.env.PGHOST);
+const canRunWorker = hasDb && execFileSync("psql", ["-X", "-q", "-At", "-c", "select has_function_privilege(current_user,'public.auto_recur_hourly_test_orders()','EXECUTE');"], { encoding: "utf8" }).trim() === "t";
 
-describe.skipIf(!hasDb)("completion-gated five-minute recurrence", () => {
+describe.skipIf(!canRunWorker)("completion-gated five-minute recurrence", () => {
   it("waits five minutes after completion, creates one routed order, and never repeats pending work", () => {
     const result = execFileSync("psql", ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1"], {
       encoding: "utf8",
@@ -26,8 +27,7 @@ BEGIN
   SELECT * INTO stop FROM public.route_stops WHERE order_id=sub.order_id LIMIT 1;
 
   -- A completed appointment must schedule exactly five minutes, not tomorrow.
-  stop.completed_at := now();
-  PERFORM public._apply_completion_handle(stop);
+  UPDATE public.route_stops SET status='completed',completed_at=now() WHERE id=stop.id;
   IF (SELECT next_service_date FROM public.subscriptions WHERE id=sub.id) <> now() + interval '5 minutes' THEN
     RAISE EXCEPTION 'Next appointment is not five minutes after completion';
   END IF;
