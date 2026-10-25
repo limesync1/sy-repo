@@ -800,9 +800,10 @@ const LiveChatWidget = () => {
         <Button
           ref={fabRef}
           type="button"
+          variant="ghost"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`support-launcher group fixed z-40 flex h-12 w-12 items-center justify-center overflow-visible rounded-full bg-foreground p-0 text-xs font-semibold text-background shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97] sm:h-12 sm:w-auto sm:gap-2 sm:pl-2.5 sm:pr-4 ${fabBottomClass} ${fabPositionClass}`}
+          className={`support-launcher group fixed z-40 flex h-12 w-12 items-center justify-center overflow-visible rounded-full bg-foreground p-0 text-xs font-semibold text-background shadow-lg transition-transform hover:bg-foreground/90 hover:text-background hover:scale-[1.03] active:scale-[0.97] sm:h-12 sm:w-auto sm:gap-2 sm:pl-2.5 sm:pr-4 ${fabBottomClass} ${fabPositionClass}`}
         >
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
