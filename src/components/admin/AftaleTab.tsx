@@ -1843,7 +1843,7 @@ const AftaleTab = ({
           ].filter(g => g.length > 0);
 
           return groups.map((group, gi) => (
-            <div key={gi} className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
+            <div key={gi} className="inline-flex shrink-0 flex-nowrap items-center gap-0 rounded-lg sm:flex-wrap border border-border bg-card p-0.5 shadow-sm">
               {group.map(({ key, label, count, tone }) => {
                 const isActive = filter === key;
                 const toneDot =
@@ -1859,8 +1859,10 @@ const AftaleTab = ({
                 return (
                   <button
                     key={key}
+                    type="button"
+                    aria-pressed={isActive}
                     onClick={() => setFilter(key)}
-                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    className={`inline-flex min-h-11 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors lg:min-h-8 ${
                       isActive
                         ? activeCls
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -2240,7 +2242,7 @@ const AftaleTab = ({
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setExpandedOrder(isExpanded ? null : order.id); }}
                           aria-label={isExpanded ? "Skjul" : "Vis detaljer"}
-                          className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-accent/10 hover:text-foreground hover:border-accent/40"
+                          className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground lg:h-8 lg:w-8 transition-colors hover:bg-accent/10 hover:text-foreground hover:border-accent/40"
                         >
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
@@ -2304,7 +2306,7 @@ const AftaleTab = ({
                                   <Pencil className="h-3.5 w-3.5" /> Tilpas
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                                  className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                  className="h-11 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive lg:h-8 hover:bg-destructive/10 hover:text-destructive">
                                   <X className="h-3.5 w-3.5" /> Afvis
                                 </Button>
                               </>
@@ -2327,12 +2329,12 @@ const AftaleTab = ({
                                 forskellige knapper for samme handling. */}
                             {(order.status === "confirmed" || order.status === "in_progress") && (
                               <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setOrderToCancel(order); }}
-                                className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                className="h-11 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive lg:h-8 hover:bg-destructive/10 hover:text-destructive">
                               <XCircle className="h-3.5 w-3.5" /> Annullér
                               </Button>
                             )}
                             <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
-                              className="h-8 gap-1.5 rounded-md border-destructive/40 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                              className="h-11 gap-1.5 rounded-md border-destructive/40 px-2.5 lg:h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
                               <Trash2 className="h-3.5 w-3.5" /> Slet
                             </Button>
                           </div>
@@ -2568,7 +2570,7 @@ const AftaleTab = ({
               <button
                 type="button"
                 onClick={openCreateRouteDialog}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground hover:bg-secondary"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md border border-border bg-card px-3 py-1 text-xs lg:min-h-8 font-medium text-foreground hover:bg-secondary"
                 title="Opret en ny rute"
               >
                 <PlusIcon className="h-3 w-3" /> Ny rute
@@ -2620,7 +2622,7 @@ const AftaleTab = ({
                               }}
                               aria-label="Slet rute"
                               title="Slet rute"
-                              className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors lg:h-7 lg:w-7 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>

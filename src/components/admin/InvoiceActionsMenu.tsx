@@ -198,7 +198,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <Button
             variant="outline"
             size="sm"
-            className={`h-9 sm:h-7 px-2.5 sm:px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
+            className={`h-11 min-w-11 lg:h-7 lg:min-w-0 px-2.5 lg:px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
             disabled={busy !== null}
             onClick={primary.onClick}
             aria-label={primary.label}
@@ -214,7 +214,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20"
+                className="h-11 w-11 lg:h-7 lg:w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20"
                 disabled={busy !== null}
                 aria-label="Flere handlinger"
               >
