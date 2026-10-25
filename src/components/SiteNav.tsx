@@ -19,6 +19,7 @@ import customerPanelIcon from "@/assets/header-simple/Kundepanel_simpel.svg.asse
 import businessPanelIcon from "@/assets/header-simple/Virksomhedspanel_simpel.svg.asset.json";
 import employeePanelIcon from "@/assets/header-simple/Medarbejder_app_simpel.svg.asset.json";
 import platformAdminIcon from "@/assets/header-simple/Platform_admin_simpel.svg.asset.json";
+import navigationLogo from "@/assets/ui/navigation-logo.webp.asset.json";
 
 interface Props {
   persistent?: boolean;
@@ -183,7 +184,16 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
 
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)");
+    const header = headerRef.current;
+    if (!header || (hasPersistentNavigation && !persistent)) return;
+    const update = () => document.documentElement.style.setProperty("--public-nav-height", `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => { observer.disconnect(); document.documentElement.style.removeProperty("--public-nav-height"); };
+  }, [hasPersistentNavigation, persistent]);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1280px)");
     const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
     desktop.addEventListener("change", closeOnDesktop);
     return () => desktop.removeEventListener("change", closeOnDesktop);
@@ -218,17 +228,16 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
         <div className="flex min-h-14 items-center justify-between gap-2 py-2 lg:gap-4 lg:py-3">
           <Link to="/" className="flex shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Serviceydere forside">
             <img
-              src="/serviceydere-logo-dark.webp"
+              src={navigationLogo.url}
             alt="Serviceydere – find og book lokale serviceydere i Danmark"
               className="h-8 w-auto sm:h-9 lg:h-10"
-              width={1920}
-              height={539}
+              width={420}
+              height={120}
               decoding="async"
-              fetchPriority="high"
              loading="eager"/>
           </Link>
 
-          <div className="hidden items-center gap-1 lg:flex" role="navigation" aria-label="Hovednavigation">
+          <div className="hidden items-center gap-1 xl:flex" role="navigation" aria-label="Hovednavigation">
             {NAV_GROUPS.flatMap((g) => g.items).map((item, i) => {
               const on = isActive(item.key);
               const Icon = MOBILE_ICONS[item.key];
@@ -249,7 +258,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
             {right}
 
             {user ? (
-              <div className="hidden items-center rounded-full border border-foreground bg-foreground lg:flex">
+              <div className="hidden items-center rounded-full border border-foreground bg-foreground xl:flex">
                 {preferredRole && <Button variant="ghost" onClick={() => navigate(preferredRole.to)} className="h-11 rounded-l-full rounded-r-none gap-2 pl-4 pr-3 font-semibold text-background hover:bg-background/10 hover:text-background">
                   <PanelIcon role={preferredRole} selected />
                   <span>{preferredRole.label}</span>
@@ -284,13 +293,13 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               </div>
             ) : (
               <>
-                <Button asChild variant="ghost" className="hidden h-11 rounded-full px-4 font-semibold lg:inline-flex">
+                <Button asChild variant="ghost" className="hidden h-11 rounded-full px-4 font-semibold xl:inline-flex">
                   <Link to="/log-ind">
                     <LogIn className="h-4 w-4" aria-hidden="true" />
                     Log ind
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="hidden h-11 rounded-full border-foreground bg-foreground px-5 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:inline-flex">
+                <Button asChild variant="outline" className="hidden h-11 rounded-full border-foreground bg-foreground px-5 font-semibold text-background hover:bg-foreground/90 hover:text-background xl:inline-flex">
                   <Link to="/log-ind?signup=1">
                     Opret konto
                   </Link>
@@ -304,7 +313,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               variant="ghost"
               size="icon"
               onClick={() => setOpen((v) => !v)}
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border p-0 text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring lg:hidden ${open ? "border-foreground bg-foreground text-background hover:bg-foreground/90 hover:text-background" : "border-border bg-card hover:bg-secondary"}`}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border p-0 text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring xl:hidden ${open ? "border-foreground bg-foreground text-background hover:bg-foreground/90 hover:text-background" : "border-border bg-card hover:bg-secondary"}`}
               aria-label={open ? "Luk menu" : "Åbn menu"}
               aria-expanded={open}
               aria-controls="public-mobile-menu"
@@ -323,9 +332,9 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
           aria-label="Mobilmenu"
           aria-hidden={!open}
           {...(!open ? ({ inert: "" } as Record<string, string>) : {})}
-          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none lg:hidden ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none xl:hidden ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
         >
-          <div className="overflow-hidden">
+          <div className="max-h-[calc(100dvh-9rem)] overflow-y-auto overscroll-contain">
             <div className={`pb-3 transition-transform duration-300 ease-out motion-reduce:transition-none ${open ? "translate-y-0" : "-translate-y-2"}`}>
               <div className="grid grid-cols-2 gap-2">
                 {NAV_GROUPS.flatMap((g) => g.items).map((item, i) => {
@@ -415,7 +424,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
       tabIndex={-1}
       aria-hidden="true"
       onClick={() => { setOpen(false); menuButtonRef.current?.focus(); }}
-      className={`fixed inset-x-0 bottom-0 top-0 -z-10 bg-foreground/40 transition-opacity duration-300 motion-reduce:transition-none lg:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      className={`fixed inset-x-0 bottom-0 top-0 -z-10 bg-foreground/40 transition-opacity duration-300 motion-reduce:transition-none xl:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
     />
     </header>
   );

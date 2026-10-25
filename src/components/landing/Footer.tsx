@@ -1,5 +1,6 @@
 import SmartLink from "@/components/SmartLink";
 import { OFFICIAL_PROFILES } from "@/lib/social-links";
+import footerLogo from "@/assets/ui/footer-logo.webp.asset.json";
 import {
   siFacebook,
   siInstagram,
@@ -56,7 +57,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-block [&_a]:py-1">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
             <ul className="space-y-2 text-sm text-background/65">
@@ -137,11 +138,11 @@ const Footer = () => {
              </nav>
            </div>
            <img
-            src="/serviceydere-logo.webp"
+            src={footerLogo.url}
             alt="Serviceydere"
              className="h-9 w-auto opacity-90"
-            width={1920}
-            height={539}
+            width={420}
+            height={120}
             decoding="async"
             loading="lazy"
           />

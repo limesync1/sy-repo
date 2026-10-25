@@ -16,6 +16,7 @@ import BusinessRecommendationCard from "./BusinessRecommendationCard";
 import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import supportPortrait from "@/assets/william-ross-jepsen.jpg.asset.json";
 import { BRANDED_ILLUSTRATIONS } from "@/components/shared/BrandedIllustration";
 
@@ -796,12 +797,13 @@ const LiveChatWidget = () => {
   return (
     <>
       {!open && !hideTrigger && (
-        <button
+        <Button
           ref={fabRef}
           type="button"
+          variant="ghost"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`group fixed z-40 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-foreground text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(var(--foreground)/0.6)] transition-all hover:scale-[1.03] active:scale-[0.97] sm:h-auto sm:w-auto sm:gap-2 sm:py-2 sm:pl-2.5 sm:pr-4 ${fabBottomClass} ${fabPositionClass}`}
+          className={`support-launcher group fixed z-40 flex h-12 w-12 items-center justify-center overflow-visible rounded-full bg-foreground p-0 text-xs font-semibold text-background shadow-lg transition-transform hover:bg-foreground/90 hover:text-background hover:scale-[1.03] active:scale-[0.97] sm:h-12 sm:w-auto sm:gap-2 sm:pl-2.5 sm:pr-4 ${fabBottomClass} ${fabPositionClass}`}
         >
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
@@ -809,13 +811,10 @@ const LiveChatWidget = () => {
               alt={escalated ? "William Ross Jepsen" : "Serviceydere kundeservice"}
               className={cn("h-8 w-8", escalated ? "rounded-full object-cover ring-2 ring-background/20" : "object-contain")}
             />
-            <span className="absolute -right-1 -top-1 flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
-            </span>
           </span>
+          <span aria-hidden="true" className="support-online-dot absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-background sm:right-auto sm:left-8 sm:top-1.5" />
            <span className="relative hidden sm:inline">Kundeservice</span>
-        </button>
+        </Button>
       )}
 
       {open && (

@@ -1,3 +1,9 @@
+## Tablet, kundeservice og Lighthouse (25. oktober)
+- [x] Tabletmenu gennem 1279 px, bredere søgning, 3-kolonne branche-/footerlayout og 2-kolonne fordelskort; 16 px tabletfelter, 44 px filtre og kollisionssikret kategorivalg. Cookievalg skjuler konkurrerende flydende handlinger.
+- [x] Online-prik står frit; kundeservice åbnet og visuelt kontrolleret på mobil, tabletmenu åbnet/lukket med Escape.
+- [x] Ti live-Lighthouse-tests: mobil 55/58/67/68/66, desktop 93/96/96/96/97. Let native-WebGL erstatter 3D-afhængigheder; animeret streg 351→62 KB, logoer 48→12 KB; ikke-blokerende font og kun første hero-fotos preload. Fem aktuelle lokale SEO-tests giver 100; live grundscanning har otte beståede kontroller. Signup-landingssiden er indexérbar som sitemap angiver.
+- [x] 40 sidevisninger ved 390/768/1024/1280 px i begge temaer uden vandret overflow/runtimefejl; WebGL ready på alle, reduced motion monterer ingen canvas. 20 tests og build OK. Lokale Lighthouse-hastighedstal bruger Vites udviklingsfiler og er ikke sammenlignelige med produktion; ny live-hastighed kræver publicering. Fysiske tablets er ikke målt.
+
 ## Ejerbeskeder ved tilmelding (25. oktober)
 - [x] Fast ejermail ved ny virksomhed (begge selvbetjente oprettelsesveje + admin) og ny ventelistetilmelding; serververificerede virksomhedsdata og event-ID beskytter mod falske detaljer/dubletter
 - [x] Fire funktioner deployet; fem tests bestået; reel ventelistetilmelding/bekræftelse og autoriseret virksomhedsbesked kontrolleret. To sends til william@adely.dk bekræftet i mailhistorik, gentaget tilmelding gav ingen ny mail. Midlertidig testalias fjernet; ingen falsk virksomhed oprettet. Indbakkelevering ikke verificeret; build OK.
