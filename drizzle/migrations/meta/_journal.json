@@ -204,6 +204,20 @@
       "when": 1792961663194,
       "tag": "0028_grant_sandbox_exec_test_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792967185160,
+      "tag": "0029_invoice_interval_batches",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1792967435197,
+      "tag": "0030_allow_invoice_batch_jobs",
+      "breakpoints": true
     }
   ]
 }

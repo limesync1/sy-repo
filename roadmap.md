@@ -30,4 +30,4 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] «Ret aftale»: ét trin, kunde/dato i top, pris i bund, baggrundsvinduer dæmpes
 - [x] Kunder + Services: større knapper, afkrydsning og søgefelt
 - [ ] Medarbejdere, Anmeldelser, Regnskab, Indstillinger: gennemgang
-- [ ] Fakturainterval (samlet faktura pr. kunde pr. periode) — afventer godkendelse af plan
+- [x] Fakturainterval: standard i Regnskab, pr. kunde, pr. aftale; samlet faktura pr. periode (ikke testet mod rigtigt regnskabsprogram)
