@@ -1,3 +1,7 @@
+## Ejerbeskeder ved tilmelding (25. oktober)
+- [ ] Send fast ejermail ved ny virksomhed og ny ventelistetilmelding uden dubletter
+- [ ] Deploy og test begge tilmeldingsbeskeder
+
 ## Baggrunde og tablet (25. oktober)
 - [x] Computer/tablet bruger samme blå tokens som øvrige sektioner; WebGL vises først efter første tegnede frame og fader ind over en farvematchet reservebaggrund
 - [x] Nærmeste forsidesektioner indlæses straks; fjernere monteres før visning. Tablet får mindre billedfelt, bred tilbudsformular og bedre plads på virksomhedskort
