@@ -728,7 +728,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     "{existingBusiness.name}" er tilknyttet denne konto. Én konto kan kun
                     have én virksomhed.
                   </p>
-                  <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+                  <Button asChild variant="outline" size="sm" className="mt-3 min-h-11 w-full">
                     <Link to="/virksomhed">Gå til virksomhedspanelet</Link>
                   </Button>
                 </div>

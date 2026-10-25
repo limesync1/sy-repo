@@ -63,7 +63,7 @@ export default function UnassignedBulkBar({
           type="button"
           onClick={onClear}
           aria-label="Ryd valg"
-          className="ml-auto h-6 w-6 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          className="ml-auto h-11 w-11 shrink-0 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -91,7 +91,7 @@ export default function UnassignedBulkBar({
             type="button"
             onClick={onCreateRoute}
             disabled={busy}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <Plus className="h-4 w-4" />
             Opret ny rute med {selectedCount}
@@ -103,7 +103,7 @@ export default function UnassignedBulkBar({
               type="button"
               onClick={onAddToRoute}
               disabled={busy}
-              className="flex h-9 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex min-h-11 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <CalendarPlus className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Føj til rute</span>
@@ -114,7 +114,7 @@ export default function UnassignedBulkBar({
               type="button"
               onClick={onShiftDate}
               disabled={busy}
-              className="flex h-9 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex min-h-11 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <CalendarDays className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Flyt dato</span>
@@ -127,7 +127,7 @@ export default function UnassignedBulkBar({
               disabled={busy}
               aria-label="Annullér valgte aftaler"
               title="Annullér valgte aftaler"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-card text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-border bg-card text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
