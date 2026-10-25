@@ -2093,6 +2093,10 @@ body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0;
       height: calc(100dvh - 3rem) !important;
       max-height: calc(100dvh - 3rem) !important;
     }
+    .modal-large.order-create-modal {
+      max-width: 1040px !important;
+      height: min(900px, calc(100dvh - 3rem)) !important;
+    }
   }
 }
 

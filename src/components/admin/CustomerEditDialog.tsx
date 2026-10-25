@@ -1,4 +1,5 @@
 import { InvoiceIntervalPicker } from "@/components/admin/invoicing/InvoiceIntervalPicker";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import type { InvoiceIntervalValue } from "@/lib/invoice-interval";
 import { lazy, memo, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -450,7 +451,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             <Collapsible open={showAccounting} onOpenChange={setShowAccounting} className="rounded-lg border border-primary/20 bg-secondary/40">
               <CollapsibleTrigger asChild>
                 <button type="button" className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-foreground"><Building2 className="h-4 w-4" /></span>
+                  <BrandedIllustration name="invoiceInterval" className="h-12 w-12" />
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold text-foreground">Regnskab & fakturering <span className="font-normal text-muted-foreground">(valgfrit)</span></span>
                     <span className="block text-xs text-muted-foreground">Kunde-nr., betaling, fakturainterval, moms og EAN.</span>

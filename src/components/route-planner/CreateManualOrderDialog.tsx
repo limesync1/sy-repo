@@ -382,7 +382,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => { if (!v) requestClose(); else onOpenChange(v); }}>
-      <DialogContent onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSubmit(); } }} className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
+      <DialogContent onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSubmit(); } }} className="modal-large order-create-modal planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             title={<DialogTitle className="text-base">Opret bestilling</DialogTitle>}
