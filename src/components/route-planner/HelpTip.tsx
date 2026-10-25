@@ -29,7 +29,7 @@ export default function HelpTip({ feature, className, maxSteps }: Props) {
           onClick={(e) => e.stopPropagation()}
           aria-label={`Hjælp: ${f.title}`}
           className={cn(
-            "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/70 transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+            "relative inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/70 after:absolute after:-inset-3 after:content-[''] transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
             className,
           )}
         >
