@@ -77,7 +77,7 @@ const Categories = () => {
         </div>
 
         {/* Desktop / tablet */}
-        <div id="all-service-categories" className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
+        <div id="all-service-categories" className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 xl:grid-cols-5">
           {visible.map((cat) => (
             <CategoryCard key={cat.key} cat={cat} className="min-h-[156px] 2xl:min-h-[172px]" />
           ))}

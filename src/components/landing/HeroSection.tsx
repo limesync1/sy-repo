@@ -20,14 +20,14 @@ const HeroSection = () => {
     >
       <BlueFlowBackground />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-6 px-4 pb-8 pt-5 sm:px-6 sm:pb-14 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-8 lg:pb-14 lg:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-6 px-4 pb-8 pt-5 sm:px-6 sm:pb-10 sm:pt-8 xl:grid-cols-[1.05fr_0.95fr] xl:gap-10 lg:px-8 xl:pb-14 xl:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in max-w-[19rem] text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:max-w-none sm:text-[2.75rem] lg:text-[3.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
+          <h1 className="max-w-[19rem] text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:max-w-none sm:text-[2.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="home-hero-highlight">
               serviceyder
             </span>
-            <br className="hidden sm:block" /> til opgaven.
+            <br className="hidden xl:block" /> til opgaven.
           </h1>
 
           <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-lg text-sm leading-[1.6] text-ocean-foreground/75 sm:mt-5 sm:text-base 2xl:mt-6 2xl:text-[17px]">
@@ -73,7 +73,7 @@ const HeroSection = () => {
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
-        <div className="relative mx-auto w-full max-w-xl sm:max-w-md lg:max-w-none">
+        <div className="relative mx-auto w-full max-w-xl sm:max-w-xs xl:max-w-none">
           <HeroPhotoRotator />
 
         </div>

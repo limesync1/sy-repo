@@ -53,7 +53,7 @@ const WhyUs = () => {
           </div>
         </div>
 
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:mt-10">
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:mt-10">
           {benefits.map((b, i) => (
             <li
               key={b.title}

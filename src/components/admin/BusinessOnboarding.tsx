@@ -364,7 +364,6 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           title="Opret din virksomhed på Serviceydere"
           description="Opret din virksomhedsprofil på Serviceydere og få adgang til bestillinger, ruteplanlægning og medarbejderlogins."
           canonicalPath="/opret-virksomhed"
-          noIndex
         />
       )}
 
@@ -765,7 +764,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           ikke se prisen mens de scroller. Denne bar viser totalen og en
           shortcut til "Start gratis prøve" eller scroll-til-konto. */}
       {pricing && breakdown && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-12px_30px_-18px_hsl(var(--foreground)/0.25)] backdrop-blur xl:hidden">
+        <div data-signup-sticky-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-12px_30px_-18px_hsl(var(--foreground)/0.25)] backdrop-blur xl:hidden">
           <div
             aria-hidden
             className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent via-foreground to-accent"
