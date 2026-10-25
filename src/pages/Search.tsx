@@ -172,7 +172,7 @@ const BusinessCard = memo(function BusinessCard({
       </div>
     </Link>
   );
-};
+});
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
