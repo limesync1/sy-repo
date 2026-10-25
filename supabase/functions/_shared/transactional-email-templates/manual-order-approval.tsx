@@ -137,7 +137,7 @@ const ManualOrderApprovalEmail = ({
               <table width="100%" cellPadding="0" cellSpacing="0" style={totalRow}>
                 <tr>
                   <td style={{ textAlign: 'left', verticalAlign: 'top', paddingRight: '8px' }}>I alt</td>
-<td style={{ textAlign: 'right' }}><PriceStack amount={totalAmount} size={15} align=\"right\" /></td>
+<td style={{ textAlign: 'right' }}><PriceStack amount={totalAmount} size={15} align="right" /></td>
                 </tr>
               </table>
 </Section>
