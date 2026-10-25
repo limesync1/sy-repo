@@ -197,9 +197,11 @@ export const FieldLabel = React.forwardRef<
     /** Vis et neutralt informativt mærkat — fx "Vigtigt for at blive fundet" */
     important?: string;
     className?: string;
+    /** Knyt labelen til et felt via dets id (tilgængelighed). */
+    htmlFor?: string;
   }
->(({ children, required, optional, important, className }, ref) => (
-  <label ref={ref} className={cn("mb-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground", className)}>
+>(({ children, required, optional, important, className, htmlFor }, ref) => (
+  <label ref={ref} htmlFor={htmlFor} className={cn("mb-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground", className)}>
     <span>{children}</span>
     {required && (
       <span className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-semibold text-accent normal-case tracking-normal">
