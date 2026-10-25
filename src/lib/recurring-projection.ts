@@ -389,9 +389,13 @@ export const expandRecurringRoutes = (params: {
       }
       const testStep = TEST_INTERVAL_MINUTES[s.interval];
       if (testStep) {
-        if (s.has_outstanding_order) break;
         const now = params.now ?? new Date();
-        const due = s.next_due_at ? parseISO(s.next_due_at) : new Date(now.getTime() + testStep * 60_000);
+        const parsedDue = s.next_due_at ? parseISO(s.next_due_at) : null;
+        // Vis altid præcis én forventet næste forekomst. Ligger der en åben
+        // aftale, er den næste tidligst ét interval efter den (eller efter nu).
+        const due = s.has_outstanding_order
+          ? new Date(Math.max(now.getTime(), parsedDue && !Number.isNaN(parsedDue.getTime()) ? parsedDue.getTime() : 0) + testStep * 60_000)
+          : (parsedDue ?? new Date(now.getTime() + testStep * 60_000));
         if (Number.isNaN(due.getTime())) break;
         const dueDate = format(due, "yyyy-MM-dd");
         if (dueDate >= params.rangeStart && dueDate <= params.rangeEnd

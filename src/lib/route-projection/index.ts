@@ -144,9 +144,10 @@ export const runProjection = (input: ProjectionInput): ProjectionResult => {
 
   const projections: ProjectedRoute[] = [];
   for (const p of shifted) {
-    // Test previews never duplicate an outstanding appointment, even on another date.
+    // Test previews show exactly one next occurrence; when an appointment is
+    // still open the engine already places the preview one interval later.
     if (p.hour) {
-      if (!p.sourceKeys.some((key) => outstandingSourceKeys.has(key))) projections.push(p);
+      projections.push(p);
       continue;
     }
     const dateRealKeys = realSourceKeysByDate.get(p.date);
