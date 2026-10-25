@@ -95,6 +95,18 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [eanNumber, setEanNumber] = useState(initial?.ean_number || "");
   const initInvoiceIv = (): InvoiceIntervalValue => ({ interval: (initial?.invoice_interval ?? null) as any, count: initial?.invoice_interval_count ?? null, unit: (initial?.invoice_interval_unit ?? null) as any });
   const [invoiceIv, setInvoiceIv] = useState<InvoiceIntervalValue>(initInvoiceIv);
+  // Listen over kunder henter ikke fakturafelter — hent dem, så et gem ikke nulstiller kundens valg.
+  const [invoiceLoaded, setInvoiceLoaded] = useState(true);
+  useEffect(() => {
+    if (!open || !initial?.id || initial.invoice_interval !== undefined) { setInvoiceLoaded(true); return; }
+    setInvoiceLoaded(false);
+    const table = (initial.type || "private") === "private" ? "private_customers" : "business_customers";
+    void supabase.from(table).select("invoice_interval, invoice_interval_count, invoice_interval_unit").eq("id", initial.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) setInvoiceIv({ interval: (data as any).invoice_interval, count: (data as any).invoice_interval_count, unit: (data as any).invoice_interval_unit });
+        setInvoiceLoaded(true);
+      });
+  }, [open, initial?.id]);
   const [customerGroups, setCustomerGroups] = useState<{ id: string; name: string }[]>([]);
   const [groupsLabel, setGroupsLabel] = useState<string>("Kundegruppe");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -223,9 +235,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         vat_zone: vatZone || null,
         is_blocked: isBlocked,
         payment_terms_days: paymentTermsDays.trim() ? Number(paymentTermsDays) : null,
-        invoice_interval: invoiceIv.interval as any,
-        invoice_interval_count: invoiceIv.count,
-        invoice_interval_unit: invoiceIv.unit,
+        ...(invoiceLoaded ? {
+          invoice_interval: invoiceIv.interval as any,
+          invoice_interval_count: invoiceIv.count,
+          invoice_interval_unit: invoiceIv.unit,
+        } : {}),
       };
       let savedRow: any;
       if (type === "private") {
