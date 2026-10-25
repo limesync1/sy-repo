@@ -313,6 +313,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
           </div>
           <div className="shrink-0 self-end sm:self-center">
             <Switch
+              aria-label="Tillad udførsel før planlagt dato som standard"
               checked={allowEarlyCompletionDefault}
               disabled={!business || updateBusiness.isPending}
               onCheckedChange={async (checked) => {
