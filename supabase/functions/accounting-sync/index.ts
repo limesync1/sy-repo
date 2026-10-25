@@ -887,6 +887,7 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
       else if (job.entity_type === "product") await pushProduct(admin, integ, adapter, job.entity_id);
       else if (job.entity_type === "order") await pushOrder(admin, integ, adapter, job.entity_id, job.operation);
       else if (job.entity_type === "invoice") await bookInvoiceForOrder(admin, integ, adapter, job.entity_id);
+      else if (job.entity_type === "invoice_batch") await bookInvoiceBatch(admin, integ, adapter, job.entity_id);
       else if (job.entity_type === "agreement_occurrence") {
         if (job.operation === "invoice") {
           await bookInvoiceForOccurrence(admin, integ, adapter, job.entity_id);
@@ -1210,52 +1211,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
       ?? (order.status === "completed" ? (order.updated_at ?? null) : null);
   }
 
-  // Ensure products linked for each service line
-  const lines = await Promise.all((order.order_items ?? []).map(async (it: any) => {
-    let extProductId: string | null = null;
-    let extProductNumber: string | null = null;
-    if (it.service_id) {
-      const { data: pl } = await admin.from("accounting_product_links")
-        .select("external_id, external_product_number")
-        .eq("business_id", integ.business_id).eq("provider", integ.provider)
-        .eq("service_id", it.service_id).maybeSingle();
-      if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
-      if (integ.settings?.auto_create_products !== false) {
-        // Vi pusher altid produktet før ordren — også når der findes et link.
-        // Linket kan være forældet (fx hvis produktet er slettet i
-        // regnskabsprogrammet, eller linket stammer fra en tidligere udbyder),
-        // og uden denne verificering fejler ordren med "lines.items"-validering.
-        try {
-          await pushProduct(admin, integ, adapter, it.service_id);
-          const { data: pl2 } = await admin.from("accounting_product_links")
-            .select("external_id, external_product_number")
-            .eq("business_id", integ.business_id).eq("provider", integ.provider)
-            .eq("service_id", it.service_id).maybeSingle();
-          if (pl2) {
-            extProductId = pl2.external_id;
-            extProductNumber = pl2.external_product_number;
-          }
-        } catch (e) {
-          // Hvis vi allerede har et eksisterende link, fortsætter vi med det
-          // gamle id — ellers boble fejlen op så jobbet retries.
-          if (!pl) throw e;
-        }
-      }
-    }
-    return {
-      service_id: it.service_id,
-      product_external_id: extProductId,
-      product_external_number: extProductNumber,
-      description: buildLineDescription({
-        serviceName: it.service_name,
-        interval: it.details?.interval ?? null,
-        startDate: order.preferred_date,
-        completedDate,
-      }),
-      quantity: Number(it.quantity ?? 1),
-      unit_price: Number(it.unit_price ?? 0),
-    };
-  }));
+  const lines = await buildOrderLines(admin, integ, adapter, order, completedDate);
 
   // Når ordren allerede er bogført som faktura, må vi ikke længere forsøge at
   // opdatere den som ordrekladde i e-conomic — bogførte fakturaer er låste.
@@ -1309,6 +1265,135 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     business_id: integ.business_id, provider: integ.provider, direction: "push",
     entity_type: "order", entity_id: orderId, external_id: result.external_id,
     status: "success",
+  });
+}
+
+// Fælles linjeopbygning for én ordre — bruges af både enkeltordrer og samlede fakturaer.
+async function buildOrderLines(admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter, order: any, completedDate: string | null) {
+  return await Promise.all((order.order_items ?? []).map(async (it: any) => {
+    let extProductId: string | null = null;
+    let extProductNumber: string | null = null;
+    if (it.service_id) {
+      const { data: pl } = await admin.from("accounting_product_links")
+        .select("external_id, external_product_number")
+        .eq("business_id", integ.business_id).eq("provider", integ.provider)
+        .eq("service_id", it.service_id).maybeSingle();
+      if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
+      if (integ.settings?.auto_create_products !== false) {
+        // Vi pusher altid produktet før ordren — også når der findes et link.
+        // Linket kan være forældet (fx hvis produktet er slettet i
+        // regnskabsprogrammet, eller linket stammer fra en tidligere udbyder),
+        // og uden denne verificering fejler ordren med "lines.items"-validering.
+        try {
+          await pushProduct(admin, integ, adapter, it.service_id);
+          const { data: pl2 } = await admin.from("accounting_product_links")
+            .select("external_id, external_product_number")
+            .eq("business_id", integ.business_id).eq("provider", integ.provider)
+            .eq("service_id", it.service_id).maybeSingle();
+          if (pl2) {
+            extProductId = pl2.external_id;
+            extProductNumber = pl2.external_product_number;
+          }
+        } catch (e) {
+          // Hvis vi allerede har et eksisterende link, fortsætter vi med det
+          // gamle id — ellers boble fejlen op så jobbet retries.
+          if (!pl) throw e;
+        }
+      }
+    }
+    return {
+      service_id: it.service_id,
+      product_external_id: extProductId,
+      product_external_number: extProductNumber,
+      description: buildLineDescription({
+        serviceName: it.service_name,
+        interval: it.details?.interval ?? null,
+        startDate: order.preferred_date,
+        completedDate,
+      }),
+      quantity: Number(it.quantity ?? 1),
+      unit_price: Number(it.unit_price ?? 0),
+    };
+  }));
+}
+
+async function latestCompletedDate(admin: SupabaseClient, order: any): Promise<string | null> {
+  const { data: doneStop } = await admin.from("route_stops")
+    .select("completed_at").eq("order_id", order.id)
+    .not("completed_at", "is", null)
+    .order("completed_at", { ascending: false }).limit(1).maybeSingle();
+  return (doneStop as any)?.completed_at ?? (order.status === "completed" ? (order.updated_at ?? null) : null);
+}
+
+// Samlet faktura: alle udførte besøg i perioden på ÉN faktura pr. kunde.
+async function bookInvoiceBatch(admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter, batchId: string) {
+  const { data: batch } = await admin.from("invoice_batches").select("*").eq("id", batchId).maybeSingle();
+  if (!batch || batch.status === "invoiced") return;
+  const { data: items } = await admin.from("invoice_batch_items").select("order_id, completed_at").eq("batch_id", batchId);
+  const orderIds = (items ?? []).map((i: any) => i.order_id);
+  if (orderIds.length === 0) {
+    await admin.from("invoice_batches").delete().eq("id", batchId);
+    return;
+  }
+  const { data: orders } = await admin.from("orders").select("*, order_items(*)").in("id", orderIds);
+  const live = (orders ?? []).filter((o: any) => o.status !== "cancelled" && !o.invoice_external_id);
+  if (live.length === 0) {
+    await admin.from("invoice_batches").update({ status: "invoiced", invoiced_at: new Date().toISOString(), last_error: "Ingen besøg tilbage at fakturere" }).eq("id", batchId);
+    return;
+  }
+  const first = live[0];
+  const customerExtId = await ensureCustomerLink(admin, integ, adapter, first);
+  if (!customerExtId) throw new Error("Kunne ikke matche/oprette kunde i regnskabsprogrammet (kunden mangler e-mail?)");
+
+  const withDates = await Promise.all(live.map(async (o: any) => ({ o, done: await latestCompletedDate(admin, o) })));
+  withDates.sort((a, b) => String(a.done ?? "").localeCompare(String(b.done ?? "")));
+  const lines = (await Promise.all(withDates.map(({ o, done }) => buildOrderLines(admin, integ, adapter, o, done)))).flat();
+
+  const fmt = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
+  const note = `Samlet faktura for perioden ${fmt(batch.period_start)} – ${fmt(batch.period_end)} · ${live.length} besøg`;
+
+  const upserted = await adapter.upsertOrder({
+    internal_id: batchId,
+    external_id: batch.external_id ?? undefined,
+    external_type: (integ.settings?.send_order_as ?? "order") as any,
+    customer_external_id: customerExtId,
+    customer_name: first.customer_name,
+    status: "completed",
+    notes: note,
+    payment_terms_days: first.payment_terms_days,
+    currency: "DKK",
+    date: new Date().toISOString().slice(0, 10),
+    lines,
+  } as any);
+  // Gem kladden før bogføring, så et nyt forsøg genbruger den i stedet for at lave en dublet.
+  await admin.from("invoice_batches").update({ external_id: upserted.external_id, status: "processing", updated_at: new Date().toISOString() }).eq("id", batchId);
+
+  const result = await adapter.bookInvoice({
+    external_id: upserted.external_id,
+    external_type: (upserted as any).external_type ?? (integ.settings?.send_order_as ?? "order"),
+    customer_email: first.customer_email ?? null,
+  } as any);
+  const invoiceExternalType = (result.invoice_external_type ?? "invoice_booked") as "invoice_booked" | "invoice_draft";
+  const invoiceStatus = result.sent ? "sent" : invoiceExternalType === "invoice_draft" ? "draft" : "booked";
+  const now = new Date().toISOString();
+
+  await admin.from("orders").update({
+    invoice_status: invoiceStatus, invoiced_at: now,
+    invoice_external_id: result.invoice_external_id,
+    invoice_external_number: result.invoice_external_number ?? null,
+  }).in("id", live.map((o: any) => o.id));
+  await admin.from("accounting_order_links").upsert(live.map((o: any) => ({
+    business_id: integ.business_id, provider: integ.provider, order_id: o.id,
+    external_id: result.invoice_external_id, external_number: result.invoice_external_number,
+    external_type: invoiceExternalType, last_pushed_at: now, last_status_synced: invoiceStatus,
+  })), { onConflict: "business_id,provider,order_id" });
+  await admin.from("invoice_batches").update({
+    status: "invoiced", invoiced_at: now, last_error: null,
+    external_id: result.invoice_external_id, external_number: result.invoice_external_number ?? null,
+  }).eq("id", batchId);
+  await logSync(admin, {
+    business_id: integ.business_id, provider: integ.provider, direction: "push",
+    entity_type: "invoice_batch", entity_id: batchId, external_id: result.invoice_external_id, status: "success",
   });
 }
 
