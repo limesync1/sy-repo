@@ -662,7 +662,15 @@ const LiveStopPresence = ({
         </span>
       </button>
     </PopoverTrigger>
-    <PopoverContent className="w-64 p-2.5" align="end" sideOffset={6} onClick={(event) => event.stopPropagation()}>
+    <PopoverContent
+      className="z-[200] w-[min(18rem,calc(100vw-1.5rem))] max-h-[min(24rem,var(--radix-popover-content-available-height,70dvh))] overflow-y-auto overscroll-contain p-2.5"
+      side="bottom"
+      align="end"
+      sideOffset={6}
+      collisionPadding={12}
+      avoidCollisions
+      onClick={(event) => event.stopPropagation()}
+    >
       <div className="mb-2 flex items-center gap-2 border-b border-border pb-2">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-success/10 text-success">
           <Radio className="h-3.5 w-3.5" />
