@@ -533,6 +533,7 @@ export function CustomerNotificationsSettings({
                     <p className="text-[11px] text-muted-foreground">Slå fra hvis I ikke vil sende e-mail for denne hændelse.</p>
                   </div>
                   <Switch
+                    aria-label="Send denne e-mail til kunden"
                     checked={drafts[activeEvent].enabled}
                     onCheckedChange={(v) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />

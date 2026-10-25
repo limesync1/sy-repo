@@ -25,3 +25,4 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Panelfaner får egen sidetitel (noindex bevaret)
 - [x] Samme regel i flyt stop og forslag til rute; mobil dagstæller adskiller forventede
 - [ ] Fuld klikgennemgang af alle panelsider på mobil/computer
+- [x] Automatisk gennemgang af 10 panelsider × 5 bredder: ingen vandret rulning, rettet kontakter uden navn, små knapper (services, faktura), indstillinger ved 320 px
