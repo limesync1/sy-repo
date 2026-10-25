@@ -2,7 +2,13 @@ import { danishIntervalLabel } from "../interval-da.ts";
 
 const fmtDate = (v?: string | null): string | null => {
   if (!v) return null;
-  const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  let raw = String(v);
+  // Tidsstempler vises som dansk kalenderdato (ikke UTC-dato).
+  if (/T|\s\d{2}:/.test(raw)) {
+    const d = new Date(raw);
+    if (!Number.isNaN(d.getTime())) raw = d.toLocaleDateString("sv-SE", { timeZone: "Europe/Copenhagen" });
+  }
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return null;
   const months = ["jan.", "feb.", "mar.", "apr.", "maj", "jun.", "jul.", "aug.", "sep.", "okt.", "nov.", "dec."];
   return `${Number(m[3])}. ${months[Number(m[2]) - 1]} ${m[1]}`;
