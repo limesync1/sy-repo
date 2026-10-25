@@ -76,9 +76,13 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     try { localStorage.removeItem(HISTORY_KEY); } catch { /* ignore */ }
   };
 
-  // Fetch a small index of businesses + cities (cached 5 min)
+  // Fetch a small index of businesses + cities (cached 5 min).
+  // Hentes først ved første fokus på søgefeltet, så forsiden ikke bruger
+  // netværk på forslag til besøgende, der aldrig søger.
+  const [activated, setActivated] = useState(false);
   const { data: index } = useQuery({
     queryKey: ["search-index"],
+    enabled: activated,
     queryFn: async () => {
       const { data } = await supabase
         .from("businesses")
@@ -243,7 +247,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           placeholder="Søg service eller by…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setActivated(true); setOpen(true); }}
           onKeyDown={onKeyDown}
           className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground sm:hidden"
         />
@@ -253,7 +257,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           placeholder={placeholder ?? (nearLabel ? `Søg efter service nær ${nearLabel}…` : "Søg efter service, virksomhed eller by…")}
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setActivated(true); setOpen(true); }}
           onKeyDown={onKeyDown}
           className="hidden h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground sm:block"
         />
