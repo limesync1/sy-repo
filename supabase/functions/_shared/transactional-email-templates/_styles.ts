@@ -23,7 +23,7 @@ export const main = {
   fontFamily:
     'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
   margin: 0,
-  padding: '40px 12px',
+  padding: '24px 8px',
   color: ink,
 }
 export const wrapper = {
@@ -33,7 +33,8 @@ export const wrapper = {
   borderRadius: '16px',
   border: `1px solid ${line}`,
   borderTop: `4px solid ${teal}`,
-  padding: '28px 36px 32px',
+  padding: '24px 22px 28px',
+  wordBreak: 'break-word' as const,
 }
 export const container = { padding: 0 }
 export const headerBar = {
