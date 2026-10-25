@@ -1,7 +1,7 @@
 ## Yderligere forbedringer (25. oktober)
-- [ ] Gør login roligere og tydeligere under afsendelse; ryd adgangskode ved skift af loginforløb
-- [ ] Begræns forsidens forindlæsning på langsomme forbindelser; beskyt ventevisninger mod blokeret browserlager og gentagne genindlæsninger
-- [ ] Kontrollér fejl, genforsøg, mobil/computer og begge temaer med tests og browser
+- [x] Gør login roligere og tydeligere under afsendelse; lås felter under afsendelse, fokusér læsbare fejl, ryd adgangskode ved skift og placér mobilformular øverst
+- [x] Begræns forsidens forindlæsning på langsomme forbindelser; beskyt ventevisninger mod blokeret browserlager og gentagne genindlæsninger
+- [x] 24 tests bestået; fem offentlige sider ved 1280/390 px i begge temaer uden vandret overflow eller sidefejl; simuleret loginfejl, genåbnede felter og skift til oprettelse kontrolleret; build OK. Nye konti og modtagne e-maillinks er fortsat ikke end-to-end-verificeret; indbakkeadgang mangler.
 
 ## Offentligt design og indlæsning (24. oktober)
 - [x] Tydeligere loginlabels, 16 px felter, større valgknapper og danske fejl; password nulstilles ved skift mellem login/oprettelse
