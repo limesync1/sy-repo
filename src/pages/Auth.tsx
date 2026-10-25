@@ -68,6 +68,15 @@ const Auth = () => {
   const [unconfirmed, setUnconfirmed] = useState(false);
   const [destination, setDestination] = useState<string | null>(null);
   const submitLock = useRef(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (formError) errorRef.current?.focus();
+  }, [formError]);
+
+  useEffect(() => {
+    setPassword(""); setShowPassword(false); setCapsLockOn(false);
+  }, [mode, isResetMode, isSignUp]);
 
   // Pre-fill email fra localStorage så folk ikke skal indtaste den hver gang
   useEffect(() => {
@@ -233,7 +242,7 @@ const Auth = () => {
               height={539}
               decoding="async"
               fetchPriority="high"
-             loading="lazy"/>
+             loading="eager"/>
           </Link>
         </div>
 
@@ -265,7 +274,7 @@ const Auth = () => {
 
           {/* Testimonial */}
           <div className="auth-quote mt-8 rounded-lg border p-5">
-            <Quote className="h-5 w-5" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
+            <Quote className="h-5 w-5 text-ocean-foreground" />
             <p className="mt-3 text-sm leading-6 text-ocean-foreground/85">
               "Serviceydere har samlet hele vores drift. Vi sparer timer hver uge på planlægning og fakturering."
             </p>
@@ -303,7 +312,7 @@ const Auth = () => {
                 width={1920}
                 height={539}
                 decoding="async"
-               loading="lazy"/>
+               loading="eager"/>
             </span>
             <span className="hidden lg:inline">Tilbage til forsiden</span>
           </Link>
@@ -314,7 +323,7 @@ const Auth = () => {
           )}
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-2 sm:px-8 lg:px-12">
+        <div className="flex flex-1 items-start justify-center px-5 pb-12 pt-8 sm:px-8 sm:pt-12 lg:items-center lg:px-12 lg:pt-2">
           <div key={`${isResetMode}-${isSignUp}-${mode}`} className="public-content-enter w-full max-w-[420px] space-y-7">
 
             {/* ── Glemt adgangskode ── */}
@@ -352,12 +361,12 @@ const Auth = () => {
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       Hvis <span className="break-words font-medium text-foreground">{email.trim()}</span> er knyttet til en konto, har vi sendt dig en mail med et link til at vælge ny adgangskode. Brug det nyeste link, og tjek også spam.
                     </p>
-                    <div className="mt-4 flex gap-2">
-                      <Button asChild variant="outline" size="sm">
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button asChild variant="outline" size="sm" className="min-h-11">
                         <Link to={`/log-ind${mode ? `?mode=${mode}` : ""}`}>Tilbage til log ind</Link>
                       </Button>
                       <Button
-                        size="sm" variant="ghost"
+                        size="sm" variant="ghost" className="min-h-11"
                         disabled={emailCooldown > 0}
                         onClick={() => { setResetSent(false); }}
                       >
@@ -366,11 +375,11 @@ const Auth = () => {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleSendReset} className="space-y-4">
+                  <form onSubmit={handleSendReset} aria-busy={submitting} className="space-y-4">
                     {formError && (
-                      <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
+                      <div ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>{formError}</span>
+                        <span className="text-foreground">{formError}</span>
                       </div>
                     )}
                     <div>
@@ -378,6 +387,9 @@ const Auth = () => {
                         E-mail
                       </label>
                       <Input
+                        disabled={submitting}
+                        autoCapitalize="none"
+                        spellCheck={false}
                         id="reset-email"
                         type="email"
                         autoComplete="email"
@@ -390,7 +402,7 @@ const Auth = () => {
                         <Button variant="ghost"
                           type="button"
                           onClick={() => setEmail(emailSuggestion)}
-                          className="mt-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                          className="mt-2 h-auto min-h-11 max-w-full flex-wrap whitespace-normal text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                           Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
                         </Button>
@@ -451,16 +463,19 @@ const Auth = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} aria-busy={submitting} className="space-y-4">
                   {formError && (
-                    <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
+                    <div ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{formError}</span>
+                      <span className="text-foreground">{formError}</span>
                     </div>
                   )}
                   <div>
                     <label htmlFor="auth-email-main" className="mb-2 block text-sm font-semibold text-foreground">E-mail</label>
                     <Input
+                        disabled={submitting}
+                        autoCapitalize="none"
+                        spellCheck={false}
                       id="auth-email-main"
                       type="email"
                       autoComplete="email"
@@ -473,24 +488,27 @@ const Auth = () => {
                       <Button variant="ghost"
                         type="button"
                         onClick={() => setEmail(emailSuggestion)}
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        className="mt-2 h-auto min-h-11 max-w-full flex-wrap whitespace-normal items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
                         Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
                       </Button>
                     )}
                   </div>
                   <div>
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                       <label htmlFor="auth-password-main" className="block text-sm font-semibold text-foreground">Adgangskode</label>
                       <Link
                         to="/log-ind?reset=1"
-                        className="text-xs font-semibold text-accent underline-offset-2 transition-colors hover:underline"
+                        className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline-offset-2 transition-colors hover:underline"
                       >
                         Glemt adgangskode?
                       </Link>
                     </div>
                     <div className="relative">
                       <Input
+                        disabled={submitting}
+                        autoCapitalize="none"
+                        spellCheck={false}
                         id="auth-password-main"
                         type={showPassword ? "text" : "password"}
                         autoComplete="current-password"
@@ -512,7 +530,7 @@ const Auth = () => {
                       </Button>
                     </div>
                     {capsLockOn && (
-                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-warning">
                         <AlertCircle className="h-3.5 w-3.5" /> Caps Lock er slået til
                       </p>
                     )}
@@ -686,16 +704,19 @@ const Auth = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} aria-busy={submitting} className="space-y-4">
                   {formError && (
-                    <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
+                    <div ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{formError}</span>
+                      <span className="text-foreground">{formError}</span>
                     </div>
                   )}
                   <div>
                     <label htmlFor="auth-email" className="mb-2 block text-sm font-semibold text-foreground">E-mail</label>
                     <Input
+                        disabled={submitting}
+                        autoCapitalize="none"
+                        spellCheck={false}
                       id="auth-email"
                       type="email"
                       autoComplete="email"
@@ -708,19 +729,19 @@ const Auth = () => {
                       <Button variant="ghost"
                         type="button"
                         onClick={() => setEmail(emailSuggestion)}
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        className="mt-2 h-auto min-h-11 max-w-full flex-wrap whitespace-normal items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
                         Mente du <span className="font-semibold text-foreground underline-offset-2 group-hover:underline">{emailSuggestion}</span>?
                       </Button>
                     )}
                   </div>
                   <div>
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                       <label htmlFor="auth-password" className="block text-sm font-semibold text-foreground">Adgangskode</label>
                       {!isSignUp && (
                         <Link
                           to={`/log-ind?reset=1${mode ? `&mode=${mode}` : ""}`}
-                          className="text-xs font-semibold text-accent underline-offset-2 transition-colors hover:underline"
+                          className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline-offset-2 transition-colors hover:underline"
                         >
                           Glemt adgangskode?
                         </Link>
@@ -728,6 +749,9 @@ const Auth = () => {
                     </div>
                     <div className="relative">
                       <Input
+                        disabled={submitting}
+                        autoCapitalize="none"
+                        spellCheck={false}
                         id="auth-password"
                         type={showPassword ? "text" : "password"}
                         autoComplete={isSignUp ? "new-password" : "current-password"}
@@ -749,7 +773,7 @@ const Auth = () => {
                       </Button>
                     </div>
                     {capsLockOn && (
-                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-warning">
                         <AlertCircle className="h-3.5 w-3.5" /> Caps Lock er slået til
                       </p>
                     )}
@@ -761,10 +785,10 @@ const Auth = () => {
                               key={i}
                               className={`h-1 flex-1 rounded-full transition-colors ${
                                 i <= pwStrength.score
-                                  ? pwStrength.score <= 1 ? "bg-rose-500"
-                                    : pwStrength.score === 2 ? "bg-amber-500"
-                                    : pwStrength.score === 3 ? "bg-emerald-500"
-                                    : "bg-emerald-600"
+                                  ? pwStrength.score <= 1 ? "bg-destructive"
+                                    : pwStrength.score === 2 ? "bg-warning"
+                                    : pwStrength.score === 3 ? "bg-success"
+                                    : "bg-success"
                                   : "bg-secondary"
                               }`}
                             />
@@ -789,7 +813,7 @@ const Auth = () => {
                     {submitting ? (
                       <span className="inline-flex items-center gap-2">
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-background/40 border-t-background" />
-                        Vent...
+                        {isSignUp ? "Opretter konto…" : "Logger ind…"}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-2">

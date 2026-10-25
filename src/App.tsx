@@ -20,6 +20,7 @@ import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
 import StickyMobileCTA from "@/components/conversion/StickyMobileCTA";
 import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
 import { canPreloadPublicPages } from "@/lib/public-loading";
+import { consumePanelNavigation } from "@/lib/navigation-storage";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -56,11 +57,8 @@ class SilentBoundary extends Component<{ children: ReactNode }, { failed: boolea
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-// Efter 30 s stabil kørsel må en senere udgivelse igen udløse én genindlæsning
-// (uden risiko for genindlæsnings-loop, hvis en fil fortsat mangler).
-if (typeof window !== "undefined") {
-  setTimeout(() => { try { sessionStorage.removeItem(RELOAD_FLAG); } catch {} }, 30000);
-}
+// Keep the reload guard for this browser session: a timer cannot establish
+// that every optional route or widget loaded successfully.
 
 const retryImport = <T,>(loader: () => Promise<T>): Promise<T> =>
   loader().catch((err) => {
@@ -230,8 +228,7 @@ const PageFallback = () => {
   // Ved almindelige panel-skift viser vi ikke en ny fuld sidebar-skeleton.
   // Den kommende side er allerede prefetchet fra menupunktet, og en kort,
   // neutral flade føles roligere end at genopbygge hele navigationen visuelt.
-  const isInternalPanelNavigation = typeof window !== "undefined" && sessionStorage.getItem("sy.panel.navigation") === "1";
-  if (isInternalPanelNavigation && typeof window !== "undefined") sessionStorage.removeItem("sy.panel.navigation");
+  const [isInternalPanelNavigation] = useState(consumePanelNavigation);
   const [show, setShow] = useState(isPanel && !isInternalPanelNavigation);
   useEffect(() => {
     if (isPanel && !isInternalPanelNavigation) { setShow(true); return; }
