@@ -1368,6 +1368,7 @@ async function bookInvoiceBatch(admin: SupabaseClient, integ: Integration, adapt
   // Gem kladden før bogføring, så et nyt forsøg genbruger den i stedet for at lave en dublet.
   await admin.from("invoice_batches").update({ external_id: upserted.external_id, status: "processing", updated_at: new Date().toISOString() }).eq("id", batchId);
 
+  if (!adapter.bookInvoice) throw new Error("Regnskabsprogrammet understøtter ikke fakturering herfra");
   const result = await adapter.bookInvoice({
     external_id: upserted.external_id,
     external_type: (upserted as any).external_type ?? (integ.settings?.send_order_as ?? "order"),
@@ -1393,7 +1394,7 @@ async function bookInvoiceBatch(admin: SupabaseClient, integ: Integration, adapt
   }).eq("id", batchId);
   await logSync(admin, {
     business_id: integ.business_id, provider: integ.provider, direction: "push",
-    entity_type: "invoice_batch", entity_id: batchId, external_id: result.invoice_external_id, status: "success",
+    entity_type: "invoice", entity_id: batchId, external_id: result.invoice_external_id, status: "success",
   });
 }
 
