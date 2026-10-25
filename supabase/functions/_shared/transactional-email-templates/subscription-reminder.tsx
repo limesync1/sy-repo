@@ -4,6 +4,8 @@ import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text
 import { Button } from '../email-button.tsx'
 import { formatServicePrice } from './_service-price.ts'
 import type { TemplateEntry } from './registry.ts'
+import { PriceStack } from './_price-stack.tsx'
+import { danishIntervalLabel } from '../interval-da.ts'
 import {
  SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
  main, wrapper, container, headerBar,
@@ -39,7 +41,7 @@ const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).
 
 const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, businessEmail, serviceName, nextServiceDate, interval, totalPrice, daysUntil, completedCycles, details }: SubscriptionReminderProps) => {
  const date = fmtDate(nextServiceDate)
- const intervalLabel = interval ? (INTERVAL_LABEL[interval] ?? interval) : null
+ const intervalLabel = danishIntervalLabel(interval)
  const headline = daysUntil != null ? (daysUntil <= 1 ? 'Din service er i morgen ' : `Din næste service om ${daysUntil} dage`) : 'Din næste service nærmer sig '
 
  return (
@@ -65,8 +67,8 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  <Section style={card}>
  {serviceName && <><Text style={cardLabel}>Service</Text><Text style={cardValue}>{serviceName}</Text></>}
  {businessName && <><Text style={cardLabel}>Virksomhed</Text><Text style={cardValue}>{businessName}</Text></>}
- {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{intervalLabel}</Text></>}
- {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
+ {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{danishIntervalLabel(intervalLabel)}</Text></>}
+ {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><PriceStack amount={totalPrice} size={15} /></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Tidligere udført</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}
  {details && <><Text style={cardLabel}>Detaljer</Text><Text style={{ ...cardValue, fontWeight: 400, color: '#475569' }}>{details}</Text></>}
 </Section>

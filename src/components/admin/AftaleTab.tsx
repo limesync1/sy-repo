@@ -43,6 +43,7 @@ import {
   type DragStartEvent, type DragEndEvent,
 } from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
+import { formatInterval } from "@/lib/interval";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute, invalidateRouteSyncQueries } from "@/hooks/useRoutes";
@@ -227,7 +228,7 @@ const toMailItem = (item: any) => ({
   quantity: item.quantity,
   price: roundPrice(parseNumber(item.total_price, 0)),
   intervalLabel: item.details?.interval && item.details.interval !== "engangskøb"
-    ? INTERVAL_LABELS[item.details.interval] || item.details.interval
+    ? formatInterval(item.details.interval)
     : undefined,
   description: item.details?.description,
   stepDetails: item.details?.stepDetails?.map((sd: any) => ({
@@ -384,44 +385,88 @@ const StepperInput = ({
 };
 
 /* ─── Customer Order Summary ─── */
-const CustomerOrderSummary = ({ order }: { order: any }) => {
+const withVat = (amount: number) => Math.round((Number(amount) || 0) * 125) / 100;
+const fmtDay = (v?: string | null) => {
+  if (!v) return null;
+  const d = new Date(String(v).length <= 10 ? `${v}T12:00:00` : v);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
+};
+const PRICING_LABEL: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+
+const CustomerOrderSummary = ({ order, servicesById = {} }: { order: any; servicesById?: Record<string, any> }) => {
   const items = (order.order_items || []) as any[];
   if (items.length === 0) return null;
+  const startDate = fmtDay(order.preferred_date);
+  const nextDate = fmtDay(order.next_service_date);
+  const total = Number(order.total_amount) || 0;
 
   return (
     <div className="rounded-lg border border-border bg-card overflow-hidden">
-      <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border bg-secondary/40 px-3 py-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aftalens indhold</span>
-        <span className="text-sm font-bold tabular-nums text-foreground">{formatPrice(roundPrice(order.total_amount))}</span>
+        <div className="text-right leading-tight">
+          <p className="text-sm font-bold tabular-nums text-foreground">{formatPrice(roundPrice(total))} <span className="text-[11px] font-medium text-muted-foreground">uden moms</span></p>
+          <p className="text-xs tabular-nums text-muted-foreground">{formatPrice(withVat(total))} med moms</p>
+        </div>
       </div>
-      {items.map((item: any) => (
-        <div key={item.id} className="border-b border-border last:border-b-0 px-3 py-2">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
-              {item.quantity > 1 && <span className="ml-1 text-xs text-muted-foreground">× {item.quantity}</span>}
-              {item.details?.interval && item.details.interval !== "engangskøb" && (
-                <span className="ml-2 inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
-                  {INTERVAL_LABELS[item.details.interval] || item.details.interval}
-                </span>
+      {(startDate || nextDate) && (
+        <div className="grid grid-cols-2 gap-2 border-b border-border px-3 py-2 text-xs">
+          {startDate && <div><p className="text-muted-foreground">Foreløbig opstartsdato</p><p className="font-semibold text-foreground">{startDate}</p></div>}
+          {nextDate && <div><p className="text-muted-foreground">Næste udførelse</p><p className="font-semibold text-foreground">{nextDate}</p></div>}
+        </div>
+      )}
+      {items.map((item: any) => {
+        const svc = item.service_id ? servicesById[item.service_id] : undefined;
+        const interval = item.details?.interval || "engangskøb";
+        const pricing = item.details?.pricingSnapshot?.pricing_type || svc?.pricing_type;
+        const category = [svc?.service_category, svc?.subcategory].filter(Boolean).join(" · ");
+        const description = item.details?.description || svc?.description;
+        const lineTotal = Number(item.total_price) || 0;
+        return (
+          <div key={item.id} className="border-b border-border last:border-b-0 px-3 py-2.5 space-y-1.5">
+            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground break-words">
+                  {item.service_name}
+                  {item.quantity > 1 && <span className="ml-1 text-xs font-normal text-muted-foreground">× {item.quantity}</span>}
+                </p>
+                {category && <p className="text-xs text-muted-foreground">{category}</p>}
+              </div>
+              <div className="text-right leading-tight shrink-0">
+                <p className="text-sm font-bold tabular-nums text-foreground">{formatPrice(lineTotal)} <span className="text-[11px] font-medium text-muted-foreground">uden moms</span></p>
+                <p className="text-xs tabular-nums text-muted-foreground">{formatPrice(withVat(lineTotal))} med moms</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+                {interval === "engangskøb" ? "Engangskøb" : formatInterval(interval)}
+              </span>
+              {pricing && PRICING_LABEL[pricing] && (
+                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground/80">{PRICING_LABEL[pricing]}</span>
+              )}
+              {item.quantity > 1 && (
+                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground/80">{formatPrice(Number(item.unit_price) || 0)} pr. stk.</span>
+              )}
+              {svc?.product_number && (
+                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground/80">Varenr. {svc.product_number}</span>
               )}
             </div>
-            <span className="text-sm font-bold text-foreground shrink-0">{formatPrice(item.total_price)}</span>
+            {description && <p className="text-xs text-muted-foreground break-words">{description}</p>}
+            {Array.isArray(item.details?.stepDetails) && item.details.stepDetails.length > 0 && (
+              <div className="space-y-0.5 rounded-md bg-secondary/40 px-2 py-1.5">
+                {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
+                  <div key={i} className="flex flex-wrap justify-between gap-x-2 text-xs text-muted-foreground">
+                    <span>{sd.label}: <span className="font-medium text-foreground/80">{sd.value} {sd.unit}</span>
+                      {sd.price_per_unit ? <span className="text-muted-foreground/70"> × {formatPrice(sd.price_per_unit)}/{sd.unit}</span> : ""}
+                    </span>
+                    <span className="font-medium text-foreground/70">{formatPrice(sd.subtotal)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {item.details?.stepDetails && (
-            <div className="mt-1.5 space-y-0.5 pl-0.5">
-              {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
-                <div key={i} className="flex justify-between text-xs text-muted-foreground">
-                  <span>{sd.label}: <span className="font-medium text-foreground/80">{sd.value} {sd.unit}</span>
-                    {sd.price_per_unit ? <span className="text-muted-foreground/60"> × {formatPrice(sd.price_per_unit)}/{sd.unit}</span> : ""}
-                  </span>
-                  <span className="font-medium text-foreground/70">{formatPrice(sd.subtotal)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
@@ -523,7 +568,7 @@ const AdjustmentEditor = ({
                           ? "border-accent bg-accent text-accent-foreground"
                           : "border-border bg-card text-muted-foreground hover:border-accent/40"
                       }`}>
-                      {INTERVAL_LABELS[iv] || iv}
+                      {formatInterval(iv)}
                     </button>
                   ))}
                 </div>
@@ -591,7 +636,7 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
   const originalItems = (order.order_items || []) as any[];
 
   const intervalLabel = (iv?: string | null) =>
-    !iv || iv === "engangskøb" ? "Engangskøb" : (INTERVAL_LABELS[iv] || iv);
+    !iv || iv === "engangskøb" ? "Engangskøb" : (formatInterval(iv));
 
   const findOriginal = (item: any) =>
     originalItems.find((o) => o.service_id && item.service_id && o.service_id === item.service_id) ||
@@ -632,7 +677,7 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
             <div>
               <span className="text-sm font-medium text-foreground">{item.service_name}</span>
               {item.details?.interval && item.details.interval !== "engangskøb" && (
-                <span className="ml-2 text-[11px] text-accent">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
+                <span className="ml-2 text-[11px] text-accent">{formatInterval(item.details.interval)}</span>
               )}
               {(() => {
                 const orig = findOriginal(item);
@@ -697,7 +742,7 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions, businessId, customerEm
                 <CalendarClock className="h-4 w-4 text-accent" />
                 <div>
                   <span className="text-sm font-semibold text-foreground">{sub.service_name}</span>
-                  <span className="ml-2 text-xs text-accent">{INTERVAL_LABELS[sub.interval] || sub.interval}</span>
+                  <span className="ml-2 text-xs text-accent">{formatInterval(sub.interval)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -2068,9 +2113,9 @@ const AftaleTab = ({
                         {hasRecurring && (
                           <span
                             className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                            title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval} · ${cycleNumber}. kørsel i serien`}
+                            title={`Tilbagevendende: ${formatInterval(interval)} · ${cycleNumber}. kørsel i serien`}
                           >
-                            <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            <RefreshCw className="h-2.5 w-2.5" /> {formatInterval(interval)}
                             {cycleNumber > 0 && (
                               <span
                                 className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground"
@@ -2387,7 +2432,7 @@ const AftaleTab = ({
                     {/* ── 2) Aftalen — hvad er bestilt, kundens noter ── */}
                     <Section icon={<ShoppingCart className="h-3.5 w-3.5" />} title="Aftalen">
                       <div className="space-y-2">
-                        <CustomerOrderSummary order={order} />
+                        <CustomerOrderSummary order={order} servicesById={servicesById} />
                         {order.notes && (
                           <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
                             <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />

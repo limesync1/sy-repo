@@ -2,6 +2,8 @@ import * as React from 'npm:react@18.3.1'
 import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import { Button } from '../email-button.tsx'
 import type { TemplateEntry } from './registry.ts'
+import { PriceStack } from './_price-stack.tsx'
+import { danishIntervalLabel } from '../interval-da.ts'
 import {
   SITE_NAME, SITE_URL, LOGO_URL, main, wrapper, headerBar, heroSection, heroTitle, heroSubtitle,
   card, cardLabel, cardValue, buttonSection, button, muted, footer, footerText, footerLink,
@@ -31,7 +33,7 @@ const AccountingDocument = ({ customerName, businessName, documentNumber, amount
             <Text style={cardLabel}>Virksomhed</Text>
             <Text style={cardValue}>{biz}</Text>
             <Text style={cardLabel}>{isCredit ? 'Krediteret beløb' : 'Beløb'}</Text>
-            <Text style={{ ...cardValue, margin: 0 }}>{formatServicePrice(Math.abs(amount))}</Text>
+            <PriceStack amount={Math.abs(amount)} size={15} />
           </Section>
           {downloadUrl && (
             <>

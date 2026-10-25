@@ -4,6 +4,8 @@ import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text
 import { Button } from '../email-button.tsx'
 import { formatServicePrice } from './_service-price.ts'
 import type { TemplateEntry } from './registry.ts'
+import { PriceStack } from './_price-stack.tsx'
+import { danishIntervalLabel } from '../interval-da.ts'
 import {
  SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
  main, wrapper, container, headerBar,
@@ -90,8 +92,8 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
  <Section style={card}>
  <Text style={cardLabel}>Service</Text><Text style={cardValue}>{serviceName}</Text>
  {businessName && <><Text style={cardLabel}>Virksomhed</Text><Text style={cardValue}>{businessName}</Text></>}
- {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{intervalLabel}</Text></>}
- {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
+ {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{danishIntervalLabel(intervalLabel)}</Text></>}
+ {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><PriceStack amount={totalPrice} size={15} /></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Udført i alt</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}
  {event === 'paused' && pauseDate && <><Text style={cardLabel}>Sat på pause</Text><Text style={cardValue}>{pauseDate}</Text></>}
  {event === 'cancelled' && cancelDate && <><Text style={cardLabel}>Opsagt</Text><Text style={cardValue}>{cancelDate}</Text></>}
