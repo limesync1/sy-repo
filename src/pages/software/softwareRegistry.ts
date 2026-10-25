@@ -92,6 +92,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     label: "Software til vinduespudsere",
     blurb: "Faste intervaller, ruter der hænger sammen, og nye kunder fra markedspladsen.",
     priority: "0.8",
+    seoTitle: "Software til vinduespudsere — ruteplanlægning og nye kunder | Serviceydere",
+    seoDescription: "Program til vinduespudsere med faste intervaller, ruter der hænger sammen, medarbejder-app og fakturering — plus en markedsplads der giver nye kunder. Fra 289 kr./md.",
     group: "industry",
   },
   {
@@ -100,6 +102,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Faste aftaler, nøgler og adgangsforhold, kvalitetstjek og timer der kan faktureres.",
     priority: "0.8",
     group: "industry",
+    seoTitle: "System til rengøringsfirmaer — planlægning, timer og fakturering | Serviceydere",
+    seoDescription: "Rengøringssystem med faste aftaler, nøglestyring, medarbejder-app med tjek ind og ud, timer der kan faktureres og bogføring i E-conomic eller Dinero. Fra 289 kr./md.",
   },
   {
     href: "/software/haveservice",
@@ -107,6 +111,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Sæsoner, vejr og gentagne besøg — planlægning der tåler en aflyst dag.",
     priority: "0.8",
     group: "industry",
+    seoTitle: "Program til haveservice — sæsonplanlægning og ruter | Serviceydere",
+    seoDescription: "Planlægningsprogram til haveservice og anlægsgartnere: gentagne besøg, sæsoner, ruter der tåler en aflyst dag, medarbejder-app og fakturering. Fra 289 kr./md.",
   },
   {
     href: "/software/haandvaerker",
@@ -114,6 +120,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Opgaver, timer, materialer og fakturering — med kørslen tænkt ind i dagen.",
     priority: "0.8",
     group: "industry",
+    seoTitle: "System til håndværkere — opgaver, timer og fakturering | Serviceydere",
+    seoDescription: "Håndværkersystem med opgavestyring, timer, medarbejder-app, online tilbud og fakturering i E-conomic eller Dinero — med kørslen tænkt ind i dagen. Fra 289 kr./md.",
   },
   {
     href: "/software/flyttefirma",
@@ -121,6 +129,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Prisberegner til tilbud, hold og biler på flyttedagen og fakturering ud fra brugt tid.",
     priority: "0.8",
     group: "industry",
+    seoTitle: "System til flyttefirmaer — tilbud, planlægning og fakturering | Serviceydere",
+    seoDescription: "Flyttesystem med prisberegner til tilbud, planlægning af biler og hold, medarbejder-app og fakturering med bogføring i E-conomic eller Dinero. Fra 289 kr./md.",
   },
   {
     href: "/software/maler",
@@ -128,6 +138,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Tilbud pr. m², svende på flerdagesopgaver og billeddokumentation i appen.",
     priority: "0.8",
     group: "industry",
+    seoTitle: "System til malerfirmaer — tilbud pr. m², planlægning og fakturering | Serviceydere",
+    seoDescription: "Malersystem med prisberegner pr. m², planlægning af svende på flerdagesopgaver, medarbejder-app med billeder og fakturering i E-conomic eller Dinero. Fra 289 kr./md.",
   },
 ];
 
