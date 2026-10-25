@@ -241,7 +241,7 @@ const Auth = () => {
               width={1920}
               height={539}
               decoding="async"
-              fetchPriority="high"
+              fetchpriority="high"
              loading="eager"/>
           </Link>
         </div>

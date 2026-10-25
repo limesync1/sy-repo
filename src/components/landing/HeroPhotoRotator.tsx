@@ -101,7 +101,7 @@ export default function HeroPhotoRotator() {
   return (
     <figure ref={host} className="home-hero-photo relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-ocean">
       <img ref={baseImage} src={photo.src} srcSet={photoSrcSet(photo)} sizes={HERO_PHOTO_SIZES} alt={photo.alt} title={photo.title} width={photo.width} height={photo.height}
-        fetchPriority={current === 0 ? "high" : "auto"} decoding="async" loading="eager"
+        fetchpriority={current === 0 ? "high" : "auto"} decoding="async" loading="eager"
         className="absolute inset-0 h-full w-full object-contain object-center" />
       <canvas ref={canvas} aria-hidden="true" className={`pointer-events-none absolute inset-0 h-full w-full ${rendering ? "visible" : "invisible"}`} />
     </figure>

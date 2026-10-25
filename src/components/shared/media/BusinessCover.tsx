@@ -87,7 +87,7 @@ const BusinessCover = ({
         className={cn("relative h-full w-full object-cover object-center", imgClassName)}
         loading={priority ? "eager" : "lazy"}
         // eslint-disable-next-line react/no-unknown-property
-        fetchPriority={priority ? "high" : "auto"}
+        fetchpriority={priority ? "high" : "auto"}
         decoding="async"
       />
     </div>
