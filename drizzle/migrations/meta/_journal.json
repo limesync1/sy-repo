@@ -176,6 +176,13 @@
       "when": 1792948910691,
       "tag": "0024_half_hour_completion_cadence",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792949050466,
+      "tag": "0025_five_minute_test_recurrence",
+      "breakpoints": true
     }
   ]
 }
