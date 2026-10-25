@@ -946,7 +946,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={toggleSelectAll}
-                    aria-label="Vælg alle"
+                    aria-label="Vælg alle" className="relative after:absolute after:-inset-3 after:content-['']"
                   />
                 )}
                   <CustomerIllustration name={typeFilter === "business" ? "business" : typeFilter === "private" ? "private" : "customers"} className="h-10 w-10 shrink-0" />
@@ -991,7 +991,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       <Checkbox
                         checked={selectedIds.has(customerKey(c))}
                         onCheckedChange={() => toggleSelect(customerKey(c))}
-                        aria-label={`Vælg ${c.name}`}
+                        aria-label={`Vælg ${c.name}`} className="relative after:absolute after:-inset-3 after:content-['']"
                       />
                     </div>
 
