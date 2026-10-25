@@ -1922,6 +1922,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         )}
 
+        {integration?.is_active && <InvoiceIntervalCard businessId={businessId} />}
+
         {/* Synlige standardvalg — ikke gemt bag “avanceret”, fordi det er her
             brugeren forstår hvad automatikken gør og kan ændre de vigtigste valg. */}
         {showAdvanced && (
@@ -1977,8 +1979,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
           </div>
         </SectionCard>
-
-        <InvoiceIntervalCard businessId={businessId} />
 
         {/* Standard kundegruppe/indtægtskonto hentet fra regnskabsprogrammet */}
         <SectionCard
