@@ -5,7 +5,7 @@
 //   ekstra stop på dagens rute når det er en engangsopgave i dag.
 // - Send en note til kontoret.
 // Prisen regnes altid endeligt på serveren. Optimeret til mobil/tablet.
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Minus, Pencil, Plus, Send, Trash2, MessageSquarePlus, CheckCircle2, CalendarPlus, AlertTriangle, ArrowLeft, Route as RouteIcon, Inbox } from "lucide-react";
 import { toast } from "sonner";
@@ -98,8 +98,10 @@ export function EmployeeStopNotesList({ stopId }: { stopId: string }) {
   );
 }
 
-export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, hideNotesList = false, routeDate = null, compact = false }: {
+export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, hideNotesList = false, routeDate = null, compact = false, editOnly = false, onEditClosed }: {
   stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; hideNoteAction?: boolean; hideNotesList?: boolean; routeDate?: string | null; compact?: boolean;
+  /** Viser kun «Ret aftale»-vinduet og åbner det straks (bruges fra ruteplanlæggeren). */
+  editOnly?: boolean; onEditClosed?: () => void;
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
@@ -195,6 +197,19 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     setEditOpen(true);
   };
 
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (!editOnly || autoOpened.current || !order) return;
+    autoOpened.current = true;
+    if (completed) { toast.error("Fortryd udførsel for at rette aftalen."); onEditClosed?.(); return; }
+    openEditor();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editOnly, order, completed]);
+  useEffect(() => {
+    if (editOnly && autoOpened.current && !editOpen) onEditClosed?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editOnly, editOpen]);
+
   const addable = useMemo(() => services.filter((s) => !lines.some((l) => l.service_id === s.id)), [services, lines]);
   const dirty = snapshot(lines) !== initialLines;
   const intervalChanged = lines.some((l) => l.item_id && l.pricing && l.currentInterval && l.pricing.interval !== l.currentInterval);
@@ -236,6 +251,9 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       qc.invalidateQueries({ queryKey: ["order-for-stop"] });
       qc.invalidateQueries({ queryKey: ["employee-stop-notes", stopId] });
       qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
     },
     onError: (e) => toast.error("Aftalen blev ikke gemt", {
       description: errText(e), action: { label: "Prøv igen", onClick: () => save.mutate() },
@@ -362,7 +380,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
 
   return (
     <div className={compact || noteOnly ? "contents" : "space-y-2"}>
-      {compact ? (
+      {editOnly ? null : compact ? (
         <>
           {!noteOnly && <Button variant="appointmentEdit" aria-label="Ret aftale" title="Ret aftale" className="route-dock-tile" onClick={openEditor} disabled={completed || !order}><Pencil className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label"><span className="route-dock-tile-long">Ret aftale</span><span className="route-dock-tile-short">Ret</span></span></Button>}
           {!noteOnly && <Button variant="appointmentCreate" aria-label="Ny aftale" title="Ny aftale" className="route-dock-tile" onClick={openNew} disabled={!order}><CalendarPlus className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label"><span className="route-dock-tile-long">Ny aftale</span><span className="route-dock-tile-short">Ny</span></span></Button>}
@@ -389,7 +407,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       {!hideNotesList && <EmployeeStopNotesList stopId={stopId} />}
       </>)}
 
-      {!noteOnly && !compact && order?.status !== 'cancelled' && <Button variant="outline" className="h-11 w-full text-destructive" onClick={() => setCancelOpen(true)} disabled={!order || cancelAppointment.isPending}><Trash2 className="h-4 w-4" />Annullér aftale</Button>}
+      {!noteOnly && !compact && !editOnly && order?.status !== 'cancelled' && <Button variant="outline" className="h-11 w-full text-destructive" onClick={() => setCancelOpen(true)} disabled={!order || cancelAppointment.isPending}><Trash2 className="h-4 w-4" />Annullér aftale</Button>}
       <Sheet open={cancelOpen} onOpenChange={open => { if (!cancelAppointment.isPending) setCancelOpen(open); }}>
         <SheetContent side={sheetSide} className={sheetClass}>
           <SheetHeader className="border-b border-border p-5 pr-14"><SheetTitle>Annullér aftale</SheetTitle><SheetDescription>Skal kreditnotaen oprettes nu, eller skal kontoret håndtere den? Kun dette besøg annulleres.</SheetDescription></SheetHeader>

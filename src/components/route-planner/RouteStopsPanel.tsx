@@ -26,6 +26,7 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, Loader2, Undo2,
   Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio, ArrowUp, ArrowDown,
+  Pencil,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -49,6 +50,7 @@ import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useRouteLivePositions, type RouteLivePosition } from "@/hooks/useRouteLivePositions";
 import StopCustomerEditDialog from "./StopCustomerEditDialog";
+import StopAppointmentEditDialog from "./StopAppointmentEditDialog";
 
 const readableTokenOn = (color?: string | null) => {
   const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
@@ -105,6 +107,8 @@ export const RouteStopsPanel = ({
   const [confirmUndo, setConfirmUndo] = useState<RouteStop | null>(null);
   const [editCustomerOrderId, setEditCustomerOrderId] = useState<string | null>(null);
   const closeCustomerEdit = useCallback(() => setEditCustomerOrderId(null), []);
+  const [editAppointment, setEditAppointment] = useState<{ stopId: string; orderId: string; completed: boolean; routeDate?: string | null } | null>(null);
+  const closeAppointmentEdit = useCallback(() => setEditAppointment(null), []);
   const { data: livePositions = [] } = useRouteLivePositions(!isProjection ? route?.id : null);
   const firstSeenAtStopRef = useRef(new Map<string, string>());
 
@@ -308,6 +312,9 @@ export const RouteStopsPanel = ({
                         }
                         onSelect={() => onSelectStop(stop)}
                         onEditCustomer={stop.order_id ? () => setEditCustomerOrderId(stop.order_id as string) : undefined}
+                        onEditAppointment={stop.order_id && !isProjection && !String(stop.id).startsWith("virtual-stop:")
+                          ? () => setEditAppointment({ stopId: stop.id, orderId: stop.order_id as string, completed: stop.status === "completed", routeDate: (routeProp as any)?.route_date ? String((routeProp as any).route_date).slice(0, 10) : null })
+                          : undefined}
                         onRemove={() => setConfirmDelete(stop)}
                         onUndoCompleted={() => setConfirmUndo(stop)}
                         undoPending={undoCompleted.isPending && undoCompleted.variables === stop.id}
@@ -330,6 +337,7 @@ export const RouteStopsPanel = ({
       </Sheet>
 
       <StopCustomerEditDialog orderId={editCustomerOrderId} onClose={closeCustomerEdit} />
+      <StopAppointmentEditDialog target={editAppointment} onClose={closeAppointmentEdit} />
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
@@ -394,6 +402,7 @@ type RowProps = {
   onSetAssignees: (ids: string[], lead: string | null) => void;
   onSelect: () => void;
   onEditCustomer?: () => void;
+  onEditAppointment?: () => void;
   onRemove: () => void;
   onUndoCompleted: () => void;
   undoPending: boolean;
@@ -407,7 +416,7 @@ type RowProps = {
 };
 
 const SortableStopRow = ({
-  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onEditCustomer, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false, compact, reorderPending, canMoveUp, canMoveDown, onMove,
+  stop, index, color, employees, livePositions, firstSeenAtStop, onSetAssignees, onSelect, onEditCustomer, onEditAppointment, onRemove, onUndoCompleted, undoPending, onMarkCompleted, markCompletedPending, isProjection = false, compact, reorderPending, canMoveUp, canMoveDown, onMove,
 }: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
@@ -502,7 +511,21 @@ const SortableStopRow = ({
           </div>
 
           {/* Ydelse — sekundær linje */}
-          {stop.service_summary ? (
+          {onEditAppointment ? (
+            <button
+              type="button"
+              onClick={onEditAppointment}
+              title="Redigér aftalen — services, pris og interval"
+              className="group/appt -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center gap-1.5 rounded-md px-1 text-left text-xs leading-4 text-muted-foreground hover:bg-secondary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              <span className={cn("min-w-0 flex-1 break-words", !stop.service_summary && "italic text-muted-foreground/70")}>
+                {stop.service_summary || "Ingen ydelser angivet"}
+              </span>
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
+                <Pencil className="h-3 w-3" /> Redigér aftale
+              </span>
+            </button>
+          ) : stop.service_summary ? (
             <p className="break-words text-xs leading-4 text-muted-foreground">
               {stop.service_summary}
             </p>
