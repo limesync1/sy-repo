@@ -241,7 +241,8 @@ export const SearchInput = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="pl-9 rounded-[4px] h-9"
+      aria-label={placeholder || "Søg"}
+      className="pl-9 rounded-[4px] h-11 lg:h-10"
     />
   </div>
 );

@@ -426,7 +426,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
       </Sheet>
       {/* Ret aftale */}
       <Sheet open={editOpen} onOpenChange={(o) => { if (o) setEditOpen(true); else void closeEditor(); }}>
-        <SheetContent side={sheetSide} className={sheetClass}>
+        {/* Overlayet lægges i samme lag som vinduerne bagved, så både kalender og rutepanel dæmpes. */}
+        <SheetContent side={sheetSide} className={sheetClass} overlayClassName="z-[var(--z-modal)]">
           <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b border-border px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
             <SheetTitle className="sr-only">Ret aftale</SheetTitle><SheetDescription className="sr-only">Ret services og vælg hvilke besøg ændringen gælder.</SheetDescription>
             <AppointmentDetailsHeader 

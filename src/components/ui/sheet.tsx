@@ -54,12 +54,13 @@ interface SheetContentProps
   hideOverlay?: boolean;
   /** Hide the default top-right close (X) button. */
   hideCloseButton?: boolean;
+  overlayClassName?: string;
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, hideOverlay, hideCloseButton, ...props }, ref) => (
+  ({ side = "right", className, children, hideOverlay, hideCloseButton, overlayClassName, ...props }, ref) => (
     <SheetPortal>
-      {!hideOverlay && <SheetOverlay />}
+      {!hideOverlay && <SheetOverlay className={overlayClassName} />}
       <SheetPrimitive.Content ref={ref} data-side={side} className={cn(sheetVariants({ side }), className)} {...props}>
         {children}
         {!hideCloseButton && (

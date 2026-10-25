@@ -27,3 +27,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Ruteplanlægger + Aftaler: gennemgang 320–1305 px, lyst/mørkt; større knapper og filterrække på mobil
 - [ ] Fuld klikgennemgang af resten af panelsiderne (vinduer og gem-handlinger)
 - [x] Automatisk gennemgang af 10 panelsider × 5 bredder: ingen vandret rulning, rettet kontakter uden navn, små knapper (services, faktura), indstillinger ved 320 px
+- [x] «Ret aftale»: ét trin, kunde/dato i top, pris i bund, baggrundsvinduer dæmpes
+- [x] Kunder + Services: større knapper, afkrydsning og søgefelt
+- [ ] Medarbejdere, Anmeldelser, Regnskab, Indstillinger: gennemgang
+- [ ] Fakturainterval (samlet faktura pr. kunde pr. periode) — afventer godkendelse af plan
