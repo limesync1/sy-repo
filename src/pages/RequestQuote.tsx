@@ -872,7 +872,7 @@ const RequestQuote = () => {
             <div className="flex items-start gap-4">
               {selectedBusiness.business.logo_url ? (
                 <img
-                  src={selectedBusiness.business.logo_url}
+                  src={imageSrc(selectedBusiness.business.logo_url, 128, 128, "contain")}
                   alt=""
                   className="h-16 w-16 shrink-0 rounded-xl border border-border bg-card object-contain p-1.5"
                   width={64}
