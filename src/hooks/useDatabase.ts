@@ -41,7 +41,11 @@ export const useAllBusinesses = (
   options?: { limit?: number },
 ) => {
   return useQuery({
-    queryKey: ["businesses", category, search, sort, options?.limit ?? null],
+    // Nøglen indeholder bevidst KUN det serveren filtrerer på (kategori/limit).
+    // Søgning og sortering sker lokalt i `select`, så et nyt søgeord eller en
+    // ny sortering genbruger den cachede server-data i stedet for at hente
+    // hele datasættet igen.
+    queryKey: ["businesses", category, options?.limit ?? null],
     queryFn: async () => {
       // Pull businesses with their services + reviews in one go so we can:
       //  - search across name/description/city/zip/address/categories AND service names
@@ -57,6 +61,20 @@ export const useAllBusinesses = (
       const { data, error } = await query;
       if (error) throw error;
       let rows = (data || []) as any[];
+
+      // Compute aggregated rating once
+      rows = rows.map((b) => {
+        const reviews = b.reviews || [];
+        const avg = reviews.length
+          ? reviews.reduce((a: number, r: any) => a + r.rating, 0) / reviews.length
+          : 0;
+        return { ...b, _avgRating: avg, _reviewCount: reviews.length };
+      });
+
+      return rows;
+    },
+    select: (rawRows) => {
+      let rows = rawRows as any[];
 
       // Multi-token search across many fields, including service names
       const tokens = (search || "")
