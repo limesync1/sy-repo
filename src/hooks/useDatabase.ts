@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,8 +74,10 @@ export const useAllBusinesses = (
 
       return rows;
     },
-    select: (rawRows) => {
-      let rows = rawRows as any[];
+    select: useCallback((rawRows: any[]) => {
+      // Kopiér altid før sortering/filtrering, så vi aldrig muterer
+      // React Querys cachede rå-data.
+      let rows = [...rawRows];
 
       // Multi-token search across many fields, including service names
       const tokens = (search || "")
