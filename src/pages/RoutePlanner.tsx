@@ -112,7 +112,7 @@ import {
 } from "@/lib/recurring-projection";
 import { useProjectedCalendar } from "@/hooks/route-planner/useProjectedCalendar";
 import { usePlannerStore } from "@/hooks/route-planner/usePlannerStore";
-import { intervalToCadence } from "@/lib/interval";
+import { intervalToCadence, TEST_INTERVAL_MINUTES } from "@/lib/interval";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
 import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -1069,9 +1069,9 @@ const Planner = () => {
       const fromHourlyTest: any[] = [];
       const { data: hourlyItems } = await supabase
         .from("order_items")
-        .select("order_id, orders!inner(id, business_id, status, created_at)")
-        .eq("details->>interval", "every_1_hour_test")
-        .eq("orders.business_id", businessId!)
+        .select("order_id, details, orders!inner(id, business_id, status, created_at)")
+        .in("details->>interval", Object.keys(TEST_INTERVAL_MINUTES))
+        .eq("orders.business_id", businessId ?? "")
         .not("orders.status", "in", "(cancelled,completed)");
       const subOrderIds = new Set((subsRes.data || []).map((x: any) => x.order_id).filter(Boolean));
       const hourlyOrderIds = Array.from(new Set((hourlyItems || []).map((i: any) => i.order_id as string)))
@@ -1087,29 +1087,34 @@ const Planner = () => {
           .is("routes.archived_at", null)
           .is("routes.deleted_at", null)
           .neq("status", "completed");
-        const latestByRoute = new Map<string, { date: string; orderIds: Set<string> }>();
+        const latestByRoute = new Map<string, { routeId: string; interval: string; date: string; orderIds: Set<string> }>();
         for (const st of hourlyStops || []) {
           const r = (st as any).routes;
           const routeId = r?.id as string | undefined;
           if (!routeId) continue;
           const date = String(r.route_date).slice(0, 10);
-          const cur = latestByRoute.get(routeId) ?? { date, orderIds: new Set<string>() };
+          const item = (hourlyItems || []).find(i => i.order_id === st.order_id);
+          const interval = (item?.details as { interval?: string } | null)?.interval;
+          if (!interval || !TEST_INTERVAL_MINUTES[interval]) continue;
+          const key = `${routeId}|${interval}`;
+          const cur = latestByRoute.get(key) ?? { routeId, interval, date, orderIds: new Set<string>() };
           cur.orderIds.add((st as any).order_id);
-          latestByRoute.set(routeId, cur);
+          latestByRoute.set(key, cur);
         }
         // Ruter, der allerede dækkes af et aktivt timeabonnement, projiceres
         // kun via abonnementet — ellers vises hver time to gange.
         const hourlySubRoutes = new Set(
           (subsRes.data || [])
-            .filter((x: any) => ((x.details as any)?.interval || x.interval) === "every_1_hour_test")
-            .map((x: any) => x.preferred_route_id)
+            .filter((x: any) => TEST_INTERVAL_MINUTES[(x.details as any)?.interval || x.interval])
+            .map((x: any) => `${x.preferred_route_id}|${(x.details as any)?.interval || x.interval}`)
             .filter(Boolean),
         );
-        for (const [routeId, info] of latestByRoute) {
-          if (hourlySubRoutes.has(routeId)) continue;
+        for (const [key, info] of latestByRoute) {
+          const routeId = info.routeId;
+          if (hourlySubRoutes.has(key)) continue;
           fromHourlyTest.push({
-            id: `hourly:${routeId}`,
-            interval: "every_1_hour_test",
+            id: `hourly:${key}`,
+            interval: info.interval,
             interval_days: null,
             seed_date: info.date,
             anchor_date: info.date,
