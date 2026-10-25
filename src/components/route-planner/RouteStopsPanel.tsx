@@ -516,9 +516,9 @@ const SortableStopRow = ({
               type="button"
               onClick={onEditAppointment}
               title="Redigér aftalen — services, pris og interval"
-              className="group/appt -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center gap-1.5 rounded-md px-1 text-left text-xs leading-4 text-muted-foreground hover:bg-secondary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="group/appt -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] flex-wrap items-center gap-x-1.5 gap-y-1 py-1 rounded-md px-1 text-left text-xs leading-4 text-muted-foreground hover:bg-secondary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
-              <span className={cn("min-w-0 flex-1 break-words", !stop.service_summary && "italic text-muted-foreground/70")}>
+              <span className={cn("min-w-[7rem] flex-1 break-normal", !stop.service_summary && "italic text-muted-foreground/70")}>
                 {stop.service_summary || "Ingen ydelser angivet"}
               </span>
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
