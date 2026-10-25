@@ -1005,11 +1005,15 @@ const ImportPanel = ({
     return (
       <div className="space-y-4">
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Vælg CSV-fil til import"
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
-          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer sm:py-20 ${dragActive ? "border-accent bg-accent/5" : "border-border bg-secondary/20"}`}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
+          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:py-20 ${dragActive ? "border-accent bg-accent/5" : "border-border bg-secondary/20"}`}
         >
           <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />

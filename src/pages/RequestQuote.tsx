@@ -543,7 +543,6 @@ const RequestQuote = () => {
                     aria-label="Dit telefonnummer (valgfrit)"
                     autoComplete="tel"
                     inputMode="tel"
-                    autoFocus
                     className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
                 ) : (

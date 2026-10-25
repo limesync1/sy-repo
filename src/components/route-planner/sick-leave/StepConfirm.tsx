@@ -80,8 +80,9 @@ export default function StepConfirm({
       )}
 
       <div className="space-y-1.5">
-        <Label className="text-xs">Note (valgfri)</Label>
+        <Label className="text-xs" htmlFor="sick-leave-note">Note (valgfri)</Label>
         <Textarea
+          id="sick-leave-note"
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
           rows={2}
