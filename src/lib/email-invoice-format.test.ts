@@ -28,6 +28,6 @@ describe("app email and invoice formatting", () => {
         startDate: "2026-10-01",
         completedDate: "2026-10-24T09:00:00Z",
       }),
-    ).toBe("Udvendig vinduespudsning — Hver 4. uge · Opstart 01.10.2026 · Udført 24.10.2026");
+    ).toBe("Udvendig vinduespudsning (hver 4. uge) · Udført 24. okt. 2026 · opstart 1. okt. 2026");
   });
 });
