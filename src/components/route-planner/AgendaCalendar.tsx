@@ -215,6 +215,20 @@ const DayRowInner = ({
   const emptyDay = routes.length === 0;
   const canReceiveDrop = isDragActive && !isPast && !busy;
   const validation = useTargetValidation(`day:${dateStr}`);
+  // Mange forventede ruter (fx korte testintervaller) må ikke drukne de faste
+  // ruter. Vis alle faste + de første 3 forventede; resten bag en knap.
+  const [showAllProjected, setShowAllProjected] = useState(false);
+  const PROJECTED_PREVIEW = 3;
+  const visibleRoutes = useMemo(() => {
+    if (showAllProjected) return routes;
+    let seen = 0;
+    return routes.filter((r: any) => {
+      if (!(r.isVirtual || r.isProjected)) return true;
+      seen += 1;
+      return seen <= PROJECTED_PREVIEW;
+    });
+  }, [routes, showAllProjected]);
+  const hiddenProjected = routes.length - visibleRoutes.length;
 
   const dropVerb = (() => {
     if (!isOver || !canReceiveDrop) return null;
@@ -257,11 +271,9 @@ const DayRowInner = ({
           >
             {format(date, "d")}
           </span>
-          <span className={cn("text-[11px] font-medium uppercase tracking-wide", today ? "text-accent" : "text-muted-foreground")}>
-            {format(date, "EEEE", { locale: da })}
-          </span>
-          <span className="text-[11px] text-muted-foreground">
-            {format(date, "MMM", { locale: da })}
+          <span className={cn("text-xs font-semibold capitalize", today ? "text-accent" : "text-foreground")}>
+            {today ? "I dag" : format(date, "EEEE", { locale: da })}
+            <span className="ml-1 font-normal normal-case text-muted-foreground">{format(date, "d. MMM", { locale: da })}</span>
           </span>
           {routes.length > 0 && (() => {
             const projected = routes.filter((r: any) => r.isVirtual || r.isProjected).length;
@@ -314,7 +326,7 @@ const DayRowInner = ({
             <div className="h-3 w-3 rounded-full bg-muted/70 animate-pulse" />
           </div>
         )}
-        {routes.map((r) => (
+        {visibleRoutes.map((r) => (
           <AgendaRoutePill
             key={r.id}
             route={r}
@@ -332,6 +344,17 @@ const DayRowInner = ({
             hasAssigneeConflict={!!conflictedRouteIds?.has(r.id)}
           />
         ))}
+
+        {(hiddenProjected > 0 || (showAllProjected && routes.length > PROJECTED_PREVIEW)) && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowAllProjected(v => !v); }}
+            aria-expanded={showAllProjected}
+            className="flex min-h-11 items-center justify-center rounded-md border border-dashed border-border text-xs font-medium text-muted-foreground hover:border-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:min-h-9"
+          >
+            {showAllProjected ? "Vis færre forventede" : `Vis ${hiddenProjected} flere forventede`}
+          </button>
+        )}
 
         {isJobDragActive && emptyDay && canReceiveDrop && (
           <div
