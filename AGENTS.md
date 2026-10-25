@@ -1,5 +1,7 @@
 # Project architecture rules
 
+- Platform signup alerts use a fixed server-side recipient/template and event-ID idempotency; waitlist inserts occur in the dedicated signup function and business alerts read authorized persisted records, so browsers cannot choose recipients or forge signup details.
+
 - Auth entry points share normalized email, safe signup outcomes and Danish errors; never infer account existence from obfuscated signup users, and only recovery links/events authorize the public password-reset form, to avoid false success and ordinary-session resets.
 - Public sections prewarm their chunks separately from mounting effects; both section and staggered page prefetch respect data-saving connections, so visible content and navigation retain priority.
 - Loading fallbacks consume browser-storage hints once and tolerate blocked storage; chunk reload guards last for the session because elapsed time does not prove successful loading.

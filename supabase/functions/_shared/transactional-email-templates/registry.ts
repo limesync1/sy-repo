@@ -30,8 +30,10 @@ import { template as betaLaunch } from './beta-launch.tsx'
 import { template as businessWelcome } from './business-welcome.tsx'
 import { template as accountingDocument } from './accounting-document.tsx'
 import { template as businessAlert } from './business-alert.tsx'
+import { template as platformSignup } from './platform-signup.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
+  'platform-signup': platformSignup,
   'accounting-document': accountingDocument,
   'welcome': welcome,
   'order-confirmation': orderConfirmation,

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
  * BetaNotice — besked om testfase på alle offentlige sider.
  *  1. Smal stribe øverst med en "Få besked når vi åbner"-knap.
  *  2. Ét lyst modal-kort i samme rolige marine/teal-design som forsiden.
- * Tilmeldingen gemmes via RPC'en `join_beta_waitlist`.
+ * Tilmeldingen gemmes server-side sammen med ejermailen.
  */
 
 const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/min-konto", "/afmeld", "/visual-test"];
@@ -113,6 +113,7 @@ const BetaNotice = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
@@ -120,9 +121,8 @@ const BetaNotice = () => {
     }
     setError(null);
     setSaving(true);
-    const { error: rpcError } = await supabase.rpc("join_beta_waitlist" as any, {
-      p_email: parsed.data,
-      p_role: audience,
+    const { error: rpcError } = await supabase.functions.invoke("join-waitlist", {
+      body: { email: parsed.data, role: audience },
     });
     setSaving(false);
     if (rpcError) {

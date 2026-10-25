@@ -4,6 +4,7 @@
 // sender velkomstmail med login.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
+import { buildPlatformSignupAlert } from "../_shared/platform-signup-alert.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -225,6 +226,11 @@ Deno.serve(async (req) => {
       admin_note: adminNote,
     },
   });
+
+  const signupAlert = buildPlatformSignupAlert({ kind: "business", id: biz.id, name: biz.name, email: ownerEmail, city, cvr });
+  try {
+    await sendTemplateEmail("platform-signup", signupAlert.recipient, { idempotencyKey: signupAlert.idempotencyKey, templateData: signupAlert.templateData });
+  } catch { console.error("[admin-create-business] owner notification failed"); }
 
   // 6) Velkomstmail (fire-and-forget)
   if (sendWelcome) {
