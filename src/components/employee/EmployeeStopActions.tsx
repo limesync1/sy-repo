@@ -431,12 +431,12 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             <SheetTitle className="sr-only">Ret aftale</SheetTitle><SheetDescription className="sr-only">Ret services og vælg hvilke besøg ændringen gælder.</SheetDescription>
             <AppointmentDetailsHeader 
               title="Ret aftale" 
-              description={`Trin ${editStep} af 2 · ${editStep === 1 ? "Services og pris" : "Omfang og bekræftelse"}`} 
+              description={[order?.customer_name, routeDate ? new Date(routeDate + "T12:00:00").toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" }) : null].filter(Boolean).join(" · ") || "Services, pris og interval"} 
             />
-            <div className="mt-3"><StepIndicator current={editStep} total={2} /></div>
           </SheetHeader>
           <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-5 sm:p-5">
-            {editStep === 1 && <>{servicesProblem}
+            <>{servicesProblem}
+            <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Services på aftalen · priser uden moms</p>
             <ul className="space-y-2">
               {lines.map((l) => {
                 const svc = l.service_id ? serviceById.get(l.service_id) : undefined;
@@ -483,8 +483,8 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               </div>
             )}
 
-            </>}
-            {editStep === 2 && <>
+            </>
+            {dirty && <>
             {intervalChanged && (
               <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2.5 text-[12px] text-warning-foreground">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -508,20 +508,17 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
               ))}
             </fieldset>
             </Section>
-            <Section icon={<CheckCircle2 className="h-4 w-4" />} title="Kontrollér før du gemmer" tone="muted">
-              <div className="space-y-2 text-sm">
-                <p className="flex justify-between gap-3"><span className="text-muted-foreground">Services</span><strong>{lines.length}</strong></p>
-                {editTotal > 0 && <p className="flex justify-between gap-3"><span className="text-muted-foreground">Ca. pris pr. besøg</span><strong>{formatPrice(editTotal)}</strong></p>}
-                <p className="rounded-md bg-secondary/60 p-2.5 text-xs leading-5 text-muted-foreground">{applyFuture ? "Dette besøg og kommende besøg bliver opdateret. Ruteplaceringen ændres ikke lydløst." : "Kun dette besøg bliver opdateret. Kommende besøg og serien forbliver uændrede."}</p>
-              </div>
-            </Section>
             </>}
           </div>
           <SheetFooterBar className="px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+            <div className="mb-2 flex items-baseline justify-between gap-3 text-sm">
+              <span className="text-muted-foreground">{dirty ? "Ny pris pr. besøg" : "Pris pr. besøg"} <span className="text-xs">(uden moms)</span></span>
+              <strong className="tabular-nums text-foreground">{editTotal > 0 ? formatPrice(editTotal) : "—"}</strong>
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="h-12" onClick={() => editStep === 1 ? void closeEditor() : setEditStep(1)} disabled={save.isPending}>{editStep === 1 ? "Annullér" : <><ArrowLeft className="h-4 w-4" />Tilbage</>}</Button>
-              <Button className="h-12" onClick={() => editStep === 1 ? setEditStep(2) : void trySave()} disabled={save.isPending || lines.length === 0 || !dirty}>
-                {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editStep === 1 ? "Fortsæt" : "Gem ændringer"}
+              <Button variant="outline" className="h-12" onClick={() => void closeEditor()} disabled={save.isPending}>Annullér</Button>
+              <Button className="h-12" onClick={() => void trySave()} disabled={save.isPending || lines.length === 0 || !dirty}>
+                {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : dirty ? "Gem ændringer" : "Intet ændret endnu"}
               </Button>
             </div>
           </SheetFooterBar>
