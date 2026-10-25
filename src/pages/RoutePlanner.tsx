@@ -161,7 +161,7 @@ import {
   routeIdFromDndId,
 } from "@/lib/route-planner/dnd";
 
-const todayStr = () => format(new Date(), "yyyy-MM-dd");
+const todayStr = () => todayInDenmark();
 
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
