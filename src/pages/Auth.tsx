@@ -274,7 +274,7 @@ const Auth = () => {
 
           {/* Testimonial */}
           <div className="auth-quote mt-8 rounded-lg border p-5">
-            <Quote className="h-5 w-5 text-hero-cyan-bright" />
+            <Quote className="h-5 w-5 text-ocean-foreground" />
             <p className="mt-3 text-sm leading-6 text-ocean-foreground/85">
               "Serviceydere har samlet hele vores drift. Vi sparer timer hver uge på planlægning og fakturering."
             </p>
