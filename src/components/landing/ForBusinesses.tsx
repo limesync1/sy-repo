@@ -56,7 +56,7 @@ const ForBusinesses = () => {
   return (
     <section className="border-y border-border/70 bg-surface py-12 sm:py-14 lg:py-16 2xl:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between 2xl:mb-10">
+        <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between 2xl:mb-10">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <SectionLabelMark />
@@ -72,7 +72,7 @@ const ForBusinesses = () => {
 
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5 self-start lg:max-w-xs lg:self-auto xl:max-w-none">
             <SmartLink
               to="/opret-virksomhed"
               className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5"
@@ -152,11 +152,11 @@ const ForBusinesses = () => {
             </div>
 
           </article>
-          <div className="grid border-t border-border bg-secondary/20 md:grid-cols-3">
+          <div className="grid border-t border-border bg-secondary/20 lg:grid-cols-3">
             {features.map((f, index) => (
               <article
                 key={f.title}
-                className={`group flex gap-3.5 p-5 transition-colors hover:bg-background sm:p-6 ${index > 0 ? "border-t border-border md:border-l md:border-t-0" : ""}`}
+                className={`group flex gap-3.5 p-5 transition-colors hover:bg-background sm:p-6 lg:flex-col xl:flex-row ${index > 0 ? "border-t border-border lg:border-l lg:border-t-0" : ""}`}
               >
                 <div className="icon-tile h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                   <BrandedIllustration name={f.icon} className="h-full w-full" />

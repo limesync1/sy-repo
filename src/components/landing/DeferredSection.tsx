@@ -21,7 +21,7 @@ export default function DeferredSection({ children, fallback, preload }: { child
     warmer?.observe(element);
     const observer = new IntersectionObserver(([entry]) => {
       if (entry?.isIntersecting) { setNear(true); observer.disconnect(); }
-    }, { rootMargin: allowPreload ? "900px 0px" : "200px 0px" });
+    }, { rootMargin: allowPreload ? `${Math.max(900, window.innerHeight * 1.5)}px 0px` : "200px 0px" });
     observer.observe(element);
     return () => { observer.disconnect(); warmer?.disconnect(); };
   }, [preload]);

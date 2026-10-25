@@ -12,14 +12,12 @@ import { HOME_TITLE, HOME_DESCRIPTION, homePageData } from "@/components/landing
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
 // stadig så initial JS-bundle bliver markant mindre.
 import Categories from "@/components/landing/Categories";
-const loadHow = () => import("@/components/landing/HowItWorks");
-const loadWhy = () => import("@/components/landing/WhyUs");
+import HowItWorks from "@/components/landing/HowItWorks";
+import WhyUs from "@/components/landing/WhyUs";
 const loadFounder = () => import("@/components/landing/FounderNote");
 const loadFor = () => import("@/components/landing/ForBusinesses");
 const loadCta = () => import("@/components/landing/CTABand");
 const loadFooter = () => import("@/components/landing/Footer");
-const HowItWorks        = lazy(loadHow);
-const WhyUs             = lazy(loadWhy);
 const FounderNote       = lazy(loadFounder);
 const ForBusinesses     = lazy(loadFor);
 const CTABand           = lazy(loadCta);
@@ -78,12 +76,8 @@ const Index = () => {
           siden ikke på den langsomste sektion, og der er ingen hop. */}
       <main id="main">
         <Reveal><Categories /></Reveal>
-        <DeferredSection preload={loadHow} fallback={<SectionSkeleton cards={3} cols="md:grid-cols-3" cardClassName="h-64" dark className="bg-ocean" />}>
-          <Reveal><HowItWorks /></Reveal>
-        </DeferredSection>
-        <DeferredSection preload={loadWhy} fallback={<SectionSkeleton cards={4} cols="sm:grid-cols-2 lg:grid-cols-4" cardClassName="h-64" className="bg-secondary/40" />}>
-          <Reveal><WhyUs /></Reveal>
-        </DeferredSection>
+        <Reveal><HowItWorks /></Reveal>
+        <Reveal><WhyUs /></Reveal>
         <DeferredSection preload={loadFounder} fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-96" dark className="bg-ocean" />}>
           <Reveal><FounderNote /></Reveal>
         </DeferredSection>
