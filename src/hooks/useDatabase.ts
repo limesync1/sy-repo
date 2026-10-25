@@ -140,7 +140,7 @@ export const useAllBusinesses = (
       }
 
       return rows;
-    },
+    }, [search, sort]),
     staleTime: 60_000,
   });
 };
