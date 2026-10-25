@@ -172,6 +172,9 @@ export type Database = {
           consecutive_failures: number
           created_at: string
           id: string
+          invoice_interval: Database["public"]["Enums"]["invoice_interval"]
+          invoice_interval_count: number | null
+          invoice_interval_unit: string | null
           is_active: boolean
           last_error: string | null
           last_error_at: string | null
@@ -192,6 +195,9 @@ export type Database = {
           consecutive_failures?: number
           created_at?: string
           id?: string
+          invoice_interval?: Database["public"]["Enums"]["invoice_interval"]
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           is_active?: boolean
           last_error?: string | null
           last_error_at?: string | null
@@ -212,6 +218,9 @@ export type Database = {
           consecutive_failures?: number
           created_at?: string
           id?: string
+          invoice_interval?: Database["public"]["Enums"]["invoice_interval"]
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           is_active?: boolean
           last_error?: string | null
           last_error_at?: string | null
@@ -1251,6 +1260,11 @@ export type Database = {
           ean_number: string | null
           email: string
           id: string
+          invoice_interval:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count: number | null
+          invoice_interval_unit: string | null
           is_blocked: boolean
           latitude: number | null
           longitude: number | null
@@ -1277,6 +1291,11 @@ export type Database = {
           ean_number?: string | null
           email: string
           id?: string
+          invoice_interval?:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
@@ -1303,6 +1322,11 @@ export type Database = {
           ean_number?: string | null
           email?: string
           id?: string
+          invoice_interval?:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
@@ -2706,6 +2730,118 @@ export type Database = {
           },
         ]
       }
+      invoice_batch_items: {
+        Row: {
+          amount: number | null
+          batch_id: string
+          business_id: string
+          completed_at: string
+          created_at: string
+          id: string
+          order_id: string
+        }
+        Insert: {
+          amount?: number | null
+          batch_id: string
+          business_id: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          order_id: string
+        }
+        Update: {
+          amount?: number | null
+          batch_id?: string
+          business_id?: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_batches: {
+        Row: {
+          business_id: string
+          closed_at: string | null
+          created_at: string
+          customer_email: string | null
+          customer_key: string
+          customer_name: string | null
+          external_id: string | null
+          external_number: string | null
+          id: string
+          interval_count: number | null
+          interval_unit: string | null
+          invoice_interval: Database["public"]["Enums"]["invoice_interval"]
+          invoiced_at: string | null
+          last_error: string | null
+          period_end: string
+          period_start: string
+          scope_order_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          closed_at?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_key: string
+          customer_name?: string | null
+          external_id?: string | null
+          external_number?: string | null
+          id?: string
+          interval_count?: number | null
+          interval_unit?: string | null
+          invoice_interval: Database["public"]["Enums"]["invoice_interval"]
+          invoiced_at?: string | null
+          last_error?: string | null
+          period_end: string
+          period_start: string
+          scope_order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          closed_at?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_key?: string
+          customer_name?: string | null
+          external_id?: string | null
+          external_number?: string | null
+          id?: string
+          interval_count?: number | null
+          interval_unit?: string | null
+          invoice_interval?: Database["public"]["Enums"]["invoice_interval"]
+          invoiced_at?: string | null
+          last_error?: string | null
+          period_end?: string
+          period_start?: string
+          scope_order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_batches_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meta_connections: {
         Row: {
           access_token_ciphertext: string | null
@@ -3048,8 +3184,14 @@ export type Database = {
           external_order_number: string | null
           guest_confirm_token_hash: string | null
           id: string
+          invoice_batch_id: string | null
           invoice_external_id: string | null
           invoice_external_number: string | null
+          invoice_interval:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count: number | null
+          invoice_interval_unit: string | null
           invoice_status: string | null
           invoiced_at: string | null
           last_reminder_at: string | null
@@ -3108,8 +3250,14 @@ export type Database = {
           external_order_number?: string | null
           guest_confirm_token_hash?: string | null
           id?: string
+          invoice_batch_id?: string | null
           invoice_external_id?: string | null
           invoice_external_number?: string | null
+          invoice_interval?:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
           last_reminder_at?: string | null
@@ -3168,8 +3316,14 @@ export type Database = {
           external_order_number?: string | null
           guest_confirm_token_hash?: string | null
           id?: string
+          invoice_batch_id?: string | null
           invoice_external_id?: string | null
           invoice_external_number?: string | null
+          invoice_interval?:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
           last_reminder_at?: string | null
@@ -3293,6 +3447,11 @@ export type Database = {
           ean_number: string | null
           email: string
           id: string
+          invoice_interval:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count: number | null
+          invoice_interval_unit: string | null
           is_blocked: boolean
           latitude: number | null
           longitude: number | null
@@ -3317,6 +3476,11 @@ export type Database = {
           ean_number?: string | null
           email: string
           id?: string
+          invoice_interval?:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
@@ -3341,6 +3505,11 @@ export type Database = {
           ean_number?: string | null
           email?: string
           id?: string
+          invoice_interval?:
+            | Database["public"]["Enums"]["invoice_interval"]
+            | null
+          invoice_interval_count?: number | null
+          invoice_interval_unit?: string | null
           is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
@@ -5108,6 +5277,10 @@ export type Database = {
         Args: { _body: string; _stop_id: string }
         Returns: string
       }
+      add_order_to_invoice_batch: {
+        Args: { _order_id: string }
+        Returns: string
+      }
       add_route_stop_idempotent: {
         Args: { _payload: Json }
         Returns: {
@@ -5397,6 +5570,10 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      close_due_invoice_batches: {
+        Args: { _batch_id?: string }
+        Returns: number
+      }
       confirm_business_deletion: {
         Args: { p_business_id: string; p_code: string }
         Returns: boolean
@@ -5643,6 +5820,15 @@ export type Database = {
         Returns: boolean
       }
       interval_to_duration: { Args: { _interval: string }; Returns: string }
+      invoice_period_end: {
+        Args: {
+          _count: number
+          _iv: Database["public"]["Enums"]["invoice_interval"]
+          _start: string
+          _unit: string
+        }
+        Returns: string
+      }
       is_business_owner: {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
@@ -5934,6 +6120,15 @@ export type Database = {
         Args: { p_business_id: string }
         Returns: string
       }
+      resolve_invoice_interval: {
+        Args: { _order_id: string }
+        Returns: {
+          cnt: number
+          iv: Database["public"]["Enums"]["invoice_interval"]
+          source: string
+          unit: string
+        }[]
+      }
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
       revert_projected_shift: {
         Args: { _exception_id: string }
@@ -6121,6 +6316,12 @@ export type Database = {
         | "ended"
         | "cancelled"
       app_role: "admin" | "business_owner" | "user" | "employee"
+      invoice_interval:
+        | "per_visit"
+        | "every_14_days"
+        | "monthly"
+        | "quarterly"
+        | "custom"
       notification_override_channel: "email" | "sms"
       notification_override_scope: "customer" | "agreement"
       occurrence_status: "planned" | "completed" | "cancelled" | "skipped"
@@ -6285,6 +6486,13 @@ export const Constants = {
         "cancelled",
       ],
       app_role: ["admin", "business_owner", "user", "employee"],
+      invoice_interval: [
+        "per_visit",
+        "every_14_days",
+        "monthly",
+        "quarterly",
+        "custom",
+      ],
       notification_override_channel: ["email", "sms"],
       notification_override_scope: ["customer", "agreement"],
       occurrence_status: ["planned", "completed", "cancelled", "skipped"],
