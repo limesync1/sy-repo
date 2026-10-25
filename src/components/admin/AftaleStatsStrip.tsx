@@ -89,10 +89,11 @@ export const AftaleStatsStrip = ({ orders }: { orders: OrderLike[] }) => {
       <StatCard
         icon={<BrandedIllustration name="averageOrder" />}
         label="Snit pr. aftale (måned)"
-        value={s.monthCount ? fmtKr(s.monthRevenue / s.monthCount) : "—"}
+        value={avg}
         hint="Ekskl. annullerede"
       />
     </div>
+    </>
   );
 };
 
