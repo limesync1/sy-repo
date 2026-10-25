@@ -263,11 +263,15 @@ const DayRowInner = ({
           <span className="text-[11px] text-muted-foreground">
             {format(date, "MMM", { locale: da })}
           </span>
-          {routes.length > 0 && (
-            <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
-              {routes.length} {routes.length === 1 ? "rute" : "ruter"}
-            </span>
-          )}
+          {routes.length > 0 && (() => {
+            const projected = routes.filter((r: any) => r.isVirtual || r.isProjected).length;
+            const real = routes.length - projected;
+            return (
+              <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">
+                {real} {real === 1 ? "rute" : "ruter"}{projected > 0 ? ` · ${projected} forventede` : ""}
+              </span>
+            );
+          })()}
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {weather && <WeatherBadge weather={weather} size="compact" />}
