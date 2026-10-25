@@ -57,9 +57,9 @@ interface SheetContentProps
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, hideOverlay, hideCloseButton, ...props }, ref) => (
+  ({ side = "right", className, children, hideOverlay, hideCloseButton, overlayClassName, ...props }, ref) => (
     <SheetPortal>
-      {!hideOverlay && <SheetOverlay />}
+      {!hideOverlay && <SheetOverlay className={overlayClassName} />}
       <SheetPrimitive.Content ref={ref} data-side={side} className={cn(sheetVariants({ side }), className)} {...props}>
         {children}
         {!hideCloseButton && (
