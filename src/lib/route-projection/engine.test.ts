@@ -84,17 +84,34 @@ describe("route-projection engine", () => {
   });
 });
 describe("timeinterval (test)", () => {
-  it("viser en forventet rute for hver kommende time", () => {
+  it("shows only the next hourly occurrence after completion", () => {
     const input = baseInput();
     input.sources[0].interval = "every_1_hour_test";
     input.rangeEnd = "2026-06-02";
     input.now = new Date(2026, 5, 1, 13, 20);
-    input.realRouteDates = new Set(["route-A|2026-06-01"]);
-    const { projections } = runProjection(input);
-    const today = projections.filter((p) => p.date === "2026-06-01");
-    expect(today.map((p) => p.hour)).toEqual(
-      ["14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"],
-    );
-    expect(projections.filter((p) => p.date === "2026-06-02")).toHaveLength(24);
+    expect(runProjection(input).projections.map(p => p.hour)).toEqual(["14:20"]);
+  });
+  it("keeps the exact five-minute due time across midnight", () => {
+    const input = baseInput();
+    input.sources[0].interval = "every_5_minutes_test";
+    input.sources[0].next_due_at = "2026-06-02T00:03:00";
+    input.rangeEnd = "2026-06-02";
+    input.now = new Date(2026, 5, 1, 23, 58);
+    expect(runProjection(input).projections.map(p => [p.date,p.hour])).toEqual([["2026-06-02","00:03"]]);
+  });
+  it("does not repeat while the current order is outstanding", () => {
+    const input = baseInput();
+    input.sources[0].interval = "every_5_minutes_test";
+    input.sources[0].has_outstanding_order = true;
+    expect(runProjection(input).projections).toHaveLength(0);
+  });
+  it("blocks a preview for an outstanding real stop but not a completed template", () => {
+    const input = baseInput();
+    input.sources[0].interval = "every_5_minutes_test";
+    input.sources[0].next_due_at = "2026-06-01T13:25:00";
+    input.realStops = [{ route_id: "route-A", agreement_id: "agr-1", status: "pending" }];
+    expect(runProjection(input).projections).toHaveLength(0);
+    input.realStops[0].status = "completed";
+    expect(runProjection(input).projections).toHaveLength(1);
   });
 });

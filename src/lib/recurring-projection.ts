@@ -237,6 +237,9 @@ type RecurringSource = {
   preferred_route_id: string | null;
   /** Match-nøgler til stops: fx `agr:<id>`, `sub:<id>`, `order:<id>`. */
   sourceKeys?: string[];
+  /** Completion-driven test cadence; a pending real order blocks the next preview. */
+  next_due_at?: string | null;
+  has_outstanding_order?: boolean;
   /** Aftalens id (når kilden er en aftale). Bruges til at slå overrides op. */
   agreement_id?: string | null;
 };
@@ -386,31 +389,24 @@ export const expandRecurringRoutes = (params: {
       }
       const testStep = TEST_INTERVAL_MINUTES[s.interval];
       if (testStep) {
-        const cursorDay = ds === rawDs ? cursor : parseISO(ds);
-        if (!isBefore(cursorDay, start) && !isBefore(cursorDay, earliest)) {
-          const now = params.now ?? new Date();
-          const todayDs = format(now, "yyyy-MM-dd");
-          if (ds >= todayDs) {
-            // Den nuværende time dækkes af den rigtige rute; vis de kommende.
-            const firstMinute = ds === todayDs ? (Math.floor((now.getHours() * 60 + now.getMinutes()) / testStep) + 1) * testStep : 0;
-            const sourceKeys = (s.sourceKeys && s.sourceKeys.length > 0) ? s.sourceKeys : [s.id];
-            for (let minute = firstMinute; minute < 1440; minute += testStep) {
-              const h = Math.floor(minute / 60);
-              const mm = String(minute % 60).padStart(2, "0");
-              const hh = `${String(h).padStart(2, "0")}:${mm}`;
-              out.push({
-                id: `virtual:${routeId}:${ds}:h${String(h).padStart(2, "0")}${testStep === 60 ? "" : `m${mm}`}`,
-                baseRouteId: routeId,
-                date: ds,
-                hour: hh,
-                sourceKeys: Array.from(new Set(sourceKeys)),
-              });
-            }
-          }
+        if (s.has_outstanding_order) break;
+        const now = params.now ?? new Date();
+        const due = s.next_due_at ? parseISO(s.next_due_at) : new Date(now.getTime() + testStep * 60_000);
+        if (Number.isNaN(due.getTime())) break;
+        const dueDate = format(due, "yyyy-MM-dd");
+        if (dueDate >= params.rangeStart && dueDate <= params.rangeEnd
+          && !holidaySet.has(dueDate) && !isPausedForAgreement(s.agreement_id, dueDate)) {
+          const hour = format(due, "HH:mm");
+          const sourceKeys = s.sourceKeys?.length ? s.sourceKeys : [s.id];
+          out.push({
+            id: `virtual:${routeId}:${dueDate}:h${hour.replace(":", "")}`,
+            baseRouteId: routeId,
+            date: dueDate,
+            hour,
+            sourceKeys: Array.from(new Set(sourceKeys)),
+          });
         }
-        stepIndex += 1;
-        cursor = advance(seed, stepIndex);
-        continue;
+        break;
       }
       const key = `${routeId}|${ds}`;
       const cursorForBounds = ds === rawDs ? cursor : parseISO(ds);

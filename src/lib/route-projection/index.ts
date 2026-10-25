@@ -42,6 +42,8 @@ export type ProjectionSource = {
   anchor_date?: string | null;
   preferred_route_id: string | null;
   sourceKeys?: string[];
+  next_due_at?: string | null;
+  has_outstanding_order?: boolean;
   agreement_id?: string | null;
 };
 
@@ -119,6 +121,12 @@ export const runProjection = (input: ProjectionInput): ProjectionResult => {
 
   // Dedup mod rigtige stops på samme dato/aftalekilde — så vi ikke får både
   // en projiceret og en materialiseret forekomst af samme aftale samme dag.
+  const outstandingSourceKeys = new Set<string>();
+  for (const stop of input.realStops ?? []) {
+    const status = stop.occurrence_status ?? stop.status;
+    if (status === "completed" || status === "cancelled") continue;
+    for (const key of recurringSourceKeysForStop(stop)) outstandingSourceKeys.add(key);
+  }
   const realSourceKeysByDate = new Map<string, Set<string>>();
   if (input.realStops && input.realRouteDateById) {
     for (const stop of input.realStops) {
@@ -136,8 +144,11 @@ export const runProjection = (input: ProjectionInput): ProjectionResult => {
 
   const projections: ProjectedRoute[] = [];
   for (const p of shifted) {
-    // Timeforekomster (test): det rigtige stop dækker kun den aktuelle time.
-    if (p.hour) { projections.push(p); continue; }
+    // Test previews never duplicate an outstanding appointment, even on another date.
+    if (p.hour) {
+      if (!p.sourceKeys.some((key) => outstandingSourceKeys.has(key))) projections.push(p);
+      continue;
+    }
     const dateRealKeys = realSourceKeysByDate.get(p.date);
     if (!dateRealKeys || dateRealKeys.size === 0) {
       projections.push(p);
