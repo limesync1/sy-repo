@@ -54,6 +54,7 @@ interface SheetContentProps
   hideOverlay?: boolean;
   /** Hide the default top-right close (X) button. */
   hideCloseButton?: boolean;
+  overlayClassName?: string;
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
