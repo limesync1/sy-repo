@@ -663,7 +663,7 @@ const LiveStopPresence = ({
       </button>
     </PopoverTrigger>
     <PopoverContent
-      className="z-[200] w-[min(18rem,calc(100vw-1.5rem))] max-h-[min(24rem,var(--radix-popover-content-available-height,70dvh))] overflow-y-auto overscroll-contain p-2.5"
+      className="w-[min(18rem,calc(100vw-1.5rem))] max-h-[min(24rem,var(--radix-popover-content-available-height,70dvh))] overflow-y-auto overscroll-contain p-2.5"
       side="bottom"
       align="end"
       sideOffset={6}
