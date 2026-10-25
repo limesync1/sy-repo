@@ -14,6 +14,7 @@
 export type IntervalUnit = "day" | "week" | "month" | "year";
 
 export const TEST_INTERVAL_MINUTES: Readonly<Record<string, number>> = {
+  every_5_minutes_test: 5,
   every_30_minutes_test: 30,
   every_1_hour_test: 60,
 };
@@ -131,6 +132,7 @@ export function buildInterval(n: number, unit: IntervalUnit): string {
  * - 0:   "Engangskøb"
  */
 export function formatInterval(value: string | null | undefined): string {
+  if (value === 'every_5_minutes_test') return 'Hvert 5. minut (test)';
   if (value === 'every_30_minutes_test') return 'Hver 30. minut (test)';
   if (value === 'every_1_hour_test') return 'Hver 1 time (test)';
   // Special-case: minut-baserede test-/teknisk-intervaller (fx "10_min").
