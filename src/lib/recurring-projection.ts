@@ -8,7 +8,7 @@ import {
   addDays, addWeeks, addMonths, addYears,
   format, parseISO, isBefore, differenceInCalendarDays,
 } from "date-fns";
-import { intervalToDays as intervalToDaysCentral, intervalToCadence, type IntervalUnit } from "@/lib/interval";
+import { intervalToDays as intervalToDaysCentral, intervalToCadence, TEST_INTERVAL_MINUTES, type IntervalUnit } from "@/lib/interval";
 
 /**
  * Tynd indpakning omkring den centrale interval-lib — bevares som eksport
@@ -384,19 +384,22 @@ export const expandRecurringRoutes = (params: {
         cursor = advance(seed, stepIndex);
         continue;
       }
-      if (s.interval === HOURLY_TEST_INTERVAL) {
+      const testStep = TEST_INTERVAL_MINUTES[s.interval];
+      if (testStep) {
         const cursorDay = ds === rawDs ? cursor : parseISO(ds);
         if (!isBefore(cursorDay, start) && !isBefore(cursorDay, earliest)) {
           const now = params.now ?? new Date();
           const todayDs = format(now, "yyyy-MM-dd");
           if (ds >= todayDs) {
             // Den nuværende time dækkes af den rigtige rute; vis de kommende.
-            const firstHour = ds === todayDs ? now.getHours() + 1 : 0;
+            const firstMinute = ds === todayDs ? (Math.floor((now.getHours() * 60 + now.getMinutes()) / testStep) + 1) * testStep : 0;
             const sourceKeys = (s.sourceKeys && s.sourceKeys.length > 0) ? s.sourceKeys : [s.id];
-            for (let h = firstHour; h < 24; h++) {
-              const hh = `${String(h).padStart(2, "0")}:00`;
+            for (let minute = firstMinute; minute < 1440; minute += testStep) {
+              const h = Math.floor(minute / 60);
+              const mm = String(minute % 60).padStart(2, "0");
+              const hh = `${String(h).padStart(2, "0")}:${mm}`;
               out.push({
-                id: `virtual:${routeId}:${ds}:h${String(h).padStart(2, "0")}`,
+                id: `virtual:${routeId}:${ds}:h${String(h).padStart(2, "0")}${testStep === 60 ? "" : `m${mm}`}`,
                 baseRouteId: routeId,
                 date: ds,
                 hour: hh,
