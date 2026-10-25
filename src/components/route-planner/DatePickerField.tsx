@@ -72,7 +72,7 @@ export const DatePickerField = ({
         >
           <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-accent" />
           {date ? (
-            <span className="min-w-0 truncate capitalize">{format(date, "EEEE d. MMMM yyyy", { locale: da })}</span>
+            <span className="min-w-0 truncate first-letter:uppercase">{format(date, "EEEE d. MMMM yyyy", { locale: da })}</span>
           ) : (
             <span>Vælg dato</span>
           )}
