@@ -1196,6 +1196,20 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
   const customerExtId = await ensureCustomerLink(admin, integ, adapter, order);
   if (!customerExtId) throw new Error("Kunne ikke matche/oprette kunde i regnskabsprogrammet");
 
+  // Udført-dato: seneste udførte stop for ordren, ellers ordrens statusdato.
+  let completedDate: string | null = null;
+  {
+    const { data: doneStop } = await admin.from("route_stops")
+      .select("completed_at")
+      .eq("order_id", orderId)
+      .not("completed_at", "is", null)
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    completedDate = (doneStop as any)?.completed_at
+      ?? (order.status === "completed" ? (order.updated_at ?? null) : null);
+  }
+
   // Ensure products linked for each service line
   const lines = await Promise.all((order.order_items ?? []).map(async (it: any) => {
     let extProductId: string | null = null;
@@ -1236,7 +1250,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
         serviceName: it.service_name,
         interval: it.details?.interval ?? null,
         startDate: order.preferred_date,
-        completedDate: order.status === "completed" ? (order.updated_at ?? null) : null,
+        completedDate,
       }),
       quantity: Number(it.quantity ?? 1),
       unit_price: Number(it.unit_price ?? 0),
@@ -1268,7 +1282,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     customer_name: order.customer_name,
     status: order.status,
     notes: buildDocumentNote({
-      completedDate: order.status === "completed" ? order.updated_at : null,
+      completedDate,
       reference: order.order_number ?? null,
       notes: order.notes ?? order.accounting_notes,
     }),
@@ -1412,6 +1426,10 @@ async function bookInvoiceForOrder(
     .maybeSingle();
   if (!link) {
     link = await recoverOrderLinkFromStoredExternalNumber(admin, integ, orderId);
+  }
+  if (link && link.external_type !== "invoice_booked") {
+    // Opdatér kladden lige før bogføring, så linjerne får udført-datoen med.
+    try { await pushOrder(admin, integ, adapter, orderId, "upsert"); } catch (_) { /* bogfør med eksisterende kladde */ }
   }
   if (!link) {
     await pushOrder(admin, integ, adapter, orderId, "upsert");
