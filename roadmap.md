@@ -23,5 +23,5 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 ## Ruteplanlægger + virksomhedspanel (25. okt.)
 - [x] «Tilføj aftale til rute» viser kun kommende, aktive, ikke-udførte ruter (fælles regel + test)
 - [x] Panelfaner får egen sidetitel (noindex bevaret)
-- [ ] Samme regel i øvrige rutevælgere (flyt stop, sygemelding, optimering)
+- [x] Samme regel i flyt stop og forslag til rute; mobil dagstæller adskiller forventede
 - [ ] Fuld klikgennemgang af alle panelsider på mobil/computer

@@ -1,3 +1,4 @@
+import { todayInDenmark } from "@/lib/route-planner/selectable-routes";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO, addDays, differenceInDays } from "date-fns";
@@ -137,7 +138,9 @@ export const SuggestRouteDialog = ({
     enabled: open && !!businessId && (noSuggestions || latitude == null || longitude == null),
     staleTime: 30_000,
     queryFn: async () => {
-      const from = format(addDays(parseISO(date), -7), "yyyy-MM-dd");
+      const weekBefore = format(addDays(parseISO(date), -7), "yyyy-MM-dd");
+      const today = todayInDenmark();
+      const from = weekBefore < today ? today : weekBefore;
       const to = format(addDays(parseISO(date), 14), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("routes")
@@ -145,6 +148,8 @@ export const SuggestRouteDialog = ({
         .eq("business_id", businessId)
         .gte("route_date", from)
         .lte("route_date", to)
+        .is("archived_at", null)
+        .is("deleted_at", null)
         .order("route_date", { ascending: true })
         .limit(20);
       if (error) throw error;

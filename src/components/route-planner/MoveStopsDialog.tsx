@@ -1,3 +1,4 @@
+import { todayInDenmark } from "@/lib/route-planner/selectable-routes";
 // MoveStopsDialog — flyt udvalgte stops fra én rute til en anden dato.
 //
 // Brug: Klik "Flyt aftaler" i RouteEditSheet → vælg stops (checkboxes) → vælg
@@ -33,7 +34,7 @@ import { SheetHeaderBlock, Section, SheetFooterBar } from "./SheetSection";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
-const todayStr = () => format(new Date(), "yyyy-MM-dd");
+const todayStr = () => todayInDenmark();
 
 /**
  * Efter et flyt der har oprettet split-ruter (med auto-navn "X — DD/MM"),
@@ -215,7 +216,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route: routeProp, stops, d
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
-        .select("id, route_date, name, color, deleted_at, archived_at, route_stops(count)")
+        .select("id, route_date, name, color, deleted_at, archived_at, route_stops(status)")
         .eq("business_id", route!.business_id)
         .neq("id", route!.id)
         .is("deleted_at", null)
@@ -228,7 +229,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route: routeProp, stops, d
         route_date: r.route_date as string,
         name: (r.name as string | null) ?? null,
         color: r.color as string,
-        stop_count: Number(r.route_stops?.[0]?.count ?? 0),
+        stop_count: ((r.route_stops || []) as { status: string | null }[]).filter((st) => st.status !== "completed" && st.status !== "cancelled").length,
       }));
       const withStops = mapped.filter((r) => r.stop_count > 0);
       const byKey = new Map<string, typeof withStops[number]>();

@@ -32,6 +32,7 @@ import NextStepBar from "@/components/admin/onboarding/NextStepBar";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
+import { findAdminNavItem } from "@/components/admin/shared/adminNav";
 import { AdminTabFallback as TabFallback, tabFromUrl } from "@/components/admin/shared/AdminTabFallback";
 import { DashboardSkeleton, ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
