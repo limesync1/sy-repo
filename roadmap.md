@@ -1,6 +1,6 @@
 ## Ejerbeskeder ved tilmelding (25. oktober)
-- [ ] Send fast ejermail ved ny virksomhed og ny ventelistetilmelding uden dubletter
-- [ ] Deploy og test begge tilmeldingsbeskeder
+- [x] Fast ejermail ved ny virksomhed (begge selvbetjente oprettelsesveje + admin) og ny ventelistetilmelding; serververificerede virksomhedsdata og event-ID beskytter mod falske detaljer/dubletter
+- [x] Fire funktioner deployet; fem tests bestået; reel ventelistetilmelding/bekræftelse og autoriseret virksomhedsbesked kontrolleret. To sends til william@adely.dk bekræftet i mailhistorik, gentaget tilmelding gav ingen ny mail. Midlertidig testalias fjernet; ingen falsk virksomhed oprettet. Indbakkelevering ikke verificeret; build OK.
 
 ## Baggrunde og tablet (25. oktober)
 - [x] Computer/tablet bruger samme blå tokens som øvrige sektioner; WebGL vises først efter første tegnede frame og fader ind over en farvematchet reservebaggrund
