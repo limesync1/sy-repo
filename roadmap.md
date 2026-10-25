@@ -1,3 +1,8 @@
+## Fem minutters gentagelse (25. oktober)
+- [ ] Ret automatisk næste aftale efter udførelse og visning i forventede ruter
+- [ ] Sikr højst én uudført aftale pr. serie og almindelig regnskabssynkronisering
+- [ ] Kontrollér database, målrettede tests og rutevisning
+
 ## Tablet, kundeservice og Lighthouse (25. oktober)
 - [x] Tabletmenu gennem 1279 px, bredere søgning, 3-kolonne branche-/footerlayout og 2-kolonne fordelskort; 16 px tabletfelter, 44 px filtre og kollisionssikret kategorivalg. Cookievalg skjuler konkurrerende flydende handlinger.
 - [x] Online-prik står frit; kundeservice åbnet og visuelt kontrolleret på mobil, tabletmenu åbnet/lukket med Escape.
