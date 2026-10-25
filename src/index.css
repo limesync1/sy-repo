@@ -78,7 +78,7 @@
     --home-search-surface: 204 75% 18%;
     --home-glass-surface: 204 85% 15%;
     --home-photo-shadow: 0 24px 60px -24px hsl(var(--shadow-color) / 0.65);
-    --home-flow-fallback: linear-gradient(125deg, hsl(var(--hero-bg)) 12%, hsl(var(--hero-mid) / 0.65) 70%, hsl(var(--hero-bg)));
+    --home-flow-fallback: linear-gradient(125deg, hsl(var(--hero-bg)) 12%, color-mix(in srgb, hsl(var(--hero-bg)) 88%, hsl(var(--hero-mid))) 70%, hsl(var(--hero-bg)));
     --home-photo-shade: linear-gradient(180deg, hsl(var(--hero-bg) / 0.02), hsl(var(--hero-bg) / 0.22));
 
     /* Sektions-flader til de offentlige sider — skiftevis lys/dæmpet
@@ -1839,7 +1839,9 @@ img[loading="lazy"].is-error {
   pointer-events: none;
   background: var(--home-flow-fallback);
 }
-.blue-flow-background canvas { display: block; width: 100%; height: 100%; opacity: 1; animation: home-canvas-in 400ms ease-out both; }
+.blue-flow-canvas { position: absolute; inset: 0; opacity: 0; transition: opacity 900ms ease; }
+.blue-flow-background[data-webgl="ready"] .blue-flow-canvas { opacity: 1; }
+.blue-flow-background canvas { display: block; width: 100%; height: 100%; }
 .blue-flow-background canvas[hidden] { display: none; }
 
 /* Shared public/auth surfaces remain readable before the canvas loads. */
@@ -1894,7 +1896,7 @@ img[loading="lazy"].is-error {
   .homepage #all-service-categories a:hover { border-color: hsl(var(--accent) / 0.65); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .homepage *, .blue-flow-background canvas, .public-content-enter { animation: none !important; transition: none !important; }
+  .homepage *, .blue-flow-canvas, .blue-flow-background canvas, .public-content-enter { animation: none !important; transition: none !important; }
 }
 
 /* Solid CTA surfaces stay readable independently of the animated artwork. */
@@ -2093,7 +2095,9 @@ img[loading="lazy"].is-error {
   }
 }
 
-/* Forsidens hero: lysere havflade og mindre mørk overflade, især på mobil. */
-.home-hero { --ocean: 200 78% 21%; --hero-bg: 200 78% 21%; }
-.home-hero .blue-flow-background::after { background: hsl(var(--hero-bg) / 0.12); }
-.dark .home-hero { --ocean: 204 60% 13%; --hero-bg: 204 60% 13%; }
+/* Small screens retain their lighter hero; desktop shares all blue-section tokens. */
+@media (max-width: 639px) {
+  .home-hero { --ocean: 200 78% 21%; --hero-bg: 200 78% 21%; }
+  .home-hero .blue-flow-background::after { background: hsl(var(--hero-bg) / 0.12); }
+  .dark .home-hero { --ocean: 204 60% 13%; --hero-bg: 204 60% 13%; }
+}

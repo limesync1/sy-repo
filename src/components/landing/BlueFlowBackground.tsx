@@ -61,7 +61,9 @@ export default function BlueFlowBackground({ variant = "hero" }: { variant?: Blu
       {started && colors.length === 3 && !failed && (
         <BackgroundBoundary onFailure={onFailure}>
           <Suspense fallback={null}>
-            <BlueSilkCanvas animate={animate} colors={colors} variant={variant} onFailure={onFailure} onReady={onReady} />
+            <div className="blue-flow-canvas">
+              <BlueSilkCanvas animate={animate} colors={colors} variant={variant} onFailure={onFailure} onReady={onReady} />
+            </div>
           </Suspense>
         </BackgroundBoundary>
       )}
