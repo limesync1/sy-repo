@@ -121,12 +121,6 @@ export const runProjection = (input: ProjectionInput): ProjectionResult => {
 
   // Dedup mod rigtige stops på samme dato/aftalekilde — så vi ikke får både
   // en projiceret og en materialiseret forekomst af samme aftale samme dag.
-  const outstandingSourceKeys = new Set<string>();
-  for (const stop of input.realStops ?? []) {
-    const status = stop.occurrence_status ?? stop.status;
-    if (status === "completed" || status === "cancelled") continue;
-    for (const key of recurringSourceKeysForStop(stop)) outstandingSourceKeys.add(key);
-  }
   const realSourceKeysByDate = new Map<string, Set<string>>();
   if (input.realStops && input.realRouteDateById) {
     for (const stop of input.realStops) {
