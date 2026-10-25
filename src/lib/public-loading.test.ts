@@ -8,3 +8,6 @@ it("does not compete with visible content on 2G", () => {
   expect(canPreloadPublicPages({ effectiveType: "slow-2g" })).toBe(false);
   expect(canPreloadPublicPages({ effectiveType: "4g" })).toBe(true);
 });
+it("keeps 3G bandwidth available for the current page", () => {
+  expect(canPreloadPublicPages({ effectiveType: "3g" })).toBe(false);
+});

@@ -184,6 +184,15 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
 
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
+    const header = headerRef.current;
+    if (!header || (hasPersistentNavigation && !persistent)) return;
+    const update = () => document.documentElement.style.setProperty("--public-nav-height", `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => { observer.disconnect(); document.documentElement.style.removeProperty("--public-nav-height"); };
+  }, [hasPersistentNavigation, persistent]);
+  useEffect(() => {
     const desktop = window.matchMedia("(min-width: 1280px)");
     const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
     desktop.addEventListener("change", closeOnDesktop);
@@ -325,7 +334,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
           {...(!open ? ({ inert: "" } as Record<string, string>) : {})}
           className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none xl:hidden ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
         >
-          <div className="overflow-hidden">
+          <div className="max-h-[calc(100dvh-9rem)] overflow-y-auto overscroll-contain">
             <div className={`pb-3 transition-transform duration-300 ease-out motion-reduce:transition-none ${open ? "translate-y-0" : "-translate-y-2"}`}>
               <div className="grid grid-cols-2 gap-2">
                 {NAV_GROUPS.flatMap((g) => g.items).map((item, i) => {

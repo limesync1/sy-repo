@@ -376,9 +376,9 @@ const RequestQuote = () => {
               </div>
               <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
                 <PopoverTrigger asChild>
-                  <button
+                  <Button variant="outline"
                     type="button"
-                    className="flex h-12 w-full items-center justify-between gap-2 rounded-2xl border border-border bg-card px-4 text-left text-sm font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary/40 sm:h-11"
+                    className="flex h-12 w-full items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 text-left text-base font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary/40"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       {selectedCategory ? (
@@ -396,13 +396,12 @@ const RequestQuote = () => {
                       )}
                     </span>
                     <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </button>
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
                   side="bottom"
                   sideOffset={8}
-                  avoidCollisions={false}
                   className="w-[var(--radix-popover-trigger-width)] rounded-2xl border-border bg-card p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.25)]"
                 >
                   <div className="flex items-center gap-2 border-b border-border px-3 py-2">
@@ -421,7 +420,7 @@ const RequestQuote = () => {
                       Populære kategorier
                     </div>
                   )}
-                  <ul className="max-h-[340px] overflow-y-auto py-1">
+                  <ul className="max-h-[min(340px,var(--radix-popover-content-available-height))] overflow-y-auto overscroll-contain py-1">
                     {filteredCategories.length === 0 && (
                       <li className="px-4 py-3 text-sm text-muted-foreground">Ingen kategorier matcher.</li>
                     )}
@@ -548,13 +547,13 @@ const RequestQuote = () => {
                     className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
                 ) : (
-                  <button
+                  <Button variant="outline"
                     type="button"
                     onClick={() => setShowPhone(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-card px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                    className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-dashed border-border bg-card px-3 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
                   >
                     <Plus className="h-3.5 w-3.5" /> Tilføj telefon (valgfrit)
-                  </button>
+                  </Button>
                 )}
 
                 <label className="flex cursor-pointer items-start gap-2.5 px-1 text-[13px] leading-5 text-foreground sm:items-center sm:text-xs">

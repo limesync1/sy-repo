@@ -1,10 +1,20 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { renderRouteHead, renderHomeHead } from "../../scripts/seo-prerender-head";
+import { heroPhotos } from "../components/landing/hero-photos";
 
 const template = readFileSync("index.html", "utf8");
 
 describe("Static public SEO heads", () => {
+  it("preloads only the first hero photo and excludes it from other pages", () => {
+    const home = renderHomeHead(renderHomeHead(template));
+    const doc = new DOMParser().parseFromString(home, "text/html");
+    const preload = doc.querySelectorAll('[data-home-photo-preload="1"]');
+    expect(preload).toHaveLength(1);
+    expect(preload[0].getAttribute("href")).toBe(heroPhotos[0].src);
+    const other = renderRouteHead(home, { path: "/tilbud", title: "Tilbud", description: "Tilbud" });
+    expect(new DOMParser().parseFromString(other, "text/html").querySelector('[data-home-photo-preload="1"]')).toBeNull();
+  });
   it("exposes five stable image URLs without JS and keeps them off other pages", () => {
     const home = renderHomeHead(template);
     const doc = new DOMParser().parseFromString(home, "text/html");

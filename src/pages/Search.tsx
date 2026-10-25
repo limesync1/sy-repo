@@ -331,29 +331,29 @@ const SearchPage = () => {
       </PageHero>
 
       {/* Sticky filter bar */}
-      <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-[var(--public-nav-height,7rem)] z-20 border-b border-border bg-background/95">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <button
+            <Button variant="ghost"
               onClick={() => selectedCategory && handleCategoryClick(selectedCategory)}
-              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
+              className={`h-11 shrink-0 rounded-full border px-3.5 text-sm font-medium transition-colors ${
                 selectedCategory
                   ? "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary"
                   : "border-foreground bg-foreground text-background"
               }`}
             >
               Alle brancher
-            </button>
+            </Button>
             {orderedCategories.map((cat) => {
               // Sammenlign mod kanonisk `key` (det der gemmes på businesses)
               // så chip'en matcher uanset hvordan branchen vises.
               const active = selectedCategory === cat.key;
               return (
-                <button
+                <Button variant="ghost"
                   key={cat.key}
                   onClick={() => handleCategoryClick(cat.key)}
-                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
+                  className={`h-11 shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors ${
                     active
                       ? "border-foreground bg-foreground text-background hover:bg-foreground/90"
                       : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary active:bg-secondary/70"
@@ -362,7 +362,7 @@ const SearchPage = () => {
                   <IndustryIcon category={cat.key} className="h-6 w-6" alt={cat.label} />
                   {cat.label}
                   {active && <X className="h-3 w-3 ml-0.5 opacity-70" />}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -442,36 +442,36 @@ const SearchPage = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex max-w-full flex-wrap items-center gap-2">
             {/* View toggle: list / map */}
             <div className="inline-flex rounded-full border border-border bg-secondary/60 p-0.5 text-sm">
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => setView("grid")}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
+                className={`h-11 inline-flex items-center gap-1.5 rounded-full px-3 font-medium transition-colors ${
                   view === "grid" ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
                 }`}
                 aria-pressed={view === "grid"}
               >
                 <List className="h-3.5 w-3.5" />
                 Liste
-              </button>
-              <button
+              </Button>
+              <Button variant="ghost"
                 type="button"
                 onClick={() => setView("map")}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
+                className={`h-11 inline-flex items-center gap-1.5 rounded-full px-3 font-medium transition-colors ${
                   view === "map" ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
                 }`}
                 aria-pressed={view === "map"}
               >
                 <MapIcon className="h-3.5 w-3.5" />
                 Kort
-              </button>
+              </Button>
             </div>
 
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-              <SelectTrigger className="h-9 w-[140px] sm:w-[170px] rounded-full text-sm">
+              <SelectTrigger className="h-11 w-[140px] sm:w-[170px] rounded-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
