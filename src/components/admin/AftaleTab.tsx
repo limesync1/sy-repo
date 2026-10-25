@@ -43,6 +43,7 @@ import {
   type DragStartEvent, type DragEndEvent,
 } from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
+import { formatInterval } from "@/lib/interval";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute, invalidateRouteSyncQueries } from "@/hooks/useRoutes";
@@ -227,7 +228,7 @@ const toMailItem = (item: any) => ({
   quantity: item.quantity,
   price: roundPrice(parseNumber(item.total_price, 0)),
   intervalLabel: item.details?.interval && item.details.interval !== "engangskøb"
-    ? INTERVAL_LABELS[item.details.interval] || item.details.interval
+    ? formatInterval(item.details.interval)
     : undefined,
   description: item.details?.description,
   stepDetails: item.details?.stepDetails?.map((sd: any) => ({
@@ -402,7 +403,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
               {item.quantity > 1 && <span className="ml-1 text-xs text-muted-foreground">× {item.quantity}</span>}
               {item.details?.interval && item.details.interval !== "engangskøb" && (
                 <span className="ml-2 inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
-                  {INTERVAL_LABELS[item.details.interval] || item.details.interval}
+                  {formatInterval(item.details.interval)}
                 </span>
               )}
             </div>
@@ -523,7 +524,7 @@ const AdjustmentEditor = ({
                           ? "border-accent bg-accent text-accent-foreground"
                           : "border-border bg-card text-muted-foreground hover:border-accent/40"
                       }`}>
-                      {INTERVAL_LABELS[iv] || iv}
+                      {formatInterval(iv)}
                     </button>
                   ))}
                 </div>
@@ -591,7 +592,7 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
   const originalItems = (order.order_items || []) as any[];
 
   const intervalLabel = (iv?: string | null) =>
-    !iv || iv === "engangskøb" ? "Engangskøb" : (INTERVAL_LABELS[iv] || iv);
+    !iv || iv === "engangskøb" ? "Engangskøb" : (formatInterval(iv));
 
   const findOriginal = (item: any) =>
     originalItems.find((o) => o.service_id && item.service_id && o.service_id === item.service_id) ||
@@ -632,7 +633,7 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
             <div>
               <span className="text-sm font-medium text-foreground">{item.service_name}</span>
               {item.details?.interval && item.details.interval !== "engangskøb" && (
-                <span className="ml-2 text-[11px] text-accent">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
+                <span className="ml-2 text-[11px] text-accent">{formatInterval(item.details.interval)}</span>
               )}
               {(() => {
                 const orig = findOriginal(item);
@@ -697,7 +698,7 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions, businessId, customerEm
                 <CalendarClock className="h-4 w-4 text-accent" />
                 <div>
                   <span className="text-sm font-semibold text-foreground">{sub.service_name}</span>
-                  <span className="ml-2 text-xs text-accent">{INTERVAL_LABELS[sub.interval] || sub.interval}</span>
+                  <span className="ml-2 text-xs text-accent">{formatInterval(sub.interval)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -2068,9 +2069,9 @@ const AftaleTab = ({
                         {hasRecurring && (
                           <span
                             className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                            title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval} · ${cycleNumber}. kørsel i serien`}
+                            title={`Tilbagevendende: ${formatInterval(interval)} · ${cycleNumber}. kørsel i serien`}
                           >
-                            <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            <RefreshCw className="h-2.5 w-2.5" /> {formatInterval(interval)}
                             {cycleNumber > 0 && (
                               <span
                                 className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground"
