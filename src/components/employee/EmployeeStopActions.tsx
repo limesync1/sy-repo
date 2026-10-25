@@ -205,8 +205,13 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
     openEditor();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editOnly, order, completed]);
+  // Luk først når vinduet faktisk har været åbent — ellers lukkede effekten
+  // vinduet i samme render som det blev bedt om at åbne.
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (editOnly && autoOpened.current && !editOpen) onEditClosed?.();
+    if (!editOnly) return;
+    if (editOpen) { wasOpen.current = true; return; }
+    if (wasOpen.current) onEditClosed?.();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editOnly, editOpen]);
 
