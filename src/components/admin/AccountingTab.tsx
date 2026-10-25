@@ -1,3 +1,4 @@
+import { InvoiceIntervalCard } from "@/components/admin/invoicing/InvoiceIntervalCard";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -1976,6 +1977,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
           </div>
         </SectionCard>
+
+        <InvoiceIntervalCard businessId={businessId} />
 
         {/* Standard kundegruppe/indtægtskonto hentet fra regnskabsprogrammet */}
         <SectionCard
