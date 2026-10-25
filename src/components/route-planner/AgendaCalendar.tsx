@@ -271,8 +271,8 @@ const DayRowInner = ({
           >
             {format(date, "d")}
           </span>
-          <span className={cn("text-xs font-semibold capitalize", today ? "text-accent" : "text-foreground")}>
-            {today ? "I dag" : format(date, "EEEE", { locale: da })}
+          <span className={cn("text-xs font-semibold", today ? "text-accent" : "text-foreground")}>
+            {today ? "I dag" : <span className="capitalize">{format(date, "EEEE", { locale: da })}</span>}
             <span className="ml-1 font-normal normal-case text-muted-foreground">{format(date, "d. MMM", { locale: da })}</span>
           </span>
           {routes.length > 0 && (() => {
