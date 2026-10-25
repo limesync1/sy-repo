@@ -98,8 +98,10 @@ export function EmployeeStopNotesList({ stopId }: { stopId: string }) {
   );
 }
 
-export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, hideNotesList = false, routeDate = null, compact = false }: {
+export function EmployeeStopActions({ stopId, order, completed, noteOnly = false, hideNoteAction = false, hideNotesList = false, routeDate = null, compact = false, editOnly = false, onEditClosed }: {
   stopId: string; order: Order | any; completed: boolean; noteOnly?: boolean; hideNoteAction?: boolean; hideNotesList?: boolean; routeDate?: string | null; compact?: boolean;
+  /** Viser kun «Ret aftale»-vinduet og åbner det straks (bruges fra ruteplanlæggeren). */
+  editOnly?: boolean; onEditClosed?: () => void;
 }) {
   const qc = useQueryClient();
   const isCompact = useIsBelowBreakpoint(1024);
