@@ -119,16 +119,7 @@ export const useAllBusinesses = (
           .filter(Boolean) as any[];
       }
 
-      // Compute aggregated rating once
-      rows = rows.map((b) => {
-        const reviews = b.reviews || [];
-        const avg = reviews.length
-          ? reviews.reduce((a: number, r: any) => a + r.rating, 0) / reviews.length
-          : 0;
-        return { ...b, _avgRating: avg, _reviewCount: reviews.length };
-      });
-
-      // Sorting
+      // Sorting (rating er allerede aggregeret i queryFn)
       if (sort === "rating") {
         rows.sort((a, b) => b._avgRating - a._avgRating || b._reviewCount - a._reviewCount);
       } else if (sort === "newest") {
