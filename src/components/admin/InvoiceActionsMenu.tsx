@@ -185,7 +185,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <Button
             variant="outline"
             size="sm"
-            className="h-7 w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
+            className="h-9 w-9 sm:h-7 sm:w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
             disabled={downloading}
             onClick={downloadPdf}
             aria-label="Download faktura-PDF"
@@ -198,7 +198,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <Button
             variant="outline"
             size="sm"
-            className={`h-7 px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
+            className={`h-9 sm:h-7 px-2.5 sm:px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
             disabled={busy !== null}
             onClick={primary.onClick}
             aria-label={primary.label}
