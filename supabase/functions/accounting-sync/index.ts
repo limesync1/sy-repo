@@ -6,6 +6,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { makeAdapter, AccountingAdapter } from "../_shared/accounting/index.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
+import { buildLineDescription, buildDocumentNote } from "../_shared/accounting/line-text.ts";
 
 // Build a safe PostgREST .or() filter for cvr/email: values are strictly
 // validated so caller-controlled order data cannot inject filter syntax.
@@ -1231,7 +1232,12 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
       service_id: it.service_id,
       product_external_id: extProductId,
       product_external_number: extProductNumber,
-      description: it.service_name,
+      description: buildLineDescription({
+        serviceName: it.service_name,
+        interval: it.details?.interval ?? null,
+        startDate: order.preferred_date,
+        completedDate: order.status === "completed" ? (order.updated_at ?? null) : null,
+      }),
       quantity: Number(it.quantity ?? 1),
       unit_price: Number(it.unit_price ?? 0),
     };
@@ -1261,7 +1267,11 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     customer_external_id: customerExtId,
     customer_name: order.customer_name,
     status: order.status,
-    notes: order.notes ?? order.accounting_notes,
+    notes: buildDocumentNote({
+      completedDate: order.status === "completed" ? order.updated_at : null,
+      reference: order.order_number ?? null,
+      notes: order.notes ?? order.accounting_notes,
+    }),
     payment_terms_days: order.payment_terms_days,
     currency: "DKK", // altid danske kroner
     date: order.preferred_date ?? new Date().toISOString().slice(0, 10),
@@ -1497,19 +1507,19 @@ async function bookInvoiceForOrder(
 async function loadOccurrenceContext(admin: SupabaseClient, occurrenceId: string) {
   const { data: occ } = await admin
     .from("agreement_occurrences")
-    .select("id, business_id, agreement_id, occurrence_date, status, invoice_external_id, invoice_status")
+    .select("id, business_id, agreement_id, occurrence_date, status, invoice_external_id, invoice_status, completed_at, occurrence_number")
     .eq("id", occurrenceId)
     .maybeSingle();
   if (!occ) return null;
   const { data: agreement } = await admin
     .from("agreements")
-    .select("id, business_id, customer_id, business_customer_id, customer_name, customer_email, customer_phone, company_name, cvr, address, zip_code, city, payment_terms_days, notes, total_amount, billing_model")
+    .select("id, business_id, customer_id, business_customer_id, customer_name, customer_email, customer_phone, company_name, cvr, address, zip_code, city, payment_terms_days, notes, total_amount, billing_model, interval, start_date, agreement_number")
     .eq("id", occ.agreement_id)
     .maybeSingle();
   if (!agreement) return null;
   const { data: items } = await admin
     .from("agreement_items")
-    .select("id, service_id, service_name, quantity, unit_price, total_price")
+    .select("id, service_id, service_name, quantity, unit_price, total_price, details")
     .eq("agreement_id", occ.agreement_id);
   return { occ, agreement, items: items ?? [] };
 }
@@ -1581,7 +1591,12 @@ async function pushOccurrenceOrder(
       service_id: it.service_id,
       product_external_id: extProductId,
       product_external_number: extProductNumber,
-      description: it.service_name,
+      description: buildLineDescription({
+        serviceName: it.service_name,
+        interval: it.details?.interval ?? agreement.interval ?? null,
+        startDate: agreement.start_date,
+        completedDate: occ.completed_at ?? (occ.status === "completed" ? occ.occurrence_date : null),
+      }),
       quantity: Number(it.quantity ?? 1),
       unit_price: Number(it.unit_price ?? 0),
     };
@@ -1595,7 +1610,11 @@ async function pushOccurrenceOrder(
     customer_external_id: customerExtId,
     customer_name: agreement.customer_name,
     status: occ.status,
-    notes: agreement.notes,
+    notes: buildDocumentNote({
+      completedDate: occ.completed_at ?? null,
+      reference: agreement.agreement_number ? `${agreement.agreement_number}${occ.occurrence_number ? `-${occ.occurrence_number}` : ""}` : null,
+      notes: agreement.notes,
+    }),
     payment_terms_days: agreement.payment_terms_days,
     currency: "DKK",
     date: occ.occurrence_date ?? new Date().toISOString().slice(0, 10),
