@@ -1,3 +1,5 @@
+import { InvoiceIntervalPicker } from "@/components/admin/invoicing/InvoiceIntervalPicker";
+import type { InvoiceIntervalValue } from "@/lib/invoice-interval";
 import { lazy, memo, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +54,9 @@ export interface EditableCustomer {
   is_blocked?: boolean | null;
   payment_terms_days?: number | null;
   ean_number?: string | null;
+  invoice_interval?: string | null;
+  invoice_interval_count?: number | null;
+  invoice_interval_unit?: string | null;
 }
 
 interface Props {
@@ -88,6 +93,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     initial?.payment_terms_days != null ? String(initial.payment_terms_days) : ""
   );
   const [eanNumber, setEanNumber] = useState(initial?.ean_number || "");
+  const initInvoiceIv = (): InvoiceIntervalValue => ({ interval: (initial?.invoice_interval ?? null) as any, count: initial?.invoice_interval_count ?? null, unit: (initial?.invoice_interval_unit ?? null) as any });
+  const [invoiceIv, setInvoiceIv] = useState<InvoiceIntervalValue>(initInvoiceIv);
   const [customerGroups, setCustomerGroups] = useState<{ id: string; name: string }[]>([]);
   const [groupsLabel, setGroupsLabel] = useState<string>("Kundegruppe");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -163,6 +170,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     setIsBlocked(!!initial?.is_blocked);
     setPaymentTermsDays(initial?.payment_terms_days != null ? String(initial.payment_terms_days) : "");
     setEanNumber(initial?.ean_number || "");
+    setInvoiceIv(initInvoiceIv());
     setSavedCustomer(null);
     setShowNotes(!!initial?.notes);
     setShowAccounting(false);
@@ -215,6 +223,9 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         vat_zone: vatZone || null,
         is_blocked: isBlocked,
         payment_terms_days: paymentTermsDays.trim() ? Number(paymentTermsDays) : null,
+        invoice_interval: invoiceIv.interval as any,
+        invoice_interval_count: invoiceIv.count,
+        invoice_interval_unit: invoiceIv.unit,
       };
       let savedRow: any;
       if (type === "private") {
@@ -428,13 +439,18 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-foreground"><Building2 className="h-4 w-4" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold text-foreground">Regnskab & fakturering <span className="font-normal text-muted-foreground">(valgfrit)</span></span>
-                    <span className="block text-xs text-muted-foreground">Kunde-nr., betaling, moms og EAN.</span>
+                    <span className="block text-xs text-muted-foreground">Kunde-nr., betaling, fakturainterval, moms og EAN.</span>
                   </span>
                   <span className="shrink-0 text-xs font-semibold text-accent">{showAccounting ? "Skjul" : "Vis"}</span>
                   <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${showAccounting ? "rotate-180" : ""}`} />
                 </button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-3 px-3 pb-3">
+              <div>
+                <FieldLabel optional>Fakturainterval</FieldLabel>
+                <InvoiceIntervalPicker value={invoiceIv} onChange={setInvoiceIv}
+                  inheritLabel="Brug virksomhedens standard" inheritHint="Som valgt under Regnskab" />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <FieldLabel optional htmlFor="ce-customer-number">Kunde-nr.</FieldLabel>
