@@ -1,7 +1,7 @@
 ## Baggrunde og tablet (25. oktober)
-- [ ] Ensret computerens hero med øvrige blå sektioner; gør WebGL-indlæsning og bevægelse diskret
-- [ ] Gennemgå sektionsindlæsning og tablet-layout på de fem offentlige sider
-- [ ] Kontrollér browser, relevante tests og aktuelle fejl
+- [x] Computer/tablet bruger samme blå tokens som øvrige sektioner; WebGL vises først efter første tegnede frame og fader ind over en farvematchet reservebaggrund
+- [x] Nærmeste forsidesektioner indlæses straks; fjernere monteres før visning. Tablet får mindre billedfelt, bred tilbudsformular og bedre plads på virksomhedskort
+- [x] Ni tests bestået; fem sider kontrolleret ved 768/820/1024/1280 px uden overflow/runtimefejl; tablet i begge retninger, synlig WebGL-bevægelse og statisk reduceret bevægelse kontrolleret. Lys/mørk visning visuelt kontrolleret uden popupper; build OK. Produktionshastighed på fysiske tablets er ikke målt.
 
 ## Yderligere forbedringer (25. oktober)
 - [x] Gør login roligere og tydeligere under afsendelse; lås felter under afsendelse, fokusér læsbare fejl, ryd adgangskode ved skift og placér mobilformular øverst
