@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Receipt, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -68,7 +69,7 @@ export function InvoiceIntervalCard({ businessId }: { businessId: string }) {
   return (
     <section className="service-panel-card space-y-4 rounded-[5px] border border-border bg-card p-4 shadow-sm sm:p-5">
       <header className="flex items-start gap-3">
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><Receipt className="h-5 w-5" /></span>
+        <BrandedIllustration name="invoiceInterval" className="h-16 w-16 sm:h-20 sm:w-20" />
         <div className="min-w-0">
           <h3 className="text-base font-semibold text-foreground">Fakturainterval</h3>
           <p className="text-sm text-muted-foreground">Hvor ofte udførte besøg samles på én faktura pr. kunde. Kan ændres for den enkelte kunde og aftale.</p>

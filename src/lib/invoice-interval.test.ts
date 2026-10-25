@@ -1,7 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { invoicePeriodEnd, describeInvoiceInterval } from "./invoice-interval";
+import { invoicePeriodEnd, describeInvoiceInterval, invoiceIntervalOrderFields } from "./invoice-interval";
 
 describe("fakturainterval", () => {
+  it("opret bestilling bevarer kundens/virksomhedens standard som arv", () => {
+    expect(invoiceIntervalOrderFields({ interval: null, count: null, unit: null }, true)).toEqual({ invoice_interval: null, invoice_interval_count: null, invoice_interval_unit: null });
+  });
+  it("opret bestilling gemmer et månedligt valg", () => {
+    expect(invoiceIntervalOrderFields({ interval: "monthly", count: null, unit: null }, true).invoice_interval).toBe("monthly");
+  });
+  it("opret bestilling gemmer brugerdefineret hver tredje uge", () => {
+    expect(invoiceIntervalOrderFields({ interval: "custom", count: 3, unit: "week" }, true)).toEqual({ invoice_interval: "custom", invoice_interval_count: 3, invoice_interval_unit: "week" });
+  });
+  it("uden regnskabsforbindelse gemmes intet intervalvalg", () => {
+    expect(invoiceIntervalOrderFields({ interval: "quarterly", count: null, unit: null }, false).invoice_interval).toBeNull();
+  });
   it("månedligt slutter ved månedens udgang", () => {
     expect(invoicePeriodEnd("2026-02-10", { interval: "monthly", count: null, unit: null })).toBe("2026-02-28");
   });

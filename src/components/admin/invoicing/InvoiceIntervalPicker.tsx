@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { INVOICE_INTERVAL_OPTIONS, UNIT_LABEL, type InvoiceInterval, type InvoiceIntervalValue, type IntervalUnit } from "@/lib/invoice-interval";
 
@@ -22,24 +24,35 @@ export function InvoiceIntervalPicker({ value, onChange, inheritLabel, inheritHi
 
   return (
     <div className="space-y-3">
-      <div role="radiogroup" aria-label="Fakturainterval" className="grid gap-2 sm:grid-cols-2">
+      <div role="radiogroup" aria-label="Fakturainterval" className="grid gap-2 sm:grid-cols-2" onKeyDown={(event) => {
+        if (!["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(event.key)) return;
+        event.preventDefault();
+        const index = options.findIndex((option) => option.value === value.interval);
+        const direction = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
+        const next = (index + direction + options.length) % options.length;
+        pick(options[next].value);
+        event.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
+      }}>
         {options.map((o) => {
           const active = value.interval === o.value;
           return (
-            <button
+            <Button
               key={String(o.value)}
               type="button"
               role="radio"
               aria-checked={active}
+              tabIndex={active ? 0 : -1}
+              variant="outline"
               onClick={() => pick(o.value)}
               className={cn(
-                "min-h-11 rounded-md border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                active ? "border-accent bg-accent/10 ring-1 ring-inset ring-accent/40" : "border-border bg-card hover:border-accent/40",
+                "h-auto min-h-14 items-start justify-start gap-2.5 whitespace-normal rounded-md border px-3 py-2.5 text-left transition-colors",
+                active ? "border-accent bg-accent/10 text-foreground hover:bg-accent/15" : "border-border bg-background hover:border-accent/40",
               )}
             >
-              <span className="block text-sm font-semibold text-foreground">{o.label}</span>
-              {o.hint && <span className="block text-xs text-muted-foreground">{o.hint}</span>}
-            </button>
+              <span className={cn("mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border", active ? "border-accent bg-accent text-accent-foreground" : "border-muted-foreground/50")}>{active && <Check className="h-3 w-3" />}</span>
+              <span className="min-w-0 leading-snug"><span className="block text-sm font-semibold text-foreground">{o.label}</span>
+              {o.hint && <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{o.hint}</span>}</span>
+            </Button>
           );
         })}
       </div>
