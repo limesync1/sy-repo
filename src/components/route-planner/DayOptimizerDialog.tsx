@@ -134,7 +134,9 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
         <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto space-y-4 bg-secondary/20 p-4 sm:p-5">
           <Section icon={<Car className="h-4 w-4" />} title="Samlet køretid" tone="sky" hint={`${routeCount} rute${routeCount === 1 ? "" : "r"}`}>
             <div className="flex flex-wrap items-baseline gap-3 tabular-nums">
-              <span className="text-2xl font-bold text-foreground">{fmtMin(totalNow)}</span>
+              {totalNow === 0 && totalBefore == null && rows.every((r) => r.totals.km === 0)
+                ? <span className="text-base font-semibold text-muted-foreground">Ikke beregnet endnu — tryk «Find hurtigste ruter»</span>
+                : <span className="text-2xl font-bold text-foreground">{fmtMin(totalNow)}</span>}
               {totalBefore != null && totalBefore - totalNow >= 1 && (
                 <span className="text-sm font-semibold text-success">sparet {fmtMin(totalBefore - totalNow)}</span>
               )}
@@ -162,7 +164,7 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
                       </p>
                     </div>
                     <div className="text-right tabular-nums">
-                      <p className="text-sm font-bold text-foreground">{fmtMin(r.totals.minutes)}</p>
+                      <p className="text-sm font-bold text-foreground">{r.totals.minutes === 0 && r.totals.km === 0 && !b ? "—" : fmtMin(r.totals.minutes)}</p>
                       {b && saved >= 1 && <p className="text-xs font-medium text-success">−{fmtMin(saved)}</p>}
                       {b && saved < 1 && <p className="text-xs text-muted-foreground">uændret</p>}
                     </div>
