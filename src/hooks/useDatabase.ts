@@ -230,6 +230,7 @@ export const useCreateBusiness = () => {
     mutationFn: async (biz: TablesInsert<"businesses">) => {
       const { data, error } = await supabase.from("businesses").insert(biz).select().single();
       if (error) throw error;
+      await supabase.functions.invoke("business-registration-notification", { body: { businessId: data.id } }).catch(() => {});
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-business"] }),

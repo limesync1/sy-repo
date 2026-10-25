@@ -1,6 +1,10 @@
 project_id = "gkectsellkpltrxvusot"
 
 [functions]
+  [functions.business-registration-notification]
+    verify_jwt = false
+  [functions.join-waitlist]
+    verify_jwt = false
   [functions.beta-launch-announce]
     verify_jwt = true
   [functions.auth-email-hook]

@@ -336,6 +336,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         trial_ends_at: trialEnd.toISOString(),
       });
 
+      await supabase.functions.invoke("business-registration-notification", { body: { businessId: bizData.id } })
+        .catch(() => { /* Oprettelsen bevares, selv hvis beskedtjenesten er utilgængelig. */ });
       toast.success(`Velkommen ombord! Du har ${pricing.trial_days} dages gratis prøve.`);
       // Hård navigation så AuthProvider, useMyBusiness osv. henter friske data
       window.location.href = "/virksomhed";
