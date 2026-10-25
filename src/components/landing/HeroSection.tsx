@@ -73,7 +73,7 @@ const HeroSection = () => {
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
-        <div className="relative mx-auto w-full max-w-xl sm:max-w-xs xl:max-w-none">
+        <div className="relative mx-auto w-full max-w-xl xl:max-w-none">
           <HeroPhotoRotator />
 
         </div>
