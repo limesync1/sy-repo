@@ -1,3 +1,9 @@
+## Tablet, kundeservice og Lighthouse (25. oktober)
+- [ ] Ret konkrete tabletproblemer og gennemgå sektionernes tekst, ikoner og trykflader på fem offentlige sider
+- [ ] Frigør online-markeringen på mobilens kundeserviceknap og kontrollér åbning/lukning
+- [ ] Mål fem offentliggjorte sider med Lighthouse, prioritér konkrete hastighedsrettelser og kontrollér frisk SEO-scanning
+- [ ] Test tablet/mobil/computer i begge temaer samt indlæsning og relevante tests; rapportér målebegrænsninger
+
 ## Ejerbeskeder ved tilmelding (25. oktober)
 - [x] Fast ejermail ved ny virksomhed (begge selvbetjente oprettelsesveje + admin) og ny ventelistetilmelding; serververificerede virksomhedsdata og event-ID beskytter mod falske detaljer/dubletter
 - [x] Fire funktioner deployet; fem tests bestået; reel ventelistetilmelding/bekræftelse og autoriseret virksomhedsbesked kontrolleret. To sends til william@adely.dk bekræftet i mailhistorik, gentaget tilmelding gav ingen ny mail. Midlertidig testalias fjernet; ingen falsk virksomhed oprettet. Indbakkelevering ikke verificeret; build OK.
