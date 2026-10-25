@@ -186,7 +186,7 @@ export const BulkAddToRouteDialog = ({
                 })}
                 {filteredRoutes.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-6">
-                    {routes.length === 0 ? "Ingen ruter i visningen." : "Ingen ruter matcher søgningen."}
+                    {routes.length === 0 ? "Ingen kommende ruter i visningen. Gamle og udførte ruter kan ikke vælges." : "Ingen ruter matcher søgningen."}
                   </p>
                 )}
               </div>
