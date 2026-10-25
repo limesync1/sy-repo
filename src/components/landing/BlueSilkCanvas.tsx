@@ -22,7 +22,7 @@ const fragmentShader = `
   void main() {
     // Domain-warped currents give continuous depth instead of stripes or blobs.
     vec2 p = vec2(vUv.x * min(uAspect, 2.4), vUv.y) * 2.0;
-    float t = uTime * 0.03;
+    float t = uTime * 0.045;
     vec2 drift = vec2(t * 0.45, -t * 0.32);
     vec2 warp = vec2(flow(p + drift + uPhase), flow(p - drift + 4.8 + uPhase));
     float current = flow(p + warp * 2.4 + vec2(-t * 0.22, t * 0.3));
@@ -38,8 +38,11 @@ const fragmentShader = `
   }
 `;
 
-function SilkSurface({ animate, colors, variant }: Pick<Props, "animate" | "colors" | "variant">) {
+function SilkSurface({ animate, colors, variant, onReady }: Pick<Props, "animate" | "colors" | "variant" | "onReady">) {
   const materialRef = useRef<ShaderMaterial>(null);
+  const painted = useRef(false);
+  const readyFrame = useRef<number>();
+  useEffect(() => () => { if (readyFrame.current !== undefined) cancelAnimationFrame(readyFrame.current); }, []);
   const uniforms = useMemo(() => {
     const read = (raw: string) => {
       const [h, s, l] = raw.trim().split(/\s+/).map(parseFloat);
@@ -50,6 +53,11 @@ function SilkSurface({ animate, colors, variant }: Pick<Props, "animate" | "colo
   useFrame(({ size }, delta) => {
     if (materialRef.current) materialRef.current.uniforms.uAspect.value = size.width / Math.max(size.height, 1);
     if (animate && materialRef.current) materialRef.current.uniforms.uTime.value += Math.min(delta, 0.1);
+    // Reveal only after the first shader frame, never the empty initialized canvas.
+    if (materialRef.current && !painted.current) {
+      painted.current = true;
+      readyFrame.current = requestAnimationFrame(onReady);
+    }
   });
   return (
     <mesh frustumCulled={false}>
@@ -89,10 +97,9 @@ export default function BlueSilkCanvas({ animate, colors, variant, onFailure, on
       onCreated={({ gl, events }) => {
         setCanvas(gl.domElement);
         events.disconnect?.();
-        onReady();
       }}>
       <FrameLimiter animate={animate} />
-      <SilkSurface animate={animate} colors={colors} variant={variant} />
+      <SilkSurface animate={animate} colors={colors} variant={variant} onReady={onReady} />
     </Canvas>
   );
 }

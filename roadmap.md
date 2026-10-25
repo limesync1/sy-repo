@@ -1,3 +1,8 @@
+## Baggrunde og tablet (25. oktober)
+- [ ] Ensret computerens hero med øvrige blå sektioner; gør WebGL-indlæsning og bevægelse diskret
+- [ ] Gennemgå sektionsindlæsning og tablet-layout på de fem offentlige sider
+- [ ] Kontrollér browser, relevante tests og aktuelle fejl
+
 ## Yderligere forbedringer (25. oktober)
 - [x] Gør login roligere og tydeligere under afsendelse; lås felter under afsendelse, fokusér læsbare fejl, ryd adgangskode ved skift og placér mobilformular øverst
 - [x] Begræns forsidens forindlæsning på langsomme forbindelser; beskyt ventevisninger mod blokeret browserlager og gentagne genindlæsninger
