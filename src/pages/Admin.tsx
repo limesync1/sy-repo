@@ -181,7 +181,7 @@ const AdminDashboard = () => {
   return (
     <AdminShell business={business} activeTab={effectiveTab} onTabChange={handleTabChange}>
       <SEO
-        title="Virksomhedspanel – Serviceydere"
+        title={`${findAdminNavItem(effectiveTab)?.label ?? "Virksomhedspanel"} – Virksomhedspanel – Serviceydere`}
         description="Administrer din virksomhed, aftaler, services og medarbejdere på Serviceydere."
         noIndex
       />

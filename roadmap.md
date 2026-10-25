@@ -19,3 +19,9 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - Custom-domæne canonical ved build: kræver build-tid data
 - businesses select `*`: kræver felt-audit af kortene før indsnævring
 - "ref to function component" dev-advarsel: kun i dev, ingen funktionel effekt
+
+## Ruteplanlægger + virksomhedspanel (25. okt.)
+- [x] «Tilføj aftale til rute» viser kun kommende, aktive, ikke-udførte ruter (fælles regel + test)
+- [x] Panelfaner får egen sidetitel (noindex bevaret)
+- [ ] Samme regel i øvrige rutevælgere (flyt stop, sygemelding, optimering)
+- [ ] Fuld klikgennemgang af alle panelsider på mobil/computer

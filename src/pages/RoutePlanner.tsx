@@ -137,6 +137,7 @@ import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
 import { BulkAddToRouteDialog, type BulkAddJobItem, type BulkAddRouteOption } from "@/components/route-planner/BulkAddToRouteDialog";
+import { isSelectableTargetRoute, todayInDenmark } from "@/lib/route-planner/selectable-routes";
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
 import UnassignedFiltersPopover, { URGENCY_OPTIONS, type UrgencyKey } from "@/components/route-planner/UnassignedFiltersPopover";
 import UndoBar from "@/components/route-planner/UndoBar";
@@ -4653,9 +4654,10 @@ const Planner = () => {
           })()}
           routes={(() => {
             const items: BulkAddRouteOption[] = [];
+            const today = todayInDenmark();
             for (const r of calendarRoutesRaw) {
-              if ((r as any).isVirtual) continue;
               const stops = calendarStops.filter((s) => s.route_id === r.id);
+              if (r.id !== appointmentTarget?.id && !isSelectableTargetRoute(r as any, stops as any[], today)) continue;
               items.push({
                 id: r.id,
                 name: calendarRoutes.find((route) => route.id === r.id)?.name ?? r.name,
