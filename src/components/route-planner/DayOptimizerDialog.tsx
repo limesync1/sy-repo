@@ -41,15 +41,30 @@ function useDayData(businessId: string | null | undefined, date: string, enabled
       const ids = (routes ?? []).map((r) => r.id);
       if (ids.length === 0) return { routes: [] as RouteRow[], stops: [], employees: [], links: [] };
       const [{ data: stops, error: e1 }, { data: links, error: e2 }] = await Promise.all([
-        supabase.from("route_stops").select("route_id, travel_time_to_next_min, distance_to_next_km").in("route_id", ids),
+        supabase.from("route_stops").select("id, route_id, status, assigned_employee_id, travel_time_to_next_min, distance_to_next_km").in("route_id", ids),
         supabase.from("route_employees").select("route_id, employee_id").in("route_id", ids),
       ]);
       if (e1) throw e1; if (e2) throw e2;
-      const empIds = Array.from(new Set([...(routes ?? []).map((r) => r.employee_id), ...(links ?? []).map((l) => l.employee_id)].filter(Boolean))) as string[];
+      // Udførte stop tæller ikke med, og fuldt udførte ruter er ikke til at optimere.
+      const openStops = (stops ?? []).filter((s: any) => s.status !== "completed");
+      const openRouteIds = new Set(openStops.map((s: any) => s.route_id));
+      const liveRoutes = (routes ?? []).filter((r) => openRouteIds.has(r.id));
+      // Medarbejdere sidder oftest på de enkelte stop, ikke på selve ruten.
+      const stopIds = openStops.map((s: any) => s.id);
+      const { data: stopAssignees } = stopIds.length
+        ? await supabase.from("route_stop_assignees").select("stop_id, employee_id").in("stop_id", stopIds)
+        : { data: [] as { stop_id: string; employee_id: string }[] };
+      const routeOfStop = new Map(openStops.map((s: any) => [s.id, s.route_id]));
+      const allLinks = [
+        ...(links ?? []),
+        ...openStops.filter((s: any) => s.assigned_employee_id).map((s: any) => ({ route_id: s.route_id, employee_id: s.assigned_employee_id })),
+        ...(stopAssignees ?? []).map((a) => ({ route_id: routeOfStop.get(a.stop_id) as string, employee_id: a.employee_id })),
+      ];
+      const empIds = Array.from(new Set([...liveRoutes.map((r) => r.employee_id), ...allLinks.map((l) => l.employee_id)].filter(Boolean))) as string[];
       const { data: employees } = empIds.length
         ? await supabase.from("employees").select("id, name, color").in("id", empIds)
         : { data: [] as { id: string; name: string; color: string | null }[] };
-      return { routes: (routes ?? []) as RouteRow[], stops: stops ?? [], employees: employees ?? [], links: links ?? [] };
+      return { routes: liveRoutes as RouteRow[], stops: openStops, employees: employees ?? [], links: allLinks };
     },
   });
 }
@@ -119,7 +134,9 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
         <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto space-y-4 bg-secondary/20 p-4 sm:p-5">
           <Section icon={<Car className="h-4 w-4" />} title="Samlet køretid" tone="sky" hint={`${routeCount} rute${routeCount === 1 ? "" : "r"}`}>
             <div className="flex flex-wrap items-baseline gap-3 tabular-nums">
-              <span className="text-2xl font-bold text-foreground">{fmtMin(totalNow)}</span>
+              {totalNow === 0 && totalBefore == null && rows.every((r) => r.totals.km === 0)
+                ? <span className="text-base font-semibold text-muted-foreground">Ikke beregnet endnu — tryk «Find hurtigste ruter»</span>
+                : <span className="text-2xl font-bold text-foreground">{fmtMin(totalNow)}</span>}
               {totalBefore != null && totalBefore - totalNow >= 1 && (
                 <span className="text-sm font-semibold text-success">sparet {fmtMin(totalBefore - totalNow)}</span>
               )}
@@ -147,7 +164,7 @@ export default function DayOptimizerDialog({ open, onOpenChange, businessId, dat
                       </p>
                     </div>
                     <div className="text-right tabular-nums">
-                      <p className="text-sm font-bold text-foreground">{fmtMin(r.totals.minutes)}</p>
+                      <p className="text-sm font-bold text-foreground">{r.totals.minutes === 0 && r.totals.km === 0 && !b ? "—" : fmtMin(r.totals.minutes)}</p>
                       {b && saved >= 1 && <p className="text-xs font-medium text-success">−{fmtMin(saved)}</p>}
                       {b && saved < 1 && <p className="text-xs text-muted-foreground">uændret</p>}
                     </div>

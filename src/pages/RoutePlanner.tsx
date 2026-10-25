@@ -2847,7 +2847,7 @@ const Planner = () => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Escape") { setSearch(""); (e.target as HTMLInputElement).blur(); } }}
-                        className="h-9 pl-8 pr-12 text-xs bg-background border-border rounded-md shadow-none"
+                        className="h-10 pl-8 pr-12 text-xs bg-background border-border rounded-md shadow-none"
                       />
                       {search ? (
                         <button
@@ -2869,7 +2869,7 @@ const Planner = () => {
                     {filteredUnassigned.length > 0 && (
                       <div className="flex flex-wrap items-center gap-1.5">
                         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                          <SelectTrigger className="h-8 min-w-[6rem] flex-[1_1_calc(50%-0.1875rem)] gap-1.5 rounded-md border-border/70 bg-background text-[11px]" aria-label="Sortering">
+                          <SelectTrigger className="h-10 min-w-[6rem] flex-[1_1_calc(50%-0.1875rem)] gap-1.5 rounded-md border-border/70 bg-background text-[11px]" aria-label="Sortering">
                             <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
@@ -3428,7 +3428,7 @@ const Planner = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0 rounded-md border-border/70"
+                      className="h-10 w-10 min-w-10 shrink-0 rounded-md border-border/70"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                       }
@@ -3466,7 +3466,7 @@ const Planner = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0 rounded-md border-border/70"
+                      className="h-10 w-10 min-w-10 shrink-0 rounded-md border-border/70"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                       }
@@ -3585,7 +3585,7 @@ const Planner = () => {
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void history.redo()} disabled={!history.canRedo} aria-label="Gentag seneste fortryd">
+                          <Button variant="ghost" size="icon" className="h-10 w-10 min-w-10" onClick={() => void history.redo()} disabled={!history.canRedo} aria-label="Gentag seneste fortryd">
                             <Redo2 className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
