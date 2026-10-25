@@ -562,10 +562,10 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
               </div>
 
               <div className="flex shrink-0 items-center gap-1">
-                <Button variant="outline" size="sm" onClick={onEdit} className="h-9 sm:h-7 rounded-md border-border px-2.5 text-[11px]">
+                <Button variant="outline" size="sm" onClick={onEdit} className="h-10 rounded-md border-border px-2.5 text-[11px]">
                   Rediger
                 </Button>
-                <Button variant="ghost" size="sm" onClick={onDelete} aria-label="Slet service" className="h-9 w-9 sm:h-7 sm:w-7 rounded-md p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                <Button variant="ghost" size="sm" onClick={onDelete} aria-label="Slet service" className="h-10 w-10 rounded-md p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
