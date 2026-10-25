@@ -41,3 +41,21 @@ it("does not leave content stuck loading without IntersectionObserver", () => {
   expect(screen.getByText("Content")).toBeTruthy();
   expect(screen.queryByText("Pending")).toBeNull();
 });
+it("does not prewarm distant sections when data saving is enabled", () => {
+  const callbacks: ((entries: { isIntersecting: boolean }[]) => void)[] = [];
+  const margins: string[] = [];
+  vi.stubGlobal("navigator", { connection: { saveData: true } });
+  vi.stubGlobal("IntersectionObserver", class {
+    constructor(callback: typeof callbacks[number], options: IntersectionObserverInit) {
+      callbacks.push(callback); margins.push(options.rootMargin ?? "");
+    }
+    observe() {} disconnect() {}
+  });
+  const preload = vi.fn().mockResolvedValue({});
+  render(<DeferredSection preload={preload} fallback={<span>Pending</span>}><span>Content</span></DeferredSection>);
+  expect(callbacks).toHaveLength(1);
+  expect(margins).toEqual(["200px 0px"]);
+  expect(preload).not.toHaveBeenCalled();
+  act(() => callbacks[0]([{ isIntersecting: true }]));
+  expect(screen.getByText("Content")).toBeTruthy();
+});

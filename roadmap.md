@@ -1,3 +1,8 @@
+## Yderligere forbedringer (25. oktober)
+- [ ] Gør login roligere og tydeligere under afsendelse; ryd adgangskode ved skift af loginforløb
+- [ ] Begræns forsidens forindlæsning på langsomme forbindelser; beskyt ventevisninger mod blokeret browserlager og gentagne genindlæsninger
+- [ ] Kontrollér fejl, genforsøg, mobil/computer og begge temaer med tests og browser
+
 ## Offentligt design og indlæsning (24. oktober)
 - [x] Tydeligere loginlabels, 16 px felter, større valgknapper og danske fejl; password nulstilles ved skift mellem login/oprettelse
 - [x] Forsidesektioner forvarmes før montering; staggered forvarmning af fire offentlige sider respekterer sparedata/2G; blå baggrund bruger 30 Hz timer frem for hver skærmopdatering
