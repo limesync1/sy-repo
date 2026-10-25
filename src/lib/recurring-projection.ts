@@ -391,24 +391,30 @@ export const expandRecurringRoutes = (params: {
       if (testStep) {
         const now = params.now ?? new Date();
         const parsedDue = s.next_due_at ? parseISO(s.next_due_at) : null;
-        // Vis altid præcis én forventet næste forekomst. Ligger der en åben
-        // aftale, er den næste tidligst ét interval efter den (eller efter nu).
-        const due = s.has_outstanding_order
+        // Vis forventede forekomster hele vejen frem til kalenderens slut.
+        // Ligger der en åben aftale, starter rækken ét interval efter den.
+        const first = s.has_outstanding_order
           ? new Date(Math.max(now.getTime(), parsedDue && !Number.isNaN(parsedDue.getTime()) ? parsedDue.getTime() : 0) + testStep * 60_000)
           : (parsedDue ?? new Date(now.getTime() + testStep * 60_000));
-        if (Number.isNaN(due.getTime())) break;
-        const dueDate = format(due, "yyyy-MM-dd");
-        if (dueDate >= params.rangeStart && dueDate <= params.rangeEnd
-          && !holidaySet.has(dueDate) && !isPausedForAgreement(s.agreement_id, dueDate)) {
-          const hour = format(due, "HH:mm");
-          const sourceKeys = s.sourceKeys?.length ? s.sourceKeys : [s.id];
-          out.push({
-            id: `virtual:${routeId}:${dueDate}:h${hour.replace(":", "")}`,
-            baseRouteId: routeId,
-            date: dueDate,
-            hour,
-            sourceKeys: Array.from(new Set(sourceKeys)),
-          });
+        if (Number.isNaN(first.getTime())) break;
+        const sourceKeys = s.sourceKeys?.length ? s.sourceKeys : [s.id];
+        let due = first;
+        let guard = 0;
+        while (guard++ < 20000) {
+          const dueDate = format(due, "yyyy-MM-dd");
+          if (dueDate > params.rangeEnd) break;
+          if (dueDate >= params.rangeStart
+            && !holidaySet.has(dueDate) && !isPausedForAgreement(s.agreement_id, dueDate)) {
+            const hour = format(due, "HH:mm");
+            out.push({
+              id: `virtual:${routeId}:${dueDate}:h${hour.replace(":", "")}`,
+              baseRouteId: routeId,
+              date: dueDate,
+              hour,
+              sourceKeys: Array.from(new Set(sourceKeys)),
+            });
+          }
+          due = new Date(due.getTime() + testStep * 60_000);
         }
         break;
       }
