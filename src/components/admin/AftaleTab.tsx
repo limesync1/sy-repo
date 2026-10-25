@@ -1843,7 +1843,7 @@ const AftaleTab = ({
           ].filter(g => g.length > 0);
 
           return groups.map((group, gi) => (
-            <div key={gi} className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
+            <div key={gi} className="inline-flex shrink-0 flex-nowrap items-center gap-0 rounded-lg sm:flex-wrap border border-border bg-card p-0.5 shadow-sm">
               {group.map(({ key, label, count, tone }) => {
                 const isActive = filter === key;
                 const toneDot =
@@ -1859,8 +1859,10 @@ const AftaleTab = ({
                 return (
                   <button
                     key={key}
+                    type="button"
+                    aria-pressed={isActive}
                     onClick={() => setFilter(key)}
-                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors lg:min-h-8 ${
+                    className={`inline-flex min-h-11 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors lg:min-h-8 ${
                       isActive
                         ? activeCls
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
