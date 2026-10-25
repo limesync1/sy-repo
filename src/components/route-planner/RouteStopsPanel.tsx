@@ -26,6 +26,7 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, Loader2, Undo2,
   Crown, UserPlus, Check, PlayCircle, ListOrdered, Radio, ArrowUp, ArrowDown,
+  Pencil,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
