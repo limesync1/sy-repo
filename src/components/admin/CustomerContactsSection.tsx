@@ -138,12 +138,13 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
         <div key={r.id || idx} className="rounded-md border bg-background p-2.5 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <FieldLabel required>Navn</FieldLabel>
-              <Input value={r.name} onChange={(e) => updateRow(idx, { name: e.target.value })} className="h-8 text-sm" />
+              <FieldLabel required htmlFor={`cc-name-${idx}`}>Navn</FieldLabel>
+              <Input id={`cc-name-${idx}`} value={r.name} onChange={(e) => updateRow(idx, { name: e.target.value })} className="h-8 text-sm" />
             </div>
             <div>
-              <FieldLabel optional>Rolle</FieldLabel>
+              <FieldLabel optional htmlFor={`cc-role-${idx}`}>Rolle</FieldLabel>
               <Input
+                id={`cc-role-${idx}`}
                 value={r.role || ""}
                 onChange={(e) => updateRow(idx, { role: e.target.value })}
                 placeholder="Fx Bogholder, Driftsleder"
@@ -153,8 +154,9 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <FieldLabel optional><Mail className="h-3 w-3" /> Email</FieldLabel>
+              <FieldLabel optional htmlFor={`cc-email-${idx}`}><Mail className="h-3 w-3" /> Email</FieldLabel>
               <Input
+                id={`cc-email-${idx}`}
                 type="email"
                 value={r.email || ""}
                 onChange={(e) => updateRow(idx, { email: e.target.value })}
@@ -162,8 +164,9 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
               />
             </div>
             <div>
-              <FieldLabel optional><Phone className="h-3 w-3" /> Telefon</FieldLabel>
+              <FieldLabel optional htmlFor={`cc-phone-${idx}`}><Phone className="h-3 w-3" /> Telefon</FieldLabel>
               <Input
+                id={`cc-phone-${idx}`}
                 value={r.phone || ""}
                 onChange={(e) => updateRow(idx, { phone: e.target.value })}
                 className="h-8 text-sm"

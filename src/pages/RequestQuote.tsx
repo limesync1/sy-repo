@@ -755,7 +755,7 @@ const RequestQuote = () => {
                       {match.business.logo_url && !match.business.cover_image_url && (
                         <div className="absolute inset-0 flex items-center justify-center bg-card p-3">
                           <img
-                            src={match.business.logo_url}
+                            src={imageSrc(match.business.logo_url, 224, 224, "contain")}
                             alt=""
                             className="h-full w-full object-contain"
                             width={112}
@@ -775,7 +775,7 @@ const RequestQuote = () => {
                             {match.business.logo_url && match.business.cover_image_url && (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card p-0.5 sm:hidden">
                                 <img
-                                  src={match.business.logo_url}
+                                  src={imageSrc(match.business.logo_url, 56, 56, "contain")}
                                   alt=""
                                   className="h-full w-full object-contain"
                                   width={28}

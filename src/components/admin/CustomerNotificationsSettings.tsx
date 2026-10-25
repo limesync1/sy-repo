@@ -539,8 +539,9 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 <div className="space-y-2">
-                  <FieldLabel required>Emnelinje</FieldLabel>
+                  <FieldLabel required htmlFor="cn-email-subject">Emnelinje</FieldLabel>
                   <Input
+                    id="cn-email-subject"
                     ref={subjectCursor.ref}
                     value={drafts[activeEvent].subject}
                     onChange={(ev) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], subject: ev.target.value } }))}
@@ -550,8 +551,9 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="space-y-2">
-                  <FieldLabel required>Indhold</FieldLabel>
+                  <FieldLabel required htmlFor="cn-email-body">Indhold</FieldLabel>
                   <Textarea
+                    id="cn-email-body"
                     ref={bodyCursor.ref}
                     rows={10}
                     value={drafts[activeEvent].body}
@@ -606,8 +608,9 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 <div className="space-y-2">
-                  <FieldLabel required>SMS-tekst</FieldLabel>
+                  <FieldLabel required htmlFor="cn-sms-body">SMS-tekst</FieldLabel>
                   <Textarea
+                    id="cn-sms-body"
                     ref={smsCursor.ref}
                     rows={6}
                     value={smsDrafts[activeEvent].body}
