@@ -323,7 +323,7 @@ const Auth = () => {
           )}
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-2 sm:px-8 lg:px-12">
+        <div className="flex flex-1 items-start justify-center px-5 pb-12 pt-8 sm:px-8 sm:pt-12 lg:items-center lg:px-12 lg:pt-2">
           <div key={`${isResetMode}-${isSignUp}-${mode}`} className="public-content-enter w-full max-w-[420px] space-y-7">
 
             {/* ── Glemt adgangskode ── */}
@@ -379,7 +379,7 @@ const Auth = () => {
                     {formError && (
                       <div ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>{formError}</span>
+                        <span className="text-foreground">{formError}</span>
                       </div>
                     )}
                     <div>
@@ -467,7 +467,7 @@ const Auth = () => {
                   {formError && (
                     <div ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{formError}</span>
+                      <span className="text-foreground">{formError}</span>
                     </div>
                   )}
                   <div>
@@ -708,7 +708,7 @@ const Auth = () => {
                   {formError && (
                     <div ref={errorRef} tabIndex={-1} role="alert" className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{formError}</span>
+                      <span className="text-foreground">{formError}</span>
                     </div>
                   )}
                   <div>
