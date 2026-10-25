@@ -53,8 +53,26 @@ export const AftaleStatsStrip = ({ orders }: { orders: OrderLike[] }) => {
   const s = useScheduled(orders);
   if (s.weekCount === 0 && s.monthCount === 0) return null;
 
+  const avg = s.monthCount ? fmtKr(s.monthRevenue / s.monthCount) : "—";
+  const mobileItems = [
+    { label: "Denne uge", value: fmtKr(s.weekRevenue), hint: `${s.weekCount} ${s.weekCount === 1 ? "aftale" : "aftaler"}` },
+    { label: "Denne måned", value: fmtKr(s.monthRevenue), hint: `${s.monthCount} ${s.monthCount === 1 ? "aftale" : "aftaler"}` },
+    { label: "Snit pr. aftale", value: avg, hint: "denne måned" },
+  ];
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <>
+    {/* Mobil: ét kompakt kort med tre kolonner, så nøgletal ikke fylder hele skærmen. */}
+    <div className="grid grid-cols-3 divide-x divide-border rounded-[5px] border border-border bg-card shadow-sm sm:hidden">
+      {mobileItems.map((it) => (
+        <div key={it.label} className="min-w-0 px-2 py-2.5 text-center">
+          <p className="truncate text-[11px] font-medium text-muted-foreground">{it.label}</p>
+          <p className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground">{it.value}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{it.hint}</p>
+        </div>
+      ))}
+    </div>
+    <div className="hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-3">
       <StatCard
         icon={<BrandedIllustration name="calendarWeek" />}
         label="Planlagt denne uge"
@@ -71,10 +89,11 @@ export const AftaleStatsStrip = ({ orders }: { orders: OrderLike[] }) => {
       <StatCard
         icon={<BrandedIllustration name="averageOrder" />}
         label="Snit pr. aftale (måned)"
-        value={s.monthCount ? fmtKr(s.monthRevenue / s.monthCount) : "—"}
+        value={avg}
         hint="Ekskl. annullerede"
       />
     </div>
+    </>
   );
 };
 

@@ -299,7 +299,7 @@ const OrderDragHandle = ({ orderId, order }: { orderId: string; order: any }) =>
       onClick={(e) => e.stopPropagation()}
       aria-label="Træk aftalen til en rute"
       title="Træk aftalen over til en rute"
-      className={`flex h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing ${
+      className={`hidden h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing lg:flex ${
         isDragging ? "opacity-40" : ""
       }`}
     >
@@ -1747,6 +1747,12 @@ const AftaleTab = ({
             ? `${upcomingSubs.length} i alt fremad`
             : undefined,
           tone: "neutral",
+          onClick: () => {
+            setUpcomingExpanded(true);
+            requestAnimationFrame(() =>
+              document.getElementById("aftaler-kommende")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            );
+          },
         });
         if (cards.length === 0) return null;
         return (
@@ -1765,7 +1771,7 @@ const AftaleTab = ({
                   type="button"
                   onClick={c.onClick}
                   disabled={!isClickable}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors ${toneCls} ${isClickable ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"}`}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors lg:min-h-8 ${toneCls} ${isClickable ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"}`}
                 >
                   <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-foreground/10 px-1.5 text-[11px] font-semibold tabular-nums">
                     {c.value}
@@ -1793,13 +1799,14 @@ const AftaleTab = ({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Søg kunde, e-mail, service, adresse…"
-              className="h-9 rounded-md border-0 bg-secondary/45 pl-9 shadow-none focus-visible:bg-card focus-visible:ring-1"
+              aria-label="Søg i aftaler"
+              className="h-11 rounded-md border-0 bg-secondary/45 pl-9 shadow-none focus-visible:bg-card focus-visible:ring-1 lg:h-9"
             />
           </div>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
             <SelectTrigger
               aria-label="Sortér aftaler"
-              className="h-9 w-full gap-2 rounded-md border-0 bg-secondary/45 text-sm font-medium shadow-none hover:bg-secondary sm:w-auto sm:min-w-[200px]"
+              className="h-11 w-full gap-2 rounded-md border-0 bg-secondary/45 text-sm font-medium shadow-none hover:bg-secondary sm:w-auto sm:min-w-[200px] lg:h-9"
             >
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue />
@@ -1886,7 +1893,7 @@ const AftaleTab = ({
       {/* Kommende aftaler — viser de næste planlagte udførelser med kundenavn,
           status og rute/stop-info så man straks kan se hvor det står. */}
       {upcomingSubs.length > 0 && (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+        <Card id="aftaler-kommende" className="surface-admin scroll-mt-20 rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-0">
           {(() => {
             const visibleCount = upcomingExpanded ? upcomingSubs.length : Math.min(3, upcomingSubs.length);
