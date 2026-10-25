@@ -12,7 +12,7 @@ export const INVOICE_INTERVAL_OPTIONS: { value: InvoiceInterval; label: string; 
   { value: "custom", label: "Brugerdefineret", hint: "Vælg selv antal dage, uger eller måneder" },
 ];
 
-const UNIT_LABEL: Record<IntervalUnit, [string, string]> = {
+export const UNIT_LABEL: Record<IntervalUnit, [string, string]> = {
   day: ["dag", "dage"], week: ["uge", "uger"], month: ["måned", "måneder"],
 };
 
@@ -20,8 +20,8 @@ export function describeInvoiceInterval(v: InvoiceIntervalValue | null | undefin
   if (!v?.interval) return "Standard";
   if (v.interval !== "custom") return INVOICE_INTERVAL_OPTIONS.find((o) => o.value === v.interval)!.label;
   const n = Math.max(1, v.count ?? 1);
-  const [one, many] = UNIT_LABEL[v.unit ?? "day"];
-  return n === 1 ? `Hver ${one}` : `Hver ${n}. ${one}` .replace(`${n}. ${one}`, `${n}. ${one}`) && `Hver ${n} ${many}`;
+  const [one] = UNIT_LABEL[v.unit ?? "day"];
+  return n === 1 ? `Hver ${one}` : `Hver ${n}. ${one}`;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
