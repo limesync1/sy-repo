@@ -18,13 +18,23 @@ export const UNIT_LABEL: Record<IntervalUnit, [string, string]> = {
 
 export function describeInvoiceInterval(v: InvoiceIntervalValue | null | undefined): string {
   if (!v?.interval) return "Standard";
-  if (v.interval !== "custom") return INVOICE_INTERVAL_OPTIONS.find((o) => o.value === v.interval)!.label;
+  if (v.interval !== "custom") return INVOICE_INTERVAL_OPTIONS.find((o) => o.value === v.interval)?.label ?? "Standard";
   const n = Math.max(1, v.count ?? 1);
   const [one] = UNIT_LABEL[v.unit ?? "day"];
   return n === 1 ? `Hver ${one}` : `Hver ${n}. ${one}`;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+/** Null preserves live customer/business inheritance instead of copying a default. */
+export function invoiceIntervalOrderFields(value: InvoiceIntervalValue, accountingActive: boolean) {
+  const interval = accountingActive ? value.interval : null;
+  return {
+    invoice_interval: interval,
+    invoice_interval_count: interval === "custom" ? value.count : null,
+    invoice_interval_unit: interval === "custom" ? value.unit : null,
+  };
+}
+
 const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 /** Sidste dag i perioden der starter `start` (YYYY-MM-DD). */

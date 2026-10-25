@@ -47,3 +47,4 @@
 - Owner alerts queue with send-time checks; reminder lead time resolves agreement > customer > business. `customer-visit-date.ts` formats dates without internal arrival/start estimates to avoid false promises.
 - Route-target pickers filter through `src/lib/route-planner/selectable-routes.ts` (Danish today, no archived/virtual/fully-done routes) so every planner dialog offers the same valid routes.
 - Consolidated invoicing routes every order invoice job through a BEFORE INSERT trigger on `accounting_sync_queue` into `invoice_batches` (interval resolves order > customer > business via `resolve_invoice_interval`), closed hourly into one `invoice_batch` job, so no enqueue path can bypass the chosen interval.
+- Manual order creation uses the shared invoice interval picker and payload helper for every created service order; null retains live customer/business inheritance rather than freezing the displayed default.

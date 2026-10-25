@@ -31,3 +31,4 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Kunder + Services: større knapper, afkrydsning og søgefelt
 - [ ] Medarbejdere, Anmeldelser, Regnskab, Indstillinger: gennemgang
 - [x] Fakturainterval: standard i Regnskab, pr. kunde, pr. aftale; samlet faktura pr. periode (ikke testet mod rigtigt regnskabsprogram)
+- [x] Fakturainterval i Opret bestilling, tydeligere intervalvalg/vinduer og vedhæftet ikon; testet med aktiv konto ved 393/768/1305 px, 8 regeltests bestået. Ingen reel bestilling oprettet eller regnskabsindstilling ændret.

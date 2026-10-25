@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Loader2, Receipt } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -57,12 +58,12 @@ export function OrderInvoiceInterval({ orderId, businessId }: { orderId: string;
   };
 
   return (
-    <details className="group rounded-xl border border-border text-xs">
+    <details className="group rounded-md border border-border text-sm">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-2 font-medium text-foreground">
-        <span className="inline-flex min-w-0 items-center gap-1.5">
-          <Receipt className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span>Fakturering: {effLabel}</span>
-          <span className="truncate font-normal text-muted-foreground">({source}{status ? ` · ${status}` : ""})</span>
+        <span className="inline-flex min-w-0 items-center gap-3">
+          <BrandedIllustration name="invoiceInterval" className="h-12 w-12" />
+          <span className="min-w-0"><span className="block font-semibold">Fakturainterval: {effLabel}</span>
+          <span className="block text-xs font-normal text-muted-foreground">{source}{status ? ` · ${status}` : ""}</span></span>
         </span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
       </summary>

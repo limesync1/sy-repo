@@ -106,6 +106,7 @@ import dayInProgressIllustration from "@/assets/illustrations/employee/arbejdsda
 import dayEndedIllustration from "@/assets/illustrations/employee/dagen-afsluttet-2026.svg.asset.json";
 import restartDayIllustration from "@/assets/illustrations/employee/genopstart-dagen-2.svg.asset.json";
 import chooseWorkspaceIllustration from "@/assets/panel-illustrations/vaelg-arbejdsplads-2.svg";
+import invoiceIntervalIllustration from "@/assets/content-icons/fakturainterval.svg.asset.json";
 
 export const BRANDED_ILLUSTRATIONS = {
   notFound: notFoundNew.url,
@@ -215,6 +216,7 @@ export const BRANDED_ILLUSTRATIONS = {
   dayEnded: dayEndedIllustration.url,
   restartDay: restartDayIllustration.url,
   chooseWorkspace: chooseWorkspaceIllustration,
+  invoiceInterval: invoiceIntervalIllustration.url,
 } as const;
 
 export type BrandedIllustrationName = keyof typeof BRANDED_ILLUSTRATIONS;

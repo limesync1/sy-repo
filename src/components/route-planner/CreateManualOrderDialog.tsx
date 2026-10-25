@@ -1,5 +1,9 @@
 import { formatPrice } from "@/lib/price-format";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { InvoiceIntervalPicker } from "@/components/admin/invoicing/InvoiceIntervalPicker";
+import { describeInvoiceInterval, invoiceIntervalOrderFields, type InvoiceIntervalValue } from "@/lib/invoice-interval";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
@@ -14,7 +18,7 @@ import {
 import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat, ListPlus, Plus } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat, ListPlus, Plus, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot, getSmartStep } from "@/lib/service-pricing";
@@ -93,6 +97,44 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const [cvr, setCvr] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [businessMessage, setBusinessMessage] = useState("");
+  const [invoiceValue, setInvoiceValue] = useState<InvoiceIntervalValue>({ interval: null, count: null, unit: null });
+  const [invoiceEmail, setInvoiceEmail] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setInvoiceEmail(customerEmail.trim().toLowerCase()), 350);
+    return () => window.clearTimeout(timer);
+  }, [customerEmail]);
+  const { data: accounting, isError: accountingError, refetch: retryAccounting } = useQuery({
+    queryKey: ["create-order-accounting", businessId],
+    enabled: open && !!businessId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("accounting_integrations")
+        .select("is_active, invoice_interval, invoice_interval_count, invoice_interval_unit")
+        .eq("business_id", businessId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 30_000,
+  });
+  const { data: customerInvoice, isFetching: customerInvoiceLoading, isError: customerInvoiceError } = useQuery({
+    queryKey: ["create-order-customer-invoice", businessId, invoiceEmail],
+    enabled: open && !!accounting?.is_active && /^\S+@\S+\.\S+$/.test(invoiceEmail),
+    queryFn: async () => {
+      const columns = "invoice_interval, invoice_interval_count, invoice_interval_unit";
+      const [business, privateCustomer] = await Promise.all([
+        supabase.from("business_customers").select(columns).eq("business_id", businessId).ilike("email", invoiceEmail).not("invoice_interval", "is", null).limit(1),
+        supabase.from("private_customers").select(columns).eq("business_id", businessId).ilike("email", invoiceEmail).not("invoice_interval", "is", null).limit(1),
+      ]);
+      if (business.error || privateCustomer.error) throw business.error ?? privateCustomer.error;
+      return business.data?.[0] ?? privateCustomer.data?.[0] ?? null;
+    },
+    staleTime: 30_000,
+  });
+  const inheritedInvoice = customerInvoice ?? accounting;
+  const inheritedLabel = describeInvoiceInterval({
+    interval: inheritedInvoice?.invoice_interval ?? "per_visit",
+    count: inheritedInvoice?.invoice_interval_count ?? null,
+    unit: inheritedInvoice?.invoice_interval_unit as InvoiceIntervalValue["unit"] ?? null,
+  });
 
   // Cart
   const [items, setItems] = useState<BuilderItem[]>([]);
@@ -190,10 +232,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setCvr(""); setCompanyName("");
     setBusinessMessage("");
     setItems([]);
+    setInvoiceValue({ interval: null, count: null, unit: null });
     setErrors({}); setShowCvr(false); setShowMsg(false); setSameDate(false);
   };
 
-  const isDirty = !!(customerName || customerEmail || customerPhone || address || cvr || businessMessage || items.length);
+  const isDirty = !!(customerName || customerEmail || customerPhone || address || cvr || businessMessage || items.length || invoiceValue.interval);
   const requestClose = () => {
     if (submitting) return;
     if (isDirty) setConfirmClose(true); else onOpenChange(false);
@@ -248,6 +291,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           id: childOrderIds[idx],
           parent_order_id: parentOrderId, // forælderen peger også på sig selv → simpel gruppering
           business_id: businessId,
+          ...invoiceIntervalOrderFields(invoiceValue, !!accounting?.is_active),
           customer_name: customerName.trim(),
           customer_email: customerEmailLower,
           customer_phone: customerPhone.trim() || null,
@@ -338,7 +382,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => { if (!v) requestClose(); else onOpenChange(v); }}>
-      <DialogContent onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSubmit(); } }} className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
+      <DialogContent onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleSubmit(); } }} className="modal-large order-create-modal planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl lg:max-w-5xl flex-col gap-0 overflow-visible rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
         <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             title={<DialogTitle className="text-base">Opret bestilling</DialogTitle>}
@@ -570,6 +614,32 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             />
           </Section>
           </div>
+
+          {accountingError && (
+            <div className="flex flex-wrap items-center gap-2 text-sm text-destructive">
+              <span>Fakturainterval kunne ikke indlæses.</span>
+              <Button variant="outline" className="min-h-11" onClick={() => retryAccounting()}>Prøv igen</Button>
+            </div>
+          )}
+          {accounting?.is_active && (
+            <details className="group rounded-md border border-border bg-card">
+              <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <BrandedIllustration name="invoiceInterval" className="h-14 w-14" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-foreground">Fakturainterval</span>
+                  <span className="block text-sm text-muted-foreground">{invoiceValue.interval ? describeInvoiceInterval(invoiceValue) : customerInvoiceLoading || invoiceEmail !== customerEmail.trim().toLowerCase() ? "Henter kundens valg…" : customerInvoiceError ? "Brug kundens eller virksomhedens valg" : `${inheritedLabel} · ${customerInvoice ? "kundens valg" : "virksomhedens standard"}`}</span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="space-y-3 border-t border-border px-3 py-3">
+                <p className="text-sm text-muted-foreground">Udførte besøg samles pr. kunde. Besøgsintervallet for services ændres ikke.</p>
+                <InvoiceIntervalPicker value={invoiceValue} onChange={setInvoiceValue}
+                  inheritLabel="Brug kundens eller virksomhedens valg"
+                  inheritHint={customerInvoiceError ? "Det gældende interval bestemmes ved udførelse" : customerInvoiceLoading ? "Henter kundens valg…" : `${inheritedLabel} · ${customerInvoice ? "fra kunden" : "fra Regnskab"}`} />
+                {items.length > 1 && <p className="text-xs text-muted-foreground">Dit valg gælder alle {items.length} aftaler i denne bestilling.</p>}
+              </div>
+            </details>
+          )}
 
           {!showMsg && !businessMessage ? (
             <button type="button" onClick={() => setShowMsg(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-secondary/60 px-3 text-sm font-medium text-foreground hover:bg-secondary">
