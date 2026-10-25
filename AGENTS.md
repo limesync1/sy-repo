@@ -43,5 +43,5 @@
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
-- Hourly tests stay isolated; order progress uses recurrence sequence and only the active subscription owner shows a next date.
+- Sub-hourly/hourly test cadences share an explicit minute registry and isolated server recurrence exceptions; normal daily caps remain unchanged. Order progress uses recurrence sequence and only the active subscription owner shows a next date.
 - Owner alerts queue with send-time checks; reminder lead time resolves agreement > customer > business. `customer-visit-date.ts` formats dates without internal arrival/start estimates to avoid false promises.

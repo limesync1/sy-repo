@@ -8,6 +8,7 @@ import {
   buildInterval,
   formatInterval,
   INTERVAL_UNITS,
+  TEST_INTERVAL_MINUTES,
   normalizeInterval,
   parseInterval,
   validateIntervalKey,
@@ -171,7 +172,7 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
         }
         continue;
       }
-      if (raw === 'every_1_hour_test') { if (!seen.has(raw)) { seen.add(raw); cleaned.push(raw); } continue; }
+      if (TEST_INTERVAL_MINUTES[raw]) { if (!seen.has(raw)) { seen.add(raw); cleaned.push(raw); } else { changed = true; } continue; }
       const parsed = parseInterval(raw);
       if (!parsed || parsed.once) {
         changed = true; // dropper ukendte nøgler
@@ -299,10 +300,14 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
         </div>
       </div>
 
-      <label className="flex min-h-12 items-center gap-3 rounded-md border border-warning/40 p-3 text-sm">
-        <Checkbox checked={items.includes('every_1_hour_test')} onCheckedChange={checked => checked ? commit([...items, 'every_1_hour_test']) : remove('every_1_hour_test')} />
-        Hver 1 time — kun til test
-      </label>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {Object.keys(TEST_INTERVAL_MINUTES).map(key => (
+          <label key={key} className="flex min-h-12 items-center gap-3 rounded-md border border-warning/40 bg-warning/5 p-3 text-sm">
+            <Checkbox checked={items.includes(key)} onCheckedChange={checked => checked ? commit(items.includes(key) ? items : [...items, key]) : remove(key)} className="h-5 w-5 shrink-0" />
+            {formatInterval(key)}
+          </label>
+        ))}
+      </div>
       {/* Liste af tilbagevendende intervaller (drag-and-drop) */}
       {items.length > 0 && (
         <div className="space-y-2">
