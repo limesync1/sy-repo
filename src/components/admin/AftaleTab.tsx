@@ -1893,7 +1893,7 @@ const AftaleTab = ({
       {/* Kommende aftaler — viser de næste planlagte udførelser med kundenavn,
           status og rute/stop-info så man straks kan se hvor det står. */}
       {upcomingSubs.length > 0 && (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+        <Card id="aftaler-kommende" className="surface-admin scroll-mt-20 rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-0">
           {(() => {
             const visibleCount = upcomingExpanded ? upcomingSubs.length : Math.min(3, upcomingSubs.length);
