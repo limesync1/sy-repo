@@ -247,7 +247,7 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
                 }}>
                   Én dag
                 </Button>
-                <Button type="button" size="sm" variant={mode === "range" ? "default" : "ghost"} className="h-8 text-xs" onClick={() => setMode("range")}>
+                <Button type="button" size="sm" variant={mode === "range" ? "default" : "ghost"} className="h-10 text-xs" onClick={() => setMode("range")}>
                   Flere dage
                 </Button>
               </div>
@@ -278,8 +278,8 @@ export default function RoutePrintDialog({ open, onOpenChange, initialDate, rout
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">Tallet viser antal ruter på dagen</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={chooseToday}>I dag</Button>
-                <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={chooseWeek}>Hele ugen</Button>
+                <Button type="button" size="sm" variant="outline" className="h-10 text-xs" onClick={chooseToday}>I dag</Button>
+                <Button type="button" size="sm" variant="outline" className="h-10 text-xs" onClick={chooseWeek}>Hele ugen</Button>
               </div>
             </section>
 

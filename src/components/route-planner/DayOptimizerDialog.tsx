@@ -41,15 +41,30 @@ function useDayData(businessId: string | null | undefined, date: string, enabled
       const ids = (routes ?? []).map((r) => r.id);
       if (ids.length === 0) return { routes: [] as RouteRow[], stops: [], employees: [], links: [] };
       const [{ data: stops, error: e1 }, { data: links, error: e2 }] = await Promise.all([
-        supabase.from("route_stops").select("route_id, travel_time_to_next_min, distance_to_next_km").in("route_id", ids),
+        supabase.from("route_stops").select("id, route_id, status, assigned_employee_id, travel_time_to_next_min, distance_to_next_km").in("route_id", ids),
         supabase.from("route_employees").select("route_id, employee_id").in("route_id", ids),
       ]);
       if (e1) throw e1; if (e2) throw e2;
-      const empIds = Array.from(new Set([...(routes ?? []).map((r) => r.employee_id), ...(links ?? []).map((l) => l.employee_id)].filter(Boolean))) as string[];
+      // Udførte stop tæller ikke med, og fuldt udførte ruter er ikke til at optimere.
+      const openStops = (stops ?? []).filter((s: any) => s.status !== "completed");
+      const openRouteIds = new Set(openStops.map((s: any) => s.route_id));
+      const liveRoutes = (routes ?? []).filter((r) => openRouteIds.has(r.id));
+      // Medarbejdere sidder oftest på de enkelte stop, ikke på selve ruten.
+      const stopIds = openStops.map((s: any) => s.id);
+      const { data: stopAssignees } = stopIds.length
+        ? await supabase.from("route_stop_assignees").select("stop_id, employee_id").in("stop_id", stopIds)
+        : { data: [] as { stop_id: string; employee_id: string }[] };
+      const routeOfStop = new Map(openStops.map((s: any) => [s.id, s.route_id]));
+      const allLinks = [
+        ...(links ?? []),
+        ...openStops.filter((s: any) => s.assigned_employee_id).map((s: any) => ({ route_id: s.route_id, employee_id: s.assigned_employee_id })),
+        ...(stopAssignees ?? []).map((a) => ({ route_id: routeOfStop.get(a.stop_id) as string, employee_id: a.employee_id })),
+      ];
+      const empIds = Array.from(new Set([...liveRoutes.map((r) => r.employee_id), ...allLinks.map((l) => l.employee_id)].filter(Boolean))) as string[];
       const { data: employees } = empIds.length
         ? await supabase.from("employees").select("id, name, color").in("id", empIds)
         : { data: [] as { id: string; name: string; color: string | null }[] };
-      return { routes: (routes ?? []) as RouteRow[], stops: stops ?? [], employees: employees ?? [], links: links ?? [] };
+      return { routes: liveRoutes as RouteRow[], stops: openStops, employees: employees ?? [], links: allLinks };
     },
   });
 }
