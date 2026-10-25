@@ -1,6 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Color, ShaderMaterial, SRGBColorSpace } from "three";
+import { useEffect, useRef } from "react";
 
 import type { BlueFlowVariant } from "./BlueFlowBackground";
 
@@ -34,72 +32,96 @@ const fragmentShader = `
     float edge = smoothstep(0.0, 0.18, vUv.y) * (1.0 - smoothstep(0.85, 1.0, vUv.y));
     col = mix(uBase, col, 0.6 + 0.4 * edge);
     gl_FragColor = vec4(col, 1.0);
-    #include <colorspace_fragment>
   }
 `;
 
-function SilkSurface({ animate, colors, variant, onReady }: Pick<Props, "animate" | "colors" | "variant" | "onReady">) {
-  const materialRef = useRef<ShaderMaterial>(null);
-  const painted = useRef(false);
-  const readyFrame = useRef<number>();
-  useEffect(() => () => { if (readyFrame.current !== undefined) cancelAnimationFrame(readyFrame.current); }, []);
-  const uniforms = useMemo(() => {
-    const read = (raw: string) => {
-      const [h, s, l] = raw.trim().split(/\s+/).map(parseFloat);
-      return new Color().setHSL(h / 360, s / 100, l / 100, SRGBColorSpace);
-    };
-    return { uPhase: { value: { hero: 0, process: 3.4, founder: 7.8, closing: 12.6 }[variant] }, uAspect: { value: 1 }, uTime: { value: 0 }, uBase: { value: read(colors[0]) }, uBlue: { value: read(colors[1]) }, uLight: { value: read(colors[2]) } };
-  }, [colors, variant]);
-  useFrame(({ size }, delta) => {
-    if (materialRef.current) materialRef.current.uniforms.uAspect.value = size.width / Math.max(size.height, 1);
-    if (animate && materialRef.current) materialRef.current.uniforms.uTime.value += Math.min(delta, 0.1);
-    // Reveal only after the first shader frame, never the empty initialized canvas.
-    if (materialRef.current && !painted.current) {
-      painted.current = true;
-      readyFrame.current = requestAnimationFrame(onReady);
-    }
-  });
-  return (
-    <mesh frustumCulled={false}>
-      <planeGeometry args={[2, 2]} />
-      <shaderMaterial ref={materialRef} uniforms={uniforms} depthTest={false} depthWrite={false}
-        vertexShader="varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }"
-        fragmentShader={fragmentShader} />
-    </mesh>
-  );
-}
-
-/** Langsom bevægelse behøver ikke 60/120 fps — 30 fps halverer GPU-arbejdet. */
-function FrameLimiter({ animate }: { animate: boolean }) {
-  const invalidate = useThree((state) => state.invalidate);
-  useEffect(() => {
-    if (!animate) return;
-    const timer = window.setInterval(() => { if (!document.hidden) invalidate(); }, 1000 / 30);
-    return () => window.clearInterval(timer);
-  }, [animate, invalidate]);
-  return null;
-}
-
+/** A single shader does not need a scene engine or a second React renderer. */
 export default function BlueSilkCanvas({ animate, colors, variant, onFailure, onReady }: Props) {
-  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawRef = useRef<(() => void) | null>(null);
+  const timeRef = useRef(0);
   useEffect(() => {
+    const canvas = canvasRef.current;
     if (!canvas) return;
+    const gl = canvas.getContext("webgl", { alpha: false, antialias: false, depth: false, powerPreference: "low-power" });
+    if (!gl) { onFailure(); return; }
+    const shaders: WebGLShader[] = [];
+    let program: WebGLProgram | null = null;
+    let buffer: WebGLBuffer | null = null;
+    let observer: ResizeObserver | undefined;
+    let readyFrame: number | undefined;
+    const compile = (type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) throw new Error("Background shader unavailable");
+      shaders.push(shader);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error("Background shader failed");
+      return shader;
+    };
+    try {
+      program = gl.createProgram();
+      if (!program) throw new Error("Background unavailable");
+      gl.attachShader(program, compile(gl.VERTEX_SHADER, "attribute vec2 position; varying vec2 vUv; void main(){ vUv = position * .5 + .5; gl_Position = vec4(position, 0., 1.); }"));
+      gl.attachShader(program, compile(gl.FRAGMENT_SHADER, "precision mediump float;\n" + fragmentShader));
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error("Background linking failed");
+      gl.useProgram(program);
+      buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
+      const position = gl.getAttribLocation(program, "position");
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      // CSS HSL tokens are converted directly to display-space RGB, without Three.js.
+      const rgb = (raw: string): [number, number, number] => {
+        const [h, s, l] = raw.trim().split(/\s+/).map(parseFloat);
+        const light = l / 100, a = s / 100 * Math.min(light, 1 - light);
+        const channel = (n: number) => { const k = (n + h / 30) % 12; return light - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+        return [channel(0), channel(8), channel(4)];
+      };
+      ["uBase", "uBlue", "uLight"].forEach((name, i) => gl.uniform3f(gl.getUniformLocation(program as WebGLProgram, name), ...rgb(colors[i])));
+      gl.uniform1f(gl.getUniformLocation(program, "uPhase"), { hero: 0, process: 3.4, founder: 7.8, closing: 12.6 }[variant]);
+      const aspect = gl.getUniformLocation(program, "uAspect");
+      const time = gl.getUniformLocation(program, "uTime");
+      let rect = canvas.getBoundingClientRect();
+      const draw = () => {
+        if (gl.isContextLost() || rect.width === 0 || rect.height === 0) return;
+        const width = Math.max(1, Math.round(rect.width * .65));
+        const height = Math.max(1, Math.round(rect.height * .65));
+        if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+        gl.viewport(0, 0, width, height);
+        gl.uniform1f(aspect, rect.width / rect.height);
+        gl.uniform1f(time, timeRef.current);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      };
+      drawRef.current = draw;
+      observer = new ResizeObserver(() => { rect = canvas.getBoundingClientRect(); draw(); });
+      observer.observe(canvas);
+      draw();
+      readyFrame = requestAnimationFrame(onReady);
+    } catch { onFailure(); }
     const lost = (event: Event) => { event.preventDefault(); onFailure(); };
     canvas.addEventListener("webglcontextlost", lost);
-    return () => canvas.removeEventListener("webglcontextlost", lost);
-  }, [canvas, onFailure]);
-  return (
-    // Bløde gradienter tåler lav opløsning; det skalerer pænt op og sparer
-    // mange pixels på store skærme.
-    <Canvas flat dpr={[0.5, 0.75]} frameloop="demand"
-      gl={{ antialias: false, powerPreference: "low-power" }}
-      fallback={null}
-      onCreated={({ gl, events }) => {
-        setCanvas(gl.domElement);
-        events.disconnect?.();
-      }}>
-      <FrameLimiter animate={animate} />
-      <SilkSurface animate={animate} colors={colors} variant={variant} onReady={onReady} />
-    </Canvas>
-  );
+    return () => {
+      drawRef.current = null;
+      observer?.disconnect();
+      if (readyFrame !== undefined) cancelAnimationFrame(readyFrame);
+      canvas.removeEventListener("webglcontextlost", lost);
+      if (buffer) gl.deleteBuffer(buffer);
+      if (program) gl.deleteProgram(program);
+      shaders.forEach(shader => gl.deleteShader(shader));
+    };
+  }, [colors, variant, onFailure, onReady]);
+  useEffect(() => {
+    if (!animate) return;
+    let previous = performance.now();
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      if (!document.hidden) { timeRef.current += Math.min((now - previous) / 1000, .1); drawRef.current?.(); }
+      previous = now;
+    }, 1000 / 30);
+    return () => window.clearInterval(timer);
+  }, [animate]);
+  return <canvas ref={canvasRef} aria-hidden="true" />;
 }

@@ -35,7 +35,7 @@
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
-- Public/auth BlueFlowBackground shares token phases, bounded DPR, visibility/motion pausing and a first-painted-frame reveal over a color-matched fallback for speed and contrast; nearby homepage sections render eagerly while distant sections mount ahead of the viewport.
+- Public/auth BlueFlowBackground uses a lightweight native WebGL shader (not the 3D scene engine), token phases, bounded resolution, visibility/motion pausing and a first-painted-frame reveal over a color-matched fallback to keep public-page JavaScript small; nearby homepage sections render eagerly while distant sections mount ahead of the viewport.
 - Homepage photos share CDN WebP variants and JSON metadata across images, SEO and sitemaps. Normalize photo canvases without cropping subjects to one ratio; DOM/WebGL keep a fixed frame to prevent layout movement and inner bars. Preload only the next photo; pause hidden/reduced-motion timers.
 - Panel headers share `PageHeader`/`.panel-page-hero`. Persistent public navigation shares audience groups and account actions to avoid drift.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
