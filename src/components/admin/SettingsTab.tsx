@@ -180,13 +180,14 @@ const SECTIONS = [
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
 const ToggleSwitch = forwardRef<
   HTMLButtonElement,
-  { checked: boolean; onChange: () => void }
->(({ checked, onChange }, ref) => (
+  { checked: boolean; onChange: () => void; label?: string }
+>(({ checked, onChange, label }, ref) => (
   <button
     ref={ref}
     type="button"
     onClick={onChange}
     aria-pressed={checked}
+    aria-label={label}
     // Ren switch: kun farve + thumb-position. Ingen overshoot/glow-ring som
     // ellers konkurrerede med StatusPill om opmærksomhed.
     className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${
@@ -310,7 +311,7 @@ const FeatureRow = ({
       </div>
     </div>
     <div className="shrink-0 pt-0.5">
-      {toggle ?? (onToggle ? <ToggleSwitch checked={active} onChange={onToggle} /> : null)}
+      {toggle ?? (onToggle ? <ToggleSwitch checked={active} onChange={onToggle} label={title} /> : null)}
     </div>
   </div>
 );

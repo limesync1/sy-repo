@@ -634,7 +634,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
             </div>
             {note.length > 1800 && <p className="text-[11px] text-muted-foreground">{2000 - note.length} tegn tilbage</p>}
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={6} maxLength={2000}
-              placeholder="Skriv kort, hvad kontoret skal vide…" autoFocus={!isCompact} className="shadow-sm focus:ring-1 focus:ring-primary/20" />
+              placeholder="Skriv kort, hvad kontoret skal vide…" aria-label="Note til kontoret" autoFocus={!isCompact} className="shadow-sm focus:ring-1 focus:ring-primary/20" />
           </div>
           <SheetFooterBar className="grid grid-cols-2 gap-2 px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
             <Button variant="outline" className="h-12" onClick={() => setNoteOpen(false)}>Annullér</Button>

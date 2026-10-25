@@ -537,6 +537,7 @@ export const StopDetailsContent = ({
           >
             <Textarea
               placeholder="Skriv kort, hvad kontoret skal vide…"
+              aria-label="Note til kontoret"
               value={noteDraft}
               onChange={(e) => onNoteChange?.(e.target.value)}
               rows={3}

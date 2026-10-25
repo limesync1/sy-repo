@@ -22,13 +22,10 @@ import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
 import { canPreloadPublicPages } from "@/lib/public-loading";
 import { consumePanelNavigation } from "@/lib/navigation-storage";
 
-// Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
-// så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
-// med ned (som tidligere blev bundlet i én stor JS-fil).
+// Kun forsiden indlæses ivrigt — alt andet (inkl. login) er code-splittet via
+// React.lazy så det første sidebesøg ikke trækker unødig JS med ned.
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/ResetPassword";
 
 // Vi pakker lazy-imports som named factories, så vi kan trigge dem manuelt
 // (idle-prefetch og hover-prefetch fra <SmartLink/>) — det får navigation til
@@ -88,6 +85,8 @@ const lazyRoute = <T,>(key: string, loader: () => Promise<T>) => {
   return lazy(safeLoader as any);
 };
 
+const Auth                   = lazyRoute("/log-ind", () => import("./pages/Auth"));
+const ResetPassword          = lazyRoute("reset-password", () => import("./pages/ResetPassword"));
 const CartSheet              = lazyRoute("cart-sheet", () => import("@/components/business/CartSheet"));
 const CartFab                = lazyRoute("cart-fab", () => import("@/components/business/CartFab"));
 const LiveChatWidget         = lazyRoute("livechat-widget", () => import("@/components/livechat/LiveChatWidget"));

@@ -30,13 +30,13 @@ export default function UndoBar() {
         {h.canUndo ? <>Sidste: <span className="font-medium text-foreground">{h.lastLabel}</span></> : "Intet at fortryde"}
       </span>
       <Button
-        size="sm" variant="ghost" className="h-7 px-2 text-xs"
+        size="sm" variant="ghost" className="min-h-11 px-2 text-xs"
         onClick={() => void h.undo()} disabled={!h.canUndo || h.isUndoing}
       >
         <Undo2 className="h-3.5 w-3.5 mr-1" /> Fortryd
       </Button>
       <Button
-        size="sm" variant="ghost" className="h-7 px-2 text-xs"
+        size="sm" variant="ghost" className="min-h-11 px-2 text-xs"
         onClick={() => void h.redo()} disabled={!h.canRedo || h.isUndoing}
       >
         <Redo2 className="h-3.5 w-3.5 mr-1" /> Gentag
@@ -44,7 +44,7 @@ export default function UndoBar() {
       <button
         type="button"
         onClick={() => setHidden(true)}
-        className="ml-1 text-muted-foreground hover:text-foreground text-[11px] px-1"
+        className="ml-1 min-h-11 min-w-11 shrink-0 text-muted-foreground hover:text-foreground text-[11px] px-1"
         aria-label="Skjul"
         title="Skjul"
       >×</button>

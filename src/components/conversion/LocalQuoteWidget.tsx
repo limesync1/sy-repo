@@ -229,7 +229,8 @@ const LocalQuoteWidget = ({
                   value={serviceQuery}
                   onChange={(event) => setServiceQuery(event.target.value)}
                   placeholder="Søg alle services…"
-                  className="h-8 w-full bg-transparent text-sm outline-none placeholder:opacity-60"
+                  aria-label="Søg alle services"
+                  className="h-8 w-full rounded-md bg-transparent text-sm outline-none placeholder:opacity-60 focus-visible:ring-2 focus-visible:ring-accent"
                 />
               </div>
               <ul className="max-h-80 overflow-y-auto py-1">

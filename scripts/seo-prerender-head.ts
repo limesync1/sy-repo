@@ -35,7 +35,17 @@ export const renderRouteHead = (html: string, r: RouteMeta) => {
     .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`)
     .replace(/(<meta property="og:type" content=")[^"]*(")/, `$1${isArticle ? "article" : "website"}$2`)
     .replace(/<link\b[^>]*\bhreflang="[^"]*"[^>]*>/gi, "")
-    .replace(/<\/head>/, `<link rel="alternate" hreflang="da-DK" href="${url}" data-seo-hreflang="1" />\n<link rel="alternate" hreflang="x-default" href="${url}" data-seo-hreflang="1" />\n<script type="application/ld+json" data-seo-page="1">${pageData}</script>\n</head>`);
+    .replace(/<\/head>/, `<link rel="alternate" hreflang="da-DK" href="${url}" data-seo-hreflang="1" />\n<link rel="alternate" hreflang="x-default" href="${url}" data-seo-hreflang="1" />\n<script type="application/ld+json" data-seo-page="1">${pageData}</script>\n</head>`)
+    // Erstat forsidens SEO-fallback i body med sidens egen titel/beskrivelse,
+    // så crawlere uden fuld JS-rendering ikke ser forsideindhold på undersider.
+    // Fallback-blokken indeholder ingen indlejrede <div>, så match til første
+    // </div> er sikkert.
+    .replace(
+      /<div style="position:absolute;left:-10000px[^>]*>[\s\S]*?<\/div>/,
+      `<div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="false"><h1>${t}</h1><p>${d}</p></div>`,
+    )
+    // Body-noscript (ikke font-noscript i head) får sidens egen H1.
+    .replace(/(<noscript>\s*<div[\s\S]*?<h1>)[\s\S]*?(<\/h1>)/, `$1${t}$2`);
 };
 
 /** Build-only plugin: writes dist/<route>/index.html with route-specific head tags. */

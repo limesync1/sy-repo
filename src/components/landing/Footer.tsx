@@ -48,16 +48,16 @@ const Footer = () => {
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
-            <Link to="/virksomheder" className="inline-flex items-center justify-center rounded-full bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-background/90">
+            <Link to="/virksomheder" className="inline-flex min-h-11 items-center justify-center rounded-full bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-background/90">
               Find services
             </Link>
-            <Link to="/tilbud" className="inline-flex items-center justify-center rounded-full border border-background/20 bg-transparent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-background/10">
+            <Link to="/tilbud" className="inline-flex min-h-11 items-center justify-center rounded-full border border-background/20 bg-transparent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-background/10">
               Indhent 3 tilbud
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-block [&_a]:py-1">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:py-1">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
             <ul className="space-y-2 text-sm text-background/65">
@@ -128,7 +128,7 @@ const Footer = () => {
                      rel="noopener noreferrer"
                      aria-label={`Serviceydere på ${label}`}
                      title={label}
-                     className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-background/20 bg-background/5 px-3 text-background/85 transition-colors hover:border-background/40 hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
+                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-background/20 bg-background/5 px-3 text-background/85 transition-colors hover:border-background/40 hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
                    >
                      <BrandLogo icon={Icon} />
                      <span className="text-xs font-semibold">{label}</span>

@@ -89,7 +89,7 @@ const SEO = ({
 
     setMeta('meta[name="description"]', "content", desc);
     setMeta('link[rel="canonical"]', "href", url);
-    setMeta('meta[name="robots"]', "content", noIndex ? "noindex,nofollow" : "index,follow");
+    setMeta('meta[name="robots"]', "content", noIndex ? "noindex,nofollow" : "index,follow,max-image-preview:large");
     if (keywords) setMeta('meta[name="keywords"]', "content", keywords);
     else document.head.querySelector('meta[name="keywords"]')?.remove();
 

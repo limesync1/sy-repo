@@ -326,12 +326,12 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Slå virksomheden op for at udfylde navn og adresse automatisk.</p>
                 </div>
                 <div>
-                  <FieldLabel required>Firmanavn</FieldLabel>
-                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-10" />
+                  <FieldLabel required htmlFor="ce-company-name">Firmanavn</FieldLabel>
+                  <Input id="ce-company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Fx Hansen ApS" className="h-10" />
                 </div>
                 <div>
-                  <FieldLabel optional>Kontaktperson</FieldLabel>
-                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
+                  <FieldLabel optional htmlFor="ce-contact-name">Kontaktperson</FieldLabel>
+                  <Input id="ce-contact-name" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
                 </div>
               </div>
             )}
@@ -339,19 +339,19 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {type === "private" && (
               <div>
-                <FieldLabel required>Navn</FieldLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
+                <FieldLabel required htmlFor="ce-name">Navn</FieldLabel>
+                <Input id="ce-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-10" />
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:col-span-2">
               <div>
-                <FieldLabel required>E-mail</FieldLabel>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-10" />
+                <FieldLabel required htmlFor="ce-email">E-mail</FieldLabel>
+                <Input id="ce-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-10" />
               </div>
               <div>
-                <FieldLabel optional>Telefon</FieldLabel>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-10" />
+                <FieldLabel optional htmlFor="ce-phone">Telefon</FieldLabel>
+                <Input id="ce-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-10" />
               </div>
             </div>
             </div>
@@ -369,8 +369,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             {(zipCode || city) && (
               <div className="grid grid-cols-3 gap-3">
-                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-10" /></div>
-                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-10" /></div>
+                <div><FieldLabel optional htmlFor="ce-zip">Postnr.</FieldLabel><Input id="ce-zip" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-10" /></div>
+                <div className="col-span-2"><FieldLabel optional htmlFor="ce-city">By</FieldLabel><Input id="ce-city" value={city} onChange={(e) => setCity(e.target.value)} className="h-10" /></div>
               </div>
             )}
 
@@ -437,12 +437,12 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <CollapsibleContent className="space-y-3 px-3 pb-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <FieldLabel optional>Kunde-nr.</FieldLabel>
-                  <Input value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-10" />
+                  <FieldLabel optional htmlFor="ce-customer-number">Kunde-nr.</FieldLabel>
+                  <Input id="ce-customer-number" value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-10" />
                 </div>
                 <div>
-                  <FieldLabel optional>Betalingsbetingelse (dage)</FieldLabel>
-                  <Input type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-10" />
+                  <FieldLabel optional htmlFor="ce-payment-terms">Betalingsbetingelse (dage)</FieldLabel>
+                  <Input id="ce-payment-terms" type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-10" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -459,8 +459,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   </Select>
                 </div>
                 <div>
-                  <FieldLabel optional>EAN-nummer</FieldLabel>
-                  <Input value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-10" />
+                  <FieldLabel optional htmlFor="ce-ean">EAN-nummer</FieldLabel>
+                  <Input id="ce-ean" value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-10" />
                 </div>
               </div>
               {customerGroups.length > 0 && (

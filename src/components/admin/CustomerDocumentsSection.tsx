@@ -205,12 +205,12 @@ const CustomerDocumentsSection = ({ businessId, businessCustomerId, customerEmai
                 </p>
               </div>
               <label className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Switch checked={d.is_visible_to_customer} onCheckedChange={() => toggleVisible(d)} />
+                <Switch checked={d.is_visible_to_customer} onCheckedChange={() => toggleVisible(d)} aria-label={`Vis ${d.title} for kunden`} />
               </label>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleDownload(d)}>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleDownload(d)} aria-label={`Download ${d.title}`}>
                 <Download className="h-3.5 w-3.5" />
               </Button>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete(d)}>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete(d)} aria-label={`Slet ${d.title}`}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

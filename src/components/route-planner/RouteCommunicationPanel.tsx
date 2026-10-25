@@ -91,9 +91,9 @@ export function RouteCommunicationPanel({
         ) : (
           <>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-foreground">Medarbejder</Label>
+              <Label className="text-[11px] font-semibold text-foreground" htmlFor="rcp-employee">Medarbejder</Label>
               <Select value={employeeId} onValueChange={setEmployeeId}>
-                <SelectTrigger className="h-11 w-full bg-background sm:h-10">
+                <SelectTrigger id="rcp-employee" className="h-11 w-full bg-background sm:h-10">
                     <SelectValue placeholder="Vælg medarbejder">
                       {selectedEmployee ? (
                         <span className="flex min-w-0 items-center gap-2 text-left">
@@ -117,10 +117,11 @@ export function RouteCommunicationPanel({
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <Label className="min-w-0 truncate text-[11px] font-semibold text-foreground">Besked til {selectedEmployee?.name || "medarbejderen"}</Label>
+                <Label className="min-w-0 truncate text-[11px] font-semibold text-foreground" htmlFor="rcp-message">Besked til {selectedEmployee?.name || "medarbejderen"}</Label>
                 <span className="text-[10px] tabular-nums text-muted-foreground">{message.length}/500</span>
               </div>
               <Textarea
+                id="rcp-message"
                 value={message}
                 onChange={(event) => setMessage(event.target.value.slice(0, 500))}
                 placeholder={stop ? `Skriv om ${stop.customer_name || "aftalen"}` : "Skriv en kort besked om ruten"}

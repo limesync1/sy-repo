@@ -68,7 +68,9 @@ const BusinessSEO = ({
   categories, services, reviews, customDomain,
   faqs,
 }: BusinessSEOProps) => {
-  const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
+  // Fast offentlig origin — aldrig window.location.origin, så JSON-LD altid
+  // matcher den kanoniske URL (også på preview-hosts og aliases).
+  const fallbackOrigin = "https://serviceydere.dk";
   // Hvis virksomheden har sat et custom domæne under Branding, bruger vi det
   // som kanonisk origin (uden path) — ellers fallback til /v/:slug på
   // serviceydere.dk så crawlere altid har en stabil URL.

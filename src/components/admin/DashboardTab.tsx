@@ -1129,6 +1129,7 @@ const OrdersListSection = ({
               value={orderSearch}
               onChange={(e) => setOrderSearch(e.target.value)}
               placeholder="Søg på kunde, e-mail eller beløb…"
+              aria-label="Søg på kunde, e-mail eller beløb"
               className="h-9 rounded-lg pl-8 pr-8 text-sm"
             />
             {orderSearch && (

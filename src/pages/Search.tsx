@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, memo, lazy, Suspense } from "react";
 import BusinessCover from "@/components/shared/media/BusinessCover";
 import BusinessLogo from "@/components/shared/media/BusinessLogo";
 import { useSearchParams, Link } from "react-router-dom";
@@ -44,7 +44,8 @@ const CATEGORIES = topCategories().map((ind) => ({
   icon: ind.icon,
 }));
 
-const BusinessCard = ({
+// Memoiseret så hover på ét kort ikke re-renderer hele resultatlisten.
+const BusinessCard = memo(function BusinessCard({
   biz,
   onHover,
   isHighlighted,
@@ -52,7 +53,7 @@ const BusinessCard = ({
   biz: any;
   onHover?: (id: string | null) => void;
   isHighlighted?: boolean;
-}) => {
+}) {
   const cats: string[] = Array.isArray(biz.categories) && biz.categories.length > 0
     ? biz.categories
     : biz.category ? [biz.category] : [];
@@ -66,7 +67,7 @@ const BusinessCard = ({
 
   return (
     <Link
-      to={`/b/${biz.slug}`}
+      to={`/v/${biz.slug}`}
       onMouseEnter={() => onHover?.(biz.id)}
       onMouseLeave={() => onHover?.(null)}
       className={`group relative flex h-full flex-col overflow-visible rounded-[24px] border border-border/70 bg-card p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-[0_20px_45px_-30px_hsl(var(--foreground)/0.35)] ${
@@ -171,7 +172,7 @@ const BusinessCard = ({
       </div>
     </Link>
   );
-};
+});
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();

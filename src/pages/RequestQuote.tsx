@@ -543,7 +543,6 @@ const RequestQuote = () => {
                     aria-label="Dit telefonnummer (valgfrit)"
                     autoComplete="tel"
                     inputMode="tel"
-                    autoFocus
                     className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
                 ) : (
@@ -756,7 +755,7 @@ const RequestQuote = () => {
                       {match.business.logo_url && !match.business.cover_image_url && (
                         <div className="absolute inset-0 flex items-center justify-center bg-card p-3">
                           <img
-                            src={match.business.logo_url}
+                            src={imageSrc(match.business.logo_url, 224, 224, "contain")}
                             alt=""
                             className="h-full w-full object-contain"
                             width={112}
@@ -776,7 +775,7 @@ const RequestQuote = () => {
                             {match.business.logo_url && match.business.cover_image_url && (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card p-0.5 sm:hidden">
                                 <img
-                                  src={match.business.logo_url}
+                                  src={imageSrc(match.business.logo_url, 56, 56, "contain")}
                                   alt=""
                                   className="h-full w-full object-contain"
                                   width={28}
@@ -873,7 +872,7 @@ const RequestQuote = () => {
             <div className="flex items-start gap-4">
               {selectedBusiness.business.logo_url ? (
                 <img
-                  src={selectedBusiness.business.logo_url}
+                  src={imageSrc(selectedBusiness.business.logo_url, 128, 128, "contain")}
                   alt=""
                   className="h-16 w-16 shrink-0 rounded-xl border border-border bg-card object-contain p-1.5"
                   width={64}

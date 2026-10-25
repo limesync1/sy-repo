@@ -36,11 +36,11 @@ const HourlyService = ({ service }: { service: Service }) => {
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">{formatPrice(service.hourlyRate)}/time</span>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setHours(Math.max(service.minHours || 1, hours - 1))}>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setHours(Math.max(service.minHours || 1, hours - 1))} aria-label="Fjern en time">
             <Minus className="h-4 w-4" />
           </Button>
           <span className="w-12 text-center font-semibold">{hours} t</span>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setHours(Math.min(service.maxHours || 99, hours + 1))}>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setHours(Math.min(service.maxHours || 99, hours + 1))} aria-label="Tilføj en time">
             <Plus className="h-4 w-4" />
           </Button>
         </div>

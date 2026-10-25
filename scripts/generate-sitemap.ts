@@ -44,6 +44,11 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/privatlivspolitik", changefreq: "yearly", priority: "0.3" },
   { path: "/vilkaar", changefreq: "yearly", priority: "0.3" },
   { path: "/slet-data", changefreq: "yearly", priority: "0.3" },
+  { path: "/databehandleraftale", changefreq: "yearly", priority: "0.3" },
+  { path: "/underdatabehandlere", changefreq: "yearly", priority: "0.3" },
+  { path: "/om-os", changefreq: "monthly", priority: "0.5" },
+  { path: "/anmeldelser", changefreq: "weekly", priority: "0.6" },
+  { path: "/kontakt", changefreq: "monthly", priority: "0.5" },
 ];
 
 // Auto-genereret fra de centrale data-kilder. Tilføj et opslag/guide/by
@@ -205,6 +210,11 @@ const STATIC_META = [
   { path: "/privatlivspolitik", title: "Privatlivspolitik | Serviceydere", description: "Sådan behandler Serviceydere dine personoplysninger, og hvilke rettigheder du har." },
   { path: "/vilkaar", title: "Vilkår og betingelser | Serviceydere", description: "Vilkår for brug af Serviceydere for kunder og virksomheder." },
   { path: "/slet-data", title: "Slet data og tilbagekald samtykke | Serviceydere", description: "Slet cookievalg, anmod om sletning af konto og personoplysninger eller fjern virksomhedsdata hos Serviceydere." },
+  { path: "/databehandleraftale", title: "Databehandleraftale | Serviceydere", description: "Databehandleraftale mellem Serviceydere og virksomheder, der bruger platformen til kunder, ruter og fakturering." },
+  { path: "/underdatabehandlere", title: "Underdatabehandlere | Serviceydere", description: "Oversigt over de underdatabehandlere, Serviceydere bruger til drift, hosting, betaling og kommunikation." },
+  { path: "/om-os", title: "Om Serviceydere – platformen bag lokale services | Serviceydere", description: "Læs om Serviceydere: platformen der forbinder kunder med lokale servicevirksomheder og giver virksomheder ruteplanlægning, booking og fakturering." },
+  { path: "/anmeldelser", title: "Anmeldelser fra kunder og virksomheder | Serviceydere", description: "Se anmeldelser af servicevirksomheder på Serviceydere – rigtige opgaver, rigtige kunder." },
+  { path: "/kontakt", title: "Kontakt Serviceydere | Serviceydere", description: "Kontakt Serviceydere – få hjælp til booking, tilbud eller din virksomhedskonto." },
   { path: "/rengoering", title: "Find rengøringsvirksomhed i din by — se priser | Serviceydere", description: "Søg efter rengøringsfirmaer i din by og se lokale priser på privat- og erhvervsrengøring. Sammenlign og få op til 3 gratis tilbud — uforpligtende." },
 ];
 const routeMeta = [
@@ -212,7 +222,7 @@ const routeMeta = [
   ...BLOG_CATEGORIES.map((c) => ({ path: `/blog/kategori/${c.slug}`, title: `${c.name} – artikler og guides | Serviceydere`, description: `Alle artikler om ${c.name.toLowerCase()}: priser, tjeklister og råd fra Serviceydere.` })),
   ...BLOG_POSTS.map((p) => ({ path: `/blog/${p.slug}`, title: `${p.title} | Serviceydere`, description: p.description })),
   ...GUIDES.map((g) => ({ path: g.href, title: `${g.title} | Serviceydere`, description: g.desc })),
-  ...SOFTWARE_PAGES.map((s) => ({ path: s.href, title: `${s.label} | Serviceydere`, description: s.blurb })),
+  ...SOFTWARE_PAGES.map((s) => ({ path: s.href, title: s.seoTitle ?? `${s.label} | Serviceydere`, description: s.seoDescription ?? s.blurb })),
   ...cityMeta("rengoering", "Rengøring", CITIES),
   ...cityMeta("flyttehjaelp", "Flyttehjælp", MOVING_CITIES),
   ...cityMeta("haandvaerker", "Håndværker", HANDYMAN_CITIES),

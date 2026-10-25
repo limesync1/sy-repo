@@ -852,7 +852,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               <button
                 key={key}
                 onClick={() => setTypeFilter(key as any)}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                   isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
