@@ -18,7 +18,7 @@ export function buildPlatformSignupAlert(event: SignupEvent) {
       subject: business ? `${title}: ${event.name || "Ny virksomhed"}` : title,
       intro: business ? "En ny virksomhed er blevet oprettet på serviceydere.dk." : "En person har netop skrevet sig på ventelisten på serviceydere.dk.",
       rows,
-      ctaUrl: business ? "https://serviceydere.dk/admin" : "https://serviceydere.dk/admin?tab=venteliste",
+      ctaUrl: business ? "https://serviceydere.dk/admin" : "https://serviceydere.dk/admin?tab=waitlist",
       ctaLabel: business ? "Se virksomheder" : "Se ventelisten",
     },
   };
