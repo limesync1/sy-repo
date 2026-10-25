@@ -162,6 +162,13 @@
       "when": 1792440695413,
       "tag": "0022_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792948899565,
+      "tag": "0023_half_hour_test_recurrence",
+      "breakpoints": true
     }
   ]
 }
