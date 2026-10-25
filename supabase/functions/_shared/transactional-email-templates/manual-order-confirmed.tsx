@@ -2,6 +2,8 @@
 import * as React from 'npm:react@18.3.1'
 import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
+import { PriceStack } from './_price-stack.tsx'
+import { danishIntervalLabel } from '../interval-da.ts'
 import { formatServicePrice as fmt } from './_service-price.ts'
 import {
   SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
@@ -78,14 +80,14 @@ const ManualOrderConfirmedEmail = ({
                             <tr>
                               <td style={{ verticalAlign: 'top' }}>
                                 <Text style={itemName}>{qty}{it.name}</Text>
-                                {it.intervalLabel && <Text style={itemDetail}>{it.intervalLabel}</Text>}
+                                {it.intervalLabel && <Text style={itemDetail}>{danishIntervalLabel(it.intervalLabel)}</Text>}
                                 {it.description && !it.stepDetails?.length && <Text style={itemDetail}>{it.description}</Text>}
                                 {it.stepDetails?.map((sd, j) => (
                                   <Text key={j} style={stepLine}>{sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>{sd.subtotal != null ? ` ${fmt(sd.subtotal)}` : ''}</Text>
                                 ))}
                               </td>
-                              <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
-                                <Text style={itemPrice}>{fmt(it.price)}</Text>
+                              </tr><tr><td style={{ paddingTop: '6px' }}>
+<PriceStack amount={it.price} />
                               </td>
                             </tr>
                           </table>
@@ -97,8 +99,8 @@ const ManualOrderConfirmedEmail = ({
               )}
               <table width="100%" cellPadding="0" cellSpacing="0" style={totalRow}>
                 <tr>
-                  <td style={{ textAlign: 'left' }}>I alt</td>
-                  <td style={{ textAlign: 'right' }}>{fmt(totalAmount)}</td>
+                  <td style={{ textAlign: 'left', verticalAlign: 'top', paddingRight: '8px' }}>I alt</td>
+<td style={{ textAlign: 'right' }}><PriceStack amount={totalAmount} size={15} align=\"right\" /></td>
                 </tr>
               </table>
             </Section>

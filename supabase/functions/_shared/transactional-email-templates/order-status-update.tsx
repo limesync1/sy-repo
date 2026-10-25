@@ -5,6 +5,8 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import { Button } from '../email-button.tsx'
 import type { TemplateEntry } from './registry.ts'
+import { PriceStack } from './_price-stack.tsx'
+import { danishIntervalLabel } from '../interval-da.ts'
 import { formatServicePrice as fmt } from './_service-price.ts'
 import {
  SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
@@ -158,7 +160,7 @@ const renderItems = (items: OrderItemSummary[]) => (
  <tr>
  <td style={{ verticalAlign: 'top' }}>
  <Text style={itemName}>{qty}{it.name}</Text>
- {it.intervalLabel && <Text style={itemDetail}> {it.intervalLabel}</Text>}
+ {it.intervalLabel && <Text style={itemDetail}> {danishIntervalLabel(it.intervalLabel)}</Text>}
  {it.description && !it.stepDetails?.length && (
  <Text style={itemDetail}>{it.description}</Text>
  )}
@@ -168,8 +170,8 @@ const renderItems = (items: OrderItemSummary[]) => (
  {sd.subtotal != null ? ` ${fmt(sd.subtotal)}` : ''}</Text>
  ))}
  </td>
- <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
- <Text style={itemPrice}>{fmt(it.price)}</Text>
+ </tr><tr><td style={{ paddingTop: '6px' }}>
+<PriceStack amount={it.price} />
  </td>
  </tr>
  </table>
@@ -299,7 +301,7 @@ const OrderStatusUpdateEmail = ({
  <table width="100%" cellPadding="0" cellSpacing="0" style={totalRow}>
  <tr>
  <td style={{ textAlign: 'left' }}>{event === 'adjusted' ? 'Nyt total' : 'I alt'}</td>
- <td style={{ textAlign: 'right' }}>{fmt(visibleTotal)}</td>
+ <td style={{ textAlign: 'right' }}><PriceStack amount={visibleTotal} size={15} align=\"right\" /></td>
  </tr>
  </table>
  )}
