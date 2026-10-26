@@ -47,17 +47,17 @@ export function CancelOrderDialog({ order, onClose, onCancel }: {
   }
 
   return <Dialog open={!!order} onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
-    <DialogContent className="appointment-details-overlay">
+    <DialogContent className="appointment-details-overlay max-h-[calc(100dvh-1rem)] overflow-y-auto [overflow-wrap:anywhere]">
       <DialogHeader>
         <DialogTitle>Annullér aftale?</DialogTitle>
         <DialogDescription>{canCredit ? "Skal der oprettes en kreditnota for hele fakturaen? Kreditnotaen oprettes i regnskabsprogrammet, og kunden får en mail. Vælger du uden kreditnota, skal kontoret håndtere den senere." : credited ? "Fakturaen er allerede krediteret. Der oprettes ikke en ny kreditnota." : "Aftalen og dens tilknyttede abonnementer annulleres."}</DialogDescription>
       </DialogHeader>
       {loading && <div role="status" className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Kontrollerer fakturaen…</div>}
-      {blocked && <div className="space-y-2"><p role="alert" className="text-sm text-destructive">Fakturaens mulighed for kreditering kunne ikke bekræftes. Prøv igen, eller kontrollér fakturaen i regnskabsprogrammet.</p><Button variant="outline" onClick={() => void refetch()}>Prøv igen</Button></div>}
+      {blocked && <div className="space-y-2"><p role="alert" className="text-sm text-destructive">Fakturaens mulighed for kreditering kunne ikke bekræftes. Prøv igen, eller kontrollér fakturaen i regnskabsprogrammet.</p><Button className="min-h-11" variant="outline" onClick={() => void refetch()}>Prøv igen</Button></div>}
       <div className="flex flex-col gap-2">
         {canCredit && <Button variant="destructive" className="min-h-11 h-auto whitespace-normal" disabled={busy || loading} onClick={() => void cancel(true)}><Receipt className="h-4 w-4" />Opret kreditnota og annullér</Button>}
         <Button variant="outline" className="min-h-11 h-auto whitespace-normal" disabled={busy || loading || blocked} onClick={() => void cancel(false)}><XCircle className="h-4 w-4" />{canCredit ? "Annullér uden kreditnota — kontoret håndterer den" : "Annullér aftale"}</Button>
-        <Button variant="ghost" disabled={busy} onClick={onClose}>Fortryd</Button>
+        <Button className="min-h-11" variant="ghost" disabled={busy} onClick={onClose}>Fortryd</Button>
         {busy && <Loader2 aria-label="Annullerer" className="h-5 w-5 animate-spin self-center" />}
       </div>
     </DialogContent>
