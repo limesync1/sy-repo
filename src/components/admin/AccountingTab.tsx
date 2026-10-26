@@ -34,6 +34,7 @@ import dineroLogo from "@/assets/accounting/dinero.png";
 import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import saadanFungererDet from "@/assets/content-icons/saadan-fungerer-det.svg.asset.json";
+import { subscribePanelRefresh } from "@/lib/panel-refresh";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -628,8 +629,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setMode("wizard");
   };
 
-  const load = async (options?: { preserveMode?: boolean }) => {
-    setLoading(true);
+  const load = async (options?: { preserveMode?: boolean; statusOnly?: boolean }) => {
+    if (!options?.statusOnly) setLoading(true);
     const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     // Parallel batch — alle queries er uafhængige, så vi sparer ~7 round-trips.
     const [
@@ -675,7 +676,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         .eq("status", "success").eq("direction", "pull")
         .order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
-    if (data) {
+    if (!options?.statusOnly && data) {
       const d = data as any as Integration;
       setIntegration(d);
       setProvider(d.provider);
@@ -685,7 +686,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       });
       setSettings({ ...defaultSettings, ...(d.settings ?? {}) });
       if (!options?.preserveMode) setMode("overview");
-    } else {
+    } else if (!options?.statusOnly) {
       setIntegration(null);
       if (!options?.preserveMode) setMode("overview");
     }
@@ -697,10 +698,40 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setPulledLast24h(pulledCountRes.count ?? 0);
     setLastSuccessPush((lastPushRes.data as any)?.created_at ?? null);
     setLastSuccessPull((lastPullRes.data as any)?.created_at ?? null);
-    setLoading(false);
+    if (!options?.statusOnly) setLoading(false);
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [businessId]);
+
+  // Live status must not replace an open wizard, unsaved settings or the page
+  // with a skeleton. Coalesce events arriving while the parallel reads run.
+  const liveLoadRef = useRef(load);
+  liveLoadRef.current = load;
+  useEffect(() => {
+    let running = false;
+    let queued = false;
+    let disposed = false;
+    const refresh = async () => {
+      queued = true;
+      if (running) return;
+      running = true;
+      try {
+        while (queued && !disposed) {
+          queued = false;
+          await liveLoadRef.current({ preserveMode: true, statusOnly: true });
+        }
+      } catch {
+        // Keep the displayed data; reconnect/focus or manual refresh retries.
+      } finally {
+        running = false;
+      }
+    };
+    const unsubscribe = subscribePanelRefresh(
+      ["accounting_sync_log", "accounting_sync_queue", "accounting_sync_dlq"],
+      () => { void refresh(); },
+    );
+    return () => { disposed = true; unsubscribe(); };
+  }, [businessId]);
 
   // Auto-pull: når regnskabsfanen åbnes (eller skifter business) henter vi
   // de seneste ændringer fra regnskabsprogrammet i baggrunden, så brugeren
