@@ -1,6 +1,6 @@
 import { formatPrice } from "@/lib/price-format";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { InvoiceIntervalPicker } from "@/components/admin/invoicing/InvoiceIntervalPicker";
 import { describeInvoiceInterval, invoiceIntervalOrderFields, type InvoiceIntervalValue } from "@/lib/invoice-interval";
@@ -81,6 +81,7 @@ interface Props {
 }
 
 const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName, initialCustomer }: Props) => {
+  const queryClient = useQueryClient();
   const { data: services = [], isLoading: servicesLoading } = useServices(businessId);
   const activeServices = useMemo(() => (services as any[]).filter((s) => s.is_active !== false) as Service[], [services]);
 
@@ -350,27 +351,17 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems as any);
       if (itemsErr) throw itemsErr;
 
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("name, phone, email")
-        .eq("id", businessId)
-        .maybeSingle();
-
-      // Manuel oprettelse er altid forhåndsgodkendt — send bekræftelses-mail.
-      {
-        const { data: mailResult, error: mailErr } = await supabase.functions.invoke("order-email-notification", {
-          body: { orderId: parentOrderId, kind: "manual-confirmed" },
-        });
-        if (mailErr || !mailResult?.sent) {
-          console.error("Mail send failed:", mailErr);
-          toast.success("Bestilling oprettet og bekræftet (bekræftelses-mail kunne ikke sendes).");
-        } else {
-          toast.success("Bestilling oprettet og bekræftet — kunden har fået en bekræftelses-mail.");
-        }
-        reset();
-        onOpenChange(false);
-        return;
-      }
+      // Start delivery before closing; persisted orders/items are essential,
+      // but email latency and list refetches must not hold the form open.
+      void supabase.functions.invoke("order-email-notification", {
+        body: { orderId: parentOrderId, kind: "manual-confirmed" },
+      }).then(({ data, error }) => {
+        if (error || !data?.sent) toast.warning("Bestillingen er gemt, men bekræftelsesmailen kunne ikke sendes.");
+      }).catch(() => toast.warning("Bestillingen er gemt, men bekræftelsesmailen kunne ikke sendes."));
+      void queryClient.invalidateQueries();
+      toast.success("Bestilling oprettet og bekræftet — sender bekræftelsesmail.");
+      reset();
+      onOpenChange(false);
     } catch (e: any) {
       toast.error("Kunne ikke oprette bestilling: " + (e.message || "Ukendt fejl"));
     } finally {
@@ -535,7 +526,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           {intervals.map((iv) => (
                             <button key={iv} type="button" role="radio" aria-checked={it.interval === iv}
                               onClick={() => updateItem(id, { interval: iv })}
-                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors sm:min-h-9 ${it.interval === iv ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary/50 hover:bg-secondary"}`}>
+                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors ${it.interval === iv ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary/50 hover:bg-secondary"}`}>
                               {INTERVAL_LABELS[iv] || iv}
                             </button>
                           ))}
@@ -588,7 +579,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           const v = format(addDays(new Date(), d), "yyyy-MM-dd");
                           return (
                             <button key={l} type="button" onClick={() => setStartDate(id, v)} aria-pressed={it.startDate === v}
-                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors sm:min-h-9 ${it.startDate === v ? "border-primary bg-primary text-primary-foreground" : "border-accent/40 bg-accent/5 hover:bg-accent/10"}`}>
+                              className={`min-h-11 rounded-md border px-3 text-sm font-medium transition-colors ${it.startDate === v ? "border-primary bg-primary text-primary-foreground" : "border-accent/40 bg-accent/5 hover:bg-accent/10"}`}>
                               {l}
                             </button>
                           );
@@ -678,10 +669,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="min-h-11 flex-1 sm:min-h-10 sm:flex-none" onClick={requestClose} disabled={submitting}>
+              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting}>
                 Annullér
               </Button>
-              <Button className="min-h-11 flex-1 sm:min-h-10 sm:flex-none" onClick={handleSubmit} disabled={submitting}>
+              <Button className="min-h-11 flex-1 sm:flex-none" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Plus className="mr-1.5 h-4 w-4" />}
                 {items.length > 1 ? `Opret ${items.length} bestillinger` : "Opret bestilling"}
               </Button>
