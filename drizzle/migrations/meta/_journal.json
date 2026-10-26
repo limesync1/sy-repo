@@ -218,6 +218,13 @@
       "when": 1792967435197,
       "tag": "0030_allow_invoice_batch_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793011824198,
+      "tag": "0031_realtime_panel_tables",
+      "breakpoints": true
     }
   ]
 }
