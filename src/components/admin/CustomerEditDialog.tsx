@@ -1,7 +1,8 @@
 import { InvoiceIntervalPicker } from "@/components/admin/invoicing/InvoiceIntervalPicker";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import type { InvoiceIntervalValue } from "@/lib/invoice-interval";
-import { lazy, memo, Suspense, useEffect, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useRef, useState } from "react";
+import { mergeSavedCustomer } from "@/lib/customer-cache";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -112,6 +113,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [groupsLabel, setGroupsLabel] = useState<string>("Kundegruppe");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [showNotes, setShowNotes] = useState(!!initial?.notes);
@@ -217,8 +219,10 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   };
 
   const handleSave = async (alsoCreateOrder = false) => {
+    if (savingRef.current) return;
     const err = validate();
     if (err) { toast.error(err); return; }
+    savingRef.current = true;
     setSaving(true);
     try {
       const baseShared = {
@@ -264,8 +268,10 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         if (error) throw error;
         savedRow = data;
       }
-      qc.invalidateQueries({ queryKey: ["customers", businessId] });
-      qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
+      await qc.cancelQueries({ queryKey: ["customers", businessId] });
+      qc.setQueryData(["customers", businessId], (old: Parameters<typeof mergeSavedCustomer>[0]) => mergeSavedCustomer(old, savedRow, type));
+      void qc.invalidateQueries({ queryKey: ["customers", businessId] });
+      void qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
       toast.success(initial?.id ? "Kunde opdateret" : "Kunde oprettet");
 
       const saved: EditableCustomer = {
@@ -301,6 +307,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
       toast.error(e.message || "Kunne ikke gemme kunde");
     } finally {
       setSaving(false);
+      savingRef.current = false;
     }
   };
 
@@ -553,16 +560,16 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
           <SheetFooterBar>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving} className="h-11 sm:h-10">Annullér</Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving} className="h-11">Annullér</Button>
               <div className="contents sm:flex sm:gap-2">
-                <Button variant={initial?.id ? "default" : "outline"} onClick={() => handleSave(false)} disabled={saving} className="h-11 sm:h-10">
+                <Button variant={initial?.id ? "default" : "outline"} onClick={() => handleSave(false)} disabled={saving} className="h-11">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {initial?.id ? "Gem ændringer" : "Opret kunde"}
                 </Button>
                 {!initial?.id && (
                   <Button onClick={() => handleSave(true)} disabled={saving}
                     title={hasActiveServices ? "Gem kunden og opret en bestilling" : "Opret en aktiv service før du kan oprette bestillinger"}
-                    className="h-11 sm:h-10 col-span-2">
+                    className="h-11 col-span-2">
                     <ShoppingBag className="h-4 w-4" />Gem og opret bestilling
                   </Button>
                 )}

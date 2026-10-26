@@ -648,6 +648,9 @@ const ServiceForm = ({
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
+  const savingRef = useRef(false);
+  const persistedServiceId = useRef<string | null>(existingService?.id ?? null);
+  const [saving, setSaving] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
   const formRootRef = useRef<HTMLDivElement>(null);
@@ -1132,12 +1135,15 @@ const ServiceForm = ({
   };
 
   const handleSave = async () => {
+    if (savingRef.current) return;
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
     if (!serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
     if (!subcategory.trim()) { toast.error("Vælg en underkategori"); return; }
     if (pricingType === "prisberegner" && steps.length === 0) { toast.error("Tilføj mindst ét beregnertrin"); return; }
     if (pricingType === "prisberegner" && steps.some(s => !s.label.trim())) { toast.error("Alle beregnertrin skal have et navn"); return; }
 
+    savingRef.current = true;
+    setSaving(true);
     try {
       const payload = {
         name: name.trim(),
@@ -1170,13 +1176,14 @@ const ServiceForm = ({
         weather_sensitive: weatherSensitive,
       };
 
-      if (existingService) {
-        await updateService.mutateAsync({ id: existingService.id, ...payload } as any);
+      const savedId = persistedServiceId.current;
+      if (savedId) {
+        await updateService.mutateAsync({ id: savedId, ...payload } as any);
         if (pricingType === "prisberegner") {
           await upsertSteps.mutateAsync({
-            serviceId: existingService.id,
+            serviceId: savedId,
             steps: steps.map((s, i) => ({
-              service_id: existingService.id, label: s.label, unit: s.unit,
+              service_id: savedId, label: s.label, unit: s.unit,
               price_per_unit: parseFloat(s.price_per_unit) || 0,
               min_value: parseFloat(s.min_value) || 0,
               max_value: parseFloat(s.max_value) || 100,
@@ -1187,6 +1194,7 @@ const ServiceForm = ({
         toast.success("Service opdateret");
       } else {
         const result = await createService.mutateAsync({ business_id: businessId, ...payload } as any);
+        persistedServiceId.current = result.id;
         if (pricingType === "prisberegner" && steps.length > 0) {
           await upsertSteps.mutateAsync({
             serviceId: result.id,
@@ -1202,7 +1210,8 @@ const ServiceForm = ({
         toast.success("Service oprettet");
       }
       onClose();
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: any) { toast.error(e.message || "Kunne ikke gemme service. Prøv igen."); }
+    finally { savingRef.current = false; setSaving(false); }
   };
 
   const CATEGORY_ICONS: Record<string, string> = {
@@ -1970,11 +1979,11 @@ const ServiceForm = ({
       <div className="sticky bottom-0 z-10 -mx-3 flex items-center justify-between border-t border-border bg-card px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4">
         <div className="flex gap-2">
           {currentStep > 1 && (
-            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-10 px-4 text-sm font-medium">
+            <Button variant="outline" disabled={saving} onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-11 px-4 text-sm font-medium">
               ← Tilbage
             </Button>
           )}
-          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:text-foreground">
+          <Button variant="ghost" disabled={saving} onClick={onClose} className="rounded-lg h-11 px-4 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:text-foreground">
             Annuller
           </Button>
         </div>
@@ -1982,12 +1991,12 @@ const ServiceForm = ({
           {currentStep < totalSteps ? (
             <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
               disabled={!canGoNext()}
-              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-10 px-6 text-sm font-semibold shadow-sm">
+              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-11 px-6 text-sm font-semibold shadow-sm">
               Næste →
             </Button>
           ) : (
-            <Button onClick={handleSave} className="rounded-lg bg-foreground text-background hover:bg-foreground/90 h-10 px-6 text-sm font-semibold shadow-sm">
-              {existingService ? "Gem ændringer" : "Opret service"}
+            <Button onClick={handleSave} disabled={saving} className="rounded-lg bg-foreground text-background hover:bg-foreground/90 h-11 px-6 text-sm font-semibold shadow-sm">
+              {saving ? "Gemmer…" : existingService ? "Gem ændringer" : "Opret service"}
             </Button>
           )}
         </div>

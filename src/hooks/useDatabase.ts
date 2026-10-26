@@ -282,7 +282,7 @@ export const useCreateService = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["services", vars.business_id] }),
+    onSuccess: (_, vars) => { void qc.invalidateQueries({ queryKey: ["services", vars.business_id] }); },
   });
 };
 
@@ -295,7 +295,7 @@ export const useUpdateService = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["services"] }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["services"] }); },
   });
 };
 
@@ -316,13 +316,14 @@ export const useUpsertCalculatorSteps = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ serviceId, steps }: { serviceId: string; steps: TablesInsert<"calculator_steps">[] }) => {
-      await supabase.from("calculator_steps").delete().eq("service_id", serviceId);
+      const { error: deleteError } = await supabase.from("calculator_steps").delete().eq("service_id", serviceId);
+      if (deleteError) throw deleteError;
       if (steps.length > 0) {
         const { error } = await supabase.from("calculator_steps").insert(steps);
         if (error) throw error;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["services"] }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["services"] }); },
   });
 };
 
