@@ -6,6 +6,7 @@
 - [ ] Del 1d: Resterende delvise gemmefejl ved bestillinger/beregnerfelter; sikker genoptagelse uden dubletter.
 - [ ] Del 1c: Reel oprettelse/gemning og hastighedsmåling på virksomhedsdata. Blokeret: den tilgængelige egen konto åbner oprettelse af virksomhed, ikke et eksisterende virksomhedspanel; ingen testdata er skrevet.
 - [ ] Del 2: Knapper, filtre og værktøjslinjer i hele virksomhedspanelet på mobil, tablet og computer.
+- [x] Del 2a/3a: Medarbejdere + Anmeldelser: større filter-/handlingsknapper, tabletvenlige medarbejderrækker, fast bundlinje og højdebegrænsning i medarbejdervinduer, læsbare anmeldelsesnavne/datoer/kommentarer og danske decimaltal. Fælles søgning, primærknapper og pagination mindst 44 px. Isoleret kliktest 320/390/768/1280 px i begge temaer uden runtimefejl; 16 regressionstests bestået. Gemning på rigtig virksomhed fortsat blokeret som Del 1c.
 - [ ] Del 3: Formularer, dropdowns, kalendere og vinduer; fuld klikgennemgang side for side.
 - [ ] Del 4: Synkronisering og statistik på tværs af enheder, inklusive beskeder/regnskab; verificér med to samtidige skærme.
 
@@ -38,6 +39,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Automatisk gennemgang af 10 panelsider × 5 bredder: ingen vandret rulning, rettet kontakter uden navn, små knapper (services, faktura), indstillinger ved 320 px
 - [x] «Ret aftale»: ét trin, kunde/dato i top, pris i bund, baggrundsvinduer dæmpes
 - [x] Kunder + Services: større knapper, afkrydsning og søgefelt
-- [ ] Medarbejdere, Anmeldelser, Regnskab, Indstillinger: gennemgang
+- [x] Medarbejdere + Anmeldelser: gennemgang af layout, filtre og åbning/lukning af vinduer med isolerede eksempeldata; ingen virksomhedsgemmehandling udført.
+- [ ] Regnskab + Indstillinger: gennemgang
 - [x] Fakturainterval: standard i Regnskab, pr. kunde, pr. aftale; samlet faktura pr. periode (ikke testet mod rigtigt regnskabsprogram)
 - [x] Fakturainterval i Opret bestilling, tydeligere intervalvalg/vinduer og vedhæftet ikon; testet med aktiv konto ved 393/768/1305 px, 8 regeltests bestået. Ingen reel bestilling oprettet eller regnskabsindstilling ændret.

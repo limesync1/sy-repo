@@ -336,8 +336,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
       )}
 
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
-      <div data-tour="employees-stats" className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div data-tour="employees-stats" className="space-y-3">
+        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Medarbejdere i alt"
             value={all.length}
@@ -370,25 +370,22 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
           />
         </div>
 
-        <div className="flex flex-wrap gap-2 lg:justify-end">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Medarbejderstatus">
           {[
             { key: "all", label: "Alle", count: all.length },
             { key: "active", label: "Aktive", count: activeEmployees.length },
             { key: "inactive", label: "Deaktiverede", count: inactiveEmployees.length },
             ...(pendingCount > 0 ? [{ key: "pending", label: "Afventer login", count: pendingCount }] : []),
           ].map(({ key, label, count }) => (
-            <button
+            <Button type="button" variant={statusFilter === key ? "default" : "outline"}
               key={key}
+              aria-pressed={statusFilter === key}
               onClick={() => setStatusFilter(key as any)}
-              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                statusFilter === key
-                  ? "border-border bg-secondary text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
+              className="min-h-11 gap-1.5 px-3 text-sm"
             >
               {label}
               {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -399,20 +396,21 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
           <TrendingUp className="h-3.5 w-3.5" />
           Vis indtjening for:
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Periode for indtjening">
           {(Object.keys(RANGE_LABELS) as RangeKey[]).map((k) => (
-            <button
+            <Button type="button" variant={earnRange === k ? "default" : "ghost"}
               key={k}
+              aria-pressed={earnRange === k}
               onClick={() => setEarnRange(k)}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                "min-h-11 rounded-md px-3 text-sm font-medium transition-colors",
                 earnRange === k
                   ? "bg-foreground text-background shadow-sm"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
               {RANGE_LABELS[k]}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -422,9 +420,9 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, e-mail, telefon eller titel…" />
       </div>
 
-      <Dialog open={showForm} onOpenChange={(open) => { if (!open) resetForm(); else setShowForm(true); }}>
-        <DialogContent className="modal-large max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
-          <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
+      <Dialog open={showForm} onOpenChange={(open) => { if (create.isPending) return; if (!open) resetForm(); else setShowForm(true); }}>
+        <DialogContent className="modal-large planner-overlay max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
+          <DialogHeader className="planner-overlay-header shrink-0 border-b px-4 py-3 pr-12 text-left sm:px-5 sm:pr-12">
             <DialogTitle className="flex items-center gap-2 text-base">
               Ny medarbejder
             </DialogTitle>
@@ -432,7 +430,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
               Udfyld navn og e-mail for at oprette medarbejderen.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto bg-secondary/20 px-4 py-4 sm:px-5">
+          <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 sm:px-5 [&_input]:min-h-11">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <FieldLabel required>Navn</FieldLabel>
@@ -505,15 +503,17 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
               Der genereres automatisk en sikker adgangskode, og medarbejderen
               modtager en email med login-oplysninger og link til medarbejder-appen.
             </p>
-            <div className="flex justify-end gap-2 pt-1">
-              <Button variant="ghost" onClick={resetForm} className="h-9 text-sm">
+          </div>
+          <SheetFooterBar>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+              <Button variant="outline" disabled={create.isPending} onClick={resetForm} className="h-11 text-sm">
                 Annuller
               </Button>
               <PrimaryButton onClick={handleCreate} disabled={create.isPending} icon={<UserPlus />}>
                 {create.isPending ? "Opretter..." : "Opret medarbejder"}
               </PrimaryButton>
             </div>
-          </div>
+          </SheetFooterBar>
         </DialogContent>
       </Dialog>
 
@@ -541,7 +541,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
         <div className="space-y-3">
           {filteredActive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 xl:grid-cols-[minmax(0,1fr)_8rem_8rem_10rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Aktive medarbejdere</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -551,9 +551,9 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                 {/* Kolonne-titler — bruger samme grid-template som rækken
                     (1fr · 8rem · 8rem · 13rem) så overskrifter står lodret
                     over de faktiske kolonner i hver række. */}
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
-                <span className="hidden sm:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
+                <span className="hidden xl:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
               </div>
               <div className="divide-y divide-border">
                 {filteredActive.map((emp) => (
@@ -575,16 +575,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
 
           {filteredInactive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 xl:grid-cols-[minmax(0,1fr)_8rem_8rem_10rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Deaktiverede</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {filteredInactive.length} {filteredInactive.length === 1 ? "medarbejder" : "medarbejdere"}
                   </p>
                 </div>
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
-                <span className="hidden sm:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
+                <span className="hidden xl:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
               </div>
               <div className="divide-y divide-border">
                 {filteredInactive.map((emp) => (
@@ -706,7 +706,7 @@ const EmployeeRow = ({
     <TooltipProvider delayDuration={200}>
     <div
       className={`group grid w-full gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem] sm:items-center
+                  xl:grid-cols-[minmax(0,1fr)_8rem_8rem_10rem] xl:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
@@ -721,9 +721,9 @@ const EmployeeRow = ({
                 type="button"
                 aria-label="Skift billede eller farve"
                 title="Skift billede eller farve"
-                className="relative h-10 w-10 shrink-0 rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-foreground/20 hover:ring-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2"
+                className="relative h-11 w-11 shrink-0 rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-foreground/20 hover:ring-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2"
               >
-                <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={40} className="border border-border text-sm" />
+                <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={44} className="border border-border text-sm" />
                 <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-background bg-card text-muted-foreground shadow-sm">
                   <Pencil className="h-2.5 w-2.5" />
                 </span>
@@ -759,7 +759,7 @@ const EmployeeRow = ({
               <div>
                 <p className="text-xs font-semibold text-foreground">Profilbillede</p>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <label className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-[11px] font-medium text-foreground hover:bg-secondary">
+                  <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-[11px] font-medium text-foreground hover:bg-secondary">
                     {uploading ? "Uploader…" : (employee.avatar_url ? "Skift billede" : "Upload billede")}
                     <input
                       type="file"
@@ -770,13 +770,13 @@ const EmployeeRow = ({
                     />
                   </label>
                   {employee.avatar_url && (
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={handleRemoveAvatar}
-                      className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
+                      className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
                     >
                       Fjern
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -787,18 +787,19 @@ const EmployeeRow = ({
                     {ROUTE_COLORS.find((c) => c.value === fallbackColor)?.name || "Brugerdefineret"}
                   </p>
                 </div>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {ROUTE_COLORS.map((c) => {
                     const selected = fallbackColor === c.value;
                     return (
-                      <button
+                      <Button variant="ghost"
                         key={c.value}
                         type="button"
                         onClick={() => handlePickColor(c.value)}
                         title={c.name}
                         aria-label={c.name}
+                        aria-pressed={selected}
                         className={cn(
-                          "h-8 w-8 rounded-md border border-border/60 transition-all hover:scale-110",
+                          "h-11 w-11 p-0 rounded-md border border-border/60 transition-colors",
                           selected && "ring-2 ring-offset-2 ring-foreground ring-offset-background",
                         )}
                         style={{ background: c.value }}
@@ -836,7 +837,7 @@ const EmployeeRow = ({
             </div>
             {/* Mobile-only: status + indtjening som chips, da kolonnerne først
                 vises fra sm: og opefter. */}
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 xl:hidden">
               {!employee.is_active ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
@@ -862,7 +863,7 @@ const EmployeeRow = ({
 
         {/* Kontostatus — viser altid en status så kolonnen ikke står tom.
             Aktiv (grøn) · Afventer login (gul) · Deaktiveret (grå). */}
-        <div className="hidden sm:flex flex-col items-end justify-center gap-1 text-right">
+        <div className="hidden xl:flex flex-col items-end justify-center gap-1 text-right">
           {!employee.is_active ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
@@ -888,7 +889,7 @@ const EmployeeRow = ({
         </div>
 
         {/* Indtjening for valgt periode */}
-        <div className="hidden sm:flex flex-col items-end justify-center text-right">
+        <div className="hidden xl:flex flex-col items-end justify-center text-right">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="cursor-help">
@@ -923,7 +924,7 @@ const EmployeeRow = ({
             variant="ghost"
             size="icon"
             onClick={() => setTasksOpen(true)}
-            className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground"
             aria-label={`Se aftaler for ${employee.name}`}
           >
             <ListChecks className="h-4 w-4" />
@@ -942,7 +943,7 @@ const EmployeeRow = ({
               setEditEmployeeNumber((employee as any).employee_number || "");
               setEditOpen(true);
             }}
-            className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground"
             aria-label={`Rediger ${employee.name}`}
           >
             <Pencil className="h-4 w-4" />
@@ -955,7 +956,7 @@ const EmployeeRow = ({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Flere handlinger"
                   >
                     <MoreHorizontal className="h-4 w-4" />
@@ -964,7 +965,7 @@ const EmployeeRow = ({
               </TooltipTrigger>
               <TooltipContent>Flere handlinger</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)] [&_[role=menuitem]]:min-h-11 [&_[role=menuitem]]:whitespace-normal">
               <DropdownMenuLabel className="text-xs">{employee.name || "Medarbejder"}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1050,17 +1051,17 @@ const EmployeeRow = ({
           </DropdownMenu>
         </div>
 
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="modal-large flex flex-col p-0 gap-0 overflow-hidden">
+      <Dialog open={editOpen} onOpenChange={(open) => { if (!onUpdate.isPending) setEditOpen(open); }}>
+        <DialogContent className="modal-large planner-overlay max-h-[calc(100dvh-1rem)] flex flex-col p-0 gap-0 overflow-hidden">
           {/* Header med avatar — skaber visuel kontekst, så man med det samme
               ved hvilken medarbejder man redigerer. */}
           {/* Status-badge er flyttet ned under titel, så den ikke kolliderer
               med Dialog'ens luk-knap (X) i højre hjørne. */}
-          <div className="flex items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4 pr-12">
+          <div className="planner-overlay-header shrink-0 flex items-center gap-3 border-b border-border px-4 py-3 pr-12 sm:px-5 sm:pr-12">
             <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={44} className="border border-border" />
             <div className="min-w-0 flex-1">
               <DialogHeader className="space-y-0.5 text-left">
-                <DialogTitle className="text-base font-semibold text-foreground truncate">
+                <DialogTitle className="break-words text-base font-semibold text-foreground">
                   Rediger {employee.name || "medarbejder"}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -1085,7 +1086,7 @@ const EmployeeRow = ({
           </div>
 
           {/* Sektioner — grupperet for at gøre det nemt at scanne */}
-          <div className="max-h-[70vh] overflow-y-auto px-5 py-5 space-y-5">
+          <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto px-4 py-3 space-y-4 sm:px-5 [&_input]:min-h-11">
             {/* Kontakt */}
             <section>
               <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1158,7 +1159,7 @@ const EmployeeRow = ({
               </h4>
               <div className="rounded-xl border border-border bg-card p-4">
                 <FieldLabel optional>Provision af udførte aftaler</FieldLabel>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1">
                     <Input
                       type="number"
@@ -1258,12 +1259,12 @@ const EmployeeRow = ({
                     {businessSkillOptions.map((key) => {
                       const selected = editSkillKeys.includes(key);
                       return (
-                        <button key={key} type="button"
+                        <Button key={key} type="button" variant={selected ? "default" : "outline"} aria-pressed={selected}
                           onClick={() => setEditSkillKeys((prev) =>
                             prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key],
                           )}
                           className={cn(
-                            "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                            "min-h-11 inline-flex items-center gap-1 rounded-md border px-3 text-sm font-medium transition",
                             selected
                               ? "border-foreground bg-foreground text-background"
                               : "border-border bg-card text-foreground hover:bg-secondary/60",
@@ -1272,7 +1273,7 @@ const EmployeeRow = ({
                           {selected && <span aria-hidden>✓</span>}
                           <IndustryIcon category={key} className="h-5 w-5 shrink-0" alt={key} />
                           {key}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -1281,8 +1282,8 @@ const EmployeeRow = ({
             </section>
           </div>
 
-          <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-3">
-            <Button variant="ghost" onClick={() => setEditOpen(false)} className="h-9">Annuller</Button>
+          <DialogFooter className="shrink-0 gap-2 border-t border-border px-4 py-3 sm:px-5">
+            <Button variant="outline" disabled={onUpdate.isPending} onClick={() => setEditOpen(false)} className="h-11">Annullér</Button>
             <PrimaryButton
               onClick={() => {
                 if (!editName.trim() || !editEmail.trim()) {
@@ -1587,16 +1588,16 @@ const EmployeeTasksDialog = ({
               { k: "upcoming", label: `Planlagt (${upcoming.length})` },
               { k: "completed", label: `Udført (${completed.length})` },
             ] as const).map((t) => (
-              <button
+              <Button type="button" variant="ghost" aria-pressed={tab === t.k}
                 key={t.k}
                 onClick={() => setTab(t.k)}
                 className={cn(
-                  "h-8 rounded text-xs font-medium transition-colors",
+                  "min-h-11 rounded text-sm font-medium transition-colors",
                   tab === t.k ? "bg-accent/10 text-foreground ring-1 ring-accent/40" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t.label}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -1625,7 +1626,7 @@ const EmployeeTasksDialog = ({
             ) : (
               <ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-background">
                 {list.map((s: any) => (
-                  <li key={s.id} className="flex items-start justify-between gap-3 px-3 py-2.5">
+                  <li key={s.id} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-foreground">{s.customer_name || s.service_summary || "Aftale"}</p>
                       {s.service_summary && s.customer_name && (
@@ -1637,8 +1638,8 @@ const EmployeeTasksDialog = ({
                         </p>
                       )}
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="flex items-center justify-end gap-1 text-xs capitalize text-muted-foreground">
+                    <div className="shrink-0 text-left sm:text-right">
+                      <p className="flex items-center gap-1 text-xs capitalize text-muted-foreground sm:justify-end">
                         <Clock className="h-3 w-3" />
                         {fmtDate(tab === "completed" ? s.completed_at : s.routes?.route_date)}
                       </p>
@@ -1658,7 +1659,7 @@ const EmployeeTasksDialog = ({
 
         <SheetFooterBar>
           <div className="flex justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Luk</Button>
+            <Button variant="outline" className="min-h-11" onClick={() => onOpenChange(false)}>Luk</Button>
           </div>
         </SheetFooterBar>
       </DialogContent>

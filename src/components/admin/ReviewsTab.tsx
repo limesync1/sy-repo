@@ -6,6 +6,7 @@ import { StatGridSkeleton, ListCardSkeleton, PageHeaderSkeleton, Skeleton } from
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   reviews: any[];
@@ -39,7 +40,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
     let list = reviews;
     if (ratingFilter !== "all") list = list.filter((r) => r.rating === ratingFilter);
     if (!search.trim()) return list;
-    const q = search.toLowerCase();
+    const q = search.trim().toLowerCase();
     return list.filter((r) =>
       (r.reviewer_name || "").toLowerCase().includes(q) ||
       (r.comment || "").toLowerCase().includes(q),
@@ -60,7 +61,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
         <div className="flex flex-wrap items-center gap-2">
           <Skeleton className="h-3 w-16" />
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-7 w-14" />
+            <Skeleton key={i} className="h-11 w-14" />
           ))}
         </div>
         <ListCardSkeleton rows={4} />
@@ -81,11 +82,11 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
           label="Gennemsnit"
           value={
             <span className="inline-flex items-center gap-1.5">
-              {reviews.length > 0 ? avgRating.toFixed(1) : "—"}
+              {reviews.length > 0 ? avgRating.toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "—"}
               {reviews.length > 0 && (
                 <span className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className={`h-3.5 w-3.5 ${s <= Math.round(avgRating) ? "fill-amber-400 text-amber-400" : "text-border"}`} />
+                    <Star key={s} aria-hidden="true" className={`h-3.5 w-3.5 ${s <= Math.round(avgRating) ? "fill-warning text-warning" : "text-border"}`} />
                   ))}
                 </span>
               )}
@@ -99,8 +100,8 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mr-1">Filtrer:</span>
-        <div className="flex flex-wrap gap-1">
+        <span className="text-sm font-medium text-muted-foreground mr-1">Bedømmelse</span>
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Bedømmelse">
           {([
             { key: "all" as const, label: "Alle", count: reviews.length },
             { key: 5 as const, label: "5 ★", count: aggregate.counts[5] },
@@ -109,22 +110,22 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
             { key: 2 as const, label: "2 ★", count: aggregate.counts[2] },
             { key: 1 as const, label: "1 ★", count: aggregate.counts[1] },
           ]).map(({ key, label, count }) => (
-            <button
+            <Button
+              type="button"
+              variant={ratingFilter === key ? "default" : "outline"}
               key={key}
+              aria-pressed={ratingFilter === key}
+              aria-label={key === "all" ? `Alle anmeldelser (${count})` : `${key} stjerner (${count})`}
               onClick={() => setRatingFilter(key)}
-              className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                ratingFilter === key
-                  ? "border-foreground/30 bg-foreground text-background"
-                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
+              className="min-h-11 gap-1.5 px-3 text-sm"
             >
               {label}
               {count > 0 && (
-                <span className={`ml-1.5 rounded px-1 text-[10px] font-semibold tabular-nums ${
+                <span className={`rounded px-1 text-xs font-semibold tabular-nums ${
                   ratingFilter === key ? "bg-background/20" : "bg-secondary text-foreground/70"
                 }`}>{count}</span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -151,7 +152,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2 sm:px-4">
             <div className="min-w-0">
-              <h3 className="text-xs font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 {ratingFilter === "all" ? "Alle anmeldelser" : `${ratingFilter}-stjernede anmeldelser`}
                 <span className="ml-1.5 font-normal text-muted-foreground">· {filtered.length}</span>
               </h3>
@@ -169,24 +170,24 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <h3 className="text-xs font-semibold text-foreground truncate">{review.reviewer_name}</h3>
-                      <div className="flex items-center gap-0.5">
+                      <h3 className="min-w-0 max-w-full break-words text-sm font-semibold text-foreground">{review.reviewer_name || "Anonym kunde"}</h3>
+                      <div className="flex shrink-0 items-center gap-0.5" role="img" aria-label={`${review.rating} af 5 stjerner`}>
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className={`h-3 w-3 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-border"}`} />
+                          <Star key={star} aria-hidden="true" className={`h-3.5 w-3.5 ${star <= review.rating ? "fill-warning text-warning" : "text-border"}`} />
                         ))}
                       </div>
                       {review.is_verified && (
-                        <span className="inline-flex items-center gap-1 rounded text-[10px] font-medium text-emerald-700">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <span className="inline-flex items-center gap-1 rounded text-xs font-medium text-success">
+                          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                           Verificeret
                         </span>
                       )}
-                      <span className="ml-auto text-[10px] text-muted-foreground whitespace-nowrap">
+                      <span className="w-full text-xs text-muted-foreground sm:ml-auto sm:w-auto">
                         {new Date(review.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     </div>
                     {review.comment && (
-                      <p className="mt-1 text-[13px] text-foreground/85 leading-snug">{review.comment}</p>
+                      <p className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed [overflow-wrap:anywhere]">{review.comment}</p>
                     )}
                   </div>
                 </div>
