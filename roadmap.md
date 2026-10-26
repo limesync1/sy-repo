@@ -1,6 +1,7 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## Forbedringer i mindre dele (26. okt.)
+- [ ] Del 5: Hele medarbejderpanelet — navigation, overblik, ruter, tidsregistrering, historik, profil og vinduer; kortlægning pågår, forbedringer og skærmtests udføres i mindre dele uden at ændre manuel tid eller GPS-logik.
 - [x] Del 1a: Bestilling lukker efter gemte data uden at vente på mail; fjernet unødigt virksomhedsopslag. Kunder vises straks med bevarede tal. Services venter ikke på listegenindlæsning; dobbeltklik og retry efter delvis beregnergemning beskyttet. 22 tests bestået.
 - [x] Del 1b: Ruteoprettelse genindlæser lokalt én gang efter stopgruppen, medarbejderopslag samlet i ét kald, fremdrift gennem hele gemningen, partial retry på samme rute/rækkefølge og korrekte fejl ved datoflytning. Datovælgerens genveje respekterer minimum og har større knapper. 27 tests bestået; ingen reel rutegemning målt.
 - [x] Del 1d: Bestillingsgemning bevarer samme ordre- og varelinje-ID ved fejl, kontrollerer usikre writes før retry og springer gemte trin over. Beregnerfelter/priser/interval fastholdes i gemmesnapshot. Formularen låses ved delvis gemning. Fem nye regeltests; isoleret browserflow med afbrudt varelinjegemning gav én ordre, to varelinjeforsøg og én mail efter fuld gemning. Beskyttelsen gælder i det åbne vindue; genindlæsning/fane lukket og atomisk serverside-gemning er ikke dækket.
