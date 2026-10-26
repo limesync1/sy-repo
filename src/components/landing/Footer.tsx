@@ -57,7 +57,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-10 lg:[&_a]:min-h-8 [&_a]:items-center [&_a]:py-0.5 [&_a]:leading-snug">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-11 lg:[&_a]:min-h-8 [&_a]:items-center [&_a]:py-0.5 [&_a]:leading-snug">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
             <ul className="text-sm text-background/65">
