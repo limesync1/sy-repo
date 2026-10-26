@@ -1,7 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## Forbedringer i mindre dele (26. okt.)
-- [ ] Del 1: Hurtigere og robust oprettelse/gemning af bestillinger, kunder, services og ruter; test de ændrede forløb.
+- [x] Del 1a: Bestilling lukker efter gemte data uden at vente på mail; fjernet unødigt virksomhedsopslag. Kunder vises straks med bevarede tal. Services venter ikke på listegenindlæsning; dobbeltklik og retry efter delvis beregnergemning beskyttet. 22 tests bestået.
+- [ ] Del 1b: Ruteoprettelse med mange stops og resterende delvise gemmefejl; behold validering og dubletbeskyttelse.
+- [ ] Del 1c: Reel oprettelse/gemning og hastighedsmåling på virksomhedsdata. Blokeret: den tilgængelige egen konto åbner oprettelse af virksomhed, ikke et eksisterende virksomhedspanel; ingen testdata er skrevet.
 - [ ] Del 2: Knapper, filtre og værktøjslinjer i hele virksomhedspanelet på mobil, tablet og computer.
 - [ ] Del 3: Formularer, dropdowns, kalendere og vinduer; fuld klikgennemgang side for side.
 - [ ] Del 4: Synkronisering og statistik på tværs af enheder, inklusive beskeder/regnskab; verificér med to samtidige skærme.
