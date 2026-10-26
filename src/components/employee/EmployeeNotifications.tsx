@@ -30,19 +30,19 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, on
   const unread = notifications.filter((item) => !item.read_at).length;
   return (
     <div className="flex min-h-0 flex-col bg-card">
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2.5">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-3 py-2.5">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground tracking-tight">Notifikationer</p>
-          <p className="text-[11px] text-muted-foreground">{unread ? `${unread} ulæste beskeder` : "Alt er læst"}</p>
+          <p className="text-xs text-muted-foreground">{unread ? `${unread} ulæste beskeder` : "Alt er læst"}</p>
         </div>
         <div className="flex items-center gap-1">
           {unread > 0 && (
-            <Button variant="ghost" size="sm" className="h-8 shrink-0 gap-1.5 px-2 text-xs" onClick={onMarkAllRead} disabled={markingAll}>
+            <Button variant="ghost" size="sm" className="h-11 shrink-0 gap-1.5 px-2 text-xs" onClick={onMarkAllRead} disabled={markingAll}>
               <CheckCheck className="h-3.5 w-3.5" /> Alle læst
             </Button>
           )}
           {notifications.length > 0 && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={onDeleteAll} aria-label="Slet alle notifikationer">
+            <Button variant="ghost" size="icon" className="h-11 w-11 text-muted-foreground hover:text-destructive" onClick={onDeleteAll} aria-label="Slet alle notifikationer">
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           )}
@@ -61,33 +61,31 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, on
           return (
             <div
               key={item.id}
-              role="button"
-              tabIndex={0}
               className={cn(
-                "mb-1 flex w-full cursor-pointer items-start gap-2.5 rounded-[5px] border px-2.5 py-2.5 text-left transition-colors hover:bg-secondary hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:bg-muted",
+                "mb-1 flex w-full items-start gap-2.5 rounded-[5px] border px-2.5 py-2.5 text-left transition-colors hover:bg-secondary hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:bg-muted",
                 item.read_at ? "border-transparent bg-transparent" : "border-accent/25 bg-accent/5 dark:bg-accent/15",
               )}
-              onClick={() => onOpen(item)}
-              onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen(item); } }}
             >
+              <Button variant="ghost" onClick={() => onOpen(item)} className="h-auto min-h-11 min-w-0 flex-1 items-start justify-start whitespace-normal p-0 text-left">
               <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]", item.read_at ? "bg-secondary text-muted-foreground" : "bg-accent/12 text-accent")}>
                 {isStop ? <MapPin className="h-4 w-4" /> : <RouteIcon className="h-4 w-4" />}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">
+                  <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-xs font-semibold text-foreground tracking-tight">
                     {isStop ? `Aftale · ${item.route_stops?.customer_name}` : `Rute · ${item.routes?.name || "Planlagt rute"}`}
                   </span>
                   {!item.read_at && <span className="h-2 w-2 shrink-0 rounded-full bg-destructive" aria-label="Ulæst" />}
                 </span>
-                <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                <span className="mt-0.5 block text-xs text-muted-foreground">
                   {item.routes?.route_date ? format(parseISO(item.routes.route_date), "d. MMM", { locale: da }) + " · " : ""}
                   {formatDistanceToNow(parseISO(item.created_at), { addSuffix: true, locale: da })}
                 </span>
-                {item.route_stops?.address && <span className="mt-1 block truncate text-[11px] text-muted-foreground">{item.route_stops.address}</span>}
+                {item.route_stops?.address && <span className="mt-1 block break-words [overflow-wrap:anywhere] text-xs text-muted-foreground">{item.route_stops.address}</span>}
                 <span className="mt-1 block text-xs font-normal leading-relaxed text-foreground">{item.message}</span>
               </span>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={(event) => { event.stopPropagation(); onDelete(item.id); }} aria-label="Slet notifikation">
+              </Button>
+              <Button type="button" variant="ghost" size="icon" className="h-11 w-11 shrink-0 text-muted-foreground hover:text-destructive" onClick={(event) => { event.stopPropagation(); onDelete(item.id); }} aria-label="Slet notifikation">
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

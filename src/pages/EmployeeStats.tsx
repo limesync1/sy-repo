@@ -162,7 +162,7 @@ const EmployeeStats = () => {
           onClick={() => { setRange(k); setCustomRange(undefined); }}
           aria-pressed={range === k}
           className={cn(
-            "h-11 flex-1 shrink-0 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:h-9 sm:flex-none",
+            "h-11 flex-1 shrink-0 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:flex-none",
             range === k
               ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -177,7 +177,7 @@ const EmployeeStats = () => {
             size="sm"
             variant="outline"
             className={cn(
-              "h-11 flex-1 shrink-0 gap-1.5 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:h-9 sm:flex-none",
+              "h-11 flex-1 shrink-0 gap-1.5 rounded-[5px] px-3 text-xs font-semibold transition-colors active:scale-[0.98] sm:flex-none",
               range === "custom"
                 ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
                 : "text-foreground hover:bg-secondary hover:text-foreground",
@@ -187,7 +187,7 @@ const EmployeeStats = () => {
             {range === "custom" ? customLabel : "Vælg datoer"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-2rem)] overflow-auto p-0" align="end" collisionPadding={8}>
           <Calendar
             mode="range"
             selected={customRange}
@@ -220,7 +220,7 @@ const EmployeeStats = () => {
               },
             }}
           />
-          <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-foreground" />Arbejdet</span>
             <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Rute</span>
             <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-success" />Indtjening</span>
@@ -263,24 +263,24 @@ const EmployeeStats = () => {
                      <BrandedIllustration name="earnings" alt="" />
                   </StatIconTile>
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-xs sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Min indtjening
                     </p>
                     <p className="mt-0.5 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">
                       {formatKr(s.commission)}
                     </p>
-                    <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-muted-foreground">
+                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-xs text-muted-foreground">
                       Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført aftale" : "udførte aftaler"}
                     </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-1 sm:text-right">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Periode</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Periode</p>
                     <p className="text-xs sm:text-sm font-semibold tabular-nums text-foreground">{headerLabel}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Gennemført</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Gennemført</p>
                     <p className="text-xs sm:text-sm font-semibold tabular-nums text-foreground">
                       {s.stopsTotal > 0 ? `${Math.round((s.stopsCompleted / s.stopsTotal) * 100)}%` : "—"}
                     </p>
@@ -310,7 +310,7 @@ const EmployeeStats = () => {
                      <BrandedIllustration name={icon} alt="" />
                   </StatIconTile>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
                     <p className="mt-0.5 break-words text-lg font-bold tabular-nums text-foreground">{value}</p>
                   </div>
                 </div>
@@ -346,7 +346,7 @@ const EmployeeStats = () => {
                                 <p className="text-sm font-semibold text-foreground first-letter:uppercase">
                                   {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
                                 </p>
-                                <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
+                                <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
                                   {d.stops} {d.stops === 1 ? "aftale" : "aftaler"}
                                 </p>
                               </div>
@@ -363,7 +363,7 @@ const EmployeeStats = () => {
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground">Min andel ekskl. moms</p>
+                                  <p className="text-xs text-muted-foreground">Min andel ekskl. moms</p>
                                 </div>
                                 <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", openDay === d.date && "rotate-180")} />
                               </div>
@@ -385,13 +385,13 @@ const EmployeeStats = () => {
                                       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                                         <div className="min-w-0 space-y-1.5">
                                           <div className="flex flex-wrap items-center gap-2">
-                                            <p className="truncate text-sm font-semibold text-foreground tracking-tight">
+                                            <p className="break-words [overflow-wrap:anywhere] text-sm font-semibold text-foreground tracking-tight">
                                               {e.customerName || "Aftale"}
                                             </p>
                                             <Badge
                                               variant="outline"
                                               className={cn(
-                                                "inline-flex h-5 w-fit gap-1 border px-1.5 text-[10px] font-medium",
+                                                "inline-flex h-5 w-fit gap-1 border px-1.5 text-xs font-medium",
                                                 PAYMENT_BADGE_OUTLINE[e.paymentStatus],
                                               )}
                                             >
@@ -401,7 +401,7 @@ const EmployeeStats = () => {
                                           {e.serviceName && (
                                             <p className="text-xs text-muted-foreground">{e.serviceName}</p>
                                           )}
-                                           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                                           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                                              {e.completedAt && (
                                                <span className="inline-flex items-center gap-1">
                                                  <CheckCircle2 className="h-3 w-3" />
@@ -422,7 +422,7 @@ const EmployeeStats = () => {
                                             )}
                                           </div>
                                           {e.note && (
-                                            <p className="mt-1 flex items-start gap-1.5 rounded-[5px] bg-card px-2 py-1.5 text-[11px] text-muted-foreground">
+                                            <p className="mt-1 flex items-start gap-1.5 rounded-[5px] bg-card px-2 py-1.5 text-xs text-muted-foreground">
                                               <FileText className="mt-0.5 h-3 w-3 shrink-0" />
                                               <span>{e.note}</span>
                                             </p>
@@ -430,13 +430,13 @@ const EmployeeStats = () => {
                                         </div>
                                         <div className="flex items-center justify-between gap-4 rounded-[5px] bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
-                                            <p className="text-[10px] text-muted-foreground">Total inkl. moms</p>
+                                            <p className="text-xs text-muted-foreground">Total inkl. moms</p>
                                             <p className="text-xs font-medium tabular-nums text-muted-foreground">
                                               {formatKr(e.orderAmount)}
                                             </p>
                                           </div>
                                           <div className="text-right">
-                                            <p className="text-[10px] text-muted-foreground">Min andel ekskl. moms</p>
+                                            <p className="text-xs text-muted-foreground">Min andel ekskl. moms</p>
                                             <p className="text-sm font-bold tabular-nums text-foreground">
                                               {formatKr(e.share)}
                                             </p>
