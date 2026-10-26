@@ -18,6 +18,7 @@ type Props = {
   /** Kaldes når kalender-popoveren åbner/lukker. Bruges af nested sheets/dialoger til at undgå outside-click races. */
   onCalendarOpenChange?: (open: boolean) => void;
   className?: string;
+  disabled?: boolean;
   /** Mindste tilladte dato (ISO yyyy-MM-dd). Default: ingen. */
   minDate?: string;
   /** Datoer der allerede har ruter — vises som accent-prik i kalenderen. */
@@ -31,12 +32,13 @@ type Props = {
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const DatePickerField = ({
-  value, onChange, onCalendarOpenChange, className, minDate, routeDates, busyDates, overloadedDates,
+  value, onChange, onCalendarOpenChange, className, minDate, routeDates, busyDates, overloadedDates, disabled = false,
 }: Props) => {
   const [open, setOpen] = useState(false);
   const date = value ? parseISO(value) : undefined;
 
   const setCalendarOpen = (nextOpen: boolean) => {
+    if (disabled && nextOpen) return;
     setOpen(nextOpen);
     onCalendarOpenChange?.(nextOpen);
   };
@@ -62,9 +64,10 @@ export const DatePickerField = ({
       <PopoverTrigger asChild>
         <Button
           type="button"
+          disabled={disabled}
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-medium h-10 border-accent/40 bg-accent/5",
+            "w-full justify-start text-left font-medium min-h-11 border-accent/40 bg-accent/5",
             "hover:bg-accent/10 hover:text-foreground hover:border-accent/60",
             !date && "text-muted-foreground",
             className,
@@ -81,13 +84,13 @@ export const DatePickerField = ({
       <PopoverContent className="w-auto p-0" align="start">
         {/* Quick-knapper */}
         <div className="border-b p-2 flex flex-wrap gap-1">
-          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => quickPick(today)}>
+          <Button size="sm" variant="ghost" className="h-11 text-sm" disabled={!!minDate && ymd(today) < minDate} onClick={() => quickPick(today)}>
             I dag
           </Button>
-          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => quickPick(tomorrow)}>
+          <Button size="sm" variant="ghost" className="h-11 text-sm" disabled={!!minDate && ymd(tomorrow) < minDate} onClick={() => quickPick(tomorrow)}>
             I morgen
           </Button>
-          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => quickPick(nextMonday)}>
+          <Button size="sm" variant="ghost" className="h-11 text-sm" disabled={!!minDate && ymd(nextMonday) < minDate} onClick={() => quickPick(nextMonday)}>
             Næste mandag
           </Button>
         </div>
