@@ -676,15 +676,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         .eq("status", "success").eq("direction", "pull")
         .order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
-    if (!options?.statusOnly && data) {
+    if (data) {
       const d = data as any as Integration;
       setIntegration(d);
-      setProvider(d.provider);
-      setCreds({
-        api_token: d.api_token ?? "", api_secret: d.api_secret ?? "",
-        agreement_number: d.agreement_number ?? "", organization_id: d.organization_id ?? "",
-      });
-      setSettings({ ...defaultSettings, ...(d.settings ?? {}) });
+      if (!options?.statusOnly) {
+        setProvider(d.provider);
+        setCreds({
+          api_token: d.api_token ?? "", api_secret: d.api_secret ?? "",
+          agreement_number: d.agreement_number ?? "", organization_id: d.organization_id ?? "",
+        });
+        setSettings({ ...defaultSettings, ...(d.settings ?? {}) });
+      }
       if (!options?.preserveMode) setMode("overview");
     } else if (!options?.statusOnly) {
       setIntegration(null);
