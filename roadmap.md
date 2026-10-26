@@ -9,7 +9,8 @@
 - [x] Del 2a/3a: Medarbejdere + Anmeldelser: større filter-/handlingsknapper, tabletvenlige medarbejderrækker, fast bundlinje og højdebegrænsning i medarbejdervinduer, læsbare anmeldelsesnavne/datoer/kommentarer og danske decimaltal. Fælles søgning, primærknapper og pagination mindst 44 px. Isoleret kliktest 320/390/768/1280 px i begge temaer uden runtimefejl; 16 regressionstests bestået. Gemning på rigtig virksomhed fortsat blokeret som Del 1c.
 - [x] Del 2b/3b: Regnskab + Indstillinger: større knapper/tidsvalg, tilgængelige filtre og switches, regnskabslog uden afskårne referencer, viewportbegrænset frakoblingsvindue og fleksible kolonner. Billedfelter tåler kontoindlæsning. Isolerede kliktests 320/390/768/1280 px i begge temaer uden runtimefejl; 19 regressionstests bestået. Ingen rigtige regnskabs-/betalings-/indstillingsændringer udført.
 - [ ] Del 3: Formularer, dropdowns, kalendere og vinduer; fuld klikgennemgang side for side.
-- [ ] Del 4: Synkronisering og statistik på tværs af enheder, inklusive beskeder/regnskab; verificér med to samtidige skærme.
+- [x] Del 4a: Seneste beskeder, regnskabslog/kø/fejl, fakturabatches og medarbejderstatistik er tilføjet til global synkronisering. Syv tabeller verificeret med publikation og eksisterende rækkeadgang. Regnskabets lokale status lytter med uden skeleton/draft-reset; ingen regnskabsnøgler i realtime. 14 tests bestået, herunder faktisk query-genlæsning af statistik, event-bursts og genforbindelse; build OK.
+- [ ] Del 4b: Synkronisering på to samtidige skærme med rigtig virksomhed. Blokeret som Del 1c: egen konto viser virksomhedsoprettelse. Integrationens indstillinger og chat i lokal state er ikke dækket af Del 4a; ingen rigtig afsendelse/regnskabsændring udført.
 
 Kilde: MASTER_PROMPT_COMPLETE_AUDIT_AND_REFINEMENT_OF_pasted.md
 Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen schema-/dataændringer.
