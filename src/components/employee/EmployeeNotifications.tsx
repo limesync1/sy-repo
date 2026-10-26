@@ -37,7 +37,7 @@ export const EmployeeNotifications = ({ notifications, onOpen, onMarkAllRead, on
         </div>
         <div className="flex items-center gap-1">
           {unread > 0 && (
-            <Button variant="ghost" size="sm" className="h-11 shrink-0 gap-1.5 px-2 text-xs" onClick={onMarkAllRead} disabled={markingAll}>
+            <Button variant="ghost" size="sm" className="h-11 shrink-0 gap-1.5 px-2 text-xs text-foreground" onClick={onMarkAllRead} disabled={markingAll}>
               <CheckCheck className="h-3.5 w-3.5" /> Alle læst
             </Button>
           )}
