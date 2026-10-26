@@ -454,14 +454,16 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
                 disabled={isWorking}
                 className="h-11 pr-10"
               />
-              <button
+              <Button variant="ghost" size="icon"
                 type="button"
                 onClick={onToggleSecret}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                aria-label={showSecret ? "Skjul" : "Vis"}
+                disabled={isWorking}
+                className="absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground"
+                aria-label={showSecret ? "Skjul hemmelig kode" : "Vis hemmelig kode"}
+                aria-pressed={showSecret}
               >
                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+              </Button>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Den hemmelige kode vises kun én gang i Dinero — husk at kopiere den med det samme.</p>
           </div>
@@ -1420,7 +1422,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    * ============================================================ */
   if (mode === "overview" && !integration?.is_active) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 [&_input]:min-h-11">
         <PageHeader
           title="Regnskab"
           description="Forbind dit regnskabsprogram, så kunder, services og aftaler holder sig opdateret begge steder — automatisk."
@@ -1448,7 +1450,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           {PROVIDERS.map(p => (
             <button
               key={p.value}
@@ -1492,7 +1494,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     const pendingCount = Math.max(queueCount - failedCount, 0);
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 [&_input]:min-h-11">
         <PageHeader
           title="Regnskab"
           description={`Du er forbundet med ${activeDef.label}. Det hele kører af sig selv.`}
@@ -1794,7 +1796,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 variant="outline"
                 onClick={handleRetryAllFailed}
                 disabled={syncing}
-                className="h-9 rounded-lg text-xs font-medium"
+                className="min-h-11 rounded-md text-xs font-medium"
               >
                 {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
                 Prøv alle igen
@@ -1821,7 +1823,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       {job.last_error || "Ukendt fejl"}
                     </div>
                     <details className="group">
-                      <summary className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground select-none">
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground select-none">
                         Vis tekniske detaljer
                       </summary>
                       <button
@@ -1830,7 +1832,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                           navigator.clipboard.writeText(job.entity_id);
                           toast.success("Reference kopieret");
                         }}
-                        className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                        className="mt-1 inline-flex min-h-11 max-w-full flex-wrap items-center gap-1 break-all font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
                         title="Klik for at kopiere — gem den hvis du kontakter support"
                       >
                         <Copy className="h-3 w-3" />
@@ -1842,7 +1844,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     variant="outline"
                     onClick={() => handleRetryJob(job.id)}
                     disabled={retryingJobId === job.id}
-                    className="h-9 rounded-lg text-xs font-medium sm:w-auto"
+                    className="min-h-11 rounded-md text-xs font-medium sm:w-auto"
                   >
                     {retryingJobId === job.id
                       ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -1881,13 +1883,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       {job.last_error || "Ukendt fejl"}
                     </div>
                     <details className="group">
-                      <summary className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground select-none">
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground select-none">
                         Vis tekniske detaljer
                       </summary>
                       <button
                         type="button"
                         onClick={() => { navigator.clipboard.writeText(job.entity_id); toast.success("Reference kopieret"); }}
-                        className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                        className="mt-1 inline-flex min-h-11 max-w-full flex-wrap items-center gap-1 break-all font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
                         title="Klik for at kopiere — gem den hvis du kontakter support"
                       >
                         <Copy className="h-3 w-3" />
@@ -1895,12 +1897,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       </button>
                     </details>
                   </div>
-                  <div className="flex gap-2 sm:flex-col">
+                  <div className="flex flex-wrap gap-2 sm:flex-col">
                     <Button
                       variant="outline"
                       onClick={() => handleDlqRetry(job.id)}
                       disabled={dlqActionId === job.id}
-                      className="h-9 rounded-lg text-xs font-medium"
+                      className="min-h-11 rounded-md text-xs font-medium"
                     >
                       {dlqActionId === job.id
                         ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -1911,7 +1913,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       variant="ghost"
                       onClick={() => handleDlqDismiss(job.id)}
                       disabled={dlqActionId === job.id}
-                      className="h-9 rounded-lg text-xs font-medium text-muted-foreground"
+                      className="min-h-11 rounded-md text-xs font-medium text-muted-foreground"
                     >
                       Jeg har ordnet det
                     </Button>
@@ -1952,7 +1954,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <div className="text-sm font-medium text-foreground">Send nye kundeforespørgsler som kladder</div>
                 <p className="mt-0.5 text-xs text-muted-foreground">Når en kunde sender en forespørgsel, kan vi oprette den som kladde i {activeDef.label}. Slå fra hvis kun bekræftede aftaler skal med.</p>
               </div>
-              <Switch checked={settings.push_pending !== false}
+              <Switch aria-label="Send nye kundeforespørgsler som kladder" checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
@@ -1960,7 +1962,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <div className="text-sm font-medium text-foreground">Hold dine services opdateret som varer</div>
                 <p className="mt-0.5 text-xs text-muted-foreground">Når du opretter eller ændrer en service her, sørger vi for at den også findes som vare i {activeDef.label}.</p>
               </div>
-              <Switch checked={settings.auto_create_products !== false}
+              <Switch aria-label="Hold services opdateret som varer" checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
             </div>
             <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
@@ -1997,10 +1999,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   value={settings.default_customer_group ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_customer_group: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Kundegruppe" className="min-h-11">
                     <SelectValue placeholder="Vælg en gruppe…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     {groups.customer_groups.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -2021,10 +2023,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   value={settings.default_product_group ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_product_group: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Varegruppe for nye services" className="min-h-11">
                     <SelectValue placeholder="Vælg en gruppe…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     {groups.product_groups.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -2045,10 +2047,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   value={settings.default_income_account ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_income_account: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Indtægtskonto" className="min-h-11">
                     <SelectValue placeholder="Vælg en konto…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     {groups.income_accounts.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -2106,7 +2108,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 variant="outline"
                 size="sm"
                 onClick={openProviderPicker}
-                className="h-9 rounded-lg text-xs font-medium"
+                className="min-h-11 rounded-md text-xs font-medium"
               >
                 <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift program
               </Button>
@@ -2114,7 +2116,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 variant="outline"
                 size="sm"
                 onClick={() => setConfirmDisable(true)}
-                className="h-9 rounded-lg border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+                className="min-h-11 rounded-md border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
               >
                 <X className="mr-1.5 h-3.5 w-3.5" /> Frakobl
               </Button>
@@ -2131,7 +2133,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             variant="ghost"
             size="sm"
             onClick={() => setShowAdvanced(v => !v)}
-            className="text-xs text-muted-foreground"
+            aria-expanded={showAdvanced}
+            className="min-h-11 whitespace-normal text-sm text-muted-foreground"
           >
             {showAdvanced ? "Skjul avancerede indstillinger" : "Vis avancerede indstillinger"}
             <ChevronDown className={`ml-1 h-3.5 w-3.5 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
@@ -2144,7 +2147,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Bekræftelses-modaler */}
         <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>
-          <AlertDialogContent className="rounded-xl">
+          <AlertDialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -2160,12 +2163,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <li className="flex gap-2"><X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" /> Nye ændringer sendes ikke længere automatisk til {activeDef.label}.</li>
             </ul>
             <AlertDialogFooter>
-              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
+              <AlertDialogCancel className="min-h-11 rounded-md text-sm font-medium">
                 Behold forbindelsen
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDisable}
-                className="h-9 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
+                className="min-h-11 rounded-md text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
               >
                 Ja, frakobl
               </AlertDialogAction>
@@ -2188,7 +2191,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <Button
             variant="outline"
             onClick={() => setMode("overview")}
-            className="h-9 rounded-lg text-xs font-medium"
+            className="min-h-11 rounded-md text-xs font-medium"
           >
             <X className="mr-1.5 h-4 w-4" /> Annullér
           </Button>
@@ -2225,7 +2228,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           icon={<Sparkles />}
           description="Du kan altid skifte program senere. Alt du har lavet i Serviceydere bliver liggende uanset hvad."
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             {PROVIDERS.map(p => {
               const isCurrent = integration?.is_active && integration.provider === p.value;
               return (
@@ -2266,7 +2269,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {step === 2 && (
         <div className={
           provider === "economic" || provider === "dinero"
-            ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
+            ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]"
             : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers

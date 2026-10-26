@@ -100,28 +100,27 @@ const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: s
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
+        <Button variant="outline"
           type="button"
           aria-label={label}
-          className="inline-flex h-9 w-[88px] items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm tabular-nums font-medium text-foreground transition-colors hover:border-foreground/40 focus:border-foreground focus:outline-none"
+          className="h-11 w-24 shrink-0 gap-1.5 px-2 text-sm tabular-nums"
         >
           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           {value}
-        </button>
+        </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[112px] p-1">
-        <div className="max-h-64 overflow-y-auto">
+      <PopoverContent align="start" collisionPadding={12} className="w-32 max-w-[calc(100vw-1.5rem)] p-1">
+        <div className="max-h-[min(16rem,var(--radix-popover-content-available-height))] overflow-y-auto" role="group" aria-label={label || "Klokkeslæt"}>
           {TIME_SLOTS.map((t) => (
-            <button
+            <Button variant={t === value ? "default" : "ghost"}
               key={t}
               type="button"
+              aria-pressed={t === value}
               onClick={() => { onChange(t); setOpen(false); }}
-              className={`block w-full rounded-md px-2 py-1.5 text-center text-sm tabular-nums transition-colors ${
-                t === value ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
-              }`}
+              className="h-11 w-full rounded-md px-2 text-center text-sm tabular-nums"
             >
               {t}
-            </button>
+            </Button>
           ))}
         </div>
       </PopoverContent>
@@ -182,24 +181,25 @@ const ToggleSwitch = forwardRef<
   HTMLButtonElement,
   { checked: boolean; onChange: () => void; label?: string }
 >(({ checked, onChange, label }, ref) => (
-  <button
+  <Button variant="ghost"
     ref={ref}
     type="button"
     onClick={onChange}
-    aria-pressed={checked}
+    role="switch"
+    aria-checked={checked}
     aria-label={label}
     // Ren switch: kun farve + thumb-position. Ingen overshoot/glow-ring som
     // ellers konkurrerede med StatusPill om opmærksomhed.
-    className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${
-      checked ? "bg-accent" : "bg-border"
-    }`}
+    className="relative h-11 w-11 shrink-0 rounded-md p-0 hover:bg-secondary"
   >
+    <span aria-hidden="true" className={`inline-flex h-5 w-9 items-center rounded-full ${checked ? "bg-accent" : "bg-border"}`}>
     <span
-      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm mt-0.5 transition-transform duration-150 ease-out ${
+      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform duration-150 ease-out ${
         checked ? "translate-x-4 ml-0.5" : "translate-x-0.5"
       }`}
     />
-  </button>
+    </span>
+  </Button>
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
 
@@ -1007,7 +1007,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               href={`/v/${business.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Se din side
@@ -1021,15 +1021,15 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[11px] font-medium text-muted-foreground mr-1">Mangler:</span>
           {completeness.checks.filter((c) => !c.done).map((c) => (
-            <button
+            <Button variant="outline"
               key={c.key}
               type="button"
               onClick={() => scrollToSection(c.section)}
-              className="group inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-all hover:border-foreground/30 hover:bg-secondary hover:text-foreground"
+              className="group min-h-11 gap-1 rounded-md px-3 text-sm text-muted-foreground"
             >
               {c.label}
               <ArrowRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -1041,8 +1041,9 @@ const SettingsTab = ({ business }: { business: any }) => {
             const sectionDone = completeness.checks.filter((c) => c.section === id);
             const allDone = sectionDone.length > 0 && sectionDone.every((c) => c.done);
             return (
-              <button
+              <Button variant="ghost"
                 key={id}
+                aria-current={activeSection === id ? "location" : undefined}
                 type="button"
                 ref={(el) => {
                   if (!el || activeSection !== id) return;
@@ -1052,7 +1053,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   parent.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
                 }}
                 onClick={() => scrollToSection(id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
+                className={`min-h-11 inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
                   activeSection === id
                     ? "brand-blue-action border-transparent text-background"
                     : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -1061,7 +1062,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <Icon />
                 {label}
                 {allDone && <CheckCircle2 className={`ml-0.5 h-3 w-3 ${activeSection === id ? "text-background" : "text-success"}`} />}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -1110,7 +1111,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                           key={id}
                           type="button"
                           onClick={() => scrollToSection(id)}
-                          className={`group relative flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-all ${
+                          aria-current={isActive ? "location" : undefined}
+                          className={`group relative flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-all ${
                             isActive
                               ? "brand-blue-action text-background shadow-sm"
                               : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
@@ -1178,7 +1180,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 {cvrResult.phone && <p className="text-xs text-muted-foreground">Tlf: {cvrResult.phone}</p>}
                 {cvrResult.email && <p className="text-xs text-muted-foreground">E-mail: {cvrResult.email}</p>}
               </div>
-              <Button size="sm" onClick={applyCvrData} className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
+              <Button size="sm" onClick={applyCvrData} className="shrink-0 min-h-11 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-medium">
                 Anvend
               </Button>
             </div>
@@ -1317,11 +1319,11 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
               <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
-                    <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
+                    {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />}
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.
@@ -1336,7 +1338,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
                   <FieldLabel optional>Coverbillede</FieldLabel>
                   <div className="mt-1">
-                    <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-[3/1]" className="w-full max-w-[420px]" />
+                    {user && <ImageUpload folder={`${user.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-[3/1]" className="w-full max-w-[420px]" />}
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises som bredt banner øverst på jeres profilside i formatet 3:1.
@@ -1765,7 +1767,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleEmployeeLoginsChange(planExtraLogins - 1)}
                             disabled={updatePlan.isPending || (planExtraLogins + 1) <= activeEmployeesCount}
-                            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                            className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
                             aria-label="Færre medarbejderlogins"
                           >
                             −
@@ -1777,7 +1779,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleEmployeeLoginsChange(planExtraLogins + 1)}
                             disabled={updatePlan.isPending || planExtraLogins >= 99}
-                            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                            className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
                             aria-label="Flere medarbejderlogins"
                           >
                             +
@@ -2047,7 +2049,8 @@ const IndustryPicker = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Søg branche, fx vinduespudser, alge, tømrer…"
-            className="bg-card h-9 rounded-lg pl-9"
+            aria-label="Søg branche"
+            className="bg-card h-11 rounded-md pl-9"
           />
         </div>
         <div className="text-xs text-muted-foreground sm:shrink-0">
@@ -2256,27 +2259,27 @@ const HoursEditor = ({
     <div className="space-y-3">
       {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
       <div className="flex flex-wrap gap-1.5" data-tour="hours-presets">
-        <button
+        <Button variant="outline"
           type="button"
           onClick={() => applyPreset("weekdays")}
-          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="min-h-11 rounded-md px-3 text-sm text-muted-foreground"
         >
           Hverdage 08–16
-        </button>
-        <button
+        </Button>
+        <Button variant="outline"
           type="button"
           onClick={() => applyPreset("everyday")}
-          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="min-h-11 rounded-md px-3 text-sm text-muted-foreground"
         >
           Alle dage 08–18
-        </button>
-        <button
+        </Button>
+        <Button variant="outline"
           type="button"
           onClick={() => applyPreset("clear")}
-          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          className="min-h-11 rounded-md px-3 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
         >
           Nulstil alle
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-1.5">
@@ -2294,13 +2297,16 @@ const HoursEditor = ({
               }`}
             >
               {/* Dag + toggle */}
-              <button
+              <Button variant="ghost"
                 type="button"
+                role="switch"
+                aria-checked={isOpen}
+                aria-label={`Åben ${day}`}
                 onClick={() => isOpen ? setDay(day, null, null) : setDay(day, open, close)}
-                className="flex items-center gap-2 min-w-[140px] sm:min-w-[160px]"
+                className="min-h-11 justify-start gap-2 px-0 min-w-[140px] sm:min-w-[160px]"
               >
                 <span
-                  aria-pressed={isOpen}
+                  aria-hidden="true"
                   className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
                     isOpen ? "bg-accent" : "bg-border"
                   }`}
@@ -2313,7 +2319,7 @@ const HoursEditor = ({
                 </span>
                 <span className="text-sm font-medium text-foreground">{day}</span>
                 {!isOpen && <span className="text-xs text-muted-foreground">Lukket</span>}
-              </button>
+              </Button>
 
               {isOpen && (
                 <>
@@ -2322,14 +2328,14 @@ const HoursEditor = ({
                     <span className="text-xs text-muted-foreground">til</span>
                     <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
                   </div>
-                  <button
+                  <Button variant="ghost"
                     type="button"
                     onClick={() => applyToAll(day)}
-                    className="ml-auto text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    className="ml-auto min-h-11 text-sm text-muted-foreground hover:text-foreground"
                     title="Kopiér disse tider til alle åbne dage"
                   >
                     Anvend på alle
-                  </button>
+                  </Button>
                 </>
               )}
             </div>

@@ -312,8 +312,8 @@ export function AccountingLogsPanel({
     });
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-3">
+    <div className="min-w-0 rounded-md border border-border bg-card shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-3 sm:px-5">
         <div className="flex items-center gap-2">
           <RefreshCw className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-semibold text-foreground">Synk-aktivitet</span>
@@ -321,41 +321,43 @@ export function AccountingLogsPanel({
             ({filtered.length} af {logs.length})
           </span>
         </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <div className="relative">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(12rem,1fr)_10rem_10rem_auto]">
+          <div className="relative min-w-0 sm:col-span-2 xl:col-span-1">
             <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Søg kunde, service, rute…"
-              className="h-8 w-56 rounded-lg pl-7 text-xs"
+              aria-label="Søg i synk-aktivitet"
+              className="h-11 w-full rounded-md pl-7 pr-12 text-sm"
             />
             {search && (
-              <button
+              <Button variant="ghost" size="icon"
                 type="button"
+                aria-label="Ryd søgning"
                 onClick={() => setSearch("")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-8 w-36 rounded-lg text-xs">
+            <SelectTrigger aria-label="Filtrer synk-aktivitet efter status" className="h-11 w-full rounded-md text-sm">
               <Filter className="mr-1 h-3 w-3" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="[&_[role=option]]:min-h-11">
               <SelectItem value="all">Alle statusser</SelectItem>
               <SelectItem value="success">Kun lykkedes</SelectItem>
               <SelectItem value="error">Kun mislykkedes</SelectItem>
             </SelectContent>
           </Select>
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="h-8 w-36 rounded-lg text-xs">
+            <SelectTrigger aria-label="Filtrer synk-aktivitet efter type" className="h-11 w-full rounded-md text-sm">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="[&_[role=option]]:min-h-11">
               <SelectItem value="all">Alle typer</SelectItem>
               <SelectItem value="customer">Kunder</SelectItem>
               <SelectItem value="product">Services</SelectItem>
@@ -368,7 +370,7 @@ export function AccountingLogsPanel({
             size="sm"
             onClick={() => load()}
             disabled={loading}
-            className="h-8 rounded-lg text-xs"
+            className="h-11 rounded-md text-sm sm:col-span-2 xl:col-span-1"
           >
             <RefreshCw className={`mr-1 h-3 w-3 ${loading ? "animate-spin" : ""}`} />
             Opdatér
@@ -400,10 +402,12 @@ export function AccountingLogsPanel({
               "—";
             return (
               <li key={l.id}>
-                <button
+                <Button variant="ghost"
                   type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={`accounting-log-${l.id}`}
                   onClick={() => toggle(l.id)}
-                  className="flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-secondary/40"
+                  className="h-auto min-h-11 w-full items-start justify-start gap-3 whitespace-normal rounded-none px-3 py-3 text-left hover:bg-secondary/40 sm:px-5"
                 >
                   <ChevronDown
                     className={`mt-1 h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : "-rotate-90"}`}
@@ -416,7 +420,7 @@ export function AccountingLogsPanel({
                       <span className="text-xs font-medium text-muted-foreground">
                         {entityLabel} {dirLabel}
                       </span>
-                      <span className="truncate text-sm font-semibold text-foreground">
+                      <span className="min-w-0 break-words text-sm font-semibold text-foreground [overflow-wrap:anywhere]">
                         {headline}
                       </span>
                       {e.triggerReason && (
@@ -456,15 +460,15 @@ export function AccountingLogsPanel({
                         </span>
                       )}
                       {l.message && (
-                        <span className="truncate" title={l.message}>
+                        <span className="min-w-0 break-words [overflow-wrap:anywhere]" title={l.message}>
                           {l.message}
                         </span>
                       )}
                     </div>
                   </div>
-                </button>
+                </Button>
                 {isOpen && (
-                  <div className="space-y-3 border-t border-border bg-secondary/20 px-5 py-4 text-xs">
+                  <div id={`accounting-log-${l.id}`} className="min-w-0 space-y-3 border-t border-border bg-secondary/20 px-3 py-4 text-sm sm:px-5">
                     <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                       <Field label="Tidspunkt (ISO)">{fmtIso(l.created_at)}</Field>
                       <Field label="Status">{STATUS_LABEL[l.status ?? ""] ?? l.status}</Field>
@@ -516,12 +520,12 @@ export function AccountingLogsPanel({
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           Besked
                         </div>
-                        <p className="mt-0.5 text-foreground">{l.message}</p>
+                        <p className="mt-0.5 whitespace-pre-wrap break-words text-foreground [overflow-wrap:anywhere]">{l.message}</p>
                       </div>
                     )}
                     {l.payload && (
                       <details className="rounded-lg border border-border bg-card p-2">
-                        <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <summary className="min-h-11 cursor-pointer py-3 text-xs font-semibold text-muted-foreground">
                           Rå payload
                         </summary>
                         <pre className="mt-2 max-h-72 overflow-auto rounded bg-secondary/40 p-2 text-[11px] leading-snug text-foreground">
@@ -543,10 +547,10 @@ export function AccountingLogsPanel({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <dt className="text-xs font-medium text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-0.5 truncate text-foreground" title={String(children ?? "")}>
+      <dd className="mt-0.5 break-words text-foreground [overflow-wrap:anywhere]" title={String(children ?? "")}>
         {children}
       </dd>
     </div>
