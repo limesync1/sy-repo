@@ -16,7 +16,6 @@ import {
   useUnassignedJobs,
   useCalendarData,
   useAddStop,
-  invalidateRouteSyncQueries,
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
   useRouteSeriesInfo, useMoveRouteSeries,
@@ -2443,26 +2442,24 @@ const Planner = () => {
       return raw ? String(raw).slice(0, 10) : null;
     };
     const shiftStartOf = async (orderId: string, newDate: string) => {
-      try {
-        await supabase.from("orders").update({
+      const [orderResult, subscriptionResult, subscriptionsResult] = await Promise.all([
+        supabase.from("orders").update({
           preferred_date: newDate,
           next_service_date: newDate,
-        }).eq("id", orderId);
-      } catch (e) { console.warn("shift orders.preferred_date failed", e); }
-      try {
-        await supabase.from("subscriptions").update({
+        }).eq("id", orderId),
+        supabase.from("subscriptions").update({
           next_service_date: newDate,
-        }).eq("order_id", orderId).eq("status", "active");
-      } catch (e) { console.warn("shift subscriptions.next_service_date failed", e); }
-      try {
-        const { data: subs } = await supabase
-          .from("subscriptions").select("id").eq("order_id", orderId);
-        const subIds = (subs || []).map((s: any) => s.id);
-        if (subIds.length > 0) {
-          await supabase.from("agreements").update({ start_date: newDate })
-            .in("legacy_subscription_id", subIds);
-        }
-      } catch (e) { console.warn("shift agreements.start_date failed", e); }
+        }).eq("order_id", orderId).eq("status", "active"),
+        supabase.from("subscriptions").select("id").eq("order_id", orderId),
+      ]);
+      const error = orderResult.error || subscriptionResult.error || subscriptionsResult.error;
+      if (error) throw error;
+      const subIds = (subscriptionsResult.data || []).map(s => s.id);
+      if (subIds.length > 0) {
+        const { error: agreementError } = await supabase.from("agreements").update({ start_date: newDate })
+          .in("legacy_subscription_id", subIds);
+        if (agreementError) throw agreementError;
+      }
     };
 
     const selectedJobs = newRouteJobIds
@@ -2481,7 +2478,7 @@ const Planner = () => {
     const execute = async () => {
       // Flyt evt. opstartsdatoer FØR vi opretter ruten, så DB er konsistent.
       for (const m of mismatches) {
-        try { await shiftStartOf(m.job.id, newRouteDate); } catch { /* logged */ }
+        await shiftStartOf(m.job.id, newRouteDate);
       }
       await actuallyCreateRoute(selectedJobs);
     };
