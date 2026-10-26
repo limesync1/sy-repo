@@ -135,7 +135,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+            <Button asChild variant="outline" size="sm" aria-label="Se jeres side" className="h-11 min-w-11 text-sm">
               <a href={`/v/${business?.slug ?? ""}`} target="_blank" rel="noreferrer">
                 <span className="hidden sm:inline">Se jeres side</span>
                 <ExternalLink className="h-3 w-3 sm:ml-1.5" aria-hidden="true" />
@@ -163,7 +163,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                   onClick={() => setSelected(s.id)}
                   aria-current={isActive ? "step" : undefined}
                   className={cn(
-                    "h-auto w-36 shrink-0 justify-start gap-2 rounded-md border px-2.5 py-1.5 text-left transition-colors sm:w-40",
+                    "h-auto min-h-11 w-44 shrink-0 justify-start gap-2 rounded-md border px-2.5 py-1.5 text-left transition-colors sm:w-48",
                     isActive
                       ? "border-accent/40 bg-accent/10 text-foreground hover:bg-accent/15 hover:text-foreground"
                       : "border-border bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -171,7 +171,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 >
                   <span
                     className={cn(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold tabular-nums",
+                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold tabular-nums",
                       isDone
                         ? "brand-blue-action border-transparent"
                         : isActive
@@ -182,8 +182,8 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                     {isDone ? <Check className="h-3 w-3" aria-hidden="true" /> : i + 1}
                   </span>
                   <span className="min-w-0">
-                    <span className={cn("block text-[10px] font-medium", isActive ? "text-accent" : "text-muted-foreground")}>Trin {i + 1}</span>
-                    <span className="block truncate text-xs font-semibold">{s.title}</span>
+                    <span className={cn("block text-xs font-medium", isActive ? "text-accent" : "text-muted-foreground")}>Trin {i + 1}</span>
+                    <span className="block whitespace-normal break-words text-sm font-semibold">{s.title}</span>
                   </span>
                 </Button>
               );
@@ -193,18 +193,18 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
       )}
 
       {/* Body */}
-      <div className="planner-overlay-body min-h-0 flex-1 overflow-hidden bg-secondary/20 p-3 sm:p-4">
+      <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-4">
 
         {showStep && step && (
-          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)] lg:grid-rows-1 lg:gap-4">
-            <div className="min-h-0">
+          <div className="grid min-h-0 grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)] lg:h-full lg:grid-rows-1 lg:gap-4">
+            <div className="aspect-video min-h-[7rem] lg:aspect-auto lg:min-h-0">
               <StepVideo url={videos[step.id]} title={step.title} />
             </div>
-            <div className="flex max-h-[45dvh] min-h-0 min-w-0 flex-col rounded-md border border-border bg-card lg:max-h-none">
+            <div className="flex min-h-0 min-w-0 flex-col rounded-md border border-border bg-card lg:max-h-none">
               <div className="flex min-h-9 shrink-0 items-center justify-between gap-2 border-b border-border bg-secondary/35 px-3 py-2">
                 <h3 className="truncate text-[13px] font-semibold text-foreground">Trin {index + 1} af {totalCount}</h3>
                 {stepDone && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-accent">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-accent">
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Klaret
                   </span>
                 )}
@@ -216,10 +216,10 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 {missing.length > 0 && (
                   <div className="mt-3 space-y-1 rounded-md border border-border bg-secondary/40 p-2.5">
                     {missing.map((r) => (
-                      <button key={r.label} type="button" onClick={() => onNavigate(r.tab)} className="flex w-full items-center gap-2 text-left text-xs text-foreground hover:underline">
+                      <Button variant="ghost" key={r.label} type="button" onClick={() => onNavigate(r.tab)} className="flex h-auto min-h-11 w-full justify-start gap-2 whitespace-normal text-left text-sm text-foreground hover:underline">
                         <Lock className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
                         Kræver først: {r.label}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -235,21 +235,21 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            aria-label="Forrige trin" className="h-11 w-11 shrink-0 gap-1.5 sm:w-auto"
             disabled={index === 0}
             onClick={() => index > 0 && setSelected(steps[index - 1].id)}
           >
             <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Forrige</span>
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             {index < steps.length - 1 && (
-              <Button variant="ghost" size="sm" className="hidden h-9 sm:inline-flex" onClick={() => setSelected(steps[index + 1].id)}>
+              <Button variant="ghost" size="sm" className="hidden h-11 sm:inline-flex" onClick={() => setSelected(steps[index + 1].id)}>
                 Se næste trin
               </Button>
             )}
             <Button
               size="sm"
-              className={cn("h-9 gap-1.5", !stepDone && "brand-blue-action")}
+              className={cn("h-auto min-h-11 min-w-0 gap-1.5 whitespace-normal text-sm", !stepDone && "brand-blue-action")}
               variant={stepDone ? "outline" : "default"}
               disabled={missing.length > 0}
               onClick={() => onNavigate(step.tab(counts), step.action?.(counts) ?? null)}

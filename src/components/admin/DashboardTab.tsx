@@ -19,7 +19,7 @@ import {
   HelpCircle, Wallet, AlertTriangle,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
@@ -279,10 +279,10 @@ const DashboardTab = ({
     completed: "Udført", cancelled: "Annulleret",
   };
   const statusColors: Record<string, string> = {
-    pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    pending: "bg-amber-500/10 text-warning border-amber-500/20",
     confirmed: "bg-blue-500/10 text-blue-700 border-blue-500/20",
     in_progress: "bg-violet-500/10 text-violet-700 border-violet-500/20",
-    completed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+    completed: "bg-success/10 text-success border-emerald-500/20",
     cancelled: "bg-red-500/10 text-red-700 border-red-500/20",
   };
 
@@ -316,7 +316,7 @@ const DashboardTab = ({
     if (revTrend.dir === "up" && stats.revenue7 > 0) return `Omsætningen er vokset ${revTrend.pct}% i denne uge — momentum er på jeres side.`;
     if (revTrend.dir === "down" && stats.revenuePrev7 > 0) return `Omsætningen er ${revTrend.pct}% under sidste uge — overvej at dele profilen eller justere priserne.`;
     if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede aftaler uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
-    if (averageRating >= 4.5 && reviewsCount >= 3) return `${averageRating.toFixed(1)}★ over ${reviewsCount} anmeldelser — stærk profil. Vis den frem.`;
+    if (averageRating >= 4.5 && reviewsCount >= 3) return `${averageRating.toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}★ over ${reviewsCount} anmeldelser — stærk profil. Vis den frem.`;
     return "Hold svartid lav og profilen opdateret — det er de to ting der flytter mest på konverteringen.";
   }, [servicesCount, pendingOrders, ordersCount, completeness.pct, revTrend, stats.revenue7, stats.revenuePrev7, reviewsCount, averageRating]);
 
@@ -407,13 +407,13 @@ const DashboardTab = ({
 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
           <div className="min-w-0">
-            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-background/55 sm:text-xs sm:tracking-[0.2em]">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-background/55 sm:text-xs sm:tracking-[0.2em]">
               {greeting()} · {new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
             </p>
             <h1 className="mt-1 break-words text-lg font-semibold leading-tight text-background sm:mt-1.5 sm:text-2xl lg:text-[2rem]">
               {business.name}
             </h1>
-            <p className="mt-1 flex items-start gap-1.5 text-[11px] leading-4 text-background/78 sm:mt-1.5 sm:gap-2 sm:text-sm sm:leading-5">
+            <p className="mt-1 flex items-start gap-1.5 text-xs leading-4 text-background/78 sm:mt-1.5 sm:gap-2 sm:text-sm sm:leading-5">
               <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
               <span>{insight}</span>
             </p>
@@ -423,7 +423,7 @@ const DashboardTab = ({
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:shrink-0">
               <a
                 href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
-                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[11px] font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-10 sm:px-3.5 sm:text-xs"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-11 sm:px-3.5 sm:text-xs"
               >
                 <Eye className="h-3.5 w-3.5" /> Se din side
               </a>
@@ -431,7 +431,7 @@ const DashboardTab = ({
                 type="button"
                 onClick={openGuide}
                 variant="outline"
-                className="min-h-11 shrink-0 gap-1.5 rounded-full px-3 text-[11px] font-semibold text-foreground shadow-sm sm:min-h-10 sm:px-3.5 sm:text-xs"
+                className="min-h-11 shrink-0 gap-1.5 rounded-full px-3 text-xs font-semibold text-foreground shadow-sm sm:min-h-11 sm:px-3.5 sm:text-xs"
               >
                 <HelpCircle className="h-3.5 w-3.5" /> Se guide
                 <span className="tabular-nums opacity-80">· {guideSignals.done}/{guideSignals.total}</span>
@@ -445,7 +445,7 @@ const DashboardTab = ({
           <SnapshotPill label="Aftaler i dag" value={`${stats.todayCount} ${stats.todayCount === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.todayRevenue)} kr. i omsætning`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Aftaler denne uge" value={`${stats.orders7} ${stats.orders7 === 1 ? "aftale" : "aftaler"}`} sub={`${fmtKrShort(stats.revenue7)} kr. i omsætning`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Venter på svar" value={`${pendingOrders} ${pendingOrders === 1 ? "aftale" : "aftaler"}`} sub={pendingOrders > 0 ? "Skal godkendes eller afvises" : "Intet venter på jer"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
-          <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
+          <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★` : "Ingen endnu"} sub={`Ud fra ${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
 
@@ -493,7 +493,7 @@ const DashboardTab = ({
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">Det her tjener I mest på lige nu.</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => onNavigate?.("services")} className="h-9 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="sm" onClick={() => onNavigate?.("services")} className="min-h-11 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground">
                   Se alle <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
@@ -504,7 +504,7 @@ const DashboardTab = ({
                     <div key={s.name + i} className="px-4 py-3 sm:px-5">
                       <div className="flex items-center justify-between gap-3">
                         <p className="min-w-0 truncate text-sm font-medium text-foreground">
-                          <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-md bg-secondary text-[10px] font-bold text-foreground">{i + 1}</span>
+                          <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-md bg-secondary text-xs font-bold text-foreground">{i + 1}</span>
                           {s.name}
                         </p>
                         <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">{fmtKr(s.revenue)}</span>
@@ -515,7 +515,7 @@ const DashboardTab = ({
                           style={{ width: `${pct}%`, background: "linear-gradient(90deg, hsl(var(--hero-mid)), hsl(var(--hero-cyan-bright)))" }}
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-muted-foreground">{s.count} stk solgt</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{s.count} stk solgt</p>
                     </div>
                   );
                 })}
@@ -548,12 +548,12 @@ const DashboardTab = ({
               <div className="p-3 sm:p-4">
               <div className="grid gap-2">
                 {primaryActions.map((a) => (
-                  <button
+                  <Button variant="ghost"
                     key={a.key}
                     type="button"
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
                       className={cn(
-                        "group flex min-h-11 w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                        "group flex h-auto min-h-11 w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border px-3 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       a.tone === "primary" && "border-accent/60 bg-accent/10 hover:border-accent hover:bg-accent/15",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
@@ -569,16 +569,16 @@ const DashboardTab = ({
                     </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <div className="flex min-w-0 items-center gap-2">
-                        <p className={cn("truncate text-sm font-semibold", "text-foreground")}>{a.label}</p>
+                        <p className={cn("break-words whitespace-normal text-sm font-semibold", "text-foreground")}>{a.label}</p>
                         {a.badge && (
                           <span className={cn(
-                            "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+                            "shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums",
                             a.tone === "primary" ? "bg-accent text-accent-foreground" : "bg-accent/15 text-accent",
                           )}>{a.badge}</span>
                         )}
                       </div>
                       <p className={cn(
-                        "truncate text-xs",
+                        "whitespace-normal break-words text-xs",
                         "text-muted-foreground",
                       )}>{a.meta}</p>
                     </div>
@@ -586,7 +586,7 @@ const DashboardTab = ({
                       "h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5",
                       a.tone === "primary" ? "text-accent" : "text-muted-foreground",
                     )} />
-                  </button>
+                  </Button>
                 ))}
               </div>
 
@@ -600,18 +600,18 @@ const DashboardTab = ({
                   </summary>
                   <div className="mt-2 grid gap-1.5">
                     {actions.slice(primaryActions.length).map((a) => (
-                      <button
+                      <Button variant="ghost"
                         key={a.key}
                         type="button"
                         onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
-                    className="flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex h-auto min-h-11 w-full min-w-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center">
                           {a.illustration ? <BrandedIllustration name={a.illustration} className="h-9 w-9" /> : <a.icon className="h-5 w-5 text-muted-foreground" />}
                         </span>
-                        <span className="flex-1 truncate text-xs font-medium text-foreground">{a.label}</span>
+                        <span className="min-w-0 flex-1 whitespace-normal break-words text-sm font-medium text-foreground">{a.label}</span>
                         <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </details>
@@ -643,14 +643,14 @@ const DashboardTab = ({
                     </div>
                   ))}
                   {missingItems.length === 0 && (
-                    <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-emerald-700">
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-success">
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                       <span>Profilen er komplet</span>
                     </div>
                   )}
                 </div>
 
-                <Button size="sm" variant="outline" className="mt-4 h-9 w-full rounded-lg text-sm" onClick={() => onNavigate?.("settings")}>
+                <Button size="sm" variant="outline" className="mt-4 min-h-11 w-full rounded-lg text-sm" onClick={() => onNavigate?.("settings")}>
                   Fuldfør profil
                 </Button>
               </CardContent>
@@ -678,22 +678,22 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "surface-silver min-w-0 overflow-hidden rounded-md border px-3 py-2.5 text-left text-foreground shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-3.5 sm:py-3",
+    "surface-silver block h-auto min-h-11 min-w-0 whitespace-normal overflow-hidden rounded-md border px-3 py-2.5 text-left text-foreground shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-3.5 sm:py-3",
     accent ? "border-warning/60 ring-1 ring-inset ring-warning/30" : "border-border",
     onClick && "hover:-translate-y-0.5 hover:shadow-md",
   );
   const content = (
     <>
-      <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted-foreground sm:text-xs">
+      <p className="flex items-center justify-between gap-2 text-xs font-semibold text-muted-foreground sm:text-xs">
         <span className="truncate">{label}</span>
         {onClick && <ArrowRight className="h-3 w-3 shrink-0 opacity-60" />}
       </p>
-      <p className="mt-1 min-w-0 truncate text-lg font-semibold tabular-nums text-foreground sm:text-xl">{value}</p>
-      <p className={cn("mt-0.5 truncate text-[11px] sm:text-xs", accent ? "font-medium text-warning" : "text-muted-foreground")}>{sub}</p>
+      <p className="mt-1 min-w-0 break-words text-lg font-semibold tabular-nums text-foreground sm:text-xl">{value}</p>
+      <p className={cn("mt-0.5 whitespace-normal text-xs", accent ? "font-medium text-warning" : "text-muted-foreground")}>{sub}</p>
     </>
   );
   if (onClick) {
-    return <button type="button" onClick={onClick} className={className}>{content}</button>;
+    return <Button variant="ghost" type="button" onClick={onClick} className={className}>{content}</Button>;
   }
   return <div className={className}>{content}</div>;
 };
@@ -742,7 +742,7 @@ const SmartStatCard = ({
     <Card className={cardClass}>
         <CardContent className="p-3 sm:p-5">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
           <div className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground transition-colors [&_img]:h-8 [&_img]:w-8 [&_img]:object-contain [&_svg]:h-5 [&_svg]:w-5",
             onClick && "group-hover:bg-foreground group-hover:text-background",
@@ -754,9 +754,9 @@ const SmartStatCard = ({
           <p className="min-w-0 break-words text-xl font-semibold tabular-nums text-foreground sm:text-[1.75rem]">{value}</p>
           {trend && (
             <span className={cn(
-              "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold",
-              trend.dir === "up" && "bg-emerald-500/10 text-emerald-700",
-              trend.dir === "down" && "bg-rose-500/10 text-rose-700",
+              "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold",
+              trend.dir === "up" && "bg-success/10 text-success",
+              trend.dir === "down" && "bg-destructive/10 text-destructive",
               trend.dir === "flat" && "bg-secondary text-muted-foreground",
             )}>
               {trend.dir === "up" && <ArrowUpRight className="h-3 w-3" />}
@@ -772,7 +772,7 @@ const SmartStatCard = ({
         <div className="mt-2 flex items-center justify-between gap-2">
           {hint ? <p className="truncate text-xs text-muted-foreground">{hint}</p> : <span />}
           {onClick && (
-            <span className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+            <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
               Detaljer <ChevronRight className="h-3 w-3" />
             </span>
           )}
@@ -782,9 +782,9 @@ const SmartStatCard = ({
   );
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} aria-label={`${label} — vis detaljer`} className="block w-full text-left">
+      <Button variant="ghost" type="button" onClick={onClick} aria-label={`${label} — vis detaljer`} className="block h-auto min-h-11 w-full whitespace-normal p-0 text-left">
         {body}
-      </button>
+      </Button>
     );
   }
   return body;
@@ -831,7 +831,7 @@ const FinanceOverviewCard = ({
 
   return (
     <Card className="surface-admin overflow-hidden rounded-md border-border/80 shadow-sm">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
             <Wallet className="h-4 w-4" /> Finansielt overblik
@@ -840,16 +840,17 @@ const FinanceOverviewCard = ({
             Hvad er faktureret, betalt og udført — og hvad skal udbetales.
           </p>
         </div>
-        <div className="inline-flex shrink-0 items-center rounded-lg border border-border bg-card p-0.5 text-[11px] font-medium">
+        <div className="inline-flex shrink-0 items-center rounded-lg border border-border bg-card p-0.5 text-xs font-medium">
           {(["p7", "p30"] as const).map((k) => (
             <Button
               key={k}
+              aria-pressed={period === k}
               type="button"
               onClick={() => setPeriod(k)}
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 rounded-md px-2.5 text-[11px] transition-colors",
+                "h-11 rounded-md px-2.5 text-sm transition-colors",
                 period === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -861,13 +862,13 @@ const FinanceOverviewCard = ({
 
       <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
         {/* Faktureret */}
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={onOpenRevenue}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
+          className="group block h-auto min-h-11 min-w-0 whitespace-normal rounded-none bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Faktureret · {periodLabel}
             </p>
             <BrandedIllustration name="accountingProgram" className="h-10 w-10" />
@@ -877,63 +878,63 @@ const FinanceOverviewCard = ({
             {p.totalCount} {p.totalCount === 1 ? "aftale" : "aftaler"}
             {p.cancelled > 0 && <> · {fmtKrShort((p.cancelled))} annulleret</>}
           </p>
-        </button>
+        </Button>
 
         {/* Betalt */}
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={onOpenRevenue}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
+          className="group block h-auto min-h-11 min-w-0 whitespace-normal rounded-none bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Betalt · {periodLabel}
             </p>
             <BrandedIllustration name="revenue" className="h-10 w-10" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.paid)}</p>
-            <span className="text-xs font-semibold tabular-nums text-emerald-700">{paidPct}%</span>
+            <span className="text-xs font-semibold tabular-nums text-success">{paidPct}%</span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
-            <div className="h-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
+            <div className="h-full bg-success" style={{ width: `${paidPct}%` }} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {p.paidCount} af {p.totalCount} aftaler betalt
           </p>
-        </button>
+        </Button>
 
         {/* Udestående / forfaldent */}
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={() => onNavigate?.("orders")}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
+          className="group block h-auto min-h-11 min-w-0 whitespace-normal rounded-none bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Udestående
             </p>
             {p.overdue > 0
-              ? <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+              ? <AlertTriangle className="h-3.5 w-3.5 text-warning" />
               : <BrandedIllustration name="orders" className="h-10 w-10" />}
           </div>
           <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.outstanding)}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {p.outstandingCount} {p.outstandingCount === 1 ? "aftale mangler betaling" : "aftaler mangler betaling"}
             {p.overdue > 0 && (
-              <> · <span className="font-medium text-amber-700">{fmtKrShort((p.overdue))} forfaldent</span></>
+              <> · <span className="font-medium text-warning">{fmtKrShort((p.overdue))} forfaldent</span></>
             )}
           </p>
-        </button>
+        </Button>
 
         {/* Udført */}
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={() => onNavigate?.("orders")}
-          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
+          className="group block h-auto min-h-11 min-w-0 whitespace-normal rounded-none bg-card p-4 text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Udført · {periodLabel}
             </p>
             <BrandedIllustration name="orders" className="h-10 w-10 shrink-0" alt="Udførte aftaler" />
@@ -945,21 +946,21 @@ const FinanceOverviewCard = ({
           <p className="mt-2 text-xs text-muted-foreground">
             {p.completedCount} udført · {p.notCompletedCount} mangler ({fmtKrShort((p.notCompletedSum))})
           </p>
-        </button>
+        </Button>
       </div>
 
       {/* Til medarbejdere — fremhævet bånd i bunden */}
-      <button
+      <Button variant="ghost"
         type="button"
         onClick={() => onNavigate?.("employees")}
-        className="group flex w-full items-center justify-between gap-3 border-t border-border bg-accent/[0.05] px-4 py-3 text-left transition-colors hover:bg-accent/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"
+        className="group flex h-auto min-h-11 w-full whitespace-normal items-center justify-between gap-3 border-t border-border bg-accent/[0.05] px-4 py-3 text-left transition-colors hover:bg-accent/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"
       >
         <div className="flex min-w-0 items-center gap-3">
           <StatIconTile>
             <BrandedIllustration name="payout" />
           </StatIconTile>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Til udbetaling · {periodLabel}
             </p>
             <p className="mt-0.5 text-base font-semibold tabular-nums text-foreground sm:text-lg">
@@ -973,7 +974,7 @@ const FinanceOverviewCard = ({
           </span>
           <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </div>
-      </button>
+      </Button>
     </Card>
   );
 };
@@ -1083,22 +1084,22 @@ const OrdersListSection = ({
             </p>
             <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
-                <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
+                <Button size="sm" className="h-auto min-h-11 whitespace-normal rounded-md" onClick={() => onNavigate?.("services")}>
                   <Briefcase className="mr-1.5 h-4 w-4" /> Tilføj din første service
                 </Button>
               ) : completeness < 80 ? (
-                <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("settings")}>
+                <Button size="sm" className="h-auto min-h-11 whitespace-normal rounded-md" onClick={() => onNavigate?.("settings")}>
                   <Target className="mr-1.5 h-4 w-4" /> Fuldfør profil
                 </Button>
               ) : (
                 hasShareUrl && (
-                  <Button size="sm" className="h-9 rounded-lg" onClick={copyLink}>
+                  <Button size="sm" className="h-auto min-h-11 whitespace-normal rounded-md" onClick={copyLink}>
                     <Share2 className="mr-1.5 h-4 w-4" /> Del jeres profil-link
                   </Button>
                 )
               )}
               {servicesCount > 0 && (
-                <Button size="sm" variant="outline" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
+                <Button size="sm" variant="outline" className="h-auto min-h-11 whitespace-normal rounded-md" onClick={() => onNavigate?.("services")}>
                   Tilføj endnu en service
                 </Button>
               )}
@@ -1117,12 +1118,12 @@ const OrdersListSection = ({
             <h3 className="text-sm font-semibold text-foreground">Seneste aftaler</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">Filtrér efter status eller søg på kunde, e-mail eller beløb.</p>
           </div>
-          <button onClick={() => onNavigate?.("orders")} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Button variant="ghost" onClick={() => onNavigate?.("orders")} className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             Se alle <ArrowRight className="h-3 w-3" />
-          </button>
+          </Button>
         </div>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -1130,28 +1131,28 @@ const OrdersListSection = ({
               onChange={(e) => setOrderSearch(e.target.value)}
               placeholder="Søg på kunde, e-mail eller beløb…"
               aria-label="Søg på kunde, e-mail eller beløb"
-              className="h-9 rounded-lg pl-8 pr-8 text-sm"
+              autoComplete="off" className="h-11 rounded-md pl-8 pr-12 text-sm"
             />
             {orderSearch && (
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => setOrderSearch("")}
                 aria-label="Ryd søgning"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                size="icon" className="absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2 rounded text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
           </div>
           <Select value={orderSort} onValueChange={(v) => setOrderSort(v as typeof orderSort)}>
             <SelectTrigger
               aria-label="Sortér aftaler"
-              className="h-9 w-full gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary sm:w-[210px]"
+              className="h-11 w-full gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary sm:w-[210px]"
             >
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent align="end">
+            <SelectContent align="end" className="[&_[role=option]]:min-h-11">
               {sortOptions.map((o) => (
                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
@@ -1164,12 +1165,13 @@ const OrdersListSection = ({
             const active = orderFilter === chip.key;
             const n = counts[chip.key] || 0;
             return (
-              <button
+              <Button variant="ghost"
                 key={chip.key}
+                aria-pressed={active}
                 type="button"
                 onClick={() => setOrderFilter(chip.key)}
                 className={cn(
-                  "inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors min-[430px]:justify-start min-[430px]:px-2.5",
+                  "inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors min-[430px]:justify-start min-[430px]:px-2.5",
                   active
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground",
@@ -1177,10 +1179,10 @@ const OrdersListSection = ({
               >
                 {chip.label}
                 <span className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+                  "rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums",
                   active ? "bg-background/15 text-background" : "bg-secondary text-muted-foreground",
                 )}>{n}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -1189,11 +1191,11 @@ const OrdersListSection = ({
       {filtered.length > 0 ? (
         <div className="divide-y divide-border">
           {filtered.slice(0, 6).map((order: any) => (
-            <button
+            <Button variant="ghost"
               key={order.id}
               type="button"
               onClick={() => onNavigate?.("orders", order.id)}
-              className="grid w-full min-w-0 gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
+              className="grid h-auto min-h-11 w-full min-w-0 whitespace-normal gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 lg:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
@@ -1205,21 +1207,21 @@ const OrdersListSection = ({
                 <Badge className={`${statusColors[order.status] || ""} max-w-full truncate border px-2 py-0.5 text-xs font-medium`}>
                   {statusLabels[order.status] || order.status}
                 </Badge>
-                {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
+                {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-warning" />}
               </div>
-              <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end">
+              <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-end">
                 <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{fmtKr(Number(order.total_amount) || 0)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-            </button>
+            </Button>
           ))}
           {filtered.length > 6 && (
-            <button
+            <Button variant="ghost"
               onClick={() => onNavigate?.("orders")}
-              className="flex w-full items-center justify-center gap-1.5 bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex h-auto min-h-11 w-full whitespace-normal items-center justify-center gap-1.5 bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               Se alle {filtered.length} matchende aftaler <ArrowRight className="h-3 w-3" />
-            </button>
+            </Button>
           )}
         </div>
       ) : (
@@ -1236,32 +1238,32 @@ const OrdersListSection = ({
           {hasActiveFilters && (
             <div className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-1.5">
               {orderFilter !== "all" && (
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={() => setOrderFilter("all")}
-                  className="group inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
+                  className="group inline-flex min-h-11 items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
                   aria-label={`Fjern statusfilter ${activeFilterLabel}`}
                 >
                   <span className="text-muted-foreground">Status:</span> {activeFilterLabel}
                   <X className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-foreground" />
-                </button>
+                </Button>
               )}
               {orderSearch.trim() && (
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={() => setOrderSearch("")}
-                  className="group inline-flex max-w-[220px] items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
+                  className="group inline-flex min-h-11 max-w-[220px] items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
                   aria-label="Ryd søgning"
                 >
                   <span className="text-muted-foreground">Søgning:</span>
                   <span className="truncate">“{orderSearch.trim()}”</span>
                   <X className="h-3 w-3 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                </button>
+                </Button>
               )}
             </div>
           )}
           {hasActiveFilters && (
-            <Button size="sm" variant="outline" className="mt-3 h-8 rounded-lg" onClick={clearAll}>
+            <Button size="sm" variant="outline" className="mt-3 min-h-11 rounded-md" onClick={clearAll}>
               <X className="mr-1 h-3.5 w-3.5" /> Nulstil alle filtre
             </Button>
           )}
@@ -1295,7 +1297,7 @@ const StatDetailSheet = ({
   const [rangeDays, setRangeDays] = useState<number>(7);
 
   // Når kuffen åbnes på "today" giver kun 1-dag mening — ellers default 7.
-  useMemo(() => {
+  useEffect(() => {
     if (openStat === "today") { setGranularity("day"); setRangeDays(1); }
     else if (openStat === "revenue" || openStat === "orders") { setRangeDays(7); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1416,7 +1418,7 @@ const StatDetailSheet = ({
         side={isCompactSheet ? "bottom" : "right"}
         className={cn("w-full overflow-hidden p-0 flex flex-col", isCompactSheet ? "h-[88dvh] rounded-t-2xl" : "sm:max-w-lg")}
       >
-        <SheetHeader className="border-b border-border bg-secondary/40 px-5 py-4 text-left">
+        <SheetHeader className="border-b border-border bg-secondary/40 px-5 py-4 pr-14 text-left">
           <SheetTitle className="text-base font-semibold text-foreground">{config.title}</SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground">{config.subtitle}</SheetDescription>
         </SheetHeader>
@@ -1425,10 +1427,10 @@ const StatDetailSheet = ({
           {/* Total for valgt interval */}
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {config.mode === "revenue" ? "Total omsætning" : "Antal aftaler"}
               </p>
-              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {rangeDays === 1 ? "I dag" : `Seneste ${rangeDays} dage`}
               </span>
             </div>
@@ -1448,33 +1450,34 @@ const StatDetailSheet = ({
           {config.showChart && (
             <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {granularity === "day" ? "Dag for dag" : "Uge for uge"}
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="inline-flex rounded-lg border border-border bg-secondary/40 p-0.5">
                     {(["day", "week"] as const).map((g) => (
-                      <button
+                      <Button variant="ghost"
                         key={g}
+                        aria-pressed={granularity === g}
                         type="button"
                         onClick={() => { setGranularity(g); if (g === "week" && rangeDays < 14) setRangeDays(14); }}
                         className={cn(
-                          "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                          "h-11 rounded-md px-2.5 py-1 text-sm font-semibold transition-colors",
                           granularity === g ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                         )}
                       >
                         {g === "day" ? "Dag" : "Uge"}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                   <Select value={String(rangeDays)} onValueChange={(v) => setRangeDays(Number(v))}>
                     <SelectTrigger
                       aria-label="Vælg interval"
-                      className="h-7 w-auto gap-1.5 rounded-md border-border bg-card px-2 text-[11px] font-semibold text-foreground hover:bg-secondary"
+                      className="h-11 w-auto gap-1.5 rounded-md border-border bg-card px-2 text-xs font-semibold text-foreground hover:bg-secondary"
                     >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent align="end">
+                    <SelectContent align="end" className="[&_[role=option]]:min-h-11">
                       {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
                         <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
                       ))}
@@ -1482,13 +1485,13 @@ const StatDetailSheet = ({
                   </Select>
                 </div>
               </div>
-              <div className="mt-4 flex h-32 items-end gap-2">
+              <div className="mt-4 flex h-40 items-end gap-2 overflow-x-auto">
                 {chartBins.map((b, i) => {
                   const h = Math.max(6, Math.round((b.value / chartMax) * 100));
                   const isLast = i === chartBins.length - 1;
                   return (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
-                      <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+                    <div key={i} className="flex h-full min-w-12 flex-1 flex-col justify-end items-center gap-1.5">
+                      <span className="text-xs font-semibold tabular-nums text-muted-foreground">
                         {b.value > 0 ? (config.mode === "revenue" ? fmtKrShort(b.value) : b.value) : ""}
                       </span>
                       <div
@@ -1499,7 +1502,7 @@ const StatDetailSheet = ({
                         style={{ height: `${h}%` }}
                         aria-label={`${b.label}: ${b.value}`}
                       />
-                      <span className="truncate text-[10px] font-medium uppercase text-muted-foreground">
+                      <span className="truncate text-xs font-medium uppercase text-muted-foreground">
                         {b.label}
                       </span>
                     </div>
@@ -1512,7 +1515,7 @@ const StatDetailSheet = ({
           {/* Bestillingsliste */}
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="border-b border-border bg-secondary/40 px-4 py-2.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Relevante aftaler ({config.orders.length})
               </p>
             </div>
@@ -1520,27 +1523,27 @@ const StatDetailSheet = ({
               <div className="divide-y divide-border">
                 {config.orders.slice(0, 12).map((order: any) => (
                   <SheetClose asChild key={order.id}>
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={() => onNavigate?.("orders")}
-                      className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                      className="grid h-auto min-h-11 w-full whitespace-normal gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                     >
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
                         <div className="mt-1 flex items-center gap-2">
-                          <Badge className={`${statusColors[order.status] || ""} border px-1.5 py-0.5 text-[10px] font-medium`}>
+                          <Badge className={`${statusColors[order.status] || ""} border px-1.5 py-0.5 text-xs font-medium`}>
                             {statusLabels[order.status] || order.status}
                           </Badge>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 sm:justify-end">
+                      <div className="flex items-center gap-2 lg:justify-end">
                         <span className="text-sm font-semibold tabular-nums text-foreground">{fmtKr(Number(order.total_amount) || 0)}</span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </div>
-                    </button>
+                    </Button>
                   </SheetClose>
                 ))}
               </div>
@@ -1551,7 +1554,7 @@ const StatDetailSheet = ({
             )}
           </div>
 
-          <Button variant="outline" className="w-full" onClick={() => { onClose(); onNavigate?.("orders"); }}>
+          <Button variant="outline" className="min-h-11 w-full" onClick={() => { onClose(); onNavigate?.("orders"); }}>
             Åbn fuld aftaleliste <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         </div>

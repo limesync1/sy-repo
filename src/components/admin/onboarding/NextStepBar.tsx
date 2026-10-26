@@ -19,7 +19,7 @@ type Props = {
 export default function NextStepBar({ nextStepId, counts, completedCount, totalCount, onOpenGuide }: Props) {
   const [hidden, setHidden] = useState(() => {
     if (typeof window === "undefined") return false;
-    return sessionStorage.getItem(SESSION_KEY) === "1";
+    try { return sessionStorage.getItem(SESSION_KEY) === "1"; } catch { return false; }
   });
 
   if (hidden || !nextStepId || !counts) return null;
@@ -31,26 +31,26 @@ export default function NextStepBar({ nextStepId, counts, completedCount, totalC
   };
 
   return (
-    <div className="mb-4 flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm">
+    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2.5 shadow-sm">
       <span className="hidden shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground sm:inline">
         {completedCount}/{totalCount}
       </span>
-      <p className="min-w-0 flex-1 truncate text-sm">
+      <p className="min-w-0 basis-full flex-1 break-words text-sm sm:basis-auto">
         <span className="font-semibold text-foreground">Næste trin: </span>
         <span className="text-muted-foreground">{step.title} — {step.short}</span>
       </p>
-      <Button size="sm" variant="outline" className="h-8 shrink-0 px-3 text-xs" onClick={onOpenGuide}>
+      <Button size="sm" variant="outline" className="h-11 shrink-0 px-3 text-sm" onClick={onOpenGuide}>
         Åbn guide
         <ArrowRight className="ml-1 h-3 w-3" />
       </Button>
-      <button
+      <Button variant="ghost" size="icon"
         type="button"
         onClick={hide}
         aria-label="Skjul næste trin"
-        className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        className="h-11 w-11 shrink-0 rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
       >
         <X className="h-4 w-4" />
-      </button>
+      </Button>
     </div>
   );
 }
