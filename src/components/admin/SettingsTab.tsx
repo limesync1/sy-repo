@@ -1319,7 +1319,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
               <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
@@ -1767,7 +1767,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleEmployeeLoginsChange(planExtraLogins - 1)}
                             disabled={updatePlan.isPending || (planExtraLogins + 1) <= activeEmployeesCount}
-                            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                            className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
                             aria-label="Færre medarbejderlogins"
                           >
                             −
@@ -1779,7 +1779,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleEmployeeLoginsChange(planExtraLogins + 1)}
                             disabled={updatePlan.isPending || planExtraLogins >= 99}
-                            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                            className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
                             aria-label="Flere medarbejderlogins"
                           >
                             +

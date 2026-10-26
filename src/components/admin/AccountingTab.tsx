@@ -1422,7 +1422,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    * ============================================================ */
   if (mode === "overview" && !integration?.is_active) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 [&_input]:min-h-11">
         <PageHeader
           title="Regnskab"
           description="Forbind dit regnskabsprogram, så kunder, services og aftaler holder sig opdateret begge steder — automatisk."
@@ -1494,7 +1494,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     const pendingCount = Math.max(queueCount - failedCount, 0);
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 [&_input]:min-h-11">
         <PageHeader
           title="Regnskab"
           description={`Du er forbundet med ${activeDef.label}. Det hele kører af sig selv.`}
@@ -1796,7 +1796,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 variant="outline"
                 onClick={handleRetryAllFailed}
                 disabled={syncing}
-                className="h-9 rounded-lg text-xs font-medium"
+                className="min-h-11 rounded-md text-xs font-medium"
               >
                 {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
                 Prøv alle igen
@@ -1823,7 +1823,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       {job.last_error || "Ukendt fejl"}
                     </div>
                     <details className="group">
-                      <summary className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground select-none">
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground select-none">
                         Vis tekniske detaljer
                       </summary>
                       <button
@@ -1832,7 +1832,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                           navigator.clipboard.writeText(job.entity_id);
                           toast.success("Reference kopieret");
                         }}
-                        className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                        className="mt-1 inline-flex min-h-11 max-w-full flex-wrap items-center gap-1 break-all font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
                         title="Klik for at kopiere — gem den hvis du kontakter support"
                       >
                         <Copy className="h-3 w-3" />
@@ -1844,7 +1844,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     variant="outline"
                     onClick={() => handleRetryJob(job.id)}
                     disabled={retryingJobId === job.id}
-                    className="h-9 rounded-lg text-xs font-medium sm:w-auto"
+                    className="min-h-11 rounded-md text-xs font-medium sm:w-auto"
                   >
                     {retryingJobId === job.id
                       ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -1883,13 +1883,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       {job.last_error || "Ukendt fejl"}
                     </div>
                     <details className="group">
-                      <summary className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground select-none">
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground select-none">
                         Vis tekniske detaljer
                       </summary>
                       <button
                         type="button"
                         onClick={() => { navigator.clipboard.writeText(job.entity_id); toast.success("Reference kopieret"); }}
-                        className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                        className="mt-1 inline-flex min-h-11 max-w-full flex-wrap items-center gap-1 break-all font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
                         title="Klik for at kopiere — gem den hvis du kontakter support"
                       >
                         <Copy className="h-3 w-3" />
@@ -1902,7 +1902,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       variant="outline"
                       onClick={() => handleDlqRetry(job.id)}
                       disabled={dlqActionId === job.id}
-                      className="h-9 rounded-lg text-xs font-medium"
+                      className="min-h-11 rounded-md text-xs font-medium"
                     >
                       {dlqActionId === job.id
                         ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -1913,7 +1913,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       variant="ghost"
                       onClick={() => handleDlqDismiss(job.id)}
                       disabled={dlqActionId === job.id}
-                      className="h-9 rounded-lg text-xs font-medium text-muted-foreground"
+                      className="min-h-11 rounded-md text-xs font-medium text-muted-foreground"
                     >
                       Jeg har ordnet det
                     </Button>
@@ -2002,7 +2002,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   <SelectTrigger aria-label="Kundegruppe" className="min-h-11">
                     <SelectValue placeholder="Vælg en gruppe…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     {groups.customer_groups.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -2026,7 +2026,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   <SelectTrigger aria-label="Varegruppe for nye services" className="min-h-11">
                     <SelectValue placeholder="Vælg en gruppe…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     {groups.product_groups.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -2050,7 +2050,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   <SelectTrigger aria-label="Indtægtskonto" className="min-h-11">
                     <SelectValue placeholder="Vælg en konto…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     {groups.income_accounts.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -2108,7 +2108,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 variant="outline"
                 size="sm"
                 onClick={openProviderPicker}
-                className="h-9 rounded-lg text-xs font-medium"
+                className="min-h-11 rounded-md text-xs font-medium"
               >
                 <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift program
               </Button>
@@ -2116,7 +2116,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 variant="outline"
                 size="sm"
                 onClick={() => setConfirmDisable(true)}
-                className="h-9 rounded-lg border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+                className="min-h-11 rounded-md border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
               >
                 <X className="mr-1.5 h-3.5 w-3.5" /> Frakobl
               </Button>
@@ -2163,12 +2163,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <li className="flex gap-2"><X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" /> Nye ændringer sendes ikke længere automatisk til {activeDef.label}.</li>
             </ul>
             <AlertDialogFooter>
-              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
+              <AlertDialogCancel className="min-h-11 rounded-md text-sm font-medium">
                 Behold forbindelsen
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDisable}
-                className="h-9 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
+                className="min-h-11 rounded-md text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
               >
                 Ja, frakobl
               </AlertDialogAction>
@@ -2191,7 +2191,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <Button
             variant="outline"
             onClick={() => setMode("overview")}
-            className="h-9 rounded-lg text-xs font-medium"
+            className="min-h-11 rounded-md text-xs font-medium"
           >
             <X className="mr-1.5 h-4 w-4" /> Annullér
           </Button>
