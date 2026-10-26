@@ -327,7 +327,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
       <Dialog open={isFocusMode} onOpenChange={(open) => { if (!open) { setShowForm(false); setEditingId(null); } }}>
         <DialogContent className="modal-large overflow-hidden p-0 gap-0 flex flex-col">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
-            <DialogTitle className="text-base">
+            <DialogTitle className="break-words [overflow-wrap:anywhere] text-base">
               {editingService ? `Rediger ${editingService.name}` : "Ny service"}
             </DialogTitle>
             <DialogDescription className="text-xs leading-snug">
@@ -443,7 +443,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
       </div>
 
       <AlertDialog open={!!pendingDeleteId} onOpenChange={(o) => { if (!o) setPendingDeleteId(null); }}>
-        <AlertDialogContent className="rounded-xl">
+        <AlertDialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md [overflow-wrap:anywhere]">
           <AlertDialogHeader>
             <AlertDialogTitle>Slet service?</AlertDialogTitle>
             <AlertDialogDescription className="leading-relaxed">
@@ -453,9 +453,9 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">Annullér</AlertDialogCancel>
+            <AlertDialogCancel className="min-h-11 rounded-md text-sm font-medium">Annullér</AlertDialogCancel>
             <AlertDialogAction
-              className="h-9 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-medium"
+              className="min-h-11 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-medium"
               onClick={() => {
                 if (pendingDeleteId) deleteService.mutate(pendingDeleteId);
                 setPendingDeleteId(null);
@@ -1559,7 +1559,7 @@ const ServiceForm = ({
                       )}
                     </div>
                     {(subcategory || serviceCategory) && (
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         Tilpasset {subcategory || serviceCategory}
                       </span>
                     )}
@@ -1569,11 +1569,11 @@ const ServiceForm = ({
                       const isBest = idx === 0 && isBestMatch;
                       const isSelected = appliedTemplateLabel === t.label;
                       return (
-                        <button
+                        <Button variant="ghost"
                           key={t.label}
                           type="button"
                           onClick={() => applyTemplate(t)}
-                          className={`group relative flex flex-col rounded-xl border bg-card p-4 text-left transition-all hover:border-foreground/50 hover:shadow-md ${
+                          className={`group relative flex h-auto min-h-11 flex-col items-start whitespace-normal rounded-xl border bg-card p-4 text-left transition-all hover:border-foreground/50 hover:shadow-md ${
                             isSelected
                               ? "border-foreground bg-secondary ring-2 ring-foreground/20"
                               : isBest ? "border-foreground/70 ring-1 ring-foreground/10" : "border-border"
@@ -1589,34 +1589,34 @@ const ServiceForm = ({
                             </span>
                           )}
                           <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                          <span className="mt-1 block text-[11px] text-muted-foreground">
+                          <span className="mt-1 block text-xs text-muted-foreground">
                             {t.steps.length} trin · {Array.from(new Set(t.steps.map((s) => s.unit))).join(", ")}
                           </span>
                           <span className="mt-2 block text-xs text-muted-foreground/80 line-clamp-2">
                             {t.steps.slice(0, 3).map((s) => s.label).join(" · ")}
                             {t.steps.length > 3 ? " …" : ""}
                           </span>
-                          <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-foreground/70 group-hover:text-foreground">
+                          <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-foreground/70 group-hover:text-foreground">
                             {isSelected ? "Anvendt ✓" : "Brug skabelon →"}
                           </span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
-                  <button
+                  <Button variant="ghost"
                     type="button"
                     onClick={startFromScratch}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-card hover:text-foreground"
+                    className="flex h-auto min-h-11 w-full whitespace-normal items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-card hover:text-foreground"
                   >
                     <Plus className="h-4 w-4" />
                     Byg selv fra bunden — uden skabelon
-                  </button>
+                  </Button>
                 </div>
               )}
 
           <div className="space-y-3">
             {steps.length > 0 && (
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-foreground">
                     {steps.length} {steps.length === 1 ? "trin" : "trin"}
@@ -1631,7 +1631,7 @@ const ServiceForm = ({
                     </span>
                   </span>
                 </div>
-                <Button variant="secondary" size="sm" onClick={addStep} className="gap-1.5 rounded-lg border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20">
+                <Button variant="secondary" size="sm" onClick={addStep} className="min-h-11 gap-1.5 rounded-md border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20">
                   <Plus className="h-3.5 w-3.5" /> Tilføj trin
                 </Button>
               </div>
@@ -1641,9 +1641,9 @@ const ServiceForm = ({
               const rowTotal = (Number(step.price_per_unit) || 0) * (Number(step.default_value) || 0);
               return (
                  <Card key={i} className="group/step rounded-xl shadow-sm border-border overflow-hidden transition-colors hover:border-foreground/15">
-                   <div className="flex items-center justify-between gap-2 bg-secondary/50 px-3 py-2 border-b border-border">
-                     <div className="flex items-center gap-2 min-w-0">
-                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">
+                   <div className="flex flex-wrap items-center justify-between gap-2 bg-secondary/50 px-3 py-2 border-b border-border">
+                     <div className="flex min-w-0 flex-wrap items-center gap-2">
+                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-xs font-bold text-background">
                         {i + 1}
                       </span>
                       <span className="truncate text-sm font-semibold text-foreground">
@@ -1657,27 +1657,27 @@ const ServiceForm = ({
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <div className="flex items-center rounded-lg border border-border bg-card p-0.5 shadow-sm">
-                        <button type="button" onClick={() => moveStep(i, -1)} disabled={i === 0}
+                        <Button variant="ghost" type="button" onClick={() => moveStep(i, -1)} disabled={i === 0}
                           aria-label="Flyt op" title="Flyt op"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground">
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground">
                           <ArrowUp className="h-3.5 w-3.5" />
-                        </button>
-                        <button type="button" onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1}
+                        </Button>
+                        <Button variant="ghost" type="button" onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1}
                           aria-label="Flyt ned" title="Flyt ned"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground">
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground">
                           <ArrowDown className="h-3.5 w-3.5" />
-                        </button>
-                        <button type="button" onClick={() => duplicateStep(i)}
+                        </Button>
+                        <Button variant="ghost" type="button" onClick={() => duplicateStep(i)}
                           aria-label="Dupliker trin" title="Dupliker"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                           <Copy className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       </div>
-                      <button type="button" onClick={() => removeStep(i)}
+                      <Button variant="ghost" type="button" onClick={() => removeStep(i)}
                         aria-label="Slet trin" title="Slet trin"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40">
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40">
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <CardContent className="p-4 space-y-3">
@@ -1686,18 +1686,18 @@ const ServiceForm = ({
                         <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn på trin</label>
                         <Input placeholder="Fx Boligens størrelse" value={step.label}
                           onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
-                        <p className="mt-1 text-[11px] text-muted-foreground">Det kunden ser, fx "Antal m²" eller "Antal rum".</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Det kunden ser, fx "Antal m²" eller "Antal rum".</p>
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed kunden vælger i</label>
                         <div className="flex flex-wrap gap-1.5">
                           {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
-                            <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
-                              className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                            <Button variant="ghost" key={u} type="button" onClick={() => updateStep(i, "unit", u)}
+                              aria-pressed={step.unit === u} className={`min-h-11 rounded-md border px-2.5 py-1 text-xs font-medium transition-all ${
                                 step.unit === u
                                   ? "border-foreground bg-foreground text-background"
                                   : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                              }`}>{u}</button>
+                              }`}>{u}</Button>
                           ))}
                         </div>
                       </div>
@@ -1717,11 +1717,11 @@ const ServiceForm = ({
                             <Input type="number" inputMode="numeric" placeholder="0" value={f.value}
                               onChange={(e) => updateStep(i, f.field, e.target.value)}
                               className="bg-card text-sm pr-9 tabular-nums" />
-                            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">
+                            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                               {f.hint}
                             </span>
                           </div>
-                          <p className="mt-1 text-[10.5px] leading-tight text-muted-foreground">{f.help}</p>
+                          <p className="mt-1 text-xs leading-tight text-muted-foreground">{f.help}</p>
                         </div>
                       ))}
                     </div>
@@ -1731,14 +1731,14 @@ const ServiceForm = ({
             })}
 
             {steps.length === 0 && (
-              <button type="button" onClick={startFromScratch}
-                className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center transition-colors hover:border-foreground/40 hover:bg-secondary/40">
+              <Button variant="ghost" type="button" onClick={startFromScratch}
+                className="flex h-auto w-full whitespace-normal flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center transition-colors hover:border-foreground/40 hover:bg-secondary/40">
                 <Calculator className="h-8 w-8 text-muted-foreground/40" />
                 <p className="mt-3 text-sm font-medium text-foreground">Opret dit første trin</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {rankedTemplates.length > 0 ? "Eller vælg en skabelon ovenfor" : "Tilføj fx areal, antal rum eller timer"}
                 </p>
-              </button>
+              </Button>
             )}
           </div>
 
@@ -1769,22 +1769,16 @@ const ServiceForm = ({
                 Inaktive services vises ikke for kunder og kan ikke bestilles.
               </p>
             </div>
-            <button
+            <Button variant="ghost"
               type="button"
               role="switch"
               aria-checked={isActive}
               aria-label="Service er aktiv"
               onClick={() => setIsActive(!isActive)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                isActive ? "bg-foreground" : "bg-muted"
-              }`}
+              className="relative h-11 w-11 shrink-0 p-0"
             >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition ${
-                  isActive ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
+              <span aria-hidden="true" className={`pointer-events-none flex h-6 w-11 items-center rounded-full border-2 border-transparent ${isActive ? "bg-foreground" : "bg-muted"}`}><span className={`h-5 w-5 rounded-full bg-background shadow transition-transform ${isActive ? "translate-x-5" : "translate-x-0"}`} /></span>
+            </Button>
           </div>
 
           {/* Vejrfølsom — bruges af ruteplanlæggeren til at advare når regn/storm rammer en udendørs service */}
@@ -1795,21 +1789,15 @@ const ServiceForm = ({
                 Slå til hvis servicen ikke kan udføres i regn eller storm (fx tagrensning, facade, udvendige vinduer). Ruteplanlæggeren advarer og foreslår flytning ved dårligt vejr.
               </p>
             </div>
-            <button
+            <Button variant="ghost"
               type="button"
               role="switch"
               aria-checked={weatherSensitive}
               onClick={() => setWeatherSensitive(!weatherSensitive)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                weatherSensitive ? "bg-foreground" : "bg-muted"
-              }`}
+              aria-label="Vejrfølsom service" className="relative h-11 w-11 shrink-0 p-0"
             >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition ${
-                  weatherSensitive ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
+              <span aria-hidden="true" className={`pointer-events-none flex h-6 w-11 items-center rounded-full border-2 border-transparent ${weatherSensitive ? "bg-foreground" : "bg-muted"}`}><span className={`h-5 w-5 rounded-full bg-background shadow transition-transform ${weatherSensitive ? "translate-x-5" : "translate-x-0"}`} /></span>
+            </Button>
           </div>
 
           {/* Standard-medarbejdere — automatisk tildeles aftaler oprettet med denne service */}
@@ -1827,7 +1815,7 @@ const ServiceForm = ({
                 {(employeesForDefault as any[]).map((e) => {
                   const selected = defaultEmployeeIds.includes(e.id);
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={e.id}
                       type="button"
                       onClick={() =>
@@ -1835,7 +1823,7 @@ const ServiceForm = ({
                           prev.includes(e.id) ? prev.filter((x) => x !== e.id) : [...prev, e.id],
                         )
                       }
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                      aria-pressed={selected} className={`inline-flex h-auto min-h-11 max-w-full whitespace-normal items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition ${
                         selected
                           ? "border-foreground bg-foreground text-background"
                           : "border-border bg-card text-foreground hover:bg-secondary/60"
@@ -1861,13 +1849,13 @@ const ServiceForm = ({
                         </span>
                       )}
                       <span>{e.name}</span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
             )}
             {defaultEmployeeIds.length === 0 && (
-              <p className="text-[11px] text-muted-foreground">Ingen valgt — medarbejdere skal vælges manuelt på hver aftale.</p>
+              <p className="text-xs text-muted-foreground">Ingen valgt — medarbejdere skal vælges manuelt på hver aftale.</p>
             )}
           </div>
 
@@ -1891,7 +1879,7 @@ const ServiceForm = ({
                   onChange={(e) => setProductNumber(e.target.value)}
                   className="bg-card"
                 />
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Lad stå tom for at lade regnskabsprogrammet tildele et nummer automatisk.
                 </p>
               </div>
@@ -1899,7 +1887,7 @@ const ServiceForm = ({
                 <label className="mb-1.5 block text-sm font-medium text-foreground">Momszone</label>
                 <Select value={vatZone || "__default__"} onValueChange={(v) => setVatZone(v === "__default__" ? "" : v)}>
                   <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     <SelectItem value="__default__">Brug standard fra regnskab</SelectItem>
                     <SelectItem value="domestic">Indland (DK moms)</SelectItem>
                     <SelectItem value="eu">EU</SelectItem>
@@ -1931,7 +1919,7 @@ const ServiceForm = ({
                       onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
                     >
                       <SelectTrigger className="bg-card" aria-label="Varegruppe for denne service"><SelectValue placeholder="Brug standard" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="[&_[role=option]]:min-h-11">
                         <SelectItem value="__default__">
                           Brug virksomhedens standard{accountingDefaults.default_product_group ? ` (${accountingGroups.product_groups.find(g => g.id === accountingDefaults.default_product_group)?.name ?? accountingDefaults.default_product_group})` : ""}
                         </SelectItem>
@@ -1954,7 +1942,7 @@ const ServiceForm = ({
                       onValueChange={(v) => setAccountingIncomeAccount(v === "__default__" ? "" : v)}
                     >
                       <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="[&_[role=option]]:min-h-11">
                         <SelectItem value="__default__">
                           Brug virksomhedens standard{accountingDefaults.default_income_account ? ` (${accountingGroups.income_accounts.find(a => a.id === accountingDefaults.default_income_account)?.name ?? accountingDefaults.default_income_account})` : ""}
                         </SelectItem>
@@ -1976,14 +1964,14 @@ const ServiceForm = ({
         </div>
       )}
 
-      <div className="sticky bottom-0 z-10 -mx-3 flex items-center justify-between border-t border-border bg-card px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4">
+      <div className="sticky bottom-0 z-10 -mx-3 flex flex-wrap items-center justify-between gap-2 border-t border-border bg-card px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4">
         <div className="flex gap-2">
           {currentStep > 1 && (
-            <Button variant="outline" disabled={saving} onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-11 px-4 text-sm font-medium">
+            <Button variant="outline" disabled={saving} onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-auto min-h-11 whitespace-normal px-3 text-sm font-medium">
               ← Tilbage
             </Button>
           )}
-          <Button variant="ghost" disabled={saving} onClick={onClose} className="rounded-lg h-11 px-4 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:text-foreground">
+          <Button variant="ghost" disabled={saving} onClick={onClose} className="rounded-lg h-auto min-h-11 whitespace-normal px-3 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:text-foreground">
             Annuller
           </Button>
         </div>
@@ -1991,11 +1979,11 @@ const ServiceForm = ({
           {currentStep < totalSteps ? (
             <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
               disabled={!canGoNext()}
-              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-11 px-6 text-sm font-semibold shadow-sm">
+              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-auto min-h-11 whitespace-normal px-3 text-sm font-semibold shadow-sm">
               Næste →
             </Button>
           ) : (
-            <Button onClick={handleSave} disabled={saving} className="rounded-lg bg-foreground text-background hover:bg-foreground/90 h-11 px-6 text-sm font-semibold shadow-sm">
+            <Button onClick={handleSave} disabled={saving} className="rounded-lg bg-foreground text-background hover:bg-foreground/90 h-auto min-h-11 whitespace-normal px-3 text-sm font-semibold shadow-sm">
               {saving ? "Gemmer…" : existingService ? "Gem ændringer" : "Opret service"}
             </Button>
           )}
