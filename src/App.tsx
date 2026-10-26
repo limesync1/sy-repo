@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { RealtimeSync } from "@/components/RealtimeSync";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -352,6 +353,7 @@ const RedirectWithQuery = ({ to }: { to: string }) => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <RealtimeSync />
       <LocationProvider>
         <BrowserRouter>
           <CartProvider>
