@@ -1,7 +1,0 @@
-import React,{useState} from 'react';
-import {createRoot} from 'react-dom/client';
-import {EmployeeNotifications} from '/dev-server/src/components/employee/EmployeeNotifications';
-import {EmployeeWorkspacePicker} from '/dev-server/src/components/employee/EmployeeWorkspacePicker';
-import '/dev-server/src/index.css';
-const message={id:'test',message:'Ruten er flyttet til en ny dato. Kontakt kontoret ved spørgsmål om den ekstra lange adresse og aftale.',created_at:new Date().toISOString(),read_at:null,route_id:'r',route_stop_id:'s',route_stops:{customer_name:'En meget lang virksomhedsbetegnelse uden forkortelser',address:'Enlangvejbetegnelseudenmellemrum1234567890, 7400 Herning'}};
-function App(){const [items,setItems]=useState([message]);const [result,setResult]=useState('');return <main className="mx-auto max-w-3xl p-2"><output aria-label="Valgt handling">{result}</output>{location.search.includes('workspace')?<EmployeeWorkspacePicker employees={[{id:'e',business_id:'b',name:'Sebastian Jepsen',title:'Pudser',business:{name:'Ekstra langt firmanavn med mange beskrivelser',city:'Herning',zip_code:'7400'}}]} onSelected={(id,remember)=>setResult(id+':'+remember)}/>:<EmployeeNotifications notifications={items} onOpen={()=>setResult('Åbnet')} onMarkAllRead={()=>setItems(prev=>prev.map(i=>({...i,read_at:new Date().toISOString()})))} onDelete={()=>{setResult('Slettet');setItems([])}} onDeleteAll={()=>setItems([])}/>}</main>};createRoot(document.getElementById('root')).render(<App/>);
