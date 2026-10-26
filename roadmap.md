@@ -1,6 +1,7 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## Forbedringer i mindre dele (26. okt.)
+- [ ] Del 5c: Forenkling efter feedback om klodset betjening: aktuelle stopdetaljer, samtaleskift uden gamle beskeder/fejlrettede svar og prisfelter med plads; regressioner og skærmtest pågår.
 - [ ] Del 5: Hele medarbejderpanelet — navigation, overblik, ruter, tidsregistrering, historik, profil og vinduer; kortlægning pågår, forbedringer og skærmtests udføres i mindre dele uden at ændre manuel tid eller GPS-logik.
 - [x] Del 5a: Kortlagt Min dag, Statistik, Livechat, arbejdspladsvalg, profil, beskeder, stophandlinger og kørselsvinduer. Større dato-/print-/periodeknapper, viewportbegrænsede kalenderpopover, beskeder med native separat åbn/slet og ombrydning, større note-genveje og fælles lukkeknapper. Rettet overskrevet kort-HUD-højde på korte skærme; lukket stopliste er inert. Beskeder/arbejdspladsvalg testet på fire bredder i begge temaer; HUD-højde ved 390×710, 844×390 og 1280×1800; 21 regressionstests bestået i to kørsler. Rigtige medarbejderflows og fuld rute-/statistik-/notevisning ikke verificeret.
 - [ ] Del 5b: Bekræftede resterende problemer: åbne stopdetaljer viser et gammelt snapshot, livechat kan vise forrige samtales indhold under hentning, prissteppers/kalenderdage er små, stopoplysninger mangler tydelig touchhandling. Gennemgå hvert flow og test rettelser uden at ændre adgang, priser eller manuel tid.

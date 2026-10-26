@@ -135,11 +135,17 @@ const EmployeeApp = () => {
   const [date, setDate] = useState(todayStr());
   const isCompact = useIsBelowBreakpoint(1024);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
+  const [detailsStopId, setDetailsStopId] = useState<string | null>(null);
   // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
   const [previewRouteId, setPreviewRouteId] = useState<string | null>(null);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
+  const detailsStop = stops.find(stop => stop.id === detailsStopId);
+  const detailsRoute = routes.find(route => route.id === detailsStop?.route_id);
+  useEffect(() => { setDetailsStopId(null); }, [date]);
+  useEffect(() => {
+    if (!stopsLoading && detailsStopId && !detailsStop) setDetailsStopId(null);
+  }, [stopsLoading, detailsStopId, detailsStop]);
   const { data: workday } = useMyWorkday(date);
   const { data: me } = useMyEmployee();
   const { data: receiptStats, isLoading: receiptStatsLoading, isError: receiptStatsError } = useMyEmployeeStats(previewRouteId ? me?.id : undefined, me?.commission_pct ?? 0, date, date);
@@ -718,7 +724,7 @@ const EmployeeApp = () => {
                           <Button
                             key={s.id}
                             type="button"
-                            onClick={() => setDetailsStop({ stop: s, index: i, routeName: r.name, routeColor: r.color, routeDate: r.route_date })}
+                            onClick={() => setDetailsStopId(s.id)}
                             variant="ghost"
                             className={`flex h-auto min-h-14 items-center justify-start gap-3 rounded-none whitespace-normal px-3 py-2.5 ${
                               isNext ? "bg-secondary/60" : ""
@@ -738,7 +744,7 @@ const EmployeeApp = () => {
                             </span>
                             <div className="min-w-0 flex-1">
                               <p
-                                className={`truncate text-xs font-semibold ${
+                                className={`break-words [overflow-wrap:anywhere] text-sm font-semibold ${
                                   s.status === "completed"
                                     ? "text-muted-foreground line-through"
                                     : "text-foreground"
@@ -753,7 +759,7 @@ const EmployeeApp = () => {
                               </p>
                               <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5">
                                 {(s.full_address || s.address) && (
-                                  <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                                  <p className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-xs text-muted-foreground">
                                     {s.full_address || s.address}
                                   </p>
                                 )}
@@ -809,18 +815,18 @@ const EmployeeApp = () => {
 
       {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
           og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
-      <StopDetailsSheetShell open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
+      <StopDetailsSheetShell open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStopId(null)}>
           {detailsStop && (
             <StopDetailsContent
-              stop={detailsStop.stop}
-              index={detailsStop.index}
-              themeColor={detailsStop.routeColor || "hsl(var(--foreground))"}
+              stop={detailsStop}
+              index={stops.filter(s => s.route_id === detailsStop.route_id).sort((a, b) => a.sequence - b.sequence).findIndex(s => s.id === detailsStop.id)}
+              themeColor={detailsRoute?.color || "hsl(var(--foreground))"}
               route={{
-                name: detailsStop.routeName,
-                color: detailsStop.routeColor,
-                date: detailsStop.routeDate,
+                name: detailsRoute?.name || null,
+                color: detailsRoute?.color,
+                date: detailsRoute?.route_date,
                 allowEarly: canCompleteEarly({
-                  routeAllow: (routes.find((r) => r.id === detailsStop.stop.route_id) as any)?.allow_early_completion,
+                  routeAllow: (detailsRoute as any)?.allow_early_completion,
                   employeeMode,
                   businessDefault: businessEarlyDefault,
                 }),

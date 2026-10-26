@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LiveChatStats from "@/components/livechat/LiveChatStats";
+import { useConversationMessages } from "@/hooks/useConversationMessages";
 
 type Conversation = {
   id: string;
@@ -115,8 +116,12 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [draft, setDraft] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const draft = activeId ? drafts[activeId] || "" : "";
+  const setDraft = (next: string | ((old: string) => string)) => {
+    if (!activeId) return;
+    setDrafts(prev => ({ ...prev, [activeId]: typeof next === "function" ? next(prev[activeId] || "") : next }));
+  };
   const [sending, setSending] = useState(false);
   // Navnet på afsender — vi bruger ALTID virksomhedens navn, både når
   // ejeren og en medarbejder svarer, så kunden ser ét konsistent afsendernavn.
@@ -209,44 +214,27 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     return () => { supabase.removeChannel(channel); };
   }, [businessId, activeId]);
 
-  // Active conversation messages
+  const onIncoming = useCallback((next: Message) => {
+    if (initialMessagesLoad.current) return;
+    if (next.is_system) chatSounds.system();
+    else if (next.sender_type === "visitor") chatSounds.incoming();
+  }, []);
+  const { messages, loading: messagesLoading, error: messagesError, retry: retryMessages } = useConversationMessages(activeId, onIncoming);
+
+  // Reset only view state when changing conversations; drafts stay conversation-scoped.
   useEffect(() => {
-    if (!activeId) return;
-    let cancelled = false;
     initialMessagesLoad.current = true;
     forceBottomOnNextRenderRef.current = true;
     userScrolledUpRef.current = false;
-    supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("conversation_id", activeId)
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        if (!cancelled && data) setMessages(data as Message[]);
-        initialMessagesLoad.current = false;
-      });
-    supabase.from("chat_conversations").update({ unread_admin_count: 0 }).eq("id", activeId).then(() => {});
-
-    const channel = supabase
-      .channel(`biz-admin-chat-msg-${activeId}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${activeId}` },
-        (payload) => {
-          const next = payload.new as Message;
-          setMessages((prev) => (prev.some((m) => m.id === next.id) ? prev : [...prev, next]));
-          if (!initialMessagesLoad.current) {
-            if (next.is_system) chatSounds.system();
-            else if (next.sender_type === "visitor") chatSounds.incoming();
-          }
-          if (next.sender_type === "visitor") {
-            supabase.from("chat_conversations").update({ unread_admin_count: 0 }).eq("id", activeId).then(() => {});
-          }
-        })
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
+    setPendingImage(null);
+    setPendingImagePreview(previous => { if (previous) URL.revokeObjectURL(previous); return null; });
+    setUploadError(null);
   }, [activeId]);
 
+  useEffect(() => { initialMessagesLoad.current = messagesLoading; }, [messagesLoading]);
+
   useEffect(() => {
+    if (messagesLoading) return;
     const el = scrollRef.current;
     if (!el) return;
     // Forcér start-i-bunden første gang en samtale åbnes — også når der
@@ -265,7 +253,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     if (!userScrolledUpRef.current) {
       el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
-  }, [messages, activeId]);
+  }, [messages, activeId, messagesLoading]);
 
   useEffect(() => {
     userScrolledUpRef.current = false;
@@ -381,6 +369,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     });
     setSending(false);
     if (!error) { chatSounds.outgoing(); setDraft(""); clearPendingImage(); }
+    else toast.error("Beskeden blev ikke sendt. Prøv igen — dit svar er bevaret.");
   }, [active, sending, draft, pendingImage, adminName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeConversation = async (id: string) => {
@@ -570,7 +559,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
         </div>
 
         {/* Conversation pane */}
-        <div className={`service-panel-card flex h-[calc(100dvh-12rem)] min-h-[28rem] min-w-0 flex-col overflow-hidden rounded-[5px] border border-border bg-card shadow-sm xl:h-[60vh] ${!active ? "hidden xl:flex" : ""}`}>
+        <div className={`service-panel-card flex h-[calc(100dvh-8rem)] min-h-[20rem] min-w-0 flex-col overflow-hidden rounded-[5px] border border-border bg-card shadow-sm xl:h-[60vh] ${!active ? "hidden xl:flex" : ""}`}>
           {!active ? (
             <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
               Vælg en samtale fra listen.
@@ -638,6 +627,8 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
               <div className="relative min-h-0 flex-1 overflow-hidden">
               <div ref={scrollRef} className="absolute inset-0 space-y-2.5 overflow-y-auto bg-secondary/20 px-4 py-4">
+                {messagesLoading && <div role="status" className="flex justify-center gap-2 py-6 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter beskeder…</div>}
+                {messagesError && <div role="alert" className="space-y-2 text-center text-sm text-destructive"><p>Beskederne kunne ikke hentes.</p><Button variant="outline" onClick={retryMessages}>Prøv igen</Button></div>}
                 {messages.map((m, i) => {
                   if (m.is_system) {
                     return (

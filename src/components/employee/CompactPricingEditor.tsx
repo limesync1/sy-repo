@@ -6,6 +6,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { formatPrice } from "@/lib/price-format";
 import { getSmartStep } from "@/lib/service-pricing";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export type CalcStep = { id: string; label: string; unit: string | null; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 export type PricedService = { id: string; name: string; unit: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; interval_options: string[] | null; calculator_steps?: CalcStep[] };
@@ -62,7 +63,7 @@ export function CompactPricingEditor({ service, value, onChange, currentInterval
       </div>
 
       {service.pricing_type === "fast_pris" && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="space-y-1 text-[11px] text-muted-foreground">Antal
             <NumberStepper value={value.quantity} min={1} max={999} onChange={(n) => set({ quantity: n })} className="h-11 w-full" ariaLabel="Antal" />
           </label>
@@ -73,7 +74,7 @@ export function CompactPricingEditor({ service, value, onChange, currentInterval
       )}
 
       {service.pricing_type === "timepris" && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="space-y-1 text-[11px] text-muted-foreground">Timer
             <NumberStepper value={value.hours} min={0.5} max={24} step={0.5} unit="t" onChange={(n) => set({ hours: n })} className="h-11 w-full" ariaLabel="Timer" />
           </label>
@@ -89,13 +90,13 @@ export function CompactPricingEditor({ service, value, onChange, currentInterval
           {sortedSteps(service).map((st) => {
             const min = Number(st.min_value ?? 0), max = Number(st.max_value ?? 100000), unit = st.unit || service.unit || "stk";
             return (
-              <div key={st.id} className="flex items-center justify-between gap-2">
+              <div key={st.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-medium">{st.label}</p>
+                  <p className="break-words text-sm font-medium">{st.label}</p>
                   <p className="text-[11px] text-muted-foreground">{formatPrice(st.price_per_unit)} pr. {unit}</p>
                 </div>
                 <NumberStepper value={value.steps[st.id] ?? min} min={min} max={max} step={getSmartStep(unit, min, max)} unit={unit}
-                  onChange={(n) => set({ steps: { ...value.steps, [st.id]: n } })} className="h-11 w-36 shrink-0" ariaLabel={st.label} />
+                  onChange={(n) => set({ steps: { ...value.steps, [st.id]: n } })} className="min-h-11 w-full sm:w-44 shrink-0" ariaLabel={st.label} />
               </div>
             );
           })}
@@ -106,11 +107,11 @@ export function CompactPricingEditor({ service, value, onChange, currentInterval
         <p className="mb-1.5 text-[11px] text-muted-foreground">Interval</p>
         <div className="flex flex-wrap gap-1.5">
           {intervals.map((iv) => (
-            <button key={iv} type="button" onClick={() => set({ interval: iv })} aria-pressed={value.interval === iv}
-              className={cn("min-h-9 rounded-full border px-3 text-xs font-medium transition-colors",
-                value.interval === iv ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground")}>
+            <Button variant="outline" key={iv} type="button" onClick={() => set({ interval: iv })} aria-pressed={value.interval === iv}
+              className={cn("h-auto min-h-11 max-w-full whitespace-normal rounded-md px-3 text-sm font-medium",
+                value.interval === iv ? "border-foreground bg-foreground text-background hover:bg-foreground hover:text-background" : "border-border bg-card text-muted-foreground")}>
               {INTERVAL_LABELS[iv] || iv}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
