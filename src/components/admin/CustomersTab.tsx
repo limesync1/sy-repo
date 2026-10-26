@@ -1153,7 +1153,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
       {/* Confirm delete */}
       <AlertDialog open={!!confirmDelete?.open} onOpenChange={(v) => !v && setConfirmDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Slet {confirmDelete?.targets.length === 1 ? "kunde" : `${confirmDelete?.targets.length} kunder`}?
@@ -1165,11 +1165,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting} className="text-foreground hover:bg-secondary hover:text-foreground">Annullér</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} className="min-h-11 text-foreground hover:bg-secondary hover:text-foreground">Annullér</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmDelete && handleDelete(confirmDelete.targets)}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleting ? "Sletter..." : "Slet"}
             </AlertDialogAction>
@@ -1217,7 +1217,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
     return (a.preferred_date || a.created_at).localeCompare(b.preferred_date || b.created_at);
   })[0];
   const focusText = paymentIssueOrders.length > 0
-    ? `${paymentIssueOrders.length} betaling${formatPrice(paymentIssueOrders.length === 1 ? "" : "er")}æver opmærksomhed`
+    ? `${paymentIssueOrders.length} betaling${paymentIssueOrders.length === 1 ? "" : "er"} kræver opmærksomhed`
     : pendingOrders.length > 0
       ? `${pendingOrders.length} ny${pendingOrders.length === 1 ? "" : "e"} bestilling${pendingOrders.length === 1 ? "" : "er"} afventer svar`
       : activeOrders.length > 0
@@ -1246,18 +1246,18 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
       <SheetContent hideCloseButton className="planner-overlay flex h-dvh w-full flex-col overflow-hidden p-0 sm:h-[92dvh] sm:max-w-xl sm:rounded-md">
         {customer && (
           <>
-            <SheetHeader className="planner-overlay-header sticky top-0 z-20 shrink-0 border-b border-border bg-background p-3 pr-12 sm:px-5 sm:py-4">
-              <SheetClose className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+            <SheetHeader className="planner-overlay-header sticky top-0 z-20 shrink-0 border-b border-border bg-background p-3 pr-16 sm:px-5 sm:py-4">
+              <SheetClose className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
                 <CloseIcon className="h-4 w-4" />
                 <span className="sr-only">Luk</span>
               </SheetClose>
               <SheetTitle className="text-left">
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h3 className="truncate text-base font-bold text-foreground">{customer.name}</h3>
+                    <h3 className="break-words [overflow-wrap:anywhere] text-base font-bold text-foreground">{customer.name}</h3>
                     <CustomerStatusPill c={customer} />
                   </div>
-                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-normal text-muted-foreground">
+                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs font-normal text-muted-foreground">
                     <span>{activeOrders.length > 0 ? `${activeOrders.length} aktive aftaler` : customer.first_order_at ? `Kunde siden ${fmtDate(customer.first_order_at)}` : "Ingen aftaler endnu"}</span>
                     {paymentIssueOrders.length > 0 && <span className="font-medium text-destructive">{paymentIssueOrders.length} kræver betaling</span>}
                     {customer.total_revenue > 0 && <span>Omsætning {fmtKr(customer.total_revenue)}</span>}
@@ -1269,21 +1269,21 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
             <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 p-3 sm:p-5">
               <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1.5">
                 <a href={`mailto:${customer.email}`}
-                  className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
+                  className="inline-flex min-h-11 min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{customer.email}</span>
+                  <span className="break-words [overflow-wrap:anywhere]">{customer.email}</span>
                 </a>
                 {customer.phone && (
                   <a href={`tel:${customer.phone}`}
-                    className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60">
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60">
                     <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                     <span>{customer.phone}</span>
                   </a>
                 )}
                 {(customer.address || customer.city) && (
-                  <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground max-w-full">
+                  <span className="inline-flex min-h-11 min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground max-w-full">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="truncate">
+                    <span className="break-words [overflow-wrap:anywhere]">
                       {[customer.address, [customer.zip_code, customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
                     </span>
                   </span>
@@ -1295,20 +1295,20 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
               ) : (
                 <>
                   <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
-                        <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{focusText}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
+                        <p className="mt-0.5 break-words [overflow-wrap:anywhere] text-sm font-semibold text-foreground">{focusText}</p>
                         {nextOrder && (
                           <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <span className="truncate text-xs text-muted-foreground">
+                            <span className="break-words [overflow-wrap:anywhere] text-xs text-muted-foreground">
                               {nextOrder.order_items?.[0]?.service_name || "Ingen ydelse angivet"}
                               {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
                             </span>
                             <StatusBadge status={nextOrder.status} />
                             {hasActiveAccounting && <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />}
                             {nextOrder.preferred_date && (
-                              <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
+                              <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-xs text-foreground">
                                 <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
                               </span>
                             )}
@@ -1339,24 +1339,24 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
                             : "Ingen ydelse angivet";
                           return (
                             <div key={o.id} className="rounded-lg border border-border bg-card px-3 py-2">
-                              <div className="flex items-start justify-between gap-3">
+                              <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="min-w-0 flex-1">
                                   <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                                    <p className="truncate text-sm font-semibold text-foreground">{serviceLabel}</p>
+                                    <p className="break-words [overflow-wrap:anywhere] text-sm font-semibold text-foreground">{serviceLabel}</p>
                                     {o.is_paused
-                                      ? <Badge variant="outline" className="h-5 border-warning/40 bg-warning/10 px-1.5 text-[10px] text-warning-foreground">På pause</Badge>
+                                      ? <Badge variant="outline" className="h-5 border-warning/40 bg-warning/10 px-1.5 text-xs text-warning-foreground">På pause</Badge>
                                       : <StatusBadge status={o.status} />}
                                     {hasActiveAccounting && <AccountingStatusRow order={o as OrderForStatus} size="xs" />}
                                   </div>
-                                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {format(parseISO(o.created_at), "d. MMM yyyy", { locale: da })}</span>
                                     {o.preferred_date && <span className="inline-flex items-center gap-1 text-accent"><Calendar className="h-3 w-3" /> Ønsket {fmtDate(o.preferred_date)}</span>}
-                                    {(o.address || o.city) && <span className="truncate">{[o.address, [o.zip_code, o.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}</span>}
+                                    {(o.address || o.city) && <span className="break-words [overflow-wrap:anywhere]">{[o.address, [o.zip_code, o.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}</span>}
                                   </div>
                                 </div>
                                 <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(o.total_amount)}</span>
                               </div>
-                              {o.notes && <p className="mt-1.5 rounded bg-secondary/50 px-2 py-1 text-[11px] text-muted-foreground">📝 {o.notes}</p>}
+                              {o.notes && <p className="mt-1.5 rounded bg-secondary/50 px-2 py-1 text-xs text-muted-foreground">📝 {o.notes}</p>}
                             </div>
                           );
                         })}
@@ -1375,33 +1375,33 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
                       const cycles = Number(linkedOrder?.completed_cycles || 0);
                       return (
                         <div key={s.id} className="rounded-lg border border-border bg-card px-3 py-2">
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
+                              <p className="text-sm font-semibold text-foreground break-words [overflow-wrap:anywhere]">{s.service_name}</p>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                <Badge variant="outline" className="text-xs h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
                                   {INTERVAL_LABELS[s.interval] || s.interval}
                                 </Badge>
                                 <StatusBadge status={s.status} />
                                 {s.interval && s.interval !== "engangskøb" && (
-                                  <Badge variant="outline" className="text-[10px] h-5 px-1.5" title={cycles > 0 ? `Gennemført ${cycles} gange — næste er ${cycles + 1}. kørsel` : "Endnu ikke kørt"}>
+                                  <Badge variant="outline" className="text-xs h-5 px-1.5" title={cycles > 0 ? `Gennemført ${cycles} gange — næste er ${cycles + 1}. kørsel` : "Endnu ikke kørt"}>
                                     {cycles === 0 ? "1. kørsel kommende" : `${cycles + 1}. kørsel`}
                                   </Badge>
                                 )}
                                 {s.status === "active" && s.next_service_date && (
-                                  <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
                                     Næste: {fmtDate(s.next_service_date)}
                                   </span>
                                 )}
                                 {s.status === "paused" && (
-                                  <span className="text-[11px] text-amber-700 flex items-center gap-1">
+                                  <span className="text-xs text-warning flex items-center gap-1">
                                     <Pause className="h-3 w-3" />
                                     Indgår ikke i ruteplanlægning
                                   </span>
                                 )}
                                 {pref && (
-                                  <Link to={`/virksomhed/ruter?date=${pref.route_date}`} className="text-[11px] text-accent flex items-center gap-1 hover:underline">
+                                  <Link to={`/virksomhed/ruter?date=${pref.route_date}`} className="min-h-11 text-sm text-accent flex items-center gap-1 hover:underline">
                                     <RouteIcon className="h-3 w-3" />
                                     Sædvanlig rute: {pref.name || "Rute"}
                                   </Link>
@@ -1425,7 +1425,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
                         )}
                         {pausedSubs.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-1.5">
                               <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
                             </h4>
                             <div className="space-y-1.5">{pausedSubs.map(renderSub)}</div>
@@ -1445,7 +1445,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
 
                   {data && data.stops.length > 0 && (
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
-                      <summary className="flex cursor-pointer items-center justify-between gap-2 list-none font-medium text-foreground">
+                      <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 list-none font-medium text-foreground">
                         <span className="inline-flex items-center gap-1.5"><RouteIcon className="h-3.5 w-3.5 text-muted-foreground" /> Rutehistorik ({data.stops.length})</span>
                         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
                       </summary>
@@ -1457,14 +1457,14 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
                             <Link
                               key={s.id}
                               to={`/virksomhed/ruter?date=${s.routes?.route_date}`}
-                              className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 transition-colors hover:border-accent/40"
+                              className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-card px-2.5 py-2 transition-colors hover:border-accent/40"
                             >
                               <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-xs text-foreground">
+                                <p className="break-words [overflow-wrap:anywhere] text-xs text-foreground">
                                   {s.routes?.route_date ? format(parseISO(s.routes.route_date), "d. MMM yyyy", { locale: da }) : "—"}
                                 </p>
-                                <p className="truncate text-[11px] text-muted-foreground">{s.routes?.name || "Rute"}</p>
+                                <p className="break-words [overflow-wrap:anywhere] text-xs text-muted-foreground">{s.routes?.name || "Rute"}</p>
                               </div>
                               <StatusBadge status={s.status} />
                               <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1484,9 +1484,9 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
                         <div key={r.id} className="rounded-xl border border-border bg-card p-3">
                           <div className="flex items-center gap-1 mb-1">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                              <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-warning text-warning" : "text-muted-foreground/30"}`} />
                             ))}
-                            <span className="text-[11px] text-muted-foreground ml-2">{fmtDate(r.created_at)}</span>
+                            <span className="text-xs text-muted-foreground ml-2">{fmtDate(r.created_at)}</span>
                           </div>
                           {r.comment && <p className="text-sm text-foreground">{r.comment}</p>}
                         </div>
