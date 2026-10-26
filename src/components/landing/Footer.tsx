@@ -57,10 +57,10 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:py-1">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-11 lg:[&_a]:min-h-8 [&_a]:items-center [&_a]:py-0.5 [&_a]:leading-snug">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
-            <ul className="space-y-2 text-sm text-background/65">
+            <ul className="text-sm text-background/65">
               <li><Link to="/virksomheder" className="transition-colors hover:text-background">Find services</Link></li>
               <li><Link to="/tilbud" className="transition-colors hover:text-background">Indhent tilbud</Link></li>
               <li><Link to="/virksomheder" className="transition-colors hover:text-background">Kategorier</Link></li>
@@ -70,7 +70,7 @@ const Footer = () => {
           </div>
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Populære guides</h4>
-            <ul className="space-y-2 text-sm text-background/65">
+            <ul className="text-sm text-background/65">
               <li><Link to="/guides/priser-2026" className="transition-colors hover:text-background">Priser 2026 — oversigt</Link></li>
               <li><Link to="/guides/rengoering" className="transition-colors hover:text-background">Rengøring 2026</Link></li>
               <li><Link to="/guides/flytning" className="transition-colors hover:text-background">Flytning 2026</Link></li>
@@ -81,7 +81,7 @@ const Footer = () => {
           </div>
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">For virksomheder</h4>
-            <ul className="space-y-2 text-sm text-background/65">
+            <ul className="text-sm text-background/65">
               <li><Link to="/opret-virksomhed" className="transition-colors hover:text-background">Bliv udbyder</Link></li>
               <li><Link to="/software" className="transition-colors hover:text-background">Systemet til virksomheder</Link></li>
               <li><Link to="/software/ruteplanlaegger" className="transition-colors hover:text-background">Ruteplanlægger</Link></li>
@@ -93,7 +93,7 @@ const Footer = () => {
           </div>
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Support</h4>
-            <ul className="space-y-2 text-sm text-background/65">
+            <ul className="text-sm text-background/65">
               <li><Link to="/kontakt" className="transition-colors hover:text-background">Kontakt os</Link></li>
               <li><Link to="/hjaelp" className="transition-colors hover:text-background">Hjælpecenter</Link></li>
               <li><Link to="/hjaelp#faq" className="transition-colors hover:text-background">FAQ</Link></li>
@@ -102,7 +102,7 @@ const Footer = () => {
           </div>
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Om os</h4>
-            <ul className="space-y-2 text-sm text-background/65">
+            <ul className="text-sm text-background/65">
               <li><Link to="/om-os" className="transition-colors hover:text-background">Om Serviceydere</Link></li>
               <li><Link to="/privatlivspolitik" className="transition-colors hover:text-background">Privatlivspolitik</Link></li>
               <li><Link to="/vilkaar" className="transition-colors hover:text-background">Vilkår</Link></li>
