@@ -1,5 +1,11 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## Forbedringer i mindre dele (26. okt.)
+- [ ] Del 1: Hurtigere og robust oprettelse/gemning af bestillinger, kunder, services og ruter; test de ændrede forløb.
+- [ ] Del 2: Knapper, filtre og værktøjslinjer i hele virksomhedspanelet på mobil, tablet og computer.
+- [ ] Del 3: Formularer, dropdowns, kalendere og vinduer; fuld klikgennemgang side for side.
+- [ ] Del 4: Synkronisering og statistik på tværs af enheder, inklusive beskeder/regnskab; verificér med to samtidige skærme.
+
 Kilde: MASTER_PROMPT_COMPLETE_AUDIT_AND_REFINEMENT_OF_pasted.md
 Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen schema-/dataændringer.
 
