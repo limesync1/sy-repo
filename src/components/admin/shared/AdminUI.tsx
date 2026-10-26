@@ -50,7 +50,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-      "brand-blue-action h-9 rounded-[4px] text-sm font-semibold px-4",
+      "brand-blue-action min-h-11 rounded-[4px] text-sm font-semibold px-4",
       // Holdt simpelt: kun farve-overgang ved hover, lille press-feedback ved klik.
       // Ingen "lift" eller ikon-skalering — det føltes tilfældigt på en CTA.
       "transition-colors duration-150 ease-out active:scale-[0.98]",
@@ -235,14 +235,14 @@ export const SearchInput = ({
   placeholder?: string;
   className?: string;
 }) => (
-  <div className={cn("relative flex-1 min-w-[240px]", className)}>
+  <div className={cn("relative w-full min-w-0 flex-1", className)}>
     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       aria-label={placeholder || "Søg"}
-      className="pl-9 rounded-[4px] h-11 lg:h-10"
+      className="pl-9 rounded-[4px] min-h-11"
     />
   </div>
 );
