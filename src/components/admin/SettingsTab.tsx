@@ -1323,7 +1323,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
-                    <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
+                    {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />}
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.
@@ -1338,7 +1338,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
                   <FieldLabel optional>Coverbillede</FieldLabel>
                   <div className="mt-1">
-                    <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-[3/1]" className="w-full max-w-[420px]" />
+                    {user && <ImageUpload folder={`${user.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-[3/1]" className="w-full max-w-[420px]" />}
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises som bredt banner øverst på jeres profilside i formatet 3:1.
