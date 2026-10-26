@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { publishPanelRefresh } from "@/lib/panel-refresh";
 
 /**
  * Global live-synkronisering for indloggede brugere.
@@ -17,6 +18,9 @@ const TABLES = [
   "business_customers", "employees", "reviews", "quote_requests",
   "quote_request_matches", "route_stop_assignees", "route_employees",
   "employee_absences",
+  "business_owner_alerts", "customer_notification_queue",
+  "accounting_sync_log", "accounting_sync_queue", "accounting_sync_dlq",
+  "invoice_batches", "employee_completed_stops",
 ];
 
 export function RealtimeSync() {
@@ -26,17 +30,25 @@ export function RealtimeSync() {
   useEffect(() => {
     if (!user?.id) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
-    const refreshAll = () => {
+    const pendingTables = new Set<string>();
+    let recovery = false;
+    const refreshAll = (table?: string) => {
+      if (table) pendingTables.add(table);
+      else recovery = true;
       if (timer) return;
       timer = setTimeout(() => {
         timer = null;
-        qc.invalidateQueries({ refetchType: "active" });
+        const changed = recovery ? null : [...pendingTables];
+        recovery = false;
+        pendingTables.clear();
+        void qc.invalidateQueries({ refetchType: "active" });
+        publishPanelRefresh(changed);
       }, 300);
     };
 
     let channel = supabase.channel(`global-sync-${user.id}-${Math.random().toString(36).slice(2)}`);
     for (const table of TABLES) {
-      channel = channel.on("postgres_changes", { event: "*", schema: "public", table }, refreshAll);
+      channel = channel.on("postgres_changes", { event: "*", schema: "public", table }, () => refreshAll(table));
     }
     let wasDisconnected = false;
     channel.subscribe((status) => {
@@ -53,12 +65,13 @@ export function RealtimeSync() {
       if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
       if (hiddenAt && Date.now() - hiddenAt > 5_000) refreshAll();
     };
-    window.addEventListener("online", refreshAll);
+    const onOnline = () => refreshAll();
+    window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       if (timer) clearTimeout(timer);
-      window.removeEventListener("online", refreshAll);
+      window.removeEventListener("online", onOnline);
       document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
