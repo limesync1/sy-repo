@@ -2486,6 +2486,12 @@ const StopListPanel = forwardRef<HTMLDivElement, {
 
         <div
           className="space-y-1.5 overflow-y-auto border-t bg-secondary/20 p-2 sm:p-2.5"
+          aria-hidden={!open}
+          ref={(body) => {
+            if (!body) return;
+            if (open) body.removeAttribute("inert");
+            else body.setAttribute("inert", "");
+          }}
           style={{ maxHeight: "calc(min(68dvh, 42rem) - 52px)" }}
         >
           {stops.length === 0 && (
