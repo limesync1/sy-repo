@@ -101,7 +101,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-muted-foreground mr-1">Bedømmelse</span>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Bedømmelse">
           {([
             { key: "all" as const, label: "Alle", count: reviews.length },
             { key: 5 as const, label: "5 ★", count: aggregate.counts[5] },

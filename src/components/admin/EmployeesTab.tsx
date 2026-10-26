@@ -770,13 +770,13 @@ const EmployeeRow = ({
                     />
                   </label>
                   {employee.avatar_url && (
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={handleRemoveAvatar}
-                      className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
+                      className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
                     >
                       Fjern
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -791,14 +791,15 @@ const EmployeeRow = ({
                   {ROUTE_COLORS.map((c) => {
                     const selected = fallbackColor === c.value;
                     return (
-                      <button
+                      <Button variant="ghost"
                         key={c.value}
                         type="button"
                         onClick={() => handlePickColor(c.value)}
                         title={c.name}
                         aria-label={c.name}
+                        aria-pressed={selected}
                         className={cn(
-                          "h-11 w-11 rounded-md border border-border/60 transition-colors",
+                          "h-11 w-11 p-0 rounded-md border border-border/60 transition-colors",
                           selected && "ring-2 ring-offset-2 ring-foreground ring-offset-background",
                         )}
                         style={{ background: c.value }}

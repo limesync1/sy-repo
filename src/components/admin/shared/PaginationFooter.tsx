@@ -34,7 +34,7 @@ export function PaginationFooter({
           size="sm"
           disabled={page === 0}
           onClick={() => onPageChange(Math.max(0, page - 1))}
-          className="h-8"
+          className="min-h-11"
         >
           <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Forrige
         </Button>
@@ -46,7 +46,7 @@ export function PaginationFooter({
           size="sm"
           disabled={page >= totalPages - 1}
           onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
-          className="h-8"
+          className="min-h-11"
         >
           Næste <ChevronRight className="ml-1 h-3.5 w-3.5" />
         </Button>
