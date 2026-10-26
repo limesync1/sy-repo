@@ -2320,7 +2320,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }}
       >
           {(() => {
-            const s = selectedStop ?? selectedStopRef.current;
+            const s = selectedStop ?? (selectedStopRef.current?.id === selectedId ? selectedStopRef.current : null);
             if (!s) return null;
             const idx = Math.max(0, sortedStops.findIndex((stop) => stop.id === s.id));
             return (
@@ -2511,6 +2511,7 @@ const StopListPanel = forwardRef<HTMLDivElement, {
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
                 onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     onSelectStop(s);

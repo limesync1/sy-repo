@@ -116,6 +116,8 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const draft = activeId ? drafts[activeId] || "" : "";
   const setDraft = (next: string | ((old: string) => string)) => {
@@ -368,7 +370,11 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
       content: text || null, image_url,
     });
     setSending(false);
-    if (!error) { chatSounds.outgoing(); setDraft(""); clearPendingImage(); }
+    if (!error) {
+      chatSounds.outgoing();
+      setDrafts(previous => ({ ...previous, [active.id]: "" }));
+      if (activeIdRef.current === active.id) clearPendingImage();
+    }
     else toast.error("Beskeden blev ikke sendt. Prøv igen — dit svar er bevaret.");
   }, [active, sending, draft, pendingImage, adminName]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -580,13 +586,13 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                     {initials(active.visitor_name)}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground flex items-center gap-2">
+                    <p className="break-words [overflow-wrap:anywhere] text-sm font-semibold text-foreground flex flex-wrap items-center gap-2">
                       <User className="h-3.5 w-3.5" /> {active.visitor_name}
                       {active.status === "closed" && (
                         <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">Lukket</span>
                       )}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground flex items-center gap-1">
+                    <p className="break-words [overflow-wrap:anywhere] text-xs text-muted-foreground flex flex-wrap items-center gap-1">
                       <Mail className="h-3 w-3" />
                       <a href={`mailto:${active.visitor_email}`} className="hover:underline">{active.visitor_email}</a>
                       {active.subject && <span className="ml-1 truncate">· {active.subject}</span>}
