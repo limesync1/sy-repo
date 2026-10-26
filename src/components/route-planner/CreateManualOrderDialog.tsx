@@ -194,6 +194,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   }, [activeServices, items]);
 
   const addService = (serviceId: string) => {
+    if (submittingRef.current || pendingSave.current) return;
     const svc = activeServices.find((s) => s.id === serviceId);
     if (!svc || items.some((i) => i.serviceId === serviceId)) return;
     const stepValues: Record<string, number> = {};
@@ -210,6 +211,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   };
 
   const removeItem = (id: string) => {
+    if (submittingRef.current || pendingSave.current) return;
     const idx = items.findIndex((i) => i.serviceId === id);
     const removed = items[idx];
     setItems((prev) => prev.filter((i) => i.serviceId !== id));
@@ -218,7 +220,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       duration: 6000,
       action: {
         label: "Fortryd",
-        onClick: () => setItems((prev) => prev.some((i) => i.serviceId === id) ? prev : [...prev.slice(0, idx), removed, ...prev.slice(idx)]),
+        onClick: () => {
+          if (submittingRef.current || pendingSave.current) return;
+          setItems((prev) => prev.some((i) => i.serviceId === id) ? prev : [...prev.slice(0, idx), removed, ...prev.slice(idx)]);
+        },
       },
     });
   };
@@ -261,7 +266,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const handleSubmit = async () => {
     if (submittingRef.current) return;
     submittingRef.current = true;
-    if (activeServices.length === 0) {
+    if (!pendingSave.current && activeServices.length === 0) {
       toast.error("Opret eller aktivér en service før du opretter en bestilling");
       submittingRef.current = false;
       return;
@@ -271,7 +276,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     if (!customerEmail.trim()) errs.email = "Skriv kundens email";
     else if (!emailValid) errs.email = "Tjek email — fx navn@firma.dk";
     if (items.length === 0) errs.services = "Tilføj mindst én service";
-    if (Object.keys(errs).length) {
+    if (!pendingSave.current && Object.keys(errs).length) {
       setErrors(errs);
       const first = errs.name ? "cmo-name" : errs.email ? "cmo-email" : "cmo-services";
       document.getElementById(first)?.scrollIntoView({ behavior: "smooth", block: "center" });
