@@ -19,16 +19,16 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         caption_label: "text-sm font-semibold capitalize text-foreground",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
-          "h-10 w-10 inline-flex items-center justify-center rounded-md bg-transparent p-0 text-muted-foreground transition-colors hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "h-11 w-11 inline-flex items-center justify-center rounded-md bg-transparent p-0 text-muted-foreground transition-colors hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse",
         head_row: "flex",
-        head_cell: "text-muted-foreground rounded-md w-9 font-medium text-[0.7rem] uppercase tracking-wide",
+        head_cell: "text-muted-foreground rounded-md w-10 sm:w-11 font-medium text-[0.7rem] uppercase tracking-wide",
         row: "flex w-full mt-1.5",
         cell: cn(
-          "relative h-9 w-9 p-0 text-center text-sm",
+          "relative h-11 w-10 sm:w-11 p-0 text-center text-sm",
           "focus-within:relative focus-within:z-20",
           // Range middle: soft secondary band that connects endpoints
           "[&:has([aria-selected].day-range-middle)]:bg-secondary",
@@ -40,7 +40,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
         ),
         day: cn(
-          "h-9 w-9 p-0 font-normal rounded-full inline-flex items-center justify-center transition-colors",
+          "h-11 w-10 sm:w-11 p-0 font-normal rounded-full inline-flex items-center justify-center transition-colors",
           "text-foreground hover:bg-secondary/70 hover:text-foreground",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "aria-selected:opacity-100",
