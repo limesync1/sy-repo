@@ -369,7 +369,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
   const servicesProblem = servicesError ? (
     <div className="flex items-center gap-2 rounded-md border border-warning/40 p-2.5 text-sm">
       <span className="flex-1 text-muted-foreground">Services kunne ikke hentes.</span>
-      <Button size="sm" variant="outline" className="h-10" onClick={() => void refetchServices()}>Prøv igen</Button>
+      <Button size="sm" variant="outline" className="h-11" onClick={() => void refetchServices()}>Prøv igen</Button>
     </div>
   ) : loadingServices ? (
     <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter services…</p>
@@ -632,7 +632,7 @@ export function EmployeeStopActions({ stopId, order, completed, noteOnly = false
           <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 p-4 overscroll-contain sm:space-y-4 sm:p-5">
             <div className="flex flex-wrap gap-2">
               {QUICK_NOTES.map((q) => (
-                <Button key={q} variant="secondary" size="sm" className="h-10 text-xs shadow-sm hover:shadow-none"
+                <Button key={q} variant="secondary" size="sm" className="h-auto min-h-11 max-w-full whitespace-normal text-xs shadow-sm hover:shadow-none"
                   onClick={() => setNote((n) => (n.trim() ? `${n.trim()}\n${q}` : q))}>{q}</Button>
               ))}
             </div>
