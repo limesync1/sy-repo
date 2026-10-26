@@ -1695,7 +1695,7 @@ const ServiceForm = ({
                             <Button variant="ghost" key={u} type="button" onClick={() => updateStep(i, "unit", u)}
                               aria-pressed={step.unit === u} className={`min-h-11 rounded-md border px-2.5 py-1 text-xs font-medium transition-all ${
                                 step.unit === u
-                                  ? "border-foreground bg-foreground text-background"
+                                  ? "border-foreground bg-foreground text-background hover:bg-foreground hover:text-background"
                                   : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                               }`}>{u}</Button>
                           ))}

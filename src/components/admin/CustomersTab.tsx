@@ -1217,7 +1217,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, hasActiveAccounting,
     return (a.preferred_date || a.created_at).localeCompare(b.preferred_date || b.created_at);
   })[0];
   const focusText = paymentIssueOrders.length > 0
-    ? `${paymentIssueOrders.length} betaling${formatPrice(paymentIssueOrders.length === 1 ? "" : "er")}æver opmærksomhed`
+    ? `${paymentIssueOrders.length} betaling${paymentIssueOrders.length === 1 ? "" : "er"} kræver opmærksomhed`
     : pendingOrders.length > 0
       ? `${pendingOrders.length} ny${pendingOrders.length === 1 ? "" : "e"} bestilling${pendingOrders.length === 1 ? "" : "er"} afventer svar`
       : activeOrders.length > 0
