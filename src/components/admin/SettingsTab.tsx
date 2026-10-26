@@ -1007,7 +1007,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               href={`/v/${business.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Se din side
@@ -1021,15 +1021,15 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[11px] font-medium text-muted-foreground mr-1">Mangler:</span>
           {completeness.checks.filter((c) => !c.done).map((c) => (
-            <button
+            <Button variant="outline"
               key={c.key}
               type="button"
               onClick={() => scrollToSection(c.section)}
-              className="group inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-all hover:border-foreground/30 hover:bg-secondary hover:text-foreground"
+              className="group min-h-11 gap-1 rounded-md px-3 text-sm text-muted-foreground"
             >
               {c.label}
               <ArrowRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -1041,8 +1041,9 @@ const SettingsTab = ({ business }: { business: any }) => {
             const sectionDone = completeness.checks.filter((c) => c.section === id);
             const allDone = sectionDone.length > 0 && sectionDone.every((c) => c.done);
             return (
-              <button
+              <Button variant="ghost"
                 key={id}
+                aria-current={activeSection === id ? "location" : undefined}
                 type="button"
                 ref={(el) => {
                   if (!el || activeSection !== id) return;
@@ -1052,7 +1053,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   parent.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
                 }}
                 onClick={() => scrollToSection(id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
+                className={`min-h-11 inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
                   activeSection === id
                     ? "brand-blue-action border-transparent text-background"
                     : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -1061,7 +1062,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <Icon />
                 {label}
                 {allDone && <CheckCircle2 className={`ml-0.5 h-3 w-3 ${activeSection === id ? "text-background" : "text-success"}`} />}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -1110,7 +1111,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                           key={id}
                           type="button"
                           onClick={() => scrollToSection(id)}
-                          className={`group relative flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-all ${
+                          aria-current={isActive ? "location" : undefined}
+                          className={`group relative flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-all ${
                             isActive
                               ? "brand-blue-action text-background shadow-sm"
                               : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
@@ -1178,7 +1180,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 {cvrResult.phone && <p className="text-xs text-muted-foreground">Tlf: {cvrResult.phone}</p>}
                 {cvrResult.email && <p className="text-xs text-muted-foreground">E-mail: {cvrResult.email}</p>}
               </div>
-              <Button size="sm" onClick={applyCvrData} className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
+              <Button size="sm" onClick={applyCvrData} className="shrink-0 min-h-11 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-medium">
                 Anvend
               </Button>
             </div>
@@ -2047,7 +2049,8 @@ const IndustryPicker = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Søg branche, fx vinduespudser, alge, tømrer…"
-            className="bg-card h-9 rounded-lg pl-9"
+            aria-label="Søg branche"
+            className="bg-card h-11 rounded-md pl-9"
           />
         </div>
         <div className="text-xs text-muted-foreground sm:shrink-0">
@@ -2256,27 +2259,27 @@ const HoursEditor = ({
     <div className="space-y-3">
       {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
       <div className="flex flex-wrap gap-1.5" data-tour="hours-presets">
-        <button
+        <Button variant="outline"
           type="button"
           onClick={() => applyPreset("weekdays")}
-          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="min-h-11 rounded-md px-3 text-sm text-muted-foreground"
         >
           Hverdage 08–16
-        </button>
-        <button
+        </Button>
+        <Button variant="outline"
           type="button"
           onClick={() => applyPreset("everyday")}
-          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="min-h-11 rounded-md px-3 text-sm text-muted-foreground"
         >
           Alle dage 08–18
-        </button>
-        <button
+        </Button>
+        <Button variant="outline"
           type="button"
           onClick={() => applyPreset("clear")}
-          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          className="min-h-11 rounded-md px-3 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
         >
           Nulstil alle
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-1.5">
@@ -2294,13 +2297,16 @@ const HoursEditor = ({
               }`}
             >
               {/* Dag + toggle */}
-              <button
+              <Button variant="ghost"
                 type="button"
+                role="switch"
+                aria-checked={isOpen}
+                aria-label={`Åben ${day}`}
                 onClick={() => isOpen ? setDay(day, null, null) : setDay(day, open, close)}
-                className="flex items-center gap-2 min-w-[140px] sm:min-w-[160px]"
+                className="min-h-11 justify-start gap-2 px-0 min-w-[140px] sm:min-w-[160px]"
               >
                 <span
-                  aria-pressed={isOpen}
+                  aria-hidden="true"
                   className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
                     isOpen ? "bg-accent" : "bg-border"
                   }`}
@@ -2313,7 +2319,7 @@ const HoursEditor = ({
                 </span>
                 <span className="text-sm font-medium text-foreground">{day}</span>
                 {!isOpen && <span className="text-xs text-muted-foreground">Lukket</span>}
-              </button>
+              </Button>
 
               {isOpen && (
                 <>
@@ -2322,14 +2328,14 @@ const HoursEditor = ({
                     <span className="text-xs text-muted-foreground">til</span>
                     <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
                   </div>
-                  <button
+                  <Button variant="ghost"
                     type="button"
                     onClick={() => applyToAll(day)}
-                    className="ml-auto text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    className="ml-auto min-h-11 text-sm text-muted-foreground hover:text-foreground"
                     title="Kopiér disse tider til alle åbne dage"
                   >
                     Anvend på alle
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
