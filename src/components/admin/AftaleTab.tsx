@@ -357,29 +357,29 @@ const getFocusLine = (order: any) => {
 
 /* ─── Stepper Input ─── */
 const StepperInput = ({
-  value, onChange, min, max, unit,
+  value, onChange, min, max, unit, label,
 }: {
-  value: number; onChange: (v: number) => void; min: number; max: number; unit: string;
+  value: number; onChange: (v: number) => void; min: number; max: number; unit: string; label: string;
 }) => {
   const step = getSmartStep(unit, min, max);
   const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
   const inc = () => onChange(Math.min(max, +(value + step).toFixed(2)));
 
   return (
-    <div className="flex items-center gap-0">
-      <button type="button" onClick={dec} disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
+    <div className="flex min-w-0 flex-wrap items-center gap-y-2">
+      <Button variant="secondary" type="button" aria-label={`Mindsk ${label}`} onClick={dec} disabled={value <= min}
+        className="flex h-11 w-11 shrink-0 p-0 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
         <Minus className="h-3.5 w-3.5" />
-      </button>
-      <input type="number" value={value}
+      </Button>
+      <Input aria-label={label} type="number" value={value}
         onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clampValue(v, min, max)); }}
         min={min} max={max} step={step}
-        className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="flex h-11 min-w-0 w-24 rounded-none items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
-      <button type="button" onClick={inc} disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
+      <Button variant="secondary" type="button" aria-label={`Øg ${label}`} onClick={inc} disabled={value >= max}
+        className="flex h-11 w-11 shrink-0 p-0 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
         <Plus className="h-3.5 w-3.5" />
-      </button>
+      </Button>
       <span className="ml-2 text-xs text-muted-foreground">{unit}</span>
     </div>
   );
@@ -490,12 +490,12 @@ const AdjustmentEditor = ({
       </div>
 
       {items.map((item, itemIdx) => (
-        <div key={itemIdx} className="rounded-xl border border-border overflow-hidden bg-card">
+        <div key={itemIdx} className="rounded-md border border-border overflow-hidden bg-card">
           <div className="px-4 py-3 bg-muted/30 border-b border-border">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
                 <h4 className="text-sm font-semibold text-foreground">{item.service_name}</h4>
-                <span className="text-[11px] text-muted-foreground">{PRICING_LABELS[item.pricing_type]}</span>
+                <span className="text-xs text-muted-foreground">{PRICING_LABELS[item.pricing_type]}</span>
               </div>
               <div className="text-right">
                 <span className="text-lg font-bold text-foreground">{roundPrice(item.total_price)}</span>
@@ -506,8 +506,8 @@ const AdjustmentEditor = ({
 
           {item.pricing_type === "fast_pris" && (
             <div className="px-4 py-3">
-              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Pris (kr)</label>
-              <Input type="number" value={item.total_price} className="h-9 text-sm w-40"
+              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Pris uden moms (kr)</label>
+              <Input type="number" value={item.total_price} aria-label={`Pris uden moms for ${item.service_name}`} className="h-11 w-full text-sm"
                 onChange={(e) => onUpdateFixedPrice(orderId, itemIdx, parseFloat(e.target.value) || 0)} />
             </div>
           )}
@@ -516,7 +516,7 @@ const AdjustmentEditor = ({
             <div className="divide-y divide-border">
               {item.details.stepDetails.map((sd, stepIdx) => (
                 <div key={stepIdx} className="px-4 py-3">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <div className="min-w-0">
                       <span className="text-sm font-medium text-foreground">{sd.label}</span>
                       <span className="ml-1.5 text-xs text-muted-foreground">({formatPrice(sd.price_per_unit)}/{sd.unit})</span>
@@ -524,24 +524,25 @@ const AdjustmentEditor = ({
                     <span className="text-sm font-semibold text-foreground shrink-0">{formatPrice(roundPrice(sd.subtotal))}</span>
                   </div>
                   <StepperInput
+                    label={`Antal ${sd.label}`}
                     value={sd.value}
                     onChange={(v) => onUpdateStep(orderId, itemIdx, stepIdx, "value", v)}
                     min={sd.min_value}
                     max={sd.max_value}
                     unit={sd.unit}
                   />
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Pris pr. {sd.unit}:</span>
-                    <input type="number" value={sd.price_per_unit}
+                  <div className="mt-2 grid grid-cols-[minmax(0,1fr)_minmax(5rem,1fr)_auto] items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Pris uden moms pr. {sd.unit}:</span>
+                    <Input aria-label={`Pris uden moms pr. ${sd.unit} for ${sd.label}`} type="number" value={sd.price_per_unit}
                       onChange={(e) => onUpdateStep(orderId, itemIdx, stepIdx, "price_per_unit", parseNumber(e.target.value, 0))}
-                      className="h-7 w-20 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="h-11 min-w-0 w-full rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <span className="text-xs text-muted-foreground">kr</span>
                   </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground/60">{sd.min_value}–{sd.max_value} {sd.unit}</p>
+                  <p className="mt-1 text-xs text-muted-foreground/60">{sd.min_value}–{sd.max_value} {sd.unit}</p>
                 </div>
               ))}
-              <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-secondary/40 px-4 py-3">
                 <span className="text-sm font-semibold text-foreground">I alt</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-xl font-bold text-foreground">{roundPrice(item.total_price)}</span>
@@ -563,14 +564,14 @@ const AdjustmentEditor = ({
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Interval</label>
                 <div className="flex flex-wrap gap-1.5">
                   {options.map((iv) => (
-                    <button key={iv} type="button" onClick={() => onUpdateInterval(orderId, itemIdx, iv)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    <Button variant="outline" aria-pressed={item.details.interval === iv} key={iv} type="button" onClick={() => onUpdateInterval(orderId, itemIdx, iv)}
+                      className={`h-auto min-h-11 whitespace-normal rounded-md border px-3 py-1.5 text-xs font-medium transition-all ${
                         item.details.interval === iv
                           ? "border-accent bg-accent text-accent-foreground"
                           : "border-border bg-card text-muted-foreground hover:border-accent/40"
                       }`}>
                       {formatInterval(iv)}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -2278,18 +2279,18 @@ const AftaleTab = ({
                     >
                       <SheetHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:pr-14">
                         <AppointmentDetailsHeader
-                          title={<SheetTitle className="text-base">{order.customer_name}</SheetTitle>}
+                          title={<SheetTitle className="break-words [overflow-wrap:anywhere] text-base">{order.customer_name}</SheetTitle>}
                           description={(
                             <SheetDescription className="text-xs">
                               {serviceSummary} · {formatPrice(currentTotal)}
                             </SheetDescription>
                           )}
                         >
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${cfg.cls}`}>
                             {cfg.label}
                           </span>
                           {routePlanningEnabled && routeInfo && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
                               <RouteIcon className="h-2.5 w-2.5" /> {routeDisplayName(routeInfo)}
                             </span>
                           )}
@@ -2299,22 +2300,22 @@ const AftaleTab = ({
                     <Section icon={<ArrowRight className="h-3.5 w-3.5" />} title="Næste handling">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="min-w-0 truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
+                          <p className="min-w-0 break-words text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
                           <div className="flex flex-wrap items-center justify-end gap-1.5">
                             {actions.canRespond && (
                               <>
                                 <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                                  className="h-8 gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90">
+                                  className="h-auto min-h-11 whitespace-normal gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90">
                                   <Check className="h-3.5 w-3.5" /> Godkend
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={(e) => {
                                   e.stopPropagation(); initAdjustedItems(order);
                                   setRespondingTo(order.id); setResponseType("adjusted");
-                                }} className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                                }} className="h-auto min-h-11 whitespace-normal gap-1.5 rounded-md border-border px-2.5 text-xs text-foreground hover:bg-secondary hover:text-foreground">
                                   <Pencil className="h-3.5 w-3.5" /> Tilpas
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                                  className="h-11 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive lg:h-8 hover:bg-destructive/10 hover:text-destructive">
+                                  className="h-11 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive  hover:bg-destructive/10 hover:text-destructive">
                                   <X className="h-3.5 w-3.5" /> Afvis
                                 </Button>
                               </>
@@ -2322,9 +2323,9 @@ const AftaleTab = ({
                             {actions.canProgress && actions.nextStatus && (
                               <Button
                                 size="sm"
-                                onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                                onClick={(e) => { e.stopPropagation(); if (actions.nextStatus) handleProgressStatus(order.id, actions.nextStatus); }}
                                 title="Kun til manuel udførelse — hvis aftalen skal udføres af en medarbejder på en rute, sker det automatisk når medarbejderen markerer stoppet udført i medarbejder-appen. Brug kun denne knap hvis du som ejer selv udfører aftalen manuelt uden at lægge den på en rute."
-                                className="h-8 gap-1.5 rounded-[4px] px-2.5 text-xs font-semibold bg-foreground text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                                className="h-auto min-h-11 whitespace-normal gap-1.5 rounded-[4px] px-2.5 text-xs font-semibold bg-foreground text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                               >
                                 {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                                 {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
@@ -2337,17 +2338,17 @@ const AftaleTab = ({
                                 forskellige knapper for samme handling. */}
                             {(order.status === "confirmed" || order.status === "in_progress") && (
                               <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setOrderToCancel(order); }}
-                                className="h-11 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive lg:h-8 hover:bg-destructive/10 hover:text-destructive">
+                                className="h-11 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive  hover:bg-destructive/10 hover:text-destructive">
                               <XCircle className="h-3.5 w-3.5" /> Annullér
                               </Button>
                             )}
                             <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
-                              className="h-11 gap-1.5 rounded-md border-destructive/40 px-2.5 lg:h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                              className="h-11 gap-1.5 rounded-md border-destructive/40 px-2.5  text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
                               <Trash2 className="h-3.5 w-3.5" /> Slet
                             </Button>
                           </div>
                           {actions.canProgress && actions.nextStatus && (
-                            <p className="mt-2 w-full text-[11px] leading-relaxed text-muted-foreground sm:text-right">
+                            <p className="mt-2 w-full text-xs leading-relaxed text-muted-foreground sm:text-right">
                               <span className="font-medium text-foreground">Bemærk:</span>{" "}
                               "{actions.nextLabel}" er kun til <span className="font-medium">manuel udførelse</span> — fx hvis du som ejer selv udfører aftalen.
                               Hvis aftalen er på en rute med en medarbejder, sker det automatisk når medarbejderen markerer stoppet udført i medarbejder-appen.
@@ -2358,11 +2359,11 @@ const AftaleTab = ({
                         <div className="flex flex-wrap items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
                           <div className="flex flex-wrap items-center gap-1.5">
                             {(["accepted", "adjusted", "rejected"] as const).map((type) => (
-                              <button key={type} onClick={() => {
+                              <Button variant="outline" aria-pressed={responseType === type} key={type} onClick={() => {
                                 setResponseType(type);
                                 if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
                               }}
-                                className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${
+                                className={`flex h-auto min-h-11 whitespace-normal items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${
                                   responseType === type
                                     ? "border-border bg-foreground text-background"
                                     : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -2370,12 +2371,12 @@ const AftaleTab = ({
                                 {type === "accepted" ? <><Check className="h-3.5 w-3.5" /> Godkend</>
                                   : type === "adjusted" ? <><Pencil className="h-3.5 w-3.5" /> Tilpas</>
                                   : <><X className="h-3.5 w-3.5" /> Afvis</>}
-                              </button>
+                              </Button>
                             ))}
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                             <Button size="sm" onClick={() => handleResponse(order.id)}
-                              className={`h-8 rounded-md px-3 text-xs ${
+                              className={`h-auto min-h-11 whitespace-normal rounded-md px-3 text-xs ${
                                 responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                 : "bg-foreground text-background hover:bg-foreground/90"
                               }`}>
@@ -2384,7 +2385,7 @@ const AftaleTab = ({
                                 : `Send forslag · ${formatPrice(roundPrice(getAdjustedTotal(order.id)))}`}
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
-                              className="h-8 rounded-md px-2.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Luk</Button>
+                              className="h-auto min-h-11 whitespace-normal rounded-md px-2.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Luk</Button>
                           </div>
                         </div>
                       )}
@@ -2433,7 +2434,7 @@ const AftaleTab = ({
                     {!isResponding && <ProposalStatusBanner order={order} />}
                     {order.business_message && !isResponding && (
                       <div className="rounded-lg border border-border bg-card px-3 py-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Din besked til kunden</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Din besked til kunden</p>
                         <p className="text-sm text-foreground">{order.business_message}</p>
                       </div>
                     )}
@@ -2486,7 +2487,7 @@ const AftaleTab = ({
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] font-medium text-muted-foreground">
+                          <span className="text-xs font-medium text-muted-foreground">
                             Stop #{(routeStop.sequence ?? 0) + 1}
                           </span>
                         </div>
@@ -2680,7 +2681,7 @@ const AftaleTab = ({
                     value={newRouteName}
                     onChange={(e) => setNewRouteName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") handleConfirmCreateRoute(); }}
-                    className="h-8"
+                    className="h-11"
                     autoFocus
                   />
                 </Field>
@@ -2806,7 +2807,7 @@ const AftaleTab = ({
 
       {/* Slet rute bekræftelse — samme UX som i Ruteplanlæggeren. */}
       <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md [overflow-wrap:anywhere]">
           <AlertDialogHeader>
             <AlertDialogTitle>Slet rute?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -2815,7 +2816,7 @@ const AftaleTab = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogCancel className="min-h-11">Annullér</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (routeToDelete) {
@@ -2825,7 +2826,7 @@ const AftaleTab = ({
                   setRouteToDelete(null);
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Slet rute
             </AlertDialogAction>
@@ -2836,7 +2837,7 @@ const AftaleTab = ({
       {/* Sidste-stop advarsel: når man sletter en aftale der er det eneste stop
           tilbage på en rute, fortæller vi tydeligt at hele ruten også fjernes. */}
       <AlertDialog open={!!lastStopWarning} onOpenChange={(o) => !o && !deletingLastStop && setLastStopWarning(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md [overflow-wrap:anywhere]">
           <AlertDialogHeader>
             <AlertDialogTitle>Sletter du også ruten?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -2848,11 +2849,11 @@ const AftaleTab = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingLastStop}>Annullér</AlertDialogCancel>
+            <AlertDialogCancel className="min-h-11" disabled={deletingLastStop}>Annullér</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); confirmDeleteOrderAndRoute(); }}
               disabled={deletingLastStop}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deletingLastStop ? "Sletter…" : "Forstået"}
             </AlertDialogAction>
@@ -2862,7 +2863,7 @@ const AftaleTab = ({
 
       {/* Bekræft permanent sletning af en aftale. */}
       <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && !deletingOrder && setOrderToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md [overflow-wrap:anywhere]">
           <AlertDialogHeader>
             <AlertDialogTitle>Slet aftale permanent?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -2870,11 +2871,11 @@ const AftaleTab = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingOrder}>Annullér</AlertDialogCancel>
+            <AlertDialogCancel className="min-h-11" disabled={deletingOrder}>Annullér</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); confirmDeleteOrder(); }}
               disabled={deletingOrder}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deletingOrder ? "Sletter…" : "Slet aftale"}
             </AlertDialogAction>
