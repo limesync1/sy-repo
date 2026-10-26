@@ -775,7 +775,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
               <Zap className="h-4 w-4 text-accent" /> Svar-skabeloner
             </DialogTitle>
           </DialogHeader>
-          <div className="planner-overlay-body grid min-h-0 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
+          <div className="planner-overlay-body grid min-h-0 grid-cols-[minmax(0,1fr)] overflow-x-hidden overflow-y-auto [overflow-wrap:anywhere] md:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
             {/* Liste + formular */}
             <div className="flex min-w-0 flex-col border-b border-border md:border-b-0 md:border-r">
               <div className="space-y-2 p-4">
@@ -791,7 +791,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       previewTpl?.id === t.id ? "border-foreground bg-secondary" : "border-border bg-secondary/40 hover:bg-secondary/70"
                     }`}
                   >
-                    <div className="min-w-0 flex-1 cursor-pointer" onClick={() => setPreviewTpl(t)}>
+                    <div className="min-w-0 flex-1 cursor-pointer [overflow-wrap:anywhere]" onClick={() => setPreviewTpl(t)}>
                       <p className="text-xs font-semibold text-foreground">{t.title}</p>
                       <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">{t.content}</p>
                     </div>
@@ -810,7 +810,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 ))}
               </div>
               <div className="space-y-2 border-t border-border bg-secondary/30 p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {tplDraft.id ? "Rediger skabelon" : "Tilføj ny skabelon"} — brug {"{name}"} som pladsholder
                   </p>
