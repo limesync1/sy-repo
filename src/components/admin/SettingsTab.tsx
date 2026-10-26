@@ -100,28 +100,27 @@ const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: s
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
+        <Button variant="outline"
           type="button"
           aria-label={label}
-          className="inline-flex h-9 w-[88px] items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm tabular-nums font-medium text-foreground transition-colors hover:border-foreground/40 focus:border-foreground focus:outline-none"
+          className="h-11 w-24 shrink-0 gap-1.5 px-2 text-sm tabular-nums"
         >
           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           {value}
-        </button>
+        </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[112px] p-1">
-        <div className="max-h-64 overflow-y-auto">
+      <PopoverContent align="start" collisionPadding={12} className="w-32 max-w-[calc(100vw-1.5rem)] p-1">
+        <div className="max-h-[min(16rem,var(--radix-popover-content-available-height))] overflow-y-auto" role="group" aria-label={label || "Klokkeslæt"}>
           {TIME_SLOTS.map((t) => (
-            <button
+            <Button variant={t === value ? "default" : "ghost"}
               key={t}
               type="button"
+              aria-pressed={t === value}
               onClick={() => { onChange(t); setOpen(false); }}
-              className={`block w-full rounded-md px-2 py-1.5 text-center text-sm tabular-nums transition-colors ${
-                t === value ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
-              }`}
+              className="h-11 w-full rounded-md px-2 text-center text-sm tabular-nums"
             >
               {t}
-            </button>
+            </Button>
           ))}
         </div>
       </PopoverContent>
@@ -182,24 +181,25 @@ const ToggleSwitch = forwardRef<
   HTMLButtonElement,
   { checked: boolean; onChange: () => void; label?: string }
 >(({ checked, onChange, label }, ref) => (
-  <button
+  <Button variant="ghost"
     ref={ref}
     type="button"
     onClick={onChange}
-    aria-pressed={checked}
+    role="switch"
+    aria-checked={checked}
     aria-label={label}
     // Ren switch: kun farve + thumb-position. Ingen overshoot/glow-ring som
     // ellers konkurrerede med StatusPill om opmærksomhed.
-    className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${
-      checked ? "bg-accent" : "bg-border"
-    }`}
+    className="relative h-11 w-11 shrink-0 rounded-md p-0 hover:bg-secondary"
   >
+    <span aria-hidden="true" className={`inline-flex h-5 w-9 items-center rounded-full ${checked ? "bg-accent" : "bg-border"}`}>
     <span
-      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm mt-0.5 transition-transform duration-150 ease-out ${
+      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform duration-150 ease-out ${
         checked ? "translate-x-4 ml-0.5" : "translate-x-0.5"
       }`}
     />
-  </button>
+    </span>
+  </Button>
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
 
