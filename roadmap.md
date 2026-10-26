@@ -9,7 +9,7 @@
 - [x] Del 2a/3a: Medarbejdere + Anmeldelser: større filter-/handlingsknapper, tabletvenlige medarbejderrækker, fast bundlinje og højdebegrænsning i medarbejdervinduer, læsbare anmeldelsesnavne/datoer/kommentarer og danske decimaltal. Fælles søgning, primærknapper og pagination mindst 44 px. Isoleret kliktest 320/390/768/1280 px i begge temaer uden runtimefejl; 16 regressionstests bestået. Gemning på rigtig virksomhed fortsat blokeret som Del 1c.
 - [x] Del 2b/3b: Regnskab + Indstillinger: større knapper/tidsvalg, tilgængelige filtre og switches, regnskabslog uden afskårne referencer, viewportbegrænset frakoblingsvindue og fleksible kolonner. Billedfelter tåler kontoindlæsning. Isolerede kliktests 320/390/768/1280 px i begge temaer uden runtimefejl; 19 regressionstests bestået. Ingen rigtige regnskabs-/betalings-/indstillingsændringer udført.
 - [ ] Del 3: Formularer, dropdowns, kalendere og vinduer; fuld klikgennemgang side for side.
-- [ ] Del 4: Synkronisering og statistik på tværs af enheder, inklusive beskeder/regnskab; verificér med to samtidige skærme.
+- [ ] Del 4: Synkronisering og statistik på tværs af enheder, inklusive beskeder/regnskab; verificér med to samtidige skærme. I gang: manglende besked-/regnskabshændelser, genforbindelse og tests af automatisk opdatering.
 
 Kilde: MASTER_PROMPT_COMPLETE_AUDIT_AND_REFINEMENT_OF_pasted.md
 Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen schema-/dataændringer.
