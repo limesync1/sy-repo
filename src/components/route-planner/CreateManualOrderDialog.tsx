@@ -39,6 +39,7 @@ import { NumberStepper } from "@/components/shared/NumberStepper";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import ActiveServiceRequired from "./ActiveServiceRequired";
 import ServicePicker from "./ServicePicker";
+import { createInsertStage, resumeInsert, type InsertStage } from "@/lib/resumable-insert";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
@@ -144,6 +145,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   // hurtige dobbelt-klik kan nå at trigge handleSubmit to gange. Ref'en
   // blokerer det øjeblikkeligt, så samme bestilling aldrig oprettes 2x.
   const submittingRef = useRef(false);
+  const pendingSave = useRef<{ parentOrderId: string; orders: InsertStage<any>; items: InsertStage<any> } | null>(null);
+  const [needsResume, setNeedsResume] = useState(false);
 
   // Forudfyld fra initialCustomer når dialogen åbner
   useEffect(() => {
@@ -227,6 +230,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setItems((prev) => prev.map((i) => (sameDate || i.serviceId === id) ? { ...i, startDate: v } : i));
 
   const reset = () => {
+    pendingSave.current = null;
+    setNeedsResume(false);
     setCustomerName(""); setCustomerEmail(""); setCustomerPhone(""); setContactPerson("");
     setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null);
@@ -239,7 +244,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
   const isDirty = !!(customerName || customerEmail || customerPhone || address || cvr || businessMessage || items.length || invoiceValue.interval);
   const requestClose = () => {
-    if (submitting) return;
+    if (submittingRef.current) return;
+    if (pendingSave.current) {
+      toast.warning("Afslut gemningen med ‘Prøv gemning igen’, så bestillingen ikke efterlades delvist gemt.");
+      return;
+    }
     if (isDirty) setConfirmClose(true); else onOpenChange(false);
   };
 
@@ -282,6 +291,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       const customerEmailLower = customerEmail.trim().toLowerCase();
 
       // Én ordre pr. service. Første ordre = forælder; alle peger på dens id via parent_order_id.
+      if (!pendingSave.current) {
       const parentOrderId = crypto.randomUUID();
       const childOrderIds = items.map((_, i) => i === 0 ? parentOrderId : crypto.randomUUID());
 
@@ -318,9 +328,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           requires_customer_approval: false,
         };
       });
-      const { error: orderErr } = await supabase.from("orders").insert(orderRows as any);
-      if (orderErr) throw orderErr;
-
       // Indsæt ét order_item pr. ordre
       const orderItems = items.map((it, idx) => {
         const total = roundPrice(calcItemTotal(it));
@@ -334,6 +341,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           ? `${it.hours} timer`
           : isFast ? (qty > 1 ? `${qty} ${it.service.unit || "stk"}` : "Specifik pris") : "";
         return {
+          id: crypto.randomUUID(),
           order_id: childOrderIds[idx],
           service_id: it.serviceId,
           service_name: it.service.name,
@@ -348,13 +356,40 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           },
         };
       });
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems as any);
-      if (itemsErr) throw itemsErr;
+      pendingSave.current = {
+        parentOrderId,
+        orders: createInsertStage(orderRows),
+        items: createInsertStage(orderItems),
+      };
+      }
+      const save = pendingSave.current;
+      await resumeInsert(save.orders, {
+        existingIds: async (ids) => {
+          const { data, error } = await supabase.from("orders").select("id").eq("business_id", businessId).in("id", ids);
+          if (error) throw error;
+          return (data ?? []).map((row) => row.id);
+        },
+        insert: async (rows) => {
+          const { error } = await supabase.from("orders").insert(rows);
+          if (error) throw error;
+        },
+      });
+      await resumeInsert(save.items, {
+        existingIds: async (ids) => {
+          const { data, error } = await supabase.from("order_items").select("id").in("order_id", save.orders.rows.map((row) => row.id)).in("id", ids);
+          if (error) throw error;
+          return (data ?? []).map((row) => row.id);
+        },
+        insert: async (rows) => {
+          const { error } = await supabase.from("order_items").insert(rows);
+          if (error) throw error;
+        },
+      });
 
       // Start delivery before closing; persisted orders/items are essential,
       // but email latency and list refetches must not hold the form open.
       void supabase.functions.invoke("order-email-notification", {
-        body: { orderId: parentOrderId, kind: "manual-confirmed" },
+        body: { orderId: save.parentOrderId, kind: "manual-confirmed" },
       }).then(({ data, error }) => {
         if (error || !data?.sent) toast.warning("Bestillingen er gemt, men bekræftelsesmailen kunne ikke sendes.");
       }).catch(() => toast.warning("Bestillingen er gemt, men bekræftelsesmailen kunne ikke sendes."));
@@ -363,7 +398,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       reset();
       onOpenChange(false);
     } catch (e: any) {
-      toast.error("Kunne ikke oprette bestilling: " + (e.message || "Ukendt fejl"));
+      setNeedsResume(!!pendingSave.current);
+      toast.error("Gemningen blev ikke afsluttet", { description: `${e.message || "Ukendt fejl"}. Prøv gemning igen — allerede gemte dele genbruges.` });
     } finally {
       setSubmitting(false);
       submittingRef.current = false;
@@ -391,6 +427,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         ) : activeServices.length === 0 ? (
           <ActiveServiceRequired />
         ) : <div className="planner-overlay-body min-h-0 flex-1 overflow-x-visible overflow-y-auto px-3 sm:px-5 py-3 space-y-2">
+          {needsResume && <div role="alert" className="rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-foreground">Gemningen blev afbrudt. Dine valg er bevaret og låst, indtil gemningen er afsluttet. Tryk ‘Prøv gemning igen’.</div>}
+          <fieldset disabled={submitting || needsResume} className="min-w-0 space-y-2">
           {/* Kunde */}
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
@@ -649,6 +687,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             <p className="text-[11px] text-muted-foreground text-right mt-1">{businessMessage.length}/500</p>
           </Section>
           )}
+          </fieldset>
         </div>}
 
         {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
@@ -669,12 +708,12 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting}>
+              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting || needsResume}>
                 Annullér
               </Button>
               <Button className="min-h-11 flex-1 sm:flex-none" onClick={handleSubmit} disabled={submitting}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Plus className="mr-1.5 h-4 w-4" />}
-                {items.length > 1 ? `Opret ${items.length} bestillinger` : "Opret bestilling"}
+                {submitting ? "Gemmer…" : needsResume ? "Prøv gemning igen" : "Opret bestilling"}
               </Button>
             </div>
           </div>
