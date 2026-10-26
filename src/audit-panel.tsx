@@ -1,0 +1,15 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {QueryClient,QueryClientProvider} from '@tanstack/react-query';
+import {MemoryRouter} from 'react-router-dom';
+import {AuthProvider} from './contexts/AuthContext';
+import EmployeesTab from './components/admin/EmployeesTab';
+import ReviewsTab from './components/admin/ReviewsTab';
+import './index.css';
+const qc=new QueryClient({defaultOptions:{queries:{staleTime:Infinity,retry:false}}});
+qc.setQueryData(['employees','audit'],[{id:'audit-employee',name:'Sebastian Jepsen med et langt medarbejdernavn',title:'Pudser',email:'eksempel@example.dk',phone:'12345678',is_active:true,user_id:null,commission_pct:15}]);
+qc.setQueryData(['business-plan','audit'],{extra_employee_logins:10});
+qc.setQueryData(['employee-skills-all','audit'],[]);
+const reviews=Array.from({length:60},(_,i)=>({id:String(i),reviewer_name:i===0?'Et meget langt kundenavn som skal kunne læses på alle skærme':'Kunde '+i,rating:i%5+1,is_verified:true,comment:i===0?'LangKommentar'.repeat(25)+'\nAnden linje i anmeldelsen.':'Grundigt og flot arbejde.',created_at:'2026-10-26'}));
+const root=document.getElementById('root');
+if(root)createRoot(root).render(<MemoryRouter><QueryClientProvider client={qc}><AuthProvider><main className="mx-auto w-full max-w-7xl p-4"><EmployeesTab businessId="audit" businessName="Testvisning" routePlanningEnabled/><div className="mt-8"><ReviewsTab reviews={reviews} isLoading={false}/></div></main></AuthProvider></QueryClientProvider></MemoryRouter>);
