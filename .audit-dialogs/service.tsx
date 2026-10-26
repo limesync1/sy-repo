@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
-const useAuth = () => ({ user: null });
+const useAuth = () => ({ user: {id:'test'} });
 const useMyBusiness = () => ({data: {id: 'test'}});
 const useServices = () => ({data: [], isLoading: false});
 const useOrders = () => ({data: []});
