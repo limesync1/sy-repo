@@ -541,7 +541,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
         <div className="space-y-3">
           {filteredActive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 xl:grid-cols-[minmax(0,1fr)_8rem_8rem_10rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Aktive medarbejdere</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -551,9 +551,9 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                 {/* Kolonne-titler — bruger samme grid-template som rækken
                     (1fr · 8rem · 8rem · 13rem) så overskrifter står lodret
                     over de faktiske kolonner i hver række. */}
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
-                <span className="hidden sm:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
+                <span className="hidden xl:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
               </div>
               <div className="divide-y divide-border">
                 {filteredActive.map((emp) => (
@@ -575,16 +575,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
 
           {filteredInactive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 xl:grid-cols-[minmax(0,1fr)_8rem_8rem_10rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Deaktiverede</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {filteredInactive.length} {filteredInactive.length === 1 ? "medarbejder" : "medarbejdere"}
                   </p>
                 </div>
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
-                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
-                <span className="hidden sm:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="hidden xl:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
+                <span className="hidden xl:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
               </div>
               <div className="divide-y divide-border">
                 {filteredInactive.map((emp) => (
@@ -706,7 +706,7 @@ const EmployeeRow = ({
     <TooltipProvider delayDuration={200}>
     <div
       className={`group grid w-full gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem] sm:items-center
+                  xl:grid-cols-[minmax(0,1fr)_8rem_8rem_10rem] xl:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
@@ -721,9 +721,9 @@ const EmployeeRow = ({
                 type="button"
                 aria-label="Skift billede eller farve"
                 title="Skift billede eller farve"
-                className="relative h-10 w-10 shrink-0 rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-foreground/20 hover:ring-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2"
+                className="relative h-11 w-11 shrink-0 rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-foreground/20 hover:ring-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2"
               >
-                <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={40} className="border border-border text-sm" />
+                <EmployeeAvatar employee={{ ...employee, color: fallbackColor }} size={44} className="border border-border text-sm" />
                 <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-background bg-card text-muted-foreground shadow-sm">
                   <Pencil className="h-2.5 w-2.5" />
                 </span>
@@ -759,7 +759,7 @@ const EmployeeRow = ({
               <div>
                 <p className="text-xs font-semibold text-foreground">Profilbillede</p>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <label className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-[11px] font-medium text-foreground hover:bg-secondary">
+                  <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-[11px] font-medium text-foreground hover:bg-secondary">
                     {uploading ? "Uploader…" : (employee.avatar_url ? "Skift billede" : "Upload billede")}
                     <input
                       type="file"
@@ -836,7 +836,7 @@ const EmployeeRow = ({
             </div>
             {/* Mobile-only: status + indtjening som chips, da kolonnerne først
                 vises fra sm: og opefter. */}
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 xl:hidden">
               {!employee.is_active ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
@@ -862,7 +862,7 @@ const EmployeeRow = ({
 
         {/* Kontostatus — viser altid en status så kolonnen ikke står tom.
             Aktiv (grøn) · Afventer login (gul) · Deaktiveret (grå). */}
-        <div className="hidden sm:flex flex-col items-end justify-center gap-1 text-right">
+        <div className="hidden xl:flex flex-col items-end justify-center gap-1 text-right">
           {!employee.is_active ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
@@ -888,7 +888,7 @@ const EmployeeRow = ({
         </div>
 
         {/* Indtjening for valgt periode */}
-        <div className="hidden sm:flex flex-col items-end justify-center text-right">
+        <div className="hidden xl:flex flex-col items-end justify-center text-right">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="cursor-help">
@@ -923,7 +923,7 @@ const EmployeeRow = ({
             variant="ghost"
             size="icon"
             onClick={() => setTasksOpen(true)}
-            className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground"
             aria-label={`Se aftaler for ${employee.name}`}
           >
             <ListChecks className="h-4 w-4" />
@@ -942,7 +942,7 @@ const EmployeeRow = ({
               setEditEmployeeNumber((employee as any).employee_number || "");
               setEditOpen(true);
             }}
-            className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground"
             aria-label={`Rediger ${employee.name}`}
           >
             <Pencil className="h-4 w-4" />
@@ -955,7 +955,7 @@ const EmployeeRow = ({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    className="h-11 w-11 text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Flere handlinger"
                   >
                     <MoreHorizontal className="h-4 w-4" />
@@ -964,7 +964,7 @@ const EmployeeRow = ({
               </TooltipTrigger>
               <TooltipContent>Flere handlinger</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)] [&_[role=menuitem]]:min-h-11 [&_[role=menuitem]]:whitespace-normal">
               <DropdownMenuLabel className="text-xs">{employee.name || "Medarbejder"}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
