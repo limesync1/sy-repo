@@ -225,6 +225,13 @@
       "when": 1793011824198,
       "tag": "0031_realtime_panel_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793014404490,
+      "tag": "0032_realtime_panel_status",
+      "breakpoints": true
     }
   ]
 }
