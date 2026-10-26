@@ -1,5 +1,6 @@
 import { orderCycleNumber } from "@/lib/order-recurrence-display";
 import { formatPrice } from "@/lib/price-format";
+import { addStopsInOrder } from "@/lib/route-planner/add-stops-batch";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
 // Refaktoreringsplan: .lovable/plan.md (Fase 1–5).
 // Trigger-flow ved completion: docs/route-stops-triggers.md.
@@ -15,6 +16,7 @@ import {
   useUnassignedJobs,
   useCalendarData,
   useAddStop,
+  invalidateRouteSyncQueries,
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
   useRouteSeriesInfo, useMoveRouteSeries,
@@ -321,6 +323,10 @@ const Planner = () => {
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
   const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
+  const routeCreationBusyRef = useRef(false);
+  const createdRouteRef = useRef<Route | null>(null);
+  const creationSequencesRef = useRef(new Map<string, number>());
+  const [routeCreationProgress, setRouteCreationProgress] = useState<{ done: number; total: number } | null>(null);
   // Valgte aftaler der skal forudvælges når "Opret rute" åbnes fra bulk-bjælken.
   const pendingCreateJobIdsRef = useRef<string[] | null>(null);
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
@@ -636,6 +642,7 @@ const Planner = () => {
   const updateRoute = useUpdateRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
+  const addCreationStop = useAddStop({ deferInvalidation: true });
   const deleteStop = useDeleteStop();
 
   // Bulk-tilføj uplanlagte aftaler til eksisterende rute — egen dialog-state,
@@ -2421,7 +2428,7 @@ const Planner = () => {
 
 
   const handleCreateRoute = async () => {
-    if (!businessId) return;
+    if (!businessId || routeCreationBusyRef.current || pendingBulkStartDateChange) return;
     if (newRouteJobIds.length === 0) {
       toast.error("Vælg mindst én aftale", {
         description: "En rute skal indeholde mindst én aftale.",
@@ -2461,6 +2468,11 @@ const Planner = () => {
     const selectedJobs = newRouteJobIds
       .map((id) => unassigned.find((j: any) => j.id === id))
       .filter(Boolean) as any[];
+    if (selectedJobs.length === 0) {
+      toast.error("De valgte aftaler er ikke længere tilgængelige. Vælg aftaler igen.");
+      setNewRouteJobIds([]);
+      return;
+    }
     const mismatches = selectedJobs
       .map((job) => ({ job, currentStart: jobStartOf(job) }))
       .filter((x) => x.currentStart && x.currentStart !== newRouteDate) as
@@ -2486,22 +2498,26 @@ const Planner = () => {
   };
 
   const actuallyCreateRoute = async (selectedJobs: any[]) => {
-    if (!businessId) return;
+    if (!businessId || routeCreationBusyRef.current) return;
+    routeCreationBusyRef.current = true;
+    setRouteCreationProgress({ done: 0, total: selectedJobs.length });
     try {
-      const created = await createRoute.mutateAsync({
+      const created = createdRouteRef.current ?? await createRoute.mutateAsync({
         business_id: businessId,
         route_date: newRouteDate,
         name: newRouteName.trim() || null,
         color: newRouteColor,
       });
+      createdRouteRef.current = created;
+      if (creationSequencesRef.current.size === 0) {
+        selectedJobs.forEach((job, index) => creationSequencesRef.current.set(job.id, index));
+      }
       // Læg de valgte aftaler på den nye rute (i den rækkefølge brugeren valgte).
-      let seq = 0;
-      for (const job of selectedJobs) {
-        try {
-          await addStop.mutateAsync({
+      const result = await addStopsInOrder(selectedJobs, async (job, index) => {
+          await addCreationStop.mutateAsync({
             route_id: created.id,
             order_id: job.id,
-            sequence: seq++,
+            sequence: creationSequencesRef.current.get(job.id) ?? index,
             customer_name: job.customer_name,
             customer_phone: job.customer_phone,
             address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
@@ -2512,15 +2528,26 @@ const Planner = () => {
             time_window_start: null,
             time_window_end: null,
           });
-        } catch (err: any) {
-          console.error("[CreateRoute] kunne ikke tilføje stop", err);
-        }
+      }, done => setRouteCreationProgress({ done, total: selectedJobs.length }));
+      if (result.failed.length > 0) {
+        setNewRouteJobIds(result.failed.map(({ item }) => item.id));
+        toast.error(`${result.failed.length} aftale${result.failed.length === 1 ? "" : "r"} kunne ikke tilføjes`, {
+          description: `${result.saved.length} af ${selectedJobs.length} er gemt. Prøv igen for at tilføje resten til samme rute.`,
+        });
+        return;
       }
       toast.success(`Rute oprettet med ${selectedJobs.length} aftale${selectedJobs.length === 1 ? "" : "r"}`);
       setNewRouteName("");
       setNewRouteJobIds([]);
       setCreateOpen(false);
+      createdRouteRef.current = null;
+      creationSequencesRef.current.clear();
     } catch { /* toast handled in hook */ }
+    finally {
+      invalidateRouteSyncQueries(qc);
+      setRouteCreationProgress(null);
+      routeCreationBusyRef.current = false;
+    }
   };
 
   return (
@@ -2601,7 +2628,11 @@ const Planner = () => {
             )}
 
 
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <Dialog open={createOpen} onOpenChange={(open) => {
+                if (routeCreationBusyRef.current || confirmingBulkStartDate) return;
+                if (!open) { createdRouteRef.current = null; creationSequencesRef.current.clear(); }
+                setCreateOpen(open);
+              }}>
                  <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
                   <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-2.5 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
@@ -2615,7 +2646,7 @@ const Planner = () => {
                     />
                   </DialogHeader>
 
-                   <div className="planner-overlay-body min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3 sm:px-5 [&_input]:min-h-11 sm:[&_input]:min-h-10">
+                   <fieldset disabled={!!routeCreationProgress} className="planner-overlay-body min-w-0 min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3 sm:px-5 [&_input]:min-h-11">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Field label="Navn (valgfrit)">
@@ -2625,7 +2656,8 @@ const Planner = () => {
                             value={newRouteName}
                             onChange={(e) => setNewRouteName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
-                            className="h-11 sm:h-10"
+                            className="h-11"
+                            disabled={!!createdRouteRef.current}
                           />
                         </Field>
                         <Field label="Dato" required>
@@ -2635,7 +2667,8 @@ const Planner = () => {
                             routeDates={routeDatesSet}
                             busyDates={busyDatesSet}
                             overloadedDates={overloadedDatesSet}
-                            className="h-11 sm:h-10"
+                            className="h-11"
+                            disabled={!!createdRouteRef.current}
                           />
                         </Field>
                       </div>
@@ -2771,22 +2804,22 @@ const Planner = () => {
                         })()}
                       </div>
                     </Section>
-                  </div>
+                  </fieldset>
 
                   <SheetFooterBar>
                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                       <span className="text-xs text-muted-foreground">{newRouteJobIds.length} {newRouteJobIds.length === 1 ? "aftale valgt" : "aftaler valgt"}</span>
+                       <span className="text-sm text-muted-foreground" role="status">{routeCreationProgress ? `Gemmer aftaler ${routeCreationProgress.done} af ${routeCreationProgress.total}…` : `${newRouteJobIds.length} ${newRouteJobIds.length === 1 ? "aftale valgt" : "aftaler valgt"}`}</span>
                        <div className="flex gap-2">
-                       <Button variant="outline" className="h-11 flex-1 sm:h-10 sm:flex-none" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
+                       <Button variant="outline" className="h-11 flex-1 sm:flex-none" onClick={() => { createdRouteRef.current = null; creationSequencesRef.current.clear(); setCreateOpen(false); }} disabled={!!routeCreationProgress || confirmingBulkStartDate}>
                         Annullér
                       </Button>
                       <Button
-                         className="h-11 flex-1 sm:h-10 sm:flex-none"
+                         className="h-11 flex-1 sm:flex-none"
                         onClick={handleCreateRoute}
-                        disabled={createRoute.isPending || newRouteJobIds.length === 0}
+                        disabled={!!routeCreationProgress || confirmingBulkStartDate || newRouteJobIds.length === 0}
                       >
-                        {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                        Opret rute
+                        {routeCreationProgress && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
+                        {createdRouteRef.current ? "Tilføj resterende aftaler" : "Opret rute"}
                       </Button>
                       </div>
                     </div>

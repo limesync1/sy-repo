@@ -1221,7 +1221,7 @@ export const useMaterializeVirtualRoute = () => {
 };
 
 /* ─── Stops ─── */
-export const useAddStop = () => {
+export const useAddStop = (options?: { deferInvalidation?: boolean }) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: {
@@ -1248,21 +1248,12 @@ export const useAddStop = () => {
         try {
           const { data: items } = await supabase
             .from("order_items")
-            .select("service_id")
+            .select("services(default_employee_id, default_employee_ids)")
             .eq("order_id", payload.order_id)
             .limit(1);
-          const svcId = items?.[0]?.service_id;
-          if (svcId) {
-            const { data: svc } = await supabase
-              .from("services")
-              .select("default_employee_id, default_employee_ids")
-              .eq("id", svcId)
-              .maybeSingle();
-            const fromArr = Array.isArray((svc as any)?.default_employee_ids) && (svc as any).default_employee_ids.length > 0
-              ? (svc as any).default_employee_ids[0]
-              : null;
-            if (fromArr || svc?.default_employee_id) resolvedAssignee = fromArr || svc!.default_employee_id;
-          }
+          const svc = items?.[0]?.services;
+          const fromArr = Array.isArray(svc?.default_employee_ids) ? svc.default_employee_ids[0] : null;
+          resolvedAssignee = fromArr || svc?.default_employee_id || null;
         } catch {
           /* lookup må aldrig blokere oprettelse */
         }
@@ -1359,7 +1350,7 @@ export const useAddStop = () => {
       }
       return stop as RouteStop;
     }),
-    onSuccess: () => invalidateRouteSyncQueries(qc),
+    onSuccess: () => { if (!options?.deferInvalidation) invalidateRouteSyncQueries(qc); },
   });
 };
 
