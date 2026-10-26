@@ -22,6 +22,7 @@
 - Meta OAuth uses `https://serviceydere.dk/meta/callback`, forwarding authorization to the server callback to keep preview/production configuration stable.
 - Restarted employee workdays preserve prior elapsed seconds in `accumulated_seconds` and open a new active interval, so completed appointments and precise time history remain intact.
 - Employee pages share `EmployeePage`; driving is full-screen; profiles share `ProfileEditSheetLayout`, with employee self-edits limited to name/avatar. Account saves upsert by user ID to repair missing rows; auth metadata is secondary.
+- Open employee stop details resolve IDs against current query data; chat messages and drafts are conversation-scoped and cancelled loads cannot overwrite another conversation, preventing stale details and misdirected replies.
 - Archived routes are never recurrence anchors or projection inputs, preventing ghost routes.
 - Printing filters loaded calendar routes so preview and paper match.
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.

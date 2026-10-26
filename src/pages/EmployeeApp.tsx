@@ -135,11 +135,17 @@ const EmployeeApp = () => {
   const [date, setDate] = useState(todayStr());
   const isCompact = useIsBelowBreakpoint(1024);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
+  const [detailsStopId, setDetailsStopId] = useState<string | null>(null);
   // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
   const [previewRouteId, setPreviewRouteId] = useState<string | null>(null);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
+  const detailsStop = stops.find(stop => stop.id === detailsStopId);
+  const detailsRoute = routes.find(route => route.id === detailsStop?.route_id);
+  useEffect(() => { setDetailsStopId(null); }, [date]);
+  useEffect(() => {
+    if (!stopsLoading && detailsStopId && !detailsStop) setDetailsStopId(null);
+  }, [stopsLoading, detailsStopId, detailsStop]);
   const { data: workday } = useMyWorkday(date);
   const { data: me } = useMyEmployee();
   const { data: receiptStats, isLoading: receiptStatsLoading, isError: receiptStatsError } = useMyEmployeeStats(previewRouteId ? me?.id : undefined, me?.commission_pct ?? 0, date, date);
@@ -446,7 +452,7 @@ const EmployeeApp = () => {
                     className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
                   />
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
                     </p>
                     <p className="mt-0.5 text-sm sm:text-base font-semibold text-foreground tracking-tight">
@@ -543,63 +549,6 @@ const EmployeeApp = () => {
           // kun et roligt resumé så listen forbliver overskuelig.
           // Udførte ruter vises ikke under Ruter — de findes under Aftaler.
           if (allDone) return null;
-          if (allDone) {
-            const lastDoneAt = myStops
-              .map((s) => s.completed_at)
-              .filter(Boolean)
-              .sort()
-              .at(-1);
-            return (
-              <Card
-                key={r.id}
-                className="service-panel-card overflow-hidden rounded-[5px] border-border opacity-95 shadow-sm"
-                aria-label={`Rute ${r.name || ""} er færdig`}
-              >
-                <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center" aria-hidden>
-                    <BrandedIllustration name="routeDone" className="h-full w-full" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-muted-foreground">Rute {routeIndex + 1} af {sortedRoutes.length}{r.planned_start_time ? ` · kl. ${r.planned_start_time.slice(0, 5)}` : ""}</p>
-                   <h3 className="break-words text-sm font-semibold text-foreground">
-                      {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Alle {total} stop er udført
-                      
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2.5 py-1 text-[11px] font-semibold text-feature-cool-foreground shrink-0">
-                    <CheckCircle2 className="h-3 w-3" /> Udført
-                  </span>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setPreviewRouteId(r.id)}
-                    className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    aria-label="Vis og udskriv ruten"
-                    title="Vis og udskriv"
-                  >
-                    <Printer className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-3 p-3 sm:p-5 text-xs">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
-                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
-                  </div>
-                  
-                  {r.total_distance_km != null && r.total_distance_km > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
-                      <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{r.total_distance_km.toFixed(1)} km</p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            );
-          }
 
           return (
             <Card
@@ -617,7 +566,7 @@ const EmployeeApp = () => {
                    <h3 className="break-words text-sm font-semibold text-foreground">
                     {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
                   </h3>
-                   <p className="mt-0.5 inline-flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                   <p className="mt-0.5 inline-flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     {isTeamRoute ? (
                       <><Users className="h-3 w-3" /> Team-rute</>
                     ) : (
@@ -629,11 +578,11 @@ const EmployeeApp = () => {
                 </div>
                 {isFutureDay && (
                   earlyAllowed ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2 py-0.5 text-[10px] font-semibold text-feature-cool-foreground shrink-0">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2 py-0.5 text-xs font-semibold text-feature-cool-foreground shrink-0">
                       <UnlockIcon className="h-2.5 w-2.5" /> Låst op
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground shrink-0">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-xs font-semibold text-muted-foreground shrink-0">
                       <LockIcon className="h-2.5 w-2.5" /> Låst
                     </span>
                   )
@@ -662,11 +611,11 @@ const EmployeeApp = () => {
                     visuel rytme på alle skærmstørrelser. */}
                 <div className="grid grid-cols-2 gap-2 rounded-[4px] border border-border bg-secondary/30 p-2.5">
                   <div className="px-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{done}/{total}</p>
                   </div>
                   <div className="border-l border-border px-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
                       {r.total_distance_km != null && r.total_distance_km > 0
                         ? `${r.total_distance_km.toFixed(1)} km`
@@ -679,8 +628,8 @@ const EmployeeApp = () => {
                   <div className="flex items-start gap-2 rounded-[4px] border border-border bg-card px-3 py-2 text-xs">
                     <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Startadresse</p>
-                      <p className="truncate text-foreground">{r.start_address}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Startadresse</p>
+                      <p className="break-words text-foreground">{r.start_address}</p>
                     </div>
                   </div>
                 )}
@@ -688,7 +637,7 @@ const EmployeeApp = () => {
                 {/* Fremskridt */}
                 {total > 0 && (
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold uppercase tracking-wide text-muted-foreground">Fremskridt</span>
                       <span className="font-bold tabular-nums text-foreground">{done}/{total} · {progress}%</span>
                     </div>
@@ -718,7 +667,7 @@ const EmployeeApp = () => {
                           <Button
                             key={s.id}
                             type="button"
-                            onClick={() => setDetailsStop({ stop: s, index: i, routeName: r.name, routeColor: r.color, routeDate: r.route_date })}
+                            onClick={() => setDetailsStopId(s.id)}
                             variant="ghost"
                             className={`flex h-auto min-h-14 items-center justify-start gap-3 rounded-none whitespace-normal px-3 py-2.5 ${
                               isNext ? "bg-secondary/60" : ""
@@ -726,7 +675,7 @@ const EmployeeApp = () => {
                             aria-label={`Vis detaljer for ${s.customer_name || "stop"}`}
                           >
                             <span
-                              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                                 s.status === "completed"
                                   ? "bg-feature-cool text-feature-cool-foreground"
                                   : isNext
@@ -738,26 +687,22 @@ const EmployeeApp = () => {
                             </span>
                             <div className="min-w-0 flex-1">
                               <p
-                                className={`truncate text-xs font-semibold ${
+                                className={`break-words [overflow-wrap:anywhere] text-sm font-semibold ${
                                   s.status === "completed"
                                     ? "text-muted-foreground line-through"
                                     : "text-foreground"
                                 }`}
                               >
                                 {s.customer_name || "Stop"}
-                                {isNext && s.status !== "completed" && (
-                                  <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-foreground">
-                                    Næste
-                                  </span>
-                                )}
+
                               </p>
                               <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5">
                                 {(s.full_address || s.address) && (
-                                  <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                                  <p className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-xs text-muted-foreground">
                                     {s.full_address || s.address}
                                   </p>
                                 )}
-                                <Badge variant="outline" className={cn("h-5 shrink-0 px-1.5 text-[10px] font-medium", pay.className)}>
+                                <Badge variant="outline" className={cn("h-5 shrink-0 px-1.5 text-xs font-medium", pay.className)}>
                                   {pay.label}
                                 </Badge>
                               </div>
@@ -809,18 +754,18 @@ const EmployeeApp = () => {
 
       {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
           og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
-      <StopDetailsSheetShell open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
+      <StopDetailsSheetShell open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStopId(null)}>
           {detailsStop && (
             <StopDetailsContent
-              stop={detailsStop.stop}
-              index={detailsStop.index}
-              themeColor={detailsStop.routeColor || "hsl(var(--foreground))"}
+              stop={detailsStop}
+              index={stops.filter(s => s.route_id === detailsStop.route_id).sort((a, b) => a.sequence - b.sequence).findIndex(s => s.id === detailsStop.id)}
+              themeColor={detailsRoute?.color || "hsl(var(--foreground))"}
               route={{
-                name: detailsStop.routeName,
-                color: detailsStop.routeColor,
-                date: detailsStop.routeDate,
+                name: detailsRoute?.name || null,
+                color: detailsRoute?.color,
+                date: detailsRoute?.route_date,
                 allowEarly: canCompleteEarly({
-                  routeAllow: (routes.find((r) => r.id === detailsStop.stop.route_id) as any)?.allow_early_completion,
+                  routeAllow: (detailsRoute as any)?.allow_early_completion,
                   employeeMode,
                   businessDefault: businessEarlyDefault,
                 }),

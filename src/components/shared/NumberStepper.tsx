@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface NumberStepperProps {
   value: number;
@@ -62,19 +63,19 @@ export function NumberStepper({
   return (
     <div
       className={cn(
-        "inline-flex h-9 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring",
+        "inline-flex min-h-11 items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring",
         className,
       )}
     >
-      <button
+      <Button variant="ghost"
         type="button"
         aria-label="Færre"
         onClick={() => bump(-1)}
         disabled={value <= min}
-        className="flex w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent"
+        className="h-auto min-h-11 w-11 shrink-0 rounded-none p-0 text-muted-foreground hover:bg-secondary hover:text-foreground"
       >
         <Minus className="h-3.5 w-3.5" />
-      </button>
+      </Button>
       <input
         type="text"
         inputMode="decimal"
@@ -99,15 +100,15 @@ export function NumberStepper({
       {unit && (
         <span className="flex shrink-0 items-center pr-1.5 text-[11px] text-muted-foreground">{unit}</span>
       )}
-      <button
+      <Button variant="ghost"
         type="button"
         aria-label="Flere"
         onClick={() => bump(1)}
         disabled={value >= max}
-        className="flex w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent"
+        className="h-auto min-h-11 w-11 shrink-0 rounded-none p-0 text-muted-foreground hover:bg-secondary hover:text-foreground"
       >
         <Plus className="h-3.5 w-3.5" />
-      </button>
+      </Button>
     </div>
   );
 }
