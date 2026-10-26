@@ -31,8 +31,8 @@ type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   new:        { label: "Ny",         className: "bg-accent/15 text-accent border-accent/30" },
   viewed:     { label: "Set",        className: "bg-secondary text-foreground border-border" },
-  contacted:  { label: "Kontaktet",  className: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900" },
-  won:        { label: "Vundet",     className: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900" },
+  contacted:  { label: "Kontaktet",  className: "bg-accent/10 text-foreground border-accent/30" },
+  won:        { label: "Vundet",     className: "bg-success/10 text-success border-success/30" },
   declined:   { label: "Afvist",     className: "bg-muted text-muted-foreground border-border" },
 };
 
@@ -322,7 +322,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
           <XCircle className="h-8 w-8 text-destructive" />
           <p className="text-sm font-semibold text-foreground">Kunne ikke hente dine leads</p>
           <p className="max-w-md text-xs text-muted-foreground">Tjek din internetforbindelse og prøv igen. Dine leads er ikke gået tabt.</p>
-          <Button variant="outline" size="sm" onClick={() => refetchLeads()} disabled={fetchingLeads}>
+          <Button variant="outline" size="sm" className="min-h-11" onClick={() => refetchLeads()} disabled={fetchingLeads}>
             {fetchingLeads ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}Prøv igen
           </Button>
         </CardContent>
@@ -339,7 +339,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
           action={<LeadSettingsDialog businessId={businessId} />}
         />
 
-        <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{counts.active || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Konvertering</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.conversionRate}%</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Svartid</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"}</p></div></div>
+        <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{counts.active || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Konvertering</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.conversionRate}%</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Svartid</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"}</p></div></div>
         <div className="hidden gap-2.5 sm:grid sm:grid-cols-3">
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} /></div>
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" /></div>
@@ -377,18 +377,18 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               );
               return (
                 <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-3 py-2.5 sm:flex-row sm:items-center">
-                  <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:pr-1">Næste skridt</p>
-                  <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-0.5 sm:pb-0">
+                  <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:pr-1">Næste skridt</p>
+                  <div className="grid min-w-0 flex-1 gap-2 xl:grid-cols-3">
                     {tasks.map((t) => (
-                      <button
+                      <Button variant="ghost"
                         key={t.key + t.text}
                         type="button"
                         onClick={() => { setFilter(t.key); if (t.sort) setSortBy(t.sort); }}
-                        className={`flex min-w-max flex-1 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground/20 ${t.tone}`}
+                        className={`flex h-auto min-h-11 min-w-0 items-center justify-between gap-3 whitespace-normal rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground/20 ${t.tone}`}
                       >
                         <span className="text-xs font-medium text-foreground">{t.text}</span>
                         <span className="text-xs font-semibold text-foreground">{t.cta}</span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -410,17 +410,17 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Søg kunde, e-mail, by eller note…"
-                  className="h-10 pl-9 rounded-lg"
+                  aria-label="Søg i leads" autoComplete="off" className="h-11 min-w-0 pl-9 rounded-md"
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-10 w-full rounded-lg sm:w-[230px]">
+                <SelectTrigger aria-label="Sortér leads" className="h-11 w-full rounded-md sm:w-[230px]">
                   <div className="flex min-w-0 items-center gap-2 whitespace-nowrap text-sm">
                     <Filter className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <SelectValue />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="[&_[role=option]]:min-h-11">
                   <SelectItem value="smart">Anbefalet rækkefølge</SelectItem>
                   <SelectItem value="newest">Nyeste først</SelectItem>
                   <SelectItem value="oldest">Ældste først</SelectItem>
@@ -454,13 +454,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     {gi > 0 && <span aria-hidden className="mx-1 hidden h-5 w-px bg-border/80 sm:block" />}
                     {group.map(({ key, label, count, tone }) => {
                       const isActive = filter === key;
-                      const dotCls = tone === "danger" ? "before:bg-destructive" : tone === "warn" ? "before:bg-orange-500" : "";
+                      const dotCls = tone === "danger" ? "before:bg-destructive" : tone === "warn" ? "before:bg-warning" : "";
                       const showDot = !!tone && count > 0;
                       return (
-                        <button
+                        <Button variant="ghost"
                           key={key}
+                          aria-pressed={isActive}
                           onClick={() => setFilter(key)}
-                           className={`relative inline-flex min-h-10 min-w-0 items-center justify-between gap-1.5 whitespace-nowrap rounded-md border px-3 py-2 text-xs sm:min-h-0 sm:shrink-0 sm:justify-start font-medium transition-colors ${
+                           className={`relative inline-flex min-h-11 min-w-0 items-center justify-between gap-1.5 whitespace-nowrap rounded-md border px-3 py-2 text-sm sm:shrink-0 sm:justify-start font-medium transition-colors ${
                             showDot ? `before:absolute before:left-2 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${dotCls} pl-5` : ""
                           } ${
                             isActive
@@ -469,12 +470,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           }`}
                         >
                           <span>{label}</span>
-                          <span className={`tabular-nums rounded-md px-1.5 text-[10px] font-semibold ${
+                          <span className={`tabular-nums rounded-md px-1.5 text-xs font-semibold ${
                             isActive ? "bg-background/20 text-background" : "bg-secondary text-foreground/70"
                           }`}>
                             {count}
                           </span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -484,10 +485,10 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               </div>
               <div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:items-center">
                 <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                  <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[170px]">
+                  <SelectTrigger aria-label="Filtrér efter kilde" className="h-11 w-full rounded-md text-sm sm:w-[170px]">
                     <SelectValue placeholder="Alle kilder" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="[&_[role=option]]:min-h-11">
                     <SelectItem value="all">Alle kilder</SelectItem>
                     <SelectItem value="serviceydere">Serviceydere</SelectItem>
                     <SelectItem value="facebook">Facebook</SelectItem>
@@ -496,10 +497,10 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 </Select>
                 {accounts.length > 0 && (
                   <Select value={accountFilter} onValueChange={setAccountFilter}>
-                    <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[190px]">
+                    <SelectTrigger aria-label="Filtrér efter side eller konto" className="h-11 w-full rounded-md text-sm sm:w-[190px]">
                       <SelectValue placeholder="Alle sider og konti" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="[&_[role=option]]:min-h-11">
                       <SelectItem value="all">Alle sider og konti</SelectItem>
                       {accounts.map((a) => (
                         <SelectItem key={a.key} value={a.key}>{a.source === "instagram" ? "Instagram" : "Facebook"} · {a.label} ({a.total})</SelectItem>
@@ -509,13 +510,13 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 )}
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[180px]">
+                    <SelectTrigger aria-label="Filtrér efter kategori" className="h-11 w-full rounded-md text-sm sm:w-[180px]">
                       <div className="flex items-center gap-1.5">
                         <Filter className="h-3.5 w-3.5 text-muted-foreground" />
                         <SelectValue />
                       </div>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="[&_[role=option]]:min-h-11">
                       <SelectItem value="all">Alle kategorier</SelectItem>
                       {allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
@@ -526,19 +527,19 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
             {/* Bulk action bar */}
             {selected.size > 0 && (
-              <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-foreground/20 bg-foreground/95 px-4 py-2.5 text-background shadow-lg backdrop-blur">
+              <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-foreground/20 bg-foreground/95 px-4 py-2.5 text-background shadow-lg ">
                 <span className="text-sm font-medium">{selected.size} valgt</span>
                 <div className="ml-auto flex flex-wrap gap-1.5">
-                  <Button size="sm" variant="secondary" className="h-8 gap-1.5" onClick={() => bulkUpdate("contacted")}>
+                  <Button size="sm" variant="secondary" className="min-h-11 gap-1.5" onClick={() => bulkUpdate("contacted")}>
                     <Mail className="h-3.5 w-3.5" /> Marker kontaktet
                   </Button>
-                  <Button size="sm" variant="secondary" className="h-8 gap-1.5" onClick={() => bulkUpdate("won")}>
+                  <Button size="sm" variant="secondary" className="min-h-11 gap-1.5" onClick={() => bulkUpdate("won")}>
                     <Trophy className="h-3.5 w-3.5" /> Vundet
                   </Button>
-                  <Button size="sm" variant="secondary" className="h-8 gap-1.5 text-destructive" onClick={() => bulkUpdate("declined")}>
+                  <Button size="sm" variant="secondary" className="min-h-11 gap-1.5 text-destructive" onClick={() => bulkUpdate("declined")}>
                     <XCircle className="h-3.5 w-3.5" /> Afvis
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-8 text-background hover:bg-background/10" onClick={() => setSelected(new Set())}>
+                  <Button size="sm" variant="ghost" className="min-h-11 text-background hover:bg-background/10" onClick={() => setSelected(new Set())}>
                     Annuller
                   </Button>
                 </div>
@@ -550,7 +551,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             ) : (
               <>
                 {/* Select-all bar */}
-                <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
+                <div className="flex min-h-11 items-center gap-2 px-1 text-sm text-muted-foreground">
                   <Checkbox
                     checked={selected.size > 0 && selected.size === visible.length}
                     onCheckedChange={toggleSelectAll}
@@ -587,11 +588,11 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                         <CardContent className="p-0">
                           {/* Top accent banners */}
                           {isDue && (
-                            <div className="flex items-center gap-2 bg-destructive/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-destructive">
+                            <div className="flex items-center gap-2 bg-destructive/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-destructive">
                               <BellRing className="h-3 w-3" /> Opfølgning forfalden — {formatDistanceToNow(new Date(l.follow_up_at!), { addSuffix: true, locale: da })}
                             </div>
                           )}
-                          <div className="flex gap-2.5 p-3 sm:p-4">
+                          <div className="flex min-w-0 gap-2.5 p-3 sm:p-4">
                             {/* Selection checkbox */}
                             <div className="pt-0.5">
                               <Checkbox
@@ -602,17 +603,17 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                               />
                             </div>
 
-                            <div className="flex flex-1 flex-wrap items-start justify-between gap-3">
-                              <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 flex-1 flex-col items-stretch gap-3 xl:flex-row xl:items-start">
+                              <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                  <h3 className="text-sm font-semibold text-foreground">{qr?.customer_name || "Anonym kunde"}</h3>
-                                  <Badge className={`${status.className} border rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5`}>{status.label}</Badge>
-                                  {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5">{qr.category}</Badge>}
-                                  <Badge variant="outline" className="rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5">{sourceLabel}</Badge>
+                                  <h3 className="break-words [overflow-wrap:anywhere] text-sm font-semibold text-foreground">{qr?.customer_name || "Anonym kunde"}</h3>
+                                  <Badge className={`${status.className} border rounded-md pointer-events-none text-xs px-1.5 py-0.5 h-auto whitespace-normal break-words`}>{status.label}</Badge>
+                                  {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none text-xs px-1.5 py-0.5 h-auto whitespace-normal break-words">{qr.category}</Badge>}
+                                  <Badge variant="outline" className="rounded-md pointer-events-none text-xs px-1.5 py-0.5 h-auto whitespace-normal break-words">{sourceLabel}</Badge>
                                   {l.follow_up_at && !isDue && (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="gap-1 rounded-md cursor-help text-[10px] px-1.5 py-0 h-5">
+                                        <Badge variant="outline" className="gap-1 rounded-md cursor-help text-xs px-1.5 py-0 h-5">
                                           <Bell className="h-3 w-3" /> {formatDistanceToNow(new Date(l.follow_up_at), { addSuffix: true, locale: da })}
                                         </Badge>
                                       </TooltipTrigger>
@@ -620,7 +621,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                     </Tooltip>
                                   )}
                                 </div>
-                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                   {(qr?.zip_code || qr?.city) && (
                                     <span className="inline-flex items-center gap-1">
                                       <MapPin className="h-3 w-3" /> {[qr.zip_code, qr.city].filter(Boolean).join(" ")}
@@ -641,47 +642,47 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                   )}
                                 </div>
                                 {qr?.description && (
-                                  <p className="mt-1.5 line-clamp-2 whitespace-pre-wrap text-[13px] leading-snug text-foreground/80">{qr.description}</p>
+                                  <p className="mt-1.5 line-clamp-2 whitespace-pre-wrap text-sm leading-relaxed [overflow-wrap:anywhere] text-foreground/80">{qr.description}</p>
                                 )}
                                 {l.business_note && (
-                                  <div className="mt-1.5 flex items-start gap-1.5 rounded-md border border-border bg-secondary/40 px-2 py-1 text-[11px]">
+                                  <div className="mt-1.5 flex items-start gap-1.5 rounded-md border border-border bg-secondary/40 px-2 py-1 text-xs">
                                     <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
                                     <p className="line-clamp-1 text-foreground/80">{l.business_note}</p>
                                   </div>
                                 )}
                                 {share && qr && (
                                   <div className="mt-2 flex flex-wrap gap-1.5">
-                                    <a
+                                    {qr.customer_email && <Button asChild variant="outline" className="h-auto min-h-11 min-w-0 max-w-full whitespace-normal px-2 text-sm"><a
                                       href={`mailto:${qr.customer_email}`}
                                       onClick={(e) => e.stopPropagation()}
-                                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-foreground transition-colors hover:border-foreground/20 hover:bg-secondary"
+                                      className="[overflow-wrap:anywhere]"
                                     >
                                       <Mail className="h-3 w-3" /> {qr.customer_email}
-                                    </a>
+                                    </a></Button>}
                                     {qr.customer_phone && (
-                                      <a
+                                      <Button asChild variant="outline" className="h-auto min-h-11 max-w-full whitespace-normal px-2 text-sm"><a
                                         href={`tel:${qr.customer_phone}`}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-foreground transition-colors hover:border-foreground/20 hover:bg-secondary"
+                                        className="[overflow-wrap:anywhere]"
                                       >
                                         <Phone className="h-3 w-3" /> {qr.customer_phone}
-                                      </a>
+                                      </a></Button>
                                     )}
                                   </div>
                                 )}
                                 {!share && (
-                                  <p className="mt-2 text-[11px] text-muted-foreground">
+                                  <p className="mt-2 text-xs text-muted-foreground">
                                     Kunden har ikke delt direkte kontaktinfo — svar via platformen.
                                   </p>
                                 )}
                               </div>
 
                               {/* Action column */}
-                              <div className="flex shrink-0 flex-col gap-1.5 sm:w-40" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex w-full shrink-0 flex-col gap-1.5 xl:w-44" onClick={(e) => e.stopPropagation()}>
                                 <Button
                                   size="sm"
                                   onClick={() => setOpenId(l.id)}
-                                  className="h-10 gap-1.5 text-xs sm:h-8"
+                                  className="min-h-11 gap-1.5 text-sm"
                                 >
                                   <MessageSquare className="h-3.5 w-3.5" /> Åbn & svar
                                 </Button>
@@ -691,7 +692,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => updateStatus(l.id, "won")}
-                                      className="h-10 flex-1 gap-1 text-xs sm:h-7 sm:text-[11px]"
+                                      className="min-h-11 flex-1 gap-1 text-sm"
                                     >
                                       <Trophy className="h-3 w-3" /> Vundet
                                     </Button>
@@ -701,7 +702,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                       size="sm"
                                       variant="ghost"
                                       onClick={() => updateStatus(l.id, "declined")}
-                                      className="h-10 flex-1 gap-1 text-xs sm:h-7 sm:text-[11px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                      className="min-h-11 flex-1 gap-1 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                     >
                                       <XCircle className="h-3 w-3" /> Afvis
                                     </Button>

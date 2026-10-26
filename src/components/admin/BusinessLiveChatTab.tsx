@@ -21,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import LiveChatStats from "@/components/livechat/LiveChatStats";
 
 type Conversation = {
@@ -82,16 +84,16 @@ const ConversationMeta = memo(function ConversationMeta({ conversation }: { conv
   const sla = slaState(conversation);
   const slaClass =
     sla.tone === "breach" ? "bg-destructive/10 text-destructive" :
-    sla.tone === "warn"   ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
+    sla.tone === "warn"   ? "bg-warning/15 text-foreground" :
     sla.tone === "done"   ? "bg-success/10 text-success" :
     sla.tone === "closed" ? "bg-muted text-muted-foreground" :
                             "bg-secondary text-muted-foreground";
   return (
-    <div className="mt-0.5 flex items-center gap-1.5">
-      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${slaClass}`} title="Svartid">
+    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${slaClass}`} title="Svartid">
         <Clock className="h-2.5 w-2.5" />{sla.label}
       </span>
-      <span className="truncate text-[10px] text-muted-foreground">
+      <span className="truncate text-xs text-muted-foreground">
         {formatDistanceToNow(new Date(conversation.last_message_at), { locale: da, addSuffix: true })}
       </span>
     </div>
@@ -324,7 +326,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
       if (filter === "closed" && c.status !== "closed") return false;
       if (filter === "unread" && c.unread_admin_count <= 0) return false;
       if (search) {
-        const q = search.toLowerCase();
+        const q = search.trim().toLowerCase();
         if (!c.visitor_name.toLowerCase().includes(q) &&
             !c.visitor_email.toLowerCase().includes(q) &&
             !(c.subject || "").toLowerCase().includes(q)) return false;
@@ -458,38 +460,40 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
       <LiveChatStats conversations={conversations} />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* Conversation list */}
-        <div className={`service-panel-card overflow-hidden rounded-[5px] border border-border bg-card shadow-sm ${active ? "hidden lg:block" : ""}`}>
+        <div className={`service-panel-card overflow-hidden rounded-[5px] border border-border bg-card shadow-sm ${active ? "hidden xl:block" : ""}`}>
           <div className="border-b border-border p-3 space-y-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
+              <Input
+                aria-label="Søg i samtaler" autoComplete="off"
                 value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Søg navn, e-mail, emne…"
-                className="w-full rounded-[4px] border border-border bg-background pl-8 pr-3 py-2 text-sm outline-none focus:border-foreground"
+                className="h-11 w-full rounded-md pl-8"
               />
             </div>
-            <div className="flex gap-1 text-[11px]">
+            <div className="flex gap-1 text-xs">
               {(["all", "open", "unread", "closed"] as Filter[]).map((f) => (
-                <button
+                <Button variant="ghost"
                   key={f}
+                  aria-pressed={filter === f}
                   onClick={() => setFilter(f)}
-                     className={`flex-1 rounded-[4px] px-2 py-1.5 font-medium transition-colors ${
+                     className={`h-11 min-w-0 flex-1 rounded-md px-2 py-1.5 font-medium transition-colors ${
                     filter === f ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {f === "all" ? "Alle" : f === "open" ? "Åbne" : f === "unread" ? "Ulæst" : "Lukkede"}
-                </button>
+                </Button>
               ))}
             </div>
             <div className="flex items-center gap-1.5">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button
+                  <Button variant="ghost"
                     type="button"
                     className={cn(
-                       "flex flex-1 items-center gap-1.5 rounded-[4px] border border-border bg-background px-2 py-1.5 text-[11px] text-left transition-colors hover:border-foreground/40 focus:border-foreground focus:outline-none",
+                       "flex h-11 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-left transition-colors hover:border-foreground/40 focus:border-foreground focus:outline-none",
                       !dateFilter && "text-muted-foreground"
                     )}
                   >
@@ -499,9 +503,9 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                         ? formatDate(new Date(dateFilter + "T00:00:00"), "d. MMM yyyy", { locale: da })
                         : "Vælg dag"}
                     </span>
-                  </button>
+                  </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto max-w-[calc(100vw-1.5rem)] p-0" align="start" collisionPadding={12}>
                   <Calendar
                     mode="single"
                     locale={da}
@@ -513,21 +517,21 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 </PopoverContent>
               </Popover>
               {dateFilter && (
-                <button
+                <Button variant="ghost"
                   onClick={() => setDateFilter("")}
-                  className="rounded p-1 text-muted-foreground hover:text-foreground"
+                  size="icon" className="h-11 w-11 shrink-0 text-muted-foreground"
                   aria-label="Ryd dato"
                 >
                   <XIcon className="h-3 w-3" />
-                </button>
+                </Button>
               )}
             </div>
-            <button
+            <Button variant="ghost"
               onClick={() => setTemplatesOpen(true)}
-             className="flex w-full items-center justify-center gap-1.5 rounded-[4px] border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+             className="flex h-11 w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               <BookText className="h-3 w-3" /> Svar-skabeloner ({templates.length})
-            </button>
+            </Button>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
             {filtered.length === 0 ? (
@@ -538,27 +542,27 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
             ) : (
               filtered.map((c) => {
                 return (
-                <button
+                <Button variant="ghost"
                   key={c.id}
                   onClick={() => setActiveId(c.id)}
-                  className={`flex w-full items-start gap-2.5 border-b border-border px-3 py-2.5 text-left transition-colors ${
+                  className={`flex h-auto min-h-11 w-full items-start gap-2.5 whitespace-normal border-b border-border px-3 py-2.5 text-left transition-colors ${
                     activeId === c.id ? "bg-secondary" : "hover:bg-secondary/50"
                   }`}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
                     {initials(c.visitor_name)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-semibold text-foreground">{c.visitor_name}</span>
                       {c.unread_admin_count > 0 && (
-                        <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground">{c.unread_admin_count}</span>
+                        <span className="rounded-full bg-accent px-1.5 py-0.5 text-xs font-bold text-accent-foreground">{c.unread_admin_count}</span>
                       )}
                     </div>
-                    <p className="truncate text-[11px] text-muted-foreground">{c.subject || c.visitor_email}</p>
+                    <p className="truncate text-xs text-muted-foreground">{c.subject || c.visitor_email}</p>
                     <ConversationMeta conversation={c} />
                   </div>
-                </button>
+                </Button>
                 );
               })
             )}
@@ -566,47 +570,47 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
         </div>
 
         {/* Conversation pane */}
-        <div className={`service-panel-card flex h-[calc(100dvh-12rem)] flex-col overflow-hidden rounded-[5px] border border-border bg-card shadow-sm lg:h-[60vh] ${!active ? "hidden lg:flex" : ""}`}>
+        <div className={`service-panel-card flex h-[calc(100dvh-12rem)] min-h-[28rem] min-w-0 flex-col overflow-hidden rounded-[5px] border border-border bg-card shadow-sm xl:h-[60vh] ${!active ? "hidden xl:flex" : ""}`}>
           {!active ? (
             <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
               Vælg en samtale fra listen.
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-4 py-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <button
+              <div className="flex shrink-0 flex-col items-stretch gap-2 border-b border-border bg-secondary/30 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <Button variant="ghost"
                     type="button"
                     onClick={() => setActiveId(null)}
-                    className="lg:hidden -ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground"
+                    size="icon" className="xl:hidden h-11 w-11 shrink-0 text-muted-foreground"
                     aria-label="Tilbage til samtaler"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                  </button>
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                  </Button>
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
                     {initials(active.visitor_name)}
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground flex items-center gap-2">
                       <User className="h-3.5 w-3.5" /> {active.visitor_name}
                       {active.status === "closed" && (
-                        <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Lukket</span>
+                        <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">Lukket</span>
                       )}
                     </p>
-                    <p className="truncate text-[11px] text-muted-foreground flex items-center gap-1">
+                    <p className="truncate text-xs text-muted-foreground flex items-center gap-1">
                       <Mail className="h-3 w-3" />
                       <a href={`mailto:${active.visitor_email}`} className="hover:underline">{active.visitor_email}</a>
                       {active.subject && <span className="ml-1 truncate">· {active.subject}</span>}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex min-w-0 flex-wrap items-center gap-1 sm:ml-auto">
                   {employees.length > 0 && (
                     <select
                       value={active.assigned_employee_id || ""}
                       onChange={(e) => assignTo(e.target.value || null)}
-                      title="Tildel til medarbejder"
-                      className="rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-muted-foreground hover:text-foreground focus:border-foreground outline-none"
+                      title="Tildel til medarbejder" aria-label="Tildel til medarbejder"
+                      className="h-11 min-w-0 max-w-full flex-1 rounded-md border border-border bg-background px-1.5 py-1 text-sm text-muted-foreground hover:text-foreground focus:border-foreground outline-none"
                     >
                       <option value="">Ikke tildelt</option>
                       {employees.map((e) => (
@@ -614,31 +618,31 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       ))}
                     </select>
                   )}
-                  <button onClick={toggleMute} title={muted ? "Slå lyd til" : "Slå lyd fra"}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground">
+                  <Button variant="ghost" size="icon" onClick={toggleMute} aria-label={muted ? "Slå lyd til" : "Slå lyd fra"} aria-pressed={!muted} title={muted ? "Slå lyd til" : "Slå lyd fra"}
+                    className="h-11 w-11 shrink-0 rounded-md text-muted-foreground">
                     {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                  </button>
+                  </Button>
                   {active.status === "closed" ? (
-                    <button onClick={() => reopenConversation(active.id)}
-                      className="rounded-md bg-foreground px-2.5 py-1 text-xs font-medium text-background hover:bg-foreground/90">
+                    <Button variant="ghost" onClick={() => reopenConversation(active.id)}
+                      className="h-11 rounded-md bg-foreground px-2.5 py-1 text-sm font-medium text-background hover:bg-foreground/90">
                       Genåbn
-                    </button>
+                    </Button>
                   ) : (
-                    <button onClick={() => closeConversation(active.id)}
-                      className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground inline-flex items-center gap-1">
+                    <Button variant="ghost" onClick={() => closeConversation(active.id)}
+                      className="h-11 rounded-md border border-border px-2.5 py-1 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground inline-flex items-center gap-1">
                       <Archive className="h-3 w-3" /> Afslut
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
 
-              <div className="relative flex-1 overflow-hidden">
+              <div className="relative min-h-0 flex-1 overflow-hidden">
               <div ref={scrollRef} className="absolute inset-0 space-y-2.5 overflow-y-auto bg-secondary/20 px-4 py-4">
                 {messages.map((m, i) => {
                   if (m.is_system) {
                     return (
                       <div key={m.id} className="flex justify-center">
-                        <span className="rounded-full bg-card px-3 py-1 text-[10px] text-muted-foreground shadow-sm">
+                        <span className="rounded-full bg-card px-3 py-1 text-xs text-muted-foreground shadow-sm">
                           {m.content} · {formatTime(m.created_at)}
                         </span>
                       </div>
@@ -652,14 +656,14 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       {!mine && (
                         <div className="w-7 flex-shrink-0">
                           {showAvatar && (
-                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
                               {initials(m.sender_name)}
                             </div>
                           )}
                         </div>
                       )}
-                      <div className={`flex max-w-[75%] flex-col ${mine ? "items-end" : "items-start"}`}>
-                        <div className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-sm ${
+                      <div className={`flex min-w-0 max-w-[85%] flex-col sm:max-w-[75%] ${mine ? "items-end" : "items-start"}`}>
+                        <div className={`overflow-hidden rounded-2xl text-sm leading-relaxed shadow-sm ${
                           mine ? "rounded-br-sm bg-foreground text-background" : "rounded-bl-sm border border-border bg-card text-foreground"
                         }`}>
                           {m.image_url && (
@@ -667,9 +671,9 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                               <img src={m.image_url} alt="Vedhæftet" className="max-h-64 w-auto object-cover" />
                             </a>
                           )}
-                          {m.content && <div className="whitespace-pre-wrap break-words px-3.5 py-2">{m.content}</div>}
+                          {m.content && <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-3.5 py-2">{m.content}</div>}
                         </div>
-                        <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
+                        <div className={`mt-1 flex items-center gap-1 px-1 text-xs text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                           <span>{formatTime(m.created_at)}</span>
                           {mine && <CheckCheck className="h-3 w-3" />}
                         </div>
@@ -679,17 +683,17 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 })}
               </div>
               {showJumpToBottom && (
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={jumpToBottom}
-                  className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-semibold text-background shadow-lg ring-2 ring-background/40 transition-all hover:bg-foreground/90 active:scale-95"
+                  className="absolute bottom-3 left-1/2 h-auto min-h-11 max-w-[calc(100%-1rem)] whitespace-normal -translate-x-1/2 z-10 inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-semibold text-background shadow-lg ring-2 ring-background/40 transition-all hover:bg-foreground/90 active:scale-95"
                   aria-label="Hop til seneste beskeder"
                 >
                   <ArrowDown className="h-3.5 w-3.5" />
                   {unseenCount > 0
                     ? `${unseenCount} ${unseenCount === 1 ? "ny besked" : "nye beskeder"}`
                     : "Hop til seneste"}
-                </button>
+                </Button>
               )}
               </div>
 
@@ -698,64 +702,64 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                   Samtalen er lukket. Genåbn for at svare.
                 </div>
               ) : (
-                <div className="border-t border-border bg-card p-3">
+                <div className="shrink-0 border-t border-border bg-card p-3">
                   {templates.length > 0 && (
                     <div className="mb-2 flex items-center gap-1.5 overflow-x-auto pb-1">
                       <Zap className="h-3 w-3 flex-shrink-0 text-accent" />
-                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <span className="flex-shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Hurtige svar
                       </span>
                       {templates.slice(0, 8).map((t) => (
-                        <button
+                        <Button variant="ghost"
                           key={t.id}
                           onClick={() => insertTemplate(t)}
                           title={t.content}
-                          className="flex-shrink-0 rounded-full border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-foreground/40 hover:bg-card"
+                          className="h-11 max-w-52 flex-shrink-0 truncate rounded-md border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40 hover:bg-card"
                         >
                           {t.title}
-                        </button>
+                        </Button>
                       ))}
-                      <button
+                      <Button variant="ghost"
                         onClick={() => setTemplatesOpen(true)}
-                        className="flex-shrink-0 rounded-full border border-dashed border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                        className="h-11 max-w-52 flex-shrink-0 truncate rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
                         title="Administrér skabeloner"
                       >
                         <Plus className="inline h-3 w-3" />
-                      </button>
+                      </Button>
                     </div>
                   )}
                   {pendingImagePreview && (
                     <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
                       <img src={pendingImagePreview} alt="" className="h-12 w-12 rounded object-cover" />
-                      <span className="flex-1 truncate text-[11px] text-muted-foreground">
+                      <span className="flex-1 truncate text-xs text-muted-foreground">
                         <ImageIcon className="mr-1 inline h-3 w-3" />{pendingImage?.name}
                       </span>
-                      <button onClick={clearPendingImage} className="rounded-md p-1 text-muted-foreground hover:bg-card hover:text-foreground">
+                      <Button variant="ghost" onClick={clearPendingImage} aria-label="Fjern vedhæftet billede" size="icon" className="h-11 w-11 text-muted-foreground">
                         <XIcon className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   )}
-                  {uploadError && <p className="mb-1.5 text-[11px] text-destructive">{uploadError}</p>}
+                  {uploadError && <p className="mb-1.5 text-xs text-destructive">{uploadError}</p>}
                   <div className="flex items-end gap-2">
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
                       onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickImage(f); e.target.value = ""; }} />
-                    <button onClick={() => fileInputRef.current?.click()}
-                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                    <Button variant="ghost" onClick={() => fileInputRef.current?.click()}
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                       aria-label="Vedhæft billede">
                       <Paperclip className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                     <textarea
                       ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
-                      maxLength={2000} rows={1} placeholder="Skriv et svar…"
-                      className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                      aria-label="Svar til kunden" maxLength={2000} rows={1} placeholder="Skriv et svar…"
+                      className="min-h-11 min-w-0 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
                     />
-                    <button onClick={() => sendReply()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
-                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50">
+                    <Button variant="ghost" onClick={() => sendReply()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50">
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                    </button>
+                    </Button>
                   </div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">Enter sender · Shift+Enter for ny linje · {"{name}"} erstattes med kundens fornavn</p>
+                  
                 </div>
               )}
             </>
@@ -765,16 +769,16 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
       {/* Skabelon-manager — moderne dialog med liste + redigér + preview */}
       <Dialog open={templatesOpen} onOpenChange={(v) => { setTemplatesOpen(v); if (!v) { setPreviewTpl(null); setTplDraft({ title: "", content: "" }); } }}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden">
-          <DialogHeader className="border-b border-border px-5 py-3">
+        <DialogContent className="planner-overlay max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="planner-overlay-header border-b border-border px-4 py-4 pr-14">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Zap className="h-4 w-4 text-accent" /> Svar-skabeloner
             </DialogTitle>
           </DialogHeader>
-          <div className="grid max-h-[70vh] grid-cols-1 md:grid-cols-[1fr_320px]">
+          <div className="planner-overlay-body grid min-h-0 grid-cols-[minmax(0,1fr)] overflow-x-hidden overflow-y-auto [overflow-wrap:anywhere] md:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
             {/* Liste + formular */}
-            <div className="flex flex-col overflow-hidden border-b border-border md:border-b-0 md:border-r">
-              <div className="flex-1 space-y-2 overflow-y-auto p-4">
+            <div className="flex min-w-0 flex-col border-b border-border md:border-b-0 md:border-r">
+              <div className="space-y-2 p-4">
                 {templates.length === 0 && (
                   <p className="py-6 text-center text-xs text-muted-foreground">
                     Ingen skabeloner endnu. Tilføj dit første hurtige svar nedenfor.
@@ -787,33 +791,33 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       previewTpl?.id === t.id ? "border-foreground bg-secondary" : "border-border bg-secondary/40 hover:bg-secondary/70"
                     }`}
                   >
-                    <div className="min-w-0 flex-1 cursor-pointer" onClick={() => setPreviewTpl(t)}>
+                    <div className="min-w-0 flex-1 cursor-pointer [overflow-wrap:anywhere]" onClick={() => setPreviewTpl(t)}>
                       <p className="text-xs font-semibold text-foreground">{t.title}</p>
-                      <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-[11px] text-muted-foreground">{t.content}</p>
+                      <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">{t.content}</p>
                     </div>
-                    <div className="flex flex-shrink-0 flex-col gap-1 opacity-60 transition-opacity group-hover:opacity-100">
-                      <button onClick={() => setPreviewTpl(t)} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Forhåndsvis">
+                    <div className="flex flex-shrink-0 flex-col gap-1 transition-opacity">
+                      <Button variant="ghost" onClick={() => setPreviewTpl(t)} className="h-11 w-11 shrink-0 rounded-md text-muted-foreground" title="Forhåndsvis">
                         <Eye className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => setTplDraft({ id: t.id, title: t.title, content: t.content })} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Rediger">
+                      </Button>
+                      <Button variant="ghost" onClick={() => setTplDraft({ id: t.id, title: t.title, content: t.content })} className="h-11 w-11 shrink-0 rounded-md text-muted-foreground" title="Rediger">
                         <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => deleteTemplate(t.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Slet">
+                      </Button>
+                      <Button variant="ghost" onClick={() => deleteTemplate(t.id)} className="h-11 w-11 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Slet">
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="space-y-2 border-t border-border bg-secondary/30 p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {tplDraft.id ? "Rediger skabelon" : "Tilføj ny skabelon"} — brug {"{name}"} som pladsholder
                   </p>
                   {tplDraft.id && (
-                    <button onClick={() => setTplDraft({ title: "", content: "" })} className="text-[10px] text-muted-foreground hover:text-foreground">
+                    <Button variant="ghost" onClick={() => setTplDraft({ title: "", content: "" })} className="min-h-11 text-sm text-muted-foreground hover:text-foreground">
                       Annullér
-                    </button>
+                    </Button>
                   )}
                 </div>
                 <input
@@ -821,7 +825,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                   onChange={(e) => setTplDraft((d) => ({ ...d, title: e.target.value }))}
                   placeholder="Titel (fx 'Pris')"
                   maxLength={60}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-foreground"
+                  aria-label="Skabelonens titel" className="h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
                 />
                 <textarea
                   value={tplDraft.content}
@@ -829,21 +833,21 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                   placeholder="Hej {name}, tak for din henvendelse…"
                   rows={3}
                   maxLength={1000}
-                  className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-foreground"
+                  aria-label="Skabelonens tekst" className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
                 />
-                <button
+                <Button variant="ghost"
                   onClick={saveTemplate}
                   disabled={!tplDraft.title.trim() || !tplDraft.content.trim()}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-semibold text-background disabled:opacity-50"
+                  className="flex h-11 w-full items-center justify-center gap-1.5 rounded-md bg-foreground px-3 py-2 text-xs font-semibold text-background disabled:opacity-50"
                 >
                   <Plus className="h-3.5 w-3.5" /> {tplDraft.id ? "Gem ændringer" : "Tilføj skabelon"}
-                </button>
+                </Button>
               </div>
             </div>
             {/* Preview */}
-            <div className="hidden flex-col bg-secondary/20 md:flex">
+            <div className={`min-w-0 flex-col bg-secondary/20 ${previewTpl ? "flex" : "hidden md:flex"}`}>
               <div className="border-b border-border px-4 py-2.5">
-                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <Eye className="h-3 w-3" /> Forhåndsvisning
                 </p>
               </div>
@@ -855,18 +859,18 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Titel</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Titel</p>
                       <p className="text-sm font-semibold text-foreground">{previewTpl.title}</p>
                     </div>
                     <div>
-                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sådan ser det ud</p>
-                      <div className="overflow-hidden rounded-2xl rounded-br-sm bg-foreground px-3.5 py-2 text-[13px] text-background shadow-sm">
-                        <div className="whitespace-pre-wrap break-words">
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sådan ser det ud</p>
+                      <div className="overflow-hidden rounded-2xl rounded-br-sm bg-foreground px-3.5 py-2 text-sm text-background shadow-sm">
+                        <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                           {previewTpl.content.split("{name}").join(active?.visitor_name?.split(" ")[0] || "[fornavn]")}
                         </div>
                       </div>
                       {!active && (
-                        <p className="mt-2 text-[10px] text-muted-foreground">Åbn en samtale for at se svaret med kundens navn.</p>
+                        <p className="mt-2 text-xs text-muted-foreground">Åbn en samtale for at se svaret med kundens navn.</p>
                       )}
                     </div>
                   </div>
