@@ -251,7 +251,7 @@ const EmployeeApp = () => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] sm:h-9 sm:w-9"
+          className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
           onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
           aria-label="Forrige dag"
         >
@@ -262,7 +262,7 @@ const EmployeeApp = () => {
             <Button
               size="sm"
               variant="ghost"
-              className="h-9 flex-1 min-w-0 gap-1.5 rounded-[4px] px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
+              className="h-11 flex-1 min-w-0 gap-1.5 rounded-[4px] px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
             >
               <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
               <span className="inline-block tabular-nums truncate first-letter:uppercase">
@@ -270,7 +270,7 @@ const EmployeeApp = () => {
               </span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
+          <PopoverContent className="w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-2rem)] overflow-auto p-0" align="center" collisionPadding={8}>
             <RouteAwareCalendar
               mode="single"
               selected={dateObj}
@@ -289,7 +289,7 @@ const EmployeeApp = () => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] sm:h-9 sm:w-9"
+          className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
           onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
           aria-label="Næste dag"
         >
@@ -304,7 +304,7 @@ const EmployeeApp = () => {
               onClick={() => setDate(todayStr())}
               aria-label="Gå til i dag"
               title="Gå til i dag"
-              className="h-11 w-11 shrink-0 rounded-[4px] bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] sm:h-9 sm:w-9"
+              className="h-11 w-11 shrink-0 rounded-[4px] bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
             >
               <CalendarCheck className="h-4 w-4" />
             </Button>
@@ -577,7 +577,7 @@ const EmployeeApp = () => {
                     size="icon"
                     variant="ghost"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-11 w-11 sm:h-8 sm:w-8 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Vis og udskriv ruten"
                     title="Vis og udskriv"
                   >
@@ -643,7 +643,7 @@ const EmployeeApp = () => {
                   size="icon"
                   variant="ghost"
                   onClick={() => setPreviewRouteId(r.id)}
-                  className="h-11 w-11 sm:h-8 sm:w-8 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  className="h-11 w-11 shrink-0 rounded-[4px] text-muted-foreground hover:bg-secondary hover:text-foreground"
                   aria-label="Vis og udskriv ruten"
                   title="Vis og udskriv"
                 >
