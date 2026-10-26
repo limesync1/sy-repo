@@ -2506,8 +2506,11 @@ const Planner = () => {
         color: newRouteColor,
       });
       createdRouteRef.current = created;
-      if (creationSequencesRef.current.size === 0) {
-        selectedJobs.forEach((job, index) => creationSequencesRef.current.set(job.id, index));
+      for (const job of selectedJobs) {
+        if (!creationSequencesRef.current.has(job.id)) {
+          const nextSequence = Math.max(-1, ...creationSequencesRef.current.values()) + 1;
+          creationSequencesRef.current.set(job.id, nextSequence);
+        }
       }
       // Læg de valgte aftaler på den nye rute (i den rækkefølge brugeren valgte).
       const result = await addStopsInOrder(selectedJobs, async (job, index) => {
@@ -2533,7 +2536,9 @@ const Planner = () => {
         });
         return;
       }
-      toast.success(`Rute oprettet med ${selectedJobs.length} aftale${selectedJobs.length === 1 ? "" : "r"}`);
+      toast.success(createdRouteRef.current && creationSequencesRef.current.size > selectedJobs.length
+        ? "De resterende aftaler er tilføjet til ruten"
+        : `Rute oprettet med ${selectedJobs.length} aftale${selectedJobs.length === 1 ? "" : "r"}`);
       setNewRouteName("");
       setNewRouteJobIds([]);
       setCreateOpen(false);

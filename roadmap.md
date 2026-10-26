@@ -2,7 +2,8 @@
 
 ## Forbedringer i mindre dele (26. okt.)
 - [x] Del 1a: Bestilling lukker efter gemte data uden at vente på mail; fjernet unødigt virksomhedsopslag. Kunder vises straks med bevarede tal. Services venter ikke på listegenindlæsning; dobbeltklik og retry efter delvis beregnergemning beskyttet. 22 tests bestået.
-- [ ] Del 1b: Ruteoprettelse med mange stops og resterende delvise gemmefejl; behold validering og dubletbeskyttelse.
+- [x] Del 1b: Ruteoprettelse genindlæser lokalt én gang efter stopgruppen, medarbejderopslag samlet i ét kald, fremdrift gennem hele gemningen, partial retry på samme rute/rækkefølge og korrekte fejl ved datoflytning. Datovælgerens genveje respekterer minimum og har større knapper. 27 tests bestået; ingen reel rutegemning målt.
+- [ ] Del 1d: Resterende delvise gemmefejl ved bestillinger/beregnerfelter; sikker genoptagelse uden dubletter.
 - [ ] Del 1c: Reel oprettelse/gemning og hastighedsmåling på virksomhedsdata. Blokeret: den tilgængelige egen konto åbner oprettelse af virksomhed, ikke et eksisterende virksomhedspanel; ingen testdata er skrevet.
 - [ ] Del 2: Knapper, filtre og værktøjslinjer i hele virksomhedspanelet på mobil, tablet og computer.
 - [ ] Del 3: Formularer, dropdowns, kalendere og vinduer; fuld klikgennemgang side for side.
