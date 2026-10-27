@@ -1,6 +1,7 @@
 import { ArrowRight, MessageCircle } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import portrait from "@/assets/william-ross-jepsen.jpg.asset.json";
+import linkedinIcon from "@/assets/linkedin.svg";
 import { Button } from "@/components/ui/button";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import BlueFlowBackground from "./BlueFlowBackground";
@@ -48,6 +49,16 @@ const FounderNote = () => {
           <span className="mt-8 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
             PERSONEN BAG SERVICEYDERE
           </span>
+          <a
+            href="https://www.linkedin.com/in/williamrossjepsen/"
+            target="_blank"
+            rel="noopener noreferrer me"
+            className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ocean-foreground/90 underline-offset-4 hover:text-ocean-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground/60"
+            aria-label="William Ross Jepsen på LinkedIn (åbner i nyt vindue)"
+          >
+            <img src={linkedinIcon} alt="" aria-hidden="true" className="h-6 w-6 rounded" />
+            Se min LinkedIn-profil
+          </a>
           <h2 className="mt-3 text-[1.85rem] font-semibold leading-[1.1] text-ocean-foreground sm:text-[2.2rem]">
             Hej, jeg hedder William
           </h2>
