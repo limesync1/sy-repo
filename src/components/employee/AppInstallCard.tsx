@@ -8,8 +8,6 @@ import installerIcon from "@/assets/app-install/Tryk_Installer.svg.asset.json";
 import delIcon from "@/assets/app-install/Tryk_paa_Del.svg.asset.json";
 import foejIcon from "@/assets/app-install/Foej_til_hjemmeskaerm.svg.asset.json";
 import tilfoejIcon from "@/assets/app-install/Tryk_Tilfoej.svg.asset.json";
-import androidIcon from "@/assets/app-install/Android_logo.svg.asset.json";
-import appleIcon from "@/assets/app-install/Apple_logo.svg.asset.json";
 import safariIcon from "@/assets/app-install/Safari_ikon.svg.asset.json";
 import { cn } from "@/lib/utils";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
