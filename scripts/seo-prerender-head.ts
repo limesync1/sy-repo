@@ -51,6 +51,10 @@ export const renderRouteHead = (html: string, r: RouteMeta, body?: string) => {
     .replace(/(<noscript>\s*<div[\s\S]*?<h1>)[\s\S]*?(<\/h1>)/, `$1${t}$2`);
 };
 
+const GENERIC_LINKS: [string, string][] = [["/", "Forside"], ["/tilbud", "Få 3 gratis tilbud"], ["/virksomheder", "Find serviceydere"], ["/guides", "Guides og priser"], ["/blog", "Blog"], ["/by", "Alle byer"], ["/software/ruteplanlaegger", "Ruteplanlægger til servicefirmaer"]];
+const genericBody = (r: RouteMeta) =>
+  `<h1>${esc(r.title.replace(/\s*\|\s*Serviceydere$/, ""))}</h1><p>${esc(r.description)}</p><nav aria-label="Mere fra Serviceydere"><ul>${GENERIC_LINKS.map(([h, l]) => `<li><a href="${h}">${esc(l)}</a></li>`).join("")}</ul></nav>`;
+
 /** Renderer artikler/oversigter til statisk HTML via Vite SSR. Fejl → tom map. */
 const loadStaticBodies = async (): Promise<Record<string, string>> => {
   let server: any;
@@ -86,7 +90,7 @@ export const seoPrerenderHead = () => ({
     const bodies = await loadStaticBodies();
     for (const r of routes) {
       if (!r.path.startsWith("/") || r.path === "/" || r.path.includes("..")) continue;
-      const out = renderRouteHead(html, r, bodies[r.path]);
+      const out = renderRouteHead(html, r, bodies[r.path] ?? genericBody(r));
       const dir = join(resolve("dist"), r.path);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, "index.html"), out);
