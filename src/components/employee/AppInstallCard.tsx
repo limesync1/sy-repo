@@ -16,6 +16,8 @@ import { detectInstallPlatform, installOptionOrder, isAppInstalled, type Install
 
 const DISMISS_KEY = "sy-app-install-dismissed";
 const APK_MB = Math.round((apkAsset.size / 1024 / 1024) * 10) / 10;
+const APK_FILENAME = "Serviceydere-Medarbejder.apk";
+const APK_MIME = "application/vnd.android.package-archive";
 
 type DeferredPrompt = Event & { prompt: () => Promise<void>; userChoice?: Promise<{ outcome: string }> };
 const readPrompt = () => (window as unknown as { __syInstallPrompt?: DeferredPrompt }).__syInstallPrompt ?? null;
