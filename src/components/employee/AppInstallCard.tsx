@@ -58,6 +58,10 @@ export function AppInstallCard({ className }: { className?: string }) {
   const [tab, setTab] = useState<"android" | "ios">(platform === "ios" ? "ios" : "android");
   const [dismissed, setDismissed] = useState(readDismissed);
   const [prompt, setPrompt] = useState<DeferredPrompt | null>(() => (typeof window === "undefined" ? null : readPrompt()));
+  // Download styres i appen: fremdriftslinje + gem som fil, så Android-Chrome
+  // ikke kan hænge ved 100 %, mens den venter på sin egen filfinalisering.
+  const [progress, setProgress] = useState<number | null>(null);
+  const [dlError, setDlError] = useState(false);
 
   useEffect(() => {
     const sync = () => setPrompt(readPrompt());
