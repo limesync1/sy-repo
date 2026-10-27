@@ -16,13 +16,10 @@ const config: CapacitorConfig = {
         url: "https://3396f095-cb5d-439d-8707-af0033c7fb66.lovableproject.com/medarbejder?forceHideBadge=true",
         cleartext: true,
       },
-  android: {
-    // Keep the web view between the status bar and the system navigation bar,
-    // so the phone's buttons never cover app buttons.
-    adjustMarginsForEdgeToEdge: "force",
-  },
   plugins: {
-    SystemBars: { insetsHandling: "disable", style: "DARK" },
+    // Native insets + viewport-fit=contain (set in main.tsx for native) keep the
+    // web view between the status bar and the phone's navigation buttons.
+    SystemBars: { insetsHandling: "native", initialViewportFitValueHint: "contain" },
   },
 };
 

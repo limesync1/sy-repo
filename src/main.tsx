@@ -4,6 +4,13 @@ import "./index.css";
 import { Capacitor } from "@capacitor/core";
 
 // The native app is the employee panel: open it instead of the public homepage.
+// In the native app, keep content clear of the status bar and system navigation
+// buttons: the web view is inset natively instead of drawing edge-to-edge.
+if (Capacitor.isNativePlatform()) {
+  document
+    .querySelector('meta[name="viewport"]')
+    ?.setAttribute("content", "width=device-width, initial-scale=1.0, viewport-fit=contain");
+}
 if (Capacitor.isNativePlatform() && window.location.pathname === "/") {
   window.history.replaceState(null, "", "/medarbejder");
 }
