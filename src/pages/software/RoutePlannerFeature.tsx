@@ -82,6 +82,14 @@ const Page = defineSoftwarePage({
         <>Alle funktioner er samlet i en <Link to="/software/funktioner">søgbar funktionsguide</Link> med eksempler og trin, og kan hentes som PDF-brugerguide. Inde i planlæggeren forklares de samme funktioner direkte i skærmbilledet.</>,
       ],
     },
+    {
+      heading: "Læs mere om ruteplanlægning",
+      paragraphs: [
+        <>Start med <Link to="/blog/ruteplanlaegning-for-servicevirksomheder">den komplette guide til ruteplanlægning</Link>, og se hvordan du laver en <Link to="/blog/ruteplanlaegger-med-flere-stop">ruteplanlægger med flere stop</Link> og får mindre kørsel med <Link to="/blog/ruteoptimering">ruteoptimering</Link>.</>,
+        <>Overvejer du stadig Google Maps? Læs <Link to="/blog/google-maps-eller-ruteplanlaegger">Google Maps eller ruteplanlægger</Link>. Til brancher: <Link to="/blog/faste-ruter-vinduespudser">faste ruter for vinduespudsere</Link> og <Link to="/blog/ruteplanlaegning-rengoeringsfirma">ruteplanlægning for rengøringsfirmaer</Link>. Se også <Link to="/blog/koerebog-og-koerselsregnskab">kørebog</Link> og <Link to="/blog/timeregistrering-app-servicefirma">timeregistrering</Link>.</>,
+        <><Link to="/blog/proev-ruteplanlaegger-gratis">Prøv ruteplanlæggeren gratis i 14 dage</Link> — uden kreditkort.</>,
+      ],
+    },
   ],
   faq: [
     {
