@@ -11,7 +11,6 @@ import tilfoejIcon from "@/assets/app-install/Tryk_Tilfoej.svg.asset.json";
 import safariIcon from "@/assets/app-install/Safari_ikon.svg.asset.json";
 import { cn } from "@/lib/utils";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
-import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { detectInstallPlatform, installOptionOrder, isAppInstalled, type InstallPlatform } from "@/lib/app-install";
 
 const DISMISS_KEY = "sy-app-install-dismissed";
@@ -39,6 +38,7 @@ export const AppleLogo = ({ className }: { className?: string }) => (
 /**
  * Smart installationskort på Min dag: viser kun det relevante for enheden,
  * forsvinder når appen allerede kører installeret, og kan skjules.
+ * Let baggrund (panel-stil), mørk tekst — bevidst ikke en mørk hero.
  */
 export function AppInstallCard({ className }: { className?: string }) {
   const env = useMemo(() => {
@@ -81,7 +81,7 @@ export function AppInstallCard({ className }: { className?: string }) {
 
   const steps = tab === "android"
     ? [
-        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den hvide knap." },
+        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap." },
         { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Tillad installation, hvis telefonen spørger." },
         { icon: installerIcon.url, title: "Tryk Installer", text: "Appen åbner direkte i Min dag." },
       ]
@@ -92,27 +92,33 @@ export function AppInstallCard({ className }: { className?: string }) {
       ];
 
   return (
-    <section aria-labelledby="app-install-title" className={cn("brand-blue-section relative isolate overflow-hidden rounded-lg text-ocean-foreground", className)}>
-      <BlueFlowBackground variant="process" />
+    <section
+      aria-labelledby="app-install-title"
+      className={cn("relative isolate overflow-hidden rounded-lg border border-border/60 text-foreground", className)}
+      style={{
+        backgroundColor: "hsl(var(--surface))",
+        backgroundImage: "linear-gradient(135deg, hsl(var(--hero-cyan) / 0.09), hsl(var(--hero-mid) / 0.06))",
+      }}
+    >
       <button
         type="button"
         onClick={dismiss}
         aria-label="Skjul forslag om app"
-        className="absolute right-1.5 top-1.5 z-10 grid h-11 w-11 place-items-center rounded-full text-ocean-foreground/70 hover:bg-ocean-foreground/10 hover:text-ocean-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground"
+        className="absolute right-1.5 top-1.5 z-10 grid h-11 w-11 place-items-center rounded-full text-muted-foreground hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
       >
         <X className="h-4 w-4" aria-hidden />
       </button>
 
       <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         <div className="pr-10">
-          <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-ocean-foreground/65">
+          <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             <SectionLabelMark />
             Medarbejder-app
           </span>
           <h3 id="app-install-title" className="mt-2 text-[1.35rem] font-semibold leading-tight sm:text-[1.65rem] lg:text-[1.9rem]">
             Hav din dag med i lommen
           </h3>
-          <p className="mt-1 max-w-xl text-[14px] leading-6 sm:text-[15px]" style={{ color: "hsl(var(--ocean-foreground) / 0.72)" }}>
+          <p className="mt-1 max-w-xl text-[14px] leading-6 text-muted-foreground">
             Ruter, arbejdsdag og tid – direkte fra hjemmeskærmen. Gratis.
           </p>
         </div>
@@ -128,10 +134,10 @@ export function AppInstallCard({ className }: { className?: string }) {
                 type="button"
                 aria-pressed={active}
                 onClick={() => setTab(key)}
-                className="flex min-h-[56px] items-center gap-3 rounded-xl border-2 px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground"
+                className="flex min-h-[56px] items-center gap-3 rounded-xl border-2 px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
                 style={{
-                  borderColor: active ? "hsl(var(--ocean-foreground))" : "hsl(var(--ocean-foreground) / 0.18)",
-                  background: active ? "hsl(var(--ocean-foreground) / 0.14)" : "hsl(var(--ocean-foreground) / 0.04)",
+                  borderColor: active ? "hsl(var(--hero-mid))" : "hsl(var(--border))",
+                  background: active ? "hsl(var(--hero-cyan) / 0.10)" : "hsl(var(--card))",
                 }}
               >
                 <span
@@ -141,10 +147,10 @@ export function AppInstallCard({ className }: { className?: string }) {
                   {isAndroid ? <AndroidLogo className="h-6 w-6" /> : <AppleLogo className="h-6 w-6 -translate-y-px" />}
                 </span>
                 <span className="min-w-0 leading-tight">
-                  <span className="block text-[11px] font-medium" style={{ color: "hsl(var(--ocean-foreground) / 0.65)" }}>
+                  <span className="block text-[11px] font-medium text-muted-foreground">
                     {platform === key ? "Din telefon" : "Til"}
                   </span>
-                  <span className="block text-[15px] font-semibold">{isAndroid ? "Android" : "iPhone"}</span>
+                  <span className="block text-[15px] font-semibold text-foreground">{isAndroid ? "Android" : "iPhone"}</span>
                 </span>
               </button>
             );
@@ -155,18 +161,17 @@ export function AppInstallCard({ className }: { className?: string }) {
           {steps.map((step, i) => (
             <li
               key={step.title}
-              className="flex items-center gap-3 rounded-xl border p-3 md:flex-col md:items-start md:gap-3 md:p-4"
-              style={{ borderColor: "hsl(var(--ocean-foreground) / 0.16)", background: "hsl(var(--ocean-foreground) / 0.05)" }}
+              className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm md:flex-col md:items-start md:gap-3 md:p-4"
             >
-              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: "hsl(var(--ocean-foreground))" }}>
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-border bg-background shadow-sm">
                 <img src={step.icon} alt="" aria-hidden className="h-11 w-11 object-contain" />
               </span>
               <div className="min-w-0">
-                <span className="block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "hsl(var(--ocean-foreground) / 0.6)" }}>
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   Trin {i + 1}
                 </span>
-                <h4 className="text-[16px] font-semibold leading-snug">{step.title}</h4>
-                <p className="mt-0.5 text-[14px] leading-5" style={{ color: "hsl(var(--ocean-foreground) / 0.75)" }}>{step.text}</p>
+                <h4 className="text-[16px] font-semibold leading-snug text-foreground">{step.title}</h4>
+                <p className="mt-0.5 text-[14px] leading-5 text-muted-foreground">{step.text}</p>
               </div>
             </li>
           ))}
@@ -177,22 +182,25 @@ export function AppInstallCard({ className }: { className?: string }) {
             <a
               href={apkAsset.url}
               download="Serviceydere-Medarbejder.apk"
-              className="hero-action-light inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
+              className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-lg" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--brand-android))" }}>
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
                 <AndroidLogo className="h-5 w-5" />
               </span>
               Hent appen til Android
               <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
             </a>
           ) : (
-            <p className="flex items-center gap-2.5 text-[14px]" style={{ color: "hsl(var(--ocean-foreground) / 0.8)" }}>
-              <img src={safariIcon.url} alt="" aria-hidden className="h-7 w-7 object-contain" />
+            <div className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold sm:w-auto">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-background shadow-sm">
+                <AppleLogo className="h-5 w-5" style={{ color: "hsl(var(--brand-apple-bg))" }} />
+              </span>
+              <img src={safariIcon.url} alt="" aria-hidden className="h-7 w-7 shrink-0 object-contain" />
               Virker i Safari på iPhone og iPad.
-            </p>
+            </div>
           )}
           {tab === "android" && prompt && (
-            <button type="button" onClick={addToHomeScreen} className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold sm:w-auto" style={{ borderColor: "hsl(var(--ocean-foreground) / 0.3)" }}>
+            <button type="button" onClick={addToHomeScreen} className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground hover:border-foreground/40 sm:w-auto">
               Tilføj til hjemmeskærm
             </button>
           )}
