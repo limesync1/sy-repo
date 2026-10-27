@@ -1006,26 +1006,24 @@ const Planner = () => {
       const subOrderById = new Map((subsRes.data || []).map((s: any) => [s.id, s.order_id as string | null]));
       const currentOrderIds = (subsRes.data || []).map(s => s.order_id).filter((id): id is string => !!id);
       const currentOrders = new Map<string, any>();
-      if (currentOrderIds.length) {
-        const { data, error } = await supabase.from("orders")
+      // Store kundebaser har hundredvis af abonnementer: opslag deles i bidder,
+      // så forespørgslen ikke afvises og alle forventede ruter forsvinder.
+      const orderRows = await selectInChunks<any>(currentOrderIds, (part) =>
+        supabase.from("orders")
           .select("id,status,customer_name,customer_phone,address,zip_code,city,latitude,longitude,total_amount,estimated_duration_minutes")
-          .in("id", currentOrderIds);
-        if (error) throw error;
-        for (const order of data || []) currentOrders.set(order.id, order);
-      }
+          .in("id", part) as any,
+      );
+      for (const order of orderRows) currentOrders.set(order.id, order);
 
       const agreementIds = (agreementsRes.data || []).map((a: any) => a.id).filter(Boolean);
       const agreementItemIntervalById = new Map<string, string>();
-      if (agreementIds.length > 0) {
-        const { data: agreementItems } = await supabase
-          .from("agreement_items")
-          .select("agreement_id, details")
-          .in("agreement_id", agreementIds);
-        for (const item of agreementItems || []) {
-          const detailInterval = (item as any).details?.interval;
-          if (detailInterval && !agreementItemIntervalById.has((item as any).agreement_id)) {
-            agreementItemIntervalById.set((item as any).agreement_id, detailInterval);
-          }
+      const agreementItems = await selectInChunks<any>(agreementIds, (part) =>
+        supabase.from("agreement_items").select("agreement_id, details").in("agreement_id", part) as any,
+      );
+      for (const item of agreementItems) {
+        const detailInterval = (item as any).details?.interval;
+        if (detailInterval && !agreementItemIntervalById.has((item as any).agreement_id)) {
+          agreementItemIntervalById.set((item as any).agreement_id, detailInterval);
         }
       }
       const preferredRouteIds = Array.from(new Set([
@@ -1033,14 +1031,10 @@ const Planner = () => {
         ...(subsRes.data || []).map((s: any) => s.preferred_route_id),
       ].filter(Boolean) as string[]));
       const routeDateById = new Map<string, string>();
-      if (preferredRouteIds.length > 0) {
-        const { data: routesData, error: routesErr } = await supabase
-          .from("routes")
-          .select("id, route_date")
-          .in("id", preferredRouteIds);
-        if (routesErr) throw routesErr;
-        for (const r of routesData || []) routeDateById.set((r as any).id, String((r as any).route_date).slice(0, 10));
-      }
+      const routesData = await selectInChunks<any>(preferredRouteIds, (part) =>
+        supabase.from("routes").select("id, route_date").in("id", part) as any,
+      );
+      for (const r of routesData) routeDateById.set((r as any).id, String((r as any).route_date).slice(0, 10));
       const agreementLegacySubIds = new Set(
         (agreementsRes.data || []).map((a: any) => a.legacy_subscription_id).filter(Boolean),
       );
