@@ -966,6 +966,11 @@ const Planner = () => {
     const stopCount = calendarStops.length;
     return { routeCount, stopCount };
   }, [calendarRoutesRaw.length, calendarStops]);
+  // Mobilens dagvisning tæller kun den valgte dag, så tallet matcher listen.
+  const mobileDaySummary = useMemo(() => {
+    const ids = new Set((calendarRoutesRaw as any[]).filter((r) => r.route_date === date).map((r) => r.id));
+    return { routeCount: ids.size, stopCount: calendarStops.filter((s: any) => ids.has(s.route_id)).length };
+  }, [calendarRoutesRaw, calendarStops, date]);
 
   /* Stop assignment handler */
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
