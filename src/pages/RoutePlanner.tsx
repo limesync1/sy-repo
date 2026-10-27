@@ -501,6 +501,38 @@ const Planner = () => {
   const loadingCalendarRoutes = loadingCalendar;
   const loadingCalendarStops = loadingCalendar;
 
+  // Næste dato (fra i dag) med en rigtig, aktiv rute. Bruges til automatisk
+  // at springe frem, når den viste periode er tom, og til "Næste rute".
+  const { data: nextRouteDate = null } = useQuery({
+    queryKey: ["planner-next-route-date", businessId, todayStr()],
+    enabled: !!businessId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("route_date")
+        .eq("business_id", businessId!)
+        .gte("route_date", todayStr())
+        .is("archived_at", null)
+        .is("deleted_at", null)
+        .order("route_date", { ascending: true })
+        .limit(1);
+      if (error) throw error;
+      return (data?.[0]?.route_date as string | undefined)?.slice(0, 10) ?? null;
+    },
+  });
+  const autoJumpDoneRef = useRef(false);
+  useEffect(() => {
+    if (autoJumpDoneRef.current || loadingCalendar || !calendarData) return;
+    if (!nextRouteDate) return;
+    autoJumpDoneRef.current = true;
+    // Kun ved første visning og kun når perioden reelt er tom.
+    if (calendarRoutesRaw.length > 0) return;
+    if (nextRouteDate >= calendarRange.start && nextRouteDate <= calendarRange.end) return;
+    setDate(nextRouteDate);
+    toast.info(`Ingen ruter i denne ${view === "week" ? "uge" : "måned"} — viser første rute ${format(parseISO(nextRouteDate), "d. MMMM", { locale: da })}`);
+  }, [loadingCalendar, calendarData, nextRouteDate, calendarRoutesRaw.length, calendarRange.start, calendarRange.end, view]);
+
   /* ─── Opstartsdato + "første gang"-indikator pr. ordre ───
      Henter preferred_date + completed_cycles for alle ordrer der har stops i
      synligt interval. Bruges til at vise "Opstart: DD/MM"-badge på aftalekort
