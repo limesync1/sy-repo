@@ -44,6 +44,7 @@ export function AppInstallCard({ className }: { className?: string }) {
     };
   }, []);
   const platform: InstallPlatform = env ? detectInstallPlatform(env) : "desktop";
+  const [tab, setTab] = useState<"android" | "ios">(platform === "ios" ? "ios" : "android");
   const [dismissed, setDismissed] = useState(readDismissed);
   const [prompt, setPrompt] = useState<DeferredPrompt | null>(() => (typeof window === "undefined" ? null : readPrompt()));
 
@@ -70,7 +71,6 @@ export function AppInstallCard({ className }: { className?: string }) {
   const order = installOptionOrder(platform);
   const isIosNonSafari = platform === "ios" && /crios|fxios|edgios/i.test(env.userAgent);
 
-  const [tab, setTab] = useState<"android" | "ios">(platform === "ios" ? "ios" : "android");
   const steps = tab === "android"
     ? [
         { icon: <AndroidLogo className="h-5 w-5" />, title: "Hent appen", text: `Tryk på knappen nedenfor (${APK_MB} MB).` },
