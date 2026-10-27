@@ -1,4 +1,5 @@
 import { formatPrice } from "@/lib/price-format";
+import { selectAllPages } from "@/lib/supabase-chunked";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -132,30 +133,30 @@ const useCustomers = (businessId: string) => {
   return useQuery({
     queryKey: ["customers", businessId],
     queryFn: async (): Promise<Customer[]> => {
-      const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
-        supabase
+      // Hver forespørgsel giver højst 1000 rækker — bladr gennem alle sider.
+      const [orders, subs, privCustomers, bizCustomers] = await Promise.all([
+        selectAllPages<any>(() => supabase
           .from("orders")
           .select("id, status, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
           .eq("business_id", businessId)
-          .order("created_at", { ascending: false }),
-        supabase
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true }) as any),
+        selectAllPages<any>(() => supabase
           .from("subscriptions")
           .select("customer_id, status")
-          .eq("business_id", businessId),
-        supabase
+          .eq("business_id", businessId)
+          .order("id", { ascending: true }) as any),
+        selectAllPages<any>(() => supabase
           .from("private_customers")
           .select("id, name, email, phone, address, zip_code, city, notes, avatar_url")
-          .eq("business_id", businessId),
-        supabase
+          .eq("business_id", businessId)
+          .order("id", { ascending: true }) as any),
+        selectAllPages<any>(() => supabase
           .from("business_customers")
           .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes, avatar_url")
-          .eq("business_id", businessId),
+          .eq("business_id", businessId)
+          .order("id", { ascending: true }) as any),
       ]);
-      if (ordersRes.error) throw ordersRes.error;
-      const orders = ordersRes.data || [];
-      const subs = subsRes.data || [];
-      const privCustomers = privRes.data || [];
-      const bizCustomers = bizRes.data || [];
 
       const activeByCustomer = new Map<string, number>();
       const pausedByCustomer = new Map<string, number>();

@@ -540,6 +540,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
   const [settings, setSettings] = useState<Integration["settings"]>(defaultSettings);
   const [loading, setLoading] = useState(true);
+  // Skeleton vises kun ved første indlæsning; senere opdateringer (fx lige
+  // efter tilkobling) må ikke skifte hele siden ud.
+  const hasLoadedOnceRef = useRef(false);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message?: string } | null>(null);
@@ -630,7 +633,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   const load = async (options?: { preserveMode?: boolean; statusOnly?: boolean }) => {
-    if (!options?.statusOnly) setLoading(true);
+    if (!options?.statusOnly && !hasLoadedOnceRef.current) setLoading(true);
     const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     // Parallel batch — alle queries er uafhængige, så vi sparer ~7 round-trips.
     const [
@@ -700,7 +703,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setPulledLast24h(pulledCountRes.count ?? 0);
     setLastSuccessPush((lastPushRes.data as any)?.created_at ?? null);
     setLastSuccessPull((lastPullRes.data as any)?.created_at ?? null);
-    if (!options?.statusOnly) setLoading(false);
+    if (!options?.statusOnly) { setLoading(false); hasLoadedOnceRef.current = true; }
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [businessId]);

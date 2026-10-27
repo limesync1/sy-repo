@@ -90,7 +90,20 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
-      return ((data as any) as Lead[]).filter((l) => l.quote_request);
+      const rows = ((data as any) as Lead[]).filter((l) => l.quote_request);
+      // Kontaktoplysninger hentes i samme omgang, så listen ikke først vises
+      // uden og derefter med kontakt (det flyttede rækker rundt ved hver opdatering).
+      const ids = Array.from(new Set(rows.filter((l) => l.quote_request?.share_contact).map((l) => l.quote_request!.id)));
+      if (ids.length === 0) return rows;
+      const { data: contacts, error: cErr } = await (supabase as any).rpc("get_quote_request_contacts", { p_ids: ids });
+      if (cErr) toast.error("Kontaktoplysninger kunne ikke hentes lige nu");
+      const byId = new Map<string, any>(((contacts || []) as any[]).map((r) => [r.quote_request_id, r]));
+      return rows.map((l) => {
+        const qr = l.quote_request!;
+        if (!ids.includes(qr.id)) return l;
+        const row = byId.get(qr.id);
+        return { ...l, quote_request: { ...qr, customer_email: row?.customer_email ?? null, customer_phone: row?.customer_phone ?? null } } as Lead;
+      });
     },
     enabled: !!businessId,
     staleTime: 30_000,
@@ -139,47 +152,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  // Fetch customer contact details (email/phone) via secure RPC for leads
-  // where the customer agreed to share contact. Direct table access to
-  // these columns is revoked at the database level to prevent leaks.
-  useEffect(() => {
-    if (!leads) return;
-    const toFetch = leads.filter(
-      (l) => l.quote_request?.share_contact && l.quote_request?.id &&
-        (l.quote_request as any).customer_email === undefined
-    );
-    if (toFetch.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      const ids = Array.from(new Set(toFetch.map((l) => l.quote_request!.id)));
-      const { data, error } = await (supabase as any).rpc("get_quote_request_contacts", {
-        p_ids: ids,
-      });
-      if (cancelled) return;
-      const byId = new Map<string, any>();
-      for (const row of (data || []) as any[]) {
-        byId.set(row.quote_request_id, row);
-      }
-      // Ved fejl markeres kontakt som null, så vi ikke prøver i en uendelig løkke.
-      setLeads((prev) =>
-        (prev ?? []).map((l) => {
-          const qr = l.quote_request;
-          if (!qr || !ids.includes(qr.id)) return l;
-          const row = byId.get(qr.id);
-          return {
-            ...l,
-            quote_request: {
-              ...qr,
-              customer_email: row?.customer_email ?? null,
-              customer_phone: row?.customer_phone ?? null,
-            },
-          } as Lead;
-        })
-      );
-      if (error) toast.error("Kontaktoplysninger kunne ikke hentes lige nu");
-    })();
-    return () => { cancelled = true; };
-  }, [leads]);
 
   // Optimistisk opdatering med automatisk tilbagerulning ved fejl.
   const applyStatus = async (ids: string[], status: string) => {

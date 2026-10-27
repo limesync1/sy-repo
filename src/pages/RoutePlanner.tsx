@@ -1,4 +1,5 @@
 import { orderCycleNumber } from "@/lib/order-recurrence-display";
+import { selectInChunks } from "@/lib/supabase-chunked";
 import { formatPrice } from "@/lib/price-format";
 import { addStopsInOrder } from "@/lib/route-planner/add-stops-batch";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
@@ -499,6 +500,38 @@ const Planner = () => {
   const rawCalendarStops = calendarData?.stops ?? [];
   const loadingCalendarRoutes = loadingCalendar;
   const loadingCalendarStops = loadingCalendar;
+
+  // Næste dato (fra i dag) med en rigtig, aktiv rute. Bruges til automatisk
+  // at springe frem, når den viste periode er tom, og til "Næste rute".
+  const { data: nextRouteDate = null } = useQuery({
+    queryKey: ["planner-next-route-date", businessId, todayStr()],
+    enabled: !!businessId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("route_date")
+        .eq("business_id", businessId!)
+        .gte("route_date", todayStr())
+        .is("archived_at", null)
+        .is("deleted_at", null)
+        .order("route_date", { ascending: true })
+        .limit(1);
+      if (error) throw error;
+      return (data?.[0]?.route_date as string | undefined)?.slice(0, 10) ?? null;
+    },
+  });
+  const autoJumpDoneRef = useRef(false);
+  useEffect(() => {
+    if (autoJumpDoneRef.current || loadingCalendar || !calendarData) return;
+    if (!nextRouteDate) return;
+    autoJumpDoneRef.current = true;
+    // Kun ved første visning og kun når perioden reelt er tom.
+    if (calendarRoutesRaw.length > 0) return;
+    if (nextRouteDate >= calendarRange.start && nextRouteDate <= calendarRange.end) return;
+    setDate(nextRouteDate);
+    toast.info(`Ingen ruter i denne ${view === "week" ? "uge" : "måned"} — viser første rute ${format(parseISO(nextRouteDate), "d. MMMM", { locale: da })}`);
+  }, [loadingCalendar, calendarData, nextRouteDate, calendarRoutesRaw.length, calendarRange.start, calendarRange.end, view]);
 
   /* ─── Opstartsdato + "første gang"-indikator pr. ordre ───
      Henter preferred_date + completed_cycles for alle ordrer der har stops i
@@ -1005,26 +1038,24 @@ const Planner = () => {
       const subOrderById = new Map((subsRes.data || []).map((s: any) => [s.id, s.order_id as string | null]));
       const currentOrderIds = (subsRes.data || []).map(s => s.order_id).filter((id): id is string => !!id);
       const currentOrders = new Map<string, any>();
-      if (currentOrderIds.length) {
-        const { data, error } = await supabase.from("orders")
+      // Store kundebaser har hundredvis af abonnementer: opslag deles i bidder,
+      // så forespørgslen ikke afvises og alle forventede ruter forsvinder.
+      const orderRows = await selectInChunks<any>(currentOrderIds, (part) =>
+        supabase.from("orders")
           .select("id,status,customer_name,customer_phone,address,zip_code,city,latitude,longitude,total_amount,estimated_duration_minutes")
-          .in("id", currentOrderIds);
-        if (error) throw error;
-        for (const order of data || []) currentOrders.set(order.id, order);
-      }
+          .in("id", part) as any,
+      );
+      for (const order of orderRows) currentOrders.set(order.id, order);
 
       const agreementIds = (agreementsRes.data || []).map((a: any) => a.id).filter(Boolean);
       const agreementItemIntervalById = new Map<string, string>();
-      if (agreementIds.length > 0) {
-        const { data: agreementItems } = await supabase
-          .from("agreement_items")
-          .select("agreement_id, details")
-          .in("agreement_id", agreementIds);
-        for (const item of agreementItems || []) {
-          const detailInterval = (item as any).details?.interval;
-          if (detailInterval && !agreementItemIntervalById.has((item as any).agreement_id)) {
-            agreementItemIntervalById.set((item as any).agreement_id, detailInterval);
-          }
+      const agreementItems = await selectInChunks<any>(agreementIds, (part) =>
+        supabase.from("agreement_items").select("agreement_id, details").in("agreement_id", part) as any,
+      );
+      for (const item of agreementItems) {
+        const detailInterval = (item as any).details?.interval;
+        if (detailInterval && !agreementItemIntervalById.has((item as any).agreement_id)) {
+          agreementItemIntervalById.set((item as any).agreement_id, detailInterval);
         }
       }
       const preferredRouteIds = Array.from(new Set([
@@ -1032,14 +1063,10 @@ const Planner = () => {
         ...(subsRes.data || []).map((s: any) => s.preferred_route_id),
       ].filter(Boolean) as string[]));
       const routeDateById = new Map<string, string>();
-      if (preferredRouteIds.length > 0) {
-        const { data: routesData, error: routesErr } = await supabase
-          .from("routes")
-          .select("id, route_date")
-          .in("id", preferredRouteIds);
-        if (routesErr) throw routesErr;
-        for (const r of routesData || []) routeDateById.set((r as any).id, String((r as any).route_date).slice(0, 10));
-      }
+      const routesData = await selectInChunks<any>(preferredRouteIds, (part) =>
+        supabase.from("routes").select("id, route_date").in("id", part) as any,
+      );
+      for (const r of routesData) routeDateById.set((r as any).id, String((r as any).route_date).slice(0, 10));
       const agreementLegacySubIds = new Set(
         (agreementsRes.data || []).map((a: any) => a.legacy_subscription_id).filter(Boolean),
       );
@@ -1204,47 +1231,39 @@ const Planner = () => {
     enabled: !!businessId && recurringRouteIds.length > 0,
     staleTime: 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("*")
-        .in("id", recurringRouteIds)
-        .is("archived_at", null)
-        .is("deleted_at", null);
-      if (error) throw error;
+      const data = await selectInChunks<any>(recurringRouteIds, (part) =>
+        supabase.from("routes").select("*").in("id", part)
+          .is("archived_at", null).is("deleted_at", null) as any,
+      );
       const routes = (data || []) as any[];
-      const { data: stopsData, error: stopsErr } = await supabase
-        .from("route_stops")
+      // Små bidder pr. rute holder både adresselængden og 1000-rækkersgrænsen nede.
+      const stopsData = await selectInChunks<any>(recurringRouteIds, (part) =>
+        supabase.from("route_stops")
           .select("*, agreement_occurrences(agreement_id, legacy_order_id, status, occurrence_date, agreements(interval))")
-        .in("route_id", recurringRouteIds);
-      if (stopsErr) throw stopsErr;
+          .in("route_id", part) as any,
+        25,
+      );
       // Berig stops med assignees fra junction-tabellen, så projicerede
       // ruter arver ALLE tildelte medarbejdere fra basisruten — ikke kun
-      // den primære (assigned_employee_id). Uden dette vises projicerede
-      // ruter uden medarbejder-avatars når basisruten bruger multi-assign.
+      // den primære (assigned_employee_id).
       const stopIds = (stopsData || []).map((s: any) => s.id);
       const byStop = new Map<string, { ids: string[]; lead: string | null }>();
-      if (stopIds.length > 0) {
-        const { data: assignees } = await supabase
-          .from("route_stop_assignees")
-          .select("stop_id, employee_id, is_lead")
-          .in("stop_id", stopIds);
-        (assignees || []).forEach((a: any) => {
-          const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
-          entry.ids.push(a.employee_id);
-          if (a.is_lead) entry.lead = a.employee_id;
-          byStop.set(a.stop_id, entry);
-        });
-      }
+      const assignees = await selectInChunks<any>(stopIds, (part) =>
+        supabase.from("route_stop_assignees").select("stop_id, employee_id, is_lead").in("stop_id", part) as any,
+      );
+      assignees.forEach((a: any) => {
+        const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
+        entry.ids.push(a.employee_id);
+        if (a.is_lead) entry.lead = a.employee_id;
+        byStop.set(a.stop_id, entry);
+      });
       const orderIds = Array.from(new Set((stopsData || []).map((s: any) => s.order_id).filter(Boolean))) as string[];
       const orderAmountById = new Map<string, number>();
-      if (orderIds.length > 0) {
-        const { data: orderRows } = await supabase
-          .from("orders")
-          .select("id,total_amount,adjusted_amount")
-          .in("id", orderIds);
-        for (const o of orderRows || []) {
-          orderAmountById.set((o as any).id, Number((o as any).adjusted_amount ?? (o as any).total_amount ?? 0));
-        }
+      const orderRows = await selectInChunks<any>(orderIds, (part) =>
+        supabase.from("orders").select("id,total_amount,adjusted_amount").in("id", part) as any,
+      );
+      for (const o of orderRows) {
+        orderAmountById.set((o as any).id, Number((o as any).adjusted_amount ?? (o as any).total_amount ?? 0));
       }
       const stopsByRoute = new Map<string, any[]>();
       for (const s of stopsData || []) {
@@ -3517,6 +3536,12 @@ const Planner = () => {
                     <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>
+                    {nextRouteDate && calendarRoutesRaw.length === 0 && !loadingCalendar && (nextRouteDate < calendarRange.start || nextRouteDate > calendarRange.end) && (
+                      <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70" onClick={() => setDate(nextRouteDate)}>
+                        Næste rute: {format(parseISO(nextRouteDate), "d. MMM", { locale: da })}
+                        <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
                       <TabsList className="h-9 rounded-md border border-border bg-secondary/50 p-1 shadow-inner">
                         <TabsTrigger value="month" className="h-7 min-w-[72px] rounded-[4px] px-3 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
@@ -3869,6 +3894,9 @@ const Planner = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-64 p-1.5">
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDate(todayStr())}><CalendarIcon className="h-4 w-4" />Gå til i dag</DropdownMenuItem>
+                        {nextRouteDate && (
+                          <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDate(nextRouteDate)}><ChevronRight className="h-4 w-4" />Gå til næste rute ({format(parseISO(nextRouteDate), "d. MMM", { locale: da })})</DropdownMenuItem>
+                        )}
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayOptimizerOpen(true)}><Sparkles className="h-4 w-4" />Optimér dagen</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayDetailOpen(true)}><ListOrdered className="h-4 w-4" />Vis dagen som tidslinje</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setPrintOpen(true)}><Printer className="h-4 w-4" />Print / PDF</DropdownMenuItem>

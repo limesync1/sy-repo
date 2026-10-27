@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
+import { selectAllPages, selectInChunks } from "@/lib/supabase-chunked";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
@@ -853,46 +854,44 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
     gcTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select(`
-          id, customer_name, customer_phone, customer_email, total_amount, status, notes, completed_cycles,
-          address, zip_code, city, latitude, longitude, created_at,
-          preferred_date, preferred_time_start, preferred_time_end, estimated_duration_minutes, next_service_date,
-          business_response, customer_response, adjusted_details, adjusted_amount,
-          order_items ( service_name, quantity, total_price, details )
-        `)
-        .eq("business_id", businessId!)
-        // Aftaler der afventer godkendelse (pending) skal IKKE vises i
-        // "Aftaler uden rute" — vi venter til kunden / virksomheden har
-        // bekræftet (status = confirmed) eller arbejdet er i gang.
-        .in("status", ["confirmed", "in_progress"])
-        .order("preferred_date", { ascending: true, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .limit(300);
-      if (error) throw error;
+      // Hent ALLE bekræftede aftaler (ikke kun de første 300) og slå stop,
+      // abonnementer og ruter op i små bidder — ellers fejler opslagene
+      // stille ved store kundebaser, og aftaler med rute dukker op i puljen.
+      const orders = await selectAllPages<any>(() =>
+        supabase
+          .from("orders")
+          .select(`
+            id, customer_name, customer_phone, customer_email, total_amount, status, notes, completed_cycles,
+            address, zip_code, city, latitude, longitude, created_at,
+            preferred_date, preferred_time_start, preferred_time_end, estimated_duration_minutes, next_service_date,
+            business_response, customer_response, adjusted_details, adjusted_amount,
+            order_items ( service_name, quantity, total_price, details )
+          `)
+          .eq("business_id", businessId!)
+          // Aftaler der afventer godkendelse (pending) skal IKKE vises i
+          // "Aftaler uden rute" — vi venter til kunden / virksomheden har
+          // bekræftet (status = confirmed) eller arbejdet er i gang.
+          .in("status", ["confirmed", "in_progress"])
+          .order("preferred_date", { ascending: true, nullsFirst: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true }) as any,
+      );
 
       const orderIds = (orders || []).map((o) => o.id);
       if (orderIds.length === 0) return [];
 
       // Find ordrer der allerede er på en rute — uanset stop-status.
-      // Tidligere ekskluderede vi kun ikke-completed stops, men det betød
-      // at en aftale dukkede op igen i "Aftaler uden rute" så snart den var
-      // udført, selvom den stadig var registreret på ruten. For gentagende
-      // aftaler er det forventningen at næste forekomst auto-projiceres
-      // (via projected routes / next_service_date), så vi skal IKKE vise
-      // den gamle ordre i poolen igen.
-      const { data: allStops } = await supabase
-        .from("route_stops")
-        .select("order_id")
-        .in("order_id", orderIds);
-      const usedOpen = new Set((allStops || []).map((s) => s.order_id));
+      // For gentagende aftaler auto-projiceres næste forekomst, så den gamle
+      // ordre skal ikke vises i poolen igen.
+      const allStops = await selectInChunks<{ order_id: string | null }>(orderIds, (part) =>
+        supabase.from("route_stops").select("order_id").in("order_id", part) as any,
+      );
+      const usedOpen = new Set(allStops.map((s) => s.order_id));
 
       // Hent abonnement-status + preferred route pr. ordre
-      const { data: subs } = await supabase
-        .from("subscriptions")
-        .select("order_id, status, preferred_route_id")
-        .in("order_id", orderIds);
+      const subs = await selectInChunks<any>(orderIds, (part) =>
+        supabase.from("subscriptions").select("order_id, status, preferred_route_id").in("order_id", part) as any,
+      );
       const subsByOrder = new Map<string, { statuses: string[]; preferredRouteId?: string | null }>();
       (subs || []).forEach((s: any) => {
         if (!s.order_id) return;
@@ -907,13 +906,10 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         Array.from(subsByOrder.values()).map(v => v.preferredRouteId).filter(Boolean) as string[]
       ));
       const routeNameById = new Map<string, string>();
-      if (prefRouteIds.length > 0) {
-        const { data: rts } = await supabase
-          .from("routes")
-          .select("id, name")
-          .in("id", prefRouteIds);
-        (rts || []).forEach((r: any) => routeNameById.set(r.id, r.name || "Rute"));
-      }
+      const rts = await selectInChunks<any>(prefRouteIds, (part) =>
+        supabase.from("routes").select("id, name").in("id", part) as any,
+      );
+      rts.forEach((r: any) => routeNameById.set(r.id, r.name || "Rute"));
 
       const acceptedAdjustedItems = (order: any) => (
         order.business_response === "adjusted" &&
