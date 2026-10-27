@@ -89,6 +89,10 @@
     --sand-foreground: 28 55% 24%;
     --ocean: 204 96% 13%;
     --ocean-foreground: 195 40% 94%;
+    /* Officielle platformfarver til app-badges */
+    --brand-android: 148 69% 55%;
+    --brand-apple-bg: 0 0% 0%;
+    --brand-apple-fg: 0 0% 100%;
     --silver-surface: 210 18% 98%;
     --silver-surface-strong: 210 16% 93%;
     --silver-border: 210 14% 82%;

@@ -8,8 +8,6 @@ import installerIcon from "@/assets/app-install/Tryk_Installer.svg.asset.json";
 import delIcon from "@/assets/app-install/Tryk_paa_Del.svg.asset.json";
 import foejIcon from "@/assets/app-install/Foej_til_hjemmeskaerm.svg.asset.json";
 import tilfoejIcon from "@/assets/app-install/Tryk_Tilfoej.svg.asset.json";
-import androidIcon from "@/assets/app-install/Android_logo.svg.asset.json";
-import appleIcon from "@/assets/app-install/Apple_logo.svg.asset.json";
 import safariIcon from "@/assets/app-install/Safari_ikon.svg.asset.json";
 import { cn } from "@/lib/utils";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
@@ -94,7 +92,7 @@ export function AppInstallCard({ className }: { className?: string }) {
       ];
 
   return (
-    <section aria-labelledby="app-install-title" className={cn("home-process brand-blue-section relative isolate overflow-hidden rounded-lg text-ocean-foreground", className)}>
+    <section aria-labelledby="app-install-title" className={cn("brand-blue-section relative isolate overflow-hidden rounded-lg text-ocean-foreground", className)}>
       <BlueFlowBackground variant="process" />
       <button
         type="button"
@@ -105,54 +103,70 @@ export function AppInstallCard({ className }: { className?: string }) {
         <X className="h-4 w-4" aria-hidden />
       </button>
 
-      <div className="relative px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
-        <div className="flex flex-col gap-4 pr-10 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-ocean-foreground/65">
-              <SectionLabelMark />
-              Medarbejder-app
-            </span>
-            <h3 id="app-install-title" className="mt-2.5 text-[1.3rem] font-semibold leading-tight sm:text-[1.6rem] lg:text-[1.9rem]">
-              Hav din dag med i lommen
-            </h3>
-            <p className="mt-1.5 hidden max-w-lg text-[15px] leading-6 text-ocean-foreground/70 sm:block">
-              Se ruter, start dagen og registrér tid fra hjemmeskærmen. Gratis til Android og iPhone.
-            </p>
-          </div>
+      <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+        <div className="pr-10">
+          <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-ocean-foreground/65">
+            <SectionLabelMark />
+            Medarbejder-app
+          </span>
+          <h3 id="app-install-title" className="mt-2 text-[1.35rem] font-semibold leading-tight sm:text-[1.65rem] lg:text-[1.9rem]">
+            Hav din dag med i lommen
+          </h3>
+          <p className="mt-1 max-w-xl text-[14px] leading-6 sm:text-[15px]" style={{ color: "hsl(var(--ocean-foreground) / 0.72)" }}>
+            Ruter, arbejdsdag og tid – direkte fra hjemmeskærmen. Gratis.
+          </p>
+        </div>
 
-          <div role="group" aria-label="Vælg telefon" className="grid w-full shrink-0 grid-cols-2 rounded-full border border-ocean-foreground/25 p-1 sm:inline-grid sm:w-auto">
-            {order.map((key) => (
+        {/* Platformvalg som rigtige app-badges */}
+        <div role="group" aria-label="Vælg telefon" className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:max-w-md sm:gap-3">
+          {order.map((key) => {
+            const active = tab === key;
+            const isAndroid = key === "android";
+            return (
               <button
                 key={key}
                 type="button"
-                aria-pressed={tab === key}
+                aria-pressed={active}
                 onClick={() => setTab(key)}
-                className={cn(
-                  "inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground",
-                  tab === key ? "hero-action-light" : "text-ocean-foreground/80 hover:bg-ocean-foreground/10 hover:text-ocean-foreground",
-                )}
+                className="flex min-h-[56px] items-center gap-3 rounded-xl border-2 px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground"
+                style={{
+                  borderColor: active ? "hsl(var(--ocean-foreground))" : "hsl(var(--ocean-foreground) / 0.18)",
+                  background: active ? "hsl(var(--ocean-foreground) / 0.14)" : "hsl(var(--ocean-foreground) / 0.04)",
+                }}
               >
-                <img src={key === "android" ? androidIcon.url : appleIcon.url} alt="" aria-hidden className="h-5 w-5 object-contain" />
-                {key === "android" ? "Android" : "iPhone"}
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] shadow-sm"
+                  style={{ background: isAndroid ? "hsl(var(--foreground))" : "hsl(var(--brand-apple-bg))", color: isAndroid ? "hsl(var(--brand-android))" : "hsl(var(--brand-apple-fg))" }}
+                >
+                  {isAndroid ? <AndroidLogo className="h-6 w-6" /> : <AppleLogo className="h-6 w-6 -translate-y-px" />}
+                </span>
+                <span className="min-w-0 leading-tight">
+                  <span className="block text-[11px] font-medium" style={{ color: "hsl(var(--ocean-foreground) / 0.65)" }}>
+                    {platform === key ? "Din telefon" : "Til"}
+                  </span>
+                  <span className="block text-[15px] font-semibold">{isAndroid ? "Android" : "iPhone"}</span>
+                </span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        <ol className="mt-4 grid gap-2 sm:mt-6 md:grid-cols-3 md:gap-3">
+        <ol className="mt-4 grid gap-2 sm:mt-5 md:grid-cols-3 md:gap-3">
           {steps.map((step, i) => (
-            <li key={step.title} className="home-step flex items-center gap-3 rounded-lg border border-ocean-foreground/20 p-3 md:flex-col md:items-start md:gap-0 md:p-4">
-              <div className="relative shrink-0">
-                <span className="grid h-12 w-12 place-items-center rounded-lg bg-ocean-foreground md:h-14 md:w-14">
-                  <img src={step.icon} alt="" aria-hidden className="h-9 w-9 object-contain md:h-10 md:w-10" />
+            <li
+              key={step.title}
+              className="flex items-center gap-3 rounded-xl border p-3 md:flex-col md:items-start md:gap-3 md:p-4"
+              style={{ borderColor: "hsl(var(--ocean-foreground) / 0.16)", background: "hsl(var(--ocean-foreground) / 0.05)" }}
+            >
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: "hsl(var(--ocean-foreground))" }}>
+                <img src={step.icon} alt="" aria-hidden className="h-11 w-11 object-contain" />
+              </span>
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "hsl(var(--ocean-foreground) / 0.6)" }}>
+                  Trin {i + 1}
                 </span>
-                <span className="absolute -left-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ocean-foreground text-[11px] font-bold tabular-nums text-ocean ring-2 ring-ocean">
-                  {i + 1}
-                </span>
-              </div>
-              <div className="min-w-0 md:mt-3">
-                <h4 className="text-[15px] font-semibold leading-snug md:text-[16px]">{step.title}</h4>
-                <p className="mt-0.5 text-[13px] leading-5 text-ocean-foreground/70 md:text-[14px]">{step.text}</p>
+                <h4 className="text-[16px] font-semibold leading-snug">{step.title}</h4>
+                <p className="mt-0.5 text-[14px] leading-5" style={{ color: "hsl(var(--ocean-foreground) / 0.75)" }}>{step.text}</p>
               </div>
             </li>
           ))}
@@ -163,20 +177,22 @@ export function AppInstallCard({ className }: { className?: string }) {
             <a
               href={apkAsset.url}
               download="Serviceydere-Medarbejder.apk"
-              className="hero-action-light inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-lg px-5 text-sm font-semibold focus-visible:outline-none sm:w-auto"
+              className="hero-action-light inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
             >
-              <img src={androidIcon.url} alt="" aria-hidden className="h-5 w-5 object-contain" />
+              <span className="grid h-8 w-8 place-items-center rounded-lg" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--brand-android))" }}>
+                <AndroidLogo className="h-5 w-5" />
+              </span>
               Hent appen til Android
               <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
             </a>
           ) : (
-            <p className="flex items-center gap-2 text-sm text-ocean-foreground/75">
-              <img src={safariIcon.url} alt="" aria-hidden className="h-5 w-5 object-contain" />
+            <p className="flex items-center gap-2.5 text-[14px]" style={{ color: "hsl(var(--ocean-foreground) / 0.8)" }}>
+              <img src={safariIcon.url} alt="" aria-hidden className="h-7 w-7 object-contain" />
               Virker i Safari på iPhone og iPad.
             </p>
           )}
           {tab === "android" && prompt && (
-            <button type="button" onClick={addToHomeScreen} className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-ocean-foreground/30 px-5 text-sm font-semibold hover:bg-ocean-foreground/10 sm:w-auto">
+            <button type="button" onClick={addToHomeScreen} className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold sm:w-auto" style={{ borderColor: "hsl(var(--ocean-foreground) / 0.3)" }}>
               Tilføj til hjemmeskærm
             </button>
           )}
