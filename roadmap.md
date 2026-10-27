@@ -54,3 +54,12 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Regnskab + Indstillinger: layout og udvalgte klikflows afprøvet med isolerede data; åbningstider, synk-søgning/detaljer, frakobling annulleret. Rigtig gemning og forbindelse er ikke verificeret.
 - [x] Fakturainterval: standard i Regnskab, pr. kunde, pr. aftale; samlet faktura pr. periode (ikke testet mod rigtigt regnskabsprogram)
 - [x] Fakturainterval i Opret bestilling, tydeligere intervalvalg/vinduer og vedhæftet ikon; testet med aktiv konto ved 393/768/1305 px, 8 regeltests bestået. Ingen reel bestilling oprettet eller regnskabsindstilling ændret.
+
+## 27. okt. — Jimmy's VP opfølgning
+- [x] e-conomic: kundenummer-konflikt (SkvizBiz-numre) kobler nu til eksisterende kunde eller lader e-conomic vælge; afviste kunder genkørt.
+- [x] Forventede ruter manglede pga. for lange opslag (>500 id'er) — opslag deles nu op.
+- [x] 62 faste aftaler fra filen sat på deres ruter; 302 "Ikke fast" uden dato bliver i puljen (filen har ingen dato).
+- [x] Aftaler uden rute/Kunder hentede kun 300/1000 rækker — henter nu alle.
+- [x] Testkunders påmindelser stoppet; @hej.dk → @hej.invalid; afsender springer testdomæner over.
+- [x] Leads hopper ikke ved opdatering; Regnskab blinker ikke efter tilkobling; medarbejdervindue mobilvenligt.
+- [x] Ruteplanlægger springer til første måned med ruter + "Næste rute"-knap.
