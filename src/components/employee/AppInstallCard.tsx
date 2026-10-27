@@ -58,10 +58,9 @@ export function AppInstallCard({ className }: { className?: string }) {
   const [tab, setTab] = useState<"android" | "ios">(platform === "ios" ? "ios" : "android");
   const [dismissed, setDismissed] = useState(readDismissed);
   const [prompt, setPrompt] = useState<DeferredPrompt | null>(() => (typeof window === "undefined" ? null : readPrompt()));
-  // Download styres i appen: fremdriftslinje + gem som fil, så Android-Chrome
-  // ikke kan hænge ved 100 %, mens den venter på sin egen filfinalisering.
-  const [progress, setProgress] = useState<number | null>(null);
-  const [dlError, setDlError] = useState(false);
+  // Direkte link (ingen blob): Chrome på Android skal selv eje downloaden,
+  // ellers kan den hænge ved 100 % uden at vise «Download alligevel».
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
     const sync = () => setPrompt(readPrompt());
@@ -76,55 +75,9 @@ export function AppInstallCard({ className }: { className?: string }) {
     try { window.localStorage.setItem(DISMISS_KEY, "1"); } catch { /* blokeret lager: skjul kun nu */ }
   };
 
-  const saveApkBlob = (blob: Blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = APK_FILENAME;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    // Revoke sentligt senere — for tidlig revoke kan afbryde en igangværende gemning.
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
-
-  const startAndroidDownload = async (event: React.MouseEvent<HTMLAnchorElement>) => {
-    // Efter en fejl lader vi browserens egen download tage over.
-    if (dlError || typeof fetch === "undefined") return;
-    if (progress !== null) { event.preventDefault(); return; }
-    event.preventDefault();
-    setProgress(0);
-    setDlError(false);
-    try {
-      const res = await fetch(apkAsset.url, { cache: "force-cache" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const total = Number(res.headers.get("content-length")) || apkAsset.size;
-      if (!res.body || typeof res.body.getReader !== "function") {
-        saveApkBlob(await res.blob());
-        setProgress(100);
-        window.setTimeout(() => setProgress(null), 2500);
-        return;
-      }
-      const reader = res.body.getReader();
-      const chunks: BlobPart[] = [];
-      let received = 0;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          chunks.push(value);
-          received += value.length;
-          setProgress(Math.min(99, Math.round((received / total) * 100)));
-        }
-      }
-      saveApkBlob(new Blob(chunks, { type: APK_MIME }));
-      setProgress(100);
-      window.setTimeout(() => setProgress(null), 2500);
-    } catch {
-      setDlError(true);
-      setProgress(null);
-    }
-  };
+  const apkHref = typeof window === "undefined" ? apkAsset.url : new URL(apkAsset.url, window.location.origin).href;
+  // I et indlejret vindue (fx forhåndsvisning) åbnes filen i en ny fane, så Chrome kan vise sin advarsel.
+  const inFrame = (() => { try { return window.self !== window.top; } catch { return true; } })();
 
   const addToHomeScreen = async () => {
     if (!prompt) return;
@@ -138,7 +91,7 @@ export function AppInstallCard({ className }: { className?: string }) {
 
   const steps = tab === "android"
     ? [
-        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap, og vent på «Download klar»." },
+        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap. Filen hentes af Chrome." },
         { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Vælg «Download alligevel», hvis telefonen spørger." },
         { icon: installerIcon.url, title: "Tryk Installer", text: "Vælg «Installér alligevel», hvis Play Protect spørger. Appen åbner i Min dag." },
       ]
@@ -237,38 +190,19 @@ export function AppInstallCard({ className }: { className?: string }) {
         <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
           {tab === "android" ? (
             <a
-              href={apkAsset.url}
+              href={apkHref}
               download={APK_FILENAME}
-              onClick={startAndroidDownload}
-              aria-busy={progress !== null}
+              type={APK_MIME}
+              target={inFrame ? "_blank" : undefined}
+              rel="noopener"
+              onClick={() => setStarted(true)}
               className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
             >
-              {progress !== null ? (
-                <>
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
-                    <AndroidLogo className="h-5 w-5" />
-                  </span>
-                  <span className="flex min-w-[120px] flex-1 flex-col gap-1 sm:min-w-[180px]">
-                    <span aria-hidden className="block h-1.5 w-full overflow-hidden rounded-full bg-background/40">
-                      <span
-                        className="block h-full rounded-full bg-background transition-[width] duration-200"
-                        style={{ width: `${Math.max(4, progress)}%` }}
-                      />
-                    </span>
-                    <span className="text-xs font-medium tabular-nums">
-                      {progress < 100 ? `Henter… ${progress} %` : "Download klar"}
-                    </span>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
-                    <AndroidLogo className="h-5 w-5" />
-                  </span>
-                  Hent appen til Android
-                  <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
-                </>
-              )}
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
+                <AndroidLogo className="h-5 w-5" />
+              </span>
+              {started ? "Hent igen" : "Hent appen til Android"}
+              <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
             </a>
           ) : (
             <div className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold sm:w-auto">
@@ -277,6 +211,12 @@ export function AppInstallCard({ className }: { className?: string }) {
               </span>
               {isIosNonSafari ? "Åbn siden i Safari først." : "Virker i Safari på iPhone og iPad."}
             </div>
+          )}
+          {tab === "android" && started && (
+            <p role="status" className="w-full rounded-xl border border-border bg-card p-3 text-[14px] leading-5 text-foreground sm:basis-full">
+              <strong className="font-semibold">Står den fast ved {APK_MB} MB / {APK_MB} MB?</strong>{" "}
+              Så venter Chrome på dit ja. Træk notifikationen ned eller åbn Chrome → ⋮ → <strong className="font-semibold">Downloads</strong>, og tryk <strong className="font-semibold">«Download alligevel»</strong> eller <strong className="font-semibold">«Behold»</strong>. Tryk derefter på filen for at installere.
+            </p>
           )}
           {tab === "android" && prompt && (
             <button type="button" onClick={addToHomeScreen} className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground hover:border-foreground/40 sm:w-auto">
