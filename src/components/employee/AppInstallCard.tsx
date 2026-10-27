@@ -192,8 +192,8 @@ export function AppInstallCard({ className }: { className?: string }) {
             </a>
           ) : (
             <div className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold sm:w-auto">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-background shadow-sm">
-                <AppleLogo className="h-5 w-5" style={{ color: "hsl(var(--brand-apple-bg))" }} />
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-apple-bg))" }}>
+                <AppleLogo className="h-5 w-5" />
               </span>
               <img src={safariIcon.url} alt="" aria-hidden className="h-7 w-7 shrink-0 object-contain" />
               Virker i Safari på iPhone og iPad.
