@@ -23,6 +23,7 @@ jobs:
       - run: npm run build
       - run: npx cap add android
       - name: App-ikon og opstartsskærm
+        continue-on-error: true
         run: npx --yes @capacitor/assets generate --android --iconBackgroundColor '#012941' --splashBackgroundColor '#012941'
       - run: npx cap sync android
       - name: Byg APK
