@@ -196,7 +196,7 @@ export function AppInstallCard({ className }: { className?: string }) {
               target={inFrame ? "_blank" : undefined}
               rel="noopener"
               onClick={() => setStarted(true)}
-              className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
+              className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto sm:min-w-[320px]"
             >
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
                 <AndroidLogo className="h-5 w-5" />
