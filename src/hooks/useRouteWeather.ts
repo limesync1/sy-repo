@@ -40,7 +40,7 @@ export function useRouteWeather(routes: WeatherRoute[], stops: Point[]) {
   }, [stops]);
   const entries = [...cells];
   const queries = useQueries({ queries: entries.map(([key, point]) => ({
-    queryKey: ["route-weather-cell", key, today], staleTime: 2 * 60 * 60 * 1000, retry: 1,
+    queryKey: ["route-weather-cell", key, today], staleTime: 2 * 60 * 60 * 1000, gcTime: 6 * 60 * 60 * 1000, retry: false, refetchOnWindowFocus: false, refetchOnReconnect: false,
     queryFn: async ({ signal }: { signal: AbortSignal }): Promise<WeatherDay[]> => {
       const params = new URLSearchParams({ latitude: String(point.lat), longitude: String(point.lng), timezone: "Europe/Copenhagen", start_date: today, end_date: end, wind_speed_unit: "ms", daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,sunrise,sunset" });
       const controller = new AbortController();

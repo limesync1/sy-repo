@@ -41,7 +41,11 @@ export function RealtimeSync() {
         const changed = recovery ? null : [...pendingTables];
         recovery = false;
         pendingTables.clear();
-        void qc.invalidateQueries({ refetchType: "active" });
+        // Eksterne vejr-API'er påvirkes ikke af databaseændringer og rate-limiter (429).
+        void qc.invalidateQueries({
+          refetchType: "active",
+          predicate: (q) => !["route-weather-cell", "weather-forecast"].includes(String(q.queryKey[0])),
+        });
         publishPanelRefresh(changed);
       }, 300);
     };
