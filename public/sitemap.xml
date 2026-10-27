@@ -1520,6 +1520,48 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/koerselsgodtgoerelse-servicefirma</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/kundekartotek-servicefirma</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/bookingsystem-servicefirma</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/arbejdsseddel-digital</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/planlaegningsvaerktoej-servicefirma</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/start-vinduespudser-firma</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/tilbud-skabelon-servicefirma</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1540,6 +1582,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/kategori/ruteplanlaegning</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/flytning</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1556,11 +1603,6 @@
   </url>
   <url>
     <loc>https://serviceydere.dk/blog/kategori/vinduespudsning</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/kategori/ruteplanlaegning</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
