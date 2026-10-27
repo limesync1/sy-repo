@@ -119,7 +119,7 @@ export function AppInstallCard({ className }: { className?: string }) {
         <X className="h-4 w-4" aria-hidden />
       </button>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+      <div className="relative px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         <div className="pr-10">
           <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             <SectionLabelMark />
@@ -196,7 +196,7 @@ export function AppInstallCard({ className }: { className?: string }) {
               target={inFrame ? "_blank" : undefined}
               rel="noopener"
               onClick={() => setStarted(true)}
-              className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
+              className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto sm:min-w-[320px]"
             >
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
                 <AndroidLogo className="h-5 w-5" />
