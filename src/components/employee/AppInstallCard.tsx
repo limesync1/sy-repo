@@ -138,9 +138,9 @@ export function AppInstallCard({ className }: { className?: string }) {
 
   const steps = tab === "android"
     ? [
-        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap." },
-        { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Tillad installation, hvis telefonen spørger." },
-        { icon: installerIcon.url, title: "Tryk Installer", text: "Appen åbner direkte i Min dag." },
+        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap, og vent på «Download klar»." },
+        { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Vælg «Download alligevel», hvis telefonen spørger." },
+        { icon: installerIcon.url, title: "Tryk Installer", text: "Vælg «Installér alligevel», hvis Play Protect spørger. Appen åbner i Min dag." },
       ]
     : [
         { icon: delIcon.url, title: "Tryk på Del", text: isIosNonSafari ? "Åbn siden i Safari først, og tryk så på Del." : "Del-knappen sidder nederst i Safari." },
