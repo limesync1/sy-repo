@@ -1,4 +1,5 @@
 import { formatPrice } from "@/lib/price-format";
+import { selectAllPages } from "@/lib/supabase-chunked";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
