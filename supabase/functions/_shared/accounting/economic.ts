@@ -410,10 +410,28 @@ export function makeEconomicAdapter(
           name: input.name,
         };
       } else {
-        const created = await ecRequest(creds, `/customers`, {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
+        let created: any;
+        try {
+          created = await ecRequest(creds, `/customers`, {
+            method: "POST",
+            body: JSON.stringify(body),
+          });
+        } catch (err) {
+          const msg = String((err as Error)?.message ?? err);
+          const requested = (body as any).customerNumber;
+          if (requested == null || !/E06010|Customer number exists/i.test(msg)) throw err;
+          // Kundenummeret findes allerede (fx fra et tidligere system). Er det
+          // samme kunde, kobler vi til den; ellers lader vi e-conomic vælge nummer.
+          const norm = (s: unknown) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+          let existing: any = null;
+          try { existing = await ecRequest(creds, `/customers/${requested}`); } catch { existing = null; }
+          if (existing && norm(existing.name) === norm(input.name)) {
+            await ecRequest(creds, `/customers/${requested}`, { method: "PUT", body: JSON.stringify(body) });
+            return { external_id: String(requested), external_number: String(requested), name: input.name };
+          }
+          delete (body as any).customerNumber;
+          created = await ecRequest(creds, `/customers`, { method: "POST", body: JSON.stringify(body) });
+        }
         return {
           external_id: String(created.customerNumber),
           external_number: String(created.customerNumber),
