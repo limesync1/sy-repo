@@ -81,5 +81,7 @@ export function defineBlogPost(cfg: BlogPostConfig) {
     </BlogArticleLayout>
   );
   Page.displayName = `BlogPost(${cfg.slug})`;
-  return Page;
+  // Build-tidens forudrendering læser indholdet herfra, så crawlere får hele
+  // artiklen i den første HTML (ikke kun titel og beskrivelse).
+  return Object.assign(Page, { seoConfig: cfg });
 }
