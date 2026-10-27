@@ -1429,6 +1429,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       seeded: (r1.data as any)?.seeded ?? 0,
       pulledCustomers: (r2.data as any)?.customers ?? 0,
       pulledProducts: (r2.data as any)?.products ?? 0,
+      partial: !!(r2.data as any)?.partial,
     };
   }
 
@@ -1656,7 +1657,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       try {
                         const r = await runFullSync(businessId);
                         toast.success(
-                          `Synkronisering færdig — ${r.pushed} sendt, ${r.pulledCustomers} hentet.`,
+                          r.partial ? `${r.pulledCustomers} kunder hentet — resten hentes automatisk ved næste synkronisering.` : `Synkronisering færdig — ${r.pushed} sendt, ${r.pulledCustomers} hentet.`,
                         );
                         await load();
                       } catch (e) {

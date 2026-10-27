@@ -392,7 +392,7 @@ export function makeEconomicAdapter(
       };
 
       // Brug eksplicit kundenummer ved oprettelse hvis brugeren har angivet et
-      if (!input.external_id && input.customer_number && /^\d+$/.test(input.customer_number)) {
+      if (!input.external_id && input.customer_number && /^\d+$/.test(input.customer_number) && Number(input.customer_number) >= 1) {
         (body as any).customerNumber = Number(input.customer_number);
       }
 
