@@ -91,22 +91,24 @@ export function searchAddressesProgressive(
   let shown = false;
   let pendingCount = 2;
   let lastError = "";
+  let lastValues: AddressSuggestion[] = [];
   const instant = instantAddressMatches(query);
   if (instant.length) { onUpdate(instant, false); }
   const settle = () => {
     pendingCount -= 1;
-    if (pendingCount === 0 && !cancelled && !shown) {
-      if (lastError) onError(lastError); else onUpdate([], true);
-    }
+    if (pendingCount !== 0 || cancelled) return;
+    if (shown) onUpdate(lastValues, true);
+    else if (lastError) onError(lastError);
+    else onUpdate([], true);
   };
   const timeout = setTimeout(() => ctrl.abort(), 6000);
   searchAddressesDirect(query, ctrl.signal)
-    .then((v) => { if (!cancelled && v.length && !shown) { onUpdate(v, pendingCount === 1); shown = true; } })
+    .then((v) => { if (!cancelled && v.length && !shown) { lastValues = v; onUpdate(v, false); shown = true; } })
     .catch(() => {})
     .finally(settle);
   if (query.trim().length >= 4) {
     searchAddresses(query)
-      .then((v) => { if (!cancelled && v.length) { onUpdate(v, true); shown = true; } })
+      .then((v) => { if (!cancelled && v.length) { lastValues = v; onUpdate(v, false); shown = true; } })
       .catch((e) => { lastError = e instanceof Error ? e.message : "Adresseforslag kunne ikke hentes."; })
       .finally(settle);
   } else settle();
