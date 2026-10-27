@@ -114,7 +114,7 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
       <>
         <h1>{anyS.seoTitle?.replace(/\s*\|.*$/, "") ?? s.label}</h1>
         <p>{anyS.seoDescription ?? anyS.blurb}</p>
-        <p>Prøv Serviceydere gratis i 14 dage. Du skal ikke bruge kreditkort, og prøveperioden stopper af sig selv.</p>
+        <p>Prøv Serviceydere gratis i 14 dage. Du skal ikke bruge kreditkort.</p>
         <Nav extra={[
           ...SOFTWARE_PAGES.filter((o) => o.href !== s.href).map((o) => [o.href, o.label] as [string, string]),
           ...BLOG_POSTS.filter((p) => p.category === "Ruteplanlægning").map((p) => [`/blog/${p.slug}`, p.title] as [string, string]),
