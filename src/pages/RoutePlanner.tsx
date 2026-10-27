@@ -1,5 +1,6 @@
 import { orderCycleNumber } from "@/lib/order-recurrence-display";
 import { selectInChunks } from "@/lib/supabase-chunked";
+import FixAddressesDialog from "@/components/route-planner/FixAddressesDialog";
 import { formatPrice } from "@/lib/price-format";
 import { addStopsInOrder } from "@/lib/route-planner/add-stops-batch";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
@@ -313,6 +314,7 @@ const Planner = () => {
   >("route-planner:unassignedGroupBy", "none");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
+  const [fixAddressesOpen, setFixAddressesOpen] = useState(false);
   // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
   const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
   const [geocoding, setGeocoding] = useState(false);
@@ -3081,7 +3083,7 @@ const Planner = () => {
                         </span>
                       </div>
                     )}
-                    {(() => { const missing = (filteredUnassigned as any[]).filter((job) => (job.address || job.zip_code || job.city) && (job.latitude == null || job.longitude == null)).length; return missing > 0 ? <p className="flex items-start gap-1.5 rounded-[4px] bg-warning/10 px-2 py-1.5 text-[11px] leading-snug text-warning-foreground"><MapPin className="mt-0.5 h-3 w-3 shrink-0" />{missing === 1 ? "1 adresse" : `${missing} adresser`} kan ikke vises på kortet. Åbn aftalen for at rette adressen.</p> : null; })()}
+                    {(() => { const missing = (filteredUnassigned as any[]).filter((job) => job.latitude == null || job.longitude == null).length; return missing > 0 ? <button type="button" onClick={() => setFixAddressesOpen(true)} className="flex min-h-11 w-full items-start gap-1.5 rounded-[4px] bg-warning/10 px-2 py-1.5 text-left text-xs leading-snug text-warning-foreground transition-colors hover:bg-warning/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>{missing === 1 ? "1 adresse" : `${missing} adresser`} kan ikke vises på kortet. <span className="font-semibold underline underline-offset-2">Ret {missing === 1 ? "adressen" : "adresserne"} nu</span></span></button> : null; })()}
                   </div>
 
                   <div
@@ -4207,6 +4209,11 @@ const Planner = () => {
           })()}
         />
 
+        <FixAddressesDialog
+          open={fixAddressesOpen}
+          onOpenChange={setFixAddressesOpen}
+          jobs={(filteredUnassigned as any[]).filter((job) => job.latitude == null || job.longitude == null)}
+        />
         {/* Klik på en aftale i aftalepoolen åbner samme detalje-sheet i read-only */}
         <StopDetailSheet
           readOnly
