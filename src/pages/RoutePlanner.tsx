@@ -3509,7 +3509,7 @@ const Planner = () => {
                           <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                           {view === "week"
                             ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
-                            : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                            : `${format(parseISO(date), "MMMM yyyy", { locale: da })}${monthGridRange(parseISO(date)).extended ? ` + start af ${format(addMonths(parseISO(date), 1), "MMMM", { locale: da })}` : ""}`}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent align="start" className="w-auto p-0">
@@ -3753,7 +3753,7 @@ const Planner = () => {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" className="h-11 min-w-0 flex-1 flex-col gap-0.5 px-1" aria-label="Vælg dato">
-                          <span className="max-w-full truncate text-sm font-semibold first-letter:uppercase">{mobileDayView ? format(parseISO(date), "EEEE d. MMM", { locale: da }) : view === "week" ? `Uge ${format(parseISO(date), "I")} · ${format(parseISO(date), "MMM yyyy", { locale: da })}` : format(parseISO(date), "MMMM yyyy", { locale: da })}</span>
+                          <span className="max-w-full truncate text-sm font-semibold first-letter:uppercase">{mobileDayView ? format(parseISO(date), "EEEE d. MMM", { locale: da }) : view === "week" ? `Uge ${format(parseISO(date), "I")} · ${format(parseISO(date), "MMM yyyy", { locale: da })}` : `${format(parseISO(date), "MMMM yyyy", { locale: da })}${monthGridRange(parseISO(date)).extended ? ` + start af ${format(addMonths(parseISO(date), 1), "MMMM", { locale: da })}` : ""}`}</span>
                           <span className="text-xs font-normal text-muted-foreground">{mobileDayView ? `${mobileDaySummary.routeCount} ruter · ${mobileDaySummary.stopCount} stop` : `${periodSummary.routeCount} ruter · ${periodSummary.stopCount} stop`}</span>
                         </Button>
                       </PopoverTrigger>
