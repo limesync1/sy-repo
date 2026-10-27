@@ -108,7 +108,7 @@ export function AppInstallCard({ className }: { className?: string }) {
             Se ruter, start dagen og registrér tid med ét tryk fra telefonens hjemmeskærm. Gratis for Android og iPhone.
           </p>
 
-          <div role="tablist" aria-label="Vælg telefon" className="mt-4 inline-flex rounded-full bg-ocean/60 p-1 ring-1 ring-ocean-foreground/25">
+          <div role="tablist" aria-label="Vælg telefon" style={{ background: "hsl(var(--hero-bg) / 0.6)" }} className="mt-4 inline-flex rounded-full p-1 ring-1 ring-ocean-foreground/25">
             {order.map((key) => (
               <button
                 key={key}
