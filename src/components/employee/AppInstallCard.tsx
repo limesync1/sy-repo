@@ -16,6 +16,8 @@ import { detectInstallPlatform, installOptionOrder, isAppInstalled, type Install
 
 const DISMISS_KEY = "sy-app-install-dismissed";
 const APK_MB = Math.round((apkAsset.size / 1024 / 1024) * 10) / 10;
+const APK_FILENAME = "Serviceydere-Medarbejder.apk";
+const APK_MIME = "application/vnd.android.package-archive";
 
 type DeferredPrompt = Event & { prompt: () => Promise<void>; userChoice?: Promise<{ outcome: string }> };
 const readPrompt = () => (window as unknown as { __syInstallPrompt?: DeferredPrompt }).__syInstallPrompt ?? null;
@@ -56,6 +58,10 @@ export function AppInstallCard({ className }: { className?: string }) {
   const [tab, setTab] = useState<"android" | "ios">(platform === "ios" ? "ios" : "android");
   const [dismissed, setDismissed] = useState(readDismissed);
   const [prompt, setPrompt] = useState<DeferredPrompt | null>(() => (typeof window === "undefined" ? null : readPrompt()));
+  // Download styres i appen: fremdriftslinje + gem som fil, så Android-Chrome
+  // ikke kan hænge ved 100 %, mens den venter på sin egen filfinalisering.
+  const [progress, setProgress] = useState<number | null>(null);
+  const [dlError, setDlError] = useState(false);
 
   useEffect(() => {
     const sync = () => setPrompt(readPrompt());
@@ -70,6 +76,56 @@ export function AppInstallCard({ className }: { className?: string }) {
     try { window.localStorage.setItem(DISMISS_KEY, "1"); } catch { /* blokeret lager: skjul kun nu */ }
   };
 
+  const saveApkBlob = (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = APK_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Revoke sentligt senere — for tidlig revoke kan afbryde en igangværende gemning.
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const startAndroidDownload = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Efter en fejl lader vi browserens egen download tage over.
+    if (dlError || typeof fetch === "undefined") return;
+    if (progress !== null) { event.preventDefault(); return; }
+    event.preventDefault();
+    setProgress(0);
+    setDlError(false);
+    try {
+      const res = await fetch(apkAsset.url, { cache: "force-cache" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const total = Number(res.headers.get("content-length")) || apkAsset.size;
+      if (!res.body || typeof res.body.getReader !== "function") {
+        saveApkBlob(await res.blob());
+        setProgress(100);
+        window.setTimeout(() => setProgress(null), 2500);
+        return;
+      }
+      const reader = res.body.getReader();
+      const chunks: BlobPart[] = [];
+      let received = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          setProgress(Math.min(99, Math.round((received / total) * 100)));
+        }
+      }
+      saveApkBlob(new Blob(chunks, { type: APK_MIME }));
+      setProgress(100);
+      window.setTimeout(() => setProgress(null), 2500);
+    } catch {
+      setDlError(true);
+      setProgress(null);
+    }
+  };
+
   const addToHomeScreen = async () => {
     if (!prompt) return;
     await prompt.prompt();
@@ -82,9 +138,9 @@ export function AppInstallCard({ className }: { className?: string }) {
 
   const steps = tab === "android"
     ? [
-        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap." },
-        { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Tillad installation, hvis telefonen spørger." },
-        { icon: installerIcon.url, title: "Tryk Installer", text: "Appen åbner direkte i Min dag." },
+        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den mørke knap, og vent på «Download klar»." },
+        { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Vælg «Download alligevel», hvis telefonen spørger." },
+        { icon: installerIcon.url, title: "Tryk Installer", text: "Vælg «Installér alligevel», hvis Play Protect spørger. Appen åbner i Min dag." },
       ]
     : [
         { icon: delIcon.url, title: "Tryk på Del", text: isIosNonSafari ? "Åbn siden i Safari først, og tryk så på Del." : "Del-knappen sidder nederst i Safari." },
@@ -182,14 +238,37 @@ export function AppInstallCard({ className }: { className?: string }) {
           {tab === "android" ? (
             <a
               href={apkAsset.url}
-              download="Serviceydere-Medarbejder.apk"
+              download={APK_FILENAME}
+              onClick={startAndroidDownload}
+              aria-busy={progress !== null}
               className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
-                <AndroidLogo className="h-5 w-5" />
-              </span>
-              Hent appen til Android
-              <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
+              {progress !== null ? (
+                <>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
+                    <AndroidLogo className="h-5 w-5" />
+                  </span>
+                  <span className="flex min-w-[120px] flex-1 flex-col gap-1 sm:min-w-[180px]">
+                    <span aria-hidden className="block h-1.5 w-full overflow-hidden rounded-full bg-background/40">
+                      <span
+                        className="block h-full rounded-full bg-background transition-[width] duration-200"
+                        style={{ width: `${Math.max(4, progress)}%` }}
+                      />
+                    </span>
+                    <span className="text-xs font-medium tabular-nums">
+                      {progress < 100 ? `Henter… ${progress} %` : "Download klar"}
+                    </span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
+                    <AndroidLogo className="h-5 w-5" />
+                  </span>
+                  Hent appen til Android
+                  <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
+                </>
+              )}
             </a>
           ) : (
             <div className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold sm:w-auto">
