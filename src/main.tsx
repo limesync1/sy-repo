@@ -8,6 +8,17 @@ if (Capacitor.isNativePlatform() && window.location.pathname === "/") {
   window.history.replaceState(null, "", "/medarbejder");
 }
 
+// Gem browserens installationstilbud, så "Tilføj til hjemmeskærm" på Min dag
+// kan bruge det, selv om siden indlæses efter at browseren har sendt det.
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    (window as unknown as { __syInstallPrompt?: Event }).__syInstallPrompt = e;
+    window.dispatchEvent(new Event("sy-install-available"));
+  });
+}
+
+
 /* ─── Smooth image loading ───
    Markerer alle <img loading="lazy"> med data-loaded når de er hentet,
    så CSS'en kan fade dem blødt ind. En enkelt capturing-listener dækker
