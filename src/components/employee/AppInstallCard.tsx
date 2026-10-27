@@ -70,72 +70,43 @@ export function AppInstallCard({ className }: { className?: string }) {
   const order = installOptionOrder(platform);
   const isIosNonSafari = platform === "ios" && /crios|fxios|edgios/i.test(env.userAgent);
 
-  const tiles = {
-    android: (
-      <a
-        key="android"
-        href={apkAsset.url}
-        download="Serviceydere-Medarbejder.apk"
-        onClick={() => setOpen("android")}
-        className={cn(
-          "group flex min-h-14 min-w-0 items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          platform === "android" ? "brand-blue-action border-transparent" : "border-border bg-card hover:bg-secondary/60",
-        )}
-      >
-        <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", platform === "android" ? "bg-background/20" : "bg-secondary")}>
-          <AndroidLogo className="h-5 w-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold leading-tight">Android</span>
-          <span className={cn("block text-xs leading-tight", platform === "android" ? "opacity-85" : "text-muted-foreground")}>Hent app · {APK_MB} MB</span>
-        </span>
-        <Download className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+  const pill = (key: "android" | "ios") => {
+    const match = platform === key;
+    const cls = cn(
+      "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      match ? "brand-blue-action border-transparent" : "border-border bg-background text-foreground hover:bg-secondary",
+    );
+    return key === "android" ? (
+      <a key="android" href={apkAsset.url} download="Serviceydere-Medarbejder.apk" onClick={() => setOpen("android")} className={cls} title={`Hent Android-app (${APK_MB} MB)`}>
+        <AndroidLogo className="h-4 w-4" /> Android
       </a>
-    ),
-    ios: (
-      <button
-        key="ios"
-        type="button"
-        onClick={() => setOpen(open === "ios" ? null : "ios")}
-        aria-expanded={open === "ios"}
-        className={cn(
-          "group flex min-h-14 min-w-0 items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          platform === "ios" ? "brand-blue-action border-transparent" : "border-border bg-card hover:bg-secondary/60",
-        )}
-      >
-        <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", platform === "ios" ? "bg-background/20" : "bg-secondary")}>
-          <AppleLogo className="h-5 w-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold leading-tight">iPhone</span>
-          <span className={cn("block text-xs leading-tight", platform === "ios" ? "opacity-85" : "text-muted-foreground")}>Tilføj til hjemmeskærm</span>
-        </span>
-        <PlusSquare className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+    ) : (
+      <button key="ios" type="button" onClick={() => setOpen(open === "ios" ? null : "ios")} aria-expanded={open === "ios"} className={cls}>
+        <AppleLogo className="h-4 w-4" /> iPhone
       </button>
-    ),
+    );
   };
 
   return (
-    <section aria-labelledby="app-install-title" className={cn("rounded-md border border-border bg-card p-3 sm:p-4", className)}>
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <h3 id="app-install-title" className="text-sm font-semibold leading-snug text-foreground sm:text-base">Hent Serviceydere-appen</h3>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground sm:text-sm">
-            {platform === "desktop" ? "Åbn Min dag på din telefon for at installere appen." : "Åbn din dag med ét tryk fra telefonens hjemmeskærm."}
+    <section aria-labelledby="app-install-title" className={cn("rounded-md border border-border bg-card px-3 py-2.5 sm:px-4", className)}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="min-w-0 flex-1 basis-56">
+          <h3 id="app-install-title" className="text-sm font-semibold text-foreground">Få appen på telefonen</h3>
+          <p className="text-xs text-muted-foreground">
+            {platform === "desktop" ? "Til Android og iPhone – åbner direkte i Min dag." : "Åbn din dag med ét tryk fra hjemmeskærmen."}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={dismiss}
-          aria-label="Skjul forslag om app"
-          className="-mr-2 -mt-2 grid h-11 w-11 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <X className="h-4 w-4" aria-hidden />
-        </button>
-      </div>
-
-      <div className="mt-3 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
-        {order.map((key) => tiles[key])}
+        <div className="flex items-center gap-2">
+          {order.map(pill)}
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Skjul forslag om app"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
       </div>
 
       {open === "android" && (
