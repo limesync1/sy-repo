@@ -111,13 +111,12 @@ export function AppInstallCard({ className }: { className?: string }) {
             </p>
           </div>
 
-          <div role="tablist" aria-label="Vælg telefon" className="inline-flex w-fit shrink-0 rounded-full border border-ocean-foreground/25 p-1">
+          <div role="group" aria-label="Vælg telefon" className="inline-flex w-fit shrink-0 rounded-full border border-ocean-foreground/25 p-1">
             {order.map((key) => (
               <button
                 key={key}
-                role="tab"
                 type="button"
-                aria-selected={tab === key}
+                aria-pressed={tab === key}
                 onClick={() => setTab(key)}
                 className={cn(
                   "inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground",
@@ -131,7 +130,7 @@ export function AppInstallCard({ className }: { className?: string }) {
           </div>
         </div>
 
-        <ol role="tabpanel" className="mt-7 grid gap-3 md:grid-cols-3">
+        <ol className="mt-7 grid gap-3 md:grid-cols-3">
           {steps.map((step, i) => (
             <li key={step.title} className="home-step rounded-lg border border-ocean-foreground/20 p-5">
               <div className="flex items-center justify-between gap-3">
