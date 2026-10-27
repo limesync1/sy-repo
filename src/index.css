@@ -1929,9 +1929,11 @@ body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0;
 }
 
 .panel-overview-hero {
-  background:
-    linear-gradient(105deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg)) 48%, hsl(var(--brand-blue-end)) 100%);
-  border: 1px solid hsl(var(--brand-blue-start) / 0.18);
+  isolation: isolate;
+  background: var(--home-flow-fallback);
+  background-color: hsl(var(--hero-bg));
+  color: hsl(var(--ocean-foreground));
+  border: 1px solid hsl(var(--ocean-foreground) / 0.12);
 }
 
 /* Den samme rolige overfladebehandling på virksomhedens, medarbejderens og
@@ -1998,14 +2000,12 @@ body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0;
   }
 }
 
-/* Panelernes sidehoved genbruger forsidens dybe havblå sektionsstil (uden WebGL). */
+/* Panelernes sidehoved bruger præcis forsidens hero-baggrund: samme
+   havblå grundflade og samme BlueFlowBackground-shader ovenpå. */
 .panel-page-hero {
-  position: relative; overflow: hidden; border-radius: var(--radius);
+  position: relative; isolation: isolate; overflow: hidden; border-radius: var(--radius);
   padding: 1rem 1.125rem; color: hsl(var(--ocean-foreground));
-  background:
-    radial-gradient(110% 140% at 100% 0%, hsl(var(--hero-mid) / 0.55), transparent 60%),
-    radial-gradient(70% 120% at 85% 110%, hsl(var(--hero-cyan) / 0.18), transparent 65%),
-    var(--home-flow-fallback);
+  background: var(--home-flow-fallback);
   background-color: hsl(var(--hero-bg));
   border: 1px solid hsl(var(--ocean-foreground) / 0.12);
   box-shadow: 0 12px 30px -20px hsl(var(--ocean) / 0.7);

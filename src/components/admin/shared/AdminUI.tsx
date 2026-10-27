@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 
 /* ───────── PageHeader ─────────
    Standard side-titel + beskrivelse + valgfri primær-knap i højre side.
@@ -30,6 +31,8 @@ export const PageHeader = ({
   // Stille indgang: hele headeren fader ind sammen — ingen staggered jitter
   // af titel/beskrivelse/action på hver navigation. Det føles roligt.
   <div className={cn(variant === "hero" ? "panel-page-hero" : "pb-1", "flex items-center justify-between gap-3 flex-wrap", className)}>
+    {/* Samme bevægelige havblå baggrund som forsidens hero og sektioner. */}
+    {variant === "hero" && <BlueFlowBackground variant="hero" />}
     <div className="relative min-w-0">
       <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{title}</h2>
       {description && (

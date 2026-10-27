@@ -1,3 +1,4 @@
+import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { formatPrice } from "@/lib/price-format";
 import { Card, CardContent } from "@/components/ui/card";
@@ -398,12 +399,7 @@ const DashboardTab = ({
       <section
         className="panel-overview-hero relative isolate overflow-hidden rounded-md px-4 py-4 text-background shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7"
       >
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div
-            className="absolute inset-0"
-            style={{ backgroundImage: "linear-gradient(110deg, transparent 35%, hsl(var(--brand-blue-start) / 0.18) 100%)" }}
-          />
-        </div>
+        <BlueFlowBackground variant="hero" />
 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
           <div className="min-w-0">
