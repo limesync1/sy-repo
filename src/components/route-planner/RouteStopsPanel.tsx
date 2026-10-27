@@ -45,7 +45,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_CONTENT, CARD_ACTIONS, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, CARD_ACTIONS, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useRouteLivePositions, type RouteLivePosition } from "@/hooks/useRouteLivePositions";

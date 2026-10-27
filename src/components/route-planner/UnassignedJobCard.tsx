@@ -349,7 +349,10 @@ export const UnassignedJobCard = ({
 
           {/* Linje 2: ydelse */}
           {serviceLine && (
-            <p title={serviceLine} className="truncate text-[13px] font-medium leading-5 text-foreground/90">{serviceLine}</p>
+            <p title={serviceLine} className="flex min-w-0 items-center gap-2 rounded-md bg-secondary/55 px-2 py-1 text-[13px] font-medium leading-5 text-foreground">
+              <IndustryIcon name={serviceLine} className="h-4 w-4 shrink-0 object-contain" alt="" />
+              <span className="min-w-0 truncate">{serviceLine}</span>
+            </p>
           )}
 
           {/* Linje 3: adresse */}
