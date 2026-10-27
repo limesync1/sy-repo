@@ -1,7 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-// Native wrapper for the employee panel. Local development hot-reloads from the
-// Lovable sandbox; release builds (CAP_RELEASE=1, used by CI) bundle `dist`.
+// Native wrapper for the employee panel. The app loads the live site so images
+// (CDN asset paths), data and fixes are always current without a new APK.
+// Local development (CAP_RELEASE unset) hot-reloads from the Lovable sandbox.
 const isRelease = process.env.CAP_RELEASE === "1";
 
 const config: CapacitorConfig = {
@@ -9,14 +10,17 @@ const config: CapacitorConfig = {
   appName: "Serviceydere",
   webDir: "dist",
   backgroundColor: "#012941",
-  ...(isRelease
-    ? {}
+  server: isRelease
+    ? { url: "https://serviceydere.dk/medarbejder", androidScheme: "https" }
     : {
-        server: {
-          url: "https://3396f095-cb5d-439d-8707-af0033c7fb66.lovableproject.com/medarbejder?forceHideBadge=true",
-          cleartext: true,
-        },
-      }),
+        url: "https://3396f095-cb5d-439d-8707-af0033c7fb66.lovableproject.com/medarbejder?forceHideBadge=true",
+        cleartext: true,
+      },
+  plugins: {
+    // Native insets + viewport-fit=contain (set in main.tsx for native) keep the
+    // web view between the status bar and the phone's navigation buttons.
+    SystemBars: { insetsHandling: "native", initialViewportFitValueHint: "contain" },
+  },
 };
 
 export default config;
