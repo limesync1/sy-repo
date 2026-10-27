@@ -1199,47 +1199,39 @@ const Planner = () => {
     enabled: !!businessId && recurringRouteIds.length > 0,
     staleTime: 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("*")
-        .in("id", recurringRouteIds)
-        .is("archived_at", null)
-        .is("deleted_at", null);
-      if (error) throw error;
+      const data = await selectInChunks<any>(recurringRouteIds, (part) =>
+        supabase.from("routes").select("*").in("id", part)
+          .is("archived_at", null).is("deleted_at", null) as any,
+      );
       const routes = (data || []) as any[];
-      const { data: stopsData, error: stopsErr } = await supabase
-        .from("route_stops")
+      // Små bidder pr. rute holder både adresselængden og 1000-rækkersgrænsen nede.
+      const stopsData = await selectInChunks<any>(recurringRouteIds, (part) =>
+        supabase.from("route_stops")
           .select("*, agreement_occurrences(agreement_id, legacy_order_id, status, occurrence_date, agreements(interval))")
-        .in("route_id", recurringRouteIds);
-      if (stopsErr) throw stopsErr;
+          .in("route_id", part) as any,
+        25,
+      );
       // Berig stops med assignees fra junction-tabellen, så projicerede
       // ruter arver ALLE tildelte medarbejdere fra basisruten — ikke kun
-      // den primære (assigned_employee_id). Uden dette vises projicerede
-      // ruter uden medarbejder-avatars når basisruten bruger multi-assign.
+      // den primære (assigned_employee_id).
       const stopIds = (stopsData || []).map((s: any) => s.id);
       const byStop = new Map<string, { ids: string[]; lead: string | null }>();
-      if (stopIds.length > 0) {
-        const { data: assignees } = await supabase
-          .from("route_stop_assignees")
-          .select("stop_id, employee_id, is_lead")
-          .in("stop_id", stopIds);
-        (assignees || []).forEach((a: any) => {
-          const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
-          entry.ids.push(a.employee_id);
-          if (a.is_lead) entry.lead = a.employee_id;
-          byStop.set(a.stop_id, entry);
-        });
-      }
+      const assignees = await selectInChunks<any>(stopIds, (part) =>
+        supabase.from("route_stop_assignees").select("stop_id, employee_id, is_lead").in("stop_id", part) as any,
+      );
+      assignees.forEach((a: any) => {
+        const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
+        entry.ids.push(a.employee_id);
+        if (a.is_lead) entry.lead = a.employee_id;
+        byStop.set(a.stop_id, entry);
+      });
       const orderIds = Array.from(new Set((stopsData || []).map((s: any) => s.order_id).filter(Boolean))) as string[];
       const orderAmountById = new Map<string, number>();
-      if (orderIds.length > 0) {
-        const { data: orderRows } = await supabase
-          .from("orders")
-          .select("id,total_amount,adjusted_amount")
-          .in("id", orderIds);
-        for (const o of orderRows || []) {
-          orderAmountById.set((o as any).id, Number((o as any).adjusted_amount ?? (o as any).total_amount ?? 0));
-        }
+      const orderRows = await selectInChunks<any>(orderIds, (part) =>
+        supabase.from("orders").select("id,total_amount,adjusted_amount").in("id", part) as any,
+      );
+      for (const o of orderRows) {
+        orderAmountById.set((o as any).id, Number((o as any).adjusted_amount ?? (o as any).total_amount ?? 0));
       }
       const stopsByRoute = new Map<string, any[]>();
       for (const s of stopsData || []) {
