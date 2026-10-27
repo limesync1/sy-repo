@@ -516,13 +516,13 @@ const SortableStopRow = ({
               type="button"
               onClick={onEditAppointment}
               title="Redigér aftalen — services, pris og interval"
-              className="group/appt -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] flex-wrap items-center gap-x-1.5 gap-y-1 py-1 rounded-md px-1 text-left text-xs leading-4 text-muted-foreground hover:bg-secondary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="group/appt -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center gap-2 py-1 rounded-md px-1 text-left hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
-              <span className={cn("min-w-[7rem] flex-1 break-normal", !stop.service_summary && "italic text-muted-foreground/70")}>
+              <span title={stop.service_summary || undefined} className={cn("min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-foreground", !stop.service_summary && "italic font-normal text-muted-foreground/70")}>
                 {stop.service_summary || "Ingen ydelser angivet"}
               </span>
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
-                <Pencil className="h-3 w-3" /> Redigér aftale
+                <Pencil className="h-3 w-3" /><span className="hidden min-[380px]:inline">Redigér</span>
               </span>
             </button>
           ) : stop.service_summary ? (
@@ -537,9 +537,9 @@ const SortableStopRow = ({
 
           {/* Adresse — tertiær */}
           {stop.address && (
-            <p className="text-xs leading-4 text-muted-foreground flex items-start gap-1">
-              <MapPin className="h-3 w-3 shrink-0" />
-              <span className="min-w-0 break-words">{stop.address}</span>
+            <p className="flex items-center gap-1 text-xs leading-4 text-muted-foreground" title={stop.address}>
+              <MapPin className="h-3 w-3 shrink-0 opacity-60" />
+              <span className="min-w-0 truncate">{stop.address}</span>
             </p>
           )}
 
