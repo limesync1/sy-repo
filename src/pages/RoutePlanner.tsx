@@ -3536,6 +3536,12 @@ const Planner = () => {
                     <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>
+                    {nextRouteDate && calendarRoutesRaw.length === 0 && !loadingCalendar && (nextRouteDate < calendarRange.start || nextRouteDate > calendarRange.end) && (
+                      <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70" onClick={() => setDate(nextRouteDate)}>
+                        Næste rute: {format(parseISO(nextRouteDate), "d. MMM", { locale: da })}
+                        <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
                       <TabsList className="h-9 rounded-md border border-border bg-secondary/50 p-1 shadow-inner">
                         <TabsTrigger value="month" className="h-7 min-w-[72px] rounded-[4px] px-3 text-xs font-semibold text-muted-foreground transition-colors data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">Måned</TabsTrigger>
@@ -3888,6 +3894,9 @@ const Planner = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-64 p-1.5">
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDate(todayStr())}><CalendarIcon className="h-4 w-4" />Gå til i dag</DropdownMenuItem>
+                        {nextRouteDate && (
+                          <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDate(nextRouteDate)}><ChevronRight className="h-4 w-4" />Gå til næste rute ({format(parseISO(nextRouteDate), "d. MMM", { locale: da })})</DropdownMenuItem>
+                        )}
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayOptimizerOpen(true)}><Sparkles className="h-4 w-4" />Optimér dagen</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayDetailOpen(true)}><ListOrdered className="h-4 w-4" />Vis dagen som tidslinje</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setPrintOpen(true)}><Printer className="h-4 w-4" />Print / PDF</DropdownMenuItem>
