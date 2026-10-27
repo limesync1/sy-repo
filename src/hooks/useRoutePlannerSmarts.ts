@@ -207,6 +207,9 @@ export const useDailyCapacity = (input: {
     queryKey: ["daily-capacity", input.business_id, input.start, input.end],
     enabled: !!input.business_id && !!input.start && !!input.end,
     queryFn: async () => {
+      // Kald kun som logget ind; udløbet session gav "permission denied".
+      const { data: auth } = await supabase.auth.getSession();
+      if (!auth.session) return [];
       const { data, error } = await (supabase as any).rpc(
         "business_daily_capacity",
         { _business_id: input.business_id, _start: input.start, _end: input.end },
@@ -233,6 +236,9 @@ export const useRouteSkillMismatch = (input: {
     queryKey: ["route-skill-mismatch", input.business_id, input.start, input.end],
     enabled: !!input.business_id && !!input.start && !!input.end,
     queryFn: async () => {
+      // Kald kun som logget ind; udløbet session gav "permission denied".
+      const { data: auth } = await supabase.auth.getSession();
+      if (!auth.session) return [];
       const { data, error } = await (supabase as any).rpc(
         "routes_with_skill_mismatch",
         { _business_id: input.business_id, _start: input.start, _end: input.end },
@@ -259,6 +265,9 @@ export const useLearnedServiceDurations = (businessId?: string) =>
     queryKey: ["learned-service-durations", businessId],
     enabled: !!businessId,
     queryFn: async () => {
+      // Kald kun som logget ind; udløbet session gav "permission denied".
+      const { data: auth } = await supabase.auth.getSession();
+      if (!auth.session) return [];
       const { data, error } = await (supabase as any).rpc(
         "learned_service_durations",
         { _business_id: businessId },

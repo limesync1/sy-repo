@@ -381,7 +381,7 @@ export function makeEconomicAdapter(
         country: "Danmark",
         currency: input.currency ?? "DKK",
         customerGroup: {
-          customerGroupNumber: Number(input.customer_group ?? settings.default_customer_group ?? 1),
+          customerGroupNumber: toGroupNumber(input.customer_group) ?? toGroupNumber(settings.default_customer_group) ?? 1,
         },
         paymentTerms: {
           paymentTermsNumber: 1,
@@ -1005,4 +1005,9 @@ export function makeEconomicAdapter(
       };
     },
   };
+}
+/** e-conomic kræver et positivt heltal; tekst som "Erhverv" falder tilbage til standardgruppen. */
+function toGroupNumber(v: unknown): number | null {
+  const n = typeof v === "number" ? v : Number(String(v ?? "").trim());
+  return Number.isInteger(n) && n > 0 ? n : null;
 }

@@ -251,7 +251,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const requestClose = () => {
     if (submittingRef.current) return;
     if (pendingSave.current) {
-      toast.warning("Afslut gemningen med ‘Prøv gemning igen’, så bestillingen ikke efterlades delvist gemt.");
+      // Tillad altid at lukke via bekræftelse, så vinduet aldrig sidder fast.
+      setConfirmClose(true);
       return;
     }
     if (isDirty) setConfirmClose(true); else onOpenChange(false);
@@ -403,8 +404,23 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       reset();
       onOpenChange(false);
     } catch (e: any) {
-      setNeedsResume(!!pendingSave.current);
-      toast.error("Gemningen blev ikke afsluttet", { description: `${e.message || "Ukendt fejl"}. Prøv gemning igen — allerede gemte dele genbruges.` });
+      // Hvis intet nåede at blive gemt, frigives formularen igen, så data kan rettes.
+      const save = pendingSave.current;
+      let nothingSaved = !save;
+      if (save && !save.orders.complete) {
+        try {
+          const { data } = await supabase.from("orders").select("id").eq("business_id", businessId).in("id", save.orders.rows.map((r) => r.id));
+          nothingSaved = (data ?? []).length === 0;
+        } catch { /* usikkert: behold genoptagelse */ }
+      }
+      if (nothingSaved) {
+        pendingSave.current = null;
+        setNeedsResume(false);
+        toast.error("Bestillingen blev ikke gemt", { description: `${e.message || "Ukendt fejl"}. Ret oplysningerne og prøv igen.` });
+      } else {
+        setNeedsResume(true);
+        toast.error("Gemningen blev ikke afsluttet", { description: `${e.message || "Ukendt fejl"}. Prøv gemning igen — allerede gemte dele genbruges.` });
+      }
     } finally {
       setSubmitting(false);
       submittingRef.current = false;
@@ -713,7 +729,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting || needsResume}>
+              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting}>
                 Annullér
               </Button>
               <Button className="min-h-11 flex-1 sm:flex-none" onClick={handleSubmit} disabled={submitting}>
