@@ -486,7 +486,11 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
 
   try {
     const customers = await adapter.listCustomers(since);
-    for (const ec of customers) {
+    // Funktionen afbrydes efter 150 s; behandl kunder parallelt i små bidder
+    // og stop pænt før grænsen, så store kartoteker ikke giver timeout.
+    const deadline = Date.now() + 110_000;
+    let partial = false;
+    const handleCustomer = async (ec: (typeof customers)[number]) => {
       const matched = await matchCustomer(admin, integ.business_id, ec);
       // Byg incoming-felt-payload én gang så vi kan diff'e mod shadow
       const incoming: Record<string, any> = {
@@ -594,6 +598,16 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
         }
       }
       customersPulled++;
+    };
+    for (let i = 0; i < customers.length; i += 10) {
+      if (Date.now() > deadline) { partial = true; break; }
+      await Promise.all(customers.slice(i, i + 10).map((ec) => handleCustomer(ec).catch((e) => {
+        console.error("[pull] customer failed", { external_id: ec.external_id, error: e instanceof Error ? e.message : String(e) });
+      })));
+    }
+    if (partial) {
+      console.warn("[pull] stopped before time limit", { customersPulled, total: customers.length });
+      return { customers: customersPulled, products: 0, invoices: 0, partial: true };
     }
 
     const products = CUSTOMERS_ONLY ? [] : await adapter.listProducts(since);
