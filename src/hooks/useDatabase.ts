@@ -200,15 +200,28 @@ export const useOrders = (
   return useQuery({
     queryKey: ["orders", businessId, options?.limit ?? null],
     queryFn: async () => {
-      let query = supabase
-        .from("orders")
-        .select("*, order_items(*)")
-        .eq("business_id", businessId!)
-        .order("created_at", { ascending: false });
-      if (options?.limit) query = query.limit(options.limit);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      const base = () =>
+        supabase
+          .from("orders")
+          .select("*, order_items(*)")
+          .eq("business_id", businessId!)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true });
+      if (options?.limit) {
+        const { data, error } = await base().limit(options.limit);
+        if (error) throw error;
+        return data;
+      }
+      // The API caps each request at 1000 rows; page through all orders.
+      const PAGE = 1000;
+      const all: any[] = [];
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await base().range(from, from + PAGE - 1);
+        if (error) throw error;
+        all.push(...(data ?? []));
+        if (!data || data.length < PAGE) break;
+      }
+      return all as Awaited<ReturnType<ReturnType<typeof base>>>["data"] & any[];
     },
     enabled: !!businessId,
     staleTime: 5_000,
