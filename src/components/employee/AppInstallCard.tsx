@@ -108,7 +108,7 @@ export function AppInstallCard({ className }: { className?: string }) {
             Se ruter, start dagen og registrér tid med ét tryk fra telefonens hjemmeskærm. Gratis for Android og iPhone.
           </p>
 
-          <div role="tablist" aria-label="Vælg telefon" className="mt-4 inline-flex rounded-full bg-ocean-foreground/10 p-1 ring-1 ring-ocean-foreground/20">
+          <div role="tablist" aria-label="Vælg telefon" className="mt-4 inline-flex rounded-full bg-ocean/60 p-1 ring-1 ring-ocean-foreground/25">
             {order.map((key) => (
               <button
                 key={key}
@@ -118,7 +118,7 @@ export function AppInstallCard({ className }: { className?: string }) {
                 onClick={() => setTab(key)}
                 className={cn(
                   "inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground",
-                  tab === key ? "hero-action-light" : "text-ocean-foreground/85 hover:text-ocean-foreground",
+                  tab === key ? "hero-action-light" : "text-ocean-foreground hover:bg-ocean-foreground/10",
                 )}
               >
                 {key === "android" ? <AndroidLogo className="h-4 w-4" /> : <AppleLogo className="h-4 w-4" />}
@@ -148,7 +148,7 @@ export function AppInstallCard({ className }: { className?: string }) {
               <a
                 href={apkAsset.url}
                 download="Serviceydere-Medarbejder.apk"
-                className="hero-action-light inline-flex h-12 items-center gap-3 rounded-md px-5 text-sm font-semibold focus-visible:outline-none"
+                className="hero-action-light inline-flex h-12 w-full items-center justify-center gap-3 sm:w-auto sm:justify-start rounded-md px-5 text-sm font-semibold focus-visible:outline-none"
               >
                 <AndroidLogo className="h-5 w-5" />
                 <span className="flex flex-col leading-tight"><span className="text-[10px] font-medium opacity-70">Hent til</span>Android</span>
