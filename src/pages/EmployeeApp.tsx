@@ -42,6 +42,7 @@ import { formatKr as formatKrShared } from "@/lib/commission";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { AppInstallCard } from "@/components/employee/AppInstallCard";
 import { stripPrices } from "@/lib/employee-display";
 import { orderDayRoutes } from "@/lib/employee-day-order";
 
@@ -750,6 +751,8 @@ const EmployeeApp = () => {
           );
         })}
         </div>
+        {/* Efter dagens arbejde: tilbyd appen, kun hvor den ikke allerede er installeret. */}
+        <AppInstallCard />
       </EmployeePage>
 
       {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
