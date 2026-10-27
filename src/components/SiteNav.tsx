@@ -89,6 +89,9 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { data: accountProfile } = useMyProfile();
+  const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || null;
+  const accountName = accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "?";
   const { data: business } = useMyBusiness();
   // Fallback: hvis user_roles endnu ikke er opdateret efter at virksomheds-
   // ejeren har oprettet sig selv som første medarbejder, kan vi stadig
