@@ -76,6 +76,56 @@ export function AppInstallCard({ className }: { className?: string }) {
     try { window.localStorage.setItem(DISMISS_KEY, "1"); } catch { /* blokeret lager: skjul kun nu */ }
   };
 
+  const saveApkBlob = (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = APK_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Revoke sentligt senere — for tidlig revoke kan afbryde en igangværende gemning.
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const startAndroidDownload = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Efter en fejl lader vi browserens egen download tage over.
+    if (dlError || typeof fetch === "undefined") return;
+    if (progress !== null) { event.preventDefault(); return; }
+    event.preventDefault();
+    setProgress(0);
+    setDlError(false);
+    try {
+      const res = await fetch(apkAsset.url, { cache: "force-cache" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const total = Number(res.headers.get("content-length")) || apkAsset.size;
+      if (!res.body || typeof res.body.getReader !== "function") {
+        saveApkBlob(await res.blob());
+        setProgress(100);
+        window.setTimeout(() => setProgress(null), 2500);
+        return;
+      }
+      const reader = res.body.getReader();
+      const chunks: BlobPart[] = [];
+      let received = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          setProgress(Math.min(99, Math.round((received / total) * 100)));
+        }
+      }
+      saveApkBlob(new Blob(chunks, { type: APK_MIME }));
+      setProgress(100);
+      window.setTimeout(() => setProgress(null), 2500);
+    } catch {
+      setDlError(true);
+      setProgress(null);
+    }
+  };
+
   const addToHomeScreen = async () => {
     if (!prompt) return;
     await prompt.prompt();
