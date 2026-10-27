@@ -11,7 +11,6 @@ import { setEmployeeWorkspace } from "@/lib/employee-workspace";
 import { EmployeePage } from "@/components/employee/EmployeePage";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import type { EmployeeWithBusiness } from "@/hooks/useMyEmployee";
-import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 
 const initialsOf = (name: string) =>
   name
@@ -45,27 +44,14 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         title="Vælg arbejdsplads"
         description="Hvor arbejder du i dag?"
       />
-      <div className="mx-auto grid max-w-3xl gap-3 sm:gap-5 items-start">
-        <section className="hidden lg:block">
-          <div className="flex items-center gap-4 py-2">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center">
-              <BrandedIllustration name="chooseWorkspace" className="h-full w-full" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejderpanel</p>
-              <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                <Building2 className="h-4 w-4 shrink-0" />{employees.length} arbejdspladser tilgængelige
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="service-panel-card min-w-0 overflow-hidden rounded-md border border-border bg-card shadow-sm">
-          <div className="border-b border-border px-4 py-4 sm:px-5">
-            <h2 className="text-base font-semibold text-foreground tracking-tight">Dine arbejdspladser</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">Du kan altid skifte igen fra profilmenuen.</p>
-          </div>
-          <ul className="divide-y divide-border">
+      <section className="service-panel-card min-w-0 overflow-hidden rounded-md border border-border bg-card shadow-sm">
+        <div className="border-b border-border px-4 py-4 sm:px-5">
+          <h2 className="text-base font-semibold text-foreground tracking-tight">Dine arbejdspladser</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {employees.length} {employees.length === 1 ? "arbejdsplads" : "arbejdspladser"} · du kan altid skifte igen fra profilmenuen.
+          </p>
+        </div>
+        <ul className="divide-y divide-border">
           {employees.map((emp) => {
             const biz = emp.business;
             const name = biz?.name || "Virksomhed";
@@ -124,7 +110,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
               </li>
             );
           })}
-          </ul>
+        </ul>
         <label className="flex cursor-pointer items-center gap-3 border-t border-border bg-secondary/35 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5">
           <Checkbox
             checked={remember}
@@ -134,8 +120,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
           />
           <span className="text-sm leading-5 text-foreground">Husk mit valg på denne enhed</span>
         </label>
-        </section>
-      </div>
+      </section>
     </EmployeePage>
   );
 };
