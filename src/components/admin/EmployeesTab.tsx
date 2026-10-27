@@ -438,7 +438,10 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Anders Jensen"
-                  className="h-10"
+                  autoComplete="name"
+                  autoCapitalize="words"
+                  enterKeyHint="next"
+                  className="h-11 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -448,7 +451,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="anders@example.dk"
-                  className="h-10"
+                  autoComplete="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  className="h-11 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -456,8 +463,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   placeholder="12 34 56 78"
-                  className="h-10"
+                  className="h-11 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -466,7 +476,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Chauffør, rengøringsmedarbejder…"
-                  className="h-10"
+                  className="h-11 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -481,11 +491,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                     value={commissionPct}
                     onChange={(e) => setCommissionPct(e.target.value)}
                     placeholder="fx 10"
-                    className="h-10 pr-9"
+                    className="h-11 pr-9 text-base sm:text-sm"
                   />
                   <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs leading-snug text-muted-foreground">
                   Andel af omsætningen for udførte aftaler. Lad være tom for 0 %.
                 </p>
               </div>
@@ -495,7 +505,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
                   value={employeeNumber}
                   onChange={(e) => setEmployeeNumber(e.target.value)}
                   placeholder="Auto"
-                  className="h-10"
+                  className="h-11 text-base sm:text-sm"
                 />
               </div>
             </div>
@@ -505,11 +515,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Prop
             </p>
           </div>
           <SheetFooterBar>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-              <Button variant="outline" disabled={create.isPending} onClick={resetForm} className="h-11 text-sm">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" disabled={create.isPending} onClick={resetForm} className="h-11 w-full text-sm sm:w-auto sm:min-w-28">
                 Annuller
               </Button>
-              <PrimaryButton onClick={handleCreate} disabled={create.isPending} icon={<UserPlus />}>
+              <PrimaryButton onClick={handleCreate} disabled={create.isPending} icon={<UserPlus />} className="h-11 w-full whitespace-nowrap sm:w-auto sm:min-w-44">
                 {create.isPending ? "Opretter..." : "Opret medarbejder"}
               </PrimaryButton>
             </div>
