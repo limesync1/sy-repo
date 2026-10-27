@@ -238,14 +238,37 @@ export function AppInstallCard({ className }: { className?: string }) {
           {tab === "android" ? (
             <a
               href={apkAsset.url}
-              download="Serviceydere-Medarbejder.apk"
+              download={APK_FILENAME}
+              onClick={startAndroidDownload}
+              aria-busy={progress !== null}
               className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold focus-visible:outline-none sm:w-auto"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
-                <AndroidLogo className="h-5 w-5" />
-              </span>
-              Hent appen til Android
-              <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
+              {progress !== null ? (
+                <>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
+                    <AndroidLogo className="h-5 w-5" />
+                  </span>
+                  <span className="flex min-w-[120px] flex-1 flex-col gap-1 sm:min-w-[180px]">
+                    <span aria-hidden className="block h-1.5 w-full overflow-hidden rounded-full bg-background/40">
+                      <span
+                        className="block h-full rounded-full bg-background transition-[width] duration-200"
+                        style={{ width: `${Math.max(4, progress)}%` }}
+                      />
+                    </span>
+                    <span className="text-xs font-medium tabular-nums">
+                      {progress < 100 ? `Henter… ${progress} %` : "Download klar"}
+                    </span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-background shadow-sm" style={{ color: "hsl(var(--brand-android))" }}>
+                    <AndroidLogo className="h-5 w-5" />
+                  </span>
+                  Hent appen til Android
+                  <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
+                </>
+              )}
             </a>
           ) : (
             <div className="hero-action-dark inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl px-5 text-[15px] font-semibold sm:w-auto">
