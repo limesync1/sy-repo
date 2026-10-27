@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Check, PlusSquare, Share, X } from "lucide-react";
+import { X } from "lucide-react";
 import apkAsset from "@/assets/downloads/serviceydere-medarbejder.apk.asset.json";
+import hentIcon from "@/assets/app-install/Hent_appen.svg.asset.json";
+import aabnIcon from "@/assets/app-install/Aabn_filen.svg.asset.json";
+import installerIcon from "@/assets/app-install/Tryk_Installer.svg.asset.json";
+import delIcon from "@/assets/app-install/Tryk_paa_Del.svg.asset.json";
+import foejIcon from "@/assets/app-install/Foej_til_hjemmeskaerm.svg.asset.json";
+import tilfoejIcon from "@/assets/app-install/Tryk_Tilfoej.svg.asset.json";
+import androidIcon from "@/assets/app-install/Android_logo.svg.asset.json";
+import appleIcon from "@/assets/app-install/Apple_logo.svg.asset.json";
+import safariIcon from "@/assets/app-install/Safari_ikon.svg.asset.json";
 import { cn } from "@/lib/utils";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
 import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
@@ -74,14 +83,14 @@ export function AppInstallCard({ className }: { className?: string }) {
 
   const steps = tab === "android"
     ? [
-        { icon: <AndroidLogo className="h-5 w-5" />, title: "Hent appen", text: "Tryk på den hvide knap nedenfor." },
-        { icon: <Check className="h-5 w-5" />, title: "Åbn filen", text: "Find den i notifikationen eller i Downloads. Tillad installation, hvis telefonen spørger." },
-        { icon: <PlusSquare className="h-5 w-5" />, title: "Tryk Installer", text: "Appen ligger nu på telefonen og åbner direkte i Min dag." },
+        { icon: hentIcon.url, title: "Hent appen", text: "Tryk på den hvide knap." },
+        { icon: aabnIcon.url, title: "Åbn filen", text: "Find den i Downloads. Tillad installation, hvis telefonen spørger." },
+        { icon: installerIcon.url, title: "Tryk Installer", text: "Appen åbner direkte i Min dag." },
       ]
     : [
-        { icon: <Share className="h-5 w-5" />, title: "Tryk på Del", text: isIosNonSafari ? "Åbn først siden i Safari, og tryk så på Del-knappen." : "Del-knappen sidder nederst i Safari." },
-        { icon: <PlusSquare className="h-5 w-5" />, title: "Føj til hjemmeskærm", text: "Rul lidt ned i menuen og vælg «Føj til hjemmeskærm»." },
-        { icon: <Check className="h-5 w-5" />, title: "Tryk Tilføj", text: "Appen ligger nu på hjemmeskærmen og åbner i Min dag." },
+        { icon: delIcon.url, title: "Tryk på Del", text: isIosNonSafari ? "Åbn siden i Safari først, og tryk så på Del." : "Del-knappen sidder nederst i Safari." },
+        { icon: foejIcon.url, title: "Føj til hjemmeskærm", text: "Rul ned i menuen og vælg den." },
+        { icon: tilfoejIcon.url, title: "Tryk Tilføj", text: "Appen åbner i Min dag." },
       ];
 
   return (
@@ -91,27 +100,27 @@ export function AppInstallCard({ className }: { className?: string }) {
         type="button"
         onClick={dismiss}
         aria-label="Skjul forslag om app"
-        className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-full text-ocean-foreground/70 hover:bg-ocean-foreground/10 hover:text-ocean-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground"
+        className="absolute right-1.5 top-1.5 z-10 grid h-11 w-11 place-items-center rounded-full text-ocean-foreground/70 hover:bg-ocean-foreground/10 hover:text-ocean-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground"
       >
         <X className="h-4 w-4" aria-hidden />
       </button>
 
-      <div className="relative px-5 py-8 sm:px-8 sm:py-10">
-        <div className="flex flex-col gap-5 pr-10 lg:flex-row lg:items-end lg:justify-between">
+      <div className="relative px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
+        <div className="flex flex-col gap-4 pr-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/65">
+            <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-ocean-foreground/65">
               <SectionLabelMark />
               Medarbejder-app
             </span>
-            <h3 id="app-install-title" className="mt-4 text-[1.6rem] font-semibold leading-[1.08] sm:text-[2rem]">
+            <h3 id="app-install-title" className="mt-2.5 text-[1.3rem] font-semibold leading-tight sm:text-[1.6rem] lg:text-[1.9rem]">
               Hav din dag med i lommen
             </h3>
-            <p className="mt-3 max-w-lg text-[15px] leading-7 text-ocean-foreground/70">
-              Se ruter, start dagen og registrér tid direkte fra telefonens hjemmeskærm. Gratis til Android og iPhone.
+            <p className="mt-1.5 hidden max-w-lg text-[15px] leading-6 text-ocean-foreground/70 sm:block">
+              Se ruter, start dagen og registrér tid fra hjemmeskærmen. Gratis til Android og iPhone.
             </p>
           </div>
 
-          <div role="group" aria-label="Vælg telefon" className="inline-flex w-fit shrink-0 rounded-full border border-ocean-foreground/25 p-1">
+          <div role="group" aria-label="Vælg telefon" className="grid w-full shrink-0 grid-cols-2 rounded-full border border-ocean-foreground/25 p-1 sm:inline-grid sm:w-auto">
             {order.map((key) => (
               <button
                 key={key}
@@ -119,48 +128,55 @@ export function AppInstallCard({ className }: { className?: string }) {
                 aria-pressed={tab === key}
                 onClick={() => setTab(key)}
                 className={cn(
-                  "inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground",
+                  "inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground",
                   tab === key ? "hero-action-light" : "text-ocean-foreground/80 hover:bg-ocean-foreground/10 hover:text-ocean-foreground",
                 )}
               >
-                {key === "android" ? <AndroidLogo className="h-4 w-4" /> : <AppleLogo className="h-4 w-4" />}
+                <img src={key === "android" ? androidIcon.url : appleIcon.url} alt="" aria-hidden className="h-5 w-5 object-contain" />
                 {key === "android" ? "Android" : "iPhone"}
               </button>
             ))}
           </div>
         </div>
 
-        <ol className="mt-7 grid gap-3 md:grid-cols-3">
+        <ol className="mt-4 grid gap-2 sm:mt-6 md:grid-cols-3 md:gap-3">
           {steps.map((step, i) => (
-            <li key={step.title} className="home-step rounded-lg border border-ocean-foreground/20 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ocean-foreground/25 text-xs font-semibold tabular-nums">
+            <li key={step.title} className="home-step flex items-center gap-3 rounded-lg border border-ocean-foreground/20 p-3 md:flex-col md:items-start md:gap-0 md:p-4">
+              <div className="relative shrink-0">
+                <span className="grid h-12 w-12 place-items-center rounded-lg bg-ocean-foreground md:h-14 md:w-14">
+                  <img src={step.icon} alt="" aria-hidden className="h-9 w-9 object-contain md:h-10 md:w-10" />
+                </span>
+                <span className="absolute -left-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ocean-foreground text-[11px] font-bold tabular-nums text-ocean ring-2 ring-ocean">
                   {i + 1}
                 </span>
-                <span className="text-ocean-foreground/70">{step.icon}</span>
               </div>
-              <h4 className="mt-4 text-[17px] font-semibold">{step.title}</h4>
-              <p className="mt-1.5 text-[14px] leading-6 text-ocean-foreground/70">{step.text}</p>
+              <div className="min-w-0 md:mt-3">
+                <h4 className="text-[15px] font-semibold leading-snug md:text-[16px]">{step.title}</h4>
+                <p className="mt-0.5 text-[13px] leading-5 text-ocean-foreground/70 md:text-[14px]">{step.text}</p>
+              </div>
             </li>
           ))}
         </ol>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3">
+        <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
           {tab === "android" ? (
             <a
               href={apkAsset.url}
               download="Serviceydere-Medarbejder.apk"
               className="hero-action-light inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-lg px-5 text-sm font-semibold focus-visible:outline-none sm:w-auto"
             >
-              <AndroidLogo className="h-5 w-5" />
+              <img src={androidIcon.url} alt="" aria-hidden className="h-5 w-5 object-contain" />
               Hent appen til Android
               <span className="text-xs font-medium opacity-60">{APK_MB} MB</span>
             </a>
           ) : (
-            <p className="text-sm text-ocean-foreground/70">Virker i Safari på iPhone og iPad.</p>
+            <p className="flex items-center gap-2 text-sm text-ocean-foreground/75">
+              <img src={safariIcon.url} alt="" aria-hidden className="h-5 w-5 object-contain" />
+              Virker i Safari på iPhone og iPad.
+            </p>
           )}
           {tab === "android" && prompt && (
-            <button type="button" onClick={addToHomeScreen} className="inline-flex h-12 items-center rounded-lg border border-ocean-foreground/30 px-5 text-sm font-semibold hover:bg-ocean-foreground/10">
+            <button type="button" onClick={addToHomeScreen} className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-ocean-foreground/30 px-5 text-sm font-semibold hover:bg-ocean-foreground/10 sm:w-auto">
               Tilføj til hjemmeskærm
             </button>
           )}
