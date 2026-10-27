@@ -19,8 +19,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - run: npm install --no-audit --no-fund
-      - run: npm run build
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun run build
       - run: npx cap add android
       - name: App-ikon og opstartsskærm
         continue-on-error: true
@@ -28,7 +29,9 @@ jobs:
       - run: npx cap sync android
       - name: Byg APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v5
         with:
           name: serviceydere-medarbejder-apk
