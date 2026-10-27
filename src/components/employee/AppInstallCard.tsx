@@ -213,10 +213,20 @@ export function AppInstallCard({ className }: { className?: string }) {
             </div>
           )}
           {tab === "android" && started && (
-            <p role="status" className="w-full rounded-xl border border-border bg-card p-3 text-[14px] leading-5 text-foreground sm:basis-full">
-              <strong className="font-semibold">Står den fast ved {APK_MB} MB / {APK_MB} MB?</strong>{" "}
-              Så venter Chrome på dit ja. Træk notifikationen ned eller åbn Chrome → ⋮ → <strong className="font-semibold">Downloads</strong>, og tryk <strong className="font-semibold">«Download alligevel»</strong> eller <strong className="font-semibold">«Behold»</strong>. Tryk derefter på filen for at installere.
-            </p>
+            <details className="group w-full text-[14px] sm:basis-full">
+              <summary className="inline-flex min-h-[44px] cursor-pointer list-none items-center gap-1.5 font-medium text-muted-foreground hover:text-foreground">
+                Hænger downloaden?
+                <span aria-hidden className="transition-transform group-open:rotate-90">›</span>
+              </summary>
+              <ol className="mt-1 flex flex-wrap items-center gap-1.5 text-foreground">
+                {["Åbn Downloads i Chrome", "Tryk «Download alligevel»", "Tryk på filen"].map((t, i) => (
+                  <li key={t} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5">
+                    <span className="grid h-5 w-5 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background">{i + 1}</span>
+                    {t}
+                  </li>
+                ))}
+              </ol>
+            </details>
           )}
           {tab === "android" && prompt && (
             <button type="button" onClick={addToHomeScreen} className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground hover:border-foreground/40 sm:w-auto">
