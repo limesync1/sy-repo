@@ -1,4 +1,5 @@
 import { orderCycleNumber } from "@/lib/order-recurrence-display";
+import { selectInChunks } from "@/lib/supabase-chunked";
 import { formatPrice } from "@/lib/price-format";
 import { addStopsInOrder } from "@/lib/route-planner/add-stops-batch";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.

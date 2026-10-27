@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
+import { selectAllPages, selectInChunks } from "@/lib/supabase-chunked";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
