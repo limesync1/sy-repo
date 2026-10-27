@@ -63,7 +63,7 @@ const CookieConsent = () => {
       aria-live="polite"
       aria-label="Cookies"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[90] px-3 pb-3 sm:px-4 sm:pb-4",
+        "fixed inset-x-0 bottom-0 z-[90] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]",
         "animate-fade-in",
       )}
       style={{ animationDelay: "100ms" }}
