@@ -308,9 +308,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   // så vi kan tage positionen på Google for fjern-pletter/rengøringsguides.
   {
     slug: "fjern-svedpletter-fra-hvidt-toej",
-    title: "Fjern gule svedpletter fra hvidt tøj: 3 metoder på 1 time",
+    title: "Fjern svedpletter fra hvidt tøj — 3 metoder der virker",
     description:
-      "Gule pletter under armene? Brintoverilte + opvaskemiddel fjerner selv gamle svedpletter. Se de 7 metoder, og hvorfor klor gør pletterne værre.",
+      "Sådan fjerner du gule svedpletter fra hvidt tøj: brintoverilte + opvaskemiddel virker selv på gamle pletter. Trin for trin — og hvorfor klor gør det værre.",
     publishedAt: "2026-01-10",
     readingMinutes: 8,
     category: "Rengøring",
@@ -581,7 +581,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "hvor-ofte-skal-skorsten-fejes",
-    title: "Hvor ofte skal skorstenen fejes i 2026? Lovkrav og intervaller",
+    title: "Hvor ofte skal skorstenen fejes? Lovkrav 2026",
     description:
       "Lovpligtigt 1–2 gange årligt afhængigt af installation. Få præcise intervaller for brændeovn, pejs, oliefyr og gaskedel — plus hvad det koster, og hvad der sker hvis du springer det over.",
     publishedAt: "2026-02-21",
