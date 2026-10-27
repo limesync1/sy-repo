@@ -334,8 +334,8 @@ export const UnassignedJobCard = ({
           )}
         >
           {/* Linje 1: navn + pris */}
-          <div className={cn("flex flex-wrap items-start justify-between gap-x-2 gap-y-1", canSelect && "pl-10 min-h-9")}>
-            <h3 className="min-w-0 flex-1 basis-[8rem] break-words text-sm font-semibold leading-5 text-foreground">
+          <div className={cn("flex items-start justify-between gap-2", canSelect && "pl-10 min-h-9")}>
+            <h3 title={job.customer_name} className="min-w-0 flex-1 truncate text-sm font-semibold leading-5 text-foreground">
               {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
               {job.customer_name}
             </h3>
@@ -349,28 +349,28 @@ export const UnassignedJobCard = ({
 
           {/* Linje 2: ydelse */}
           {serviceLine && (
-            <p className="break-words text-xs leading-4 text-foreground/75">{serviceLine}</p>
+            <p title={serviceLine} className="truncate text-[13px] font-medium leading-5 text-foreground/90">{serviceLine}</p>
           )}
 
           {/* Linje 3: adresse */}
           {!isPending && fullAddress && (
             <p
-              className="flex items-start gap-1 text-xs leading-4 text-muted-foreground"
+              className="flex items-center gap-1 text-xs leading-4 text-muted-foreground"
               title={hasGps ? fullAddress : `${fullAddress} — adressen kunne ikke placeres på kortet`}
             >
-              <MapPin className={cn("mt-0.5 h-3 w-3 shrink-0", hasGps ? "text-muted-foreground/60" : "text-orange-500")} />
-              <span className="min-w-0 break-words">{fullAddress}</span>
+              <MapPin className={cn("h-3 w-3 shrink-0", hasGps ? "text-muted-foreground/60" : "text-orange-500")} />
+              <span className="min-w-0 truncate">{fullAddress}</span>
             </p>
           )}
 
           {/* Linje 4: dato + interval */}
           {!isPending && (
-            <div className="flex flex-wrap items-start gap-x-2 gap-y-1 pt-0.5 text-xs leading-4">
-              <span className={cn("inline-flex max-w-full items-center gap-1 font-semibold tabular-nums", urgency.pillText)}>
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] leading-4">
+              <span className={cn("inline-flex max-w-full items-center gap-1 rounded-full bg-secondary/70 px-2 py-0.5 font-semibold tabular-nums", urgency.pillText)}>
                 <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", urgency.rail)} />
                 {urgency.label}
               </span>
-              <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
+              <span className="inline-flex min-w-0 items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground">
                 {isRecurring && <Repeat className="h-3 w-3 shrink-0 opacity-60" />}
                 <span className="min-w-0 break-words">{intervalLabel}</span>
               </span>

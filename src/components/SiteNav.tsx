@@ -6,7 +6,7 @@ import BetaNotice from "./BetaNotice";
 import { Menu, X, ChevronDown, Search, FileText, Store, LayoutGrid, ChevronRight, LogIn, LogOut, UserPlus, Check } from "lucide-react";
 const MOBILE_ICONS = { search: Search, quote: FileText, business: Store, software: LayoutGrid } as const;
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyBusiness } from "@/hooks/useDatabase";
+import { useMyBusiness, useMyProfile } from "@/hooks/useDatabase";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -89,6 +89,9 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { data: accountProfile } = useMyProfile();
+  const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined) || null;
+  const accountName = accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "?";
   const { data: business } = useMyBusiness();
   // Fallback: hvis user_roles endnu ikke er opdateret efter at virksomheds-
   // ejeren har oprettet sig selv som første medarbejder, kan vi stadig
@@ -271,10 +274,10 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" sideOffset={10} className="w-80 max-w-[calc(100vw-2rem)] rounded-lg bg-card p-1.5 text-card-foreground shadow-xl">
                     <DropdownMenuLabel className="flex items-center gap-3 px-2 py-3 font-normal">
-                      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-base font-semibold text-card-foreground">{(user.email || "?").charAt(0).toUpperCase()}</span>
+                      <AccountAvatar url={accountAvatar} label={accountName} className="h-10 w-10 bg-secondary text-base text-card-foreground" />
                       <span className="min-w-0">
                         <span className="block text-xs text-muted-foreground">Logget ind som</span>
-                        <span className="block break-all text-sm font-semibold">{user.email}</span>
+                        <span className="block break-all text-sm font-semibold">{accountProfile?.display_name || user.email}</span>{accountProfile?.display_name && <span className="block break-all text-xs text-muted-foreground">{user.email}</span>}
                       </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -366,9 +369,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
               {user ? (
                 <div className="mt-2 rounded-lg border border-border bg-card p-2">
                   <div className="flex items-center gap-2.5 px-1 pb-2">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-bold uppercase text-background" aria-hidden="true">
-                      {(user.email || "?").charAt(0)}
-                    </span>
+                    <AccountAvatar url={accountAvatar} label={accountName} className="h-9 w-9 bg-foreground text-sm text-background" />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[11px] font-semibold leading-tight text-muted-foreground">Logget ind som</span>
                       <span className="block truncate text-sm font-bold leading-tight text-foreground">{user.email}</span>
@@ -431,3 +432,16 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
 };
 
 export default SiteNav;
+
+/** Kontoens rigtige profilbillede; forbogstav kun når der intet billede er, eller det ikke kan hentes. */
+function AccountAvatar({ url, label, className }: { url?: string | null; label: string; className: string }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [url]);
+  return (
+    <span aria-hidden="true" className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold uppercase ${className}`}>
+      {url && !broken
+        ? <img src={url} alt="" className="h-full w-full object-cover" onError={() => setBroken(true)} />
+        : (label || "?").charAt(0).toUpperCase()}
+    </span>
+  );
+}
