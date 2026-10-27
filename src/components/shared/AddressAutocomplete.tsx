@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { searchAddresses, type AddressSuggestion } from "@/lib/address-suggestions";
+import { searchAddressesProgressive, type AddressSuggestion } from "@/lib/address-suggestions";
 
 export interface AddressValue {
   address: string;
@@ -27,35 +27,48 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
   const [activeIdx, setActiveIdx] = useState(-1);
   const wrapRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelSearch = useRef<(() => void) | null>(null);
   const revision = useRef(0);
   const listboxId = useId();
   const verified = value.latitude != null && value.longitude != null;
   useEffect(() => {
     const outside = (e: MouseEvent) => { if (!wrapRef.current?.contains(e.target as Node)) setOpen(false); };
     document.addEventListener("mousedown", outside);
-    return () => { document.removeEventListener("mousedown", outside); revision.current++; if (timer.current) clearTimeout(timer.current); };
+    return () => { document.removeEventListener("mousedown", outside); revision.current++; if (timer.current) clearTimeout(timer.current); cancelSearch.current?.(); };
   }, []);
   const handleInput = (query: string) => {
     const current = ++revision.current;
     if (timer.current) clearTimeout(timer.current);
-    setSuggestions([]); setOpen(false); setError(null); setActiveIdx(-1); setLoading(false);
+    cancelSearch.current?.();
+    // Behold de viste forslag mens der skrives — det føles øjeblikkeligt og blinker ikke.
+    setError(null); setActiveIdx(-1);
     onVerified?.(false);
     onChange({ ...value, address: query, latitude: null, longitude: null });
-    if (query.trim().length < 4) return;
-    timer.current = setTimeout(async () => {
+    if (query.trim().length < 3) { setSuggestions([]); setOpen(false); setLoading(false); return; }
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setLoading(false); setError("Du er offline. Indtast adressen manuelt, så kan den rettes senere."); return;
+    }
+    timer.current = setTimeout(() => {
+      if (current !== revision.current) return;
       setLoading(true);
-      try {
-        const results = await searchAddresses(query);
-        if (current !== revision.current) return;
-        setSuggestions(results); setOpen(results.length > 0);
-        if (!results.length) setError("Ingen adresse fundet. Tilføj husnummer, postnummer eller by — eller indtast manuelt.");
-      } catch (e) {
-        if (current === revision.current) setError(e instanceof Error ? e.message : "Adresseforslag kunne ikke hentes.");
-      } finally { if (current === revision.current) setLoading(false); }
-    }, 650);
+      cancelSearch.current = searchAddressesProgressive(
+        query,
+        (results, final) => {
+          if (current !== revision.current) return;
+          setSuggestions(results); setOpen(results.length > 0);
+          if (final) setLoading(false);
+          if (final && !results.length) setError("Ingen adresse fundet. Tjek stavning og husnummer — eller skriv postnummer og by til.");
+        },
+        (message) => {
+          if (current !== revision.current) return;
+          setLoading(false); setSuggestions([]); setOpen(false);
+          setError(`${message} Du kan stadig skrive adressen færdig og gemme.`);
+        },
+      );
+    }, 150);
   };
   const pick = (s: AddressSuggestion) => {
-    revision.current++; if (timer.current) clearTimeout(timer.current);
+    revision.current++; if (timer.current) clearTimeout(timer.current); cancelSearch.current?.();
     setOpen(false); setSuggestions([]); setError(null); setLoading(false); onChange(s); onVerified?.(true);
   };
   return (

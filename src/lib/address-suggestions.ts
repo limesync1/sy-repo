@@ -37,7 +37,7 @@ export function instantAddressMatches(query: string): AddressSuggestion[] {
   if (key.length < 3) return [];
   let best: AddressSuggestion[] = [];
   for (const [k, entry] of cache) {
-    if (entry.expires < Date.now() || !key.startsWith(k.slice(0, Math.max(3, k.length - 0)))) continue;
+    if (entry.expires < Date.now() || !key.startsWith(k.slice(0, 3))) continue;
     const words = key.split(/[\s,]+/).filter(Boolean);
     const hits = entry.values.filter((v) => {
       const hay = `${v.address} ${v.zip_code} ${v.city}`.toLocaleLowerCase("da");
