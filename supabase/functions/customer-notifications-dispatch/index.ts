@@ -111,6 +111,15 @@ Deno.serve(async (req) => {
       };
       const prefKey = EVENT_TO_PREF[job.event_type];
       const recipientEmail = job.recipient_email ?? order.customer_email ?? null;
+      // Reserverede testdomæner (.invalid/.test/.example) kan aldrig modtage
+      // beskeder — importerede testkunder må hverken få mail eller SMS.
+      if (recipientEmail && /\.(invalid|test|example)$/i.test(recipientEmail.trim())) {
+        await admin.from("customer_notification_queue").update({
+          status: "cancelled",
+          last_error: "Testkontakt — sendes ikke",
+        }).eq("id", job.id);
+        continue;
+      }
       if (prefKey && recipientEmail) {
         const { data: allowed } = await admin.rpc("get_customer_notification_pref", {
           p_email: recipientEmail,
