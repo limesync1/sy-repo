@@ -1,5 +1,7 @@
 import { orderCycleNumber } from "@/lib/order-recurrence-display";
 import { selectInChunks } from "@/lib/supabase-chunked";
+import { monthGridRange } from "@/lib/route-planner/month-grid";
+import FixAddressesDialog from "@/components/route-planner/FixAddressesDialog";
 import { formatPrice } from "@/lib/price-format";
 import { addStopsInOrder } from "@/lib/route-planner/add-stops-batch";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
@@ -313,6 +315,7 @@ const Planner = () => {
   >("route-planner:unassignedGroupBy", "none");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
+  const [fixAddressesOpen, setFixAddressesOpen] = useState(false);
   // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
   const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
   const [geocoding, setGeocoding] = useState(false);
@@ -419,9 +422,9 @@ const Planner = () => {
       const ws = startOfWeek(anchor, { weekStartsOn: 1 });
       return { start: format(ws, "yyyy-MM-dd"), end: format(addDays(ws, 6), "yyyy-MM-dd") };
     }
-    const ms = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
-    const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
-    return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
+    // Sent i den aktuelle måned vises de første uger af næste måned også.
+    const r = monthGridRange(anchor);
+    return { start: format(r.start, "yyyy-MM-dd"), end: format(r.end, "yyyy-MM-dd") };
   }, [date, view]);
   // Bulk-multi-select for ruter + aftaler (Fase 2: udtrukket).
   // ─── Bølge 1 (.lovable/plan.md): central planner-store ──────────────────
@@ -3081,7 +3084,7 @@ const Planner = () => {
                         </span>
                       </div>
                     )}
-                    {(() => { const missing = (filteredUnassigned as any[]).filter((job) => (job.address || job.zip_code || job.city) && (job.latitude == null || job.longitude == null)).length; return missing > 0 ? <p className="flex items-start gap-1.5 rounded-[4px] bg-warning/10 px-2 py-1.5 text-[11px] leading-snug text-warning-foreground"><MapPin className="mt-0.5 h-3 w-3 shrink-0" />{missing === 1 ? "1 adresse" : `${missing} adresser`} kan ikke vises på kortet. Åbn aftalen for at rette adressen.</p> : null; })()}
+                    {(() => { const missing = (filteredUnassigned as any[]).filter((job) => job.latitude == null || job.longitude == null).length; return missing > 0 ? <button type="button" onClick={() => setFixAddressesOpen(true)} className="flex min-h-11 w-full items-start gap-1.5 rounded-[4px] bg-warning/10 px-2 py-1.5 text-left text-xs leading-snug text-warning-foreground transition-colors hover:bg-warning/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>{missing === 1 ? "1 adresse" : `${missing} adresser`} kan ikke vises på kortet. <span className="font-semibold underline underline-offset-2">Ret {missing === 1 ? "adressen" : "adresserne"} nu</span></span></button> : null; })()}
                   </div>
 
                   <div
@@ -3506,7 +3509,7 @@ const Planner = () => {
                           <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                           {view === "week"
                             ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
-                            : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                            : `${format(parseISO(date), "MMMM yyyy", { locale: da })}${monthGridRange(parseISO(date)).extended ? ` + start af ${format(addMonths(parseISO(date), 1), "MMMM", { locale: da })}` : ""}`}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent align="start" className="w-auto p-0">
@@ -3750,7 +3753,7 @@ const Planner = () => {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" className="h-11 min-w-0 flex-1 flex-col gap-0.5 px-1" aria-label="Vælg dato">
-                          <span className="max-w-full truncate text-sm font-semibold first-letter:uppercase">{mobileDayView ? format(parseISO(date), "EEEE d. MMM", { locale: da }) : view === "week" ? `Uge ${format(parseISO(date), "I")} · ${format(parseISO(date), "MMM yyyy", { locale: da })}` : format(parseISO(date), "MMMM yyyy", { locale: da })}</span>
+                          <span className="max-w-full truncate text-sm font-semibold first-letter:uppercase">{mobileDayView ? format(parseISO(date), "EEEE d. MMM", { locale: da }) : view === "week" ? `Uge ${format(parseISO(date), "I")} · ${format(parseISO(date), "MMM yyyy", { locale: da })}` : `${format(parseISO(date), "MMMM yyyy", { locale: da })}${monthGridRange(parseISO(date)).extended ? ` + start af ${format(addMonths(parseISO(date), 1), "MMMM", { locale: da })}` : ""}`}</span>
                           <span className="text-xs font-normal text-muted-foreground">{mobileDayView ? `${mobileDaySummary.routeCount} ruter · ${mobileDaySummary.stopCount} stop` : `${periodSummary.routeCount} ruter · ${periodSummary.stopCount} stop`}</span>
                         </Button>
                       </PopoverTrigger>
@@ -4207,6 +4210,11 @@ const Planner = () => {
           })()}
         />
 
+        <FixAddressesDialog
+          open={fixAddressesOpen}
+          onOpenChange={setFixAddressesOpen}
+          jobs={(filteredUnassigned as any[]).filter((job) => job.latitude == null || job.longitude == null)}
+        />
         {/* Klik på en aftale i aftalepoolen åbner samme detalje-sheet i read-only */}
         <StopDetailSheet
           readOnly
