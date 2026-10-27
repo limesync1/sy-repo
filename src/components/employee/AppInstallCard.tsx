@@ -92,7 +92,7 @@ export function AppInstallCard({ className }: { className?: string }) {
       ];
 
   return (
-    <section aria-labelledby="app-install-title" className={cn("home-process brand-blue-section relative isolate overflow-hidden rounded-lg text-ocean-foreground", className)}>
+    <section aria-labelledby="app-install-title" className={cn("brand-blue-section relative isolate overflow-hidden rounded-lg text-ocean-foreground", className)}>
       <BlueFlowBackground variant="process" />
       <button
         type="button"
@@ -159,7 +159,7 @@ export function AppInstallCard({ className }: { className?: string }) {
               style={{ borderColor: "hsl(var(--ocean-foreground) / 0.16)", background: "hsl(var(--ocean-foreground) / 0.05)" }}
             >
               <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: "hsl(var(--ocean-foreground))" }}>
-                <img src={step.icon} alt="" aria-hidden className="h-10 w-10 object-contain" />
+                <img src={step.icon} alt="" aria-hidden className="h-11 w-11 object-contain" />
               </span>
               <div className="min-w-0">
                 <span className="block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "hsl(var(--ocean-foreground) / 0.6)" }}>
