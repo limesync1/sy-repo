@@ -1405,6 +1405,36 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/ovnrens-guide</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/fliserens-guide</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/graesslaaning-guide</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/trappevask-guide</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/erhvervsrengoering-hvad-er-med</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1420,12 +1450,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/ruteplanlaegning</loc>
+    <loc>https://serviceydere.dk/blog/kategori/haveservice</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/haveservice</loc>
+    <loc>https://serviceydere.dk/blog/kategori/ruteplanlaegning</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
