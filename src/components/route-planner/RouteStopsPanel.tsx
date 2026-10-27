@@ -437,6 +437,23 @@ const SortableStopRow = ({
     .filter(Boolean) as EmpAvatar[];
   const hasLivePresence = livePositions.length > 0;
 
+  const cycleLabel = (() => {
+    const cycleNo = (stop as any).cycle_number as number | undefined;
+    return typeof cycleNo === "number" && stop.agreement_interval !== "engangskøb"
+      ? `${cycleNo}. kørsel`
+      : formatCycleLabel({
+          completedCycles: stop.completed_cycles,
+          interval: stop.agreement_interval,
+          isCompleted: stop.status === "completed",
+        });
+  })();
+  const startLabel = stop.is_first_occurrence && stop.start_date && stop.status !== "completed"
+    ? (() => { try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); } catch { return stop.start_date; } })()
+    : null;
+  const isDone = stop.status === "completed";
+  // Touchflader er 44 px under lg; på computer med mus må de være mere kompakte.
+  const actionBtn = "h-11 min-w-11 lg:h-8 lg:min-w-8";
+
   return (
     <li
       ref={setNodeRef}
@@ -444,193 +461,146 @@ const SortableStopRow = ({
       style={style}
       className={cn(
         CARD_BASE,
+        "flex flex-col",
         isDragging
           ? "z-20 border-dashed border-accent/60 bg-secondary/40 opacity-60 shadow-none ring-0"
           : cn(CARD_BORDER, CARD_HOVER, hasLivePresence && "border-success/45 bg-success/[0.035] ring-1 ring-success/15"),
       )}
     >
-      {/* Tynd accent-stribe i venstre kant i rutens farve — binder kortet visuelt til kalender-pillen */}
-      <span
-        aria-hidden
-        className={cn("absolute left-0 top-0 bottom-0 z-10", CARD_RAIL_WIDTH)}
-        style={{ background: color }}
-      />
-      <div className={cn("flex items-stretch min-h-[3rem] pl-1", compact && "flex-wrap")}>
-        {/* Drag handle — skjult på projicerede ruter (read-only) */}
-        {!isProjection && !compact ? (
+      {/* Tynd stribe i rutens farve binder kortet til kalenderens rutepille. */}
+      <span aria-hidden className={cn("absolute left-0 top-0 bottom-0 z-10", CARD_RAIL_WIDTH)} style={{ background: color }} />
+
+      <div className="flex items-stretch pl-[3px]">
+        {!isProjection && !compact && (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex shrink-0 items-center justify-center touch-none w-7 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground transition-colors sm:w-7"
+            className="flex w-6 shrink-0 cursor-grab touch-none items-center justify-center text-muted-foreground/35 transition-colors hover:text-foreground active:cursor-grabbing"
             aria-label="Træk for at omrangere"
           >
             <GripVertical className="h-4 w-4" />
           </button>
-        ) : (
-          <span
-            className={cn("flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7", compact && !isProjection && "hidden")}
-            aria-hidden
-            title="Forventet besøg — låst rækkefølge"
-          >
-            <GripVertical className="h-4 w-4" />
-          </span>
         )}
 
-        {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
-        <div className="flex shrink-0 items-start pt-3 pl-1 pr-1">
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-sm ring-1 ring-card"
-            style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
-            aria-label={`Stop ${index}`}
-          >
-            {index}
-          </span>
-        </div>
-
-        {/* Content */}
-        <div
-          className={cn(CARD_CONTENT, "min-w-0 flex-1 text-left pl-1.5")}
-        >
-          {/* Header: branche-ikon + kundenavn (primær) + medarbejder-avatars + åbn-pil */}
+        <div className={cn("min-w-0 flex-1 space-y-1.5 py-2 pr-2.5", !isProjection && !compact ? "pl-0.5" : "pl-2.5")}>
+          {/* 1 · Kunde: nummer, navn og hvem der kører */}
           <div className="flex items-center gap-2">
-            {/* Titlen er et rent tekst-link uden hover-boks — kun understregning
-                og pil-feedback, så kortet ikke får en forvirrende ramme om titlen. */}
+            <span
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tabular-nums shadow-sm ring-1 ring-card"
+              style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
+              aria-label={`Stop ${index}`}
+            >
+              {index}
+            </span>
             <button
               type="button"
               onClick={onEditCustomer ?? onSelect}
               title={onEditCustomer ? "Redigér kundens oplysninger" : undefined}
-              className="group/title flex min-h-11 min-w-0 flex-1 items-center justify-start gap-2 rounded-sm px-0 py-1 text-left text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="group/title flex min-h-11 min-w-0 flex-1 items-center rounded-sm text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 lg:min-h-7"
             >
-               {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-5 w-5 shrink-0 object-contain" alt="" />}
-              <span className="min-w-0 break-words decoration-muted-foreground/50 underline-offset-4 group-hover/title:underline">{stop.customer_name || "Ukendt kunde"}</span>
+              <span className="min-w-0 truncate text-[15px] font-semibold leading-5 text-foreground decoration-muted-foreground/50 underline-offset-4 group-hover/title:underline">
+                {stop.customer_name || "Ukendt kunde"}
+              </span>
             </button>
             {assigneeEmps.length > 0 && (
               <EmployeeAvatars employees={assigneeEmps} size={22} max={3} leadId={leadId} />
             )}
           </div>
 
-          {/* Ydelse — sekundær linje */}
+          {/* 2 · Ydelse: egen flade med brancheikon, så den ikke forveksles med adressen */}
           {onEditAppointment ? (
             <button
               type="button"
               onClick={onEditAppointment}
               title="Redigér aftalen — services, pris og interval"
-              className="group/appt -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center gap-2 py-1 rounded-md px-1 text-left hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="group/appt flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md bg-secondary/55 px-2 py-1 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 lg:min-h-8"
             >
-              <span title={stop.service_summary || undefined} className={cn("min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-foreground", !stop.service_summary && "italic font-normal text-muted-foreground/70")}>
+              {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-4 w-4 shrink-0 object-contain" alt="" />}
+              <span title={stop.service_summary || undefined} className={cn("min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-foreground", !stop.service_summary && "italic font-normal text-muted-foreground")}>
                 {stop.service_summary || "Ingen ydelser angivet"}
               </span>
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
-                <Pencil className="h-3 w-3" /><span className="hidden min-[380px]:inline">Redigér</span>
-              </span>
+              <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover/appt:text-foreground" aria-label="Redigér aftale" />
             </button>
-          ) : stop.service_summary ? (
-            <p className="break-words text-xs leading-4 text-muted-foreground">
-              {stop.service_summary}
-            </p>
           ) : (
-            <p className="text-xs leading-4 text-muted-foreground/60 italic">
-              Ingen ydelser angivet
-            </p>
+            <div className="flex min-w-0 items-center gap-2 rounded-md bg-secondary/55 px-2 py-1">
+              {stop.service_summary && <IndustryIcon name={stop.service_summary} className="h-4 w-4 shrink-0 object-contain" alt="" />}
+              <span title={stop.service_summary || undefined} className={cn("min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-foreground", !stop.service_summary && "italic font-normal text-muted-foreground")}>
+                {stop.service_summary || "Ingen ydelser angivet"}
+              </span>
+            </div>
           )}
 
-          {/* Adresse — tertiær */}
+          {/* 3 · Adresse: mindre og dæmpet, med kortnål */}
           {stop.address && (
-            <p className="flex items-center gap-1 text-xs leading-4 text-muted-foreground" title={stop.address}>
-              <MapPin className="h-3 w-3 shrink-0 opacity-60" />
+            <p className="flex min-w-0 items-center gap-1.5 px-0.5 text-xs leading-4 text-muted-foreground" title={stop.address}>
+              <MapPin className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
               <span className="min-w-0 truncate">{stop.address}</span>
             </p>
           )}
 
-          {/* Konsistent badge-række — alle h-5, samme padding og tekststørrelse. */}
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+          {/* 4 · Status: interval, kørsel, udført og opstart */}
+          <div className="flex flex-wrap items-center gap-1.5">
             <IntervalBadge interval={stop.agreement_interval} size="sm" />
-            {(() => {
-              const cycleNo = (stop as any).cycle_number as number | undefined;
-              const label = typeof cycleNo === "number" && stop.agreement_interval !== "engangskøb"
-                ? `${cycleNo}. kørsel`
-                : formatCycleLabel({
-                    completedCycles: stop.completed_cycles,
-                    interval: stop.agreement_interval,
-                    isCompleted: stop.status === "completed",
-                  });
-              return label ? (
-                <Badge
-                  variant="outline"
-                  className="h-5 text-[11px] px-2 gap-1 font-medium"
-                  title="Hvilken kørsel af aftalen dette stop er"
-                >
-                  {label}
-                </Badge>
-              ) : null;
-            })()}
-            {stop.status === "completed" && (
-              <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium border-success/35 bg-success/10 text-success">
+            {cycleLabel && (
+              <Badge variant="outline" className="h-5 gap-1 px-2 text-[11px] font-medium" title="Hvilken kørsel af aftalen dette stop er">
+                {cycleLabel}
+              </Badge>
+            )}
+            {isDone && (
+              <Badge variant="outline" className="h-5 gap-1 border-success/35 bg-success/10 px-2 text-[11px] font-medium text-success">
                 <Check className="h-3 w-3" /> Udført
               </Badge>
             )}
-            {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
-              <Badge
-                variant="outline"
-                className="h-5 text-[11px] px-2 gap-1 border-primary/40 text-primary bg-primary/5 font-medium"
-                title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
-              >
-                <PlayCircle className="h-3 w-3" />
-                Opstart {(() => {
-                  try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); }
-                  catch { return stop.start_date; }
-                })()}
+            {startLabel && (
+              <Badge variant="outline" className="h-5 gap-1 border-primary/40 bg-primary/5 px-2 text-[11px] font-medium text-primary" title="Aftalen er ikke kørt endnu — dette er opstartsdatoen">
+                <PlayCircle className="h-3 w-3" /> Opstart {startLabel}
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Live-status ligger uden for det klikbare stopindhold, så triggeren
-            er gyldig på både mus, tastatur og touch. */}
+        {/* Live-status ligger uden for det klikbare indhold, så den virker med mus, tastatur og touch. */}
         {hasLivePresence && (
           <LiveStopPresence stopId={stop.id} positions={livePositions} employees={employees} firstSeenAtStop={firstSeenAtStop} />
         )}
+      </div>
 
-        {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
-        <div className={cn(compact ? CARD_ACTIONS : "flex flex-col items-center justify-center gap-1 px-1.5", "shrink-0", compact && "basis-full justify-end")}>
-          {!isProjection && (
-            <Button variant="ghost" size={compact ? "sm" : "icon"} className={cn("h-11 shrink-0", compact ? "mr-auto gap-1.5 px-3 text-sm font-semibold" : "w-11 lg:h-8 lg:w-8", stop.status !== "completed" && "text-success hover:bg-success/10 hover:text-success")}
-              disabled={stop.status === "completed" ? undoPending : markCompletedPending}
-              onClick={(event) => { event.stopPropagation(); if (stop.status === "completed") onUndoCompleted(); else onMarkCompleted(); }}
-              aria-label={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}
-              title={stop.status === "completed" ? "Fortryd udførsel" : "Markér som udført"}>
-              {(stop.status === "completed" ? undoPending : markCompletedPending) ? <Loader2 className="h-4 w-4 animate-spin" /> : stop.status === "completed" ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-              {compact && <span>{stop.status === "completed" ? "Fortryd" : "Udført"}</span>}
-            </Button>
-          )}
-          {compact && !isProjection && (canMoveUp || canMoveDown) && <>
-            <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
-            <Button variant="outline" size="icon" className="h-11 w-11" disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>
-          </>}
-          <AssigneeToggle
-            employees={employees}
-            selectedIds={assigneeIds}
-            leadId={leadId}
-            onChange={onSetAssignees}
-          />
-          {!isProjection && (
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              onClick={onRemove}
-              className={cn(
-                "flex h-11 w-11 lg:h-8 lg:w-8 rounded-md p-0",
-                ICON_BTN_DESTRUCTIVE,
-              )}
-              aria-label="Fjern stop"
-              title="Fjern stop fra rute"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
+      {/* Handlinger i én vandret række, så kortet ikke bliver højt og smalt. */}
+      <div className={cn(CARD_ACTIONS, "gap-1 pl-[7px]")}>
+        {!isProjection && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(actionBtn, "gap-1.5 px-2.5 text-xs font-semibold", !isDone && "text-success hover:bg-success/10 hover:text-success")}
+            disabled={isDone ? undoPending : markCompletedPending}
+            onClick={(event) => { event.stopPropagation(); if (isDone) onUndoCompleted(); else onMarkCompleted(); }}
+            aria-label={isDone ? "Fortryd udførsel" : "Markér som udført"}
+            title={isDone ? "Fortryd udførsel" : "Markér som udført"}
+          >
+            {(isDone ? undoPending : markCompletedPending) ? <Loader2 className="h-4 w-4 animate-spin" /> : isDone ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+            <span>{isDone ? "Fortryd" : "Udført"}</span>
+          </Button>
+        )}
+        <span className="flex-1" />
+        {compact && !isProjection && (canMoveUp || canMoveDown) && <>
+          <Button variant="ghost" size="icon" className={cn(actionBtn, "w-11 lg:w-8")} disabled={reorderPending || !canMoveUp} onClick={() => onMove(-1)} aria-label={`Flyt stop ${index} op`} title="Flyt op"><ArrowUp className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className={cn(actionBtn, "w-11 lg:w-8")} disabled={reorderPending || !canMoveDown} onClick={() => onMove(1)} aria-label={`Flyt stop ${index} ned`} title="Flyt ned"><ArrowDown className="h-4 w-4" /></Button>
+        </>}
+        <AssigneeToggle employees={employees} selectedIds={assigneeIds} leadId={leadId} onChange={onSetAssignees} />
+        {!isProjection && (
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            onClick={onRemove}
+            className={cn("flex h-11 w-11 rounded-md p-0 lg:h-8 lg:w-8", ICON_BTN_DESTRUCTIVE)}
+            aria-label="Fjern stop"
+            title="Fjern stop fra rute"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
     </li>
   );
