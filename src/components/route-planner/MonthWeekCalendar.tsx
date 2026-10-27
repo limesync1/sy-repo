@@ -42,6 +42,7 @@ import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, eachDayOfInterval, getISOWeek, isSameMonth, isToday, isSameDay,
 } from "date-fns";
+import { monthGridRange } from "@/lib/route-planner/month-grid";
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
@@ -522,15 +523,14 @@ export const MonthWeekCalendar = ({
   const weeks = useMemo<Date[][]>(() => {
     const days: Date[] = view === "week"
       ? eachDayOfInterval({ start: startOfWeek(anchor, { weekStartsOn: 1 }), end: addDays(startOfWeek(anchor, { weekStartsOn: 1 }), 6) })
-      : eachDayOfInterval({
-          start: startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 }),
-          end: endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 }),
-        });
+      : (() => { const r = monthGridRange(anchor); return eachDayOfInterval({ start: r.start, end: r.end }); })();
     const out: Date[][] = [];
     for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, anchorDate]);
+
+  const monthExtended = view === "month" && monthGridRange(anchor).extended;
 
   const routesByDate = useMemo(() => {
     const m = new Map<string, CalendarRoute[]>();
@@ -754,7 +754,7 @@ export const MonthWeekCalendar = ({
               {week.map((day) => {
                 const dateStr = ymd(day);
                 const dayRoutes = routesByDate.get(dateStr) || [];
-                const inMonth = view === "week" ? true : isSameMonth(day, anchor);
+                const inMonth = view === "week" ? true : (isSameMonth(day, anchor) || (monthExtended && day > anchor));
                 const today = isToday(day);
                 return (
                   <DayCell

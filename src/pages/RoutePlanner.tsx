@@ -1,5 +1,6 @@
 import { orderCycleNumber } from "@/lib/order-recurrence-display";
 import { selectInChunks } from "@/lib/supabase-chunked";
+import { monthGridRange } from "@/lib/route-planner/month-grid";
 import FixAddressesDialog from "@/components/route-planner/FixAddressesDialog";
 import { formatPrice } from "@/lib/price-format";
 import { addStopsInOrder } from "@/lib/route-planner/add-stops-batch";
@@ -421,9 +422,9 @@ const Planner = () => {
       const ws = startOfWeek(anchor, { weekStartsOn: 1 });
       return { start: format(ws, "yyyy-MM-dd"), end: format(addDays(ws, 6), "yyyy-MM-dd") };
     }
-    const ms = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
-    const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
-    return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
+    // Sent i den aktuelle måned vises de første uger af næste måned også.
+    const r = monthGridRange(anchor);
+    return { start: format(r.start, "yyyy-MM-dd"), end: format(r.end, "yyyy-MM-dd") };
   }, [date, view]);
   // Bulk-multi-select for ruter + aftaler (Fase 2: udtrukket).
   // ─── Bølge 1 (.lovable/plan.md): central planner-store ──────────────────
