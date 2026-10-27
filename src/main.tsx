@@ -1,6 +1,12 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { Capacitor } from "@capacitor/core";
+
+// The native app is the employee panel: open it instead of the public homepage.
+if (Capacitor.isNativePlatform() && window.location.pathname === "/") {
+  window.history.replaceState(null, "", "/medarbejder");
+}
 
 /* ─── Smooth image loading ───
    Markerer alle <img loading="lazy"> med data-loaded når de er hentet,
