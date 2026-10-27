@@ -119,7 +119,7 @@ export function AppInstallCard({ className }: { className?: string }) {
         <X className="h-4 w-4" aria-hidden />
       </button>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+      <div className="relative px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         <div className="pr-10">
           <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             <SectionLabelMark />
