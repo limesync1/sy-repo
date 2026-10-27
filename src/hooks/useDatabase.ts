@@ -221,7 +221,7 @@ export const useOrders = (
         all.push(...(data ?? []));
         if (!data || data.length < PAGE) break;
       }
-      return all as Awaited<ReturnType<ReturnType<typeof base>>>["data"] & any[];
+      return all as NonNullable<Awaited<ReturnType<typeof base>>["data"]>;
     },
     enabled: !!businessId,
     staleTime: 5_000,
