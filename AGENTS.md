@@ -55,3 +55,4 @@
 - Manual order saves retain immutable order/item IDs in the mounted form and reconcile uncertain inserts before retrying; completed stages are skipped and edits/closure remain locked until completion to avoid duplicate groups or mismatched prices.
 - Route creation preserves the queued idempotent per-stop RPC, joins default-employee lookup and defers local invalidation until the batch settles; partial retries reuse the route and original sequences so no second route or misleading success is produced.
 - Prerendered public HTML carries real body content (full blog articles, overview link lists, generic h1/description/nav elsewhere) rendered at build via Vite SSR from `src/seo/staticBodies.tsx`; blog posts expose `seoConfig` from `defineBlogPost`, so crawlers get text without JS and React replaces it on mount.
+- Native apps wrap the web app with Capacitor (capacitor.config.ts); the employee panel is the start route, so web and native share one codebase.
