@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lookupCvr } from "@/lib/cvr-lookup";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,15 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
     onChange(v);
     if (status !== "idle") { setStatus("idle"); setCompanyName(null); setManualName(""); }
   };
+
+  // Slå op med det samme, når 8 cifre er indtastet — ingen knap nødvendig.
+  const lastAuto = useRef("");
+  useEffect(() => {
+    if (!isValid || loading || lastAuto.current === cleaned) return;
+    lastAuto.current = cleaned;
+    void lookup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cleaned, isValid]);
 
   const submitManual = (name: string) => {
     const trimmed = name.trim();
