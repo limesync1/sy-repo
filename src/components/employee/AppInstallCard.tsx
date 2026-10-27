@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import { Check, PlusSquare, Share, X } from "lucide-react";
 import apkAsset from "@/assets/downloads/serviceydere-medarbejder.apk.asset.json";
 import { cn } from "@/lib/utils";
+import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { detectInstallPlatform, installOptionOrder, isAppInstalled, type InstallPlatform } from "@/lib/app-install";
 
 const DISMISS_KEY = "sy-app-install-dismissed";
@@ -44,7 +45,6 @@ export function AppInstallCard({ className }: { className?: string }) {
   }, []);
   const platform: InstallPlatform = env ? detectInstallPlatform(env) : "desktop";
   const [dismissed, setDismissed] = useState(readDismissed);
-  const [open, setOpen] = useState<"android" | "ios" | null>(null);
   const [prompt, setPrompt] = useState<DeferredPrompt | null>(() => (typeof window === "undefined" ? null : readPrompt()));
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function AppInstallCard({ className }: { className?: string }) {
   };
 
   const addToHomeScreen = async () => {
-    if (!prompt) { setOpen("android"); return; }
+    if (!prompt) return;
     await prompt.prompt();
     (window as unknown as { __syInstallPrompt?: Event }).__syInstallPrompt = undefined;
     setPrompt(null);
@@ -70,72 +70,100 @@ export function AppInstallCard({ className }: { className?: string }) {
   const order = installOptionOrder(platform);
   const isIosNonSafari = platform === "ios" && /crios|fxios|edgios/i.test(env.userAgent);
 
-  const pill = (key: "android" | "ios") => {
-    const match = platform === key;
-    const cls = cn(
-      "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-      match ? "brand-blue-action border-transparent" : "border-border bg-background text-foreground hover:bg-secondary",
-    );
-    return key === "android" ? (
-      <a key="android" href={apkAsset.url} download="Serviceydere-Medarbejder.apk" onClick={() => setOpen("android")} className={cls} title={`Hent Android-app (${APK_MB} MB)`}>
-        <AndroidLogo className="h-4 w-4" /> Android
-      </a>
-    ) : (
-      <button key="ios" type="button" onClick={() => setOpen(open === "ios" ? null : "ios")} aria-expanded={open === "ios"} className={cls}>
-        <AppleLogo className="h-4 w-4" /> iPhone
-      </button>
-    );
-  };
+  const [tab, setTab] = useState<"android" | "ios">(platform === "ios" ? "ios" : "android");
+  const steps = tab === "android"
+    ? [
+        { icon: <AndroidLogo className="h-5 w-5" />, title: "Hent appen", text: `Tryk på knappen nedenfor (${APK_MB} MB).` },
+        { icon: <Check className="h-5 w-5" />, title: "Åbn filen", text: "Find den i notifikationen eller i Downloads. Tillad installation, hvis telefonen spørger." },
+        { icon: <PlusSquare className="h-5 w-5" />, title: "Tryk Installer", text: "Appen ligger nu på telefonen og åbner direkte i Min dag." },
+      ]
+    : [
+        { icon: <Share className="h-5 w-5" />, title: "Tryk på Del", text: isIosNonSafari ? "Åbn først siden i Safari, og tryk så på Del-knappen." : "Del-knappen sidder nederst i Safari." },
+        { icon: <PlusSquare className="h-5 w-5" />, title: "Føj til hjemmeskærm", text: "Rul lidt ned i menuen og vælg «Føj til hjemmeskærm»." },
+        { icon: <Check className="h-5 w-5" />, title: "Tryk Tilføj", text: "Appen ligger nu på hjemmeskærmen og åbner i Min dag." },
+      ];
 
   return (
-    <section aria-labelledby="app-install-title" className={cn("rounded-md border border-border bg-card px-3 py-2.5 sm:px-4", className)}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="min-w-0 flex-1 basis-56">
-          <h3 id="app-install-title" className="text-sm font-semibold text-foreground">Få appen på telefonen</h3>
-          <p className="text-xs text-muted-foreground">
-            {platform === "desktop" ? "Til Android og iPhone – åbner direkte i Min dag." : "Åbn din dag med ét tryk fra hjemmeskærmen."}
+    <section aria-labelledby="app-install-title" className={cn("panel-page-hero !p-0", className)}>
+      <BlueFlowBackground variant="founder" />
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Skjul forslag om app"
+        className="absolute right-1.5 top-1.5 z-10 grid h-11 w-11 place-items-center rounded-full text-ocean-foreground/80 hover:bg-ocean-foreground/10 hover:text-ocean-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground"
+      >
+        <X className="h-4 w-4" aria-hidden />
+      </button>
+
+      <div className="relative grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-8">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 pr-10">
+            <img src="/apple-touch-icon.png" alt="" width={52} height={52} className="h-13 w-13 shrink-0 rounded-[14px] shadow-lg ring-1 ring-ocean-foreground/25" style={{ height: 52, width: 52 }} />
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ocean-foreground/70">Medarbejder-app</p>
+              <h3 id="app-install-title" className="text-xl font-bold leading-tight text-ocean-foreground sm:text-2xl">Din dag – lige i lommen</h3>
+            </div>
+          </div>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-ocean-foreground/85">
+            Se ruter, start dagen og registrér tid med ét tryk fra telefonens hjemmeskærm. Gratis for Android og iPhone.
           </p>
+
+          <div role="tablist" aria-label="Vælg telefon" className="mt-4 inline-flex rounded-full bg-ocean-foreground/10 p-1 ring-1 ring-ocean-foreground/20">
+            {order.map((key) => (
+              <button
+                key={key}
+                role="tab"
+                type="button"
+                aria-selected={tab === key}
+                onClick={() => setTab(key)}
+                className={cn(
+                  "inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-foreground",
+                  tab === key ? "hero-action-light" : "text-ocean-foreground/85 hover:text-ocean-foreground",
+                )}
+              >
+                {key === "android" ? <AndroidLogo className="h-4 w-4" /> : <AppleLogo className="h-4 w-4" />}
+                {key === "android" ? "Android" : "iPhone"}
+                {platform === key && <span className="hidden rounded-full bg-accent/15 px-1.5 text-[10px] font-semibold sm:inline">Din telefon</span>}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {order.map(pill)}
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Skjul forslag om app"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <X className="h-4 w-4" aria-hidden />
-          </button>
+
+        <div className="min-w-0" role="tabpanel">
+          <ol className="grid gap-2 sm:grid-cols-3">
+            {steps.map((step, i) => (
+              <li key={step.title} className="relative rounded-md bg-ocean-foreground/[0.08] p-3 ring-1 ring-ocean-foreground/15 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ocean-foreground text-xs font-bold text-ocean">{i + 1}</span>
+                  <span className="text-ocean-foreground/80">{step.icon}</span>
+                </div>
+                <p className="mt-2 text-sm font-semibold text-ocean-foreground">{step.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-ocean-foreground/80">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {tab === "android" ? (
+              <a
+                href={apkAsset.url}
+                download="Serviceydere-Medarbejder.apk"
+                className="hero-action-light inline-flex h-12 items-center gap-3 rounded-md px-5 text-sm font-semibold focus-visible:outline-none"
+              >
+                <AndroidLogo className="h-5 w-5" />
+                <span className="flex flex-col leading-tight"><span className="text-[10px] font-medium opacity-70">Hent til</span>Android</span>
+              </a>
+            ) : (
+              <p className="text-xs text-ocean-foreground/75">Virker i Safari på iPhone og iPad.</p>
+            )}
+            {tab === "android" && prompt && (
+              <button type="button" onClick={addToHomeScreen} className="min-h-11 text-sm font-semibold text-ocean-foreground underline underline-offset-4">
+                Eller tilføj til hjemmeskærm
+              </button>
+            )}
+          </div>
         </div>
       </div>
-
-      {open === "android" && (
-        <div className="mt-3 rounded-md bg-secondary/60 p-3 text-xs leading-relaxed text-foreground sm:text-sm" role="status">
-          <p className="font-semibold">Sådan installerer du på Android</p>
-          <ol className="mt-1 space-y-1">
-            <li className="flex gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden />Åbn den hentede fil fra notifikationen eller mappen Downloads.</li>
-            <li className="flex gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden />Tillad installation fra browseren, hvis telefonen spørger.</li>
-            <li className="flex gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden />Tryk Installer. Appen åbner direkte i Min dag.</li>
-          </ol>
-          {prompt && (
-            <button type="button" onClick={addToHomeScreen} className="mt-2 min-h-11 font-semibold text-accent underline underline-offset-4">
-              Eller tilføj blot til hjemmeskærmen
-            </button>
-          )}
-        </div>
-      )}
-
-      {open === "ios" && (
-        <div className="mt-3 rounded-md bg-secondary/60 p-3 text-xs leading-relaxed text-foreground sm:text-sm" role="status">
-          <p className="font-semibold">Sådan tilføjer du på iPhone</p>
-          {isIosNonSafari && <p className="mt-1 text-muted-foreground">Åbn først denne side i Safari.</p>}
-          <ol className="mt-1 space-y-1.5">
-            <li className="flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-card"><Share className="h-3.5 w-3.5" aria-hidden /></span>Tryk på Del nederst i Safari.</li>
-            <li className="flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-card"><PlusSquare className="h-3.5 w-3.5" aria-hidden /></span>Vælg «Føj til hjemmeskærm».</li>
-            <li className="flex items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-card"><Check className="h-3.5 w-3.5 text-success" aria-hidden /></span>Tryk Tilføj. Appen ligger nu på hjemmeskærmen.</li>
-          </ol>
-        </div>
-      )}
     </section>
   );
 }
