@@ -28,6 +28,7 @@ const SLUG_TO_NAME: Record<string, string> = {
   "glarmester": "Glarmester",
   "laasesmed": "Låsesmed",
   "oekonomi": "Økonomi",
+  "ruteplanlaegning": "Ruteplanlægning",
 };
 
 /** Aliasser → kanonisk navn (i tilfælde af inkonsistente posts). */

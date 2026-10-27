@@ -63,3 +63,4 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Testkunders påmindelser stoppet; @hej.dk → @hej.invalid; afsender springer testdomæner over.
 - [x] Leads hopper ikke ved opdatering; Regnskab blinker ikke efter tilkobling; medarbejdervindue mobilvenligt.
 - [x] Ruteplanlægger springer til første måned med ruter + "Næste rute"-knap.
+- [x] SEO: sider sendte kun titel/beskrivelse til Google — nu fuld artikeltekst og interne links i HTML; 9 nye ruteplanlægningsartikler; LinkedIn-link på forsiden.

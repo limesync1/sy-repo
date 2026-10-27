@@ -8,7 +8,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").repl
 
 type RouteMeta = { path: string; title: string; description: string };
 
-export const renderRouteHead = (html: string, r: RouteMeta) => {
+export const renderRouteHead = (html: string, r: RouteMeta, body?: string) => {
   const url = `${BASE_URL}${r.path}`;
   const t = esc(r.title), d = esc(r.description);
   const isArticle = r.path.startsWith("/blog/") && !r.path.startsWith("/blog/kategori/");
@@ -42,10 +42,37 @@ export const renderRouteHead = (html: string, r: RouteMeta) => {
     // </div> er sikkert.
     .replace(
       /<div style="position:absolute;left:-10000px[^>]*>[\s\S]*?<\/div>/,
-      `<div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="false"><h1>${t}</h1><p>${d}</p></div>`,
+      // Med body: læsbart indhold i normal flow (React erstatter det ved mount).
+      body
+        ? `<div data-seo-body="1">${body}</div>`
+        : `<div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="false"><h1>${t}</h1><p>${d}</p></div>`,
     )
     // Body-noscript (ikke font-noscript i head) får sidens egen H1.
     .replace(/(<noscript>\s*<div[\s\S]*?<h1>)[\s\S]*?(<\/h1>)/, `$1${t}$2`);
+};
+
+const GENERIC_LINKS: [string, string][] = [["/", "Forside"], ["/tilbud", "Få 3 gratis tilbud"], ["/virksomheder", "Find serviceydere"], ["/guides", "Guides og priser"], ["/blog", "Blog"], ["/by", "Alle byer"], ["/software/ruteplanlaegger", "Ruteplanlægger til servicefirmaer"]];
+const genericBody = (r: RouteMeta) =>
+  `<h1>${esc(r.title.replace(/\s*\|\s*Serviceydere$/, ""))}</h1><p>${esc(r.description)}</p><nav aria-label="Mere fra Serviceydere"><ul>${GENERIC_LINKS.map(([h, l]) => `<li><a href="${h}">${esc(l)}</a></li>`).join("")}</ul></nav>`;
+
+/** Renderer artikler/oversigter til statisk HTML via Vite SSR. Fejl → tom map. */
+const loadStaticBodies = async (): Promise<Record<string, string>> => {
+  let server: any;
+  try {
+    const { createServer } = await import("vite");
+    server = await createServer({
+      configFile: false, logLevel: "error", appType: "custom",
+      server: { middlewareMode: true, hmr: false, ws: false },
+      resolve: { alias: { "@": resolve("src") } },
+    });
+    const mod = await server.ssrLoadModule("/src/seo/staticBodies.tsx");
+    return await mod.renderStaticBodies();
+  } catch (e) {
+    console.warn("seo-prerender-head: static bodies skipped:", (e as Error).message);
+    return {};
+  } finally {
+    await server?.close();
+  }
 };
 
 /** Build-only plugin: writes dist/<route>/index.html with route-specific head tags. */
@@ -54,20 +81,21 @@ export const seoPrerenderHead = () => ({
   transformIndexHtml(html: string) {
     return renderHomeHead(html);
   },
-  closeBundle() {
+  async closeBundle() {
     const metaFile = resolve("scripts/.seo-routes.json");
     const indexFile = resolve("dist/index.html");
     if (!existsSync(metaFile) || !existsSync(indexFile)) return;
     const html = readFileSync(indexFile, "utf8");
     const routes: RouteMeta[] = JSON.parse(readFileSync(metaFile, "utf8"));
+    const bodies = await loadStaticBodies();
     for (const r of routes) {
       if (!r.path.startsWith("/") || r.path === "/" || r.path.includes("..")) continue;
-      const out = renderRouteHead(html, r);
+      const out = renderRouteHead(html, r, bodies[r.path] ?? genericBody(r));
       const dir = join(resolve("dist"), r.path);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, "index.html"), out);
     }
-    console.log(`seo-prerender-head: ${routes.length} routes`);
+    console.log(`seo-prerender-head: ${routes.length} routes, ${Object.keys(bodies).length} with full body`);
   },
 });
 
