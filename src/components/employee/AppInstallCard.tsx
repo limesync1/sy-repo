@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Check, Download, PlusSquare, Share, X } from "lucide-react";
+import { Check, PlusSquare, Share, X } from "lucide-react";
 import apkAsset from "@/assets/downloads/serviceydere-medarbejder.apk.asset.json";
 import { cn } from "@/lib/utils";
 import { detectInstallPlatform, installOptionOrder, isAppInstalled, type InstallPlatform } from "@/lib/app-install";
