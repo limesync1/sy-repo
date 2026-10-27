@@ -3721,7 +3721,7 @@ const Planner = () => {
                       <PopoverTrigger asChild>
                         <Button variant="ghost" className="h-11 min-w-0 flex-1 flex-col gap-0.5 px-1" aria-label="Vælg dato">
                           <span className="max-w-full truncate text-sm font-semibold first-letter:uppercase">{mobileDayView ? format(parseISO(date), "EEEE d. MMM", { locale: da }) : view === "week" ? `Uge ${format(parseISO(date), "I")} · ${format(parseISO(date), "MMM yyyy", { locale: da })}` : format(parseISO(date), "MMMM yyyy", { locale: da })}</span>
-                          <span className="text-xs font-normal text-muted-foreground">{periodSummary.routeCount} ruter · {periodSummary.stopCount} stop</span>
+                          <span className="text-xs font-normal text-muted-foreground">{mobileDayView ? `${mobileDaySummary.routeCount} ruter · ${mobileDaySummary.stopCount} stop` : `${periodSummary.routeCount} ruter · ${periodSummary.stopCount} stop`}</span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent align="center" className="w-auto p-0">

@@ -729,7 +729,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting || needsResume}>
+              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={requestClose} disabled={submitting}>
                 Annullér
               </Button>
               <Button className="min-h-11 flex-1 sm:flex-none" onClick={handleSubmit} disabled={submitting}>
