@@ -214,8 +214,6 @@ const FavoritesView = () => {
       <EmptyPanel
         title="Du har ingen favoritter endnu"
         description="Tryk på hjertet på en virksomhed for at gemme den her — så har du hurtig adgang til dem du holder af."
-        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
-        secondary={{ to: "/tilbud", label: "Få tilbud i stedet" }}
       />
     );
   }
@@ -359,8 +357,6 @@ const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
       <EmptyPanel
         title="Ingen bestillinger endnu"
         description="Find en virksomhed og bestil en service direkte — eller modtag tilbud fra flere udbydere på én gang."
-        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
-        secondary={{ to: "/tilbud", label: "Få tilbud fra flere", icon: <MessageSquare className="h-4 w-4" /> }}
       />
     );
   }
@@ -1037,8 +1033,6 @@ const SubscriptionsView = () => {
       <EmptyPanel
         title="Ingen aktive abonnementer"
         description="Tilmeld dig en tilbagevendende service som rengøring, haveservice eller vinduespudsning — så slipper du for at huske at bestille hver gang."
-        primary={{ to: "/virksomheder", label: "Find tilbagevendende services", icon: <CalendarClock className="h-4 w-4" /> }}
-        secondary={{ to: "/tilbud", label: "Få tilbud først" }}
       />
     );
   }
@@ -1765,7 +1759,6 @@ const MyReviewsView = () => {
       <EmptyPanel
         title="Du har ikke skrevet anmeldelser endnu"
         description="Når du har brugt en service, kan du dele din oplevelse — det hjælper både virksomheden og andre kunder."
-        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
       />
     );
   }
