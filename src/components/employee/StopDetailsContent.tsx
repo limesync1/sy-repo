@@ -432,6 +432,10 @@ export const StopDetailsContent = ({
           </Section>
         )}
 
+        <StopPhotos stopId={stop.id} businessId={(order as any)?.business_id} orderId={stop.order_id} readOnly={readOnly} />
+        {!readOnly && !isDone && <StopObstacleButton stopId={stop.id} />}
+
+
         <Section
           icon={<Package className="h-3.5 w-3.5" />}
           title="Bestilte services"
