@@ -1853,6 +1853,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
       )}
 
+      {pendingSync > 0 && (
+        <div role="status" className="mx-3 mt-2 rounded-md border border-warning/50 bg-warning/15 px-3 py-2 text-sm font-medium text-foreground">
+          {pendingSync === 1 ? "1 udført stop" : `${pendingSync} udførte stop`} venter på dækning — sendes automatisk.
+        </div>
+      )}
       {night && nightMapFailed && (
         <DriveIssueBanner
           placement="inline"
