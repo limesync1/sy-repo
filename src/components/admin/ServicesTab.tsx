@@ -1124,8 +1124,11 @@ const ServiceForm = ({
   // skabelon, AI-genereret skabelon eller "byg fra bunden" — vi tager
   // ingen beslutninger på vegne af dem.
 
+  // Importerede services (fx fra SkvizBiz) har ingen kategori; de skal kunne
+  // redigeres uden at kategori først udfyldes.
+  const categoryOptional = !!existingService && !existingService.service_category;
   const canGoNext = () => {
-    if (currentStep === 1) return !!serviceCategory && !!subcategory.trim();
+    if (currentStep === 1) return categoryOptional || (!!serviceCategory && !!subcategory.trim());
     if (currentStep === 2) return !!name.trim() && !!description.trim();
     if (currentStep === 3) {
       if (pricingType === "prisberegner") return true;
@@ -1137,8 +1140,8 @@ const ServiceForm = ({
   const handleSave = async () => {
     if (savingRef.current) return;
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
-    if (!serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
-    if (!subcategory.trim()) { toast.error("Vælg en underkategori"); return; }
+    if (!categoryOptional && !serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
+    if (!categoryOptional && !subcategory.trim()) { toast.error("Vælg en underkategori"); return; }
     if (pricingType === "prisberegner" && steps.length === 0) { toast.error("Tilføj mindst ét beregnertrin"); return; }
     if (pricingType === "prisberegner" && steps.some(s => !s.label.trim())) { toast.error("Alle beregnertrin skal have et navn"); return; }
 
