@@ -2420,11 +2420,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         onMoveStop={handleMoveStop}
         footer={
           <div className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2">
-            <label htmlFor="record-drive" className="flex min-h-11 flex-1 cursor-pointer items-center gap-3 text-sm font-medium text-foreground">
-              <Switch id="record-drive" checked={recordDrive} onCheckedChange={setRecordDrive} />
-              <span>Optag kørsel<span className="block text-xs font-normal text-muted-foreground">Gemmer GPS og bilens position i 14 dage</span></span>
-            </label>
-            <Button type="button" variant="outline" className="min-h-11" onClick={() => setTraceOpen(true)}>Se optagelse</Button>
+            <span className="text-sm text-muted-foreground">Alle stop er vist nedenfor.</span>
           </div>
         }
       />}
