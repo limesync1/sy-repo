@@ -1,5 +1,5 @@
-// "Kunne ikke udføres": hurtige årsager, som sendes til kontoret og markeres
-// som "Skal omplanlægges" på aftalen. Stoppet forbliver uudført.
+// "Kunne ikke udføres": hurtige årsager sendes til kontoret, og besøget tages
+// af ruten og lander i "Aftaler uden rute" til omplanlægning. Seriens faste rute bevares.
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ban, Loader2 } from "lucide-react";
