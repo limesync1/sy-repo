@@ -1,3 +1,4 @@
+import { groupCustomerInvoices } from "@/lib/customer-invoices";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { translateAuthError } from "@/lib/auth-errors";
 import { formatPrice } from "@/lib/price-format";
@@ -87,7 +88,7 @@ const EmptyPanel = ({
 }: {
   title: string;
   description: string;
-  primary: { to: string; label: string; icon?: React.ReactNode };
+  primary?: { to: string; label: string; icon?: React.ReactNode };
   secondary?: { to: string; label: string; icon?: React.ReactNode };
 }) => (
   <Card className="rounded-2xl border-dashed border-border bg-card">
@@ -95,13 +96,13 @@ const EmptyPanel = ({
       <NoItemsIcon className="mb-5 h-16 w-16" />
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-        <Link to={primary.to}>
+      {(primary || secondary) && <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+        {primary && <Link to={primary.to}>
           <Button className="w-full gap-2 rounded-xl bg-foreground px-5 text-background hover:bg-foreground/90 sm:w-auto">
             {primary.icon}
             {primary.label}
           </Button>
-        </Link>
+        </Link>}
         {secondary && (
           <Link to={secondary.to}>
             <Button variant="outline" className="w-full gap-2 rounded-xl px-5 sm:w-auto">
@@ -110,7 +111,7 @@ const EmptyPanel = ({
             </Button>
           </Link>
         )}
-      </div>
+      </div>}
     </CardContent>
   </Card>
 );
@@ -214,8 +215,6 @@ const FavoritesView = () => {
       <EmptyPanel
         title="Du har ingen favoritter endnu"
         description="Tryk på hjertet på en virksomhed for at gemme den her — så har du hurtig adgang til dem du holder af."
-        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
-        secondary={{ to: "/tilbud", label: "Få tilbud i stedet" }}
       />
     );
   }
@@ -359,8 +358,6 @@ const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
       <EmptyPanel
         title="Ingen bestillinger endnu"
         description="Find en virksomhed og bestil en service direkte — eller modtag tilbud fra flere udbydere på én gang."
-        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
-        secondary={{ to: "/tilbud", label: "Få tilbud fra flere", icon: <MessageSquare className="h-4 w-4" /> }}
       />
     );
   }
@@ -1037,8 +1034,6 @@ const SubscriptionsView = () => {
       <EmptyPanel
         title="Ingen aktive abonnementer"
         description="Tilmeld dig en tilbagevendende service som rengøring, haveservice eller vinduespudsning — så slipper du for at huske at bestille hver gang."
-        primary={{ to: "/virksomheder", label: "Find tilbagevendende services", icon: <CalendarClock className="h-4 w-4" /> }}
-        secondary={{ to: "/tilbud", label: "Få tilbud først" }}
       />
     );
   }
@@ -1263,37 +1258,56 @@ const InvoicesView = () => {
     );
   }
 
+  // Med fakturainterval kan flere aftaler ligge på samme faktura: de deler
+  // samme fakturanummer fra regnskabsprogrammet og vises samlet.
+  const groups = groupCustomerInvoices(invoiced);
+
   return (
-    <div className="space-y-2">
-      {invoiced.map((o: any) => {
+    <div className="space-y-3">
+      {groups.map((g) => {
+        const o = g.orders[0];
         const biz = o.businesses || {};
+        const total = g.orders.reduce((sum: number, x: any) => sum + Number(x.total_amount || 0), 0);
         return (
-          <Card key={o.id} className="rounded-xl">
-            <CardContent className="flex items-center gap-3 p-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary border shrink-0">
-                <Receipt className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold truncate">
-                  {biz.name || "Virksomhed"}
-                  {o.external_order_number && <span className="ml-2 text-xs font-normal text-muted-foreground">#{o.external_order_number}</span>}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {o.invoiced_at
-                    ? new Date(o.invoiced_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })
-                    : new Date(o.created_at).toLocaleDateString("da-DK")}
-                  {o.due_date && <> · Forfald {new Date(o.due_date).toLocaleDateString("da-DK")}</>}
-                </p>
-                {/* Status-badges synkroniseres automatisk fra virksomhedens regnskabsprogram */}
-                <div className="mt-1.5">
-                  <AccountingStatusRow order={o as OrderForStatus} size="xs" />
+          <Card key={g.key} className="rounded-xl">
+            <CardContent className="space-y-3 p-4">
+              <div className="flex flex-wrap items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-secondary">
+                  <Receipt className="h-5 w-5 text-muted-foreground" />
                 </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-semibold">
+                    {o.invoice_external_number ? `Faktura ${o.invoice_external_number}` : "Faktura"}
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">{(biz as any).name || "Virksomhed"}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {o.invoiced_at
+                      ? new Date(o.invoiced_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })
+                      : new Date(o.created_at).toLocaleDateString("da-DK")}
+                    {o.due_date && <> · Forfald {new Date(o.due_date).toLocaleDateString("da-DK")}</>}
+                    {" · "}{g.orders.length} {g.orders.length === 1 ? "aftale" : "aftaler"}
+                  </p>
+                  <div className="mt-1.5"><AccountingStatusRow order={o as OrderForStatus} size="xs" /></div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <span className="whitespace-nowrap text-base font-bold">{formatPrice(total)}</span>
+                  <span className="block text-xs text-muted-foreground">Uden moms</span>
+                </div>
+                <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-sm font-bold whitespace-nowrap">{formatPrice(o.total_amount)}</span>
-                <span className="block text-xs text-muted-foreground">Uden moms</span>
-              </div>
-              <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {g.orders.map((x: any) => (
+                  <li key={x.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-3 py-2.5 text-sm">
+                    <span className="min-w-0 font-medium text-foreground">
+                      {(x.order_items || []).map((i: any) => i.service_name).filter(Boolean).join(", ") || "Aftale"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {new Date(x.preferred_date || x.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                      {" · "}{formatPrice(x.total_amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         );
@@ -1765,7 +1779,6 @@ const MyReviewsView = () => {
       <EmptyPanel
         title="Du har ikke skrevet anmeldelser endnu"
         description="Når du har brugt en service, kan du dele din oplevelse — det hjælper både virksomheden og andre kunder."
-        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
       />
     );
   }

@@ -64,3 +64,10 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Leads hopper ikke ved opdatering; Regnskab blinker ikke efter tilkobling; medarbejdervindue mobilvenligt.
 - [x] Ruteplanlægger springer til første måned med ruter + "Næste rute"-knap.
 - [x] SEO: sider sendte kun titel/beskrivelse til Google — nu fuld artikeltekst og interne links i HTML; 9 nye ruteplanlægningsartikler; LinkedIn-link på forsiden.
+
+## 28. okt. (aften)
+- [x] Billedbevis: miniaturer + komprimering, nyt Før/Efter-design, kameraknap i tjekliste, bedre fejlbeskeder
+- [x] Tom rute slettes når sidste aftale slettes
+- [x] Importerede services kan redigeres uden kategori
+- [x] Kundepanel: fakturaer samlet pr. faktura med aftaler; tomme-knapper fjernet
+- [x] Regnskab: kunder er synkroniseret; aftaler bogføres først ved udført besøg (bevidst)
