@@ -31,6 +31,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { EmployeeStopActions, EmployeeStopNotesList } from "./EmployeeStopActions";
+import { AlertTriangle } from "lucide-react";
+import { extractAccessHints } from "@/lib/stop-access-notes";
+import { StopPhotos } from "./StopPhotos";
+import { StopObstacleButton } from "./StopObstacleButton";
 
 type RouteContext = {
   name: string | null;
@@ -214,6 +218,7 @@ export const StopDetailsContent = ({
   const fallbackSummary = !tasks.length && stop.service_summary ? stripPrices(stop.service_summary) : null;
   const customerNote: string | null = (order as any)?.notes || null;
   const doorCode = customerNote?.match(/(?:dørkode|portkode|adgangskode|kode)\s*[:=–-]?\s*([\dA-Za-z#*]{3,12})/i)?.[1];
+  const accessHints = useMemo(() => extractAccessHints([customerNote, stop.notes].filter(Boolean).join("\n")), [customerNote, stop.notes]);
 
   const orderTotal = useMemo(() => {
     if (!order) return 0;
