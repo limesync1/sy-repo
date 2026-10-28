@@ -324,6 +324,19 @@ export const StopDetailsContent = ({
       </div>
 
       <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-3 p-3 sm:space-y-4 sm:p-5">
+        {accessHints.length > 0 && (
+          <div role="note" className="rounded-md border-2 border-warning/60 bg-warning/15 p-3">
+            <p className="mb-2 flex items-center gap-2 text-sm font-bold text-foreground"><AlertTriangle className="h-4 w-4 shrink-0" /> Vigtigt før du går ind</p>
+            <ul className="space-y-1.5">
+              {accessHints.map((h) => (
+                <li key={h.kind} className="flex gap-2 text-sm leading-snug text-foreground">
+                  <span className="shrink-0 rounded bg-background px-1.5 py-0.5 text-xs font-semibold">{h.label}</span>
+                  <span className="min-w-0 break-words">{h.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {!readOnly && stop.order_id && (
           <EmployeeStopActions
             stopId={stop.id}
