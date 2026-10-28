@@ -1278,7 +1278,7 @@ const InvoicesView = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-base font-semibold">
                     {o.invoice_external_number ? `Faktura ${o.invoice_external_number}` : "Faktura"}
-                    <span className="ml-2 text-sm font-normal text-muted-foreground">{biz.name || "Virksomhed"}</span>
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">{(biz as any).name || "Virksomhed"}</span>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {o.invoiced_at
