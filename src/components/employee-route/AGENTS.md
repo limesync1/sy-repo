@@ -12,3 +12,4 @@
 - Navigation legs are refetched only at start, next-stop change or reroute, never per distance driven, to keep the line under the car stable and bound routing cost.
 - The shown car follows a vehicle model (bounded acceleration/braking, no turning while stationary, speed-limited turn rate) so it never teleports or spins.
 - Follow zoom is speed-based and low-pass filtered until the driver pinches; afterwards the driver's zoom always wins, so the map never fights the user.
+- Drive-trace recording was removed at user request: no `Optag kørsel` toggle, no raw-GPS trace capture and no `route_drive_traces` writes in the employee panel. Do not reintroduce raw-GPS recording; the position engine stays the only source of the shown car.
