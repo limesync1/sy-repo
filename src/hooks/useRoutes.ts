@@ -2782,11 +2782,34 @@ export const useMyDayStops = (date: string) => {
 };
 
 /* ─── Stops for a single route assigned to current employee ─── */
+/** Gemmer seneste rutedata på telefonen og bruger dem, når der ikke er dækning. */
+async function withOfflineCache<T>(key: string, load: () => Promise<T>): Promise<T> {
+  try {
+    const result = await load();
+    try { if (result) localStorage.setItem(key, JSON.stringify(result)); } catch { /* fuldt/blokeret lager */ }
+    return result;
+  } catch (e) {
+    if (isNetworkError(e)) {
+      try { const cached = localStorage.getItem(key); if (cached) return JSON.parse(cached) as T; } catch { /* ignore */ }
+    }
+    throw e;
+  }
+}
+
+/** Stop der er udført offline, men endnu ikke sendt, vises stadig som udført. */
+function overlayQueuedCompletions<T extends { stops: RouteStop[] } | null>(data: T): T {
+  const queued = readQueue();
+  if (!data || !queued.length) return data;
+  const byId = new Map(queued.map((q) => [q.stopId, q]));
+  return { ...data, stops: data.stops.map((s) => byId.has(s.id) && s.status !== "completed"
+    ? { ...s, status: "completed", completed_at: byId.get(s.id)!.completedAt } : s) };
+}
+
 export const useMyRouteData = (routeId: string | undefined) => {
   return useQuery({
     queryKey: ["my-route-data", routeId],
     enabled: !!routeId,
-    queryFn: async () => {
+    queryFn: () => withOfflineCache(`my-route-cache:${routeId}`, async () => {
       const { data: user, error: authError } = await supabase.auth.getUser();
       if (authError) throw authError;
       if (!user.user) return null;
@@ -2912,7 +2935,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
         stops: (stops || []) as RouteStop[],
         employee: emp,
       };
-    },
+    }).then(overlayQueuedCompletions),
   });
 };
 
