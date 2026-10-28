@@ -31,6 +31,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { EmployeeStopActions, EmployeeStopNotesList } from "./EmployeeStopActions";
+import { AlertTriangle } from "lucide-react";
+import { extractAccessHints } from "@/lib/stop-access-notes";
+import { StopPhotos } from "./StopPhotos";
+import { StopObstacleButton } from "./StopObstacleButton";
 
 type RouteContext = {
   name: string | null;
@@ -214,6 +218,7 @@ export const StopDetailsContent = ({
   const fallbackSummary = !tasks.length && stop.service_summary ? stripPrices(stop.service_summary) : null;
   const customerNote: string | null = (order as any)?.notes || null;
   const doorCode = customerNote?.match(/(?:dørkode|portkode|adgangskode|kode)\s*[:=–-]?\s*([\dA-Za-z#*]{3,12})/i)?.[1];
+  const accessHints = useMemo(() => extractAccessHints([customerNote, stop.notes].filter(Boolean).join("\n")), [customerNote, stop.notes]);
 
   const orderTotal = useMemo(() => {
     if (!order) return 0;
@@ -324,6 +329,19 @@ export const StopDetailsContent = ({
       </div>
 
       <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-3 p-3 sm:space-y-4 sm:p-5">
+        {accessHints.length > 0 && (
+          <div role="note" className="rounded-md border-2 border-warning/60 bg-warning/15 p-3">
+            <p className="mb-2 flex items-center gap-2 text-sm font-bold text-foreground"><AlertTriangle className="h-4 w-4 shrink-0" /> Vigtigt før du går ind</p>
+            <ul className="space-y-1.5">
+              {accessHints.map((h) => (
+                <li key={h.kind} className="flex gap-2 text-sm leading-snug text-foreground">
+                  <span className="shrink-0 rounded bg-background px-1.5 py-0.5 text-xs font-semibold">{h.label}</span>
+                  <span className="min-w-0 break-words">{h.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {!readOnly && stop.order_id && (
           <EmployeeStopActions
             stopId={stop.id}
@@ -413,6 +431,10 @@ export const StopDetailsContent = ({
             </div>
           </Section>
         )}
+
+        <StopPhotos stopId={stop.id} businessId={(order as any)?.business_id} orderId={stop.order_id} readOnly={readOnly} />
+        {!readOnly && !isDone && <StopObstacleButton stopId={stop.id} />}
+
 
         <Section
           icon={<Package className="h-3.5 w-3.5" />}

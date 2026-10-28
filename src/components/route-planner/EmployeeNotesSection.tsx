@@ -47,6 +47,7 @@ export function EmployeeNotesSection({ orderId }: { orderId: string }) {
               <span className="font-medium text-foreground">{n.employee_name || "Medarbejder"}</span>
               <span>{format(new Date(n.created_at), "d. MMM HH:mm", { locale: da })}</span>
               {n.kind === "services_changed" && <Badge variant="outline" className="h-4 px-1.5 text-[10px]">Ydelser ændret</Badge>}
+              {n.kind === "obstacle" && <Badge variant="outline" className="h-4 border-warning/50 bg-warning/10 px-1.5 text-[10px] text-warning-foreground">Skal omplanlægges</Badge>}
               {!n.read_at && <Badge className="h-4 px-1.5 text-[10px]">Ny</Badge>}
             </div>
             <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{n.body}</p>
