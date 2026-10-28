@@ -37,6 +37,7 @@ import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 import { EmployeeNotesSection } from "./EmployeeNotesSection";
+import { OrderPhotoGallery } from "@/components/employee/StopPhotos";
 
 type Props = {
   stop: RouteStop | null;
@@ -368,6 +369,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <RouteCommunicationPanel route={stopRoute} stops={[stop]} employees={activeEmployees} stop={stop} />
               )}
 
+              {stop.order_id && <OrderPhotoGallery orderId={stop.order_id} />}
               {stop.order_id && <EmployeeNotesSection orderId={stop.order_id} />}
 
               {/* Customer */}

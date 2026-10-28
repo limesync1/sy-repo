@@ -4867,6 +4867,7 @@ export type Database = {
           created_at: string
           id: string
           order_id: string | null
+          phase: string
           stop_id: string
           storage_path: string
           uploaded_by: string
@@ -4876,6 +4877,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string | null
+          phase?: string
           stop_id: string
           storage_path: string
           uploaded_by?: string
@@ -4885,19 +4887,12 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string | null
+          phase?: string
           stop_id?: string
           storage_path?: string
           uploaded_by?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "stop_photos_stop_id_fkey"
-            columns: ["stop_id"]
-            isOneToOne: false
-            referencedRelation: "route_stops"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       stop_time_entries: {
         Row: {

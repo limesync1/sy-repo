@@ -69,6 +69,7 @@ import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 import { NightBasemap } from "@/components/employee-route/NightBasemap";
 import { enqueueCompletion, flushQueue, isNetworkError, readQueue } from "@/lib/offline-stop-queue";
+import { StopCameraTile } from "@/components/employee/StopPhotos";
 import { GoogleRouteMap, type GoogleRouteStop } from "@/components/employee-route/GoogleRouteMap";
 import { googleMapsPreviouslyFailed, rememberGoogleMapsFailure, type GoogleMapsLoadError } from "@/lib/google-maps-loader";
 
@@ -2343,6 +2344,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       man har brug for; Ret/Ny aftale vises når man er hos kunden. */}
                   <div className={cn("route-dock-actions flex min-w-0 gap-1", (activeNextStopEntry || isAtNextStop) && "mt-1.5")}>
                   <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" aria-label="Oplysninger" title="Oplysninger" className="route-dock-tile"><Info className="h-5 w-5 shrink-0" /><span className="route-dock-tile-label">Info</span></Button>
+                  {nextStop.order_id && <StopCameraTile stopId={nextStop.id} businessId={(nextStopOrder as any)?.business_id} orderId={nextStop.order_id} completed={nextStop.status === "completed"} />}
                   <EmployeeStopActions stopId={nextStop.id} order={nextStopOrder ?? null} completed={nextStop.status === "completed"} noteOnly routeDate={route?.route_date ?? null} compact />
                   {nextStop.customer_phone ? (
                     <Button asChild variant="outline" aria-label="Ring til kunde" title="Ring til kunde" className="route-dock-tile">

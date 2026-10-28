@@ -1,5 +1,5 @@
-// "Kunne ikke udføres": hurtige årsager, som sendes til kontoret og markeres
-// som "Skal omplanlægges" på aftalen. Stoppet forbliver uudført.
+// "Kunne ikke udføres": hurtige årsager sendes til kontoret, og besøget tages
+// af ruten og lander i "Aftaler uden rute" til omplanlægning. Seriens faste rute bevares.
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ban, Loader2 } from "lucide-react";
@@ -28,9 +28,9 @@ export function StopObstacleButton({ stopId, onReported }: { stopId: string; onR
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Kontoret har fået besked", { description: "Aftalen er markeret til omplanlægning." });
+      toast.success("Kontoret har fået besked", { description: "Besøget er taget af ruten og ligger klar i Aftaler uden rute." });
       setOpen(false); setReason(""); setDetail("");
-      qc.invalidateQueries({ queryKey: ["employee-stop-notes", stopId] });
+      ["employee-stop-notes","my-route-data","routes","unassigned-jobs","route-calendar"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onReported?.();
     },
     onError: (e) => toast.error("Beskeden blev ikke sendt", { description: toDanishError(e, "Prøv igen om lidt.") }),
@@ -45,7 +45,7 @@ export function StopObstacleButton({ stopId, onReported }: { stopId: string; onR
         <SheetContent side={isCompact ? "bottom" : "right"} className={cn("flex flex-col gap-0 p-0", isCompact ? "max-h-[92dvh] rounded-t-md" : "w-full sm:max-w-md")}>
           <SheetHeader className="border-b border-border p-5 pr-14 text-left">
             <SheetTitle>Kunne ikke udføres</SheetTitle>
-            <SheetDescription>Vælg årsagen. Kontoret får besked og planlægger besøget igen.</SheetDescription>
+            <SheetDescription>Vælg årsagen. Besøget tages af ruten, og kontoret planlægger det igen. Den faste rute ændres ikke.</SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
             <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
