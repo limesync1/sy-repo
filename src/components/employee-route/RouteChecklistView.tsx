@@ -1,3 +1,4 @@
+import { StopCameraTile } from "@/components/employee/StopPhotos";
 import { EmployeeStopActions } from "@/components/employee/EmployeeStopActions";
 import { useOrderForStop } from "@/hooks/useRoutes";
 import { Moon, Sun } from "lucide-react";
@@ -282,6 +283,7 @@ export const RouteChecklistView = ({
                         <Info className="h-4 w-4" />
                         Oplysninger
                       </Button>
+                      <StopCameraTile stopId={next.id} orderId={next.order_id} completed={next.status === "completed"} variant="button" className="col-span-2" />
                       <div className="col-span-2 min-w-0"><ChecklistStopActions stop={next} routeDate={routeDate} /></div>
                       {next.customer_phone ? <Button variant="outline" className="col-span-2 h-11 gap-2" asChild>
                         <a href={`tel:${next.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunden</a>
