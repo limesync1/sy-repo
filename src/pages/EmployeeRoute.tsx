@@ -44,8 +44,6 @@ import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuv
 import type { MotionSource } from "@/components/employee-route/motionTrack";
 import { usePositionTrack } from "@/components/employee-route/positionEngine";
 import { useDriveRecorder } from "@/components/employee-route/useDriveRecorder";
-import { DriveTraceDialog } from "@/components/employee-route/DriveTraceDialog";
-import { Switch } from "@/components/ui/switch";
 import { RouteMapLine, resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -2419,7 +2417,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         reordering={reorderStops.isPending}
         onMoveStop={handleMoveStop}
       />}
-      {routeId && <DriveTraceDialog routeId={routeId} open={traceOpen} onOpenChange={setTraceOpen} />}
     </div>
   );
 };
