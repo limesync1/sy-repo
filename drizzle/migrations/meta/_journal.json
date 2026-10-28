@@ -239,6 +239,13 @@
       "when": 1793179853113,
       "tag": "0033_stop_photos_and_obstacles",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793180431195,
+      "tag": "0034_stop_photos_phase_and_reschedule",
+      "breakpoints": true
     }
   ]
 }
