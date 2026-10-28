@@ -53,6 +53,7 @@ import { ROUTE_COLOR_GRID, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AppointmentDetailsHeader } from "@/components/shared/AppointmentDetailsHeader";
+import { OrderPhotoGallery } from "@/components/employee/StopPhotos";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -2297,6 +2298,7 @@ const AftaleTab = ({
                         </AppointmentDetailsHeader>
                       </SheetHeader>
                       <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
+                    <OrderPhotoGallery orderId={order.id} />
                     <Section icon={<ArrowRight className="h-3.5 w-3.5" />} title="Næste handling">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
