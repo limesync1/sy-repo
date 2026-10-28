@@ -246,6 +246,13 @@
       "when": 1793180431195,
       "tag": "0034_stop_photos_phase_and_reschedule",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793217302994,
+      "tag": "0035_cleanup_route_after_order_delete",
+      "breakpoints": true
     }
   ]
 }
