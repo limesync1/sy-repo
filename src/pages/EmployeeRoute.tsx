@@ -656,10 +656,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setUserPos((p) => (p && p[0] === engineState.pos[0] && p[1] === engineState.pos[1] ? p : engineState.pos));
     if (engineState.heading != null) setUserHeading(engineState.heading);
   }, [engineState]);
-  const [recordDrive, setRecordDrive] = useState(() => { try { return sessionStorage.getItem("serviceydere:record-drive") === "1"; } catch { return false; } });
-  const [traceOpen, setTraceOpen] = useState(false);
-  useEffect(() => { try { sessionStorage.setItem("serviceydere:record-drive", recordDrive ? "1" : "0"); } catch { /* privat tilstand */ } }, [recordDrive]);
-  useDriveRecorder(routeId, recordDrive && routeStarted, rawFix, positionTrack);
   const userSpeedMps = engineState?.speedMps ?? 0;
   const userAccuracyM = engineState?.accuracyM ?? null;
   const driving = routeStarted && runMode !== "list";
