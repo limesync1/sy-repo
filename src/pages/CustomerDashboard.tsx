@@ -1302,7 +1302,7 @@ const InvoicesView = () => {
                       {(x.order_items || []).map((i: any) => i.service_name).filter(Boolean).join(", ") || "Aftale"}
                     </span>
                     <span className="text-muted-foreground">
-                      {new Date(x.scheduled_date || x.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                      {new Date(x.preferred_date || x.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                       {" · "}{formatPrice(x.total_amount)}
                     </span>
                   </li>
