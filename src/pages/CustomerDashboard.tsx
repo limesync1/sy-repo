@@ -87,7 +87,7 @@ const EmptyPanel = ({
 }: {
   title: string;
   description: string;
-  primary: { to: string; label: string; icon?: React.ReactNode };
+  primary?: { to: string; label: string; icon?: React.ReactNode };
   secondary?: { to: string; label: string; icon?: React.ReactNode };
 }) => (
   <Card className="rounded-2xl border-dashed border-border bg-card">
@@ -95,13 +95,13 @@ const EmptyPanel = ({
       <NoItemsIcon className="mb-5 h-16 w-16" />
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-        <Link to={primary.to}>
+      {(primary || secondary) && <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+        {primary && <Link to={primary.to}>
           <Button className="w-full gap-2 rounded-xl bg-foreground px-5 text-background hover:bg-foreground/90 sm:w-auto">
             {primary.icon}
             {primary.label}
           </Button>
-        </Link>
+        </Link>}
         {secondary && (
           <Link to={secondary.to}>
             <Button variant="outline" className="w-full gap-2 rounded-xl px-5 sm:w-auto">
@@ -110,7 +110,7 @@ const EmptyPanel = ({
             </Button>
           </Link>
         )}
-      </div>
+      </div>}
     </CardContent>
   </Card>
 );
