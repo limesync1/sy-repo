@@ -43,7 +43,6 @@ import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import type { MotionSource } from "@/components/employee-route/motionTrack";
 import { usePositionTrack } from "@/components/employee-route/positionEngine";
-import { useDriveRecorder } from "@/components/employee-route/useDriveRecorder";
 import { RouteMapLine, resolveMapColor } from "@/components/employee-route/RouteMapLine";
 import { navigationZoom } from "@/components/employee-route/camera-policy";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
