@@ -497,6 +497,37 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // brugeren langt fra ruten, så vi kun kalder en reroute når der er reel
   // afvigelse (ikke et enkelt jitter-fix).
   const queryClient = useQueryClient();
+  // Offline-kø: udførte stop uden dækning sendes, når forbindelsen er tilbage.
+  const [pendingSync, setPendingSync] = useState(() => readQueue().length);
+  useEffect(() => {
+    let running = false;
+    const flush = async () => {
+      if (running || !readQueue().length || navigator.onLine === false) return;
+      running = true;
+      try {
+        const sent = await flushQueue(async (q) => {
+          if (q.employeeId) {
+            const { error: tErr } = await supabase.from("stop_time_entries").update({ ended_at: q.completedAt })
+              .eq("stop_id", q.stopId).eq("employee_id", q.employeeId).is("ended_at", null);
+            if (tErr) throw tErr;
+          }
+          const updates: any = { status: "completed", completed_at: q.completedAt };
+          if (q.notes !== undefined) updates.notes = q.notes;
+          const { error } = await supabase.from("route_stops").update(updates).eq("id", q.stopId);
+          if (error) throw error;
+        });
+        setPendingSync(readQueue().length);
+        if (sent > 0) {
+          toast.success(sent === 1 ? "Udført stop er sendt" : `${sent} udførte stop er sendt`);
+          queryClient.invalidateQueries({ queryKey: ["my-route-data"] });
+        }
+      } finally { running = false; }
+    };
+    void flush();
+    window.addEventListener("online", flush);
+    const t = window.setInterval(flush, 30_000);
+    return () => { window.removeEventListener("online", flush); window.clearInterval(t); };
+  }, [queryClient]);
   const offRouteStreakRef = useRef(0);
   const lastRerouteAtRef = useRef(0);
   const rerouteSpokenStopRef = useRef<string | null>(null);
@@ -1573,9 +1604,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       }
       // Planlæg resten af dagen forfra — ud fra hvor vi holder nu.
       void reoptimizeFromHere({ silent: true, excludeId: s.id });
-    } catch {
+    } catch (e) {
+      if (isNetworkError(e)) { queueOffline(); return; }
       toast.error("Vi kunne ikke gemme markeringen", {
-        description: "Tjek din forbindelse og prøv igen — stoppet står stadig som ikke udført.",
+        description: "Prøv igen — stoppet står stadig som ikke udført.",
       });
     } finally {
       setPendingStopId(null);
