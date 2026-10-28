@@ -1,3 +1,4 @@
+import { groupCustomerInvoices } from "@/lib/customer-invoices";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { translateAuthError } from "@/lib/auth-errors";
 import { formatPrice } from "@/lib/price-format";
@@ -1257,37 +1258,56 @@ const InvoicesView = () => {
     );
   }
 
+  // Med fakturainterval kan flere aftaler ligge på samme faktura: de deler
+  // samme fakturanummer fra regnskabsprogrammet og vises samlet.
+  const groups = groupCustomerInvoices(invoiced);
+
   return (
-    <div className="space-y-2">
-      {invoiced.map((o: any) => {
+    <div className="space-y-3">
+      {groups.map((g) => {
+        const o = g.orders[0];
         const biz = o.businesses || {};
+        const total = g.orders.reduce((sum: number, x: any) => sum + Number(x.total_amount || 0), 0);
         return (
-          <Card key={o.id} className="rounded-xl">
-            <CardContent className="flex items-center gap-3 p-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary border shrink-0">
-                <Receipt className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold truncate">
-                  {biz.name || "Virksomhed"}
-                  {o.external_order_number && <span className="ml-2 text-xs font-normal text-muted-foreground">#{o.external_order_number}</span>}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {o.invoiced_at
-                    ? new Date(o.invoiced_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })
-                    : new Date(o.created_at).toLocaleDateString("da-DK")}
-                  {o.due_date && <> · Forfald {new Date(o.due_date).toLocaleDateString("da-DK")}</>}
-                </p>
-                {/* Status-badges synkroniseres automatisk fra virksomhedens regnskabsprogram */}
-                <div className="mt-1.5">
-                  <AccountingStatusRow order={o as OrderForStatus} size="xs" />
+          <Card key={g.key} className="rounded-xl">
+            <CardContent className="space-y-3 p-4">
+              <div className="flex flex-wrap items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-secondary">
+                  <Receipt className="h-5 w-5 text-muted-foreground" />
                 </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-semibold">
+                    {o.invoice_external_number ? `Faktura ${o.invoice_external_number}` : "Faktura"}
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">{biz.name || "Virksomhed"}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {o.invoiced_at
+                      ? new Date(o.invoiced_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })
+                      : new Date(o.created_at).toLocaleDateString("da-DK")}
+                    {o.due_date && <> · Forfald {new Date(o.due_date).toLocaleDateString("da-DK")}</>}
+                    {" · "}{g.orders.length} {g.orders.length === 1 ? "aftale" : "aftaler"}
+                  </p>
+                  <div className="mt-1.5"><AccountingStatusRow order={o as OrderForStatus} size="xs" /></div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <span className="whitespace-nowrap text-base font-bold">{formatPrice(total)}</span>
+                  <span className="block text-xs text-muted-foreground">Uden moms</span>
+                </div>
+                <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-sm font-bold whitespace-nowrap">{formatPrice(o.total_amount)}</span>
-                <span className="block text-xs text-muted-foreground">Uden moms</span>
-              </div>
-              <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {g.orders.map((x: any) => (
+                  <li key={x.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-3 py-2.5 text-sm">
+                    <span className="min-w-0 font-medium text-foreground">
+                      {(x.order_items || []).map((i: any) => i.service_name).filter(Boolean).join(", ") || "Aftale"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {new Date(x.scheduled_date || x.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                      {" · "}{formatPrice(x.total_amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         );
