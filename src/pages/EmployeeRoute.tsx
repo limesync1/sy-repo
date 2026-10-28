@@ -68,6 +68,7 @@ import { useDriveIssues, useWakeLock, useNightMode, useRootDark } from "@/compon
 import { Sun, Moon } from "lucide-react";
 import { DriveIssueBanner } from "@/components/employee-route/DriveIssueBanner";
 import { NightBasemap } from "@/components/employee-route/NightBasemap";
+import { enqueueCompletion, flushQueue, isNetworkError, readQueue } from "@/lib/offline-stop-queue";
 import { GoogleRouteMap, type GoogleRouteStop } from "@/components/employee-route/GoogleRouteMap";
 import { googleMapsPreviouslyFailed, rememberGoogleMapsFailure, type GoogleMapsLoadError } from "@/lib/google-maps-loader";
 
@@ -1509,19 +1510,39 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
 
 
+  const markLocallyDone = (stopId: string, completedAt: string, notes?: string) => {
+    queryClient.setQueriesData<any>({ queryKey: ["my-route-data"] }, (old: any) => old?.stops ? {
+      ...old, stops: old.stops.map((x: RouteStop) => x.id === stopId ? { ...x, status: "completed", completed_at: completedAt, notes: notes ?? x.notes } : x),
+    } : old);
+  };
+
   const handleComplete = async (s: RouteStop) => {
     if (routeDateLocked) {
       toast.error("Ruten kan først udføres på selve dagen");
       return;
     }
     setPendingStopId(s.id);
+    const queueOffline = () => {
+      const completedAt = new Date().toISOString();
+      enqueueCompletion({ stopId: s.id, completedAt, notes: noteDraft[s.id], employeeId: meEmp?.id ?? null });
+      markLocallyDone(s.id, completedAt, noteDraft[s.id]);
+      setPendingSync(readQueue().length);
+      buzz(22);
+      toast.success(`${s.customer_name || "Stop"} udført — gemt på telefonen`, {
+        description: "Ingen dækning lige nu. Det sendes automatisk, når forbindelsen er tilbage.",
+        duration: 8000,
+      });
+      setSelectedId(null);
+    };
+    if (navigator.onLine === false) { queueOffline(); setPendingStopId(null); return; }
     try {
       // Stop tidsregistrering for den loggede medarbejder på denne aftale
       try {
         if (meEmp?.id) {
           await endStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
         }
-      } catch {
+      } catch (e) {
+        if (isNetworkError(e)) throw e;
         throw new Error("Tidsregistreringen kunne ikke afsluttes");
       }
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
