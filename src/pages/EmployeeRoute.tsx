@@ -2418,11 +2418,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         canReorder={!allDone}
         reordering={reorderStops.isPending}
         onMoveStop={handleMoveStop}
-        footer={
-          <div className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2">
-            <span className="text-sm text-muted-foreground">Alle stop er vist nedenfor.</span>
-          </div>
-        }
       />}
       {routeId && <DriveTraceDialog routeId={routeId} open={traceOpen} onOpenChange={setTraceOpen} />}
     </div>
