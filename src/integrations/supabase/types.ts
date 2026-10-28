@@ -4861,6 +4861,44 @@ export type Database = {
           },
         ]
       }
+      stop_photos: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          order_id: string | null
+          stop_id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          stop_id: string
+          storage_path: string
+          uploaded_by?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          stop_id?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stop_photos_stop_id_fkey"
+            columns: ["stop_id"]
+            isOneToOne: false
+            referencedRelation: "route_stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stop_time_entries: {
         Row: {
           created_at: string
@@ -5545,6 +5583,7 @@ export type Database = {
         Args: { _customer_id: string }
         Returns: string
       }
+      can_access_stop: { Args: { _stop_id: string }; Returns: boolean }
       chat_conversation_exists: { Args: { _folder: string }; Returns: boolean }
       claim_route_planner_idempotency: {
         Args: { _business_id: string; _key: string }
@@ -6115,6 +6154,10 @@ export type Database = {
           _speed_mps?: number
         }
         Returns: undefined
+      }
+      report_stop_obstacle: {
+        Args: { _detail?: string; _reason: string; _stop_id: string }
+        Returns: string
       }
       request_business_deletion_code: {
         Args: { p_business_id: string }

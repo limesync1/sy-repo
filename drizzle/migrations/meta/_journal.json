@@ -232,6 +232,13 @@
       "when": 1793014404490,
       "tag": "0032_realtime_panel_status",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793179853113,
+      "tag": "0033_stop_photos_and_obstacles",
+      "breakpoints": true
     }
   ]
 }
