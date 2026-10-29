@@ -27,6 +27,7 @@
 - Printing filters loaded calendar routes so preview and paper match.
 - Authenticated employee geocoding prefers the business Google server key then Maps connector; server calls protect keys and distinguish key, service and unmatched-address errors.
 - Address suggestions share debounce, deduplication and bounded caching; signed-in users use the private Google proxy, guests an unmetered provider with bounded requests and exact postal towns.
+- CVR auto-lookup requires direct field input, never prefilled customer values; pending responses are invalidated on value changes/unmount so registry data cannot overwrite another customer's service address.
 
 - Business fallbacks use immediate destination-tab registry skeletons; empty customers use `NoItemsIcon`. Shared skeletons constrain widths, wrap filters, and skip offscreen painting; public placeholders never mount WebGL. Lazy customer/order hosts isolate modal state and keep values through exit.
 
