@@ -35,13 +35,20 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
 
   const cleaned = (value || "").replace(/\D/g, "");
   const isValid = cleaned.length === 8;
+  const pendingAuto = useRef<string | null>(null);
+  const requestId = useRef(0);
+  const currentCvr = useRef(cleaned);
+  currentCvr.current = cleaned;
 
   const lookup = async () => {
     if (!isValid) return;
+    const id = ++requestId.current;
+    const isCurrent = () => id === requestId.current && currentCvr.current === cleaned;
     setLoading(true);
     setStatus("idle");
     try {
       const { data, error } = await lookupCvr(cleaned);
+      if (!isCurrent()) return;
       if (error) {
         // Edge function svarede ikke — typisk netværk eller midlertidigt nede.
         setStatus("service_down");
@@ -61,23 +68,29 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
         onResult?.(null);
       }
     } catch {
-      setStatus("service_down");
+      if (isCurrent()) setStatus("service_down");
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   };
 
   const handleInput = (v: string) => {
+    pendingAuto.current = v.replace(/\D/g, "");
     onChange(v);
     if (status !== "idle") { setStatus("idle"); setCompanyName(null); setManualName(""); }
   };
 
-  // Slå op med det samme, når 8 cifre er indtastet — ingen knap nødvendig.
-  const lastAuto = useRef("");
+  // Kun brugerens indtastning må udløse automatisk opslag, aldrig kundeprefill.
   useEffect(() => {
-    if (!isValid || loading || lastAuto.current === cleaned) return;
-    lastAuto.current = cleaned;
-    void lookup();
+    ++requestId.current;
+    setLoading(false);
+    setStatus("idle");
+    setCompanyName(null);
+    setManualName("");
+    const shouldLookup = isValid && pendingAuto.current === cleaned;
+    pendingAuto.current = null;
+    if (shouldLookup) void lookup();
+    return () => { ++requestId.current; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleaned, isValid]);
 
