@@ -115,6 +115,8 @@ export const seoPrerenderHead = () => ({
     const html = readFileSync(indexFile, "utf8");
     const routes: RouteMeta[] = JSON.parse(readFileSync(metaFile, "utf8"));
     const bodies = await loadStaticBodies();
+    const missing = routes.filter(r => r.article && !bodies[r.path]).map(r => r.path);
+    if (missing.length) throw new Error(`Missing public article content: ${missing.join(", ")}`);
     for (const r of routes) {
       if (!r.path.startsWith("/") || r.path === "/" || r.path.includes("..")) continue;
       const meta = { ...r, ...contentMetadata[r.path] };
