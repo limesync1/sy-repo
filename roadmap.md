@@ -1,5 +1,10 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 1. nov. — SEO på tværs af offentlige sider
+- [ ] Fuld læsbar guide-/softwaretekst og relevante kategori-/bylinks uden JavaScript.
+- [ ] Sidespecifikke artikeldata og brødkrummer; ens metadata og sitemap-kilder.
+- [ ] Kontroller sitemap, regressionstests og offentlige sider; ændringer kræver næste udgivelse.
+
 ## Forbedringer i mindre dele (26. okt.)
 - [x] Del 5c: Stopdetaljer bruger aktuelle data/ID og lukker ved datoskift/fjernelse; kørselsvindue kan ikke vise et andet stops fallback. Chat har samtaleejede beskeder/kladder, loading/fejl/retry, bevarer livebeskeder under hentning og beskytter ny samtale ved afsendelse. Stopnavne/adresser brydes; dobbelt næste-label og død færdig-rutevisning fjernet. Prisfelter har større +/- og én kolonne på mobil. 10 regressionstests og otte isolerede prisfelt-skærmtests bestået; build OK. Egen konto åbner Min dag men har ingen tildelte ruter/livechat; rigtige stopændringer og afsendelse ikke verificeret.
 - [ ] Del 5: Hele medarbejderpanelet — navigation, overblik, ruter, tidsregistrering, historik, profil og vinduer; kortlægning pågår, forbedringer og skærmtests udføres i mindre dele uden at ændre manuel tid eller GPS-logik.
