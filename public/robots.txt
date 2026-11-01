@@ -10,11 +10,13 @@ Disallow: /log-ind
 Disallow: /reset-password
 Disallow: /afmeld
 Disallow: /godkend-bestilling
-# Legacy redirect-stier
+# Test- og autorisationssider
+Disallow: /__visual/
+Disallow: /meta/callback
+# Private legacy-stier; offentlige redirects må crawles for at blive fulgt.
 Disallow: /auth
 Disallow: /dashboard
 Disallow: /unsubscribe
-Disallow: /b/
 
 # Sitemap-index (opdelt i pages/blog/guides/cities for bedre crawl-budget).
 Sitemap: https://serviceydere.dk/sitemap-index.xml
