@@ -1,6 +1,8 @@
 // Kun til build: laver statisk HTML-indhold pr. offentlig side, som lægges i
 // #root i den forudrenderede HTML. React erstatter det ved mount, så brugere
 // ser intet forskelligt — men crawlere får rigtig tekst og interne links.
+import { relatedContent } from "./related-content";
+import { LegacyCityBody, legacyCityGroups } from "./LegacyCityBody";
 import { Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { StaticRouter } from "react-router-dom/server";
@@ -94,11 +96,10 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
     try {
       const mod: any = await p.loader();
       const cfg: BlogPostConfig | undefined = mod?.default?.seoConfig;
-      const related = BLOG_POSTS.filter((o) => o.slug !== p.slug && o.category === p.category)
-        .slice(0, 6).map((o) => [`/blog/${o.slug}`, o.title] as [string, string]);
+      const selection = relatedContent(p.category, path);
+      const related = selection.posts.map(o => [`/blog/${o.slug}`, o.title] as [string, string]);
       const category = BLOG_CATEGORIES.find(c => c.name === normalizeCategory(p.category));
-      const guides = GUIDES.filter(g => normalizeCategory(g.category) === normalizeCategory(p.category))
-        .map(g => [g.href, g.title] as [string, string]);
+      const guides = selection.guides.map(g => [g.href, g.title] as [string, string]);
       render(path, (
         <>
           {cfg ? <PostBody title={p.title} description={p.description} cfg={cfg} /> : (<><h1>{p.title}</h1><p>{p.description}</p></>)}
@@ -188,6 +189,9 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
           ...branchCities(branch).filter(other => other.slug !== city.slug).map(other => [`/${branch.kind}/${other.slug}`, `${branch.label} i ${other.name}`] as [string, string])]} />
       </article>);
     }
+  }
+  for (const group of legacyCityGroups) {
+    for (const city of group.cities) render(`/${group.kind}/${city.slug}`, <LegacyCityBody kind={group.kind} city={city} />);
   }
   return out;
 }

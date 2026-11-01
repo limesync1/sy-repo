@@ -1,3 +1,4 @@
+import { citySeo } from "@/seo/city-seo";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -16,6 +17,7 @@ const HandymanCityPage = () => {
   if (!city) return <Navigate to="/virksomheder" replace />;
 
   const canonical = `/haandvaerker/${city.slug}`;
+  const metadata = citySeo("haandvaerker", city);
   const fullUrl = `https://serviceydere.dk${canonical}`;
 
   const jsonLd = [
@@ -57,8 +59,8 @@ const HandymanCityPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`Håndværker i ${city.name} – Timepriser & tilbud 2026`}
-        description={`Find lokale håndværkere i ${city.name}. Timepris fra ${city.hourlyLow} kr. Få op til 3 gratis tilbud fra verificerede håndværkere i ${city.region}.`}
+        title={metadata.title}
+        description={metadata.description}
         canonicalPath={canonical}
         keywords={`håndværker ${city.name}, tømrer ${city.name}, elektriker ${city.name}, håndværker pris ${city.name}, billig håndværker ${city.name}`}
         ogType="website"
