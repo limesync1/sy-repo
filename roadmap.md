@@ -1,9 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## 1. nov. — Ny samlet SEO-forbedring
-- [ ] Kontrollér søgemaskinernes adgang, metadata, strukturerede data og sitemap på hele den offentlige hjemmeside.
-- [ ] Ret bekræftede problemer i fælles SEO-kilder og styrk relevante interne links uden at masseproducere tyndt indhold.
-- [ ] Kør SEO-regressionstests og kontrollér offentlige sider i browser; ændringer når live-siden ved næste udgivelse.
+- [x] Kontrollér søgemaskinernes adgang, metadata, strukturerede data og sitemap på hele den offentlige hjemmeside; grundkontrol uden fejl, Semrush-snapshot undersøgt (estimat, ikke målt trafik).
+- [x] Fælles bymetadata på 72 sider og fuldt lokalt indhold i første HTML; 972 sider med fuldt indhold. Fjernet gamle prerender-entiteter ved navigation, ensrettet relevante artikelhenvisninger, rettet virksomhedsoversigtens metadata og forklaret fakturainterval/e-conomic/Dinero korrekt. Offentlige legacy-virksomhedslinks kan crawles; test- og callback-sider blokeret. Manglende artikelindhold stopper prerender frem for stille degradering.
+- [x] 20 regressionstests bestået; SEO-check: 996 sitemap-URL'er, ingen fejl/advarsler. Alle artikler har statisk indhold. Tre offentlige sider afprøvet i browser med korrekte canonicals og uden runtimefejl; build OK. Live Google-indeksering/rangering er ikke verificeret; ændringer når live-siden ved næste udgivelse.
 
 ## 1. nov. — SEO på tværs af offentlige sider
 - [x] Udvidet læsbart indhold til 900 offentlige sider: fulde factory-guider/softwaresider, funktionsguide, kategorioversigter og branche-bysider med kontekstuelle links. Øvrige sider beholder fallback.
