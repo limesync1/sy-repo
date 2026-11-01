@@ -27,6 +27,8 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     blurb: "Hele systemet: ruteplanlægning, medarbejder-app, booking, fakturering og markedsplads i ét.",
     priority: "0.9",
     group: "product",
+    seoTitle: "Systemet til servicevirksomheder | Serviceydere",
+    seoDescription: "Ruteplanlægning, medarbejder-app, booking, kunder, fakturering og markedsplads i ét dansk system. 14 dages gratis prøve uden betalingskort, derefter 289 kr./md.",
   },
   {
     href: "/software/ruteplanlaegger",
@@ -65,11 +67,11 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
   {
     href: "/software/fakturering-og-regnskab",
     label: "Fakturering og regnskab",
-    blurb: "Fakturer udført arbejde og send det automatisk videre til E-conomic eller Dinero.",
+    blurb: "Fakturér udførte besøg i e-conomic eller Dinero, enkeltvis eller samlet efter dit fakturainterval.",
     priority: "0.8",
     group: "product",
-    seoTitle: "Fakturering og regnskab med E-conomic og Dinero | Serviceydere",
-    seoDescription: "Fakturér udført arbejde direkte fra ruten og send det automatisk videre til E-conomic eller Dinero. Ingen dobbelt indtastning, ingen glemte opgaver.",
+    seoTitle: "Automatisk fakturering med e-conomic og Dinero | Serviceydere",
+    seoDescription: "Fakturér udførte besøg i e-conomic eller Dinero. Vælg faktura efter hvert besøg, hver 14. dag, månedligt eller kvartalsvis. Prøv gratis i 14 dage uden kreditkort.",
   },
   {
     href: "/software/brancher",

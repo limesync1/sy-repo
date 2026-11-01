@@ -15,6 +15,7 @@ import { BRANCHES, branchCities } from "../src/pages/cities/branchRegistry";
 import { CITY_FACTS } from "../src/pages/cities/cityFacts";
 import { servicesForCity } from "../src/pages/cities/cityServices";
 import { SOFTWARE_PAGES } from "../src/pages/software/softwareRegistry";
+import { citySeo, type LegacyCityKind } from "../src/seo/city-seo";
 import heroPhotos from "../src/components/landing/hero-photo-data.json";
 
 const BASE_URL = "https://serviceydere.dk";
@@ -191,12 +192,8 @@ console.log(
 // vite-pluginet "seo-prerender-head" bruger til at lave dist/<rute>/index.html
 // med egen title, description, canonical og og:* — så crawlere der ikke
 // kører JavaScript ikke ser forsidens metadata på alle sider.
-const cityMeta = (base: string, label: string, list: { slug: string; name: string; region: string }[]) =>
-  list.map((c) => ({
-    path: `/${base}/${c.slug}`,
-    title: `${label} i ${c.name} – Priser & tilbud 2026 | Serviceydere`,
-    description: `Find og book verificerede firmaer til ${label.toLowerCase()} i ${c.name} og ${c.region}. Se lokale priser for 2026 og få op til 3 gratis tilbud.`,
-  }));
+const cityMeta = (base: LegacyCityKind, _label: string, list: { slug: string; name: string; hourlyLow: number; hourlyHigh: number }[]) =>
+  list.map(c => citySeo(base, c));
 const STATIC_META = [
   { path: "/virksomheder", title: "Find serviceydere nær dig – sammenlign og book | Serviceydere", description: "Se verificerede firmaer til rengøring, håndværk, flytning, haveservice og meget mere. Sammenlign anmeldelser og priser, og book direkte." },
   { path: "/tilbud", title: "Få 3 gratis tilbud fra lokale firmaer | Serviceydere", description: "Beskriv din opgave én gang og få op til 3 gratis, uforpligtende tilbud fra verificerede lokale serviceydere." },

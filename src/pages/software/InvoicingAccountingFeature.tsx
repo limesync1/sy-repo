@@ -3,18 +3,18 @@ import { defineSoftwarePage } from "./defineSoftwarePage";
 
 const Page = defineSoftwarePage({
   canonicalPath: "/software/fakturering-og-regnskab",
-  metaTitle: "Fakturering og regnskab med E-conomic og Dinero | Serviceydere",
+  metaTitle: "Automatisk fakturering med e-conomic og Dinero | Serviceydere",
   metaDescription:
-    "Fakturér udført arbejde direkte fra ruten og send det automatisk videre til E-conomic eller Dinero. Ingen dobbelt indtastning, ingen glemte opgaver.",
+    "Fakturér udførte besøg i e-conomic eller Dinero. Vælg faktura efter hvert besøg, hver 14. dag, månedligt eller kvartalsvis. Prøv gratis i 14 dage uden kreditkort.",
   keywords:
     "fakturering servicevirksomhed, E-conomic integration, dinero integration, automatisk bogføring, fakturering rengøringsfirma, abonnementsfakturering",
   heroEyebrow: "Fakturering og regnskab",
   heroTitle: "Udført arbejde bliver til en faktura",
   heroSubtitle:
-    "Det, medarbejderen tjekker ud, er også det, der faktureres. Og bogføringen sker automatisk i E-conomic eller Dinero.",
+    "Når et besøg markeres som udført, danner det grundlag for fakturering i e-conomic eller Dinero — efter hvert besøg eller samlet efter dit valgte interval.",
   breadcrumbLabel: "Fakturering og regnskab",
   answer:
-    "Fakturering i Serviceydere tager udgangspunkt i det arbejde, der faktisk er udført på ruten. Når et stop er tjekket ud, ligger kunde, service, tid og pris klar, så fakturaen kan dannes uden at nogen taster dagen ind igen. Er regnskabsintegrationen slået til, sendes bestillinger og fakturaer automatisk videre til E-conomic eller Dinero.",
+    "Fakturering i Serviceydere tager udgangspunkt i udførte besøg. Kunde, service og aftalt pris følger aftalen, og medarbejderen registrerer tiden manuelt. Med en tilkoblet regnskabsintegration faktureres besøgene i e-conomic eller Dinero efter det valgte fakturainterval. Flere besøg kan samles på én faktura, mens kommende, ikke-udførte besøg ikke bliver faktureret.",
   facts: [
     "Fakturagrundlaget kommer fra ruten — ikke fra en huskeseddel.",
     "Automatisk bogføring i E-conomic og Dinero.",
@@ -27,7 +27,7 @@ const Page = defineSoftwarePage({
     {
       heading: "Fra rute til faktura",
       list: [
-        <>Medarbejderen tjekker ud i <Link to="/software/medarbejder-app">medarbejder-appen</Link>, og opgaven markeres som udført.</>,
+        <>Medarbejderen markerer besøget som udført i <Link to="/software/medarbejder-app">medarbejder-appen</Link>.</>,
         "Systemet samler kunde, service, aftalt pris og eventuelle tilkøb.",
         "Fakturaen dannes og kan sendes til kunden.",
         "Er automatisk bogføring aktiv, sendes posteringen videre til regnskabsprogrammet.",
@@ -36,12 +36,20 @@ const Page = defineSoftwarePage({
     {
       heading: "Regnskabsintegration",
       paragraphs: [
-        "Integrationen slås til under Indstillinger → Ekstra funktioner, hvor du forbinder E-conomic eller Dinero. Inden den første rigtige bogføring kan du køre en testkørsel, der viser præcis hvad der ville blive sendt afsted — og hvilke konti det rammer.",
+        "Forbind e-conomic eller Dinero i virksomhedspanelets Regnskab. Her vælger du også virksomhedens standard for fakturainterval og kan følge status på synkroniseringen.",
       ],
       list: [
         "E-conomic og Dinero er de to understøttede regnskabsprogrammer.",
         "Løbende sundhedstjek af forbindelsen, så en udløbet adgang opdages hurtigt.",
         "Log over hvad der er sendt, så du kan afstemme uden at gætte.",
+      ],
+    },
+    {
+      heading: "Saml flere besøg på én faktura",
+      paragraphs: [
+        "Vælg fakturering efter hvert besøg, hver 14. dag, månedligt eller kvartalsvis. Besøgsinterval og fakturainterval er to forskellige valg: en kunde kan eksempelvis få besøg hver 14. dag og modtage en samlet månedlig faktura.",
+        "Virksomhedens standard vælges i Regnskab. Du kan vælge et andet interval for en kunde eller en enkelt aftale. Aftalens valg går forud for kundens valg, som går forud for virksomhedens standard. Hvis du ikke vælger en undtagelse, følger aftalen den gældende standard.",
+        "Samlefakturaen indeholder de udførte besøg i perioden. I kundepanelet kan kunden se fakturaen og de aftaler, der indgår i den.",
       ],
     },
     {
@@ -60,7 +68,7 @@ const Page = defineSoftwarePage({
   faq: [
     {
       q: "Hvilke regnskabsprogrammer understøttes?",
-      a: "E-conomic og Dinero. Begge forbindes under Indstillinger, og bestillinger og fakturaer kan derefter bogføres automatisk.",
+      a: "e-conomic og Dinero. Forbindelsen opsættes i Regnskab, og udførte besøg faktureres efter det valgte fakturainterval.",
     },
     {
       q: "Kan jeg teste bogføringen, før den er live?",
@@ -68,11 +76,15 @@ const Page = defineSoftwarePage({
     },
     {
       q: "Skal jeg taste udført arbejde ind manuelt?",
-      a: "Nej. Grundlaget kommer fra de stop, medarbejderne har tjekket ud på ruten, så kunde, service og tid allerede er registreret.",
+      a: "Kunde, service og aftalt pris følger aftalen. Medarbejderen registrerer tiden manuelt og markerer besøget som udført; du skal ikke taste samme besøg ind igen i regnskabsprogrammet.",
     },
     {
       q: "Hvordan håndteres faste aftaler?",
       a: "Aftaler med interval faktureres i takt med de udførte besøg, så aflyste eller pausede besøg ikke faktureres.",
+    },
+    {
+      q: "Kan flere besøg samles på én faktura?",
+      a: "Ja. Vælg hver 14. dag, månedligt eller kvartalsvis frem for efter hvert besøg. Du kan vælge standard på virksomheden og undtagelser for den enkelte kunde eller aftale.",
     },
     {
       q: "Kan jeg bruge systemet uden regnskabsintegration?",

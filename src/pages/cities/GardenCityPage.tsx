@@ -1,3 +1,4 @@
+import { citySeo } from "@/seo/city-seo";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -15,6 +16,7 @@ const GardenCityPage = () => {
   if (!city) return <Navigate to="/virksomheder?category=Haveservice" replace />;
 
   const canonical = `/haveservice/${city.slug}`;
+  const metadata = citySeo("haveservice", city);
   const fullUrl = `https://serviceydere.dk${canonical}`;
 
   const jsonLd = [
@@ -52,8 +54,8 @@ const GardenCityPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`Haveservice i ${city.name} – Priser & tilbud 2026`}
-        description={`Find haveservice i ${city.name}. Fra ${city.hourlyLow} kr./time. Få op til 3 gratis tilbud på græsslåning, hækklipning og havevedligehold.`}
+        title={metadata.title}
+        description={metadata.description}
         canonicalPath={canonical}
         keywords={`haveservice ${city.name}, havemand ${city.name}, græsslåning ${city.name}, hækklipning ${city.name}, havefirma ${city.name}`}
         ogType="website"

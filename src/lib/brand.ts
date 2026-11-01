@@ -25,9 +25,9 @@ export const BRAND_DIFFERENTIATOR =
 export const BRAND_FEATURE_LIST = [
   "Ruteplanlægning med drag & drop",
   "Gentagne aftaler og faste kunder",
-  "Medarbejder-app med tjek ind og ud",
+  "Medarbejder-app med manuel tidsregistrering og frivillige før/efter-billeder",
   "Online booking og tilbudsstyring",
-  "Fakturering med E-conomic og Dinero",
+  "Fakturering med e-conomic og Dinero samt samlefakturaer efter valgt interval",
   "Kundekartotek og livechat",
   "Profilside på markedspladsen Serviceydere.dk",
 ];

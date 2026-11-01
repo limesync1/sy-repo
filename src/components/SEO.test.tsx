@@ -8,6 +8,14 @@ afterEach(() => {
 });
 
 describe("Public page SEO", () => {
+  it("removes previous prerendered entities when navigating to another page", () => {
+    document.head.innerHTML = '<script data-seo-page="1" type="application/ld+json">{"url":"https://serviceydere.dk/blog/gammel"}</script><script data-seo-home="1" type="application/ld+json">{}</script>';
+    render(<SEO title="Ny side" description="Ny" canonicalPath="/software" jsonLd={{ "@type": "WebPage", url: "https://serviceydere.dk/software" }} />);
+    expect(document.querySelectorAll('[data-seo-page], [data-seo-home]')).toHaveLength(0);
+    const data = JSON.parse(document.querySelector('script[data-seo="1"]')?.textContent ?? "{}");
+    expect(data.url).toBe("https://serviceydere.dk/software");
+  });
+
   it("uses the public domain and keeps complete search text", () => {
     const title = "Find lokale serviceydere til rengøring, håndværk og havearbejde | Serviceydere";
     const description = "En komplet beskrivelse af lokale serviceydere. ".repeat(5);

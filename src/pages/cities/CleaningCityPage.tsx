@@ -1,3 +1,4 @@
+import { citySeo } from "@/seo/city-seo";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -21,6 +22,7 @@ const CleaningCityPage = () => {
   if (!city) return <Navigate to="/virksomheder?category=Reng%C3%B8ring" replace />;
 
   const canonical = `/rengoering/${city.slug}`;
+  const metadata = citySeo("rengoering", city);
   const fullUrl = `https://serviceydere.dk${canonical}`;
 
   const jsonLd = [
@@ -92,8 +94,8 @@ const CleaningCityPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`Rengøring i ${city.name} – Find & sammenlign priser 2026`}
-        description={`Find rengøringsfirmaer i ${city.name}. Timepris fra ${city.hourlyLow} kr. Få op til 3 gratis tilbud fra verificerede firmaer i ${city.region}.`}
+        title={metadata.title}
+        description={metadata.description}
         canonicalPath={canonical}
         keywords={`rengøring ${city.name}, rengøringsfirma ${city.name}, rengøringshjælp ${city.name}, privat rengøring ${city.name}, ${city.name} rengøring pris`}
         ogType="website"

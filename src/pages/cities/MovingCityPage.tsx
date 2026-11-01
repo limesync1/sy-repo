@@ -1,3 +1,4 @@
+import { citySeo } from "@/seo/city-seo";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -16,6 +17,7 @@ const MovingCityPage = () => {
   if (!city) return <Navigate to="/virksomheder?category=Flyttehj%C3%A6lp" replace />;
 
   const canonical = `/flyttehjaelp/${city.slug}`;
+  const metadata = citySeo("flyttehjaelp", city);
   const fullUrl = `https://serviceydere.dk${canonical}`;
 
   const jsonLd = [
@@ -57,8 +59,8 @@ const MovingCityPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`Flyttehjælp i ${city.name} – Sammenlign priser 2026`}
-        description={`Find flyttefirmaer i ${city.name}. Timepris fra ${city.hourlyLow} kr. Få op til 3 gratis tilbud fra verificerede flyttefolk i ${city.region}.`}
+        title={metadata.title}
+        description={metadata.description}
         canonicalPath={canonical}
         keywords={`flyttehjælp ${city.name}, flyttefirma ${city.name}, flyttemand ${city.name}, ${city.name} flyttehjælp pris, billig flyttehjælp ${city.name}`}
         ogType="website"

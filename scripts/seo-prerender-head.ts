@@ -115,6 +115,8 @@ export const seoPrerenderHead = () => ({
     const html = readFileSync(indexFile, "utf8");
     const routes: RouteMeta[] = JSON.parse(readFileSync(metaFile, "utf8"));
     const bodies = await loadStaticBodies();
+    const missing = routes.filter(r => r.article && !bodies[r.path]).map(r => r.path);
+    if (missing.length) throw new Error(`Missing public article content: ${missing.join(", ")}`);
     for (const r of routes) {
       if (!r.path.startsWith("/") || r.path === "/" || r.path.includes("..")) continue;
       const meta = { ...r, ...contentMetadata[r.path] };
@@ -130,6 +132,7 @@ export const seoPrerenderHead = () => ({
 /** Initial HTML exposes all five photos without depending on JavaScript. */
 export const renderHomeHead = (html: string) => html
   .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(HOME_TITLE)}</title>`)
+  .replace(/(<meta (?:name="twitter:title"|property="og:title") content=")[^"]*(")/g, `$1${esc(HOME_TITLE)}$2`)
   .replace(/(<meta (?:name="(?:description|twitter:description)"|property="og:description") content=")[^"]*(")/g, `$1${esc(HOME_DESCRIPTION)}$2`)
   .replace(/<script\b[^>]*data-seo-home="1"[^>]*>[\s\S]*?<\/script>/g, "")
   .replace(/<link\b[^>]*data-home-photo-preload="1"[^>]*>/g, "")

@@ -17,6 +17,7 @@
 - Service VAT wording is presentation-only; service emails share `_service-price.ts`, while stored amounts and server pricing stay unchanged to avoid double taxation or changing platform-plan pricing.
 - Profile URLs use `src/lib/social-links.ts`.
 - Public SEO uses shared registries (including garden hub metadata) and seo-prerender-head to prevent snippet drift; canonicals use public origin unless a business supplies its domain.
+- Public topic recommendations and legacy city metadata share `src/seo` sources between browser and initial HTML; article prerendering fails on missing content, and client navigation removes prior prerender entities to prevent stale page attribution.
 - Leads normalize into `quote_requests`/`quote_request_matches`; provider connections/credentials stay server-side and business-scoped for one secure source of truth.
 - Meta source selection groups linked Instagram and lead forms under Facebook Pages, since Meta exposes Instagram leads through the Page.
 - Meta OAuth uses `https://serviceydere.dk/meta/callback`, forwarding authorization to the server callback to keep preview/production configuration stable.
