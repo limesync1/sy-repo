@@ -1,5 +1,10 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 1. nov. — Ny samlet SEO-forbedring
+- [ ] Kontrollér søgemaskinernes adgang, metadata, strukturerede data og sitemap på hele den offentlige hjemmeside.
+- [ ] Ret bekræftede problemer i fælles SEO-kilder og styrk relevante interne links uden at masseproducere tyndt indhold.
+- [ ] Kør SEO-regressionstests og kontrollér offentlige sider i browser; ændringer når live-siden ved næste udgivelse.
+
 ## 1. nov. — SEO på tværs af offentlige sider
 - [x] Udvidet læsbart indhold til 900 offentlige sider: fulde factory-guider/softwaresider, funktionsguide, kategorioversigter og branche-bysider med kontekstuelle links. Øvrige sider beholder fallback.
 - [x] Artikeldata/datoer og brødkrummer i statisk HTML; factory-metadata genbruges uden snippet-drift. Medarbejder-appens offentlige oplysninger ajourført.
