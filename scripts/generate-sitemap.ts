@@ -218,7 +218,8 @@ const STATIC_META = [
 const routeMeta = [
   ...STATIC_META,
   ...BLOG_CATEGORIES.map((c) => ({ path: `/blog/kategori/${c.slug}`, title: `${c.name} – artikler og guides | Serviceydere`, description: `Alle artikler om ${c.name.toLowerCase()}: priser, tjeklister og råd fra Serviceydere.` })),
-  ...BLOG_POSTS.map((p) => ({ path: `/blog/${p.slug}`, title: `${p.title} | Serviceydere`, description: p.description })),
+  ...BLOG_POSTS.map((p) => ({ path: `/blog/${p.slug}`, title: `${p.title} | Serviceydere`, description: p.description,
+    article: { title: p.title, publishedAt: p.publishedAt, updatedAt: p.updatedAt } })),
   ...GUIDES.map((g) => ({ path: g.href, title: `${g.title} | Serviceydere`, description: g.desc })),
   ...SOFTWARE_PAGES.map((s) => ({ path: s.href, title: s.seoTitle ?? `${s.label} | Serviceydere`, description: s.seoDescription ?? s.blurb })),
   ...cityMeta("rengoering", "Rengøring", CITIES),

@@ -50,7 +50,8 @@ describe("Static public SEO heads", () => {
   it("uses authoritative article dates and self-referencing breadcrumbs", () => {
     const post = BLOG_POSTS.find(post => post.slug === "fjern-svedpletter-fra-hvidt-toej");
     if (!post) throw new Error("Missing registered article");
-    const data = routeStructuredData({ path: `/blog/${post.slug}`, title: post.title, description: post.description });
+    const data = routeStructuredData({ path: `/blog/${post.slug}`, title: post.title, description: post.description,
+      article: { title: post.title, publishedAt: post.publishedAt, updatedAt: post.updatedAt } });
     expect(data[0]["@type"]).toBe("Article");
     expect(data[0]).toMatchObject({ datePublished: post.publishedAt, dateModified: post.updatedAt ?? post.publishedAt });
     expect(data[1]).toMatchObject({ itemListElement: [

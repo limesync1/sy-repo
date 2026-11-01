@@ -2,24 +2,19 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import { HOME_TITLE, HOME_DESCRIPTION, homePageData } from "../src/components/landing/home-seo";
 import { heroPhotos, HERO_PHOTO_SIZES, photoSrcSet } from "../src/components/landing/hero-photos";
-import { BLOG_POSTS } from "../src/pages/blog/blogPosts";
-import { SOFTWARE_PAGES } from "../src/pages/software/softwareRegistry";
-import { GUIDES } from "../src/pages/guides/guidesRegistry";
 
 const BASE_URL = "https://serviceydere.dk";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-type RouteMeta = { path: string; title: string; description: string };
+type RouteMeta = { path: string; title: string; description: string; article?: { title: string; publishedAt: string; updatedAt?: string }; parent?: [string, string] };
 
 export const routeStructuredData = (r: RouteMeta) => {
   const url = `${BASE_URL}${r.path}`;
-  const post = BLOG_POSTS.find(post => r.path === `/blog/${post.slug}`);
-  const guide = GUIDES.find(guide => guide.href === r.path);
-  const software = SOFTWARE_PAGES.find(page => page.href === r.path);
-  const parent = post || r.path.startsWith("/blog/") ? ["/blog", "Blog"]
-    : guide ? ["/guides", "Guides og priser"]
-    : software && r.path !== "/software" ? ["/software", "Software"]
-    : r.path.startsWith("/by/") ? ["/by", "Alle byer"] : undefined;
+  const post = r.article;
+  const parent = r.parent ?? (post || r.path.startsWith("/blog/") ? ["/blog", "Blog"]
+    : r.path.startsWith("/priser/") || r.path.startsWith("/guides/") ? ["/guides", "Guides og priser"]
+    : r.path.startsWith("/software/") ? ["/software", "Software"]
+    : r.path.startsWith("/by/") ? ["/by", "Alle byer"] : undefined);
   return [
     {
       "@context": "https://schema.org",
