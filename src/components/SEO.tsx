@@ -68,6 +68,8 @@ const SEO = ({
   canonicalAtRoot,
 }: SEOProps) => {
   useEffect(() => {
+    // A prerendered page's data must not survive navigation to another page.
+    document.head.querySelectorAll('[data-seo-home="1"], [data-seo-page="1"]').forEach(el => el.remove());
     const prevTitle = document.title;
     const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
     document.title = fullTitle;
@@ -89,7 +91,7 @@ const SEO = ({
 
     setMeta('meta[name="description"]', "content", desc);
     setMeta('link[rel="canonical"]', "href", url);
-    setMeta('meta[name="robots"]', "content", noIndex ? "noindex,nofollow" : "index,follow,max-image-preview:large");
+    setMeta('meta[name="robots"]', "content", noIndex ? "noindex,follow" : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1");
     if (keywords) setMeta('meta[name="keywords"]', "content", keywords);
     else document.head.querySelector('meta[name="keywords"]')?.remove();
 

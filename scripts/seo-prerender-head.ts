@@ -130,6 +130,7 @@ export const seoPrerenderHead = () => ({
 /** Initial HTML exposes all five photos without depending on JavaScript. */
 export const renderHomeHead = (html: string) => html
   .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(HOME_TITLE)}</title>`)
+  .replace(/(<meta (?:name="twitter:title"|property="og:title") content=")[^"]*(")/g, `$1${esc(HOME_TITLE)}$2`)
   .replace(/(<meta (?:name="(?:description|twitter:description)"|property="og:description") content=")[^"]*(")/g, `$1${esc(HOME_DESCRIPTION)}$2`)
   .replace(/<script\b[^>]*data-seo-home="1"[^>]*>[\s\S]*?<\/script>/g, "")
   .replace(/<link\b[^>]*data-home-photo-preload="1"[^>]*>/g, "")
