@@ -19,10 +19,8 @@ import heroPhotos from "../src/components/landing/hero-photo-data.json";
 
 const BASE_URL = "https://serviceydere.dk";
 
-// Bruges kun til <lastmod> på selve sitemap-index'et (hvornår sitemappet
-// blev genereret). Sider får kun lastmod, når vi har en reel, sidespecifik
-// dato — et build-tidsstempel er ikke et sandt "sidst ændret"-signal.
-const GENERATED_AT = new Date().toISOString().slice(0, 10);
+// Lastmod kommer kun fra sidespecifikke kilder; hverken sider eller
+// sitemap-index får et build-tidsstempel som kunstigt friskhedssignal.
 
 interface SitemapEntry {
   path: string;
@@ -178,7 +176,7 @@ const writeSitemapIndex = () => {
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
     ...sitemapFiles.map(
-      (name) => `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
+      (name) => `  <sitemap><loc>${BASE_URL}/${name}</loc></sitemap>`,
     ),
     `</sitemapindex>`,
   ].join("\n");
