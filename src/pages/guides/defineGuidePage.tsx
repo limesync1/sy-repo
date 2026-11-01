@@ -241,5 +241,5 @@ export function defineGuidePage(cfg: GuideConfig) {
     </div>
   );
   Page.displayName = `GuidePage(${cfg.canonicalPath})`;
-  return Page;
+  return Object.assign(Page, { seoConfig: cfg });
 }

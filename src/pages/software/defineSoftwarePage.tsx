@@ -265,5 +265,5 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
     </div>
   );
   Page.displayName = `SoftwarePage(${cfg.canonicalPath})`;
-  return Page;
+  return Object.assign(Page, { seoConfig: cfg });
 }

@@ -40,11 +40,11 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
   {
     href: "/software/medarbejder-app",
     label: "Medarbejder-app",
-    blurb: "Medarbejderne ser dagens rute, tjekker ind og ud, tilføjer noter og billeder.",
+    blurb: "Dagens ruter, manuel tidsregistrering, noter og frivillige før/efter-billeder.",
     priority: "0.8",
     group: "product",
     seoTitle: "Medarbejder-app til dagens rute | Serviceydere",
-    seoDescription: "Medarbejderne ser dagens rute på telefonen, tjekker ind og ud, tilføjer noter og billeder — og planlæggeren følger med i realtid. Ingen installation.",
+    seoDescription: "Dagens ruter, manuel tidsregistrering og frivillige før/efter-billeder i én medarbejder-app. Hent Android-appen eller tilføj på iPhone. Prøv gratis i 14 dage.",
   },
   {
     href: "/software/funktioner",

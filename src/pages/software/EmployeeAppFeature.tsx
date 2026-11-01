@@ -5,20 +5,20 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/medarbejder-app",
   metaTitle: "Medarbejder-app til dagens rute | Serviceydere",
   metaDescription:
-    "Medarbejderne ser dagens rute på telefonen, tjekker ind og ud, tilføjer noter og billeder — og planlæggeren følger med i realtid. Ingen installation.",
+    "Dagens ruter, manuel tidsregistrering og frivillige før/efter-billeder i én medarbejder-app. Hent Android-appen eller tilføj på iPhone. Prøv gratis i 14 dage.",
   keywords:
     "medarbejder app, dagens rute app, tjek ind tjek ud, timeregistrering service, mobil ruteliste, service app danmark",
   heroEyebrow: "Medarbejder-app",
   heroTitle: "Dagens rute i lommen",
   heroSubtitle:
-    "Medarbejderen åbner sin egen visning, ser hvor turen går hen, tjekker ind og ud på hvert stop og noterer det, kontoret skal vide.",
+    "Medarbejderen ser dagens rute, registrerer arbejdstid og markerer besøg som udført. Noter og frivillige før/efter-billeder følger aftalen.",
   breadcrumbLabel: "Medarbejder-app",
   answer:
     "Medarbejder-appen i Serviceydere er den mobile visning, hvor hver medarbejder ser sin egen rute for dagen. Stoppene vises i rækkefølge med adresse, kunde og aftale. Medarbejderen kan registrere den faktiske tid ved hvert stop, tilføje noter og billeder, og planlæggeren ser status i realtid uden at skulle ringe rundt.",
   facts: [
-    "Kører i browseren på medarbejderens egen telefon — ingen app-installation.",
+    "Brug browseren, hent Android-appen eller tilføj til hjemmeskærmen på iPhone.",
     "Dagens stop i rækkefølge med adresse og aftale.",
-    "Tjek ind og ud giver reelle tider frem for gæt.",
+    "Manuel tidsregistrering af den faktiske arbejdstid.",
     "Noter og billeder pr. stop havner direkte på kundens sag.",
     "Navigation til næste adresse med ét tryk.",
     "Print af ruteseddel til de dage hvor telefonen ikke er nok.",
@@ -30,7 +30,8 @@ const Page = defineSoftwarePage({
         "En liste med dagens stop i den rækkefølge, de skal køres.",
         "Detaljer pr. stop: adresse, kontaktperson, aftalte ydelser og særlige forhold som nøgle eller alarmkode.",
         "Knap til navigation, så adressen åbnes i telefonens kortapp.",
-        "Tjek ind når arbejdet starter og tjek ud når det er færdigt.",
+        "Start og stop tidsregistreringen manuelt, og markér besøget som udført.",
+        "Tag frivillige før- og efter-billeder direkte fra kamera-knappen.",
         "Mulighed for at markere en aftale som ikke udført med en årsag.",
       ],
     },
@@ -56,7 +57,7 @@ const Page = defineSoftwarePage({
   faq: [
     {
       q: "Skal medarbejderne installere en app?",
-      a: "Nej. Medarbejdervisningen åbnes i browseren på telefonen og kan lægges på hjemmeskærmen. Der er ingen app-butik og ingen opdateringer at holde styr på.",
+      a: "Det er valgfrit. Android-brugere kan hente en APK fra Min dag og installere appen. På iPhone åbnes siden i Safari og tilføjes til hjemmeskærmen. Medarbejdervisningen kan også bruges direkte i browseren.",
     },
     {
       q: "Kan medarbejderne se andre end deres egne opgaver?",
@@ -64,15 +65,15 @@ const Page = defineSoftwarePage({
     },
     {
       q: "Bliver tiderne registreret automatisk?",
-      a: "Tjek ind og tjek ud registrerer de faktiske tider på hvert stop. De tider bruges til opfølgning, statistik og som grundlag for fakturering.",
+      a: "Nej. Medarbejderen starter og stopper tidsregistreringen manuelt. Den registrerede arbejdstid bruges til opfølgning og statistik.",
     },
     {
       q: "Hvad hvis medarbejderen ikke har mobildækning?",
-      a: "Ruten kan printes som ruteseddel inden dagen starter, så der altid er en fysisk plan at falde tilbage på.",
+      a: "En allerede indlæst rute kan vises fra den gemte kopi. Markeringer af udførte stop gemmes lokalt og sendes, når forbindelsen kommer tilbage. Billedupload kræver forbindelse. Ruten kan også printes inden dagen starter.",
     },
     {
       q: "Kan medarbejderen tage billeder på opgaven?",
-      a: "Ja. Billeder og noter kan tilføjes pr. stop og bliver liggende på kundens sag som dokumentation.",
+      a: "Ja. Kamera-knappen giver mulighed for frivillige før- og efter-billeder pr. besøg. Virksomheden kan se dokumentationen på aftalen, grupperet efter kørsel.",
     },
   ],
 });

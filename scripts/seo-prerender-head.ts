@@ -6,24 +6,47 @@ import { heroPhotos, HERO_PHOTO_SIZES, photoSrcSet } from "../src/components/lan
 const BASE_URL = "https://serviceydere.dk";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-type RouteMeta = { path: string; title: string; description: string };
+type RouteMeta = { path: string; title: string; description: string; article?: { title: string; publishedAt: string; updatedAt?: string }; parent?: [string, string] };
+
+export const routeStructuredData = (r: RouteMeta) => {
+  const url = `${BASE_URL}${r.path}`;
+  const post = r.article;
+  const parent = r.parent ?? (post || r.path.startsWith("/blog/") ? ["/blog", "Blog"]
+    : r.path.startsWith("/priser/") || r.path.startsWith("/guides/") ? ["/guides", "Guides og priser"]
+    : r.path.startsWith("/software/") ? ["/software", "Software"]
+    : r.path.startsWith("/by/") ? ["/by", "Alle byer"] : undefined);
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": post ? "Article" : "WebPage",
+      "@id": `${url}#webpage`, url, name: r.title, description: r.description,
+      inLanguage: "da-DK",
+      isPartOf: { "@id": `${BASE_URL}/#website` },
+      ...(post ? {
+        headline: post.title,
+        datePublished: post.publishedAt,
+        dateModified: post.updatedAt ?? post.publishedAt,
+        author: { "@type": "Organization", name: "Serviceydere" },
+        publisher: { "@id": `${BASE_URL}/#organization` },
+        mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      } : {}),
+    },
+    {
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [["/", "Forside"], ...(parent ? [parent] : []), [r.path, post?.title ?? r.title.replace(/\s*\|\s*Serviceydere$/, "")]]
+        .map(([path, name], index) => ({ "@type": "ListItem", position: index + 1, name, item: `${BASE_URL}${path}` })),
+    },
+  ];
+};
 
 export const renderRouteHead = (html: string, r: RouteMeta, body?: string) => {
   const url = `${BASE_URL}${r.path}`;
   const t = esc(r.title), d = esc(r.description);
   const isArticle = r.path.startsWith("/blog/") && !r.path.startsWith("/blog/kategori/");
-  const pageData = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${url}#webpage`,
-    url,
-    name: r.title,
-    description: r.description,
-    inLanguage: "da-DK",
-    isPartOf: { "@type": "WebSite", url: `${BASE_URL}/`, name: "Serviceydere" },
-  }).replace(/</g, "\\u003c");
+  const pageData = JSON.stringify(routeStructuredData(r)).replace(/</g, "\\u003c");
   return html
     .replace(/<script\b[^>]*data-seo-home="1"[^>]*>[\s\S]*?<\/script>/g, "")
+    .replace(/<script\b[^>]*data-seo-page="1"[^>]*>[\s\S]*?<\/script>/g, "")
     .replace(/<link\b[^>]*data-home-photo-preload="1"[^>]*>/g, "")
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*(")/, `$1${d}$2`)
@@ -66,7 +89,9 @@ const loadStaticBodies = async (): Promise<Record<string, string>> => {
       resolve: { alias: { "@": resolve("src") } },
     });
     const mod = await server.ssrLoadModule("/src/seo/staticBodies.tsx");
-    return await mod.renderStaticBodies();
+    const bodies = await mod.renderStaticBodies();
+    Object.assign(contentMetadata, mod.staticContentMetadata);
+    return bodies;
   } catch (e) {
     console.warn("seo-prerender-head: static bodies skipped:", (e as Error).message);
     return {};
@@ -74,6 +99,8 @@ const loadStaticBodies = async (): Promise<Record<string, string>> => {
     await server?.close();
   }
 };
+
+const contentMetadata: Record<string, { title: string; description: string }> = {};
 
 /** Build-only plugin: writes dist/<route>/index.html with route-specific head tags. */
 export const seoPrerenderHead = () => ({
@@ -90,7 +117,8 @@ export const seoPrerenderHead = () => ({
     const bodies = await loadStaticBodies();
     for (const r of routes) {
       if (!r.path.startsWith("/") || r.path === "/" || r.path.includes("..")) continue;
-      const out = renderRouteHead(html, r, bodies[r.path] ?? genericBody(r));
+      const meta = { ...r, ...contentMetadata[r.path] };
+      const out = renderRouteHead(html, meta, bodies[r.path] ?? genericBody(meta));
       const dir = join(resolve("dist"), r.path);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, "index.html"), out);

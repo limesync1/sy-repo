@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { renderRouteHead, renderHomeHead } from "../../scripts/seo-prerender-head";
+import { renderRouteHead, renderHomeHead, routeStructuredData } from "../../scripts/seo-prerender-head";
+import { BLOG_POSTS } from "../pages/blog/blogPosts";
 import { heroPhotos } from "../components/landing/hero-photos";
 
 const template = readFileSync("index.html", "utf8");
@@ -34,14 +35,29 @@ describe("Static public SEO heads", () => {
     expect(doc.querySelector('meta[property="og:type"]')?.getAttribute("content")).toBe("website");
     expect(doc.querySelectorAll('link[hreflang]')).toHaveLength(2);
     const data = JSON.parse(doc.querySelector('[data-seo-page="1"]')?.textContent ?? "{}");
-    expect(data.url).toBe(`https://serviceydere.dk${path}`);
-    expect(data.inLanguage).toBe("da-DK");
+    expect(data[0].url).toBe(`https://serviceydere.dk${path}`);
+    expect(data[0].inLanguage).toBe("da-DK");
+    expect(data[1]["@type"]).toBe("BreadcrumbList");
   });
 
   it("marks individual blog posts as articles and safely serializes page data", () => {
     const html = renderRouteHead(template, { path: "/blog/artikel", title: "En artikel", description: "</script><b>Tekst</b>" });
     const doc = new DOMParser().parseFromString(html, "text/html");
     expect(doc.querySelector('meta[property="og:type"]')?.getAttribute("content")).toBe("article");
-    expect(JSON.parse(doc.querySelector('[data-seo-page="1"]')?.textContent ?? "{}").description).toBe("</script><b>Tekst</b>");
+    expect(JSON.parse(doc.querySelector('[data-seo-page="1"]')?.textContent ?? "{}")[0].description).toBe("</script><b>Tekst</b>");
+  });
+
+  it("uses authoritative article dates and self-referencing breadcrumbs", () => {
+    const post = BLOG_POSTS.find(post => post.slug === "fjern-svedpletter-fra-hvidt-toej");
+    if (!post) throw new Error("Missing registered article");
+    const data = routeStructuredData({ path: `/blog/${post.slug}`, title: post.title, description: post.description,
+      article: { title: post.title, publishedAt: post.publishedAt, updatedAt: post.updatedAt } });
+    expect(data[0]["@type"]).toBe("Article");
+    expect(data[0]).toMatchObject({ datePublished: post.publishedAt, dateModified: post.updatedAt ?? post.publishedAt });
+    expect(data[1]).toMatchObject({ itemListElement: [
+      { position: 1, item: "https://serviceydere.dk/" },
+      { position: 2, item: "https://serviceydere.dk/blog" },
+      { position: 3, item: `https://serviceydere.dk/blog/${post.slug}` },
+    ] });
   });
 });
