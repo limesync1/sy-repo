@@ -7,6 +7,14 @@ import type { BlogPostMeta } from "./blogPosts";
 
 type Section = { heading?: string; paragraphs?: string[]; list?: string[]; table?: { headers: string[]; rows: string[][] }; links?: { label: string; href: string }[] };
 
+/** Turns `[label](/internal-path)` into router links; anything else stays plain text. */
+const inline = (text: string) =>
+  text.split(/(\[[^\]]+\]\([^)\s]+\))/g).map((part, i) => {
+    const m = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    if (!m) return part;
+    return m[2].startsWith("/") ? <Link key={i} to={m[2]}>{m[1]}</Link> : m[1];
+  });
+
 /** Renders articles written by the automatic SEO engine (stored as plain-text blocks, never HTML). */
 const DynamicBlogPost = () => {
   const { slug = "" } = useParams();
@@ -35,8 +43,8 @@ const DynamicBlogPost = () => {
       {sections.map((s, i) => (
         <section key={i}>
           {s.heading && <h2>{s.heading}</h2>}
-          {s.paragraphs?.map((p, j) => <p key={j}>{p}</p>)}
-          {s.list?.length ? <ul>{s.list.map((l, j) => <li key={j}>{l}</li>)}</ul> : null}
+          {s.paragraphs?.map((p, j) => <p key={j}>{inline(p)}</p>)}
+          {s.list?.length ? <ul>{s.list.map((l, j) => <li key={j}>{inline(l)}</li>)}</ul> : null}
           {s.table?.headers?.length ? (
             <div className="overflow-x-auto">
               <table>
