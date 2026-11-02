@@ -1,5 +1,10 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 2. nov. — Fortsat målrettet SEO
+- [ ] Undersøg aktuelle Search Console-tal og danske søgninger; undgå dublerede artikler.
+- [ ] Tilføj praktiske virksomhedsartikler med relevante interne links og opdater sitemap.
+- [ ] Kontrollér månedlig rapport og sitemapadgang; test artikler og SEO i browser.
+
 ## 2. nov. — Flere artikler + månedlig SEO-rapport
 - [x] 10 nye artikler (282 i alt), sitemap opdateret; SEO-tests bestået.
 - [x] Månedlig SEO-mail til ejeren d. 1. kl. 08.17 (dansk tid) med klik, visninger, placering, top-søgeord/sider og sitemapstatus; første rapport (oktober) sendt.
