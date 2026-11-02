@@ -33,6 +33,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^3.10.0",
+    "@lovable.dev/ai-gateway": "^0.1.11",
     "@lovable.dev/cloud-auth-js": "^1.1.2",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "@radix-ui/react-accordion": "^1.2.11",

@@ -26,7 +26,15 @@ Deno.serve(async (_req) => {
     .select("slug, updated_at")
     .eq("is_active", true);
 
+  const { data: articles } = await supabase
+    .from("seo_articles")
+    .select("slug, updated_at")
+    .eq("status", "published");
+
   const urls: string[] = [];
+  (articles ?? []).forEach((a: { slug: string; updated_at: string }) => {
+    urls.push(`<url><loc>${SITE_URL}/blog/${escapeXml(a.slug)}</loc><lastmod>${new Date(a.updated_at).toISOString().split("T")[0]}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+  });
 
   STATIC_ROUTES.forEach((r) => {
     urls.push(`<url><loc>${SITE_URL}${r.path}</loc><changefreq>${r.changefreq}</changefreq><priority>${r.priority}</priority></url>`);
