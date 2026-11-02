@@ -24,7 +24,8 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        Se <a href="/software/ruteplanlaegger">ruteplanlæggeren</a> og <a href="/blog/google-maps-eller-ruteplanlaegger">Google Maps eller ruteplanlægger</a>.{" "}
+        Se <a href="/software/ruteplanlaegger">ruteplanlæggeren</a>, <a href="/blog/kapacitetsplanlaegning-servicefirma">kapacitetsplanlægning af arbejdsdagen</a> og <a href="/blog/ruteplanlaegning-excel-til-system">ruteplanlægning i Excel</a>.{" "}
+        Læs også <a href="/blog/adresser-ruteplanlaegning-tjekliste">tjeklisten til adresser på ruten</a> og <a href="/blog/google-maps-eller-ruteplanlaegger">Google Maps eller ruteplanlægger</a>.{" "}
         <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 14 dage</a> — uden kreditkort.
       </p>
     ) },

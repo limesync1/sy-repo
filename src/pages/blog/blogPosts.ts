@@ -24,6 +24,38 @@ export interface BlogPostMeta {
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
+    slug: "ruteplanlaegning-excel-til-system",
+    title: "Ruteplanlægning i Excel — fra regneark til fælles system",
+    description: "Gør kundeadresser, besøg og intervaller klar til ruteplanlægning. En praktisk tjekliste til oprydning i Excel og afprøvning af én rute før et systemskifte.",
+    publishedAt: "2026-11-02", readingMinutes: 5, category: "Ruteplanlægning",
+    tags: ["ruteplanlaegning", "kunder", "excel"],
+    loader: () => import("./posts/RoutePlanningFromExcel"),
+  },
+  {
+    slug: "kapacitetsplanlaegning-servicefirma",
+    title: "Kapacitetsplanlægning — kan medarbejderne nå dagens rute?",
+    description: "Sammenhold besøg, køretid, pauser og opgavernes varighed. Sådan vurderer servicefirmaer dagens kapacitet uden at forveksle skøn med registreret tid.",
+    publishedAt: "2026-11-02", readingMinutes: 5, category: "Ruteplanlægning",
+    tags: ["ruteplanlaegning", "medarbejdere", "planlaegning"],
+    loader: () => import("./posts/RouteCapacityPlanning"),
+  },
+  {
+    slug: "aflyste-besoeg-fakturering-faste-kunder",
+    title: "Aflyste besøg og fakturering — kontrollér de faste kunders fakturaer",
+    description: "Skeln mellem udsatte besøg, aflysninger og udført arbejde. Kontrollér samlefakturaer, fakturaintervaller og allerede udstedte fakturaer for faste kunder.",
+    publishedAt: "2026-11-02", readingMinutes: 5, category: "Økonomi",
+    tags: ["faktura", "kunder", "ruteplanlaegning"],
+    loader: () => import("./posts/MissedVisitInvoicing"),
+  },
+  {
+    slug: "adresser-ruteplanlaegning-tjekliste",
+    title: "Forkert adresse på ruten? Tjekliste til adresser og kortpunkter",
+    description: "Kontrollér serviceadresse, husnummer, postnummer og placering på kortet. Sådan håndterer du manglende koordinater, før du planlægger eller optimerer ruten.",
+    publishedAt: "2026-11-02", readingMinutes: 4, category: "Ruteplanlægning",
+    tags: ["ruteplanlaegning", "kunder", "adresser"],
+    loader: () => import("./posts/RouteAddressChecklist"),
+  },
+  {
     slug: "saadan-vaelger-du-rengoeringsfirma",
     title: "Sådan vælger du det rigtige rengøringsfirma — 9 ting du skal tjekke",
     description:

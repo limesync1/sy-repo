@@ -1,5 +1,10 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 2. nov. — Fortsat målrettet SEO
+- [x] Search Console: forsiden indekseret; seneste 28 dage 71 klik/6.073 visninger mod 99/7.739. Semrush DK og konkurrentindhold undersøgt; præcise long-tail-volumener er lave eller ukendte, ikke et løfte om nemme placeringer.
+- [x] Fire særskilte virksomhedsartikler om Excel-oprydning, dagskapacitet, aflyste besøg/fakturering og adressekontrol. Links fra eksisterende artikler; 286 blogartikler og 1.010 sitemap-URL'er.
+- [x] Månedlig rapports tidsplan aktiv, Search Console-forbindelse tilkoblet; live sitemap-index svarer HTTP 200. 17 SEO-tests bestået, SEO-check uden fejl/advarsler; alle fire artikler og linknavigation afprøvet uden runtimefejl, mobil uden vandret overflow; build OK. Ingen ny rapport sendt. Nye artikler kræver udgivelse før Google kan crawle dem; deres Google-indeksering er ikke verificeret. Sitemapstatus hos Google ikke genlæst, da to verificerede ejendomme dækker domænet og kræver valg før yderligere direkte kald.
+
 ## 2. nov. — Flere artikler + månedlig SEO-rapport
 - [x] 10 nye artikler (282 i alt), sitemap opdateret; SEO-tests bestået.
 - [x] Månedlig SEO-mail til ejeren d. 1. kl. 08.17 (dansk tid) med klik, visninger, placering, top-søgeord/sider og sitemapstatus; første rapport (oktober) sendt.
