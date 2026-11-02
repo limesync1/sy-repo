@@ -47,6 +47,7 @@ const PlatformHealthTab = lazy(() => import("@/components/platform-admin/Platfor
 const PlatformMailsTab = lazy(() => import("@/components/platform-admin/PlatformMailsTab"));
 const PlatformSecurityTab = lazy(() => import("@/components/platform-admin/PlatformSecurityTab"));
 const PlatformAiQualityTab = lazy(() => import("@/components/platform-admin/PlatformAiQualityTab"));
+const PlatformSeoEngineTab = lazy(() => import("@/components/platform-admin/PlatformSeoEngineTab"));
 const PlatformWaitlistTab = lazy(() => import("@/components/platform-admin/PlatformWaitlistTab"));
 
 // Sidebar er nu delt i to logiske grupper. Det reducerer kognitiv belastning
@@ -75,6 +76,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "health", label: "Sundhed", icon: HeartPulse },
       { value: "mails", label: "Mails", icon: Mail },
       { value: "waitlist", label: "Venteliste", icon: Rocket },
+      { value: "seo", label: "SEO-motor", icon: Sparkles },
       { value: "ai-quality", label: "AI-kvalitet", icon: Sparkles },
       { value: "security", label: "Sikkerhed", icon: Shield },
       { value: "settings", label: "Platform", icon: Settings },
@@ -103,6 +105,7 @@ const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   security: () => import("@/components/platform-admin/PlatformSecurityTab"),
   "ai-quality": () => import("@/components/platform-admin/PlatformAiQualityTab"),
   waitlist: () => import("@/components/platform-admin/PlatformWaitlistTab"),
+  seo: () => import("@/components/platform-admin/PlatformSeoEngineTab"),
   settings: () => import("@/components/platform-admin/PlatformPlatformSettingsTab"),
 };
 const prefetched = new Set<string>();
@@ -404,6 +407,7 @@ const PlatformAdmin = () => {
                   {tab === "mails" && <PlatformMailsTab />}
                   {tab === "ai-quality" && <PlatformAiQualityTab />}
                   {tab === "waitlist" && <PlatformWaitlistTab />}
+                  {tab === "seo" && <PlatformSeoEngineTab />}
                   {tab === "security" && <PlatformSecurityTab />}
                   {tab === "settings" && <PlatformSettingsTab />}
                 </Suspense>

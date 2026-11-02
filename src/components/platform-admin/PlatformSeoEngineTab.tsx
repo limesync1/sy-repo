@@ -116,7 +116,6 @@ export default function PlatformSeoEngineTab() {
                 <div className="flex flex-wrap gap-2">
                   {a.status === "published" && <Button asChild variant="ghost" className="min-h-11"><a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Se</a></Button>}
                   {a.status === "draft" && <>
-                    <Button asChild variant="ghost" className="min-h-11"><a href={`/blog/${a.slug}`} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); toast.info("Kladder kan ses efter godkendelse."); }}>Forhåndsvis</a></Button>
                     <Button className="min-h-11" onClick={() => setArticle(a.id, { status: "published", published_at: new Date().toISOString() })}><CheckCircle2 className="h-4 w-4" /> Godkend</Button>
                     <Button variant="outline" className="min-h-11" onClick={() => setArticle(a.id, { status: "rejected" })}>Afvis</Button>
                   </>}

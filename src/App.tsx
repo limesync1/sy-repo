@@ -170,6 +170,7 @@ const TradeCityPage          = lazyRoute("/branche/:city", () => import("./pages
 const CityHubPage            = lazyRoute("/by", () => import("./pages/cities/CityHubPage"));
 const TRADE_KINDS = ["vinduespudser", "maler", "elektriker", "vvs", "toemrer", "murer", "kloakmester", "skadedyr", "gulvlaegger", "skorstensfejer", "varmepumpe", "tagdaekker", "badevaerelse", "vinduesudskiftning", "anlaegsgartner", "algebehandling"];
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
+const DynamicBlogPost        = lazy(() => import("./pages/blog/DynamicBlogPost"));
 const BlogCategoryIndex      = lazyRoute("/blog/kategori", () => import("./pages/blog/BlogCategoryIndex"));
 
 // ── Datadrevne blog-ruter ────────────────────────────────────────────────
@@ -486,6 +487,7 @@ const App = () => (
               {BLOG_ROUTES.map(({ path, Component }) => (
                 <Route key={path} path={path} element={<Component />} />
               ))}
+              <Route path="/blog/:slug" element={<DynamicBlogPost />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
               <Route path="/om-os" element={<AboutUs />} />
               <Route path="/anmeldelser" element={<Reviews />} />
