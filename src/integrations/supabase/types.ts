@@ -4675,6 +4675,179 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_articles: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          faq: Json
+          id: string
+          index_checked_at: string | null
+          index_status: string | null
+          keywords: string
+          needs_improvement: boolean
+          published_at: string | null
+          reading_minutes: number
+          sections: Json
+          slug: string
+          status: string
+          submitted_at: string | null
+          title: string
+          topic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          faq?: Json
+          id?: string
+          index_checked_at?: string | null
+          index_status?: string | null
+          keywords?: string
+          needs_improvement?: boolean
+          published_at?: string | null
+          reading_minutes?: number
+          sections?: Json
+          slug: string
+          status?: string
+          submitted_at?: string | null
+          title: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          faq?: Json
+          id?: string
+          index_checked_at?: string | null
+          index_status?: string | null
+          keywords?: string
+          needs_improvement?: boolean
+          published_at?: string | null
+          reading_minutes?: number
+          sections?: Json
+          slug?: string
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_articles_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "seo_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_runs: {
+        Row: {
+          details: Json | null
+          finished_at: string | null
+          id: string
+          kind: string
+          run_key: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          finished_at?: string | null
+          id?: string
+          kind: string
+          run_key: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          details?: Json | null
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          run_key?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          articles_per_week: number
+          auto_publish: boolean
+          enabled: boolean
+          id: boolean
+          paused_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          articles_per_week?: number
+          auto_publish?: boolean
+          enabled?: boolean
+          id?: boolean
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          articles_per_week?: number
+          auto_publish?: boolean
+          enabled?: boolean
+          id?: boolean
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_topics: {
+        Row: {
+          clicks: number
+          created_at: string
+          id: string
+          impressions: number
+          keyword: string
+          kind: string
+          position: number | null
+          score: number
+          source: string
+          status: string
+          suggestion: Json | null
+          target_path: string | null
+        }
+        Insert: {
+          clicks?: number
+          created_at?: string
+          id?: string
+          impressions?: number
+          keyword: string
+          kind?: string
+          position?: number | null
+          score?: number
+          source?: string
+          status?: string
+          suggestion?: Json | null
+          target_path?: string | null
+        }
+        Update: {
+          clicks?: number
+          created_at?: string
+          id?: string
+          impressions?: number
+          keyword?: string
+          kind?: string
+          position?: number | null
+          score?: number
+          source?: string
+          status?: string
+          suggestion?: Json | null
+          target_path?: string | null
+        }
+        Relationships: []
+      }
       service_duration_history: {
         Row: {
           actual_minutes: number

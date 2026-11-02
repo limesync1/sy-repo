@@ -253,6 +253,13 @@
       "when": 1793217302994,
       "tag": "0035_cleanup_route_after_order_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793619733020,
+      "tag": "0036_migration",
+      "breakpoints": true
     }
   ]
 }
