@@ -1,5 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 2. nov. — Flere artikler + månedlig SEO-rapport
+- [x] 10 nye artikler (282 i alt), sitemap opdateret; SEO-tests bestået.
+- [x] Månedlig SEO-mail til ejeren d. 1. kl. 08.17 (dansk tid) med klik, visninger, placering, top-søgeord/sider og sitemapstatus; første rapport (oktober) sendt.
+
 ## 1. nov. — Ny samlet SEO-forbedring
 - [x] Kontrollér søgemaskinernes adgang, metadata, strukturerede data og sitemap på hele den offentlige hjemmeside; grundkontrol uden fejl, Semrush-snapshot undersøgt (estimat, ikke målt trafik).
 - [x] Fælles bymetadata på 72 sider og fuldt lokalt indhold i første HTML; 972 sider med fuldt indhold. Fjernet gamle prerender-entiteter ved navigation, ensrettet relevante artikelhenvisninger, rettet virksomhedsoversigtens metadata og forklaret fakturainterval/e-conomic/Dinero korrekt. Offentlige legacy-virksomhedslinks kan crawles; test- og callback-sider blokeret. Manglende artikelindhold stopper prerender frem for stille degradering.
