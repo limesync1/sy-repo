@@ -79,3 +79,6 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.meta-connection]
     verify_jwt = false
+
+[functions.seo-monthly-report]
+verify_jwt = true
