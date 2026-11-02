@@ -63,6 +63,18 @@ Deno.serve(async (req) => {
       notes.push(`Sitemaps i Google: ${list.length}${errs ? `, med ${errs} fejl der bør tjekkes` : ', uden fejl'}.`);
     }
 
+    try {
+      const { createClient } = await import('npm:@supabase/supabase-js@2');
+      const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { data: arts } = await db.from('seo_articles').select('status, published_at, index_status, needs_improvement').eq('status', 'published');
+      const all = arts ?? [];
+      const month = all.filter((a: any) => a.published_at >= start.toISOString() && a.published_at <= new Date(end.getTime() + 864e5).toISOString()).length;
+      const indexed = all.filter((a: any) => /indexed/i.test(a.index_status ?? '') && !/not/i.test(a.index_status ?? '')).length;
+      notes.push(`SEO-motoren udgav ${month} nye artikler i ${period}; ${indexed} af ${all.length} automatiske artikler er bekræftet indekseret.`);
+      const weak = all.filter((a: any) => a.needs_improvement).length;
+      if (weak) notes.push(`${weak} artikler er ikke indekseret efter 3 uger og er markeret til forbedring i adminpanelet.`);
+    } catch (e) { console.warn('[seo-monthly-report] article stats', e); }
+
     const result = await sendTemplateEmail('seo-monthly-report', RECIPIENT, {
       idempotencyKey: `seo-monthly-report-${iso(start).slice(0, 7)}`,
       templateData: {
