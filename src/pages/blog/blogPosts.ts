@@ -613,7 +613,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "hvor-ofte-skal-skorsten-fejes",
-    title: "Hvor ofte skal skorstenen fejes? Brændeovn, pejs og fyr (2026)",
+    title: "Hvor ofte skal skorstenen fejes? Regler for brændeovn 2026",
     description:
       "Brændeovn 1-2 gange om året, pejs og fyr efter brug. Se lovkravet for netop din installation, hvem der bestemmer intervallet, og hvad der sker, hvis du springer fejningen over.",
     publishedAt: "2026-02-21",
@@ -690,7 +690,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "fjern-blodpletter-fra-toej",
-    title: "Fjern blodpletter fra tøj — også gamle og indtørrede",
+    title: "Fjern blodpletter: 5 metoder der virker – også gamle pletter",
     description: "Brug aldrig varmt vand. Koldt vand, salt og brintoverilte fjerner blodpletter fra tøj, også gamle. Trin for trin, plus madras og sengetøj uden at ødelægge stoffet.",
     publishedAt: "2026-03-05",
     readingMinutes: 7,
