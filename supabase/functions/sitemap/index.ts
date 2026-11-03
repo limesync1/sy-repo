@@ -31,9 +31,13 @@ Deno.serve(async (_req) => {
     .select("slug, updated_at")
     .eq("status", "published");
 
+  const { data: images } = await supabase.from("article_images").select("path, image_url").eq("status", "done");
+  const imageByPath = new Map((images ?? []).map((i: { path: string; image_url: string }) => [i.path, i.image_url]));
+  const imageTag = (path: string) => { const u = imageByPath.get(path); return u ? `<image:image><image:loc>${escapeXml(u)}</image:loc></image:image>` : ""; };
+
   const urls: string[] = [];
   (articles ?? []).forEach((a: { slug: string; updated_at: string }) => {
-    urls.push(`<url><loc>${SITE_URL}/blog/${escapeXml(a.slug)}</loc><lastmod>${new Date(a.updated_at).toISOString().split("T")[0]}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+    urls.push(`<url><loc>${SITE_URL}/blog/${escapeXml(a.slug)}</loc>${imageTag(`/blog/${a.slug}`)}<lastmod>${new Date(a.updated_at).toISOString().split("T")[0]}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
   });
 
   STATIC_ROUTES.forEach((r) => {
@@ -52,7 +56,7 @@ Deno.serve(async (_req) => {
   });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
 
