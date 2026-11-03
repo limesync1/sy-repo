@@ -267,6 +267,13 @@
       "when": 1793734745707,
       "tag": "0037_seo_articles_per_week_up_to_28",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793743374650,
+      "tag": "0038_migration",
+      "breakpoints": true
     }
   ]
 }
