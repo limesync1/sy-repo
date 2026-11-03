@@ -63,7 +63,7 @@ async function tick() {
         const up = await sb.storage.from(BUCKET).upload(file, bytes, { contentType: 'image/webp', upsert: true });
         if (up.error) throw up.error;
         await sb.from('article_images').update({
-          status: 'done', image_url: `${FN_BASE}?f=${file}`, alt: `${row.title} – illustration`, last_error: null, updated_at: new Date().toISOString(),
+          status: 'done', image_url: `${FN_BASE}?f=${file}`, alt: `Illustration til artiklen: ${row.title}`, last_error: null, updated_at: new Date().toISOString(),
         }).eq('path', row.path);
         done.push(row.path);
       } catch (e) {
