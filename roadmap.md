@@ -1,8 +1,8 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## 3. nov. — Fortsat småbranche-SEO
-- [ ] Kontrollér faktisk artikeludgivelse og småbranchernes kø; forbedr fokuseret emnevalg og relevante interne links.
-- [ ] Test, deploy og kontrollér en udgivet artikel; behold 28 artikler/uge og oplys hvad der ikke er verificeret.
+- [x] Fire artikler udgivet i dag, 444 emner tilbage. Sidste daglige plads prioriterer mindst dækkede brancher; konkrete underbrancher matches til forælder med påkrævet branchelink. Registreringskilden har 54 brancher/214 underbrancher (tidligere optælling 55/213 var forkert).
+- [x] 11 regeltests bestået; 1.064 sitemap-URL'er kontrolleret uden fejl/advarsler; build OK; SEO-motor deployet. Dagens kvote respekteret i live tick; Google accepterede det offentlige sitemap og tre nye artikler markeret indsendt. Kontorrengøringsartiklen med tabel og erhvervsrengøringslink åbnet i browser uden runtimefejl. Ingen ekstra artikel skrevet over kvoten; næste automatiske dækningsvalg og Google-indeksering af nye artikler endnu ikke observeret.
 
 ## 2. nov. — Fortsat målrettet SEO
 - [x] Search Console: forsiden indekseret; seneste 28 dage 71 klik/6.073 visninger mod 99/7.739. Semrush DK og konkurrentindhold undersøgt; præcise long-tail-volumener er lave eller ukendte, ikke et løfte om nemme placeringer.
