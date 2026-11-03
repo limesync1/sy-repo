@@ -2,7 +2,6 @@ import { forwardRef, type HTMLAttributes, type ImgHTMLAttributes } from "react";
 import animatedArrow from "@/assets/ui/Pil_animeret.svg.asset.json";
 import recentSearch from "@/assets/content-icons/senest-soegt.svg.asset.json";
 import searchIcon from "@/assets/content-icons/soeg.svg.asset.json";
-import animatedLine from "@/assets/ui/section-line.webp.asset.json";
 import dayLocked from "@/assets/ui/laast-start-dagen.png.asset.json";
 import addAppointmentToRoute from "@/assets/ui/tilfoej-aftale-til-rute.svg.asset.json";
 import appointmentInfo from "@/assets/ui/mere-info-om-aftalen.svg.asset.json";
@@ -27,8 +26,8 @@ export const UiArtwork = forwardRef<HTMLImageElement, ImgHTMLAttributes<HTMLImag
 UiArtwork.displayName = "UiArtwork";
 
 export const SectionLabelMark = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => (
-  <span aria-hidden className={cn("inline-flex h-2 w-12 shrink-0 items-center", className)} {...props}>
-    <img src={animatedLine.url} alt="" width={192} height={15} loading="lazy" decoding="async" className="h-auto w-full object-contain [filter:saturate(2.4)_brightness(0.8)_contrast(1.4)] motion-reduce:animate-none" />
+  <span aria-hidden className={cn("inline-flex h-2 w-8 shrink-0 items-center", className)} {...props}>
+    <span className="h-[2px] w-full rounded-full bg-gradient-to-r from-hero-cyan to-hero-cyan/40" />
   </span>
 );
 
