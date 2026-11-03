@@ -1,5 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 3. nov. — Fortsat småbranche-SEO
+- [ ] Kontrollér faktisk artikeludgivelse og småbranchernes kø; forbedr fokuseret emnevalg og relevante interne links.
+- [ ] Test, deploy og kontrollér en udgivet artikel; behold 28 artikler/uge og oplys hvad der ikke er verificeret.
+
 ## 2. nov. — Fortsat målrettet SEO
 - [x] Search Console: forsiden indekseret; seneste 28 dage 71 klik/6.073 visninger mod 99/7.739. Semrush DK og konkurrentindhold undersøgt; præcise long-tail-volumener er lave eller ukendte, ikke et løfte om nemme placeringer.
 - [x] Fire særskilte virksomhedsartikler om Excel-oprydning, dagskapacitet, aflyste besøg/fakturering og adressekontrol. Links fra eksisterende artikler; 286 blogartikler og 1.010 sitemap-URL'er.
