@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
 import { defineSoftwarePage } from "./defineSoftwarePage";
+import { INDUSTRIES, industryHref } from "./industryRegistry";
+
+const GROUPS = [...new Set(INDUSTRIES.map((i) => i.group))];
 
 const Page = defineSoftwarePage({
   canonicalPath: "/software/brancher",
@@ -23,6 +26,12 @@ const Page = defineSoftwarePage({
     "Samme system uanset om I er 1 eller 40 medarbejdere.",
   ],
   sections: [
+    ...GROUPS.map((g) => ({
+      heading: `Alle brancher: ${g}`,
+      list: INDUSTRIES.filter((i) => i.group === g).map((i) => (
+        <><Link to={industryHref(i)}><strong>System til {i.label.toLowerCase()}</strong></Link> — {i.subs.join(", ").toLowerCase()}.</>
+      )),
+    })),
     {
       heading: "Brancher systemet dækker",
       list: [

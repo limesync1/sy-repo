@@ -9,6 +9,7 @@ import { StaticRouter } from "react-router-dom/server";
 import { BLOG_POSTS } from "@/pages/blog/blogPosts";
 import { GUIDES } from "@/pages/guides/guidesRegistry";
 import { SOFTWARE_PAGES } from "@/pages/software/softwareRegistry";
+import { INDUSTRIES, industryConfig } from "@/pages/software/industryRegistry";
 import type { BlogPostConfig } from "@/pages/blog/defineBlogPost";
 import type { GuideConfig } from "@/pages/guides/defineGuidePage";
 import type { SoftwareConfig } from "@/pages/software/defineSoftwarePage";
@@ -82,6 +83,11 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
       configs.set(config.canonicalPath, config);
       staticContentMetadata[config.canonicalPath] = { title: config.metaTitle, description: config.metaDescription };
     }
+  }
+  for (const industry of INDUSTRIES) {
+    const config = industryConfig(industry);
+    configs.set(config.canonicalPath, config);
+    staticContentMetadata[config.canonicalPath] = { title: config.metaTitle, description: config.metaDescription };
   }
   const render = (path: string, node: JSX.Element) => {
     try {
@@ -161,7 +167,7 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
         </section>)}</>}
         <p>Prøv Serviceydere gratis i 14 dage. Du skal ikke bruge kreditkort.</p>
         <Nav extra={[
-          ...SOFTWARE_PAGES.filter((o) => o.href !== s.href).map((o) => [o.href, o.label] as [string, string]),
+          ...SOFTWARE_PAGES.filter((o) => o.href !== s.href && (o.group !== "branch" || s.group === "branch" || s.href === "/software/brancher")).map((o) => [o.href, o.label] as [string, string]),
           ...BLOG_POSTS.filter((p) => p.category === "Ruteplanlægning").map((p) => [`/blog/${p.slug}`, p.title] as [string, string]),
         ]} />
       </>
