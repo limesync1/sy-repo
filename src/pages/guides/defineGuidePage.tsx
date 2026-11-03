@@ -8,6 +8,9 @@ import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import RelatedContent from "@/components/content/RelatedContent";
 
+import ArticleCoverImage from "@/components/content/ArticleCoverImage";
+import { useArticleImage } from "@/lib/article-images";
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 export interface GuideSection {
@@ -124,14 +127,18 @@ export function defineGuidePage(cfg: GuideConfig) {
     });
   }
 
-  const Page = () => (
+  const Page = () => {
+    const cover = useArticleImage(cfg.canonicalPath);
+    const ld = cover ? [{ ...jsonLd[0], image: [cover.image_url] }, ...jsonLd.slice(1)] : jsonLd;
+    return (
     <div className="min-h-screen bg-background">
       <SEO
         title={cfg.metaTitle}
         description={cfg.metaDescription}
         canonicalPath={cfg.canonicalPath}
         keywords={cfg.keywords}
-        jsonLd={jsonLd}
+        image={cover?.image_url}
+        jsonLd={ld}
       />
       <SiteNav />
       <ArticleHero
