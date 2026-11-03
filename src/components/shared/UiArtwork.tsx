@@ -2,7 +2,6 @@ import { forwardRef, type HTMLAttributes, type ImgHTMLAttributes } from "react";
 import animatedArrow from "@/assets/ui/Pil_animeret.svg.asset.json";
 import recentSearch from "@/assets/content-icons/senest-soegt.svg.asset.json";
 import searchIcon from "@/assets/content-icons/soeg.svg.asset.json";
-import animatedLine from "@/assets/ui/section-line.webp.asset.json";
 import dayLocked from "@/assets/ui/laast-start-dagen.png.asset.json";
 import addAppointmentToRoute from "@/assets/ui/tilfoej-aftale-til-rute.svg.asset.json";
 import appointmentInfo from "@/assets/ui/mere-info-om-aftalen.svg.asset.json";
