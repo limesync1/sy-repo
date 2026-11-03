@@ -2,12 +2,13 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { generateChatCompletion, GatewayError, PaymentRequiredError, PermissionDeniedError, RateLimitError } from 'npm:@lovable.dev/ai-gateway@0.1.11';
 import { validateArticle, slugify, INTERNAL_LINKS, INDUSTRY_SLUGS, type ArticleDraft } from './quality.ts';
+import { selectTopic, topicIndustry, type TopicCandidate } from './topic-selection.ts';
 
 // Automatic SEO engine. One daily cron "tick" decides the work for the day; admins can trigger single steps.
 // Every step is bounded, guarded by a unique run key (single-flight + idempotent) and stops on credit/policy errors.
 const SITE = 'https://serviceydere.dk/';
 const GATEWAY = 'https://connector-gateway.lovable.dev/google_search_console';
-const SITEMAPS = ['https://serviceydere.dk/sitemap-index.xml', 'https://gkectsellkpltrxvusot.supabase.co/functions/v1/sitemap'];
+const SITEMAPS = ['https://serviceydere.dk/sitemap-index.xml'];
 const SEEDS = ['ruteplanlægning servicefirma', 'program til rengøringsfirma', 'software til vinduespudser', 'planlægningsværktøj håndværker', 'fakturering servicevirksomhed', 'medarbejder app timeregistrering', 'kørselsliste program', 'faste kunder abonnement service', 'app til havemand', 'e-conomic integration servicefirma'];
 const WRITE_DAYS = [2, 4, 6, 1, 3, 5, 0];
 
@@ -76,21 +77,27 @@ async function discover() {
 const SYSTEM = `Du er senior SEO-skribent for Serviceydere.dk – dansk software til servicevirksomheder (ruteplanlægning, medarbejder-app med manuel tidsregistrering, faste aftaler med intervaller, samlet fakturering med fakturainterval, e-conomic/Dinero-integration, kundeportal, før/efter-billeder, SMS/e-mail-påmindelser) og en markedsplads hvor private får tilbud fra serviceudbydere. 14 dages gratis prøveperiode uden kreditkort.
 Regler: Skriv naturligt, konkret og hjælpsomt dansk. Opfind aldrig statistik, kunder, citater eller funktioner. Angiv aldrig præcise priser – kun brede intervaller med forbehold. Ingen keyword stuffing. Svar KUN med JSON.`;
 
-async function write(manualTopicId?: string) {
+async function write(manualTopicId?: string, coverage = false) {
   let q = db.from('seo_topics').select('*').eq('kind', 'new');
   q = manualTopicId ? q.eq('id', manualTopicId) : q.eq('status', 'queued').order('score', { ascending: false });
-  const { data: topic } = await q.limit(1).maybeSingle();
+  const { data: candidates, error: candidateError } = await q.order('created_at').limit(1000);
+  if (candidateError) throw candidateError;
+  const { data: written, error: writtenError } = await db.from('seo_topics').select('id,keyword,score,target_path').eq('kind', 'new').eq('status', 'written').limit(1000);
+  if (writtenError) throw writtenError;
+  const topic = selectTopic((candidates ?? []) as TopicCandidate[], (written ?? []) as TopicCandidate[], coverage);
   if (!topic) return { written: 0, reason: 'Ingen emner i køen' };
+  const industry = topicIndustry(topic);
   await db.from('seo_topics').update({ status: 'writing' }).eq('id', topic.id);
   const slugs = await existingSlugs();
   const prompt = `Skriv en dybdegående artikel målrettet søgningen "${topic.keyword}".
-Eksisterende artikler (undgå overlap, link gerne til relevante): ${slugs.slice(0, 120).join(', ')}
+Eksisterende artikler (undgå overlap, link gerne til relevante): ${slugs.filter(s => s.includes(slugify(topic.keyword).split('-')[0])).concat(slugs.slice(-80)).slice(0, 120).join(', ')}
+${industry ? `Emnet hører under /software/branche/${industry}. Medtag dette præcise link i links-arrayet. Skriv om den konkrete underbranches opgaver, arbejdsgang, afgrænsning og tilbud – ikke en omskrivning af en generel brancheartikel.` : ''}
 Tilladte interne links (brug 3-6 relevante): ${INTERNAL_LINKS.join(', ')} samt /blog/<eksisterende-slug> og branchesider /software/branche/<slug> for: ${INDUSTRY_SLUGS.join(', ')}. Link altid til den mest relevante brancheside.
 JSON-format: {"slug":"kort-dansk-slug-uden-æøå","title":"maks 65 tegn, indeholder søgeordet","description":"120-160 tegn","category":"Ruteplanlægning|Rengøring|Haveservice|Økonomi|Vinduespudsning|Håndværker","keywords":"komma, separeret","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":["..."],"rows":[["..."]]}}],"links":[{"label":"ankertekst","href":"/sti"}],"faq":[{"q":"...","a":"..."}]}
 Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 FAQ, sidste sektion forklarer hvordan Serviceydere kan hjælpe og nævner 14 dages gratis prøveperiode uden kreditkort.`;
   const raw = await ai(prompt, SYSTEM);
   const draft: ArticleDraft = { ...raw, slug: slugify(raw.slug || topic.keyword) };
-  const problems = validateArticle(draft, slugs);
+  const problems = validateArticle(draft, slugs, industry);
   if (problems.length) {
     await db.from('seo_topics').update({ status: 'rejected', suggestion: { problems } }).eq('id', topic.id);
     return { written: 0, problems };
@@ -102,7 +109,7 @@ Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 F
   const { error } = await db.from('seo_articles').insert({ topic_id: topic.id, slug: draft.slug, title: draft.title, description: draft.description, category: draft.category, keywords: draft.keywords, sections, faq: draft.faq, reading_minutes: Math.max(3, Math.round(words / 200)), status: publish ? 'published' : 'draft', published_at: publish ? new Date().toISOString() : null });
   if (error) throw new Error(error.message);
   await db.from('seo_topics').update({ status: 'written' }).eq('id', topic.id);
-  return { written: 1, slug: draft.slug, published: publish };
+  return { written: 1, slug: draft.slug, published: publish, industry, selection: coverage ? 'coverage' : 'demand' };
 }
 
 async function submit() {
@@ -150,11 +157,11 @@ async function refresh() {
 
 const STEPS: Record<string, (arg?: string) => Promise<unknown>> = { discover, write, submit, inspect, refresh };
 
-async function run(kind: string, key: string, arg?: string) {
+async function run(kind: string, key: string, arg?: string, coverage = false) {
   const { error } = await db.from('seo_runs').insert({ kind, run_key: key });
   if (error) return { kind, skipped: 'Kører allerede eller er kørt i dag' };
   try {
-    const details = await STEPS[kind](arg);
+    const details = kind === 'write' ? await write(arg, coverage) : await STEPS[kind](arg);
     await db.from('seo_runs').update({ status: 'ok', details, finished_at: new Date().toISOString() }).eq('run_key', key);
     return { kind, ...(details as object) };
   } catch (e) {
@@ -193,7 +200,7 @@ Deno.serve(async (req) => {
         const { count } = await db.from('seo_runs').select('id', { count: 'exact', head: true })
           .eq('kind', 'write').eq('status', 'ok').like('run_key', `write:${today}%`);
         const done = count ?? 0;
-        if (done < perDay) out.push(await run('write', `write:${today}:${done}`));
+        if (done < perDay) out.push(await run('write', `write:${today}:${done}`, undefined, done === perDay - 1));
       } else if (WRITE_DAYS.slice(0, s.articles_per_week).includes(d.getUTCDay())) {
         out.push(await run('write', `write:${today}`));
       }
