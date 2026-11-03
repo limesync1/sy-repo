@@ -29,7 +29,7 @@ const CTABand = ({ animated = true, eyebrow, title, body, primary, secondary, cl
       <div className="public-content-enter relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           {eyebrow && (
-            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
+            <span className="inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-ocean-foreground/70">
               <SectionLabelMark />
               {eyebrow}
             </span>

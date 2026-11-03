@@ -58,7 +58,7 @@ const ForBusinesses = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between 2xl:mb-10">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            <span className="inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <SectionLabelMark />
               For virksomheder
             </span>
@@ -176,7 +176,7 @@ const ForBusinesses = () => {
         <div className="mt-10 overflow-hidden rounded-2xl border border-border/70 bg-card 2xl:mt-14 2xl:rounded-[28px]">
           <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-center 2xl:gap-8 2xl:p-10">
             <div>
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 <SectionLabelMark />
                 Prismodel
               </span>

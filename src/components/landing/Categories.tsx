@@ -38,7 +38,7 @@ const CategoryCard = ({
     <div className="relative mt-4 min-w-0">
       <div className="break-words text-[15px] font-semibold leading-snug">{cat.label}</div>
       {cat.hint && (
-        <div className="mt-1.5 line-clamp-1 text-[11px] font-medium text-muted-foreground">{cat.hint}</div>
+        <div className="mt-1.5 line-clamp-1 text-xs font-medium text-muted-foreground">{cat.hint}</div>
       )}
     </div>
   </Link>
@@ -55,7 +55,7 @@ const Categories = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-7 flex flex-col gap-5 md:mb-8 md:flex-row md:items-end md:justify-between 2xl:mb-10">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            <span className="inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <SectionLabelMark />
               Servicebrancher
             </span>
