@@ -1,5 +1,6 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import seed from './seed.json' with { type: 'json' };
 import { generateImage, GatewayError, PaymentRequiredError, PermissionDeniedError, RateLimitError } from 'npm:@lovable.dev/ai-gateway@0.1.11';
 
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   if (body?.action === 'seed') {
     // Fixed bundled list of static articles/guides + published SEO articles; inserts are idempotent.
-    const rows = JSON.parse(await Deno.readTextFile(new URL('./seed.json', import.meta.url)));
+    const rows: { path: string; title: string; topic: string | null }[] = [...seed];
     const { data: dyn } = await sb.from('seo_articles').select('slug,title,category').eq('status', 'published');
     for (const a of dyn ?? []) rows.push({ path: `/blog/${a.slug}`, title: a.title, topic: a.category });
     const { error } = await sb.from('article_images').upsert(rows, { onConflict: 'path', ignoreDuplicates: true });
