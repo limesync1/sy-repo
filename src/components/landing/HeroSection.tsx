@@ -20,9 +20,9 @@ const HeroSection = () => {
     >
       <BlueFlowBackground />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-6 px-4 pb-8 pt-5 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:grid-cols-[1.05fr_0.95fr] xl:gap-10 lg:px-8 xl:pb-14 xl:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
-        <div className="max-w-2xl">
-          <h1 className="max-w-[19rem] text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:max-w-none sm:text-[2.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-5 px-4 pb-6 pt-4 sm:gap-6 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:grid-cols-[1.05fr_0.95fr] xl:gap-10 lg:px-8 xl:pb-14 xl:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
+        <div className="mx-auto min-w-0 w-full max-w-xl lg:mx-0 lg:max-w-2xl">
+          <h1 className="text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="home-hero-highlight">
               serviceyder
@@ -51,7 +51,7 @@ const HeroSection = () => {
                 asChild
                 variant="heroLight"
                 size="lg"
-                className="group h-11 sm:h-12 w-full gap-2 rounded-lg px-5 text-sm sm:px-7 font-semibold sm:w-auto"
+                className="group h-11 sm:h-12 w-full gap-2 rounded-lg px-3 text-sm sm:px-7 font-semibold sm:w-auto"
               >
                 <SmartLink to="/tilbud">
                   Indhent 3 tilbud
@@ -62,7 +62,7 @@ const HeroSection = () => {
                 asChild
                 size="lg"
                 variant="heroDark"
-                className="group h-11 sm:h-12 w-full gap-2 rounded-lg px-5 text-sm sm:px-7 font-semibold sm:w-auto"
+                className="group h-11 sm:h-12 w-full gap-2 rounded-lg px-3 text-sm sm:px-7 font-semibold sm:w-auto"
               >
                 <SmartLink to="/virksomheder">
                   Find services
@@ -73,7 +73,7 @@ const HeroSection = () => {
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
-        <div className="relative mx-auto w-full max-w-xl sm:mx-0 lg:max-w-none">
+        <div className="relative mx-auto min-w-0 w-full max-w-xl lg:mx-0 lg:max-w-none">
           <HeroPhotoRotator />
 
         </div>

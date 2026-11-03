@@ -1,5 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 3. nov. — Fortsat responsiv forside
+- [x] Tabletens tekst og foto deler centreret bredde; mobilens overskrift/søgefelt/knapper har mere plads, søgeknappen er 44 px høj, og billedets sizes matcher den viste ramme uden beskæring.
+- [x] Seks skærmstørrelser (320/390/768/820/1024/1280) uden vandret overflow; søgning på mobil/tablet åbner resultater med korrekt søgeord. Skærmbilleder kontrolleret; seks billedtests bestået og build OK. Ingen udgivelse udført.
+
 ## 3. nov. — Fortsat småbranche-SEO
 - [x] Fire artikler udgivet i dag, 444 emner tilbage. Sidste daglige plads prioriterer mindst dækkede brancher; konkrete underbrancher matches til forælder med påkrævet branchelink. Registreringskilden har 54 brancher/214 underbrancher (tidligere optælling 55/213 var forkert).
 - [x] 11 regeltests bestået; 1.064 sitemap-URL'er kontrolleret uden fejl/advarsler; build OK; SEO-motor deployet. Dagens kvote respekteret i live tick; Google accepterede det offentlige sitemap og tre nye artikler markeret indsendt. Kontorrengøringsartiklen med tabel og erhvervsrengøringslink åbnet i browser uden runtimefejl. Ingen ekstra artikel skrevet over kvoten; næste automatiske dækningsvalg og Google-indeksering af nye artikler endnu ikke observeret.

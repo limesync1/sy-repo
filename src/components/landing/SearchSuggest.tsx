@@ -230,7 +230,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           isHero ? "h-14 md:h-16" : "h-12 md:h-14"
         }`}
       >
-        <div className="flex h-full shrink-0 items-center justify-center pl-4 pr-2 text-muted-foreground sm:pr-3">
+        <div className="hidden h-full shrink-0 items-center justify-center pl-4 pr-3 text-muted-foreground sm:flex">
           {/* Forstørrelsesglassets glyph ligger optisk lidt højt i sin viewBox,
               så ikonet nuddes en anelse ned for at flugte med tekstlinjen. */}
           <UiArtwork
@@ -244,12 +244,12 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         <input
           type="text"
           aria-label="Søg efter service eller by"
-          placeholder="Søg service eller by…"
+          placeholder="Service eller by…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => { setActivated(true); setOpen(true); }}
           onKeyDown={onKeyDown}
-          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground sm:hidden"
+          className="h-full min-w-0 flex-1 bg-transparent pl-4 text-base text-foreground outline-none placeholder:text-muted-foreground sm:hidden"
         />
         <input
           type="text"
@@ -259,13 +259,13 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => { setActivated(true); setOpen(true); }}
           onKeyDown={onKeyDown}
-          className="hidden h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground sm:block"
+          className="hidden h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:block"
         />
         <div className="pr-1.5 sm:pr-2">
           <Button
             onClick={() => submit()}
             aria-label="Søg"
-            className="brand-blue-action h-10 gap-2 rounded-full px-4 text-sm font-semibold transition-all duration-200 active:scale-[0.97] md:h-11 md:px-6"
+            className="brand-blue-action h-11 min-w-11 gap-2 rounded-full px-3 text-sm font-semibold transition-all duration-200 active:scale-[0.97] sm:px-4 md:px-6"
           >
             <Search className="h-5 w-5" aria-hidden="true" />
             <span className="hidden sm:inline">Søg</span>
