@@ -86,6 +86,15 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   const url = new URL(req.url);
   if (req.method === 'GET') return serve(url);
+  const body = await req.json().catch(() => ({}));
+  if (body?.action === 'seed') {
+    // Fixed bundled list of static articles/guides + published SEO articles; inserts are idempotent.
+    const rows = JSON.parse(await Deno.readTextFile(new URL('./seed.json', import.meta.url)));
+    const { data: dyn } = await sb.from('seo_articles').select('slug,title,category').eq('status', 'published');
+    for (const a of dyn ?? []) rows.push({ path: `/blog/${a.slug}`, title: a.title, topic: a.category });
+    const { error } = await sb.from('article_images').upsert(rows, { onConflict: 'path', ignoreDuplicates: true });
+    return json({ seeded: rows.length, error: error?.message });
+  }
   // Tick is bounded (BATCH), single-flight and only processes queued rows, like seo-engine's tick.
   try { return json(await tick()); } catch (e) { return json({ error: String(e) }, 500); }
 });
