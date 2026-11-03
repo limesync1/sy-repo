@@ -8,6 +8,8 @@ import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import RelatedContent from "@/components/content/RelatedContent";
 import type { BlogPostMeta } from "./blogPosts";
+import ArticleCoverImage from "@/components/content/ArticleCoverImage";
+import { useArticleImage } from "@/lib/article-images";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -33,6 +35,7 @@ const PRICE_GUIDE_BY_CATEGORY: Record<string, string> = {
 const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
   const canonical = `/blog/${post.slug}`;
   const fullUrl = `https://serviceydere.dk${canonical}`;
+  const cover = useArticleImage(canonical);
 
   const jsonLd: Record<string, unknown>[] = [
     {
@@ -49,6 +52,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
         url: "https://serviceydere.dk/",
       },
       mainEntityOfPage: { "@type": "WebPage", "@id": fullUrl },
+      ...(cover ? { image: [cover.image_url] } : {}),
     },
     {
       "@context": "https://schema.org",
@@ -80,6 +84,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
         canonicalPath={canonical}
         keywords={keywords}
         ogType="article"
+        image={cover?.image_url}
         jsonLd={jsonLd}
       />
       <SiteNav />
@@ -96,6 +101,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <article className="article-content prose prose-neutral dark:prose-invert">
+          <ArticleCoverImage image={cover} title={post.title} />
           <TrustBar />
 
           {children}

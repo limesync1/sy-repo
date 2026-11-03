@@ -1188,6 +1188,66 @@ export type Database = {
         }
         Relationships: []
       }
+      article_image_job: {
+        Row: {
+          id: number
+          lease_until: string | null
+          paused_reason: string | null
+        }
+        Insert: {
+          id?: number
+          lease_until?: string | null
+          paused_reason?: string | null
+        }
+        Update: {
+          id?: number
+          lease_until?: string | null
+          paused_reason?: string | null
+        }
+        Relationships: []
+      }
+      article_images: {
+        Row: {
+          alt: string | null
+          attempts: number
+          created_at: string
+          image_url: string | null
+          last_error: string | null
+          locked_until: string | null
+          path: string
+          status: string
+          title: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          alt?: string | null
+          attempts?: number
+          created_at?: string
+          image_url?: string | null
+          last_error?: string | null
+          locked_until?: string | null
+          path: string
+          status?: string
+          title: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alt?: string | null
+          attempts?: number
+          created_at?: string
+          image_url?: string | null
+          last_error?: string | null
+          locked_until?: string | null
+          path?: string
+          status?: string
+          title?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       beta_signups: {
         Row: {
           created_at: string

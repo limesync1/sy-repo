@@ -29,7 +29,7 @@ const HowItWorks = () => {
       <BlueFlowBackground variant="process" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/65">
+          <span className="inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-ocean-foreground/80">
             <SectionLabelMark />
             Sådan virker det
           </span>

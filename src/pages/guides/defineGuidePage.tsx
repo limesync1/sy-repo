@@ -8,6 +8,9 @@ import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import RelatedContent from "@/components/content/RelatedContent";
 
+import ArticleCoverImage from "@/components/content/ArticleCoverImage";
+import { useArticleImage } from "@/lib/article-images";
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 export interface GuideSection {
@@ -124,14 +127,18 @@ export function defineGuidePage(cfg: GuideConfig) {
     });
   }
 
-  const Page = () => (
+  const Page = () => {
+    const cover = useArticleImage(cfg.canonicalPath);
+    const ld = cover ? [{ ...jsonLd[0], image: [cover.image_url] }, ...jsonLd.slice(1)] : jsonLd;
+    return (
     <div className="min-h-screen bg-background">
       <SEO
         title={cfg.metaTitle}
         description={cfg.metaDescription}
         canonicalPath={cfg.canonicalPath}
         keywords={cfg.keywords}
-        jsonLd={jsonLd}
+        image={cover?.image_url}
+        jsonLd={ld}
       />
       <SiteNav />
       <ArticleHero
@@ -147,6 +154,7 @@ export function defineGuidePage(cfg: GuideConfig) {
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <article className="article-content prose prose-neutral dark:prose-invert">
+          <ArticleCoverImage image={cover} title={cfg.heroTitle} />
           <div className="my-6 rounded-lg border border-border bg-muted/40 p-4 sm:my-8 sm:p-5">
             <p className="sr-only">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -239,7 +247,8 @@ export function defineGuidePage(cfg: GuideConfig) {
         <Footer />
       </Suspense>
     </div>
-  );
+    );
+  };
   Page.displayName = `GuidePage(${cfg.canonicalPath})`;
   return Object.assign(Page, { seoConfig: cfg });
 }

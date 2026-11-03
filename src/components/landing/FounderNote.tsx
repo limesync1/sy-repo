@@ -46,7 +46,7 @@ const FounderNote = () => {
               Klar til at hjælpe
             </span>
           </div>
-          <span className="mt-8 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
+          <span className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-ocean-foreground/70">
             PERSONEN BAG SERVICEYDERE
           </span>
           <a

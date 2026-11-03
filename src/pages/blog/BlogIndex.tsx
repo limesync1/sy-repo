@@ -7,9 +7,13 @@ import { BLOG_POSTS } from "./blogPosts";
 import { BLOG_CATEGORIES } from "./blogCategories";
 import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 
+import BlogPostCard from "@/components/content/BlogPostCard";
+import { useArticleImages } from "@/lib/article-images";
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const BlogIndex = () => {
+  const { data: images } = useArticleImages();
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -56,28 +60,20 @@ const BlogIndex = () => {
         </div>
 
         <nav aria-label="Bladr efter kategori" className="mb-8 flex flex-wrap gap-2">
-          <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-sm text-background">Alle</span>
+          <span className="inline-flex min-h-11 items-center rounded-full border border-foreground bg-foreground px-4 text-sm text-background">Alle</span>
           {BLOG_CATEGORIES.map((c) => (
             <Link
               key={c.slug}
               to={`/blog/kategori/${c.slug}`}
-              className="rounded-full border border-border bg-background px-3 py-1 text-sm text-foreground transition hover:bg-muted"
+              className="inline-flex min-h-11 items-center rounded-full border border-border bg-background px-4 text-sm text-foreground transition hover:bg-muted"
             >
               {c.name} <span className="text-muted-foreground">({c.count})</span>
             </Link>
           ))}
         </nav>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {BLOG_POSTS.map((p) => (
-            <Link
-              key={p.slug}
-              to={`/blog/${p.slug}`}
-              className="group flex min-h-[180px] flex-col rounded-lg border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-sm"
-            >
-              <h2 className="text-lg font-semibold text-foreground group-hover:underline">{p.title}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
-              <span className="mt-auto pt-5 text-xs font-medium text-muted-foreground">{p.category} · {p.readingMinutes} min læsning</span>
-            </Link>
+            <BlogPostCard key={p.slug} slug={p.slug} title={p.title} description={p.description} category={p.category} readingMinutes={p.readingMinutes} image={images?.get(`/blog/${p.slug}`)} />
           ))}
         </div>
       </main>
