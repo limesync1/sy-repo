@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
       }
       out.push(await run('submit', `submit:${today}`));
       if (d.getUTCDay() === 0) out.push(await run('inspect', `inspect:${today}`));
-      if (d.getUTCDate() === 1) out.push(await run('refresh', `refresh:${today.slice(0, 7)}`));
+      if (d.getUTCDay() === 3) out.push(await run('refresh', `refresh:${today}`));
       return reply({ ok: true, out });
     }
     if (!(action in STEPS)) return reply({ error: 'Ukendt handling' }, 400);
