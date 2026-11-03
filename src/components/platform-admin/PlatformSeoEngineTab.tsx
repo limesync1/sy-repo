@@ -86,7 +86,7 @@ export default function PlatformSeoEngineTab() {
             <Label className="text-sm">Artikler pr. uge</Label>
             <Select value={String(s?.articles_per_week ?? 3)} onValueChange={(v) => save.mutate({ articles_per_week: Number(v) })}>
               <SelectTrigger className="h-11 w-24"><SelectValue /></SelectTrigger>
-              <SelectContent>{[1, 2, 3, 4, 5, 7].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+              <SelectContent>{[1, 2, 3, 4, 5, 7, 14, 21].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>

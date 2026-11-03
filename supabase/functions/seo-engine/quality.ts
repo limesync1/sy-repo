@@ -1,5 +1,7 @@
 // Quality gate for AI-written articles: nothing is stored unless every rule passes.
-export const INTERNAL_LINKS = ['/', '/tilbud', '/virksomheder', '/blog', '/priser/rengoering', '/priser/vinduespudser', '/priser/haveservice', '/priser/haandvaerker', '/by'];
+export const INTERNAL_LINKS = ['/', '/tilbud', '/virksomheder', '/blog', '/priser/rengoering', '/priser/vinduespudser', '/priser/haveservice', '/priser/haandvaerker', '/by', '/software', '/software/ruteplanlaegger', '/software/medarbejder-app', '/software/fakturering-og-regnskab', '/software/brancher'];
+// Mirror of src/pages/software/industryRegistry.ts slugs (edge functions cannot import app code).
+export const INDUSTRY_SLUGS = ['privatrengoering','erhvervsrengoering','trappevask','vinduespolering','tagrenderens','facaderens','tagrens','fliserens','solcellerens','taepperens','skadeservice','vaskeriservice','haveservice','graesslaaning','haekklipning','anlaegsgartner','traefaeldning','snerydning','groen-pleje-erhverv','ukrudtsbekaempelse','poolservice','vandingsanlaeg','elektriker','vvs','varmepumpe','toemrer','maler','murer','tagdaekker','gulvlaegger','laasesmed','glarmester','handyman','vicevaert','solcelleinstallation','kloakmester','skadedyrsbekaempelse','skorstensfejer','fugt-og-skimmel','affaldshaandtering','brandsikring','mobil-bilpleje','mobil-daekservice','mobil-cykelservice','forrudeskift','flyttefirma','bortkoersel','budservice','hjemmepleje','hundeluftning','mobil-frisoer','it-support','hvidevarereparation','serviceteknikere'];
 
 export interface ArticleDraft {
   slug: string; title: string; description: string; category: string; keywords: string;
@@ -25,7 +27,7 @@ export function validateArticle(a: ArticleDraft, existing: string[]): string[] {
   if (words < 700) p.push(`for kort (${words} ord)`);
   if (!Array.isArray(a.faq) || a.faq.length < 3) p.push('for få FAQ');
   for (const l of a.links ?? []) {
-    const ok = INTERNAL_LINKS.includes(l.href) || (/^\/blog\/[a-z0-9-]+$/.test(l.href) && existing.includes(l.href.slice(6)));
+    const ok = INTERNAL_LINKS.includes(l.href) || INDUSTRY_SLUGS.includes(l.href.replace(/^\/software\/branche\//, '')) && l.href.startsWith('/software/branche/') || (/^\/blog\/[a-z0-9-]+$/.test(l.href) && existing.includes(l.href.slice(6)));
     if (!ok) p.push(`ugyldigt link ${l.href}`);
   }
   // Only price ranges are allowed; a lone exact amount without a following range fails.
