@@ -25,12 +25,12 @@ export interface GuideMeta {
 
 export const GARDEN_GUIDE_META: GuideMeta = {
   href: "/guides/have",
-  title: "Havemand pris 2026 — hvad koster havehjælp pr. time?",
-  desc: "Hvad koster en havemand? Se prisintervaller for havehjælp, græsslåning og hækklipning, hvordan servicefradraget sænker prisen, og hvad du skal tjekke før du vælger.",
+  title: "Havemand pris 2026: Timepris, havearbejde og haveanlæg",
+  desc: "Havemand pris og gartner timepris: 400–700 kr./t. Se priser på havearbejde, græsslåning, hækklipning og haveanlæg — og hvor meget fradraget sparer dig.",
   category: "Haveservice",
   tag: "Prisguide",
   priority: "0.9",
-  updatedAt: "2026-10-18",
+  updatedAt: "2026-11-04",
 };
 
 export const GUIDES: GuideMeta[] = [
