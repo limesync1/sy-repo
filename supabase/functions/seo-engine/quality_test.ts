@@ -18,3 +18,7 @@ Deno.test('exact price fails, range passes', () => {
 });
 Deno.test('unknown internal link fails', () => assert(validateArticle({ ...base, links: [{ label: 'x', href: '/blog/findes-ikke' }] }, []).length === 1));
 Deno.test('slugify handles danish letters', () => assertEquals(slugify('Ruteplanlægning på Fyn'), 'ruteplanlaegning-paa-fyn'));
+Deno.test('required subtrade parent link cannot be replaced by unrelated trade', () => {
+  assert(validateArticle(base, [], 'solcellerens').includes('relevant branchelink mangler'));
+  assertEquals(validateArticle({ ...base, links: [{ label: 'Solcellerens', href: '/software/branche/solcellerens' }] }, [], 'solcellerens'), []);
+});

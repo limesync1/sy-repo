@@ -15,7 +15,7 @@ export const slugify = (s: string) => s.toLowerCase().replace(/æ/g, 'ae').repla
 
 const PRICE = /\b\d{2,6}\s?(kr\.?|kroner)(?!\s*[–-])/i;
 
-export function validateArticle(a: ArticleDraft, existing: string[]): string[] {
+export function validateArticle(a: ArticleDraft, existing: string[], requiredIndustry?: string): string[] {
   const p: string[] = [];
   if (!a.slug || a.slug.length < 6) p.push('slug mangler');
   if (existing.includes(a.slug)) p.push('slug findes allerede');
@@ -30,6 +30,7 @@ export function validateArticle(a: ArticleDraft, existing: string[]): string[] {
     const ok = INTERNAL_LINKS.includes(l.href) || INDUSTRY_SLUGS.includes(l.href.replace(/^\/software\/branche\//, '')) && l.href.startsWith('/software/branche/') || (/^\/blog\/[a-z0-9-]+$/.test(l.href) && existing.includes(l.href.slice(6)));
     if (!ok) p.push(`ugyldigt link ${l.href}`);
   }
+  if (requiredIndustry && !(a.links ?? []).some(l => l.href === `/software/branche/${requiredIndustry}`)) p.push('relevant branchelink mangler');
   // Only price ranges are allowed; a lone exact amount without a following range fails.
   for (const m of text.matchAll(new RegExp(PRICE, 'gi'))) {
     const around = text.slice(Math.max(0, (m.index ?? 0) - 12), (m.index ?? 0) + m[0].length);
