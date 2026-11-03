@@ -27,7 +27,7 @@ UiArtwork.displayName = "UiArtwork";
 
 export const SectionLabelMark = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => (
   <span aria-hidden className={cn("inline-flex h-2 w-8 shrink-0 items-center", className)} {...props}>
-    <span className="h-[2px] w-full rounded-full bg-gradient-to-r from-[hsl(190_100%_45%)] to-[hsl(197_71%_35%)]" />
+    <span className="h-[2px] w-full rounded-full bg-gradient-to-r from-hero-cyan to-hero-cyan/40" />
   </span>
 );
 
