@@ -187,11 +187,16 @@ Deno.serve(async (req) => {
       if (s.paused_reason) return reply({ skipped: `Sat på pause: ${s.paused_reason}` });
       const d = new Date(); const out: unknown[] = [];
       if (d.getUTCDay() === 1) out.push(await run('discover', `discover:${today}`));
-      // Over 7 per week: the cron ticks several times a day and each slot writes one article (bounded, one AI call per invocation).
-      const perDay = Math.min(4, Math.ceil(s.articles_per_week / 7));
-      const slot = Math.floor(d.getUTCHours() / 6);
-      if (s.articles_per_week > 7 ? slot < perDay : WRITE_DAYS.slice(0, s.articles_per_week).includes(d.getUTCDay()))
-        out.push(await run('write', s.articles_per_week > 7 ? `write:${today}:${slot}` : `write:${today}`));
+      // Over 7 per week: every tick writes one article until today's quota is met (catches up missed slots; one AI call per invocation).
+      if (s.articles_per_week > 7) {
+        const perDay = Math.min(4, Math.ceil(s.articles_per_week / 7));
+        const { count } = await db.from('seo_runs').select('id', { count: 'exact', head: true })
+          .eq('kind', 'write').eq('status', 'ok').like('run_key', `write:${today}%`);
+        const done = count ?? 0;
+        if (done < perDay) out.push(await run('write', `write:${today}:${done}`));
+      } else if (WRITE_DAYS.slice(0, s.articles_per_week).includes(d.getUTCDay())) {
+        out.push(await run('write', `write:${today}`));
+      }
       out.push(await run('submit', `submit:${today}`));
       if (d.getUTCDay() === 0) out.push(await run('inspect', `inspect:${today}`));
       if (d.getUTCDate() === 1) out.push(await run('refresh', `refresh:${today.slice(0, 7)}`));
