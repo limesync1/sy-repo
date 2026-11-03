@@ -27,8 +27,8 @@ export const UiArtwork = forwardRef<HTMLImageElement, ImgHTMLAttributes<HTMLImag
 UiArtwork.displayName = "UiArtwork";
 
 export const SectionLabelMark = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => (
-  <span aria-hidden className={cn("inline-flex h-2 w-12 shrink-0 items-center", className)} {...props}>
-    <img src={animatedLine.url} alt="" width={192} height={15} loading="lazy" decoding="async" className="h-auto w-full object-contain [filter:saturate(2.4)_brightness(0.8)_contrast(1.4)] motion-reduce:animate-none" />
+  <span aria-hidden className={cn("inline-flex h-2 w-8 shrink-0 items-center", className)} {...props}>
+    <span className="h-[2px] w-full rounded-full bg-gradient-to-r from-[hsl(190_100%_45%)] to-[hsl(197_71%_35%)]" />
   </span>
 );
 
