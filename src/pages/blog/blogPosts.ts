@@ -297,7 +297,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "skorstensfejer-pligt-og-pris",
-    title: "Skorstensfejer — lovpligt, intervaller og hvad det koster",
+    title: "Er skorstensfejning lovpligtigt? Regler og pris for husejere",
     description:
       "Hvor ofte skal skorstenen fejes, hvad koster lovpligtigt skorstenssyn, og hvad sker der hvis du skipper det? Praktisk guide for husejere med brændeovn eller pejs.",
     publishedAt: "2026-09-13",
@@ -602,7 +602,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "alarm-uden-abonnement",
-    title: "Alarm uden abonnement — virker det, og hvad mister du?",
+    title: "Alarm uden abonnement 2026 — virker det, og hvad mister du?",
     description:
       "Smart-alarmer (Ajax, Verisure DIY, Aqara) uden månedlig betaling: hvad er forskellen i forhold til kontrolcentral-alarmer, sker der reelt en udrykning, og hvad siger forsikringen?",
     publishedAt: "2026-02-20",
@@ -613,9 +613,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "hvor-ofte-skal-skorsten-fejes",
-    title: "Hvor ofte skal skorstenen fejes? Lovkrav 2026",
+    title: "Hvor ofte skal skorstenen fejes? Brændeovn, pejs og fyr (2026)",
     description:
-      "Lovpligtigt 1–2 gange årligt afhængigt af installation. Få præcise intervaller for brændeovn, pejs, oliefyr og gaskedel — plus hvad det koster, og hvad der sker hvis du springer det over.",
+      "Brændeovn 1-2 gange om året, pejs og fyr efter brug. Se lovkravet for netop din installation, hvem der bestemmer intervallet, og hvad der sker, hvis du springer fejningen over.",
     publishedAt: "2026-02-21",
     readingMinutes: 6,
     category: "Skorstensfejer",
@@ -690,8 +690,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "fjern-blodpletter-fra-toej",
-    title: "Fjern blodpletter — fra tøj, madras og sengetøj",
-    description: "Aldrig varmt vand. Brintoverilte, salt og koldt vand er løsningen — også på gamle blodpletter. Plus madras og sengetøj uden at ødelægge stoffet.",
+    title: "Fjern blodpletter fra tøj — også gamle og indtørrede",
+    description: "Brug aldrig varmt vand. Koldt vand, salt og brintoverilte fjerner blodpletter fra tøj, også gamle. Trin for trin, plus madras og sengetøj uden at ødelægge stoffet.",
     publishedAt: "2026-03-05",
     readingMinutes: 7,
     category: "Rengøring",
