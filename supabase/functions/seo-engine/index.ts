@@ -1,7 +1,7 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { generateChatCompletion, GatewayError, PaymentRequiredError, PermissionDeniedError, RateLimitError } from 'npm:@lovable.dev/ai-gateway@0.1.11';
-import { validateArticle, slugify, INTERNAL_LINKS, type ArticleDraft } from './quality.ts';
+import { validateArticle, slugify, INTERNAL_LINKS, INDUSTRY_SLUGS, type ArticleDraft } from './quality.ts';
 
 // Automatic SEO engine. One daily cron "tick" decides the work for the day; admins can trigger single steps.
 // Every step is bounded, guarded by a unique run key (single-flight + idempotent) and stops on credit/policy errors.
@@ -85,7 +85,7 @@ async function write(manualTopicId?: string) {
   const slugs = await existingSlugs();
   const prompt = `Skriv en dybdegående artikel målrettet søgningen "${topic.keyword}".
 Eksisterende artikler (undgå overlap, link gerne til relevante): ${slugs.slice(0, 120).join(', ')}
-Tilladte interne links (brug 3-6 relevante): ${INTERNAL_LINKS.join(', ')} samt /blog/<eksisterende-slug>.
+Tilladte interne links (brug 3-6 relevante): ${INTERNAL_LINKS.join(', ')} samt /blog/<eksisterende-slug> og branchesider /software/branche/<slug> for: ${INDUSTRY_SLUGS.join(', ')}. Link altid til den mest relevante brancheside.
 JSON-format: {"slug":"kort-dansk-slug-uden-æøå","title":"maks 65 tegn, indeholder søgeordet","description":"120-160 tegn","category":"Ruteplanlægning|Rengøring|Haveservice|Økonomi|Vinduespudsning|Håndværker","keywords":"komma, separeret","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":["..."],"rows":[["..."]]}}],"links":[{"label":"ankertekst","href":"/sti"}],"faq":[{"q":"...","a":"..."}]}
 Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 FAQ, sidste sektion forklarer hvordan Serviceydere kan hjælpe og nævner 14 dages gratis prøveperiode uden kreditkort.`;
   const raw = await ai(prompt, SYSTEM);
@@ -187,7 +187,11 @@ Deno.serve(async (req) => {
       if (s.paused_reason) return reply({ skipped: `Sat på pause: ${s.paused_reason}` });
       const d = new Date(); const out: unknown[] = [];
       if (d.getUTCDay() === 1) out.push(await run('discover', `discover:${today}`));
-      if (WRITE_DAYS.slice(0, s.articles_per_week).includes(d.getUTCDay())) out.push(await run('write', `write:${today}`));
+      // Over 7 per week: the cron ticks several times a day and each slot writes one article (bounded, one AI call per invocation).
+      const perDay = Math.min(4, Math.ceil(s.articles_per_week / 7));
+      const slot = Math.floor(d.getUTCHours() / 6);
+      if (s.articles_per_week > 7 ? slot < perDay : WRITE_DAYS.slice(0, s.articles_per_week).includes(d.getUTCDay()))
+        out.push(await run('write', s.articles_per_week > 7 ? `write:${today}:${slot}` : `write:${today}`));
       out.push(await run('submit', `submit:${today}`));
       if (d.getUTCDay() === 0) out.push(await run('inspect', `inspect:${today}`));
       if (d.getUTCDate() === 1) out.push(await run('refresh', `refresh:${today.slice(0, 7)}`));
