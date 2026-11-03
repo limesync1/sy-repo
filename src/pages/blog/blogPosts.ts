@@ -340,9 +340,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   // så vi kan tage positionen på Google for fjern-pletter/rengøringsguides.
   {
     slug: "fjern-svedpletter-fra-hvidt-toej",
-    title: "Fjern svedpletter fra hvidt tøj — 3 metoder der virker",
+    title: "Fjern gule svedpletter fra hvidt tøj (også gamle) — 3 metoder",
     description:
-      "Sådan fjerner du gule svedpletter fra hvidt tøj: brintoverilte + opvaskemiddel virker selv på gamle pletter. Trin for trin — og hvorfor klor gør det værre.",
+      "Gule pletter under armene? Brintoverilte + opvaskemiddel fjerner selv gamle svedpletter fra hvidt tøj. Se trin for trin, og undgå fejlen med klor.",
     publishedAt: "2026-01-10",
     readingMinutes: 8,
     category: "Rengøring",
@@ -400,9 +400,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "lav-dit-eget-vinduespudsemiddel",
-    title: "Hjemmelavet vinduespudsemiddel: 4 opskrifter uden striber",
+    title: "Lav dit eget vinduespudsemiddel — 4 opskrifter uden striber",
     description:
-      "Eddike, sprit og en dråbe sæbe: præcise mængder til stribefri ruder for få kroner. Plus de blandinger du aldrig må lave.",
+      "Hjemmelavet vinduesrens med eddike, sprit og sæbe: præcise mængder til sprayflaske og stribefri ruder for få kroner. Plus blandinger du aldrig må lave.",
     publishedAt: "2026-01-19",
     readingMinutes: 6,
     category: "Vinduespudser",

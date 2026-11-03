@@ -25,8 +25,8 @@ export interface GuideMeta {
 
 export const GARDEN_GUIDE_META: GuideMeta = {
   href: "/guides/have",
-  title: "Havemand & haveservice 2026 — pris på havehjælp",
-  desc: "Hvad koster en havemand? Se typiske prisintervaller for havehjælp, græsslåning og hækklipning, servicefradrag og tjekliste til at vælge haveservice.",
+  title: "Havemand pris 2026 — hvad koster havehjælp pr. time?",
+  desc: "Hvad koster en havemand? Se prisintervaller for havehjælp, græsslåning og hækklipning, hvordan servicefradraget sænker prisen, og hvad du skal tjekke før du vælger.",
   category: "Haveservice",
   tag: "Prisguide",
   priority: "0.9",
