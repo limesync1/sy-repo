@@ -6,6 +6,9 @@ import ArticleHero from "@/components/landing/ArticleHero";
 import { BLOG_POSTS } from "./blogPosts";
 import { BLOG_CATEGORIES, categoryNameBySlug, normalizeCategory } from "./blogCategories";
 
+import BlogPostCard from "@/components/content/BlogPostCard";
+import { useArticleImages } from "@/lib/article-images";
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 /**
@@ -14,6 +17,7 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
  * og giver Google et naturligt grupperingssignal pr. emne.
  */
 const BlogCategoryIndex = () => {
+  const { data: images } = useArticleImages();
   const { slug = "" } = useParams<{ slug: string }>();
   const name = categoryNameBySlug(slug);
   if (!name) return <Navigate to="/blog" replace />;
@@ -72,14 +76,14 @@ const BlogCategoryIndex = () => {
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <nav aria-label="Alle kategorier" className="mb-8 flex flex-wrap gap-2">
-          <Link to="/blog" className="rounded-full border border-border bg-background px-3 py-1 text-sm text-foreground hover:bg-muted">
+          <Link to="/blog" className="inline-flex min-h-11 items-center rounded-full border border-border bg-background px-4 text-sm text-foreground hover:bg-muted">
             Alle
           </Link>
           {BLOG_CATEGORIES.map((c) => (
             <Link
               key={c.slug}
               to={`/blog/kategori/${c.slug}`}
-              className={`rounded-full border px-3 py-1 text-sm transition ${
+              className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm transition ${
                 c.slug === slug
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-background text-foreground hover:bg-muted"
@@ -90,17 +94,9 @@ const BlogCategoryIndex = () => {
           ))}
         </nav>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((p) => (
-            <Link
-              key={p.slug}
-              to={`/blog/${p.slug}`}
-              className="group flex min-h-[180px] flex-col rounded-lg border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-sm"
-            >
-              <h2 className="text-lg font-semibold text-foreground group-hover:underline">{p.title}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
-              <span className="mt-auto pt-5 text-xs font-medium text-muted-foreground">{p.readingMinutes} min læsning</span>
-            </Link>
+            <BlogPostCard key={p.slug} slug={p.slug} title={p.title} description={p.description} category={p.category} readingMinutes={p.readingMinutes} image={images?.get(`/blog/${p.slug}`)} />
           ))}
         </div>
       </main>
