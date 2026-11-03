@@ -400,9 +400,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "lav-dit-eget-vinduespudsemiddel",
-    title: "Lav dit eget vinduespudsemiddel — 4 opskrifter uden striber",
+    title: "Hjemmelavet vinduespudsemiddel: 4 billige opskrifter uden striber",
     description:
-      "Hjemmelavet vinduesrens med eddike, sprit og sæbe: præcise mængder til sprayflaske og stribefri ruder for få kroner. Plus blandinger du aldrig må lave.",
+      "Bland selv vinduesrens med eddike, sprit eller sæbe i en sprayflaske. Præcise mængder, stribefri ruder for få kroner – og de blandinger, du aldrig må lave.",
     publishedAt: "2026-01-19",
     readingMinutes: 6,
     category: "Vinduespudser",
@@ -514,7 +514,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "hvor-lang-tid-tager-en-flytning",
-    title: "Hvor lang tid tager en flytning? Tidsestimater pr. boligstørrelse",
+    title: "Hvor lang tid tager en flytning? Timer for 1-4 værelser (2026)",
     description:
       "Sådan beregner du timer til flytning af 1-, 2-, 3- og 4-værelses bolig. Hvad påvirker tiden — trapper, elevator, afstand — og hvornår du sparer på fast pris.",
     publishedAt: "2026-02-07",
@@ -1416,7 +1416,7 @@ BLOG_POSTS.push(
 // ───── Batch 6: rettigheder, regler, energi, skadedyr, sommerhus, lejer
 BLOG_POSTS.push(
   { slug: "garantitider-paa-haandvaerkerarbejde",
-    title: "Garanti på håndværkerarbejde: 2, 5 eller 10 år? (2026)",
+    title: "Hvor lang garanti har håndværkere? 2, 5 eller 10 år (2026)",
     description: "Købelovens 2 år, AB-Forbrugers 5 år og skjulte mangler op til 10 år. Få overblik over reklamationsfrister, 1- og 5-års gennemgang og hvordan du reklamerer rigtigt.",
     publishedAt: "2026-08-21", readingMinutes: 7, category: "Håndværker",
     tags: ["garanti","reklamation","rettigheder"],
