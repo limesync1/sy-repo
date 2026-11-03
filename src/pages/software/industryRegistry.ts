@@ -32,7 +32,7 @@ export const INDUSTRIES: Industry[] = [
   I("tagrens", "Tagrens", "tagrensfirmaer", "Rengøring", "project", ["Algebehandling af tag", "Afrensning af mos", "Tagmaling", "Imprægnering af tag"]),
   I("fliserens", "Fliserens", "fliserensfirmaer", "Rengøring", "seasonal", ["Rens af terrasse og indkørsel", "Fugning med fugesand", "Imprægnering af fliser", "Algebehandling af belægning"]),
   I("solcellerens", "Solcellerens", "firmaer der renser solceller", "Rengøring", "recurring", ["Rens af solceller på villaer", "Rens af erhvervsanlæg", "Rens af solfangere"]),
-  I("tæpperens", "Tæpperens", "tæpperensfirmaer", "Rengøring", "project", ["Tæpperens hos private", "Møbelrens", "Madrasrens", "Rens af kontorstole"]),
+  I("taepperens", "Tæpperens", "tæpperensfirmaer", "Rengøring", "project", ["Tæpperens hos private", "Møbelrens", "Madrasrens", "Rens af kontorstole"]),
   I("skadeservice", "Skadeservice", "skadeservicefirmaer", "Rengøring", "emergency", ["Vandskade og affugtning", "Brand- og sodskade", "Skimmelsanering", "Kloakoversvømmelse"]),
   I("vaskeriservice", "Vaskeri og måtteservice", "vaskerier og måtteserviceer", "Rengøring", "recurring", ["Måtteudskiftning", "Arbejdstøj", "Linned og håndklæder", "Hentning og levering"]),
 
@@ -43,7 +43,7 @@ export const INDUSTRIES: Industry[] = [
   I("anlaegsgartner", "Anlægsgartner", "anlægsgartnere", "Have og udeareal", "project", ["Belægning og fliser", "Terrasser", "Beplantning", "Dræn", "Haveanlæg"]),
   I("traefaeldning", "Træfældning", "træfældningsfirmaer", "Have og udeareal", "project", ["Træfældning", "Topkapning", "Stubfræsning", "Beskæring af store træer"]),
   I("snerydning", "Snerydning", "snerydningsfirmaer", "Have og udeareal", "seasonal", ["Snerydning af indkørsler", "Saltning og glatførebekæmpelse", "Snerydning for boligforeninger", "Snerydning af p-pladser", "Vintervagt"]),
-  I("grøn-pleje-erhverv", "Grøn pleje for erhverv", "firmaer med grøn pleje for erhverv", "Have og udeareal", "recurring", ["Pleje af boligforeningers arealer", "Pleje af erhvervsarealer", "Ukrudtsbekæmpelse", "Fejning"]),
+  I("groen-pleje-erhverv", "Grøn pleje for erhverv", "firmaer med grøn pleje for erhverv", "Have og udeareal", "recurring", ["Pleje af boligforeningers arealer", "Pleje af erhvervsarealer", "Ukrudtsbekæmpelse", "Fejning"]),
   I("ukrudtsbekaempelse", "Ukrudtsbekæmpelse", "firmaer der bekæmper ukrudt", "Have og udeareal", "recurring", ["Ukrudt på belægning", "Termisk ukrudtsbekæmpelse", "Fugeukrudt"]),
   I("poolservice", "Pool- og spaservice", "poolservicefirmaer", "Have og udeareal", "recurring", ["Vandbehandling", "Opstart og vinterlukning", "Rens af spabad"]),
   I("vandingsanlaeg", "Vandingsanlæg", "firmaer der installerer vandingsanlæg", "Have og udeareal", "seasonal", ["Installation af vandingsanlæg", "Forårsopstart", "Vintersikring"]),
