@@ -3,6 +3,8 @@
  * sitemap-generatoren, intern linkning og "relateret"-sektionen på hver
  * produktside, så nye sider automatisk hænger sammen.
  */
+import { INDUSTRIES, industryConfig, industryHref } from "./industryRegistry";
+
 export interface SoftwarePageMeta {
   href: string;
   label: string;
@@ -17,7 +19,7 @@ export interface SoftwarePageMeta {
    * branches sprog, "pricing" = prissiden. Bruges til at holde sidebaren
    * relevant i stedet for at liste alle sider på alle sider.
    */
-  group?: "product" | "industry" | "pricing";
+  group?: "product" | "industry" | "pricing" | "branch";
 }
 
 export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
@@ -143,6 +145,10 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     seoTitle: "System til malerfirmaer — tilbud pr. m², planlægning og fakturering | Serviceydere",
     seoDescription: "Malersystem med prisberegner pr. m², planlægning af svende på flerdagesopgaver, medarbejder-app med billeder og fakturering i E-conomic eller Dinero. Fra 289 kr./md.",
   },
+  ...INDUSTRIES.map((i): SoftwarePageMeta => {
+    const c = industryConfig(i);
+    return { href: industryHref(i), label: `System til ${i.label.toLowerCase()}`, blurb: c.heroSubtitle, priority: "0.7", group: "branch", seoTitle: c.metaTitle, seoDescription: c.metaDescription };
+  }),
 ];
 
 export const softwarePagesExcept = (href: string) =>
@@ -150,7 +156,7 @@ export const softwarePagesExcept = (href: string) =>
 
 /** Produkt- og prissider — vises som "Resten af systemet" på alle sider. */
 export const productPagesExcept = (href: string) =>
-  SOFTWARE_PAGES.filter((p) => p.href !== href && p.group !== "industry");
+  SOFTWARE_PAGES.filter((p) => p.href !== href && p.group !== "industry" && p.group !== "branch");
 
 /** Branchesider — vises som "Din branche" på alle sider. */
 export const industryPagesExcept = (href: string) =>

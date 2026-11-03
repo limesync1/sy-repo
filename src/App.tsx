@@ -160,6 +160,7 @@ const SoftwareCleaning       = lazyRoute("/software/rengoering", () => import(".
 const SoftwareGarden         = lazyRoute("/software/haveservice", () => import("./pages/software/GardenSoftware"));
 const SoftwareHandyman       = lazyRoute("/software/haandvaerker", () => import("./pages/software/HandymanSoftware"));
 const SoftwareMoving         = lazyRoute("/software/flyttefirma", () => import("./pages/software/MovingCompanySoftware"));
+const SoftwareIndustry       = lazyRoute("/software/branche", () => import("./pages/software/IndustrySoftwarePage"));
 const SoftwarePainter        = lazyRoute("/software/maler", () => import("./pages/software/PainterSoftware"));
 const CleaningSearchHub      = lazyRoute("/rengoering", () => import("./pages/cities/CleaningSearchHub"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
@@ -425,6 +426,7 @@ const App = () => (
               <Route path="/software/haandvaerker" element={<SoftwareHandyman />} />
               <Route path="/software/flyttefirma" element={<SoftwareMoving />} />
               <Route path="/software/maler" element={<SoftwarePainter />} />
+              <Route path="/software/branche/:slug" element={<SoftwareIndustry />} />
 
               {/* ── Juridiske sider ── */}
               <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />
