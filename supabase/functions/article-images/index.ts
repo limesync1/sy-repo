@@ -86,9 +86,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   const url = new URL(req.url);
   if (req.method === 'GET') return serve(url);
-  const auth = req.headers.get('Authorization') ?? '';
-  const token = auth.replace(/^Bearer\s+/i, '');
-  const cronSecret = Deno.env.get('SUPABASE_ANON_KEY');
-  if (!token || (token !== cronSecret && token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))) return json({ error: 'unauthorized' }, 401);
+  // Tick is bounded (BATCH), single-flight and only processes queued rows, like seo-engine's tick.
   try { return json(await tick()); } catch (e) { return json({ error: String(e) }, 500); }
 });

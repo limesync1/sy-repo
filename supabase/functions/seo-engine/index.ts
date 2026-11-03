@@ -108,6 +108,8 @@ Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 F
   const words = JSON.stringify(draft.sections).split(/\s+/).length;
   const { error } = await db.from('seo_articles').insert({ topic_id: topic.id, slug: draft.slug, title: draft.title, description: draft.description, category: draft.category, keywords: draft.keywords, sections, faq: draft.faq, reading_minutes: Math.max(3, Math.round(words / 200)), status: publish ? 'published' : 'draft', published_at: publish ? new Date().toISOString() : null });
   if (error) throw new Error(error.message);
+  // Queue a cover image; the article-images worker generates it, failure never blocks publishing.
+  await db.from('article_images').upsert({ path: `/blog/${draft.slug}`, title: draft.title, topic: topic.keyword }, { onConflict: 'path', ignoreDuplicates: true });
   await db.from('seo_topics').update({ status: 'written' }).eq('id', topic.id);
   return { written: 1, slug: draft.slug, published: publish, industry, selection: coverage ? 'coverage' : 'demand' };
 }
