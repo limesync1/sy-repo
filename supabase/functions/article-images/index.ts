@@ -5,7 +5,7 @@ import { generateImage, GatewayError, PaymentRequiredError, PermissionDeniedErro
 
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 const BUCKET = 'article-images';
-const BATCH = 2;
+const BATCH = 1;
 const FN_BASE = `${Deno.env.get('SUPABASE_URL')}/functions/v1/article-images`;
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
