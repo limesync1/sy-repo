@@ -64,4 +64,4 @@
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
 - /software/branche/:slug pages, sitemap and prerender derive from `industryRegistry.ts`; add trades only there for consistency.
 - SEO's last daily slot favors least-covered trades; mapped articles must link their parent, preventing starvation.
-- Article covers: `article_images` by path, served by `article-images` function (public buckets blocked); queued worker, never blocks publishing.
+- Article covers: `article_images` by path, served by `article-images` function (public buckets blocked); queued; never blocks publishing.
