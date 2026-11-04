@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import { HOME_TITLE, HOME_DESCRIPTION, homePageData } from "../src/components/landing/home-seo";
-import { heroPhotos, HERO_PHOTO_SIZES, photoSrcSet } from "../src/components/landing/hero-photos";
+import heroPoster from "../src/assets/home-hero/vinduespolering-hero-poster.webp.asset.json";
 
 const BASE_URL = "https://serviceydere.dk";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -137,4 +137,4 @@ export const renderHomeHead = (html: string) => html
   .replace(/(<meta (?:name="(?:description|twitter:description)"|property="og:description") content=")[^"]*(")/g, `$1${esc(HOME_DESCRIPTION)}$2`)
   .replace(/<script\b[^>]*data-seo-home="1"[^>]*>[\s\S]*?<\/script>/g, "")
   .replace(/<link\b[^>]*data-home-photo-preload="1"[^>]*>/g, "")
-  .replace(/<\/head>/, `<link rel="preload" as="image" href="${esc(heroPhotos[0].src)}" imagesrcset="${esc(photoSrcSet(heroPhotos[0]))}" imagesizes="${esc(HERO_PHOTO_SIZES)}" fetchpriority="high" data-home-photo-preload="1" />\n<script type="application/ld+json" data-seo-home="1">${JSON.stringify(homePageData()).replace(/</g, "\\u003c")}</script>\n</head>`);
+  .replace(/<\/head>/, `<link rel="preload" as="image" href="${esc(heroPoster.url)}" fetchpriority="high" data-home-photo-preload="1" />\n<script type="application/ld+json" data-seo-home="1">${JSON.stringify(homePageData()).replace(/</g, "\\u003c")}</script>\n</head>`);
