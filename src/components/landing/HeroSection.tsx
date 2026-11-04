@@ -24,7 +24,7 @@ const HeroSection = () => {
         <div className="min-w-0 w-full max-w-2xl">
           <SmartLink
             to="/kontakt"
-            className="home-support-badge group animate-fade-in mb-4 flex min-h-11 w-full max-w-xl sm:inline-flex sm:w-auto items-center gap-3 rounded-xl p-2 pr-3 text-left text-ocean-foreground backdrop-blur-sm sm:mb-6"
+            className="home-support-badge group animate-fade-in mb-3 flex min-h-11 w-full max-w-xl sm:inline-flex sm:w-auto items-center gap-3 rounded-xl p-2 pr-3 text-left text-ocean-foreground backdrop-blur-sm sm:mb-6 lg:mb-3"
           >
             <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground text-ocean">
               <Headset className="h-5 w-5" aria-hidden="true" />
@@ -43,12 +43,12 @@ const HeroSection = () => {
             <br className="hidden xl:block" /> til opgaven.
           </h1>
 
-          <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-lg text-sm leading-[1.6] text-ocean-foreground/75 sm:mt-5 sm:text-base 2xl:mt-6 2xl:text-[17px]">
+          <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-lg text-sm leading-[1.6] text-ocean-foreground/75 sm:mt-5 sm:text-base lg:mt-3 2xl:mt-6 2xl:text-[17px]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
           {/* Søgefelt i et løftet panel, så det læses som sidens primære handling. */}
-          <div className="animate-fade-in [animation-delay:200ms] home-search-panel relative z-20 mt-5 w-full max-w-xl rounded-lg border border-ocean-foreground/25 p-2 sm:mt-7 sm:p-3 2xl:mt-8">
+          <div className="animate-fade-in [animation-delay:200ms] home-search-panel relative z-20 mt-4 w-full max-w-xl rounded-lg border border-ocean-foreground/25 p-2 sm:mt-6 sm:p-3 lg:mt-4 2xl:mt-8">
             <SearchSuggest
               variant="hero"
               showNearLabel={false}
@@ -59,7 +59,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="animate-fade-in [animation-delay:300ms] mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:flex sm:flex-wrap sm:gap-3">
+          <div className="animate-fade-in [animation-delay:300ms] mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:flex sm:flex-wrap sm:gap-3 lg:mt-4">
               <Button
                 asChild
                 variant="heroLight"
