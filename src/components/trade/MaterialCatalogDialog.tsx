@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileUp, Package, Pencil, Plus, Search, Trash2, Truck, X } from "lucide-react";
+import { TradeIcon } from "@/components/trade/TradeIcon";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,9 +102,10 @@ export function MaterialCatalogDialog({ open, onOpenChange, businessId, wholesal
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) resetForm(); }}>
       <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]" onOpenAutoFocus={(e) => { if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault(); }}>
-        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-2.5 pr-12 text-left sm:px-5">
+        <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3.5 pr-12 sm:py-4 text-left sm:px-5">
           <SheetHeaderBlock
-            icon={<Package className="h-5 w-5" />}
+            icon={<TradeIcon name="materialList" className="h-14 w-14" />}
+            iconClassName="h-14 w-14 rounded-none !bg-transparent ring-0"
             title={<DialogTitle className="text-base">Materialeliste</DialogTitle>}
             description={<DialogDescription className="text-xs leading-snug">Alle priser er uden moms. Medarbejderne vælger herfra på opgaven.</DialogDescription>}
           />

@@ -41,7 +41,8 @@ import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { isCraftBusiness, readTradeModules, type TradeModules } from "@/lib/trade-modules";
 import { MaterialCatalogDialog } from "@/components/trade/MaterialCatalogDialog";
 import { QualityTemplatesDialog } from "@/components/trade/QualityTemplatesDialog";
-import { Package, ClipboardCheck, Truck, Hammer, ChevronRight } from "lucide-react";
+import { Hammer, ChevronRight } from "lucide-react";
+import { TradeIcon } from "@/components/trade/TradeIcon";
 
 /**
  * Lille selvopdaterende komponent — tikker hvert minut og holder
@@ -1976,7 +1977,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             ) : (
               <div className="space-y-2.5">
                 <FeatureRow
-                  icon={<Package className="h-8 w-8 text-foreground" />}
+                  icon={<TradeIcon name="materialsOnJobs" className="h-10 w-10" />}
                   title="Materialer på opgaver"
                   badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                   description="Medarbejderne registrerer brugte materialer (rør, fliser, skruer m.m.) på opgaven fra jeres materialeliste. Materialerne kommer automatisk med som linjer på fakturaen til e-conomic eller Dinero."
@@ -1986,7 +1987,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   onToggle={() => setTradeModules((t) => ({ ...t, materials: !t.materials, wholesaler: t.materials ? false : t.wholesaler }))}
                 />
                 <FeatureRow
-                  icon={<Truck className="h-8 w-8 text-foreground" />}
+                  icon={<TradeIcon name="wholesaler" className="h-10 w-10" />}
                   title="Grossistpriser"
                   badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                   description="Upload prisfilen fra Solar, Sanistål, Brødrene Dahl, Ahlsell m.fl. med jeres egne aftalepriser. Vil I have en direkte forbindelse til grossisten, så kontakt kundeservice, så finder vi en løsning sammen."
@@ -1996,7 +1997,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   onToggle={() => tradeModules.materials && setTradeModules((t) => ({ ...t, wholesaler: !t.wholesaler }))}
                 />
                 <FeatureRow
-                  icon={<ClipboardCheck className="h-8 w-8 text-foreground" />}
+                  icon={<TradeIcon name="quality" className="h-10 w-10" />}
                   title="Kvalitetssikring (KS)"
                   badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                   description="Tjeklister med målinger (fx trykprøvning, isolationsmåling), afvigelser og kundens underskrift. Udfyldes i medarbejder-appen og gemmes på opgaven, så I kan dokumentere arbejdet og printe det som PDF."
@@ -2101,9 +2102,9 @@ function TradeManageCards({ businessId, materials, quality, onMaterials, onQuali
   const mc = data?.materials, tc = data?.templates;
   return (
     <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-      {materials && card(<Package className="h-5 w-5" />, "Materialeliste",
+      {materials && card(<TradeIcon name="materialList" className="h-6 w-6" />, "Materialeliste",
         mc == null ? "Henter …" : mc === 0 ? "Tom – tilføj materialer, før medarbejderne kan bruge dem" : `${mc.toLocaleString("da-DK")} materialer · ret priser og upload prisfiler`, mc === 0, onMaterials)}
-      {quality && card(<ClipboardCheck className="h-5 w-5" />, "Tjeklister",
+      {quality && card(<TradeIcon name="checklists" className="h-6 w-6" />, "Tjeklister",
         tc == null ? "Henter …" : tc === 0 ? "Ingen endnu – vælg en standard eller lav jeres egen" : `${tc} ${tc === 1 ? "tjekliste" : "tjeklister"} · ret punkter og målinger`, tc === 0, onQuality)}
     </div>
   );
