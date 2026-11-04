@@ -503,6 +503,7 @@ const App = () => (
               <Route path="/__visual/media" element={<VisualTestMedia />} />
 
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
+              <Route path="/blog/varmepumpe-installation-pris-2026" element={<RedirectWithQuery to="/blog/varmepumpe-installation-priser-2026" />} />
               <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />
               <Route path="/platform-admin" element={<RedirectWithQuery to="/admin" />} />
               {/* Old /admin (business panel) → /virksomhed. The new /admin is platform-admin. */}
