@@ -74,6 +74,12 @@ Deno.serve(async (req) => {
       const down = diffs.filter((x) => x.d < 0).sort((a, b) => a.d - b.d).slice(0, 3);
       if (up.length) notes.push(`Flest nye klik: ${up.map((x) => `${x.k} (+${x.d})`).join(', ')}.`);
       if (down.length) notes.push(`Mistede flest klik: ${down.map((x) => `${x.k} (${x.d})`).join(', ')}.`);
+      // Local city pages: shows whether the new city content earns clicks.
+      const cityRe = /\/(by\/)?(koebenhavn|kobenhavn|frederiksberg|aarhus|odense|aalborg|esbjerg|randers|kolding|vejle|horsens)(\/|$)/;
+      const city = [...nowP.entries()].filter(([k]) => cityRe.test(k));
+      const cityClicks = city.reduce((a, [, v]) => a + v, 0);
+      const cityPrev = [...prevP.entries()].filter(([k]) => cityRe.test(k)).reduce((a, [, v]) => a + v, 0);
+      if (city.length) notes.push(`Bysider: ${nf.format(cityClicks)} klik (måneden før ${nf.format(cityPrev)}); bedste: ${city.sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k} (${v})`).join(', ')}.`);
     } catch (e) { console.warn('[seo-monthly-report] movers', e); }
     const sm = await fetch(`${GATEWAY}/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/sitemaps`, { headers });
     if (sm.ok) {
