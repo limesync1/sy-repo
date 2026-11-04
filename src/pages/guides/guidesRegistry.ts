@@ -25,8 +25,8 @@ export interface GuideMeta {
 
 export const GARDEN_GUIDE_META: GuideMeta = {
   href: "/guides/have",
-  title: "Havemand pris 2026: Timepris, havearbejde og haveanlæg",
-  desc: "Havemand pris og gartner timepris: 400–700 kr./t. Se priser på havearbejde, græsslåning, hækklipning og haveanlæg — og hvor meget fradraget sparer dig.",
+  title: "Havearbejde og haveanlæg priser 2026: Gartner timepris",
+  desc: "Havearbejde priser og gartner timepris: 400–700 kr./t. Se hvad et havefirma koster for havearbejde, græsslåning, hækklipning og haveanlæg — og hvor meget fradraget sparer dig.",
   category: "Haveservice",
   tag: "Prisguide",
   priority: "0.9",
