@@ -8,6 +8,7 @@ import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { findGardenCity, GARDEN_CITIES } from "./gardenCityData";
+import { GardenCityExtras, gardenCityFaq } from "./GardenCityExtras";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
