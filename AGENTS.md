@@ -42,7 +42,7 @@
 - Homepage photos share CDN WebP variants and JSON metadata across images, SEO and sitemaps. Normalize photo canvases without cropping subjects to one ratio; DOM/WebGL keep a fixed frame to prevent layout movement and inner bars. Static homepage head preloads only the first responsive photo and route heads remove that preload; runtime preloads only the next photo and pauses hidden/reduced-motion timers to prioritize visible content.
 - Panel headers share `PageHeader`/`.panel-page-hero` (and the overview hero) with the homepage's `BlueFlowBackground` over the same fallback, so panel and public heroes look identical. Persistent public navigation shares audience groups and account actions and publishes its measured height for sticky public filters, preventing overlap across tablet sizes.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
-- Trade-city pages, sitemap, prerender titles and `/by` hubs derive from `branchRegistry.ts` and `cityFacts.ts` for consistency.
+- Trade-city pages, sitemap and `/by` hubs share registries; prerender uses resolved city text and shared `LocalServiceLinks` to prevent crawler/browser drift.
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
