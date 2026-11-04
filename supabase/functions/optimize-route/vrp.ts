@@ -10,7 +10,8 @@
 // Stops med required_staff > 1 håndteres ved at vælge de N billigste medarbejdere
 // og synkronisere ankomst.
 
-import { buildMatrix, roadKm, haversineSec, getWeatherAdjustment, applyDurationMultiplier } from "./geo.ts";
+import { buildMatrix, roadKm, haversineSec, getWeatherAdjustment, applyDurationMultiplier, rushHourFactor } from "./geo.ts";
+import { runAlns } from "./alns.ts";
 import type {
   EmployeeCtx,
   LatLng,
@@ -135,7 +136,7 @@ function scheduleRoute(
     }
     lastIdxByLocation.set(locKey, i);
     const myIdx = stopIdx(stop.id);
-    const travelMin = travel.sec(prevIdx, myIdx) / 60;
+    const travelMin = (travel.sec(prevIdx, myIdx) / 60) * rushHourFactor(cursor);
     const tKm = travel.km(prevIdx, myIdx);
     totalKm += tKm;
 
@@ -175,7 +176,7 @@ function scheduleRoute(
   // Sidste leg hjem tæller med i både tid og cost.
   let returnTravelMin = 0;
   if (route.length > 0) {
-    returnTravelMin = travel.sec(prevIdx, empEndIdx) / 60;
+    returnTravelMin = (travel.sec(prevIdx, empEndIdx) / 60) * rushHourFactor(cursor);
     const homeKm = travel.km(prevIdx, empEndIdx);
     totalKm += homeKm;
     cost += returnTravelMin + homeKm * KM_COST_WEIGHT;
@@ -431,7 +432,7 @@ function orOpt(
 export async function solveVRP(
   employeesIn: EmployeeCtx[],
   stopsIn: Stop[],
-  opts: { routeDate?: string | null } = {},
+  opts: { routeDate?: string | null; alnsBudgetMs?: number } = {},
 ): Promise<{
   plan: RoutePlan;
   provider: "osrm" | "haversine";
@@ -711,6 +712,66 @@ export async function solveVRP(
     const cand = buildRoutes(seeds[i]);
     if (cand.cost + 0.01 < bestSolution.cost) bestSolution = cand;
   }
+  // === ALNS + simuleret annealing ===
+  // Ødelæg-og-genopbyg-søgning, der kommer ud af lokale toppe, som 2-opt og
+  // or-opt alene sidder fast i. Deterministisk seed og fast tidsbudget.
+  const solutionCost = (r: Map<string, IRoute>, unassignedCount: number) => {
+    let c = 0;
+    for (const emp of employees) {
+      const meta = empMeta.get(emp.id)!;
+      const ev = scheduleRoute(emp, r.get(emp.id)!, stops, travel, meta.startIdx, meta.endIdx, stopIdxOf);
+      c += ev.feasible ? ev.cost : 1e9;
+    }
+    return c + unassignedCount * 1e6;
+  };
+  const polish = (r: Map<string, IRoute>) => {
+    for (const emp of employees) {
+      const route = r.get(emp.id)!;
+      const meta = empMeta.get(emp.id)!;
+      let safety = 20;
+      while (safety-- > 0 && twoOpt(emp, route, stops, travel, meta, stopIdxOf)) { /* */ }
+      safety = 20;
+      while (safety-- > 0 && relocateInRoute(emp, route, stops, travel, meta, stopIdxOf)) { /* */ }
+    }
+  };
+  const movable = new Set(
+    stops.filter((s) => s.pinned_assignees.length === 0 && s.required_staff === 1).map((s) => s.id),
+  );
+  if (movable.size >= 4 && opts.alnsBudgetMs !== 0) {
+    const improved = runAlns({
+      initial: bestSolution.routes,
+      initialUnassigned: bestSolution.unassigned,
+      employees,
+      stops,
+      movable,
+      cost: solutionCost,
+      polish,
+      insertCost: (stop, r) => {
+        const opts2: Array<{ emp: EmployeeCtx; pos: number; cost: number }> = [];
+        for (const emp of employees) {
+          const c = tryInsertCheapest(stop, [emp], r, stops, travel, empMeta, stopIdxOf);
+          if (c) opts2.push(c);
+        }
+        return opts2;
+      },
+      dist: (a, b) => travel.km(stopIdxOf(a), stopIdxOf(b)),
+      budgetMs: opts.alnsBudgetMs ?? 3500,
+      seed: stops.length * 7919 + employees.length,
+    });
+    if (improved.cost + 0.01 < bestSolution.cost) {
+      bestSolution = { routes: improved.routes, unassigned: improved.unassigned, cost: improved.cost };
+    }
+  }
+
+  // Aldrig dårligere end i dag: er brugerens nuværende rækkefølge billigere
+  // (og gyldig), beholder vi den.
+  if (current.feasible) {
+    const curCost = solutionCost(currentRoutes, 0);
+    if (curCost + 0.01 < bestSolution.cost) {
+      bestSolution = { routes: currentRoutes, unassigned: [], cost: curCost };
+    }
+  }
+
   for (const emp of employees) routes.set(emp.id, bestSolution.routes.get(emp.id)!);
   const unassigned = bestSolution.unassigned;
 
