@@ -15,6 +15,8 @@ Serviceydere er: en dansk markedsplads for lokale serviceydelser og et driftssys
 - [Om Serviceydere](/om-os): Hvem vi er, hvad platformen gør og hvordan man kontakter os.
 
 - [Skift rutesystem](/software/skift-rutesystem): Gratis dataflytning fra SkvizBiz, Fenster og andre systemer.
+- [Serviceydere vs. SkvizBiz](/software/sammenlign/skvizbiz): Ærlig sammenligning af funktioner og pris.
+- [Serviceydere vs. Fenster](/software/sammenlign/fenster): Ærlig sammenligning af funktioner og pris.
 - [Redaktionen](/redaktion): Hvordan guides og artikler skrives, faktatjekkes og opdateres.
 - [Forside](/): Find og book lokale serviceydere i Danmark.
 - [Find virksomheder](/virksomheder): Søg og filtrér verificerede serviceydere efter kategori og by.
