@@ -5,7 +5,7 @@
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>da</string>
 	<key>CFBundleDisplayName</key>
         <string>Serviceydere</string>
 	<key>CFBundleExecutable</key>
@@ -22,6 +22,18 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Serviceydere bruger kameraet til at tage billeder som dokumentation på opgaver.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Serviceydere bruger dine billeder til at vedhæfte dokumentation på opgaver.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Serviceydere gemmer billeder af dokumentation på opgaver.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Serviceydere bruger din position til at vise vej til kunden, når du kører din rute.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UIRequiresFullScreen</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -49,7 +61,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
