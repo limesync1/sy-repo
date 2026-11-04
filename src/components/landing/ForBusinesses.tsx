@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
-import economicLogo from "@/assets/logo-economic.svg.asset.json";
-import dineroLogo from "@/assets/logo-dinero.svg.asset.json";
+// Officielle logoer (samme filer som regnskabssiden bruger).
+import economicLogo from "@/assets/accounting/economic.png";
+import dineroLogo from "@/assets/accounting/dinero.png";
 
 /**
   * Forretningsrettet sektion på forsiden. Et lyst, kontraststærkt overblik
@@ -112,10 +113,10 @@ const ForBusinesses = () => {
           </span>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="inline-flex h-11 items-center rounded-xl border border-border bg-background px-4 shadow-sm">
-              <img src={economicLogo.url} alt="e-conomic" loading="lazy" className="h-[18px] w-auto" />
+              <img src={economicLogo} alt="e-conomic" loading="lazy" width={403} height={100} className="h-[18px] w-auto" />
             </span>
             <span className="inline-flex h-11 items-center rounded-xl border border-border bg-background px-4 shadow-sm">
-              <img src={dineroLogo.url} alt="Dinero" loading="lazy" className="h-[20px] w-auto" />
+              <img src={dineroLogo} alt="Dinero" loading="lazy" width={388} height={100} className="h-[19px] w-auto" />
             </span>
           </div>
         </div>
