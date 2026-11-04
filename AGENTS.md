@@ -65,5 +65,5 @@
 - /software/branche/:slug pages, sitemap and prerender derive from `industryRegistry.ts`; add trades only there for consistency.
 - SEO's last daily slot favors least-covered trades; mapped articles link their parent.
 - Build adds published `seo_articles` to sitemap/prerender.
-- Article covers: queued `article_images` served by its function; never block publishing.
-- Blog articles resolve through one lazy `/blog/:slug` route (`BlogPostRoute`); never import `blogPosts.ts` or zod from eagerly loaded app code, to keep the shared startup file small.
+- Article covers: queued `article_images`; never block publishing.
+- Blog posts use one lazy `BlogPostRoute`; keep `blogPosts.ts`/zod out of eager code for a small startup bundle.
