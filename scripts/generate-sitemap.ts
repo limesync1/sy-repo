@@ -136,16 +136,19 @@ try {
 
 // Published engine articles (seo_articles) so new automatic articles are in the submitted sitemap; lastmod = their own updated_at.
 const ENGINE_ENTRIES: SitemapEntry[] = [];
+const ENGINE_META: { path: string; title: string; description: string; article: { title: string; publishedAt: string; updatedAt: string } }[] = [];
 try {
-  const res = await fetch("https://gkectsellkpltrxvusot.supabase.co/rest/v1/seo_articles?select=slug,updated_at&status=eq.published&limit=5000", {
+  const res = await fetch("https://gkectsellkpltrxvusot.supabase.co/rest/v1/seo_articles?select=slug,title,description,published_at,updated_at&status=eq.published&limit=5000", {
     headers: { apikey: ARTICLE_IMG_KEY, Authorization: `Bearer ${ARTICLE_IMG_KEY}` },
     signal: AbortSignal.timeout(15000),
   });
   const known = new Set(BLOG_ENTRIES.map((e) => e.path));
-  if (res.ok) for (const a of (await res.json()) as { slug: string; updated_at: string }[]) {
+  if (res.ok) for (const a of (await res.json()) as { slug: string; title: string; description: string; published_at: string | null; updated_at: string }[]) {
     const path = `/blog/${a.slug}`;
     if (!/^[a-z0-9-]+$/.test(a.slug) || known.has(path)) continue;
     ENGINE_ENTRIES.push({ path, changefreq: "monthly", priority: "0.75", lastmod: a.updated_at.slice(0, 10) });
+    const publishedAt = (a.published_at ?? a.updated_at).slice(0, 10);
+    ENGINE_META.push({ path, title: `${a.title} | Serviceydere`, description: a.description, article: { title: a.title, publishedAt, updatedAt: a.updated_at.slice(0, 10) } });
   }
 } catch (e) {
   console.warn("seo article fetch skipped:", (e as Error).message);
@@ -250,6 +253,7 @@ const routeMeta = [
   ...BLOG_CATEGORIES.map((c) => ({ path: `/blog/kategori/${c.slug}`, title: `${c.name} – artikler og guides | Serviceydere`, description: `Alle artikler om ${c.name.toLowerCase()}: priser, tjeklister og råd fra Serviceydere.` })),
   ...BLOG_POSTS.map((p) => ({ path: `/blog/${p.slug}`, title: `${p.title} | Serviceydere`, description: p.description,
     article: { title: p.title, publishedAt: p.publishedAt, updatedAt: p.updatedAt } })),
+  ...ENGINE_META,
   ...GUIDES.map((g) => ({ path: g.href, title: `${g.title} | Serviceydere`, description: g.desc })),
   ...SOFTWARE_PAGES.map((s) => ({ path: s.href, title: s.seoTitle ?? `${s.label} | Serviceydere`, description: s.seoDescription ?? s.blurb })),
   ...cityMeta("rengoering", "Rengøring", CITIES),
@@ -284,10 +288,10 @@ try {
     }
     const businessSitemapPath = resolve("public/sitemap-businesses.xml");
     if (valid.length > 0) {
-      writeFileSync(businessSitemapPath, buildUrlset(valid.map((b) => ({
+      writeFileSync(businessSitemapPath, buildUrlset(toUrls(valid.map((b) => ({
         path: `/v/${b.slug}`, changefreq: "weekly", priority: "0.8",
         ...(b.updated_at ? { lastmod: b.updated_at.slice(0, 10) } : {}),
-      }))));
+      })))));
     } else if (existsSync(businessSitemapPath)) {
       unlinkSync(businessSitemapPath);
     }
