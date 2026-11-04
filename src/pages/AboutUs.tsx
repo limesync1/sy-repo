@@ -144,6 +144,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-16">
               <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Vores mission</p>
                 <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Tryghed, gennemsigtighed og lokal kvalitet
                 </h2>
@@ -158,7 +159,7 @@ const AboutUs = () => {
                   { icon: iconGratis.url, k: "Gratis", t: "Gratis for private", b: "Du betaler kun for opgaven — aldrig for at bruge platformen." },
                   { icon: iconIngenMellemled.url, k: "Direkte", t: "Ingen mellemled", b: "Du aftaler direkte med udbyderen — vi formidler kun kontakten." },
                 ].map(({ icon, k, t, b }) => (
-                  <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                  <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border">
                     <div className="flex items-center gap-3">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5 sm:h-16 sm:w-16">
                         <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
@@ -179,6 +180,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Brancher</p>
                   <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   25+ kategorier, ét sted
                 </h2>
@@ -222,6 +224,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-16">
               <div className="max-w-md shrink-0">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Hele Danmark</p>
                 <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Lokale udbydere i hele Danmark
                 </h2>
@@ -255,6 +258,7 @@ const AboutUs = () => {
         <section className="bg-background py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 max-w-2xl">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Principper</p>
               <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Sådan arbejder vi
               </h2>
@@ -284,6 +288,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Kontakt</p>
                 <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Kontakt &amp; virksomhedsinfo
                 </h2>

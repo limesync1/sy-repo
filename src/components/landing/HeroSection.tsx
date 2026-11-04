@@ -1,3 +1,4 @@
+import type React from "react";
 import { ArrowRight } from "lucide-react";
 import supportIcon from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
 import SmartLink from "@/components/SmartLink";
@@ -36,12 +37,16 @@ const HeroSection = () => {
             </span>
             <ArrowRight className="h-4 w-4 shrink-0 opacity-70 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </SmartLink>
-          <h1 className="text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3rem] 2xl:text-[4rem]">
-            Find den rette{" "}
-            <span className="home-hero-highlight">
-              serviceyder
+          <h1 className="home-hero-title text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3rem] 2xl:text-[4rem]">
+            <span className="home-hero-word" style={{ "--i": 0 } as React.CSSProperties}>Find</span>{" "}
+            <span className="home-hero-word" style={{ "--i": 1 } as React.CSSProperties}>den</span>{" "}
+            <span className="home-hero-word" style={{ "--i": 2 } as React.CSSProperties}>rette</span>{" "}
+            <span className="home-hero-word" style={{ "--i": 3 } as React.CSSProperties}>
+              <span className="home-hero-highlight">serviceyder</span>
             </span>
-            <br className="hidden xl:block" /> til opgaven.
+            <br className="hidden xl:block" />{" "}
+            <span className="home-hero-word" style={{ "--i": 4 } as React.CSSProperties}>til</span>{" "}
+            <span className="home-hero-word" style={{ "--i": 5 } as React.CSSProperties}>opgaven.</span>
           </h1>
 
           <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-lg text-sm leading-[1.6] text-ocean-foreground/75 sm:mt-5 sm:text-base lg:mt-3 2xl:mt-6 2xl:text-[17px]">
