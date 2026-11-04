@@ -63,7 +63,6 @@
 - The monthly SEO report (`seo-monthly-report`) has a fixed owner recipient, reads Search Console via the connector gateway, and uses a month-based idempotency key so the monthly schedule or repeat calls never send duplicates.
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
 - /software/branche/:slug pages, sitemap and prerender derive from `industryRegistry.ts`; add trades only there for consistency.
-- SEO's last daily slot favors least-covered trades; mapped articles link their parent.
-- Build adds published `seo_articles` to sitemap/prerender.
+- SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images`; never block publishing.
 - Blog posts use one lazy `BlogPostRoute`; keep `blogPosts.ts`/zod out of eager code for a small startup bundle.
