@@ -352,7 +352,7 @@ const PlatformAdmin = () => {
             {/* Cmd+K søgning — hurtig adgang til virksomheder og faner */}
             <button
               onClick={() => setCmdOpen(true)}
-              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+              className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs sm:min-h-9 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               aria-label="Søg (Cmd+K)"
             >
               <Search className="h-3.5 w-3.5" />
