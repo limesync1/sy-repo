@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import { HOME_TITLE, HOME_DESCRIPTION, homePageData } from "../src/components/landing/home-seo";
 import { heroPhotos, HERO_PHOTO_SIZES, photoSrcSet } from "../src/components/landing/hero-photos";
+import { missingIndexableContent } from "../src/seo/indexable-routes";
 
 const BASE_URL = "https://serviceydere.dk";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -115,6 +116,8 @@ export const seoPrerenderHead = () => ({
     const html = readFileSync(indexFile, "utf8");
     const routes: RouteMeta[] = JSON.parse(readFileSync(metaFile, "utf8"));
     const bodies = await loadStaticBodies();
+    const missingLocal = missingIndexableContent(routes, bodies);
+    if (missingLocal.length) throw new Error(`Missing public industry/city content or metadata: ${missingLocal.join(", ")}`);
     const missing = routes.filter(r => r.article && !bodies[r.path] && !r.body).map(r => r.path);
     if (missing.length) throw new Error(`Missing public article content: ${missing.join(", ")}`);
     for (const r of routes) {
