@@ -138,7 +138,7 @@ const Contact = () => {
         </section>
 
         {/* HELP SHORTCUT */}
-        <section className="bg-background pb-20 pt-4 md:pb-28">
+        <section className="bg-background py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:p-12">
               <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/[0.08] blur-3xl" />
