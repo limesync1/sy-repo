@@ -24,12 +24,17 @@ const HeroSection = () => {
         <div className="min-w-0 w-full max-w-2xl">
           <SmartLink
             to="/kontakt"
-            className="animate-fade-in mb-4 inline-flex min-h-11 max-w-full items-start gap-2.5 rounded-2xl border border-ocean-foreground/25 bg-ocean-foreground/10 px-3.5 py-2 text-left text-sm leading-snug text-ocean-foreground backdrop-blur-sm transition-colors hover:bg-ocean-foreground/15 sm:mb-5"
+            className="home-support-badge group animate-fade-in mb-4 flex min-h-11 w-full max-w-xl items-center gap-3 rounded-xl p-2 pr-3 text-left text-ocean-foreground backdrop-blur-sm sm:mb-6"
           >
-            <Headset className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>
-              <span className="font-semibold">Få personlig hjælp</span> til at sætte panel og ruteplanlægger op. Vores live kundeservice sidder klar 24/7 – 100% gratis.
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground text-ocean">
+              <Headset className="h-5 w-5" aria-hidden="true" />
+              <span className="home-live-dot absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-ocean" aria-hidden="true" />
             </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold leading-snug">Personlig hjælp til panel og ruteplanlægger</span>
+              <span className="block text-xs leading-snug text-ocean-foreground/80 sm:text-[13px]">Live kundeservice 24/7 · 100% gratis</span>
+            </span>
+            <ArrowRight className="h-4 w-4 shrink-0 opacity-70 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </SmartLink>
           <h1 className="text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
@@ -60,7 +65,7 @@ const HeroSection = () => {
                 asChild
                 variant="heroLight"
                 size="lg"
-                className="group h-11 sm:h-12 w-full gap-2 rounded-lg px-3 text-sm sm:px-7 font-semibold sm:w-auto"
+                className="home-hero-cta group h-11 sm:h-12 w-full gap-2 rounded-lg px-3 text-sm sm:px-7 font-semibold sm:w-auto"
               >
                 <SmartLink to="/tilbud">
                   Indhent 3 tilbud
