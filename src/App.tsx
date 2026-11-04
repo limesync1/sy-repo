@@ -171,7 +171,6 @@ const TradeCityPage          = lazyRoute("/branche/:city", () => import("./pages
 const CityHubPage            = lazyRoute("/by", () => import("./pages/cities/CityHubPage"));
 const TRADE_KINDS = ["vinduespudser", "maler", "elektriker", "vvs", "toemrer", "murer", "kloakmester", "skadedyr", "gulvlaegger", "skorstensfejer", "varmepumpe", "tagdaekker", "badevaerelse", "vinduesudskiftning", "anlaegsgartner", "algebehandling"];
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
-const DynamicBlogPost        = lazy(() => import("./pages/blog/DynamicBlogPost"));
 const BlogCategoryIndex      = lazyRoute("/blog/kategori", () => import("./pages/blog/BlogCategoryIndex"));
 
 // Artikler løses i én rute, så artikelregistret ikke hentes på alle sider.
