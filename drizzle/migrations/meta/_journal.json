@@ -302,6 +302,13 @@
       "when": 1793828948272,
       "tag": "0042_sync_plan_kind_into_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793828956649,
+      "tag": "0043_listing_settings_guard",
+      "breakpoints": true
     }
   ]
 }
