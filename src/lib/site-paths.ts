@@ -29,6 +29,8 @@ export const VALID_SITE_PATHS: string[] = [
   "/software/skift-rutesystem",
   "/software/sammenlign/skvizbiz",
   "/software/sammenlign/fenster",
+  "/software/sammenlign/rutemanager",
+  "/software/sammenlign/clientflow",
   "/anmeldelser",
   "/kontakt",
   "/blog",
