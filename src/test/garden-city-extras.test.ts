@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GARDEN_CITIES } from "./gardenCityData";
-import { gardenCityExample, gardenCityFaq } from "./GardenCityExtras";
+import { GARDEN_CITIES } from "@/pages/cities/gardenCityData";
+import { gardenCityExample, gardenCityFaq } from "@/pages/cities/GardenCityExtras";
 
 describe("haveservice-bysider", () => {
   it("regneeksempel bruger byens egne priser (Odense)", () => {
