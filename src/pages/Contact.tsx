@@ -154,7 +154,6 @@ const Contact = () => {
         <section className="bg-secondary py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 max-w-2xl">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Gratis og uforpligtende</p>
               <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Få 3 tilbud i stedet
               </h2>
