@@ -11,6 +11,11 @@ import type { BlogPostMeta } from "./blogPosts";
 import ArticleCoverImage from "@/components/content/ArticleCoverImage";
 import { useArticleImage } from "@/lib/article-images";
 
+const formatDa = (iso: string) => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+};
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 interface Props {
@@ -45,7 +50,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
       description: post.description,
       datePublished: post.publishedAt,
       dateModified: post.updatedAt ?? post.publishedAt,
-      author: { "@type": "Organization", name: "Serviceydere" },
+      author: { "@type": "Organization", name: "Serviceyderes redaktion", url: "https://serviceydere.dk/redaktion" },
       publisher: {
         "@type": "Organization",
         name: "Serviceydere",
@@ -103,6 +108,13 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
         <article className="article-content prose prose-neutral dark:prose-invert">
           <ArticleCoverImage image={cover} title={post.title} />
           <TrustBar />
+          <p className="not-prose mt-4 text-sm text-muted-foreground">
+            Udgivet <time dateTime={post.publishedAt}>{formatDa(post.publishedAt)}</time>
+            {post.updatedAt && post.updatedAt > post.publishedAt ? (
+              <> · Sidst opdateret <time dateTime={post.updatedAt}>{formatDa(post.updatedAt)}</time></>
+            ) : null}
+            {" · "}Af <Link to="/redaktion" className="underline underline-offset-2">Serviceyderes redaktion</Link>
+          </p>
 
           {children}
 

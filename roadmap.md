@@ -98,3 +98,12 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Importerede services kan redigeres uden kategori
 - [x] Kundepanel: fakturaer samlet pr. faktura med aftaler; tomme-knapper fjernet
 - [x] Regnskab: kunder er synkroniseret; aftaler bogføres først ved udført besøg (bevidst)
+
+## SEO-plan (nov 2026)
+- [x] Motor forbedrer artikler på side 2 og gamle artikler (tirs/fre)
+- [x] Kort svar øverst, synlige datoer, redaktionsside
+- [ ] Sammenlægning af artikler der konkurrerer om samme søgning
+- [ ] Lokale by/branche-sider med rigtigt lokalt indhold
+- [ ] Hastighedsmåling på mobil og ugentligt tjek af ødelagte links
+- [ ] Udvidet månedlig SEO-rapport + admin-tal
+- [ ] Liste over steder at få omtale/links (kræver brugeren)

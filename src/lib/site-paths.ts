@@ -25,6 +25,7 @@ export const VALID_SITE_PATHS: string[] = [
   "/software/haandvaerker",
   "/hjaelp",
   "/om-os",
+  "/redaktion",
   "/anmeldelser",
   "/kontakt",
   "/blog",
