@@ -66,7 +66,7 @@ export default function PlanPanel({ businessId, plan, ownerEmail, daysLeft, onIn
               }}>Forlæng</Button>
           </div>
           <Button size="sm" variant="outline"
-            onClick={() => rpcMut.mutate({ fn: "admin_reset_trial", args: { p_business_id: businessId, p_days: 14 }, successMsg: "Prøveperiode nulstillet til 14 dage" })}>
+            onClick={() => rpcMut.mutate({ fn: "admin_reset_trial", args: { p_business_id: businessId, p_days: 30 }, successMsg: "Prøveperiode nulstillet til 30 dage" })}>
             <RefreshCw className="h-3.5 w-3.5 mr-1.5" />Nulstil (14d)
           </Button>
           <Button size="sm" variant="outline" className="text-amber-700 hover:text-amber-800"
