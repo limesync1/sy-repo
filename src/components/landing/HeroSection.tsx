@@ -24,15 +24,14 @@ const HeroSection = () => {
         <div className="min-w-0 w-full max-w-2xl">
           <SmartLink
             to="/kontakt"
-            className="home-support-badge group animate-fade-in mb-4 flex min-h-11 w-full max-w-xl items-center gap-3 rounded-xl p-2 pr-3 text-left text-ocean-foreground backdrop-blur-sm sm:mb-6"
+            className="home-support-badge group animate-fade-in mb-4 flex min-h-11 w-full max-w-xl sm:inline-flex sm:w-auto items-center gap-3 rounded-xl p-2 pr-3 text-left text-ocean-foreground backdrop-blur-sm sm:mb-6"
           >
             <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground text-ocean">
               <Headset className="h-5 w-5" aria-hidden="true" />
-              <span className="home-live-dot absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-ocean" aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold leading-snug">Personlig hjælp til panel og ruteplanlægger</span>
-              <span className="block text-xs leading-snug text-ocean-foreground/80 sm:text-[13px]">Live kundeservice 24/7 · 100% gratis</span>
+              <span className="mt-0.5 flex items-center gap-1.5 text-xs leading-snug text-ocean-foreground/80 sm:text-[13px]"><span className="home-live-dot h-2 w-2 shrink-0 rounded-full bg-success" aria-hidden="true" />Live kundeservice 24/7 · 100% gratis</span>
             </span>
             <ArrowRight className="h-4 w-4 shrink-0 opacity-70 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </SmartLink>
