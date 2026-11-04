@@ -86,6 +86,56 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/software/rutesystem-finder</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/skift-rutesystem</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/skvizbiz</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/fenster</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/rutemanager</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/clientflow</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/ordrestyring</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/minuba</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/software/sammenlign/ruteklar</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/anmeldelser</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
