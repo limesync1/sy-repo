@@ -140,8 +140,8 @@ const ComparisonPage = () => {
                     {rows.filter((r) => r.group === g).map((r) => (
                       <tr key={r.feature} className="border-t border-border bg-card align-top">
                         <th scope="row" className="px-5 py-4 text-[15px] font-medium text-foreground">{r.feature}</th>
-                        <td className="px-5 py-4"><CellView c={r.us} /></td>
-                        <td className="px-5 py-4"><CellView c={r.them} /></td>
+                        <td className="px-5 py-4"><CellView c={r.us} fact={FACT_FEATURES.has(r.feature)} /></td>
+                        <td className="px-5 py-4"><CellView c={r.them} fact={FACT_FEATURES.has(r.feature)} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -152,8 +152,8 @@ const ComparisonPage = () => {
                   <div key={r.feature} className="rounded-xl border border-border bg-card p-4">
                     <p className="font-semibold text-foreground">{r.feature}</p>
                     <dl className="mt-3 grid grid-cols-2 gap-3">
-                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">Serviceydere</dt><dd><CellView c={r.us} /></dd></div>
-                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">{c.name}</dt><dd><CellView c={r.them} /></dd></div>
+                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">Serviceydere</dt><dd><CellView c={r.us} fact={FACT_FEATURES.has(r.feature)} /></dd></div>
+                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">{c.name}</dt><dd><CellView c={r.them} fact={FACT_FEATURES.has(r.feature)} /></dd></div>
                     </dl>
                   </div>
                 ))}
