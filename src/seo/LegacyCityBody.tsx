@@ -1,5 +1,6 @@
 import { CityFactsBox } from "@/pages/cities/CityFactsBox";
 import { GardenCityExtras } from "@/pages/cities/GardenCityExtras";
+import { LocalCityExtras } from "@/pages/cities/LocalCityExtras";
 import { CITIES } from "../pages/cities/cleaningCityData";
 import { MOVING_CITIES } from "../pages/cities/movingCityData";
 import { HANDYMAN_CITIES } from "../pages/cities/handymanCityData";
@@ -34,6 +35,7 @@ export function LegacyCityBody({ kind, city }: { kind: LegacyCityKind; city: Cit
     <h2>{kind === "flyttehjaelp" ? "Populære flytteruter" : kind === "rengoering" ? "Områder" : "Populære opgaver"} i {city.name}</h2>
     <ul>{tasks.map(task => <li key={task}>{task}</li>)}</ul>
     {kind === "haveservice" && "lawnLow" in city && <GardenCityExtras city={city} />}
+    {kind !== "haveservice" && <LocalCityExtras kind={kind} city={city as never} />}
     <p>Postnumre: {city.postalRange}. Region: {city.region}.</p>
     <nav aria-label="Lokale services og prisguides"><ul>
       <li><a href={group.guide}>Prisguide til {group.label.toLowerCase()}</a></li>
