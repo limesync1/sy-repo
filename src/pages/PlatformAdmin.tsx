@@ -264,7 +264,7 @@ const PlatformAdmin = () => {
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
               aria-label="Luk menu"
             >
               <X className="h-5 w-5" />
