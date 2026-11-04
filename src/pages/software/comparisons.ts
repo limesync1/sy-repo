@@ -94,7 +94,7 @@ export const comparisons: Comparison[] = [
       { group: "Planlægning", feature: "Ruteplanlægning med optimering", us: y(), them: y("Automatisk kalender") },
       { group: "Planlægning", feature: "Faste aftaler med interval", us: y(), them: y() },
       { group: "Planlægning", feature: "Online booking fra kunder", us: y(), them: y("10-200 pr. md. efter pakke") },
-      { group: "Planlægning", feature: "Ferieplanlægning", us: u, them: y("Pro og Premium") },
+      { group: "Planlægning", feature: "Ferie og fravær", us: p("Fravær flytter medarbejderens besøg"), them: y("Pro og Premium") },
       { group: "Medarbejdere", feature: "App til medarbejdere", us: y("Egen app til Android"), them: u },
       { group: "Medarbejdere", feature: "Billedbevis ved besøg", us: y(), them: y("Pro og Premium") },
       { group: "Medarbejdere", feature: "Virker uden internet", us: y("Udførte besøg sendes, når nettet er tilbage"), them: u },

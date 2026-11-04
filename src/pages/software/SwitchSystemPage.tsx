@@ -3,6 +3,8 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { comparisons } from "./comparisons";
 
 const TITLE = "Skift fra SkvizBiz, Fenster eller et andet rutesystem";
 const DESC = "Skift rutesystem uden at taste alt ind igen: Serviceydere flytter gratis dine kunder, aftaler og services fra SkvizBiz, Fenster eller andre systemer.";
@@ -45,6 +47,16 @@ const SwitchSystemPage = () => (
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild size="lg" className="min-h-11"><Link to="/opret-virksomhed">Opret virksomhed gratis</Link></Button>
         <Button asChild size="lg" variant="outline" className="min-h-11"><Link to="/kontakt">Kontakt kundeservice</Link></Button>
+      </div>
+
+      <h2 className="mt-12 text-2xl font-semibold text-foreground">Sammenlign punkt for punkt</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {comparisons.map((c) => (
+          <Link key={c.slug} to={`/software/sammenlign/${c.slug}`} className="group flex min-h-11 items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary">
+            <span><span className="block text-lg font-semibold text-foreground">Serviceydere vs. {c.name}</span><span className="text-sm text-muted-foreground">Funktioner, pris og dataflytning</span></span>
+            <ArrowRight className="h-5 w-5 text-foreground transition-transform group-hover:translate-x-1" aria-hidden />
+          </Link>
+        ))}
       </div>
 
       <h2 className="mt-12 text-2xl font-semibold text-foreground">Sådan foregår skiftet</h2>

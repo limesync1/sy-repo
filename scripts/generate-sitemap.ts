@@ -49,6 +49,8 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/om-os", changefreq: "monthly", priority: "0.5" },
   { path: "/redaktion", changefreq: "monthly", priority: "0.4" },
   { path: "/software/skift-rutesystem", changefreq: "monthly", priority: "0.7" },
+  { path: "/software/sammenlign/skvizbiz", changefreq: "monthly", priority: "0.7" },
+  { path: "/software/sammenlign/fenster", changefreq: "monthly", priority: "0.7" },
   { path: "/anmeldelser", changefreq: "weekly", priority: "0.6" },
   { path: "/kontakt", changefreq: "monthly", priority: "0.5" },
 ];
@@ -260,6 +262,8 @@ const STATIC_META = [
   { path: "/slet-data", title: "Slet data og tilbagekald samtykke | Serviceydere", description: "Slet cookievalg, anmod om sletning af konto og personoplysninger eller fjern virksomhedsdata hos Serviceydere." },
   { path: "/databehandleraftale", title: "Databehandleraftale | Serviceydere", description: "Databehandleraftale mellem Serviceydere og virksomheder, der bruger platformen til kunder, ruter og fakturering." },
   { path: "/underdatabehandlere", title: "Underdatabehandlere | Serviceydere", description: "Oversigt over de underdatabehandlere, Serviceydere bruger til drift, hosting, betaling og kommunikation." },
+  { path: "/software/sammenlign/skvizbiz", title: "Serviceydere vs. SkvizBiz: sammenligning af funktioner og pris | Serviceydere", description: "Se forskellen på Serviceydere og SkvizBiz punkt for punkt: ruteplanlægning, medarbejder-app, fakturering, pris og dataflytning." },
+  { path: "/software/sammenlign/fenster", title: "Serviceydere vs. Fenster: sammenligning af funktioner og pris | Serviceydere", description: "Se forskellen på Serviceydere og Fenster punkt for punkt: ruteplanlægning, medarbejder-app, fakturering, pris og dataflytning." },
   { path: "/software/skift-rutesystem", title: "Skift fra SkvizBiz, Fenster eller et andet rutesystem | Serviceydere", description: "Skift rutesystem uden at taste alt ind igen: Serviceydere flytter gratis dine kunder, aftaler og services fra SkvizBiz, Fenster eller andre systemer." },
   { path: "/redaktion", title: "Redaktionen bag Serviceyderes guides og artikler | Serviceydere", description: "Sådan skriver, tjekker og opdaterer Serviceyderes redaktion guides om priser, regler og servicearbejde i Danmark." },
   { path: "/om-os", title: "Om Serviceydere – platformen bag lokale services | Serviceydere", description: "Læs om Serviceydere: platformen der forbinder kunder med lokale servicevirksomheder og giver virksomheder ruteplanlægning, booking og fakturering." },
