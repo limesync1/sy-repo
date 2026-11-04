@@ -1,3 +1,4 @@
+import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
