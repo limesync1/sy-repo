@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
       ? body.billingPeriod : "monthly";
   const monthlyPrice = Math.max(0, Number(body.monthlyPriceDkk ?? 0));
   const forceActive = body.forceActive === true;
+  const listingOnly = body.planKind === "listing";
   const adminNote = body.adminNote ? String(body.adminNote).slice(0, 500) : null;
   const customPassword = typeof body.customPassword === "string" && body.customPassword.length >= 8
     ? body.customPassword : null;
@@ -171,8 +172,9 @@ Deno.serve(async (req) => {
       settings: {
         cvr,
         industry_text: industryText,
-        route_planning_enabled: true,
-        accounting_integration_enabled: accountingIntegration,
+        route_planning_enabled: !listingOnly,
+        plan_kind: listingOnly ? "listing" : "full",
+        accounting_integration_enabled: !listingOnly && accountingIntegration,
         leads_enabled: leadsEnabled,
         livechat_enabled: livechatEnabled,
         created_by_admin: true,
@@ -190,18 +192,19 @@ Deno.serve(async (req) => {
 
   // 4) Opret plan-række med prøveperiode (eller force-active)
   const trialEnd =
-    !forceActive && trialDays > 0
+    !listingOnly && !forceActive && trialDays > 0
       ? new Date(Date.now() + trialDays * 86400000).toISOString()
       : null;
   await admin.from("business_plans").insert({
     business_id: biz.id,
-    status: forceActive ? "active" : (trialDays > 0 ? "trialing" : "active"),
+    plan_kind: listingOnly ? "listing" : "full",
+    status: listingOnly || forceActive ? "active" : (trialDays > 0 ? "trialing" : "active"),
     trial_ends_at: trialEnd,
-    route_planning_enabled: true,
-    accounting_integration_enabled: accountingIntegration,
-    extra_employee_logins: extraLogins,
+    route_planning_enabled: !listingOnly,
+    accounting_integration_enabled: !listingOnly && accountingIntegration,
+    extra_employee_logins: listingOnly ? 0 : extraLogins,
     billing_period: billingPeriod,
-    monthly_price_dkk: monthlyPrice,
+    monthly_price_dkk: listingOnly ? 0 : monthlyPrice,
   });
 
   // 5) Audit-log
