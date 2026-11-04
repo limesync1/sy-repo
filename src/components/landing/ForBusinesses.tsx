@@ -112,7 +112,7 @@ const ForBusinesses = () => {
           </span>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="inline-flex h-11 items-center rounded-xl border border-border bg-background px-4 shadow-sm">
-              <img src={economicLogo.url} alt="e-conomic" loading="lazy" className="h-4 w-auto" />
+              <img src={economicLogo.url} alt="e-conomic" loading="lazy" className="h-[18px] w-auto" />
             </span>
             <span className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-border bg-background px-4 shadow-sm">
               <img src={dineroMark.url} alt="Dinero" loading="lazy" className="h-[18px] w-auto" />
