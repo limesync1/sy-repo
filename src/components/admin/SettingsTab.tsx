@@ -1,4 +1,6 @@
 import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
+import PlanKindSection from "@/components/admin/settings/PlanKindSection";
+import { isListingOnly } from "@/lib/business-capabilities";
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
@@ -1636,6 +1638,9 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* ── Gruppe: Konto ── */}
         <GroupHeader icon={<SettingsGroupIcon src={accountGroupIcon.url} />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
 
+        <PlanKindSection business={business} />
+
+        {!isListingOnly(business) && (<>
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
@@ -2016,6 +2021,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           <MaterialCatalogDialog open={catalogOpen} onOpenChange={setCatalogOpen} businessId={business.id} wholesaler={tradeModules.wholesaler} />
           <QualityTemplatesDialog open={templatesOpen} onOpenChange={setTemplatesOpen} businessId={business.id} categories={selectedCategories} />
         </div>
+
+        </>)}
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
