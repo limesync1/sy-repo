@@ -100,11 +100,11 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Regnskab: kunder er synkroniseret; aftaler bogføres først ved udført besøg (bevidst)
 
 ## SEO-plan (nov 2026)
-- [ ] Fortsat gennemgang af lokale siders indhold og interne links; kontrollér forbedringer i browser og SEO-tests.
+- [x] Lokale branchesider linker til andre registrerede services i samme by uden selvlinks; fælles links i browser/HTML. Googles tekst bruger nu de samme håndskrevne bytekster og områder som siden. 19 tests bestået; SEO-check 0 fejl/advarsler, 1.073 URL'er. Linknavigation afprøvet på mobil/computer uden overflow/runtimefejl; build OK. Ikke udgivet.
 - [x] Motor forbedrer artikler på side 2 og gamle artikler (tirs/fre)
 - [x] Kort svar øverst, synlige datoer, redaktionsside
 - [x] Sammenlægning af artikler der konkurrerer om samme søgning
-- [ ] Lokale by/branche-sider med rigtigt lokalt indhold
+- [ ] Yderligere dokumenteret lokalt indhold: kræver verificerbare kilder/virksomhedscases; eksisterende bytekst og links forbedret uden nye udokumenterede lokale påstande.
 - [x] Sitemap: automatiske artikler, egne datoer, billeder, læsbar tekst uden JavaScript
 - [ ] Hastighedsmåling på mobil og ugentligt tjek af ødelagte links
 - [x] Udvidet månedlig SEO-rapport + admin-tal
