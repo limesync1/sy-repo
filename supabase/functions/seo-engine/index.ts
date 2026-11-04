@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { generateChatCompletion, GatewayError, PaymentRequiredError, PermissionDeniedError, RateLimitError } from 'npm:@lovable.dev/ai-gateway@0.1.11';
 import { validateArticle, slugify, INTERNAL_LINKS, INDUSTRY_SLUGS, type ArticleDraft } from './quality.ts';
 import { selectTopic, topicIndustry, type TopicCandidate } from './topic-selection.ts';
+import { selectBoost } from './boost-selection.ts';
 
 // Automatic SEO engine. One daily cron "tick" decides the work for the day; admins can trigger single steps.
 // Every step is bounded, guarded by a unique run key (single-flight + idempotent) and stops on credit/policy errors.
@@ -93,7 +94,7 @@ async function write(manualTopicId?: string, coverage = false) {
 Eksisterende artikler (undgå overlap, link gerne til relevante): ${slugs.filter(s => s.includes(slugify(topic.keyword).split('-')[0])).concat(slugs.slice(-80)).slice(0, 120).join(', ')}
 ${industry ? `Emnet hører under /software/branche/${industry}. Medtag dette præcise link i links-arrayet. Skriv om den konkrete underbranches opgaver, arbejdsgang, afgrænsning og tilbud – ikke en omskrivning af en generel brancheartikel.` : ''}
 Tilladte interne links (brug 3-6 relevante): ${INTERNAL_LINKS.join(', ')} samt /blog/<eksisterende-slug> og branchesider /software/branche/<slug> for: ${INDUSTRY_SLUGS.join(', ')}. Link altid til den mest relevante brancheside.
-JSON-format: {"slug":"kort-dansk-slug-uden-æøå","title":"maks 65 tegn, indeholder søgeordet","description":"120-160 tegn","category":"Ruteplanlægning|Rengøring|Haveservice|Økonomi|Vinduespudsning|Håndværker","keywords":"komma, separeret","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":["..."],"rows":[["..."]]}}],"links":[{"label":"ankertekst","href":"/sti"}],"faq":[{"q":"...","a":"..."}]}
+JSON-format: {"summary":"2-3 sætninger der direkte besvarer søgningen","slug":"kort-dansk-slug-uden-æøå","title":"maks 65 tegn, indeholder søgeordet","description":"120-160 tegn","category":"Ruteplanlægning|Rengøring|Haveservice|Økonomi|Vinduespudsning|Håndværker","keywords":"komma, separeret","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":["..."],"rows":[["..."]]}}],"links":[{"label":"ankertekst","href":"/sti"}],"faq":[{"q":"...","a":"..."}]}
 Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 FAQ, sidste sektion forklarer hvordan Serviceydere kan hjælpe og nævner 14 dages gratis prøveperiode uden kreditkort.`;
   const raw = await ai(prompt, SYSTEM);
   const draft: ArticleDraft = { ...raw, slug: slugify(raw.slug || topic.keyword) };
@@ -104,7 +105,8 @@ Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 F
   }
   const { data: settings } = await db.from('seo_settings').select('auto_publish').single();
   const publish = !!settings?.auto_publish;
-  const sections = [...draft.sections, ...(draft.links?.length ? [{ heading: 'Læs også', links: draft.links }] : [])];
+  const summary = typeof raw.summary === 'string' && raw.summary.length > 40 ? [{ summary: raw.summary.slice(0, 500) }] : [];
+  const sections = [...summary, ...draft.sections, ...(draft.links?.length ? [{ heading: 'Læs også', links: draft.links }] : [])];
   const words = JSON.stringify(draft.sections).split(/\s+/).length;
   const { error } = await db.from('seo_articles').insert({ topic_id: topic.id, slug: draft.slug, title: draft.title, description: draft.description, category: draft.category, keywords: draft.keywords, sections, faq: draft.faq, reading_minutes: Math.max(3, Math.round(words / 200)), status: publish ? 'published' : 'draft', published_at: publish ? new Date().toISOString() : null });
   if (error) throw new Error(error.message);
@@ -157,7 +159,42 @@ async function refresh() {
   return { suggestions: n };
 }
 
-const STEPS: Record<string, (arg?: string) => Promise<unknown>> = { discover, write, submit, inspect, refresh };
+// Improves existing engine articles: "almost page 1" pages (GSC position 8-20) first, then articles not updated for 180 days.
+async function boost() {
+  const { data: arts } = await db.from('seo_articles').select('id,slug,title,description,category,keywords,sections,faq,updated_at').eq('status', 'published').limit(1000);
+  if (!arts?.length) return { boosted: 0 };
+  const g = await gsc();
+  const end = new Date(Date.now() - 3 * 864e5); const start = new Date(end.getTime() - 28 * 864e5);
+  const rows = await g.query({ startDate: iso(start), endDate: iso(end), dimensions: ['page'], rowLimit: 1000 });
+  const stats = rows.filter((r: any) => r.keys[0].includes('/blog/')).map((r: any) => ({ slug: r.keys[0].split('/blog/')[1].replace(/\/$/, ''), position: r.position, impressions: r.impressions }));
+  const picks = selectBoost(arts, stats, Date.now(), 2);
+  const slugs = await existingSlugs();
+  const done: unknown[] = [];
+  for (const pick of picks) {
+    const a = arts.find((x) => x.slug === pick.slug)!;
+    const top = await g.query({ startDate: iso(start), endDate: iso(end), dimensions: ['query'], rowLimit: 15, dimensionFilterGroups: [{ filters: [{ dimension: 'page', expression: `${SITE}blog/${a.slug}` }] }] });
+    const queries = top.map((t: any) => `${t.keys[0]} (pos ${t.position.toFixed(0)}, ${Math.round(t.impressions)} visn.)`).join('; ');
+    const body = (a.sections as any[]).filter((s) => !s.summary && s.heading !== 'Læs også');
+    const raw = await ai(`Forbedr denne eksisterende artikel, så den bliver det bedste svar på de søgninger, Google viser den for. ${pick.reason === 'side2' ? 'Den ligger på side 2 i Google.' : 'Den er over et halvt år gammel – opdatér til 2026.'}
+Søgninger fra Search Console: ${queries || 'ingen data'}
+Behold slug "${a.slug}". Bevar det gode, tilføj manglende afsnit der besvarer søgningerne, opdatér forældede oplysninger, og skriv et kort svar øverst.
+Nuværende: ${JSON.stringify({ title: a.title, description: a.description, category: a.category, keywords: a.keywords, sections: body, faq: a.faq }).slice(0, 24000)}
+Tilladte interne links: ${INTERNAL_LINKS.join(', ')}, /blog/<eksisterende-slug>, /software/branche/<slug> for: ${INDUSTRY_SLUGS.join(', ')}.
+JSON-format: {"summary":"2-3 sætninger","title":"maks 65 tegn","description":"120-160 tegn","keywords":"...","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":[],"rows":[[]]}}],"links":[{"label":"","href":"/sti"}],"faq":[{"q":"","a":""}]}
+Krav: 7-10 sektioner, 1100-1800 ord, 4-6 FAQ, mindst én tabel eller tjekliste.`, SYSTEM);
+    const draft: ArticleDraft = { ...raw, slug: a.slug, category: a.category };
+    const problems = validateArticle(draft, slugs.filter((s) => s !== a.slug));
+    if (problems.length) { done.push({ slug: a.slug, problems }); continue; }
+    const summary = typeof raw.summary === 'string' && raw.summary.length > 40 ? [{ summary: raw.summary.slice(0, 500) }] : [];
+    const sections = [...summary, ...draft.sections, ...(draft.links?.length ? [{ heading: 'Læs også', links: draft.links }] : [])];
+    const words = JSON.stringify(draft.sections).split(/\s+/).length;
+    await db.from('seo_articles').update({ title: draft.title, description: draft.description, keywords: draft.keywords, sections, faq: draft.faq, reading_minutes: Math.max(3, Math.round(words / 200)), updated_at: new Date().toISOString(), submitted_at: null }).eq('id', a.id);
+    done.push({ slug: a.slug, reason: pick.reason });
+  }
+  return { boosted: done.filter((d: any) => d.reason).length, details: done };
+}
+
+const STEPS: Record<string, (arg?: string) => Promise<unknown>> = { discover, write, submit, inspect, refresh, boost };
 
 async function run(kind: string, key: string, arg?: string, coverage = false) {
   const { error } = await db.from('seo_runs').insert({ kind, run_key: key });
@@ -206,6 +243,7 @@ Deno.serve(async (req) => {
       } else if (WRITE_DAYS.slice(0, s.articles_per_week).includes(d.getUTCDay())) {
         out.push(await run('write', `write:${today}`));
       }
+      if (d.getUTCDay() === 2 || d.getUTCDay() === 5) out.push(await run('boost', `boost:${today}`));
       out.push(await run('submit', `submit:${today}`));
       if (d.getUTCDay() === 0) out.push(await run('inspect', `inspect:${today}`));
       if (d.getUTCDay() === 3) out.push(await run('refresh', `refresh:${today}`));
