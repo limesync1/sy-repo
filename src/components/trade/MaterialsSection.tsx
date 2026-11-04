@@ -24,6 +24,7 @@ export function MaterialsSection({ orderId, businessId, stopId, canManage, readO
   const [free, setFree] = useState({ name: "", unit: "stk", price: "" });
   const [busy, setBusy] = useState(false);
 
+  const { data: uid } = useQuery({ queryKey: ["auth-uid"], staleTime: Infinity, queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null });
   const key = ["order-materials", orderId, stopId ?? null];
   const { data: rows = [] } = useQuery({
     queryKey: key,
@@ -86,7 +87,7 @@ export function MaterialsSection({ orderId, businessId, stopId, canManage, readO
       {rows.length > 0 && (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {rows.map((r) => {
-            const mine = canManage || !!r.added_by;
+            const mine = canManage || (!!uid && r.added_by === uid);
             return (
               <li key={r.id} className="flex items-center gap-3 px-3 py-2">
                 <div className="min-w-0 flex-1">
