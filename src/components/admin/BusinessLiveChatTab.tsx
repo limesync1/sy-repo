@@ -1,3 +1,4 @@
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 // BusinessLiveChatTab — virksomhedens egen indbakke for samtaler startet
 // fra deres offentlige side. Bruger samme designsprog som platform-admin
@@ -633,7 +634,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
               <div className="relative min-h-0 flex-1 overflow-hidden">
               <div ref={scrollRef} className="absolute inset-0 space-y-2.5 overflow-y-auto bg-secondary/20 px-4 py-4">
-                {messagesLoading && <div role="status" className="flex justify-center gap-2 py-6 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Henter beskeder…</div>}
+                {messagesLoading && <div role="status" aria-label="Henter beskeder" className="p-4"><ListCardSkeleton rows={4} withHeader={false} /></div>}
                 {messagesError && <div role="alert" className="space-y-2 text-center text-sm text-destructive"><p>Beskederne kunne ikke hentes.</p><Button variant="outline" onClick={retryMessages}>Prøv igen</Button></div>}
                 {messages.map((m, i) => {
                   if (m.is_system) {

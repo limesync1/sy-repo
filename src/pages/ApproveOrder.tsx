@@ -1,3 +1,4 @@
+import { FormSkeleton } from "@/components/admin/shared/Skeletons";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,9 +136,8 @@ const ApproveOrder = () => {
       <SiteNav />
       <main className="mx-auto max-w-2xl px-4 sm:px-6 py-8 md:py-12">
         {loading ? (
-          <Card className="p-12 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="mt-4 text-sm text-muted-foreground">Henter bestilling…</p>
+          <Card className="p-6 sm:p-8" role="status" aria-label="Henter bestilling">
+            <FormSkeleton fields={5} />
           </Card>
         ) : error && !order ? (
           <Card className="p-8 text-center">

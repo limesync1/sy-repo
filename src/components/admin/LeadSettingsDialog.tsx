@@ -1,3 +1,4 @@
+import { FormSkeleton } from "@/components/admin/shared/Skeletons";
 import { useEffect, useRef, useState } from "react";
 import { Settings2, X, Loader2, Check, Plus, Mail, Users, BriefcaseBusiness, MapPin, MessageSquare } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
@@ -158,7 +159,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
           />
         </DialogHeader>
         {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>
+          <div role="status" aria-label="Indlæser" className="py-2"><FormSkeleton fields={4} /></div>
         ) : (
           <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
             <Section icon={<Mail />} title="Beskeder om nye leads">

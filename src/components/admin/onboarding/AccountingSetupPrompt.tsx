@@ -1,9 +1,10 @@
+import { AccountingSkeleton } from "@/components/admin/shared/Skeletons";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Info, ArrowLeft, Loader2 } from "lucide-react";
+import { CheckCircle2, Info, ArrowLeft } from "lucide-react";
 import { PanelIcon } from "@/components/shared/PanelIcon";
 import { Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
@@ -84,7 +85,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
           </div>
         ) : (
           <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20 px-3 py-4 sm:px-5">
-            <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+            <Suspense fallback={<AccountingSkeleton />}>
               <AccountingTab businessId={business.id} businessName={business.name} />
             </Suspense>
           </div>
