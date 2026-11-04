@@ -1,6 +1,6 @@
 // Tests for den nøglefri OSRM-køretidsmatrix.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { buildMatrix } from "./geo.ts";
+import { buildMatrix, clearTravelCache } from "./geo.ts";
 import type { LatLng } from "./types.ts";
 
 const originalFetch = globalThis.fetch;
