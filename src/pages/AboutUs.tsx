@@ -303,7 +303,7 @@ const AboutUs = () => {
                     </div>
                     <dt className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
                     <dd className="mt-1 break-words text-base font-semibold text-foreground [overflow-wrap:anywhere]">
-                      {href ? <a href={href} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline" {...(href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>{value}</a> : value}
+                      {href ? <a href={href} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline" {...(href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>{value}</a> : <span className="inline-flex min-h-11 items-center">{value}</span>}
                     </dd>
                     <dd className="text-sm leading-5 text-muted-foreground">{sub}</dd>
                   </div>
