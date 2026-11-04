@@ -2,6 +2,7 @@
 // #root i den forudrenderede HTML. React erstatter det ved mount, så brugere
 // ser intet forskelligt — men crawlere får rigtig tekst og interne links.
 import { relatedContent } from "./related-content";
+export { missingIndexableContent } from "./indexable-routes";
 import { LegacyCityBody, legacyCityGroups } from "./LegacyCityBody";
 import { Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
