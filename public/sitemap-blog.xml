@@ -1856,6 +1856,48 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/haveservice-priser</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-haveservice-priser.webp</image:loc><image:title>Illustration til artiklen: Haveservice priser: Guide til tilbud og samlet havebudget</image:title></image:image>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/privat-rengoering-aalborg</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-privat-rengoering-aalborg.webp</image:loc><image:title>Illustration til artiklen: Privat rengøring Aalborg – få hjælp til et rent hjem</image:title></image:image>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/system-til-privatrengoering</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-system-til-privatrengoering.webp</image:loc><image:title>Illustration til artiklen: System til privatrengøring: Fra fast aftale til faktura</image:title></image:image>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/taepperens</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-taepperens.webp</image:loc><image:title>Illustration til artiklen: Tæpperens: Vælg metode, forstå prisen og få et godt tilbud</image:title></image:image>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/kontorrengoering</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-kontorrengoering.webp</image:loc><image:title>Illustration til artiklen: Kontorrengøring: Opgaver, frekvens og en god rengøringsaftale</image:title></image:image>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/rengoering</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-rengoering.webp</image:loc><image:title>Illustration til artiklen: Rengøring: Guide til metoder, midler og et rent hjem</image:title></image:image>
+    <lastmod>2026-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

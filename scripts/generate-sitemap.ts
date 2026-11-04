@@ -134,6 +134,23 @@ try {
   console.warn("article image fetch skipped:", (e as Error).message);
 }
 
+// Published engine articles (seo_articles) so new automatic articles are in the submitted sitemap; lastmod = their own updated_at.
+const ENGINE_ENTRIES: SitemapEntry[] = [];
+try {
+  const res = await fetch("https://gkectsellkpltrxvusot.supabase.co/rest/v1/seo_articles?select=slug,updated_at&status=eq.published&limit=5000", {
+    headers: { apikey: ARTICLE_IMG_KEY, Authorization: `Bearer ${ARTICLE_IMG_KEY}` },
+    signal: AbortSignal.timeout(15000),
+  });
+  const known = new Set(BLOG_ENTRIES.map((e) => e.path));
+  if (res.ok) for (const a of (await res.json()) as { slug: string; updated_at: string }[]) {
+    const path = `/blog/${a.slug}`;
+    if (!/^[a-z0-9-]+$/.test(a.slug) || known.has(path)) continue;
+    ENGINE_ENTRIES.push({ path, changefreq: "monthly", priority: "0.75", lastmod: a.updated_at.slice(0, 10) });
+  }
+} catch (e) {
+  console.warn("seo article fetch skipped:", (e as Error).message);
+}
+
 const buildUrlset = (urls: ReturnType<typeof toUrls>) =>
   [
     `<?xml version="1.0" encoding="UTF-8"?>`,
@@ -165,7 +182,7 @@ const pagesUrls = toUrls([
     priority: "0.7",
   })),
 ]);
-const blogUrls = toUrls([...BLOG_ENTRIES, ...BLOG_CATEGORY_ENTRIES]);
+const blogUrls = toUrls([...BLOG_ENTRIES, ...ENGINE_ENTRIES, ...BLOG_CATEGORY_ENTRIES]);
 const guidesUrls = toUrls(GUIDE_ENTRIES);
 const citiesUrls = toUrls(CITY_ENTRIES);
 
