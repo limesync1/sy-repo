@@ -124,9 +124,10 @@ export function runAlns(inp: AlnsInput): { routes: Sol; unassigned: string[]; co
     if (cCost + 0.01 < bestCost) {
       best = clone(cand); bestUn = [...candUn]; bestCost = cCost; reward = 3;
     }
-    if (cCost + 0.01 < curCost || rand() < Math.exp(-(cCost - curCost) / Math.max(T, 1e-6))) {
+    const better = cCost + 0.01 < curCost;
+    if (better || rand() < Math.exp(-(cCost - curCost) / Math.max(T, 1e-6))) {
       cur = cand; curUn = candUn; curCost = cCost;
-      if (!reward) reward = cCost < curCost ? 2 : 0.5;
+      if (!reward) reward = better ? 2 : 0.5;
     }
     dW[d] = dW[d] * 0.8 + reward * 0.2 + 0.05;
     rW[r] = rW[r] * 0.8 + reward * 0.2 + 0.05;
