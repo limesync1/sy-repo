@@ -68,4 +68,3 @@
 - One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
 - `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
 - Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
-- Route optimisation is pure algorithmic (no AI): tiled OSRM matrix with warm pair cache, rush-hour travel factor, seeded ALNS+SA under a time budget, and never returns a plan costlier than the current order.
