@@ -1,8 +1,7 @@
 name: Byg Android-app
 
+# Kun manuel kørsel: automatisk bygning ved hvert push fejlede og sendte fejlmails.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
