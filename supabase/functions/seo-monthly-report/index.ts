@@ -56,6 +56,21 @@ Deno.serve(async (req) => {
       : `Klikkene lå stabilt på ${nf.format(c.clicks)} i ${period}.`;
 
     let notes: string[] = [];
+    try {
+      // Searches just below page 1 (position 8–20) with real demand are the cheapest wins.
+      const near = (await q({ startDate: iso(start), endDate: iso(end), dimensions: ['query'], rowLimit: 250 }))
+        .filter((r: any) => r.position >= 8 && r.position <= 20 && r.impressions >= 20)
+        .sort((a: any, b: any) => b.impressions - a.impressions).slice(0, 5);
+      if (near.length) notes.push(`Tæt på side 1: ${near.map((r: any) => `«${r.keys[0]}» (plads ${nf.format(r.position)}, ${nf.format(r.impressions)} visninger)`).join(', ')}.`);
+      // Pages that gained or lost the most clicks versus the previous month.
+      const pg = async (s: Date, e: Date) => new Map((await q({ startDate: iso(s), endDate: iso(e), dimensions: ['page'], rowLimit: 250 })).map((r: any) => [r.keys[0].replace('https://serviceydere.dk', '') || '/', r.clicks as number]));
+      const [nowP, prevP] = await Promise.all([pg(start, end), pg(pStart, pEnd)]);
+      const diffs = [...new Set([...nowP.keys(), ...prevP.keys()])].map((k) => ({ k, d: (nowP.get(k) ?? 0) - (prevP.get(k) ?? 0) }));
+      const up = diffs.filter((x) => x.d > 0).sort((a, b) => b.d - a.d).slice(0, 3);
+      const down = diffs.filter((x) => x.d < 0).sort((a, b) => a.d - b.d).slice(0, 3);
+      if (up.length) notes.push(`Flest nye klik: ${up.map((x) => `${x.k} (+${x.d})`).join(', ')}.`);
+      if (down.length) notes.push(`Mistede flest klik: ${down.map((x) => `${x.k} (${x.d})`).join(', ')}.`);
+    } catch (e) { console.warn('[seo-monthly-report] movers', e); }
     const sm = await fetch(`${GATEWAY}/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/sitemaps`, { headers });
     if (sm.ok) {
       const list = (await sm.json()).sitemap ?? [];
