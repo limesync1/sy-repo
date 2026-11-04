@@ -14,6 +14,7 @@
 - Resolve checklist versus map guide before mounting Leaflet or continuous GPS to prevent map flashes and battery waste.
 - Header/session icons use monochrome `PanelIcon`; compact artwork uses `UiArtwork`. Filled-button artwork uses a light contrast chip.
 - Illustrations use `BrandedIllustration`; `PanelIcon`/customer variants reuse assets to avoid duplicates.
+- Profile URLs use `src/lib/social-links.ts`.
 - Service VAT wording is presentation-only; service emails share `_service-price.ts`, while stored amounts and server pricing stay unchanged to avoid double taxation or changing platform-plan pricing.
 - Public SEO uses shared registries (including garden hub metadata) and seo-prerender-head to prevent snippet drift; canonicals use public origin unless a business supplies its domain.
 - Public topic recommendations and legacy city metadata share `src/seo` sources between browser and initial HTML; article prerendering fails on missing content, and client navigation removes prior prerender entities to prevent stale page attribution.
