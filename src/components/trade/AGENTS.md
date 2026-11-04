@@ -1,0 +1,1 @@
+- Trade modules (materials, wholesaler price files, quality checklists) are toggled in `businesses.settings.trade_modules` and offered only to craft trades via `src/lib/trade-modules.ts`; a DB trigger copies catalog name/prices onto `order_materials` (employees must pick from the catalog) and accounting-sync appends materials as invoice lines, so prices stay server-set.
