@@ -1,4 +1,5 @@
-import { ArrowRight, Headset } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import supportIcon from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -26,8 +27,8 @@ const HeroSection = () => {
             to="/kontakt"
             className="home-support-badge group animate-fade-in mb-3 flex min-h-11 w-full max-w-xl sm:inline-flex sm:w-auto items-center gap-3 rounded-xl p-2 pr-3 text-left text-ocean-foreground backdrop-blur-sm sm:mb-6 lg:mb-3"
           >
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground text-ocean">
-              <Headset className="h-5 w-5" aria-hidden="true" />
+            <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground p-1">
+              <img src={supportIcon.url} alt="" width={36} height={36} className="h-full w-full object-contain" aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold leading-snug">Personlig hjælp til panel og ruteplanlægger</span>

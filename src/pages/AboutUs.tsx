@@ -11,11 +11,12 @@ import { ArrowRight } from "lucide-react";
 import iconCvr from "@/assets/content-icons/cvr-tjekket.svg.asset.json";
 import iconEmail from "@/assets/content-icons/email.svg.asset.json";
 import iconFairPriser from "@/assets/content-icons/fair-priser.svg.asset.json";
-import iconFindMinutter from "@/assets/brand/Find_paa_minutter.png.asset.json";
+import iconFindMinutter from "@/assets/content-icons/soeg-efter-service.svg.asset.json";
 import iconGratis from "@/assets/content-icons/gratis-for-private.svg.asset.json";
 import iconIngenMellemled from "@/assets/content-icons/direkte.svg.asset.json";
 import iconLokal from "@/assets/content-icons/lokal-forankring.svg.asset.json";
 import iconOmraade from "@/assets/content-icons/omraade.svg.asset.json";
+import iconSupport from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
 import iconPlatform from "@/assets/content-icons/platform.svg.asset.json";
 import iconUafhaengig from "@/assets/content-icons/uafhaengig-platform.svg.asset.json";
 import iconVerificeret from "@/assets/content-icons/verificeret-udbyder.svg.asset.json";
@@ -159,7 +160,7 @@ const AboutUs = () => {
                 ].map(({ icon, k, t, b }) => (
                   <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-border/60 bg-secondary/80 p-2">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5 sm:h-16 sm:w-16">
                         <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                       </div>
                       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
@@ -200,7 +201,7 @@ const AboutUs = () => {
                   to={`/search?category=${encodeURIComponent(cat.key)}`}
                   className="group flex min-h-[140px] flex-col justify-between rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
-                   <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/60 bg-secondary/80 p-2">
+                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5">
                     <IndustryIcon category={cat.key} className="h-full w-full" alt={cat.label} />
                   </div>
                   <div>
@@ -267,7 +268,7 @@ const AboutUs = () => {
                   key={title}
                   className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-border/60 bg-secondary/80 p-2">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5 sm:h-16 sm:w-16">
                     <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                   </div>
                   <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</h3>
@@ -289,24 +290,30 @@ const AboutUs = () => {
                 <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
                   Vi besvarer henvendelser løbende på hverdage.
                 </p>
+                <SmartLink to="/kontakt" className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-xl border border-border/70 bg-card py-1.5 pl-1.5 pr-4 text-sm font-semibold text-foreground transition-colors hover:border-foreground/30">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-background p-1"><img src={iconSupport.url} alt="" className="h-full w-full object-contain" loading="lazy" /></span>
+                  Gå til kontaktsiden
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </SmartLink>
               </div>
-              <dl className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+              <dl className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 {[
-                  { icon: iconPlatform.url, label: "Platform", value: "Serviceydere", sub: "serviceydere.dk" },
-                  { icon: iconOmraade.url, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
+                  { icon: iconPlatform.url, label: "Platform", value: "Serviceydere", sub: "serviceydere.dk", href: "https://serviceydere.dk/" },
                   { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
                   { icon: iconCvr.url, label: "CVR og stiftet", value: "CVR 40543120", sub: "Stiftet 2026", href: "https://datacvr.virk.dk/enhed/virksomhed/40543120" },
                   { icon: iconOmraade.url, label: "Adresse", value: "Vistorpvej 30", sub: "7540 Haderup, Midtjylland", href: "https://www.google.com/maps/search/?api=1&query=Vistorpvej+30%2C+7540+Haderup" },
                 ].map(({ icon, label, value, sub, href }) => (
-                  <div key={label} className="min-w-0 rounded-[20px] border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-6">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-md border border-border/60 bg-site-header-background p-1.5">
+                  <div key={label} className="flex min-w-0 items-start gap-4 rounded-[20px] border border-border/70 bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-5">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5">
                       <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                     </div>
-                    <dt className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
-                    <dd className="mt-1 break-words text-base font-semibold text-foreground [overflow-wrap:anywhere]">
-                      {href ? <a href={href} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline" {...(href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>{value}</a> : <span className="inline-flex min-h-11 items-center">{value}</span>}
-                    </dd>
-                    <dd className="text-sm leading-5 text-muted-foreground">{sub}</dd>
+                    <div className="min-w-0 flex-1">
+                      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
+                      <dd className="mt-0.5 text-base font-semibold leading-snug text-foreground [overflow-wrap:anywhere]">
+                        <a href={href} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline" {...(href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>{value}</a>
+                      </dd>
+                      <dd className="text-sm leading-5 text-muted-foreground">{sub}</dd>
+                    </div>
                   </div>
                 ))}
               </dl>
