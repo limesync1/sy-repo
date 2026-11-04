@@ -8,6 +8,7 @@ on:
 jobs:
   apk:
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     env:
       CAP_RELEASE: "1"
     steps:
@@ -22,16 +23,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install
       - run: bun run build
-      - run: npx cap add android
-      - name: App-ikon og opstartsskærm
-        continue-on-error: true
-        run: npx --yes @capacitor/assets generate --android --iconBackgroundColor '#012941' --splashBackgroundColor '#012941'
+      # android/ is committed (white icon/splash already generated); `cap add` would fail.
       - run: npx cap sync android
       - name: Byg APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
       - uses: actions/upload-artifact@v5
         with:
           name: serviceydere-medarbejder-apk
