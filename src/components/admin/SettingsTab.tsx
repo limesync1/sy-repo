@@ -2006,14 +2006,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                   onToggle={() => setTradeModules((t) => ({ ...t, quality: !t.quality }))}
                 />
                 {(tradeModules.materials || tradeModules.quality) && (
-                  <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-                    {tradeModules.materials && (
-                      <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setCatalogOpen(true)}><Package className="h-4 w-4" /> Materialeliste</Button>
-                    )}
-                    {tradeModules.quality && (
-                      <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setTemplatesOpen(true)}><ClipboardCheck className="h-4 w-4" /> Tjeklister</Button>
-                    )}
-                  </div>
+                  <TradeManageCards
+                    businessId={business.id}
+                    materials={tradeModules.materials}
+                    quality={tradeModules.quality}
+                    onMaterials={() => setCatalogOpen(true)}
+                    onQuality={() => setTemplatesOpen(true)}
+                  />
                 )}
               </div>
             )}
@@ -2073,6 +2072,42 @@ const SettingsTab = ({ business }: { business: any }) => {
 };
 
 export default SettingsTab;
+
+/* Genveje til materialeliste og tjeklister med antal, så man kan se om de er sat op. */
+function TradeManageCards({ businessId, materials, quality, onMaterials, onQuality }: {
+  businessId: string; materials: boolean; quality: boolean; onMaterials: () => void; onQuality: () => void;
+}) {
+  const { data } = useQuery({
+    queryKey: ["trade-counts", businessId],
+    queryFn: async () => {
+      const [m, t] = await Promise.all([
+        supabase.from("material_catalog").select("id", { count: "exact", head: true }).eq("business_id", businessId).eq("is_active", true),
+        supabase.from("quality_templates").select("id", { count: "exact", head: true }).eq("business_id", businessId).eq("is_active", true),
+      ]);
+      return { materials: m.count ?? 0, templates: t.count ?? 0 };
+    },
+  });
+  const card = (icon: React.ReactNode, title: string, sub: string, empty: boolean, onClick: () => void) => (
+    <button type="button" onClick={onClick}
+      className="flex min-h-16 flex-1 items-center gap-3 rounded-md border border-border bg-card px-3 py-2.5 text-left transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-foreground">{title}</span>
+        <span className={`block text-xs ${empty ? "font-medium text-destructive" : "text-muted-foreground"}`}>{sub}</span>
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+    </button>
+  );
+  const mc = data?.materials, tc = data?.templates;
+  return (
+    <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+      {materials && card(<Package className="h-5 w-5" />, "Materialeliste",
+        mc == null ? "Henter …" : mc === 0 ? "Tom – tilføj materialer, før medarbejderne kan bruge dem" : `${mc.toLocaleString("da-DK")} materialer · ret priser og upload prisfiler`, mc === 0, onMaterials)}
+      {quality && card(<ClipboardCheck className="h-5 w-5" />, "Tjeklister",
+        tc == null ? "Henter …" : tc === 0 ? "Ingen endnu – vælg en standard eller lav jeres egen" : `${tc} ${tc === 1 ? "tjekliste" : "tjeklister"} · ret punkter og målinger`, tc === 0, onQuality)}
+    </div>
+  );
+}
 
 /* ─── IndustryPicker — grupperet, søgbar branche-vælger ───
  * Vises i Settings → Generelt → Brancher.
