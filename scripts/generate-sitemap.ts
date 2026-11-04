@@ -47,6 +47,7 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/databehandleraftale", changefreq: "yearly", priority: "0.3" },
   { path: "/underdatabehandlere", changefreq: "yearly", priority: "0.3" },
   { path: "/om-os", changefreq: "monthly", priority: "0.5" },
+  { path: "/redaktion", changefreq: "monthly", priority: "0.4" },
   { path: "/anmeldelser", changefreq: "weekly", priority: "0.6" },
   { path: "/kontakt", changefreq: "monthly", priority: "0.5" },
 ];
@@ -221,6 +222,7 @@ const STATIC_META = [
   { path: "/slet-data", title: "Slet data og tilbagekald samtykke | Serviceydere", description: "Slet cookievalg, anmod om sletning af konto og personoplysninger eller fjern virksomhedsdata hos Serviceydere." },
   { path: "/databehandleraftale", title: "Databehandleraftale | Serviceydere", description: "Databehandleraftale mellem Serviceydere og virksomheder, der bruger platformen til kunder, ruter og fakturering." },
   { path: "/underdatabehandlere", title: "Underdatabehandlere | Serviceydere", description: "Oversigt over de underdatabehandlere, Serviceydere bruger til drift, hosting, betaling og kommunikation." },
+  { path: "/redaktion", title: "Redaktionen bag Serviceyderes guides og artikler | Serviceydere", description: "Sådan skriver, tjekker og opdaterer Serviceyderes redaktion guides om priser, regler og servicearbejde i Danmark." },
   { path: "/om-os", title: "Om Serviceydere – platformen bag lokale services | Serviceydere", description: "Læs om Serviceydere: platformen der forbinder kunder med lokale servicevirksomheder og giver virksomheder ruteplanlægning, booking og fakturering." },
   { path: "/anmeldelser", title: "Anmeldelser fra kunder og virksomheder | Serviceydere", description: "Se anmeldelser af servicevirksomheder på Serviceydere – rigtige opgaver, rigtige kunder." },
   { path: "/kontakt", title: "Kontakt Serviceydere | Serviceydere", description: "Kontakt Serviceydere – få hjælp til booking, tilbud eller din virksomhedskonto." },

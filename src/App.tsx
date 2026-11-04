@@ -187,6 +187,7 @@ const BLOG_ROUTES = BLOG_POSTS.map((post) => ({
 }));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const AboutUs                = lazyRoute("/om-os", () => import("./pages/AboutUs"));
+const Editorial              = lazyRoute("/redaktion", () => import("./pages/Editorial"));
 const Reviews                = lazyRoute("/anmeldelser", () => import("./pages/Reviews"));
 const Contact                = lazyRoute("/kontakt", () => import("./pages/Contact"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
@@ -492,6 +493,7 @@ const App = () => (
               <Route path="/blog/:slug" element={<DynamicBlogPost />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
               <Route path="/om-os" element={<AboutUs />} />
+              <Route path="/redaktion" element={<Editorial />} />
               <Route path="/anmeldelser" element={<Reviews />} />
               <Route path="/kontakt" element={<Contact />} />
 
