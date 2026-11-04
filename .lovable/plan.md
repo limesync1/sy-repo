@@ -50,3 +50,29 @@ Ved oprettelse vælger virksomheden mellem **"Kun profil på Serviceydere"** (gr
   - Opgradering sætter `trialing` og `trial_ends_at = now() + 14 dage`.
   - Nedgradering afvises ved aktive ruter, aftaler eller Stripe-abonnement.
 - **Tests:** vitest for `capabilitiesFor` og SQL-tjek af guards/RPC via read-queries efter migration.
+
+## Tilføjelse: Prøveperiode ændres fra 14 til 30 dage overalt
+
+**Gælder alle nye prøveperioder:** nye virksomheder, opgradering fra "Kun profil" og oprettelser via admin. Virksomheder, der allerede er i en prøveperiode, beholder deres nuværende slutdato. Det undgår, at nogen pludselig får en anden dato end den, de fik lovet. Sig til, hvis de skal forlænges til 30 dage.
+
+**Hvor det ændres:**
+- **Betaling (Stripe):** prøveperioden på abonnementet bliver 30 dage. Det samme gælder knappen "Start abonnement" og teksten ved betaling.
+- **Panelet:** prøveperiode-banneret, nedtællingen, opgraderings- og genaktiveringsvinduer, "Kom godt i gang" og indstillinger.
+- **Offentlige sider:** forsiden, "For virksomheder", prissiden, sammenligningssiderne, rutesystem-finderen, branche- og bysider, FAQ og hjælpecenter.
+- **Indhold:**
+  - Alle guider og blogartikler i koden.
+  - Allerede udgivne automatiske SEO-artikler i databasen, hvor "14 dage" handler om Serviceyderes prøveperiode.
+  - SEO-motorens skriveregler og AI-assistentens viden, så nye artikler og svar siger 30 dage.
+- **Mails:** velkomst-, lancerings- og påmindelsesmails om prøveperioden.
+- **Google:** metabeskrivelser og strukturerede data, plus llms.txt.
+- **Påmindelser:** tidspunkter som "3 dage før prøveperioden udløber" virker fortsat relativt til den nye slutdato.
+
+**Sikkerhed mod fejl:**
+- Én fælles værdi for antal prøvedage. Den bruges både på serveren og i teksterne, så tallet ikke kan blive uens igen.
+- En test fejler, hvis "14 dage" om prøveperioden dukker op igen i koden.
+- "14 dage" bevares, hvor det betyder noget andet, fx "hver 14. dag" om rengøringsinterval, fakturainterval eller priser i artikler.
+
+**Teknisk:**
+- `TRIAL_DAYS = 30` i `src/lib/trial.ts` og `supabase/functions/_shared/trial.ts`.
+- Stripe checkout/`trial_period_days` og DB-defaults/funktioner, der sætter `trial_ends_at = now() + interval '14 days'`, opdateres via ny migration.
+- En data-opdatering af `seo_articles` erstatter kun prøveperiode-formuleringer, med gennemsyn før skrivning.
