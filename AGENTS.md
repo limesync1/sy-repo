@@ -65,4 +65,4 @@
 - /software/branche/:slug pages, sitemap and prerender derive from `industryRegistry.ts`; add trades only there for consistency.
 - SEO's last daily slot favors least-covered trades; mapped articles link their parent.
 - SEO boost rewrites published articles via the quality gate, keeping slug and resubmitting the sitemap.
-- Article covers: `article_images` by path, served by `article-images` function (public buckets blocked); queued; never blocks publishing.
+- Article covers: queued `article_images` served by its function; never block publishing.
