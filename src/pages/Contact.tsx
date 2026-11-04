@@ -93,7 +93,7 @@ const Contact = () => {
         {/* INFO — simpel kontakt-info som en klassisk firma-kontaktside */}
         <section className="bg-background py-16 md:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {[
                 { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Vi svarer typisk inden for 1–2 hverdage.", href: "mailto:kontakt@serviceydere.dk" },
                 { icon: iconSvartid.url, label: "Åbningstider", value: "Hverdage 9–17", sub: "Lukket weekender og helligdage." },
