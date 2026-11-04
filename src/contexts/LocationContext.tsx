@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
-import { DEFAULT_RADIUS_KM } from "@/lib/dk-postcodes";
+import { DEFAULT_RADIUS_KM } from "@/lib/radius-default";
 
 export interface UserLocation {
   city: string | null;
