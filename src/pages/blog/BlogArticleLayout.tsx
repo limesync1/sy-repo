@@ -11,6 +11,11 @@ import type { BlogPostMeta } from "./blogPosts";
 import ArticleCoverImage from "@/components/content/ArticleCoverImage";
 import { useArticleImage } from "@/lib/article-images";
 
+const formatDa = (iso: string) => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+};
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 interface Props {
@@ -45,7 +50,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
       description: post.description,
       datePublished: post.publishedAt,
       dateModified: post.updatedAt ?? post.publishedAt,
-      author: { "@type": "Organization", name: "Serviceydere" },
+      author: { "@type": "Organization", name: "Serviceyderes redaktion", url: "https://serviceydere.dk/redaktion" },
       publisher: {
         "@type": "Organization",
         name: "Serviceydere",

@@ -5,7 +5,7 @@ import BlogArticleLayout from "./BlogArticleLayout";
 import NotFound from "../NotFound";
 import type { BlogPostMeta } from "./blogPosts";
 
-type Section = { heading?: string; paragraphs?: string[]; list?: string[]; table?: { headers: string[]; rows: string[][] }; links?: { label: string; href: string }[] };
+type Section = { summary?: string; heading?: string; paragraphs?: string[]; list?: string[]; table?: { headers: string[]; rows: string[][] }; links?: { label: string; href: string }[] };
 
 /** Turns `[label](/internal-path)` into router links; anything else stays plain text. */
 const inline = (text: string) =>
@@ -41,6 +41,12 @@ const DynamicBlogPost = () => {
   return (
     <BlogArticleLayout post={post} keywords={data.keywords} faq={faq}>
       {sections.map((s, i) => (
+        s.summary ? (
+          <aside key={i} className="not-prose my-6 rounded-lg border border-border bg-primary/5 p-5">
+            <p className="m-0 text-sm font-semibold text-foreground">Kort svar</p>
+            <p className="mt-1 text-base leading-relaxed text-foreground">{s.summary}</p>
+          </aside>
+        ) : (
         <section key={i}>
           {s.heading && <h2>{s.heading}</h2>}
           {s.paragraphs?.map((p, j) => <p key={j}>{inline(p)}</p>)}
@@ -57,6 +63,7 @@ const DynamicBlogPost = () => {
             <ul>{s.links.filter((l) => l.href.startsWith("/")).map((l, j) => <li key={j}><Link to={l.href}>{l.label}</Link></li>)}</ul>
           ) : null}
         </section>
+        )
       ))}
     </BlogArticleLayout>
   );
