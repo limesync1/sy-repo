@@ -54,9 +54,101 @@ export async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
   }
 }
 
+// Cache af køretider mellem afrundede koordinater (~11 m). Lever så længe
+// funktionens instans er varm, så gentagne optimeringer af samme kunder ikke
+// slår de samme par op igen. Begrænset størrelse for at holde hukommelsen nede.
+const PAIR_CACHE = new Map<string, [number, number]>();
+const PAIR_CACHE_MAX = 200_000;
+export function clearTravelCache() { PAIR_CACHE.clear(); }
+const ck = (c: LatLng) => `${c.lat.toFixed(4)},${c.lng.toFixed(4)}`;
+
+async function osrmBlock(
+  coords: LatLng[], src: number[], dst: number[],
+): Promise<{ d: number[][]; m: number[][] } | null> {
+  const all = [...src, ...dst];
+  const coordStr = all.map((i) => `${coords[i].lng},${coords[i].lat}`).join(";");
+  const s = src.map((_, k) => k).join(";");
+  const t = dst.map((_, k) => src.length + k).join(";");
+  const url = `https://router.project-osrm.org/table/v1/driving/${coordStr}?sources=${s}&destinations=${t}&annotations=duration,distance`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json.code === "Ok") return { d: json.durations, m: json.distances };
+      }
+    } catch { /* prøv igen */ }
+  }
+  return null;
+}
+
+/**
+ * Fuld køretidsmatrix for vilkårligt mange punkter: opdeles i blokke på
+ * højst 40×40, hentes med begrænset samtidighed og flettes sammen. Par, der
+ * allerede ligger i cachen, springes over. Manglende celler bliver NaN og
+ * falder pr. par tilbage til estimat i makeTravelers.
+ */
 export async function buildMatrix(coords: LatLng[]): Promise<Matrix | null> {
-  if (coords.length < 2) return null;
-  return await osrmMatrix(coords);
+  const n = coords.length;
+  if (n < 2) return null;
+  const durations = Array.from({ length: n }, () => new Array<number>(n).fill(NaN));
+  const distances = Array.from({ length: n }, () => new Array<number>(n).fill(NaN));
+  const keys = coords.map(ck);
+  let missing = false;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i === j) { durations[i][j] = 0; distances[i][j] = 0; continue; }
+      const hit = PAIR_CACHE.get(`${keys[i]}|${keys[j]}`);
+      if (hit) { durations[i][j] = hit[0]; distances[i][j] = hit[1]; } else missing = true;
+    }
+  }
+  if (missing) {
+    const B = 40;
+    const blocks: number[][] = [];
+    for (let i = 0; i < n; i += B) blocks.push(Array.from({ length: Math.min(B, n - i) }, (_, k) => i + k));
+    const jobs: Array<[number[], number[]]> = [];
+    for (const a of blocks) for (const b of blocks) {
+      if (a.some((i) => b.some((j) => i !== j && Number.isNaN(durations[i][j])))) jobs.push([a, b]);
+    }
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < jobs.length) {
+        const [a, b] = jobs[cursor++];
+        const res = await osrmBlock(coords, a, b);
+        if (!res) continue;
+        a.forEach((i, ai) => b.forEach((j, bj) => {
+          const dv = res.d?.[ai]?.[bj];
+          const mv = res.m?.[ai]?.[bj];
+          if (typeof dv === "number" && typeof mv === "number" && Number.isFinite(dv)) {
+            durations[i][j] = dv;
+            distances[i][j] = mv;
+            if (i !== j) {
+              if (PAIR_CACHE.size > PAIR_CACHE_MAX) PAIR_CACHE.clear();
+              PAIR_CACHE.set(`${keys[i]}|${keys[j]}`, [dv, mv]);
+            }
+          }
+        }));
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+  }
+  let filled = 0;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (i !== j && Number.isFinite(durations[i][j])) filled++;
+  if (filled === 0) return null;
+  return { durations, distances, provider: "osrm" };
+}
+
+/**
+ * Myldretidsfaktor på køretid ud fra afgangstidspunkt (minutter efter
+ * midnat). Det er bevidst blødt, så det kun skubber rækkefølgen, når det
+ * giver mening, fx ved at lægge lange ture uden for 7–9 og 15–17.
+ */
+export function rushHourFactor(minuteOfDay: number): number {
+  const m = minuteOfDay;
+  if (m >= 7 * 60 && m < 9 * 60) return 1.2;
+  if (m >= 15 * 60 && m < 17 * 60 + 30) return 1.15;
+  if ((m >= 6 * 60 + 30 && m < 7 * 60) || (m >= 9 * 60 && m < 9 * 60 + 30)) return 1.08;
+  return 1.0;
 }
 
 /** Returnér rejsetid i sekunder mellem to indeks i koord-listen, fra matrix eller estimat. */

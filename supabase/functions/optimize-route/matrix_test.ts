@@ -1,6 +1,6 @@
 // Tests for den nøglefri OSRM-køretidsmatrix.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { buildMatrix } from "./geo.ts";
+import { buildMatrix, clearTravelCache } from "./geo.ts";
 import type { LatLng } from "./types.ts";
 
 const originalFetch = globalThis.fetch;
@@ -59,6 +59,7 @@ Deno.test("store ruter får en komplet nøglefri matrix", async () => {
 });
 
 Deno.test("OSRM-fejl giver ingen matrix, så kalderen kan bruge et lokalt estimat", async () => {
+  clearTravelCache();
   stubOsrm({ fail: true });
   try {
     const m = await buildMatrix(points(30));

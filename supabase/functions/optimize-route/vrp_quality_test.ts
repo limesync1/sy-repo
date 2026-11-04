@@ -273,3 +273,21 @@ Deno.test("mange stop på samme adresse køres i træk", async () => {
   assertEquals(idx.length, 3);
   assertEquals(idx[2] - idx[0], 2, `samme adresse skal køres samlet: ${ids.join(" → ")}`);
 });
+
+Deno.test("ALNS giver aldrig en dyrere rute end uden ALNS og holder tidsvinduer", async () => {
+  let s = 12345;
+  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const employees = [emp("A", 56.15, 10.2), emp("B", 56.15, 10.2)];
+  const stops = Array.from({ length: 18 }, (_, i) =>
+    stop(`s${i}`, 56.05 + rnd() * 0.2, 10.05 + rnd() * 0.3,
+      i === 3 ? { hard_start_min: 9 * 60, hard_end_min: 11 * 60 } : {}));
+  const without = await solveVRP(employees, stops, { alnsBudgetMs: 0 });
+  const withAlns = await solveVRP(employees, stops, { alnsBudgetMs: 1500 });
+  assert(withAlns.plan.unassigned_stops.length <= without.plan.unassigned_stops.length);
+  assert(withAlns.plan.total_minutes <= without.plan.total_minutes + 1,
+    `ALNS ${withAlns.plan.total_minutes} min > uden ${without.plan.total_minutes} min`);
+  for (const route of withAlns.plan.per_employee.values()) {
+    const s3 = route.find((r) => r.stop_id === "s3");
+    if (s3) assert(s3.arrival_min >= 9 * 60 && s3.departure_min <= 11 * 60 + 15);
+  }
+});
