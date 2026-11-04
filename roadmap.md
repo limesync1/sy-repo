@@ -127,3 +127,12 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [ ] CVR/adresse/stiftelsesår til Googles virksomhedsoplysninger (venter på bruger)
 - [ ] Eksterne profiler fra tjeklisten (bruger)
 - [ ] "Kort svar" på guides/branchesider, spørgsmål-svar-sider, sammenligningssider
+
+## SEO-plan (4. nov 2026)
+- [x] Fase 1: GSC-måling (73 klik, 6.082 visninger, plads 13) + SEO-scanning (0 fejl)
+- [x] Hurtig gevinst: svedplet-artiklens titel/beskrivelse matcher søgningen
+- [ ] Fase 2: indekseringsrapport pr. sidegruppe, tynde bysider, opdelt sitemap
+- [ ] Fase 3: titler på sider med plads 8–20 (fx /guides/have, 875 visninger, 0,2 % klik)
+- [ ] Fase 4: prisguider og "rutesystem til [branche]"
+- [ ] Fase 5: Google Business- og Trustpilot-profil (kræver William)
+- [ ] Fase 6: mobilhastighed

@@ -341,9 +341,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   // så vi kan tage positionen på Google for fjern-pletter/rengøringsguides.
   {
     slug: "fjern-svedpletter-fra-hvidt-toej",
-    title: "Fjern gule svedpletter fra hvidt tøj (også gamle) — 3 metoder",
+    title: "Fjern svedpletter fra hvidt tøj: 3 metoder der virker (også gamle)",
     description:
-      "Gule pletter under armene? Brintoverilte + opvaskemiddel fjerner selv gamle svedpletter fra hvidt tøj. Se trin for trin, og undgå fejlen med klor.",
+      "Sådan fjerner du gule svedpletter under armene på hvidt tøj: brintoverilte, opvaskemiddel og natron. Trin for trin på 10 minutter – og undgå fejlen med klor.",
     publishedAt: "2026-01-10",
     readingMinutes: 8,
     category: "Rengøring",
