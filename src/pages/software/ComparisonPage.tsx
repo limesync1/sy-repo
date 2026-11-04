@@ -47,7 +47,7 @@ const ComparisonPage = () => {
   );
   const groups = [...new Set(rows.map((r) => r.group))];
   const others = comparisons.filter((x) => x.slug !== c.slug);
-  const title = `Serviceydere vs. ${c.name}: sammenligning af funktioner og pris`;
+  const title = `Serviceydere vs. ${c.name} (2026): funktioner, pris og alternativ`;
   const desc = `Se forskellen på Serviceydere og ${c.name} punkt for punkt: ruteplanlægning, medarbejder-app, fakturering, pris og dataflytning. Tjekket ${c.checked}.`;
 
   return (
@@ -58,6 +58,14 @@ const ComparisonPage = () => {
         canonicalPath={`/software/sammenlign/${c.slug}`}
         jsonLd={[{
           "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Software", item: "https://serviceydere.dk/software" },
+            { "@type": "ListItem", position: 2, name: "Sammenlign", item: "https://serviceydere.dk/software/sammenlign" },
+            { "@type": "ListItem", position: 3, name: c.name, item: `https://serviceydere.dk/software/sammenlign/${c.slug}` },
+          ],
+        }, {
+          "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: c.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
         }]}
@@ -67,7 +75,7 @@ const ComparisonPage = () => {
         <nav aria-label="Brødkrumme" className="text-sm text-muted-foreground">
           <Link to="/software" className="underline-offset-2 hover:underline">Software</Link>
           {" / "}
-          <Link to="/software/skift-rutesystem" className="underline-offset-2 hover:underline">Skift rutesystem</Link>
+          <Link to="/software/sammenlign" className="underline-offset-2 hover:underline">Sammenlign</Link>
           {" / "}<span className="text-foreground">{c.name}</span>
         </nav>
 
