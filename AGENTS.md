@@ -66,3 +66,4 @@
 - SEO's last daily slot favors least-covered trades; mapped articles link their parent.
 - Build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images` served by its function; never block publishing.
+- Blog articles resolve through one lazy `/blog/:slug` route (`BlogPostRoute`); never import `blogPosts.ts` or zod from eagerly loaded app code, to keep the shared startup file small.
