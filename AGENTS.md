@@ -39,7 +39,7 @@
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - Public/auth BlueFlowBackground uses a lightweight native WebGL shader (not the 3D scene engine), token phases, bounded resolution, visibility/motion pausing and a first-painted-frame reveal over a color-matched fallback to keep public-page JavaScript small; nearby homepage sections render eagerly while distant sections mount ahead of the viewport.
-- The homepage hero shows a CDN video (`HeroVideo`): static head preloads only its poster, the video loads after window load/idle, is skipped on save-data/2g/reduced motion and pauses offscreen, so visible content keeps priority. Photo JSON metadata still feeds SEO/sitemaps.
+- Homepage `HeroVideo`: head preloads only the poster; video loads after idle, skips save-data/2g/reduced motion, pauses offscreen. Photo JSON still feeds SEO.
 - Panel headers share `PageHeader`/`.panel-page-hero` (and the overview hero) with the homepage's `BlueFlowBackground` over the same fallback, so panel and public heroes look identical. Persistent public navigation shares audience groups and account actions and publishes its measured height for sticky public filters, preventing overlap across tablet sizes.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap and `/by` hubs share registries; prerender uses resolved city text and shared `LocalServiceLinks` to prevent crawler/browser drift.
@@ -66,5 +66,5 @@
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images`; never block publishing.
 - One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
-- Plan type lives in `business_plans.plan_kind` (`listing`|`full`); triggers mirror it into `businesses.settings` and block route/employee/agreement inserts (accounting jobs skipped) for listing, and only `set_business_plan_kind` may switch it, so UI (`src/lib/business-capabilities.ts`) and server can never disagree.
-- Trial length comes from `platform_settings.trial_days` (client fallback `src/lib/trial.ts`); `src/test/trial-days.test.ts` fails if old trial wording reappears.
+- `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
+- Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
