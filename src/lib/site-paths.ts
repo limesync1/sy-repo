@@ -31,6 +31,7 @@ export const VALID_SITE_PATHS: string[] = [
   "/software/sammenlign/fenster",
   "/software/sammenlign/rutemanager",
   "/software/sammenlign/clientflow",
+  "/software/sammenlign/ordrestyring",
   "/anmeldelser",
   "/kontakt",
   "/blog",

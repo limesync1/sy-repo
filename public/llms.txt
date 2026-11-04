@@ -19,6 +19,7 @@ Serviceydere er: en dansk markedsplads for lokale serviceydelser og et driftssys
 - [Serviceydere vs. Fenster](/software/sammenlign/fenster): Ærlig sammenligning af funktioner og pris.
 - [Serviceydere vs. Rutemanager](/software/sammenlign/rutemanager): Ærlig sammenligning af funktioner og pris.
 - [Serviceydere vs. Clientflow](/software/sammenlign/clientflow): Ærlig sammenligning af funktioner og pris.
+- [Serviceydere vs. Ordrestyring](/software/sammenlign/ordrestyring): Ærlig sammenligning af funktioner og pris.
 - [Redaktionen](/redaktion): Hvordan guides og artikler skrives, faktatjekkes og opdateres.
 - [Forside](/): Find og book lokale serviceydere i Danmark.
 - [Find virksomheder](/virksomheder): Søg og filtrér verificerede serviceydere efter kategori og by.
