@@ -290,21 +290,22 @@ const AboutUs = () => {
                   Vi besvarer henvendelser løbende på hverdage.
                 </p>
               </div>
-              <dl className="grid gap-4 sm:grid-cols-3">
+              <dl className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
                 {[
                   { icon: iconPlatform.url, label: "Platform", value: "Serviceydere", sub: "serviceydere.dk" },
                   { icon: iconOmraade.url, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
                   { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
+                  { icon: iconCvr.url, label: "CVR og stiftet", value: "CVR 40543120", sub: "Stiftet 2026", href: "https://datacvr.virk.dk/enhed/virksomhed/40543120" },
                 ].map(({ icon, label, value, sub, href }) => (
-                  <div key={label} className="rounded-[20px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                  <div key={label} className="min-w-0 rounded-[20px] border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-6">
                     <div className="flex h-12 w-12 items-center justify-center rounded-md border border-border/60 bg-site-header-background p-1.5">
                       <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                     </div>
-                    <dt className="mt-4 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{label}</dt>
-                    <dd className="mt-1 text-[15px] font-semibold text-foreground">
-                      {href ? <a href={href} className="underline-offset-4 hover:underline">{value}</a> : value}
+                    <dt className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
+                    <dd className="mt-1 break-words text-base font-semibold text-foreground [overflow-wrap:anywhere]">
+                      {href ? <a href={href} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline" {...(href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>{value}</a> : <span className="inline-flex min-h-11 items-center">{value}</span>}
                     </dd>
-                    <dd className="text-[13px] leading-5 text-muted-foreground">{sub}</dd>
+                    <dd className="text-sm leading-5 text-muted-foreground">{sub}</dd>
                   </div>
                 ))}
               </dl>
