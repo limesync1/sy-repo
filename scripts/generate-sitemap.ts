@@ -134,21 +134,38 @@ try {
   console.warn("article image fetch skipped:", (e as Error).message);
 }
 
+type EngineSection = { summary?: string; heading?: string; paragraphs?: string[]; list?: string[]; table?: { headers: string[]; rows: string[][] }; links?: { label: string; href: string }[] };
+const esc = (t: string) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/** Plain-text engine blocks → crawlable HTML (markdown links become internal anchors; never raw HTML). */
+const inlineHtml = (t: string) => esc(t).replace(/\[([^\]]+)\]\((\/[^)\s]*)\)/g, (_m, l, h) => `<a href="${h}">${l}</a>`);
+const engineBody = (title: string, description: string, sections: EngineSection[], faq: { q: string; a: string }[]) => [
+  `<article><h1>${esc(title)}</h1><p>${esc(description)}</p>`,
+  ...sections.map((s) => s.summary ? `<aside><p><strong>Kort svar:</strong> ${esc(s.summary)}</p></aside>` : [
+    s.heading ? `<h2>${esc(s.heading)}</h2>` : "",
+    ...(s.paragraphs ?? []).map((x) => `<p>${inlineHtml(x)}</p>`),
+    s.list?.length ? `<ul>${s.list.map((x) => `<li>${inlineHtml(x)}</li>`).join("")}</ul>` : "",
+    s.table?.headers?.length ? `<table><thead><tr>${s.table.headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${s.table.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "",
+    s.links?.length ? `<ul>${s.links.filter((l) => l.href.startsWith("/")).map((l) => `<li><a href="${esc(l.href)}">${esc(l.label)}</a></li>`).join("")}</ul>` : "",
+  ].join("")),
+  faq.length ? `<h2>Ofte stillede spørgsmål</h2>${faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("")}` : "",
+  `</article>`,
+].join("");
+
 // Published engine articles (seo_articles) so new automatic articles are in the submitted sitemap; lastmod = their own updated_at.
 const ENGINE_ENTRIES: SitemapEntry[] = [];
-const ENGINE_META: { path: string; title: string; description: string; article: { title: string; publishedAt: string; updatedAt: string } }[] = [];
+const ENGINE_META: { path: string; title: string; description: string; body: string; article: { title: string; publishedAt: string; updatedAt: string } }[] = [];
 try {
-  const res = await fetch("https://gkectsellkpltrxvusot.supabase.co/rest/v1/seo_articles?select=slug,title,description,published_at,updated_at&status=eq.published&limit=5000", {
+  const res = await fetch("https://gkectsellkpltrxvusot.supabase.co/rest/v1/seo_articles?select=slug,title,description,published_at,updated_at,sections,faq&status=eq.published&limit=5000", {
     headers: { apikey: ARTICLE_IMG_KEY, Authorization: `Bearer ${ARTICLE_IMG_KEY}` },
     signal: AbortSignal.timeout(15000),
   });
   const known = new Set(BLOG_ENTRIES.map((e) => e.path));
-  if (res.ok) for (const a of (await res.json()) as { slug: string; title: string; description: string; published_at: string | null; updated_at: string }[]) {
+  if (res.ok) for (const a of (await res.json()) as { slug: string; title: string; description: string; published_at: string | null; updated_at: string; sections: EngineSection[] | null; faq: { q: string; a: string }[] | null }[]) {
     const path = `/blog/${a.slug}`;
     if (!/^[a-z0-9-]+$/.test(a.slug) || known.has(path)) continue;
     ENGINE_ENTRIES.push({ path, changefreq: "monthly", priority: "0.75", lastmod: a.updated_at.slice(0, 10) });
     const publishedAt = (a.published_at ?? a.updated_at).slice(0, 10);
-    ENGINE_META.push({ path, title: `${a.title} | Serviceydere`, description: a.description, article: { title: a.title, publishedAt, updatedAt: a.updated_at.slice(0, 10) } });
+    ENGINE_META.push({ path, title: `${a.title} | Serviceydere`, description: a.description, body: engineBody(a.title, a.description, a.sections ?? [], a.faq ?? []), article: { title: a.title, publishedAt, updatedAt: a.updated_at.slice(0, 10) } });
   }
 } catch (e) {
   console.warn("seo article fetch skipped:", (e as Error).message);
