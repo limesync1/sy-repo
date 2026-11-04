@@ -48,7 +48,7 @@ const ComparisonPage = () => {
   const usPrice: Record<string, string> = pricing
     ? {
         "Månedspris fra": `${kr(pricing.base_price_dkk)} kr./md. uden moms`,
-        "Månedspris": `${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Månedspris": `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms`,
         "Pris": `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms`,
         "Oprettelsesgebyr": pricing.startup_fee_dkk > 0 ? `${kr(pricing.startup_fee_dkk)} kr. uden moms` : "0 kr.",
         "Ekstra bruger": `${kr(pricing.price_per_employee_login_dkk)} kr./md. uden moms`,
