@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Loader2, Check, Sparkles, Route, Users,
   UploadCloud, ShieldCheck, ArrowRight, Mail, Lock, Search,
-  Minus, Plus, Star, Zap, Clock,
+  Minus, Plus, Star, Zap, Clock, Headset,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -215,7 +215,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
       : billing === "quarterly" ? pricing.discount_quarterly_pct
       : 0;
     const monthlyAfterDiscount = monthlySubtotal * (1 - discountPct / 100);
-    const months = BILLING_OPTIONS.find((o) => o.value === billing)!.months;
+    const months = (BILLING_OPTIONS.find((o) => o.value === billing)?.months ?? 1);
     const periodTotal = monthlyAfterDiscount * months;
     const startupFee = pricing.startup_fee_dkk || 0;
     const firstInvoiceTotal = periodTotal + startupFee;
@@ -393,54 +393,57 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         tone="amber"
         eyebrow={`${pricing?.trial_days ?? 30} dages gratis prøve · Intet kort kræves`}
         title={variant === "pricing" ? "Priser — sammensæt jeres abonnement" : "Bliv udbyder på Serviceydere"}
-        aside={<HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 30} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} />}
+        size="compact"
+        aside={variant === "pricing" ? <HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 30} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} /> : (
+          <div className="flex items-center gap-5 border-l border-ocean-foreground/25 pl-6">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground text-ocean"><Headset className="h-7 w-7" aria-hidden="true" /></span>
+            <div><p className="text-base font-semibold">Personlig hjælp fra første dag</p><p className="mt-1 text-sm leading-6 text-ocean-foreground/85">Live kundeservice 24/7 · 100% gratis</p></div>
+          </div>
+        )}
         subtitle={
           variant === "pricing"
             ? `Basis koster ${formatDkk(pricing?.base_price_dkk ?? 289)} kr./md. ekskl. moms med ruteplanlægningen inkluderet. Indtast CVR, vælg tilvalg og medarbejderlogins — så ser I præcis jeres egen pris, før I opretter noget.`
-            : "Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme."
+            : "Gør din virksomhed synlig for nye kunder med en gratis profil — eller saml ruter, medarbejdere og aftaler i det fulde system."
         }
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         {breadcrumb}
-        {/* Layout: form til venstre, sticky pris-summary til højre */}
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.75fr)] xl:gap-8">
-          {/* ─── VENSTRE: form-sektioner ─── */}
-          <div className="space-y-6">
-            {variant !== "pricing" && (
-              <div role="radiogroup" aria-label="Vælg hvad du vil oprette" className="grid gap-3 sm:grid-cols-2">
-                {([
-                  { key: "full", title: "Fuldt system", text: `Alt i profilen plus hele driftssystemet. ${pricing?.trial_days ?? 30} dage gratis.`, bullets: ["Profil, som kunder kan finde på Google", "Ruteplanlægger og medarbejder-app", "Kunder, aftaler og fakturering"] },
-                  { key: "listing", title: "Kun profil – gratis", text: "I bliver en offentlig profil, som kunder kan finde på Google. Gratis uden tidsbegrænsning.", bullets: ["Bliv fundet på Google, når kunder søger", "Vis jeres services, priser og anmeldelser", "Modtag forespørgsler fra kunder direkte"] },
-                ] as const).map((o) => (
-                  <button
-                    key={o.key}
-                    type="button"
-                    role="radio"
-                    aria-checked={planKind === o.key}
-                    onClick={() => setPlanKind(o.key)}
-                    className={`min-h-11 rounded-2xl border-2 bg-card p-4 text-left transition-colors sm:p-5 ${planKind === o.key ? "border-foreground" : "border-border hover:border-foreground/40"}`}
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="text-base font-semibold text-foreground">{o.title}</span>
-                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${planKind === o.key ? "border-foreground bg-foreground text-background" : "border-border"}`}>
-                        {planKind === o.key && <Check className="h-3 w-3" />}
-                      </span>
+        {variant !== "pricing" && (
+          <section className="mb-8 sm:mb-10" aria-labelledby="signup-plan-heading">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+              <div><h2 id="signup-plan-heading" className="text-xl font-semibold text-foreground sm:text-2xl">Hvordan vil du bruge Serviceydere?</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Vælg det, der passer til din virksomhed. Du kan altid opgradere senere.</p></div>
+              <span className="flex items-center gap-2 text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4" aria-hidden="true" /> Intet betalingskort ved oprettelse</span>
+            </div>
+            <div role="radiogroup" aria-label="Vælg hvad du vil oprette" className="grid gap-4 md:grid-cols-2">
+              {([
+                { key: "full", title: "Fuldt system", text: "Til jer, der også vil samle den daglige drift ét sted.", bullets: ["Profil, som kunder kan finde på Google", "Ruteplanlægger og medarbejder-app", "Kunder, aftaler og fakturering"] },
+                { key: "listing", title: "Kun profil – gratis", text: "Til jer, der vil være synlige og modtage nye kundehenvendelser.", bullets: ["Bliv fundet på Google, når kunder søger", "Vis jeres services, priser og anmeldelser", "Modtag forespørgsler fra kunder direkte"] },
+              ] as const).map((o) => (
+                <Button key={o.key} variant="outline" type="button" role="radio" aria-checked={planKind === o.key} onClick={() => setPlanKind(o.key)}
+                  className={`group relative block h-auto min-h-11 whitespace-normal rounded-lg border-2 p-5 text-left transition-colors active:scale-100 sm:p-6 ${planKind === o.key ? "border-accent bg-accent/5 hover:border-accent hover:bg-accent/5" : "border-border bg-card hover:border-foreground/30 hover:bg-card"}`}>
+                  <span className="flex items-start gap-4">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                      {o.key === "full" ? <Route className="!h-6 !w-6" aria-hidden="true" /> : <BrandedIllustration name="profile" className="h-10 w-10" alt="" />}
                     </span>
-                    <span className="mt-1.5 block text-sm leading-6 text-muted-foreground">{o.text}</span>
-                    <ul className="mt-2 space-y-1">
-                      {o.bullets.map((b) => (
-                        <li key={b} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                          <Check className="mt-1.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                          <span>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </button>
-                ))}
-              </div>
-            )}
-
+                    <span className="min-w-0 flex-1"><span className="block text-lg font-semibold text-foreground">{o.title}</span><span className="mt-1 block text-sm font-normal leading-6 text-muted-foreground">{o.text}</span></span>
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${planKind === o.key ? "border-accent bg-accent text-accent-foreground" : "border-input bg-background"}`}>{planKind === o.key && <Check className="h-4 w-4" />}</span>
+                  </span>
+                  <span className="my-4 block border-t border-border" />
+                  <span className="block space-y-2">
+                    {o.bullets.map((text) => <span key={text} className="flex items-start gap-2.5 text-sm font-normal leading-6 text-foreground"><Check className="mt-1 shrink-0 text-accent" aria-hidden="true" /><span>{text}</span></span>)}
+                  </span>
+                  <span className="mt-5 flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="font-semibold text-foreground">{o.key === "listing" ? "Gratis uden tidsbegrænsning" : `${pricing?.trial_days ?? 30} dages gratis prøve`}</span>
+                    <span className="font-normal text-muted-foreground">{o.key === "listing" ? "Uden ruteplanlægger" : "Ingen binding"}</span>
+                  </span>
+                </Button>
+              ))}
+            </div>
+          </section>
+        )}
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 xl:gap-14">
+          <div className="min-w-0">
             {/* 1. CVR */}
             <Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten" done={!!cvrData}>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -483,11 +486,11 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                         {[cvrData.address, cvrData.zip_code, cvrData.city].filter(Boolean).join(", ")}
                       </p>
                       {cvrData.industry && (
-                        <p className="mt-2 inline-flex rounded-md bg-card px-2 py-0.5 text-xs text-muted-foreground">
+                        <p className="mt-2 inline-flex rounded-md bg-card px-2 py-0.5 text-sm leading-6 text-muted-foreground">
                           {cvrData.industry}
                         </p>
                       )}
-                      <p className="mt-3 text-xs text-muted-foreground">
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
                         Du kan altid redigere disse oplysninger senere under{" "}
                         <span className="font-medium text-foreground">Indstillinger</span>.
                       </p>
@@ -500,8 +503,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             {!isListing && (<>
             {/* 2. Funktioner */}
             <Section number={2} title="Vælg dine funktioner" subtitle="Ruteplanlægning er altid med. Vælg om du vil tilkøbe regnskabsintegration eller slå de gratis funktioner til.">
-              <div className="mb-4 rounded-2xl border border-accent/25 bg-accent-soft p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
+              <div className="mb-4 rounded-lg border border-border bg-secondary/40 p-4">
+                <p className="text-xs font-semibold text-foreground">
                   Inkluderet i basis
                 </p>
                 <ul className="mt-2 grid gap-1.5 text-sm text-foreground sm:grid-cols-2">
@@ -519,13 +522,15 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     ? 0
                     : pricing?.price_accounting_integration_dkk;
                   return (
-                    <button
+                    <Button
+                      variant="outline"
                       key={key}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => toggleFeature(key)}
-                       className={`group flex items-start gap-4 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                       className={`group flex h-auto items-start gap-3 whitespace-normal rounded-lg border p-4 text-left active:scale-100 sm:gap-4 ${
                          active
-                           ? "border-accent bg-gradient-to-br from-accent/10 to-accent/0 shadow-sm ring-1 ring-accent/30"
+                           ? "border-accent bg-accent/5 hover:border-accent hover:bg-accent/5"
                            : "border-border bg-card hover:border-foreground/20"
                        }`}
                     >
@@ -541,19 +546,19 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                             </span>
                           )}
                           {price === 0 && (
-                            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-accent">
+                            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">
                               Gratis
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
+                        <p className="mt-2 text-sm font-normal leading-6 text-muted-foreground">{description}</p>
                       </div>
                       <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
                         active ? "border-accent bg-accent text-accent-foreground" : "border-border bg-card"
                       }`} aria-hidden>
                         {active && <Check className="h-3.5 w-3.5" />}
                       </span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -562,23 +567,25 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             {/* 3. Medarbejderlogins */}
             <Section number={3} title="Antal ekstra medarbejderlogins" subtitle="Hver medarbejder kan logge ind på mobilen og se sine ruter">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                  <button
+                <div className="flex items-center overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setExtraLogins((n) => Math.max(0, n - 1))}
-                    className="flex h-12 w-12 items-center justify-center text-foreground transition-colors hover:bg-secondary disabled:opacity-40"
+                    className="flex h-12 w-12 rounded-none p-0 items-center justify-center text-foreground transition-colors hover:bg-secondary disabled:opacity-40"
                     aria-label="Færre"
                     disabled={extraLogins === 0}
-                  ><Minus className="h-4 w-4" /></button>
+                  ><Minus className="h-4 w-4" /></Button>
                   <span className="min-w-[3.5rem] border-x border-border bg-secondary/40 py-2.5 text-center text-lg font-semibold tabular-nums text-foreground">
                     {extraLogins}
                   </span>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setExtraLogins((n) => Math.min(99, n + 1))}
-                    className="flex h-12 w-12 items-center justify-center text-foreground transition-colors hover:bg-secondary"
+                    className="flex h-12 w-12 rounded-none p-0 items-center justify-center text-foreground transition-colors hover:bg-secondary"
                     aria-label="Flere"
-                  ><Plus className="h-4 w-4" /></button>
+                  ><Plus className="h-4 w-4" /></Button>
                 </div>
                 {pricing && (
                   <p className="text-sm text-muted-foreground">
@@ -586,7 +593,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                   </p>
                 )}
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 Du tæller selv som ejerlogin og er allerede inkluderet.
               </p>
             </Section>
@@ -602,31 +609,33 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     : 0)
                     : 0;
                   return (
-                    <button
+                    <Button
+                      variant="outline"
+                      aria-pressed={active}
                       key={opt.value}
                       type="button"
                       onClick={() => setBilling(opt.value)}
-                       className={`relative rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                       className={`relative block h-auto whitespace-normal rounded-lg border p-4 text-left active:scale-100 ${
                          active
-                           ? "border-foreground bg-gradient-to-br from-foreground/5 to-transparent shadow-sm ring-1 ring-foreground/20"
+                           ? "border-foreground bg-secondary/50 hover:border-foreground hover:bg-secondary/50"
                            : "border-border bg-card hover:border-foreground/20"
                        }`}
                     >
-                      <div className="absolute -top-2 right-3 flex gap-1.5">
+                      <div className="mb-2 flex min-h-5 flex-wrap gap-1.5">
                         {opt.value === "yearly" && (
-                          <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background shadow-sm">
+                          <span className="rounded-lg bg-foreground px-2 py-0.5 text-xs font-semibold text-background shadow-sm">
                             Anbefalet
                           </span>
                         )}
                         {discount > 0 && (
-                          <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground shadow-sm">
+                          <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground shadow-sm">
                             −{discount}%
                           </span>
                         )}
                       </div>
                       <p className="text-sm font-semibold text-foreground">{opt.label}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{opt.sub}</p>
-                    </button>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{opt.sub}</p>
+                    </Button>
                   );
                 })}
               </div>
@@ -638,32 +647,34 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               <Section number={isListing ? 2 : 5} title="Opret din konto" subtitle="Vi sender ordrebekræftelser og notifikationer hertil">
                 {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business loginPath="/log-ind?mode=business" onEdit={() => setConfirmationEmail(null)} /> : <>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="relative">
+                  <div><label htmlFor="signup-email" className="mb-2 block text-sm font-medium text-foreground">E-mailadresse</label><div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                      id="signup-email"
                       aria-label="E-mailadresse"
                       type="email"
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="navn@virksomhed.dk"
-                      className="h-11 pl-10"
+                      className="h-12 pl-10 text-base"
                     />
                   </div>
-                  <div className="relative">
+                  </div><div><label htmlFor="signup-password" className="mb-2 block text-sm font-medium text-foreground">Adgangskode</label><div className="relative">
                     <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                      id="signup-password"
                       aria-label="Adgangskode"
                       type="password"
                       autoComplete="new-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Adgangskode (min. 6 tegn)"
-                      className="h-11 pl-10"
+                      className="h-12 pl-10 text-base"
                     />
                   </div>
                 </div>
-                <p className="mt-3 text-xs text-muted-foreground">
+                </div><p className="mt-3 text-sm leading-6 text-muted-foreground">
                   Har du allerede en konto?{" "}
                   <Link to="/log-ind?mode=business" className="font-medium text-foreground underline-offset-2 hover:underline">
                     Log ind
@@ -675,21 +686,21 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           </div>
 
           {/* ─── HØJRE: Sticky pris-summary ─── */}
-          <aside className="xl:sticky xl:top-6 xl:self-start">
-            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.12)]">
+          <aside className="min-w-0 lg:sticky lg:top-[calc(var(--public-nav-height,4rem)+1.5rem)] lg:self-start">
+            <div className="relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-premium sm:p-6">
               {/* Accentstribe i toppen — gør kortet til "the main event" på siden */}
               <div
                 aria-hidden
-                className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-foreground to-accent"
+                className="absolute inset-x-0 top-0 h-1 bg-accent"
               />
               <div className="relative">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-accent" />
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-semibold text-muted-foreground">
                     Din pakke
                   </p>
                 </div>
-                <h3 className="mt-1 text-lg font-semibold text-foreground">Oversigt</h3>
+                <h3 className="mt-1 text-lg font-semibold text-foreground">{isListing ? "Din gratis virksomhedsprofil" : "Dit abonnement"}</h3>
               </div>
 
               {pricingError ? <div role="alert" className="mt-6 space-y-3 text-sm text-muted-foreground">
@@ -700,7 +711,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                   <Loader2 className="h-4 w-4 animate-spin" /> Indlæser priser…
                 </div>
               ) : isListing ? (
-                <div className="mt-5 space-y-2 border-b border-border pb-4 text-sm">
+                <div className="mt-5 space-y-3 border-b border-border pb-5 text-sm">
                   <p className="flex items-baseline justify-between gap-3"><span className="text-muted-foreground">Profil på Serviceydere</span><span className="font-semibold text-foreground">0 kr</span></p>
                   <p className="text-muted-foreground">Gratis uden tidsbegrænsning. Du kan altid prøve det fulde system senere.</p>
                 </div>
@@ -734,9 +745,9 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     )}
                   </div>
 
-                  <div className="mt-4 rounded-xl bg-gradient-to-br from-foreground to-foreground/90 p-4 text-background shadow-md ring-1 ring-foreground/10">
+                  <div className="mt-4 rounded-lg bg-foreground p-4 text-background shadow-md ring-1 ring-foreground/10">
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-background/70">
+                      <span className="text-xs font-semibold text-background/70">
                         Total pr. måned
                       </span>
                       <span className="text-2xl font-semibold text-background tabular-nums">
@@ -759,7 +770,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                           {formatDkk(breakdown.startupFee)} kr
                         </span>
                       </div>
-                      <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
                         Tilføjes til <span className="font-semibold text-foreground">første faktura</span> efter prøveperiodens udløb. Dækker oprettelse,
                         opsætning og 1-til-1 onboarding. Betales kun én gang.
                       </p>
@@ -768,7 +779,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
                   <div className="mt-4 flex items-start gap-2 rounded-lg bg-accent/10 p-3">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                    <p className="text-xs leading-5 text-foreground">
+                    <p className="text-sm leading-6 text-foreground">
                       <span className="font-semibold">{pricing.trial_days} dages gratis prøve.</span>{" "}
                       I dag betaler du <span className="font-semibold">0 kr</span>. Du tilføjer betalingskort senere under indstillinger.
                       Ingen binding — opsig når som helst.
@@ -783,7 +794,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                   <p className="text-sm font-semibold text-foreground">
                     Din konto har allerede en virksomhed
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     "{existingBusiness.name}" er tilknyttet denne konto. Én konto kan kun
                     have én virksomhed.
                   </p>
@@ -797,7 +808,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 onClick={handleSubmit}
                 disabled={!pricing || !canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
 
-                className="relative mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                className="relative mt-5 h-12 w-full gap-2 rounded-lg bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
               >
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
@@ -807,10 +818,13 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               </Button>
 
               {!canSubmit && cvrData === null && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">
+                <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">
                   Indtast og bekræft CVR for at fortsætte
                 </p>
               )}
+              <div className="mt-5 border-t border-border pt-4">
+                <Link to="/kontakt" className="flex min-h-11 items-center gap-3 text-sm text-foreground hover:underline"><Headset className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" /><span><span className="block font-medium">Brug for hjælp til at komme i gang?</span><span className="mt-1 block text-muted-foreground">Live kundeservice 24/7 · Gratis</span></span></Link>
+              </div>
             </div>
           </aside>
         </div>
@@ -823,26 +837,26 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           ikke se prisen mens de scroller. Denne bar viser totalen og en
           shortcut til "Start gratis prøve" eller scroll-til-konto. */}
       {pricing && breakdown && (
-        <div data-signup-sticky-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-12px_30px_-18px_hsl(var(--foreground)/0.25)] backdrop-blur xl:hidden">
+        <div data-signup-sticky-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
           <div
             aria-hidden
             className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent via-foreground to-accent"
           />
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-semibold text-muted-foreground">
                 {isListing ? "Kun profil" : "Total pr. måned"}
               </p>
               <p className="text-lg font-bold text-foreground tabular-nums">
                 <AnimatedNumber value={isListing ? 0 : breakdown.monthlyAfterDiscount} /> kr
-                <span className="ml-1 text-[11px] font-normal text-muted-foreground">/md</span>
+                <span className="ml-1 text-xs font-normal text-muted-foreground">{isListing ? "· Gratis" : "/md"}</span>
               </p>
             </div>
             <Button
               onClick={handleSubmit}
               disabled={!pricing || !canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
 
-              className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-foreground to-foreground/85 px-5 text-sm font-semibold text-background shadow-md transition-all hover:from-foreground hover:to-foreground hover:shadow-lg active:scale-[0.98]"
+              className="h-11 shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-md transition-all hover:bg-foreground/90 hover:shadow-lg active:scale-[0.98]"
             >
               {submitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
@@ -854,7 +868,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         </div>
       )}
       {/* Spacer så sticky-bar ikke dækker footer-indhold på mobil */}
-      <div className="h-24 xl:hidden" aria-hidden />
+      <div className="h-24 lg:hidden" aria-hidden />
 
       <Footer />
     </div>
@@ -868,21 +882,19 @@ const Section = ({
   number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
   <section
-    className={`relative rounded-2xl border bg-card p-4 shadow-sm transition-all sm:p-6 ${
-      done ? "border-accent/40" : "border-border"
-    }`}
+    className="border-t border-border py-6 first:border-t-0 first:pt-0 sm:py-7"
   >
-    <div className="flex items-baseline gap-3">
+    <div className="flex items-start gap-3">
       {done ? (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm ring-2 ring-background">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground shadow-sm ring-2 ring-background">
           <Check className="h-4 w-4" />
         </span>
       ) : (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background shadow-sm ring-2 ring-background">{number}</span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-xs font-semibold text-background shadow-sm ring-2 ring-background">{number}</span>
       )}
       <div className="min-w-0">
         <h2 className="text-base font-semibold text-foreground sm:text-lg">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+        {subtitle && <p className="mt-0.5 text-sm leading-6 text-muted-foreground">{subtitle}</p>}
       </div>
     </div>
     <div className="mt-4">{children}</div>
