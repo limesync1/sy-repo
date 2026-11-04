@@ -103,6 +103,13 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
         <article className="article-content prose prose-neutral dark:prose-invert">
           <ArticleCoverImage image={cover} title={post.title} />
           <TrustBar />
+          <p className="not-prose mt-4 text-sm text-muted-foreground">
+            Udgivet <time dateTime={post.publishedAt}>{formatDa(post.publishedAt)}</time>
+            {post.updatedAt && post.updatedAt > post.publishedAt ? (
+              <> · Sidst opdateret <time dateTime={post.updatedAt}>{formatDa(post.updatedAt)}</time></>
+            ) : null}
+            {" · "}Af <Link to="/redaktion" className="underline underline-offset-2">Serviceyderes redaktion</Link>
+          </p>
 
           {children}
 
