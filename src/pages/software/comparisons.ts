@@ -209,6 +209,49 @@ export const comparisons: Comparison[] = [
       { q: "Er Clientflow bedre til noget?", a: "Ja. Clientflow har AI-assistent, GPS-sporing af biler og telefoni-integration. Det har Serviceydere ikke." },
     ],
   },
+  {
+    slug: "ordrestyring",
+    name: "Ordrestyring",
+    tagline: "Et sags- og ordrestyringssystem til håndværkere med timer, materialer og kvalitetssikring.",
+    checked: "4. november 2026",
+    sources: [
+      { label: "ordrestyring.dk/priser", url: "https://ordrestyring.dk/priser/" },
+    ],
+    summaryUs: [
+      "Ingen binding og fast månedspris",
+      "Ruteplanlægning til faste besøg med interval",
+      "Nye kunder via Serviceyderes markedsplads",
+      "Kom i gang selv på få minutter, uden opstartsmøde",
+    ],
+    summaryThem: [
+      "Sagsstyring med materialer og kvalitetsskemaer",
+      "Lønintegration (fx Dataløn, Danløn, Zenegy)",
+      "Over 40 integrationer og API",
+    ],
+    rows: [
+      { group: "Planlægning", feature: "Ruteplanlægning med optimering", us: y(), them: u },
+      { group: "Planlægning", feature: "Faste aftaler med interval", us: y(), them: y("Service og anlæg") },
+      { group: "Planlægning", feature: "Online booking fra kunder", us: y(), them: u },
+      { group: "Medarbejdere", feature: "App til medarbejdere", us: y(), them: u },
+      { group: "Medarbejdere", feature: "Billedbevis ved besøg", us: y(), them: y("Fotodokumentation på ordren") },
+      { group: "Medarbejdere", feature: "Tidsregistrering", us: y("Manuel"), them: y("Timer på sager") },
+      { group: "Medarbejdere", feature: "Kvalitetsskemaer og tjeklister", us: n(), them: y() },
+      { group: "Økonomi", feature: "e-conomic og Dinero", us: y(), them: y("Også Billy og Uniconta") },
+      { group: "Økonomi", feature: "Materialer på fakturaen", us: n(), them: y() },
+      { group: "Økonomi", feature: "Lønsystem", us: n(), them: y() },
+      { group: "Økonomi", feature: "Vælg fakturainterval pr. kunde", us: y(), them: u },
+      { group: "Kunder", feature: "Nye kunder via markedsplads", us: y(), them: u },
+      { group: "Opstart", feature: "Pris", us: p("Se priser"), them: p("Fra 339 kr. pr. bruger/md.") },
+      { group: "Opstart", feature: "Binding", us: y("Ingen binding"), them: p("12 måneder (standardlicens)") },
+      { group: "Opstart", feature: "Opstart", us: y("Kom selv i gang"), them: p("Opstartsforløb, pris oplyses ved opkald") },
+      { group: "Opstart", feature: "Flytning af data", us: y("Kundeservice gør det gratis"), them: p("Varelister indlæses ved opstart") },
+    ],
+    faq: [
+      { q: "Er Serviceydere et alternativ til Ordrestyring?", a: "Hvis du kører faste besøg på ruter, fx vinduespudsning, rengøring eller have, ja. Har du store sager med materialer og løn, passer Ordrestyring bedre." },
+      { q: "Er der binding hos Serviceydere?", a: "Nej. Du betaler en fast pris pr. måned og kan stoppe, når du vil." },
+      { q: "Er Ordrestyring bedre til noget?", a: "Ja. Ordrestyring har materialer, kvalitetsskemaer, lønintegration og mange integrationer. Det har Serviceydere ikke." },
+    ],
+  },
 ];
 
 export const comparisonBySlug = (slug?: string) => comparisons.find((c) => c.slug === slug);
