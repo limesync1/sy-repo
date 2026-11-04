@@ -58,7 +58,11 @@ Deno.serve(async (req) => {
     let notes: string[] = [];
     try {
       // Searches just below page 1 (position 8–20) with real demand are the cheapest wins.
-      const near = (await q({ startDate: iso(start), endDate: iso(end), dimensions: ['query'], rowLimit: 250 }))
+      const allQ = await q({ startDate: iso(start), endDate: iso(end), dimensions: ['query'], rowLimit: 250 });
+      // Brand searches ("serviceydere", "service ydere") show whether the name itself is growing.
+      const brand = allQ.filter((r: any) => /service[\s-]?yder/i.test(r.keys[0]));
+      if (brand.length) notes.push(`Søgninger på navnet: ${nf.format(brand.reduce((a: number, r: any) => a + r.impressions, 0))} visninger, ${nf.format(brand.reduce((a: number, r: any) => a + r.clicks, 0))} klik (${brand.slice(0, 4).map((r: any) => `«${r.keys[0]}» plads ${nf.format(r.position)}`).join(', ')}).`);
+      const near = allQ
         .filter((r: any) => r.position >= 8 && r.position <= 20 && r.impressions >= 20)
         .sort((a: any, b: any) => b.impressions - a.impressions).slice(0, 5);
       if (near.length) notes.push(`Tæt på side 1: ${near.map((r: any) => `«${r.keys[0]}» (plads ${nf.format(r.position)}, ${nf.format(r.impressions)} visninger)`).join(', ')}.`);
