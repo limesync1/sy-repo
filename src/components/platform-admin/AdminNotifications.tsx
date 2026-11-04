@@ -114,7 +114,7 @@ export default function AdminNotifications({ onSelectTab }: Props) {
       <PopoverTrigger asChild>
         <button
           aria-label={`Notifikationer${unreadCount ? ` (${unreadCount} nye)` : ""}`}
-          className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
@@ -133,7 +133,7 @@ export default function AdminNotifications({ onSelectTab }: Props) {
               {unreadCount > 0 && ` · ${unreadCount} nye`}
             </p>
           </div>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={markAllSeen}>
+          <Button variant="ghost" size="sm" className="min-h-11 px-3 text-xs" onClick={markAllSeen}>
             <Check className="h-3 w-3 mr-1" />
             Markér læst
           </Button>
