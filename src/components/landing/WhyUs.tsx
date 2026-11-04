@@ -57,17 +57,17 @@ const WhyUs = () => {
           {benefits.map((b, i) => (
             <li
               key={b.title}
-              className="group relative flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5 transition-colors duration-200 hover:border-foreground/25"
+              className="group relative flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md sm:p-6"
             >
-              <div className="flex items-center justify-between">
-                <span className="icon-tile h-12 w-12 sm:h-16 sm:w-16">
+              <div className="flex items-start justify-between">
+                <span className="icon-tile h-20 w-20 sm:h-24 sm:w-24">
                   <BrandedIllustration name={b.icon} className="h-full w-full" alt="" />
                 </span>
                 <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
                   {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="mt-4 text-[16px] font-semibold leading-snug text-foreground">
+              <h3 className="mt-5 text-[17px] font-semibold leading-snug text-foreground">
                 {b.title}
               </h3>
               <p className="mt-2 text-[14px] leading-6 text-muted-foreground">
