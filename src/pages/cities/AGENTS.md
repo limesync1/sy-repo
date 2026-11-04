@@ -1,0 +1,1 @@
+- Municipality facts come only from `cityStats.ts` (Danmarks Statistik, source+date shown) via shared `CityFactsBox` in browser and prerender, keeping local content verifiable and crawler-identical.

@@ -66,4 +66,3 @@
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images`; never block publishing.
 - One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
-- City pages show municipality facts only from `cityStats.ts` (Danmarks Statistik, source+date shown) via shared `CityFactsBox` in browser and prerender, so local content stays verifiable and identical for crawlers.
