@@ -29,7 +29,7 @@ import {
 const STEPS = ["Hvem og hvornår", "Sådan dækkes det", "Bekræft"];
 
 export default function SickLeaveDialog({
-  open, onOpenChange, businessId, employees, initialEmployeeId, initialDate,
+  open, onOpenChange, businessId, employees, initialEmployeeId, initialDate, kind = "sick",
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -37,7 +37,9 @@ export default function SickLeaveDialog({
   employees: Emp[];
   initialEmployeeId?: string | null;
   initialDate?: string;
+  kind?: "sick" | "vacation";
 }) {
+  const isVacation = kind === "vacation";
   const today = initialDate || localDate();
   const [step, setStep] = useState(0);
   const [employeeId, setEmployeeId] = useState<string | null>(initialEmployeeId ?? null);
@@ -171,7 +173,7 @@ export default function SickLeaveDialog({
       businessId,
       employeeId,
       employeeName: sickEmp.name,
-      absence: { from, to: safeTo, type: "sick", note: note.trim() || undefined },
+      absence: { from, to: safeTo, type: kind, note: note.trim() || undefined },
       decisions: decisionList,
       impact,
     });
@@ -181,7 +183,7 @@ export default function SickLeaveDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="appointment-details-overlay planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 pb-0 sm:p-0 sm:max-h-[90vh]">
-        <PlannerDialogHeader icon="sickLeave" title="Meld medarbejder syg" description="Vælg periode, fordel aftaler og bekræft fraværet.">
+        <PlannerDialogHeader icon="sickLeave" title={isVacation ? "Meld medarbejder på ferie" : "Meld medarbejder syg"} description="Vælg periode, fordel aftaler og bekræft fraværet.">
           <ol className="mt-4 grid grid-cols-3 gap-2" aria-label="Trin">
             {STEPS.map((label, i) => (
               <li
@@ -287,6 +289,7 @@ export default function SickLeaveDialog({
                 note={note}
                 onNoteChange={setNote}
                 problems={problems}
+                isVacation={isVacation}
               />
             )}
           </div>
@@ -303,7 +306,7 @@ export default function SickLeaveDialog({
           </Button>
           {step === 2 ? (
             <Button size="sm" className="h-11 flex-1 sm:flex-none" onClick={submit} disabled={!canSubmit}>
-              {commit.isPending ? "Gennemfører…" : "Bekræft sygemelding"}
+              {commit.isPending ? "Gennemfører…" : (isVacation ? "Bekræft ferie" : "Bekræft sygemelding")}
             </Button>
           ) : (
             <Button size="sm" className="h-11 flex-1 sm:flex-none" onClick={goNext} disabled={!canLeaveStep1}>

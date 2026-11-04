@@ -4,12 +4,17 @@ import { lazy, Suspense, useEffect, useState } from "react";
 
 const SickLeaveDialog = lazy(() => import("@/components/route-planner/SickLeaveDialog"));
 
-type Payload = { employeeId?: string | null } | null;
+export type AbsenceKind = "sick" | "vacation";
+type Payload = { employeeId?: string | null; kind?: AbsenceKind } | null;
 type Listener = (p: Payload) => void;
 const listeners = new Set<Listener>();
 
-export function openSickLeaveDialog(employeeId?: string | null) {
-  listeners.forEach((l) => l({ employeeId: employeeId ?? null }));
+export function openSickLeaveDialog(employeeId?: string | null, kind: AbsenceKind = "sick") {
+  listeners.forEach((l) => l({ employeeId: employeeId ?? null, kind }));
+}
+
+export function openVacationDialog(employeeId?: string | null) {
+  openSickLeaveDialog(employeeId, "vacation");
 }
 
 export default function SickLeaveDialogHost({
@@ -29,10 +34,12 @@ export default function SickLeaveDialogHost({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [kind, setKind] = useState<AbsenceKind>("sick");
 
   useEffect(() => {
     const listener: Listener = (p) => {
       setEmployeeId(p?.employeeId ?? null);
+      setKind(p?.kind ?? "sick");
       setMounted(true);
       setOpen(true);
     };
@@ -57,6 +64,7 @@ export default function SickLeaveDialogHost({
         employees={employees}
         initialEmployeeId={employeeId}
         initialDate={date}
+        kind={kind}
       />
     </Suspense>
   );

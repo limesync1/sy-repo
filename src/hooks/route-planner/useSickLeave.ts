@@ -385,8 +385,8 @@ export const useCommitSickLeave = () => {
         await logRouteAudit({
           business_id: businessId,
           route_id: route.id,
-          action: `sygemelding:${decision.action}`,
-          summary: `${input.employeeName} blev meldt syg — ${
+          action: `${input.absence?.type === "vacation" ? "ferie" : "sygemelding"}:${decision.action}`,
+          summary: `${input.employeeName} blev meldt ${input.absence?.type === "vacation" ? "på ferie" : "syg"} — ${
             SICK_LEAVE_SUMMARY[decision.action as SickLeaveAction](decision.newDate ?? null)
           }.`,
           scope: "single",

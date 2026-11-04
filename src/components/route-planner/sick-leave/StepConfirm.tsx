@@ -28,7 +28,7 @@ const describe = (
 };
 
 export default function StepConfirm({
-  impact, decisions, empById, employeeName, from, to, note, onNoteChange, problems,
+  impact, decisions, empById, employeeName, from, to, note, onNoteChange, problems, isVacation = false,
 }: {
   impact?: SickLeaveImpact;
   decisions: Record<string, RouteDecision>;
@@ -39,6 +39,7 @@ export default function StepConfirm({
   note: string;
   onNoteChange: (v: string) => void;
   problems: string[];
+  isVacation?: boolean;
 }) {
   const days = daysBetween(from, to);
   const routes = impact?.routes || [];
@@ -47,14 +48,14 @@ export default function StepConfirm({
     <div className="space-y-4">
       <StepHeading
         step={3}
-        title="Bekræft sygemelding"
+        title={isVacation ? "Bekræft ferie" : "Bekræft sygemelding"}
         description="Tjek konsekvensen igennem. Intet ændres før du bekræfter."
       />
 
       <div className="rounded-lg border border-warning/30 bg-warning/10 p-3.5">
         <p className="text-sm font-semibold">{employeeName}</p>
         <p className="text-xs text-muted-foreground">
-          Syg {prettyDate(from)}
+          {isVacation ? "Ferie" : "Syg"} {prettyDate(from)}
           {from !== to && ` — ${prettyDate(to)}`} · {days} dag{days === 1 ? "" : "e"}
         </p>
       </div>
@@ -87,7 +88,7 @@ export default function StepConfirm({
           onChange={(e) => onNoteChange(e.target.value)}
           rows={2}
           className="resize-none bg-card text-base sm:text-sm"
-          placeholder="Fx: Sygemeldt om morgenen, forventes tilbage mandag"
+          placeholder={isVacation ? "Fx: Sommerferie, tilbage mandag" : "Fx: Sygemeldt om morgenen, forventes tilbage mandag"}
         />
       </div>
 
