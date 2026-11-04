@@ -151,7 +151,7 @@ import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/component
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import DayOptimizerDialog from "@/components/route-planner/DayOptimizerDialog";
 import { Gauge } from "lucide-react";
-import { Printer, ListOrdered } from "lucide-react";
+import { Printer, ListOrdered, CalendarDays } from "lucide-react";
 import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
