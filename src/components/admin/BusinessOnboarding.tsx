@@ -22,6 +22,9 @@ import AnimatedNumber from "@/components/admin/AnimatedNumber";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { isValidAuthEmail } from "@/lib/auth-flow";
 import { AuthEmailConfirmation } from "@/components/shared/AuthEmailConfirmation";
+import supportIcon from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
+import fullSystemIcon from "@/assets/signup-icons/fuldt-system.svg.asset.json";
+import listingIcon from "@/assets/signup-icons/kun-profil.svg.asset.json";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * BusinessOnboarding — én side, ingen trin.
@@ -396,7 +399,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         size="compact"
         aside={variant === "pricing" ? <HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 30} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} /> : (
           <div className="flex items-center gap-5 border-l border-ocean-foreground/25 pl-6">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground text-ocean"><Headset className="h-7 w-7" aria-hidden="true" /></span>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-ocean-foreground"><img src={supportIcon.url} alt="" width={48} height={48} className="h-12 w-12 object-contain" aria-hidden="true" /></span>
             <div><p className="text-base font-semibold">Personlig hjælp fra første dag</p><p className="mt-1 text-sm leading-6 text-ocean-foreground/85">Live kundeservice 24/7 · 100% gratis</p></div>
           </div>
         )}
@@ -423,8 +426,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 <Button key={o.key} variant="outline" type="button" role="radio" aria-checked={planKind === o.key} onClick={() => setPlanKind(o.key)}
                   className={`group relative block h-auto min-h-11 whitespace-normal rounded-lg border-2 p-5 text-left transition-colors active:scale-100 sm:p-6 ${planKind === o.key ? "border-accent bg-accent/5 hover:border-accent hover:bg-accent/5" : "border-border bg-card hover:border-foreground/30 hover:bg-card"}`}>
                   <span className="flex items-start gap-4">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-                      {o.key === "full" ? <Route className="!h-6 !w-6" aria-hidden="true" /> : <BrandedIllustration name="profile" className="h-10 w-10" alt="" />}
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center">
+                      <img src={o.key === "full" ? fullSystemIcon.url : listingIcon.url} alt="" width={48} height={48} className="h-12 w-12 object-contain" aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1"><span className="block text-lg font-semibold text-foreground">{o.title}</span><span className="mt-1 block text-sm font-normal leading-6 text-muted-foreground">{o.text}</span></span>
                     <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${planKind === o.key ? "border-accent bg-accent text-accent-foreground" : "border-input bg-background"}`}>{planKind === o.key && <Check className="h-4 w-4" />}</span>
