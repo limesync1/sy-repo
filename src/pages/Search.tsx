@@ -153,7 +153,7 @@ const BusinessCard = memo(function BusinessCard({
         )}
 
         {/* Quick actions — visible on hover (desktop) and always on touch devices for accessibility */}
-        <div className="mt-auto flex items-center gap-2 pt-3 opacity-100 transition-opacity sm:opacity-70 sm:group-hover:opacity-100">
+        <div className="mt-auto flex items-center gap-2 pt-3">
           <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-foreground px-4 min-h-11 text-sm font-semibold text-background hover:bg-foreground/90">
             Se virksomhed
             <ArrowRight className="h-3 w-3" />
