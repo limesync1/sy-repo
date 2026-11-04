@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { WHOLESALERS, formatKr, parseDanishNumber, parsePriceFile } from "@/lib/trade-modules";
+import { WHOLESALERS, catalogKey, displaySku, formatKr, parseDanishNumber, parsePriceFile } from "@/lib/trade-modules";
 
 type Row = { id: string; supplier: string; sku: string; name: string; unit: string; cost_price: number; sale_price: number };
 
@@ -45,9 +45,9 @@ export function MaterialCatalogDialog({ open, onOpenChange, businessId, wholesal
     const sale = parseDanishNumber(form.sale);
     if (!form.name.trim() || sale == null) { toast.error("Skriv navn og salgspris uden moms"); return; }
     const { error } = await supabase.from("material_catalog").insert({
-      business_id: businessId, supplier: "Egen", name: form.name.trim(), sku: form.sku.trim(), unit: form.unit.trim() || "stk", cost_price: cost, sale_price: sale,
+      business_id: businessId, supplier: "Egen", name: form.name.trim(), sku: catalogKey(form.sku, form.name), unit: form.unit.trim() || "stk", cost_price: cost, sale_price: sale,
     });
-    if (error) { toast.error(error.message.includes("material_catalog_sku_uq") ? "Varenummeret findes allerede" : "Kunne ikke gemme"); return; }
+    if (error) { toast.error(error.message.includes("material_catalog_sku_uq") ? "Materialet findes allerede på listen" : "Kunne ikke gemme"); return; }
     setForm({ name: "", sku: "", unit: "stk", cost: "", sale: "" });
     refresh(); toast.success("Materiale tilføjet");
   };
@@ -66,16 +66,12 @@ export function MaterialCatalogDialog({ open, onOpenChange, businessId, wholesal
     if (!res.rows.length) { toast.error("Ingen varer fundet i filen"); return; }
     setBusy(true);
     const now = new Date().toISOString();
-    const withSku = res.rows.filter((r) => r.sku);
-    const noSku = res.rows.filter((r) => !r.sku);
+    // Dubletter i samme fil: sidste linje vinder.
+    const byKey = new Map(res.rows.map((r) => [catalogKey(r.sku, r.name), r]));
+    const all = [...byKey.entries()].map(([sku, r]) => ({ ...r, sku, business_id: businessId, supplier, is_active: true, updated_at: now }));
     try {
-      for (let i = 0; i < withSku.length; i += 500) {
-        const chunk = withSku.slice(i, i + 500).map((r) => ({ ...r, business_id: businessId, supplier, is_active: true, updated_at: now }));
-        const { error } = await supabase.from("material_catalog").upsert(chunk, { onConflict: "business_id,supplier,sku" });
-        if (error) throw error;
-      }
-      for (let i = 0; i < noSku.length; i += 500) {
-        const { error } = await supabase.from("material_catalog").insert(noSku.slice(i, i + 500).map((r) => ({ ...r, business_id: businessId, supplier })));
+      for (let i = 0; i < all.length; i += 500) {
+        const { error } = await supabase.from("material_catalog").upsert(all.slice(i, i + 500), { onConflict: "business_id,supplier,sku" });
         if (error) throw error;
       }
       toast.success(`${res.rows.length} varer indlæst fra ${supplier}${res.skipped ? ` · ${res.skipped} linjer sprunget over` : ""}`);
@@ -153,7 +149,7 @@ export function MaterialCatalogDialog({ open, onOpenChange, businessId, wholesal
                   <li key={r.id} className="flex items-center gap-3 px-3 py-2">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground break-words">{r.name}</p>
-                      <p className="text-xs text-muted-foreground">{[r.supplier, r.sku].filter(Boolean).join(" · ")} · kostpris {formatKr(Number(r.cost_price))} pr. {r.unit}</p>
+                      <p className="text-xs text-muted-foreground">{[r.supplier, displaySku(r.sku)].filter(Boolean).join(" · ")} · kostpris {formatKr(Number(r.cost_price))} pr. {r.unit}</p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold tabular-nums">{formatKr(Number(r.sale_price))}</span>
                     <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Slet ${r.name}`} onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></Button>

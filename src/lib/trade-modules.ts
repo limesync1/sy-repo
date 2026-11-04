@@ -159,5 +159,9 @@ export function parsePriceFile(text: string, markupPct: number): { rows: PriceRo
   return { rows, skipped };
 }
 
+/** Varer uden varenummer får en intern nøgle ud fra navnet, så de kan opdateres ved ny import. */
+export const catalogKey = (sku: string, name: string) => sku.trim() || `navn:${name.trim().toLowerCase()}`;
+export const displaySku = (sku: string) => (sku.startsWith("navn:") ? "" : sku);
+
 export const formatKr = (n: number) =>
   `${n.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr.`;

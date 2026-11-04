@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Section } from "@/components/route-planner/SheetSection";
-import { formatKr, parseDanishNumber } from "@/lib/trade-modules";
+import { displaySku, formatKr, parseDanishNumber } from "@/lib/trade-modules";
 
 type Props = { orderId: string; businessId: string; stopId?: string | null; canManage?: boolean; readOnly?: boolean };
 
@@ -133,7 +133,7 @@ export function MaterialsSection({ orderId, businessId, stopId, canManage, readO
                       className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm text-foreground break-words">{c.name}</span>
-                        <span className="block text-xs text-muted-foreground">{[c.supplier, c.sku].filter(Boolean).join(" · ")} · pr. {c.unit}</span>
+                        <span className="block text-xs text-muted-foreground">{[c.supplier, displaySku(c.sku)].filter(Boolean).join(" · ")} · pr. {c.unit}</span>
                       </span>
                       <span className="shrink-0 text-sm font-medium tabular-nums">{formatKr(Number(c.sale_price))}</span>
                     </button>
