@@ -428,6 +428,14 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                       </span>
                     </span>
                     <span className="mt-1.5 block text-sm leading-6 text-muted-foreground">{o.text}</span>
+                    <ul className="mt-2 space-y-1">
+                      {o.bullets.map((b) => (
+                        <li key={b} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                          <Check className="mt-1.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </button>
                 ))}
               </div>
