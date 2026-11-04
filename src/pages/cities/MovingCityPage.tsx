@@ -1,4 +1,5 @@
 import { citySeo } from "@/seo/city-seo";
+import { CityFactsBox } from "./CityFactsBox";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -158,6 +159,7 @@ const MovingCityPage = () => {
               </span>
             ))}
           </p>
+        <CityFactsBox slug={city.slug} name={city.name} />
         </article>
       </main>
 

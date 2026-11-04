@@ -5,6 +5,7 @@ import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import { findCityFact } from "./cityFacts";
 import { HUB_CITIES, servicesForCity } from "./cityServices";
+import { CityFactsBox } from "./CityFactsBox";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -38,6 +39,7 @@ const CityHubPage = () => {
       <SiteNav />
       <ArticleHero breadcrumbs={[{ label: "Forside", to: "/" }, { label: "Byer", to: "/by" }, { label: city.name }]} eyebrow={city.region} title={`Serviceydere i ${city.name}`} subtitle={`Se lokale priser på ${services.length} services i ${city.name}, og få op til 3 gratis tilbud.`} />
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <CityFactsBox slug={city.slug} name={city.name} />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => <li key={s.href}><Link to={s.href} className={linkCls}>{s.label} i {city.name}</Link></li>)}
         </ul>

@@ -19,6 +19,7 @@ import { CITY_FACTS } from "@/pages/cities/cityFacts";
 import { BRANCHES, branchCities } from "@/pages/cities/branchRegistry";
 import { servicesForCity } from "@/pages/cities/cityServices";
 import { LocalServiceLinks } from "@/pages/cities/LocalServiceLinks";
+import { CityFactsBox } from "@/pages/cities/CityFactsBox";
 import { PLANNER_FEATURES } from "@/data/routePlannerFeatures";
 
 const contentLoaders = import.meta.glob<{ default: { seoConfig?: GuideConfig | SoftwareConfig } }>([
@@ -178,6 +179,7 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
   for (const city of CITY_FACTS) {
     render(`/by/${city.slug}`, <><h1>Serviceydere i {city.name}</h1>
       <p>Se lokale services og prisguides i {city.name} og {city.region}.</p>
+      <CityFactsBox slug={city.slug} name={city.name} />
       <Nav extra={servicesForCity(city.slug).map(service => [service.href, `${service.label} i ${city.name}`])} />
     </>);
   }
@@ -190,6 +192,7 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
         <h2>Opgaver</h2><ul>{branch.tasks.map(task => <li key={task}>{task}</li>)}</ul>
         <h2>Områder i og omkring {city.name}</h2><p>{city.areas.join(" · ")}</p>
         <h2>Fradrag</h2><p>{branch.deduction}</p>
+        <CityFactsBox slug={city.slug} name={city.name} />
         <LocalServiceLinks slug={city.slug} name={city.name} currentPath={`/${branch.kind}/${city.slug}`} />
         <Nav extra={[[branch.priceGuide, `${branch.label} – prisguide`], [`/by/${city.slug}`, `Alle services i ${city.name}`],
           ...branchCities(branch).filter(other => other.slug !== city.slug).map(other => [`/${branch.kind}/${other.slug}`, `${branch.label} i ${other.name}`] as [string, string])]} />
