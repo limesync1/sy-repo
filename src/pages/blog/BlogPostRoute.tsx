@@ -11,7 +11,8 @@ const cache = new Map<string, LazyExoticComponent<ComponentType>>();
 const bySlug = new Map(BLOG_POSTS.map((p) => [p.slug, p]));
 
 export function loadBlogPostChunk(slug: string) {
-  return bySlug.get(slug)?.loader() ?? Promise.resolve();
+  const post = bySlug.get(slug);
+  return post ? post.loader().then(() => undefined) : Promise.resolve();
 }
 
 export default function BlogPostRoute() {
