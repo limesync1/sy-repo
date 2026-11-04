@@ -53,6 +53,7 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/software/sammenlign/fenster", changefreq: "monthly", priority: "0.7" },
   { path: "/software/sammenlign/rutemanager", changefreq: "monthly", priority: "0.7" },
   { path: "/software/sammenlign/clientflow", changefreq: "monthly", priority: "0.7" },
+  { path: "/software/sammenlign/ordrestyring", changefreq: "monthly", priority: "0.7" },
   { path: "/anmeldelser", changefreq: "weekly", priority: "0.6" },
   { path: "/kontakt", changefreq: "monthly", priority: "0.5" },
 ];
@@ -268,6 +269,7 @@ const STATIC_META = [
   { path: "/software/sammenlign/fenster", title: "Serviceydere vs. Fenster: sammenligning af funktioner og pris | Serviceydere", description: "Se forskellen på Serviceydere og Fenster punkt for punkt: ruteplanlægning, medarbejder-app, fakturering, pris og dataflytning." },
   { path: "/software/sammenlign/rutemanager", title: "Serviceydere vs. Rutemanager: sammenligning af funktioner og pris | Serviceydere", description: "Se forskellen på Serviceydere og Rutemanager punkt for punkt: ruteplanlægning, medarbejder-app, fakturering, pris og dataflytning." },
   { path: "/software/sammenlign/clientflow", title: "Serviceydere vs. Clientflow: sammenligning af funktioner og pris | Serviceydere", description: "Se forskellen på Serviceydere og Clientflow punkt for punkt: ruteplanlægning, medarbejder-app, fakturering, pris og dataflytning." },
+  { path: "/software/sammenlign/ordrestyring", title: "Serviceydere vs. Ordrestyring: sammenligning af funktioner og pris | Serviceydere", description: "Se forskellen på Serviceydere og Ordrestyring punkt for punkt: planlægning, medarbejdere, fakturering, pris og binding." },
   { path: "/software/skift-rutesystem", title: "Skift fra SkvizBiz, Fenster eller et andet rutesystem | Serviceydere", description: "Skift rutesystem uden at taste alt ind igen: Serviceydere flytter gratis dine kunder, aftaler og services fra SkvizBiz, Fenster eller andre systemer." },
   { path: "/redaktion", title: "Redaktionen bag Serviceyderes guides og artikler | Serviceydere", description: "Sådan skriver, tjekker og opdaterer Serviceyderes redaktion guides om priser, regler og servicearbejde i Danmark." },
   { path: "/om-os", title: "Om Serviceydere – platformen bag lokale services | Serviceydere", description: "Læs om Serviceydere: platformen der forbinder kunder med lokale servicevirksomheder og giver virksomheder ruteplanlægning, booking og fakturering." },

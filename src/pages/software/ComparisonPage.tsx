@@ -170,6 +170,9 @@ const ComparisonPage = () => {
                 <li key={s.url}><a href={s.url} target="_blank" rel="noopener nofollow" className="inline-flex min-h-11 items-center gap-1.5 text-foreground underline underline-offset-2">{s.label}<ExternalLink className="h-3.5 w-3.5" aria-hidden /></a></li>
               ))}
             </ul>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sammenligningen bygger kun på offentligt tilgængelige oplysninger på den angivne dato og kan have ændret sig siden. {c.name} er et varemærke tilhørende sin ejer og nævnes kun for at kunne sammenligne. Serviceydere er ikke tilknyttet {c.name}.
+            </p>
             <p className="mt-2 text-sm text-muted-foreground">Ser du en fejl? <Link to="/kontakt" className="underline underline-offset-2">Skriv til os</Link>, så retter vi den.</p>
           </div>
           <div>
