@@ -5,7 +5,7 @@ import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
-import HeroPhotoRotator from "./HeroPhotoRotator";
+import HeroVideo from "./HeroVideo";
 import BlueFlowBackground from "./BlueFlowBackground";
 
 /**
@@ -99,7 +99,7 @@ const HeroSection = () => {
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
         <div className="relative min-w-0 w-full max-w-2xl lg:max-w-none xl:mx-auto xl:max-w-[31rem] 2xl:max-w-none">
-          <HeroPhotoRotator />
+          <HeroVideo />
 
         </div>
       </div>
