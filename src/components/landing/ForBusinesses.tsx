@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
+import economicLogo from "@/assets/logo-economic.svg.asset.json";
+import dineroMark from "@/assets/logo-dinero-mark.svg.asset.json";
 
 /**
   * Forretningsrettet sektion på forsiden. Et lyst, kontraststærkt overblik
@@ -103,6 +105,21 @@ const ForBusinesses = () => {
             </li>
           ))}
         </ul>
+
+        <div className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Faktura og bogføring kobles direkte til
+          </span>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex h-11 items-center rounded-xl border border-border bg-background px-4 shadow-sm">
+              <img src={economicLogo.url} alt="e-conomic" loading="lazy" className="h-4 w-auto" />
+            </span>
+            <span className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-border bg-background px-4 shadow-sm">
+              <img src={dineroMark.url} alt="Dinero" loading="lazy" className="h-[18px] w-auto" />
+              <span className="text-[15px] font-bold tracking-tight text-foreground">Dinero</span>
+            </span>
+          </div>
+        </div>
 
         <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-premium-lg">
           <article className="p-5 sm:p-7 2xl:p-9">
