@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Info, ArrowLeft, Loader2 } from "lucide-react";
+import { CheckCircle2, Info, ArrowLeft } from "lucide-react";
 import { PanelIcon } from "@/components/shared/PanelIcon";
 import { Section, SheetFooterBar, SheetHeaderBlock } from "@/components/route-planner/SheetSection";
 
