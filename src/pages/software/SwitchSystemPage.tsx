@@ -38,10 +38,10 @@ const SwitchSystemPage = () => (
       }]}
     />
     <SiteNav />
-    <main id="main" className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+    <main id="main" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
       <p className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Til virksomheder</p>
-      <h1 className="mt-2 text-3xl font-semibold text-foreground sm:text-4xl">{TITLE}</h1>
-      <p className="mt-4 text-lg leading-relaxed text-foreground/80">
+      <h1 className="mt-2 max-w-3xl text-3xl font-semibold text-foreground sm:text-4xl">{TITLE}</h1>
+      <p className="mt-4 max-w-3xl text-lg leading-relaxed text-foreground/80">
         Det er svært at skifte system, når alle kunder og aftaler ligger i det gamle. Hos Serviceydere flytter kundeservice dine data <strong>gratis</strong>, så du ikke skal taste noget ind igen.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
@@ -50,7 +50,7 @@ const SwitchSystemPage = () => (
       </div>
 
       <h2 className="mt-12 text-2xl font-semibold text-foreground">Sammenlign punkt for punkt</h2>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {comparisons.map((c) => (
           <Link key={c.slug} to={`/software/sammenlign/${c.slug}`} className="group flex min-h-11 items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary">
             <span><span className="block text-lg font-semibold text-foreground">Serviceydere vs. {c.name}</span><span className="text-sm text-muted-foreground">Funktioner, pris og dataflytning</span></span>
@@ -60,7 +60,7 @@ const SwitchSystemPage = () => (
       </div>
 
       <h2 className="mt-12 text-2xl font-semibold text-foreground">Sådan foregår skiftet</h2>
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {STEPS.map((s) => (
           <section key={s.h} className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-lg font-semibold text-foreground">{s.h}</h3>
@@ -75,7 +75,7 @@ const SwitchSystemPage = () => (
       </ul>
 
       <h2 className="mt-12 text-2xl font-semibold text-foreground">Det får du bagefter</h2>
-      <p className="mt-4 leading-relaxed text-foreground/80">
+      <p className="mt-4 max-w-3xl leading-relaxed text-foreground/80">
         <Link to="/software/ruteplanlaegger" className="font-semibold underline underline-offset-2">Ruteplanlægning</Link>,{" "}
         en <Link to="/software/medarbejder-app" className="font-semibold underline underline-offset-2">medarbejder-app</Link> med billedbevis og manuel tidsregistrering,{" "}
         <Link to="/software/booking-og-tilbud" className="font-semibold underline underline-offset-2">booking og tilbud</Link> og{" "}
@@ -83,7 +83,7 @@ const SwitchSystemPage = () => (
       </p>
 
       <h2 className="mt-12 text-2xl font-semibold text-foreground">Ofte stillede spørgsmål</h2>
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
         {FAQ.map((f) => (
           <section key={f.q} className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-lg font-semibold text-foreground">{f.q}</h3>

@@ -32,6 +32,8 @@ export const VALID_SITE_PATHS: string[] = [
   "/software/sammenlign/rutemanager",
   "/software/sammenlign/clientflow",
   "/software/sammenlign/ordrestyring",
+  "/software/sammenlign/minuba",
+  "/software/sammenlign/ruteklar",
   "/anmeldelser",
   "/kontakt",
   "/blog",
