@@ -85,7 +85,7 @@ const Index = () => {
           <Reveal><FounderNote /></Reveal>
         </DeferredSection>
 
-        <DeferredSection preload={loadCta} fallback={<SectionSkeleton cards={0} className="bg-ocean" dark />}>
+        <DeferredSection preload={loadCta} fallback={<SectionSkeleton cards={0} className="bg-background" />}>
           <Reveal className="bg-background">
             <CTABand
               animated
