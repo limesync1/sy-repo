@@ -104,6 +104,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Kort svar øverst, synlige datoer, redaktionsside
 - [ ] Sammenlægning af artikler der konkurrerer om samme søgning
 - [ ] Lokale by/branche-sider med rigtigt lokalt indhold
+- [x] Sitemap: automatiske artikler, egne datoer, billeder, læsbar tekst uden JavaScript
 - [ ] Hastighedsmåling på mobil og ugentligt tjek af ødelagte links
 - [ ] Udvidet månedlig SEO-rapport + admin-tal
 - [ ] Liste over steder at få omtale/links (kræver brugeren)
