@@ -141,5 +141,5 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [ ] Fase 6: mobilhastighed
 
 ## Kun profil + 30 dages prøveperiode
-- [ ] Prøveperiode 14 → 30 dage overalt (Stripe, DB, tekster, artikler, mails, SEO)
-- [ ] "Kun profil"-plan: database-guards, onboarding-valg, panel-skjul, opgradering/nedgradering, tests
+- [x] Prøveperiode 14 → 30 dage overalt (Stripe, DB, tekster, artikler, mails, SEO)
+- [x] "Kun profil"-plan: database-guards, onboarding-valg, panel-skjul, opgradering/nedgradering, tests

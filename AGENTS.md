@@ -66,3 +66,5 @@
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images`; never block publishing.
 - One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
+- Plan type lives in `business_plans.plan_kind` (`listing`|`full`); triggers mirror it into `businesses.settings` and block route/employee/agreement inserts (accounting jobs skipped) for listing, and only `set_business_plan_kind` may switch it, so UI (`src/lib/business-capabilities.ts`) and server can never disagree.
+- Trial length comes from `platform_settings.trial_days` (client fallback `src/lib/trial.ts`); `src/test/trial-days.test.ts` fails if old trial wording reappears.
