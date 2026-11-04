@@ -711,4 +711,4 @@ export const RADIUS_PRESETS: { value: number | null; label: string }[] = [
   { value: null, label: "Hele DK" },
 ];
 
-export const DEFAULT_RADIUS_KM: number = 25;
+export { DEFAULT_RADIUS_KM } from "./radius-default";

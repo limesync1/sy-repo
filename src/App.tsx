@@ -171,20 +171,10 @@ const TradeCityPage          = lazyRoute("/branche/:city", () => import("./pages
 const CityHubPage            = lazyRoute("/by", () => import("./pages/cities/CityHubPage"));
 const TRADE_KINDS = ["vinduespudser", "maler", "elektriker", "vvs", "toemrer", "murer", "kloakmester", "skadedyr", "gulvlaegger", "skorstensfejer", "varmepumpe", "tagdaekker", "badevaerelse", "vinduesudskiftning", "anlaegsgartner", "algebehandling"];
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
-const DynamicBlogPost        = lazy(() => import("./pages/blog/DynamicBlogPost"));
 const BlogCategoryIndex      = lazyRoute("/blog/kategori", () => import("./pages/blog/BlogCategoryIndex"));
 
-// ── Datadrevne blog-ruter ────────────────────────────────────────────────
-// Hver post i BLOG_POSTS bærer sin egen lazy loader. Vi mapper dem til en
-// stabil React.lazy() én gang her, så samme komponent genbruges mellem
-// renders (ellers ville Suspense vise tom fallback ved hver navigation).
-// Tilføj en ny artikel = tilføj én entry i blogPosts.ts. Ingen ændring i
-// App.tsx eller sitemap.xml er nødvendig.
-import { BLOG_POSTS } from "./pages/blog/blogPosts";
-const BLOG_ROUTES = BLOG_POSTS.map((post) => ({
-  path: `/blog/${post.slug}`,
-  Component: lazyRoute(`/blog/${post.slug}`, post.loader),
-}));
+// Artikler løses i én rute, så artikelregistret ikke hentes på alle sider.
+const BlogPostRoute = lazyRoute("/blog/:slug", () => import("./pages/blog/BlogPostRoute"));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const AboutUs                = lazyRoute("/om-os", () => import("./pages/AboutUs"));
 const Editorial              = lazyRoute("/redaktion", () => import("./pages/Editorial"));
@@ -487,10 +477,7 @@ const App = () => (
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/kategori/:slug" element={<BlogCategoryIndex />} />
-              {BLOG_ROUTES.map(({ path, Component }) => (
-                <Route key={path} path={path} element={<Component />} />
-              ))}
-              <Route path="/blog/:slug" element={<DynamicBlogPost />} />
+              <Route path="/blog/:slug" element={<BlogPostRoute />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
               <Route path="/om-os" element={<AboutUs />} />
               <Route path="/redaktion" element={<Editorial />} />
