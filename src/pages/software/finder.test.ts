@@ -13,3 +13,12 @@ describe("rutesystem-finder", () => {
     expect(r.from?.name).toBe("SkvizBiz");
   });
 });
+
+describe("finder-begrundelse", () => {
+  it("giver højere match ved faste ruter end ved projekter og begrunder valget", () => {
+    const ruter = finderResult({ work: "routes", team: "small", needs: [], current: "none", priority: "growth" });
+    const sager = finderResult({ work: "projects", team: "small", needs: [], current: "none", priority: "growth" });
+    expect(ruter.score).toBeGreaterThan(sager.score);
+    expect(ruter.reasons.some((x) => x.title === "Nye kunder indbygget")).toBe(true);
+  });
+});
