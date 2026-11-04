@@ -186,6 +186,13 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   };
 
   useEffect(() => { setOpen(false); }, [pathname]);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   useEffect(() => {
     const header = headerRef.current;
     if (!header || (hasPersistentNavigation && !persistent)) return;
@@ -224,7 +231,9 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
   if (hasPersistentNavigation && !persistent) return null;
 
   return (
-    <header ref={headerRef} className="site-nav-light sticky top-0 z-40 bg-site-header-background" data-public-navigation>
+    <>
+    <div aria-hidden="true" style={{ height: "var(--public-nav-height, 3.8rem)" }} />
+    <header ref={headerRef} className={`site-nav-light fixed inset-x-0 top-0 z-40 bg-site-header-background transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`} data-public-navigation>
     <BetaNotice />
     <nav aria-label="Serviceydere navigation" className="border-b border-border bg-site-header-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -428,6 +437,7 @@ const SiteNav = ({ active, right, persistent = false }: Props) => {
       className={`fixed inset-x-0 bottom-0 top-0 -z-10 bg-foreground/40 transition-opacity duration-300 motion-reduce:transition-none xl:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
     />
     </header>
+    </>
   );
 };
 
