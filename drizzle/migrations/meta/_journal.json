@@ -295,6 +295,13 @@
       "when": 1793828843448,
       "tag": "0041_listing_plan_kind_and_30_day_trial",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793828948272,
+      "tag": "0042_sync_plan_kind_into_settings",
+      "breakpoints": true
     }
   ]
 }
