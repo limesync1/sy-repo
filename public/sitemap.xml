@@ -637,7 +637,7 @@
   <url>
     <loc>https://serviceydere.dk/blog/varmepumpe-installation-priser-2026</loc>
     <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-varmepumpe-installation-priser-2026.webp</image:loc><image:title>Illustration til artiklen: Varmepumpe — installation, tilskud og pris i 2026</image:title></image:image>
-    <lastmod>2026-08-20</lastmod>
+    <lastmod>2026-11-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -1324,13 +1324,6 @@
     <loc>https://serviceydere.dk/blog/haandvaerker-koebenhavn-timepris-2026</loc>
     <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-haandvaerker-koebenhavn-timepris-2026.webp</image:loc><image:title>Illustration til artiklen: Hvad koster en handyman i København i 2026?</image:title></image:image>
     <lastmod>2026-06-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/varmepumpe-installation-pris-2026</loc>
-    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-varmepumpe-installation-pris-2026.webp</image:loc><image:title>Illustration til artiklen: Hvad koster installation af varmepumpe i 2026?</image:title></image:image>
-    <lastmod>2026-06-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -2378,6 +2371,27 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/bilvask</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-bilvask.webp</image:loc><image:title>Illustration til artiklen: Bilvask: Guide til metoder, priser og skånsom rengøring</image:title></image:image>
+    <lastmod>2026-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/vinduespudsning</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-vinduespudsning.webp</image:loc><image:title>Illustration til artiklen: Vinduespudsning: Guide til rene vinduer uden striber</image:title></image:image>
+    <lastmod>2026-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/skorstensfejer</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-skorstensfejer.webp</image:loc><image:title>Illustration til artiklen: Skorstensfejer: Opgaver, besøg og hjælp til din skorsten</image:title></image:image>
+    <lastmod>2026-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -2408,12 +2422,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/vvs</loc>
+    <loc>https://serviceydere.dk/blog/kategori/tomrer</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/tomrer</loc>
+    <loc>https://serviceydere.dk/blog/kategori/vvs</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
