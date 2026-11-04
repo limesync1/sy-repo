@@ -32,7 +32,7 @@ export function QualityTemplatesDialog({ open, onOpenChange, businessId, categor
       return (data ?? []) as unknown as Template[];
     },
   });
-  const refresh = () => qc.invalidateQueries({ queryKey: ["quality-templates", businessId] });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["quality-templates", businessId] }); qc.invalidateQueries({ queryKey: ["trade-counts", businessId] }); };
   const suggestions = suggestedTemplates(categories).filter((s) => !templates.some((t) => t.name === s.name));
 
   const save = async () => {

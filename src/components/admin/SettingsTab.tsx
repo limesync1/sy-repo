@@ -33,7 +33,7 @@ import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotifi
 import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import profileGroupIcon from "@/assets/content-icons/profil.svg.asset.json";
 import messagesGroupIcon from "@/assets/content-icons/beskeder.svg.asset.json";
 import accountGroupIcon from "@/assets/content-icons/konto.svg.asset.json";
@@ -41,7 +41,7 @@ import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { isCraftBusiness, readTradeModules, type TradeModules } from "@/lib/trade-modules";
 import { MaterialCatalogDialog } from "@/components/trade/MaterialCatalogDialog";
 import { QualityTemplatesDialog } from "@/components/trade/QualityTemplatesDialog";
-import { Package, ClipboardCheck, Truck, Hammer } from "lucide-react";
+import { Package, ClipboardCheck, Truck, Hammer, ChevronRight } from "lucide-react";
 
 /**
  * Lille selvopdaterende komponent — tikker hvert minut og holder
@@ -333,7 +333,7 @@ const Reveal = ({
   className,
 }: {
   open: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) => (
   <div
@@ -2087,7 +2087,7 @@ function TradeManageCards({ businessId, materials, quality, onMaterials, onQuali
       return { materials: m.count ?? 0, templates: t.count ?? 0 };
     },
   });
-  const card = (icon: React.ReactNode, title: string, sub: string, empty: boolean, onClick: () => void) => (
+  const card = (icon: ReactNode, title: string, sub: string, empty: boolean, onClick: () => void) => (
     <button type="button" onClick={onClick}
       className="flex min-h-16 flex-1 items-center gap-3 rounded-md border border-border bg-card px-3 py-2.5 text-left transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">{icon}</span>

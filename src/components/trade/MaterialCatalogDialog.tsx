@@ -41,7 +41,7 @@ export function MaterialCatalogDialog({ open, onOpenChange, businessId, wholesal
       return { rows: (data ?? []) as Row[], count: count ?? 0 };
     },
   });
-  const refresh = () => qc.invalidateQueries({ queryKey: ["material-catalog", businessId] });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["material-catalog", businessId] }); qc.invalidateQueries({ queryKey: ["trade-counts", businessId] }); };
 
   const resetForm = () => { setForm({ name: "", sku: "", unit: "stk", cost: "", sale: "" }); setEditId(null); };
   const startEdit = (r: Row) => {
