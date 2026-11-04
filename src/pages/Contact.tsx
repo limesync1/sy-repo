@@ -76,13 +76,13 @@ const Contact = () => {
             <>
               <a
                 href="mailto:kontakt@serviceydere.dk"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+                className="group inline-flex items-center justify-center gap-2 min-h-11 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
               >
                 <img src={iconEmail.url} alt="" className="h-6 w-6 object-contain" /> <span className="[overflow-wrap:anywhere]">kontakt@serviceydere.dk</span>
               </a>
               <SmartLink
                 to="/hjaelp"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
+                className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
               >
                 Hjælpecenter <ArrowUpRight className="h-4 w-4" />
               </SmartLink>
@@ -123,7 +123,7 @@ const Contact = () => {
         <section className="bg-secondary py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 max-w-2xl">
-              <h2 className="text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.5rem]">
+              <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Få 3 tilbud i stedet
               </h2>
               <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
@@ -143,13 +143,13 @@ const Contact = () => {
             <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:p-12">
               <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/[0.08] blur-3xl" />
               <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-feature-lilac/40 blur-3xl" />
-              <div className="relative grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-center">
+              <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5">
                     <img src={iconSupport.url} alt="" className="h-full w-full object-contain" loading="lazy" />
                   </div>
                   <div className="min-w-0">
-                  <h2 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground md:text-[2.25rem]">
+                  <h2 className="text-[1.6rem] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground md:text-[2rem]">
                     Find svar på almindelige spørgsmål
                   </h2>
                   <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground">
