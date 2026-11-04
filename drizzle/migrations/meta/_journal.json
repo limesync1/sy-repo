@@ -281,6 +281,13 @@
       "when": 1793805647395,
       "tag": "0039_trade_modules_materials_quality",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793805907477,
+      "tag": "0040_material_catalog_full_unique",
+      "breakpoints": true
     }
   ]
 }
