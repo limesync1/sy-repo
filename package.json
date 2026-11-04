@@ -9,7 +9,7 @@
     "prebuild": "bunx tsx scripts/generate-sitemap.ts && node scripts/build-planner-guide.mjs",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "app:release": "npm run build && CAP_RELEASE=1 npx cap sync",
+    "app:release": "node scripts/app-release.mjs",
     "guide:pdf": "node scripts/build-planner-guide.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
