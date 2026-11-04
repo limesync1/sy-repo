@@ -79,7 +79,7 @@ const genericBody = (r: RouteMeta) =>
   `<h1>${esc(r.title.replace(/\s*\|\s*Serviceydere$/, ""))}</h1><p>${esc(r.description)}</p><nav aria-label="Mere fra Serviceydere"><ul>${GENERIC_LINKS.map(([h, l]) => `<li><a href="${h}">${esc(l)}</a></li>`).join("")}</ul></nav>`;
 
 /** Renderer artikler/oversigter til statisk HTML via Vite SSR. Fejl → tom map. */
-const loadStaticBodies = async (): Promise<Record<string, string>> => {
+const loadStaticBodies = async (routes: RouteMeta[]): Promise<Record<string, string>> => {
   let server: any;
   try {
     const { createServer } = await import("vite");
@@ -90,11 +90,12 @@ const loadStaticBodies = async (): Promise<Record<string, string>> => {
     });
     const mod = await server.ssrLoadModule("/src/seo/staticBodies.tsx");
     const bodies = await mod.renderStaticBodies();
+    const missingLocal = mod.missingIndexableContent(routes, bodies) as string[];
+    if (missingLocal.length) throw new Error(`Missing public industry/city content or metadata: ${missingLocal.join(", ")}`);
     Object.assign(contentMetadata, mod.staticContentMetadata);
     return bodies;
   } catch (e) {
-    console.warn("seo-prerender-head: static bodies skipped:", (e as Error).message);
-    return {};
+    throw new Error(`seo-prerender-head: public content validation failed: ${(e as Error).message}`);
   } finally {
     await server?.close();
   }
@@ -114,7 +115,7 @@ export const seoPrerenderHead = () => ({
     if (!existsSync(metaFile) || !existsSync(indexFile)) return;
     const html = readFileSync(indexFile, "utf8");
     const routes: RouteMeta[] = JSON.parse(readFileSync(metaFile, "utf8"));
-    const bodies = await loadStaticBodies();
+    const bodies = await loadStaticBodies(routes);
     const missing = routes.filter(r => r.article && !bodies[r.path] && !r.body).map(r => r.path);
     if (missing.length) throw new Error(`Missing public article content: ${missing.join(", ")}`);
     for (const r of routes) {
