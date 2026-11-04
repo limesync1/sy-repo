@@ -1284,6 +1284,22 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
 
 // Fælles linjeopbygning for én ordre — bruges af både enkeltordrer og samlede fakturaer.
 async function buildOrderLines(admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter, order: any, completedDate: string | null) {
+  const serviceLines = await buildServiceLines(admin, integ, adapter, order, completedDate);
+  // Materialer registreret på opgaven (håndværksmodul) kommer med som egne linjer.
+  const { data: mats } = await admin.from("order_materials")
+    .select("name, unit, quantity, unit_price").eq("order_id", order.id).order("created_at");
+  const materialLines = (mats ?? []).map((m: any) => ({
+    service_id: null,
+    product_external_id: null,
+    product_external_number: null,
+    description: `Materiale: ${m.name} (${m.unit})`,
+    quantity: Number(m.quantity ?? 1),
+    unit_price: Number(m.unit_price ?? 0),
+  }));
+  return [...serviceLines, ...materialLines];
+}
+
+async function buildServiceLines(admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter, order: any, completedDate: string | null) {
   return await Promise.all((order.order_items ?? []).map(async (it: any) => {
     let extProductId: string | null = null;
     let extProductNumber: string | null = null;
