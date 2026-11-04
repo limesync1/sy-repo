@@ -16,6 +16,10 @@ const config: CapacitorConfig = {
         url: "https://3396f095-cb5d-439d-8707-af0033c7fb66.lovableproject.com/medarbejder?forceHideBadge=true",
         cleartext: true,
       },
+  // iPhone/iPad: keep the web view inside the safe area (notch, Dynamic Island,
+  // home indicator) so no button sits under the phone's own navigation.
+  ios: { contentInset: "always", scheme: "Serviceydere" },
+  android: { allowMixedContent: false },
   plugins: {
     // Native insets + viewport-fit=contain (set in main.tsx for native) keep the
     // web view between the status bar and the phone's navigation buttons.
