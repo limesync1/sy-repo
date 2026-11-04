@@ -1,5 +1,6 @@
 import { citySeo } from "@/seo/city-seo";
 import { CityFactsBox } from "./CityFactsBox";
+import { LocalCityExtras, localCityFaqSchema } from "./LocalCityExtras";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -49,11 +50,7 @@ const MovingCityPage = () => {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: [
-        { "@type": "Question", name: `Hvad koster flyttehjælp i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `Flyttehjælp i ${city.name} koster typisk ${city.hourlyLow}–${city.hourlyHigh} kr. i timen for to mænd + bil. En 1–2 værelses lejlighed koster ${city.smallMoveLow}–${city.smallMoveHigh} kr. som fast pris, og en villa ${city.villaMoveLow}–${city.villaMoveHigh} kr.` } },
-        { "@type": "Question", name: `Hvornår skal jeg bestille flyttefirma i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `Bestil 3–4 uger frem i hverdage. Sommermånederne (juni–august) og overgangsdatoer (1. og 15.) bør bookes 6–8 uger frem.` } },
-        { "@type": "Question", name: `Hvad er bedst — timepris eller fast pris?`, acceptedAnswer: { "@type": "Answer", text: `Fast pris giver budgetsikkerhed når omfanget er kendt (typisk lejlighed/villa). Timepris egner sig til mindre flytninger eller når mængden er svær at vurdere.` } },
-      ],
+      mainEntity: localCityFaqSchema("flyttehjaelp", city),
     },
   ];
 
@@ -136,6 +133,8 @@ const MovingCityPage = () => {
             <li><strong>Tjek CVR + anmeldelser</strong> — undgå sort økonomi og firmaer uden referencer.</li>
             <li><strong>Aftal nedpakning skriftligt</strong> — kasser, indpakning og udpakning afregnes ofte særskilt.</li>
           </ol>
+
+          <LocalCityExtras kind="flyttehjaelp" city={city} />
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Få tilbud fra flyttefirmaer i {city.name}</h2>

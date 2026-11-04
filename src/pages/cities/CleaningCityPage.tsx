@@ -1,5 +1,6 @@
 import { citySeo } from "@/seo/city-seo";
 import { CityFactsBox } from "./CityFactsBox";
+import { LocalCityExtras, localCityFaqSchema } from "./LocalCityExtras";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -63,32 +64,7 @@ const CleaningCityPage = () => {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: `Hvad koster rengøring i ${city.name}?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: `Rengøring i ${city.name} koster typisk ${city.hourlyLow}–${city.hourlyHigh} kr. i timen inkl. moms. Fast rengøring i en gennemsnitlig bolig ligger på ${city.flatLow}–${city.flatHigh} kr. pr. besøg hver 14. dag.`,
-          },
-        },
-        {
-          "@type": "Question",
-          name: `Hvordan finder jeg et godt rengøringsfirma i ${city.name}?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: `Indhent 3 tilbud, læs anmeldelser, tjek at firmaet er momsregistreret (giver BoligJob-fradrag) og bed om referencer fra lignende boliger i ${city.name}.`,
-          },
-        },
-        {
-          "@type": "Question",
-          name: `Kan jeg få BoligJob-fradrag i ${city.name}?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: `Ja — BoligJob-fradraget gælder i hele Danmark og giver op til 12.300 kr./voksen i fradrag i 2026. Firmaet skal være momsregistreret og du skal betale digitalt.`,
-          },
-        },
-      ],
+      mainEntity: localCityFaqSchema("rengoering", city),
     },
   ];
 
@@ -212,6 +188,8 @@ const CleaningCityPage = () => {
             <li><strong>Bed om referencer</strong> — gerne fra lignende boliger i samme kvarter.</li>
             <li><strong>Aftal frekvens skriftligt</strong> — ugentlig, hver 14. dag eller månedlig.</li>
           </ol>
+
+          <LocalCityExtras kind="rengoering" city={city} />
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">

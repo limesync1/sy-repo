@@ -1,5 +1,6 @@
 import { citySeo } from "@/seo/city-seo";
 import { CityFactsBox } from "./CityFactsBox";
+import { LocalCityExtras, localCityFaqSchema } from "./LocalCityExtras";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -49,11 +50,7 @@ const HandymanCityPage = () => {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: [
-        { "@type": "Question", name: `Hvad koster en håndværker i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `En alm. håndværker i ${city.name} koster typisk ${city.hourlyLow}–${city.hourlyHigh} kr. i timen inkl. moms. Tømrer ligger på ${city.carpenterLow}–${city.carpenterHigh} kr. og elektriker på ${city.electricianLow}–${city.electricianHigh} kr.` } },
-        { "@type": "Question", name: `Hvad koster udkald af håndværker i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `Udkald i ${city.name} koster typisk ${city.callOutLow}–${city.callOutHigh} kr. og dækker kørsel og opstart. Akutudkald uden for normal arbejdstid kan være op til dobbelt så meget.` } },
-        { "@type": "Question", name: `Kan jeg få BoligJob-fradrag på håndværker i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `Ja — du kan trække op til 17.500 kr. fra på arbejdsløn i 2026 for håndværksydelser som maler, tømrer, vvs og elektriker. Materialer er ikke omfattet.` } },
-      ],
+      mainEntity: localCityFaqSchema("haandvaerker", city),
     },
   ];
 
@@ -131,6 +128,8 @@ const HandymanCityPage = () => {
             <li><strong>Brug BoligJob-fradraget</strong> — kræver elektronisk betaling.</li>
             <li><strong>Læs anmeldelser</strong> — fokusér på opgaver der ligner din.</li>
           </ol>
+
+          <LocalCityExtras kind="haandvaerker" city={city} />
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Få tilbud fra håndværkere i {city.name}</h2>
