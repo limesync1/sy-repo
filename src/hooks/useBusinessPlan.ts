@@ -1,3 +1,4 @@
+import { TRIAL_DAYS } from "@/lib/trial";
 // useBusinessPlan — henter den abonnementspakke, der er knyttet til en
 // virksomhed, og leverer afledte felter (dage tilbage af prøveperiode,
 // om virksomheden bør deaktiveres pga. manglende betalingskort osv.).
@@ -63,7 +64,7 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
       let trialEnd = data.trial_ends_at ? new Date(data.trial_ends_at) : null;
       if (!trialEnd && data.created_at) {
         const created = new Date(data.created_at);
-        trialEnd = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
+        trialEnd = new Date(created.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
       }
       const trialEndIso = trialEnd ? trialEnd.toISOString() : null;
       const daysLeft = trialEnd
@@ -134,7 +135,7 @@ export const usePlatformPricing = () => {
         startup_fee_dkk: Number((row as any).startup_fee_dkk) || 2269,
         discount_quarterly_pct: Number(row.discount_quarterly_pct) || 0,
         discount_yearly_pct: Number(row.discount_yearly_pct) || 0,
-        trial_days: Number(row.trial_days) || 30,
+        trial_days: Number(row.trial_days) || TRIAL_DAYS,
       };
     },
     staleTime: 5 * 60 * 1000,
