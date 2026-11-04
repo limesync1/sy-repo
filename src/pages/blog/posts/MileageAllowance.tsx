@@ -37,7 +37,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Læs også <a href="/blog/koerebog-og-koerselsregnskab">kørebog og kørselsregnskab</a> og{" "}
-        <a href="/blog/ruteoptimering">ruteoptimering</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv ruteplanlæggeren gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/ruteoptimering">ruteoptimering</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv ruteplanlæggeren gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

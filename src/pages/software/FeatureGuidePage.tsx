@@ -233,11 +233,11 @@ const FeatureGuidePage = () => {
         <div className="mt-12 rounded-2xl border border-border bg-card p-6 shadow-panel sm:p-8">
           <h2 className="m-0 text-2xl font-semibold tracking-tight text-foreground">Vil du hellere prøve det?</h2>
           <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted-foreground">
-            Opret virksomheden og kør 14 dage gratis uden betalingskort. Vi hjælper gerne med at flytte jeres eksisterende kunder ind.
+            Opret virksomheden og kør 30 dage gratis uden betalingskort. Vi hjælper gerne med at flytte jeres eksisterende kunder ind.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/opret-virksomhed" className="inline-flex h-11 items-center rounded-full bg-foreground px-6 text-sm font-semibold text-background hover:opacity-90">
-              Start 14 dages gratis prøve
+              Start 30 dages gratis prøve
             </Link>
             <a href={PLANNER_GUIDE_PDF_PATH} download className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-background px-6 text-sm font-semibold text-foreground hover:bg-secondary">
               <Download className="h-4 w-4" aria-hidden /> Hent PDF-guiden

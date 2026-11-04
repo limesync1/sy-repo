@@ -110,7 +110,7 @@ export const comparisons: Comparison[] = [
       { group: "Opstart", feature: "Grænse for antal kunder", us: y("Ingen grænse"), them: p("100 / 500 / 2.000 efter pakke") },
       { group: "Opstart", feature: "Månedspris fra", us: p("Se priser"), them: p("99 / 399 / 1.199 kr.") },
       { group: "Opstart", feature: "Ekstra bruger", us: p("Se priser"), them: p("99 kr./md.") },
-      { group: "Opstart", feature: "Gratis prøve", us: y("14 dage, uden kreditkort"), them: n("14 dages fortrydelsesret i stedet") },
+      { group: "Opstart", feature: "Gratis prøve", us: y("30 dage, uden kreditkort"), them: n("14 dages fortrydelsesret i stedet") },
       { group: "Opstart", feature: "Gratis flytning af data", us: y(), them: u },
     ],
     faq: [
@@ -296,7 +296,7 @@ export const comparisons: Comparison[] = [
     faq: [
       { q: "Er Serviceydere et alternativ til Minuba?", a: "Ja. Serviceydere har materialer, prisfiler fra grossister og kvalitetssikring, og derudover ruteplanlægning og medarbejder-app til faste besøg." },
       { q: "Kan I flytte mine kunder fra Minuba?", a: "Ja. Eksportér dine kunder, og send dem til kundeservice. Vi lægger dem ind gratis." },
-      { q: "Er Minuba bedre til noget?", a: "Ja. Minuba har en gratis version til små firmaer og faste forbindelser til over 80 grossister. Serviceydere har 14 dages gratis prøve uden kreditkort, og MobilePay via dit regnskabsprogram." },
+      { q: "Er Minuba bedre til noget?", a: "Ja. Minuba har en gratis version til små firmaer og faste forbindelser til over 80 grossister. Serviceydere har 30 dages gratis prøve uden kreditkort, og MobilePay via dit regnskabsprogram." },
     ],
   },
   {
@@ -331,7 +331,7 @@ export const comparisons: Comparison[] = [
       { group: "Kunder", feature: "Nye kunder via markedsplads", us: y(), them: u },
       { group: "Opstart", feature: "Månedspris", us: p("Se priser"), them: p("99 kr., 199 kr. ved over 30.000 kr. faktureret måneden før") },
       { group: "Opstart", feature: "Ekstra medarbejder", us: p("Se priser"), them: p("70 kr./md.") },
-      { group: "Opstart", feature: "Gratis prøve", us: y("14 dage, uden kreditkort"), them: y("30 dage") },
+      { group: "Opstart", feature: "Gratis prøve", us: y("30 dage, uden kreditkort"), them: y("30 dage") },
       { group: "Opstart", feature: "Binding", us: y("Ingen binding"), them: y("Ingen binding") },
       { group: "Opstart", feature: "Flytning af data", us: y("Kundeservice gør det gratis"), them: u },
     ],

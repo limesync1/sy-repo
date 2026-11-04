@@ -71,7 +71,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
         priceCurrency: "DKK",
         url: "https://serviceydere.dk/software/priser",
         description:
-          "289 kr. pr. måned ekskl. moms med ruteplanlægning inkluderet. 14 dages gratis prøve uden betalingskort, derefter valgfri fortsættelse. Ekstra medarbejderlogin 59 kr./md. Ingen binding.",
+          "289 kr. pr. måned ekskl. moms med ruteplanlægning inkluderet. 30 dages gratis prøve uden betalingskort, derefter valgfri fortsættelse. Ekstra medarbejderlogin 59 kr./md. Ingen binding.",
       },
       provider: {
         "@type": "Organization",
@@ -127,7 +127,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
               to="/opret-virksomhed"
               className="inline-flex h-12 items-center justify-center rounded-full bg-background px-6 text-sm font-semibold text-foreground transition-opacity hover:opacity-90"
             >
-              Start 14 dages gratis prøve
+              Start 30 dages gratis prøve
             </Link>
             <Link
               to="/kontakt"
@@ -236,7 +236,7 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
           </h2>
           <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted-foreground">
             {cfg.cta?.body ??
-              "Opret virksomheden og kør 14 dage gratis uden betalingskort. Du kan bruge systemet uden at være på markedspladsen — og markedspladsen uden at bruge planlægningen."}
+              "Opret virksomheden og kør 30 dage gratis uden betalingskort. Du kan bruge systemet uden at være på markedspladsen — og markedspladsen uden at bruge planlægningen."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

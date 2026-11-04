@@ -24,7 +24,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/software/medarbejder-app">Medarbejder-appen</a> <a href="/blog/ruteplanlaegger-med-flere-stop">ruteplanlægger med flere stop</a> <a href="/blog/koerselsgodtgoerelse-servicefirma">kørselsgodtgørelse</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/software/medarbejder-app">Medarbejder-appen</a> <a href="/blog/ruteplanlaegger-med-flere-stop">ruteplanlægger med flere stop</a> <a href="/blog/koerselsgodtgoerelse-servicefirma">kørselsgodtgørelse</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

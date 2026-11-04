@@ -27,7 +27,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/blog/faktura-skabelon-servicefirma">Faktura skabelon</a> <a href="/blog/tilbud-skabelon-servicefirma">tilbud skabelon</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/faktura-skabelon-servicefirma">Faktura skabelon</a> <a href="/blog/tilbud-skabelon-servicefirma">tilbud skabelon</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

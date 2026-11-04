@@ -23,7 +23,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/blog/economic-integration-servicefirma">e-conomic integration</a> <a href="/blog/faktura-skabelon-servicefirma">faktura skabelon</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/economic-integration-servicefirma">e-conomic integration</a> <a href="/blog/faktura-skabelon-servicefirma">faktura skabelon</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

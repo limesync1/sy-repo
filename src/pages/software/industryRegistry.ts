@@ -139,7 +139,7 @@ export function industryConfig(i: Industry): SoftwareConfig {
   return {
     canonicalPath: industryHref(i),
     metaTitle: `System til ${i.firms} — ruteplanlægning | Serviceydere`.slice(0, 90),
-    metaDescription: `Ruteplanlægning, medarbejder-app og fakturering til ${i.firms}: ${subs}. Prøv gratis i 14 dage uden betalingskort.`,
+    metaDescription: `Ruteplanlægning, medarbejder-app og fakturering til ${i.firms}: ${subs}. Prøv gratis i 30 dage uden betalingskort.`,
     keywords: `system til ${lower}, ${lower} software, program til ${lower}, ruteplanlægning ${lower}, ${i.subs.map((s) => s.toLowerCase()).join(", ")}`,
     heroEyebrow: `Til ${i.firms}`,
     heroTitle: `System til ${lower}`,
@@ -152,7 +152,7 @@ export function industryConfig(i: Industry): SoftwareConfig {
       "Manuel tidsregistrering pr. besøg",
       "Fakturainterval: efter hvert besøg, hver 14. dag, månedligt eller kvartalsvis",
       "Bogføring i e-conomic og Dinero",
-      "14 dages gratis prøve uden betalingskort",
+      "30 dages gratis prøve uden betalingskort",
     ],
     sections: [
       { heading: `Sådan planlægger ${i.firms} med Serviceydere`, paragraphs: [t.plan, t.tip] },
@@ -178,8 +178,8 @@ export function industryConfig(i: Industry): SoftwareConfig {
       { q: `Passer Serviceydere til ${i.firms}?`, a: `Ja. Systemet er lavet til udekørende servicefirmaer, herunder ${i.firms} med opgaver som ${subs}.` },
       { q: t.faqQ, a: t.faqA },
       { q: "Kan I flytte vores data over?", a: "Ja. Kundeservice kan flytte kunder, aftaler, services, ruter, medarbejdere og noter over fra jeres nuværende system." },
-      { q: "Skal jeg bruge betalingskort for at prøve?", a: "Nej. Du kan prøve Serviceydere gratis i 14 dage uden betalingskort." },
+      { q: "Skal jeg bruge betalingskort for at prøve?", a: "Nej. Du kan prøve Serviceydere gratis i 30 dage uden betalingskort." },
     ],
-    cta: { heading: `Prøv Serviceydere til ${lower}`, body: "Opret jeres første rute i dag. 14 dages gratis prøve, intet betalingskort." },
+    cta: { heading: `Prøv Serviceydere til ${lower}`, body: "Opret jeres første rute i dag. 30 dages gratis prøve, intet betalingskort." },
   };
 }

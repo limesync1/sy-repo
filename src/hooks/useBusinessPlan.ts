@@ -57,13 +57,13 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
         };
       }
       const hasCard = !!data.stripe_payment_method_last4;
-      // Hvis trial_ends_at mangler, regn et fallback ud fra created_at + 14 dage
+      // Hvis trial_ends_at mangler, regn et fallback ud fra created_at + 30 dage
       // så banneret altid kan vise "X dage, Y timer tilbage" i stedet for blot
       // "Din prøveperiode er aktiv".
       let trialEnd = data.trial_ends_at ? new Date(data.trial_ends_at) : null;
       if (!trialEnd && data.created_at) {
         const created = new Date(data.created_at);
-        trialEnd = new Date(created.getTime() + 14 * 24 * 60 * 60 * 1000);
+        trialEnd = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
       }
       const trialEndIso = trialEnd ? trialEnd.toISOString() : null;
       const daysLeft = trialEnd
@@ -134,7 +134,7 @@ export const usePlatformPricing = () => {
         startup_fee_dkk: Number((row as any).startup_fee_dkk) || 2269,
         discount_quarterly_pct: Number(row.discount_quarterly_pct) || 0,
         discount_yearly_pct: Number(row.discount_yearly_pct) || 0,
-        trial_days: Number(row.trial_days) || 14,
+        trial_days: Number(row.trial_days) || 30,
       };
     },
     staleTime: 5 * 60 * 1000,

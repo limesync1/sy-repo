@@ -25,7 +25,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/blog/timeregistrering-app-servicefirma">Timeregistrering-app</a> <a href="/blog/arbejdsseddel-digital">digital arbejdsseddel</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/timeregistrering-app-servicefirma">Timeregistrering-app</a> <a href="/blog/arbejdsseddel-digital">digital arbejdsseddel</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

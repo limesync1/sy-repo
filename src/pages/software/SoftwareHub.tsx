@@ -37,7 +37,7 @@ const PARTS = [
 ];
 
 const PRICE_POINTS = [
-  { label: "Prøveperiode", value: "14 dage", note: "Gratis, uden betalingskort" },
+  { label: "Prøveperiode", value: "30 dage", note: "Gratis, uden betalingskort" },
   { label: "Basis", value: "289 kr./md.", note: "Ekskl. moms — ruteplanlægning inkluderet" },
   { label: "Ekstra login", value: "59 kr./md.", note: "Pr. medarbejder med eget login" },
   { label: "Regnskab", value: "269 kr./md.", note: "Tilvalg: E-conomic eller Dinero" },
@@ -46,7 +46,7 @@ const PRICE_POINTS = [
 
 const FAQ = [
   { q: "Hvad er Serviceydere?", a: "Serviceydere er en dansk platform til servicevirksomheder. Den indeholder et driftssystem med ruteplanlægning, medarbejder-app, booking, kundekartotek og fakturering — og en markedsplads på serviceydere.dk, hvor kunder finder og booker udbydere." },
-  { q: "Er Serviceydere gratis?", a: "Nej. Der er 14 dages gratis prøve uden betalingskort, og derefter vælger I selv, om I vil tilføje kort og fortsætte. Basisprisen er 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, plus 59 kr./md. pr. ekstra medarbejderlogin. Ingen binding." },
+  { q: "Er Serviceydere gratis?", a: "Nej. Der er 30 dages gratis prøve uden betalingskort, og derefter vælger I selv, om I vil tilføje kort og fortsætte. Basisprisen er 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, plus 59 kr./md. pr. ekstra medarbejderlogin. Ingen binding." },
   { q: "Kan jeg flytte mine eksisterende kunder ind?", a: "Ja — og I skal ikke selv sidde med det. Serviceyderes support står for importen: I sender jeres kundeliste som regneark eller et udtræk fra jeres nuværende system, og vi lægger kunder, adresser, kontaktoplysninger og faste aftaler ind. Dataimport er en engangsydelse, som fremgår af prissiden." },
   { q: "Er systemet kun til rengøring?", a: "Nej. Det er brancheuafhængigt og bruges blandt andet af rengøring, vinduespudsning, haveservice, håndværkere, flyttefirmaer, skadedyrsbekæmpelse og autoservice. Kategorier, services og prisenheder defineres af virksomheden selv." },
   { q: "Kan jeg bruge systemet uden at være på markedspladsen?", a: "Ja. De to dele kan bruges uafhængigt. I kan planlægge og fakturere jeres egne kunder uden at tage imod leads — og være synlige på markedspladsen uden at bruge planlægningen." },
@@ -71,7 +71,7 @@ const jsonLd: Record<string, unknown>[] = [
       priceCurrency: "DKK",
       url: "https://serviceydere.dk/software/priser",
       description:
-        "289 kr. pr. måned ekskl. moms med ruteplanlægning inkluderet. 14 dages gratis prøve uden betalingskort, derefter valgfri fortsættelse. Ekstra medarbejderlogin 59 kr./md. Ingen binding.",
+        "289 kr. pr. måned ekskl. moms med ruteplanlægning inkluderet. 30 dages gratis prøve uden betalingskort, derefter valgfri fortsættelse. Ekstra medarbejderlogin 59 kr./md. Ingen binding.",
     },
     provider: { "@type": "Organization", name: "Serviceydere", url: "https://serviceydere.dk/" },
     areaServed: { "@type": "Country", name: "Danmark" },
@@ -107,7 +107,7 @@ const SoftwareHub = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Systemet til servicevirksomheder | Serviceydere"
-        description="Ruteplanlægning, medarbejder-app, booking, kunder, fakturering og markedsplads i ét dansk system. 14 dages gratis prøve uden betalingskort, derefter 289 kr./md."
+        description="Ruteplanlægning, medarbejder-app, booking, kunder, fakturering og markedsplads i ét dansk system. 30 dages gratis prøve uden betalingskort, derefter 289 kr./md."
         canonicalPath="/software"
         keywords="system til servicevirksomheder, ruteplanlægning software, serviceplanlægning, rengøringssystem, håndværkersystem, field service management danmark"
         jsonLd={jsonLd}
@@ -126,7 +126,7 @@ const SoftwareHub = () => {
               to="/opret-virksomhed"
               className="inline-flex h-12 items-center justify-center rounded-full bg-background px-6 text-sm font-semibold text-foreground transition-opacity hover:opacity-90"
             >
-              Start 14 dages gratis prøve
+              Start 30 dages gratis prøve
             </Link>
             <Link
               to="/software/priser"
@@ -213,7 +213,7 @@ const SoftwareHub = () => {
         <SectionShell
           eyebrow="Pris"
           title="Hvad koster det"
-          description="14 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjer I kort under Indstillinger."
+          description="30 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjer I kort under Indstillinger."
         >
           <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             {/* Hovedprisen */}
@@ -229,7 +229,7 @@ const SoftwareHub = () => {
                 Ruteplanlægning, medarbejder-app, booking, kundekartotek og fakturering er med fra start.
               </p>
               <ul className="mt-5 space-y-2 text-sm">
-                {["14 dages gratis prøve uden kort", "Ingen binding", "Dansk support på hverdage"].map((t) => (
+                {["30 dages gratis prøve uden kort", "Ingen binding", "Dansk support på hverdage"].map((t) => (
                   <li key={t} className="flex items-center gap-2">
                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
                       <Check className="h-3 w-3" aria-hidden />
@@ -287,11 +287,11 @@ const SoftwareHub = () => {
           <div className="relative isolate overflow-hidden rounded-[28px] bg-ocean px-6 py-10 text-center text-ocean-foreground shadow-sm sm:px-10 sm:py-12">
             <h2 className="m-0 text-2xl font-semibold tracking-tight sm:text-3xl">Klar til at prøve systemet?</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-ocean-foreground/80 sm:text-base">
-              14 dages gratis prøve uden betalingskort. Opret virksomheden på få minutter — vi hjælper med at flytte jeres kunder ind.
+              30 dages gratis prøve uden betalingskort. Opret virksomheden på få minutter — vi hjælper med at flytte jeres kunder ind.
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link to="/opret-virksomhed" className="inline-flex h-12 items-center rounded-full bg-ocean-foreground px-7 text-sm font-semibold text-ocean transition-opacity hover:opacity-90">
-                Start 14 dages gratis prøve
+                Start 30 dages gratis prøve
               </Link>
               <Link to="/software/priser" className="inline-flex h-12 items-center rounded-full border border-ocean-foreground/30 px-7 text-sm font-semibold text-ocean-foreground transition-colors hover:bg-ocean-foreground/10">
                 Se priser

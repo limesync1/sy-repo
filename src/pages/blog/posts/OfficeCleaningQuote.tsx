@@ -25,7 +25,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/blog/tilbud-skabelon-servicefirma">Tilbud skabelon</a> <a href="/blog/ruteplanlaegning-rengoeringsfirma">ruteplanlægning for rengøringsfirmaer</a> <a href="/blog/start-eget-rengoeringsfirma">start eget rengøringsfirma</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/tilbud-skabelon-servicefirma">Tilbud skabelon</a> <a href="/blog/ruteplanlaegning-rengoeringsfirma">ruteplanlægning for rengøringsfirmaer</a> <a href="/blog/start-eget-rengoeringsfirma">start eget rengøringsfirma</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

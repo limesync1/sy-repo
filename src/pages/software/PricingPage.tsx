@@ -22,7 +22,7 @@ const FALLBACK = {
   startup_fee_dkk: 2269,
   discount_quarterly_pct: 10,
   discount_yearly_pct: 20,
-  trial_days: 14,
+  trial_days: 30,
 };
 
 const kr = (n: number) =>
@@ -47,11 +47,11 @@ const FAQ = [
   },
   {
     q: "Kan jeg prøve det først?",
-    a: "Ja. Der er 14 dages gratis prøve, og du skal ikke oplyse betalingskort for at komme i gang. Vil du fortsætte efter prøven, tilføjer du kort under Indstillinger → Fakturering. Der er ingen binding.",
+    a: "Ja. Der er 30 dages gratis prøve, og du skal ikke oplyse betalingskort for at komme i gang. Vil du fortsætte efter prøven, tilføjer du kort under Indstillinger → Fakturering. Der er ingen binding.",
   },
   {
     q: "Er Serviceydere gratis?",
-    a: "Nej. De første 14 dage er gratis, og derefter koster basis 289 kr./md. ekskl. moms med ruteplanlægning inkluderet. Vælger du ikke at fortsætte, sker der ingen betaling.",
+    a: "Nej. De første 30 dage er gratis, og derefter koster basis 289 kr./md. ekskl. moms med ruteplanlægning inkluderet. Vælger du ikke at fortsætte, sker der ingen betaling.",
   },
   {
     q: "Kan I flytte mine eksisterende kunder ind?",

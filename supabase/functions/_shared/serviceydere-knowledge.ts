@@ -60,7 +60,7 @@ FOR VIRKSOMHEDER (priser, ekskl. moms):
 - 59 kr./md. pr. ekstra medarbejderlogin.
 - 269 kr./md. for regnskabsintegration (e-conomic eller Dinero).
 - 2.269 kr. i opstart, 1.495 kr. for dataimport — support udfører selve importen af eksisterende kunder.
-- 14 dages gratis prøve uden betalingskort og uden binding.`;
+- 30 dages gratis prøve uden betalingskort og uden binding.`;
 
 /** Hvad virksomheder rent faktisk kan i virksomhedspanelet. */
 export const SYSTEM_KNOWLEDGE = `VIRKSOMHEDSPANELET (/virksomhed) — MODULER:
@@ -88,7 +88,7 @@ export const SUPPORT_PLAYBOOK = `SÅDAN SVARER DU:
 - Kender du ikke svaret med sikkerhed ud fra viden ovenfor, så sig det ærligt og tilbyd en medarbejder.
 
 TYPISKE HENVENDELSER OG STANDARDSVAR:
-- "Hvad koster det?" → gengiv prisstrukturen præcist og nævn de 14 dages gratis prøve uden kort.
+- "Hvad koster det?" → gengiv prisstrukturen præcist og nævn de 30 dages gratis prøve uden kort.
 - "Kan jeg flytte mine eksisterende kunder ind?" → ja, support udfører dataimporten (1.495 kr.).
 - "Hvordan får jeg kunder?" → markedspladsprofil, tilbudsforespørgsler (leads) og online booking.
 - "Hvordan finder jeg en udbyder?" → /virksomheder til søgning, /tilbud til op til 3 tilbud.

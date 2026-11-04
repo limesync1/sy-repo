@@ -7,7 +7,7 @@ export default defineBlogPost({
   faq: [
     { q: "Hvad er ruteplanlægning?", a: "At bestemme hvilke kunder der besøges hvilken dag, af hvem og i hvilken rækkefølge — så I kører mindst muligt og når flest besøg." },
     { q: "Hvornår skal jeg have et rigtigt værktøj?", a: "Når du har faste kunder med forskellige intervaller, eller mere end én medarbejder. Så bliver regneark og papir hurtigt uoverskuelige." },
-    { q: "Kan jeg prøve en ruteplanlægger gratis?", a: "Ja. Serviceydere kan prøves gratis i 14 dage. Du skal ikke bruge kreditkort for at starte." },
+    { q: "Kan jeg prøve en ruteplanlægger gratis?", a: "Ja. Serviceydere kan prøves gratis i 30 dage. Du skal ikke bruge kreditkort for at starte." },
   ],
   sections: [
     { paragraphs: [

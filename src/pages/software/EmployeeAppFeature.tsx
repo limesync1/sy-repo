@@ -5,7 +5,7 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/medarbejder-app",
   metaTitle: "Medarbejder-app til dagens rute | Serviceydere",
   metaDescription:
-    "Dagens ruter, manuel tidsregistrering og frivillige før/efter-billeder i én medarbejder-app. Hent Android-appen eller tilføj på iPhone. Prøv gratis i 14 dage.",
+    "Dagens ruter, manuel tidsregistrering og frivillige før/efter-billeder i én medarbejder-app. Hent Android-appen eller tilføj på iPhone. Prøv gratis i 30 dage.",
   keywords:
     "medarbejder app, dagens rute app, tjek ind tjek ud, timeregistrering service, mobil ruteliste, service app danmark",
   heroEyebrow: "Medarbejder-app",

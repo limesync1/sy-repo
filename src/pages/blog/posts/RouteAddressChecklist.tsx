@@ -55,6 +55,6 @@ export default defineBlogPost({
       ]
     },
     { heading: "Læs videre", body: <p><a href="/blog/ruteplanlaegning-excel-til-system">adresseoprydning i regneark</a> · <a href="/blog/ruteoptimering">ruteoptimering</a> · <a href="/software/ruteplanlaegger">Serviceyderes ruteplanlægger</a></p> },
-    { body: <p><a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.</p> }
+    { body: <p><a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.</p> }
   ]
 });

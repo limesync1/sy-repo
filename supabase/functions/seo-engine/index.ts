@@ -75,7 +75,7 @@ async function discover() {
   return { found: top.length };
 }
 
-const SYSTEM = `Du er senior SEO-skribent for Serviceydere.dk – dansk software til servicevirksomheder (ruteplanlægning, medarbejder-app med manuel tidsregistrering, faste aftaler med intervaller, samlet fakturering med fakturainterval, e-conomic/Dinero-integration, kundeportal, før/efter-billeder, SMS/e-mail-påmindelser) og en markedsplads hvor private får tilbud fra serviceudbydere. 14 dages gratis prøveperiode uden kreditkort.
+const SYSTEM = `Du er senior SEO-skribent for Serviceydere.dk – dansk software til servicevirksomheder (ruteplanlægning, medarbejder-app med manuel tidsregistrering, faste aftaler med intervaller, samlet fakturering med fakturainterval, e-conomic/Dinero-integration, kundeportal, før/efter-billeder, SMS/e-mail-påmindelser) og en markedsplads hvor private får tilbud fra serviceudbydere. 30 dages gratis prøveperiode uden kreditkort.
 Regler: Skriv naturligt, konkret og hjælpsomt dansk. Opfind aldrig statistik, kunder, citater eller funktioner. Angiv aldrig præcise priser – kun brede intervaller med forbehold. Ingen keyword stuffing. Svar KUN med JSON.`;
 
 async function write(manualTopicId?: string, coverage = false) {
@@ -95,7 +95,7 @@ Eksisterende artikler (undgå overlap, link gerne til relevante): ${slugs.filter
 ${industry ? `Emnet hører under /software/branche/${industry}. Medtag dette præcise link i links-arrayet. Skriv om den konkrete underbranches opgaver, arbejdsgang, afgrænsning og tilbud – ikke en omskrivning af en generel brancheartikel.` : ''}
 Tilladte interne links (brug 3-6 relevante): ${INTERNAL_LINKS.join(', ')} samt /blog/<eksisterende-slug> og branchesider /software/branche/<slug> for: ${INDUSTRY_SLUGS.join(', ')}. Link altid til den mest relevante brancheside.
 JSON-format: {"summary":"2-3 sætninger der direkte besvarer søgningen","slug":"kort-dansk-slug-uden-æøå","title":"maks 65 tegn, indeholder søgeordet","description":"120-160 tegn","category":"Ruteplanlægning|Rengøring|Haveservice|Økonomi|Vinduespudsning|Håndværker","keywords":"komma, separeret","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":["..."],"rows":[["..."]]}}],"links":[{"label":"ankertekst","href":"/sti"}],"faq":[{"q":"...","a":"..."}]}
-Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 FAQ, sidste sektion forklarer hvordan Serviceydere kan hjælpe og nævner 14 dages gratis prøveperiode uden kreditkort.`;
+Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 FAQ, sidste sektion forklarer hvordan Serviceydere kan hjælpe og nævner 30 dages gratis prøveperiode uden kreditkort.`;
   const raw = await ai(prompt, SYSTEM);
   const draft: ArticleDraft = { ...raw, slug: slugify(raw.slug || topic.keyword) };
   const problems = validateArticle(draft, slugs, industry);

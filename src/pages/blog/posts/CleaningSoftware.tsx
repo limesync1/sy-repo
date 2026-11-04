@@ -4,7 +4,7 @@ export default defineBlogPost({
   slug: "software-til-rengoeringsfirma",
   keywords: "software rengøringsfirma, rengøring system, planlægning rengøring",
   faq: [
-    { q: "Kan jeg prøve først?", a: "Ja, Serviceydere kan prøves gratis i 14 dage uden kreditkort." },
+    { q: "Kan jeg prøve først?", a: "Ja, Serviceydere kan prøves gratis i 30 dage uden kreditkort." },
     { q: "Virker det til erhvervsrengøring?", a: "Ja, også med flere adresser og samlefakturaer." },
   ],
   sections: [
@@ -26,7 +26,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Læs også <a href="/blog/ruteplanlaegning-for-servicevirksomheder">ruteplanlægning for servicevirksomheder</a> og <a href="/blog/samlefaktura-faste-kunder">samlefaktura til faste kunder</a>.{" "}
-        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

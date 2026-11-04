@@ -963,7 +963,7 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
     title: "Abonnement og betalingskort",
     area: "Regnskab og betaling",
     summary:
-      "14 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjes kort under Indstillinger, hvor abonnementet også kan opskaleres.",
+      "30 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjes kort under Indstillinger, hvor abonnementet også kan opskaleres.",
     example: "Efter prøveperioden tilføjer I kort og udvider med to ekstra medarbejderlogins.",
     steps: ["Åbn Indstillinger.", "Find pris og betaling.", "Tilføj betalingskort eller opskalér abonnementet."],
     keywords: ["abonnement", "betaling", "kort", "prøveperiode", "opsigelse"],

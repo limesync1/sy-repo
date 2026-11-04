@@ -32,7 +32,7 @@ import { AuthEmailConfirmation } from "@/components/shared/AuthEmailConfirmation
  *   3) Vælger antal ekstra medarbejderlogins
  *   4) Vælger faktureringsperiode (månedlig / kvartal -10% / årlig -20%)
  *   5) Ser pris LIVE i en sticky sidebar
- *   6) Opretter konto (email + adgangskode) og kommer ind med 14 dages prøve.
+ *   6) Opretter konto (email + adgangskode) og kommer ind med 30 dages prøve.
  *
  * Stripe-betalingskortet tilføjes senere under Indstillinger → Fakturering.
  * Selve beløbene styres af platform_settings (administreres i platform-admin).
@@ -373,9 +373,9 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
       <PageHero
         tone="amber"
-        eyebrow={`${pricing?.trial_days ?? 14} dages gratis prøve · Intet kort kræves`}
+        eyebrow={`${pricing?.trial_days ?? 30} dages gratis prøve · Intet kort kræves`}
         title={variant === "pricing" ? "Priser — sammensæt jeres abonnement" : "Bliv udbyder på Serviceydere"}
-        aside={<HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 14} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} />}
+        aside={<HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 30} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} />}
         subtitle={
           variant === "pricing"
             ? `Basis koster ${formatDkk(pricing?.base_price_dkk ?? 289)} kr./md. ekskl. moms med ruteplanlægningen inkluderet. Indtast CVR, vælg tilvalg og medarbejderlogins — så ser I præcis jeres egen pris, før I opretter noget.`
