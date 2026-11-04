@@ -2902,6 +2902,56 @@ export type Database = {
           },
         ]
       }
+      material_catalog: {
+        Row: {
+          business_id: string
+          cost_price: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sale_price: number
+          sku: string
+          supplier: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          cost_price?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sale_price?: number
+          sku?: string
+          supplier?: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          cost_price?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sale_price?: number
+          sku?: string
+          supplier?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_catalog_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meta_connections: {
         Row: {
           access_token_ciphertext: string | null
@@ -3154,6 +3204,76 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_materials: {
+        Row: {
+          added_by: string | null
+          added_by_name: string | null
+          business_id: string
+          catalog_id: string | null
+          cost_price: number
+          created_at: string
+          id: string
+          name: string
+          order_id: string
+          quantity: number
+          stop_id: string | null
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          added_by?: string | null
+          added_by_name?: string | null
+          business_id: string
+          catalog_id?: string | null
+          cost_price?: number
+          created_at?: string
+          id?: string
+          name: string
+          order_id: string
+          quantity?: number
+          stop_id?: string | null
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          added_by?: string | null
+          added_by_name?: string | null
+          business_id?: string
+          catalog_id?: string | null
+          cost_price?: number
+          created_at?: string
+          id?: string
+          name?: string
+          order_id?: string
+          quantity?: number
+          stop_id?: string | null
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_materials_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_materials_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "material_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_materials_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -3624,6 +3744,123 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quality_checklists: {
+        Row: {
+          business_id: string
+          completed_at: string | null
+          completed_by: string | null
+          completed_by_name: string | null
+          created_at: string
+          id: string
+          items: Json
+          notes: string | null
+          order_id: string
+          signature: string | null
+          signer_name: string | null
+          stop_id: string | null
+          template_id: string | null
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_by_name?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_id: string
+          signature?: string | null
+          signer_name?: string | null
+          stop_id?: string | null
+          template_id?: string | null
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_by_name?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_id?: string
+          signature?: string | null
+          signer_name?: string | null
+          stop_id?: string | null
+          template_id?: string | null
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_checklists_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_checklists_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_checklists_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "quality_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_templates: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          items: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          items?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          items?: Json
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_templates_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quote_match_rate_events: {
         Row: {
@@ -6095,6 +6332,10 @@ export type Database = {
           _unit: string
         }
         Returns: string
+      }
+      is_business_employee: {
+        Args: { _business_id: string; _uid: string }
+        Returns: boolean
       }
       is_business_owner: {
         Args: { _business_id: string; _user_id: string }
