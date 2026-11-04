@@ -4,6 +4,7 @@
 - [x] 705 offentliggjorte branche-/byruter: HTTP 200, korrekt canonical, første HTML-overskrift og ingen noindex. Alle registrerede ruter dækket af metadata, sitemap og fuldt indhold; udgivelse afvises ved mangler. 21 tests bestået, SEO-check 0 fejl/advarsler på 1.084 lokale sitemap-URL'er og build OK. København → elektriker-link afprøvet i browser.
 - [x] Search Console (valgt https://serviceydere.dk/): to eksisterende sitemaps accepteret uden fejl/advarsler; rengøring/København indekseret, by/København og snerydning opdaget/ikke indekseret, privatrengøring og elektriker/Aarhus ukendte. Ingen unødvendig sitemap-genindsendelse; intet indekseringsrequest udført. Ny udgivelsesbeskyttelse endnu ikke offentliggjort.
 - [x] Rengøring-, flyttehjælp- og håndværker-bysider: regneeksempel + 5 synlige spørgsmål/svar (samme i prerender og FAQ-data).
+- [x] Fase 3 (del): nye Google-titler/beskrivelser til haveguiden (plads ~19, 875 visninger) og vinduesrens-artiklen (plads ~8,5) ud fra faktiske søgninger.
 - [ ] Alle sider indekseret: afventer Googles crawling og beslutning; API-kontrol kan ikke anmode om indeksering.
 
 ## 3. nov. — Fortsat responsiv forside
