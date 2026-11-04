@@ -35,6 +35,10 @@ import profileGroupIcon from "@/assets/content-icons/profil.svg.asset.json";
 import messagesGroupIcon from "@/assets/content-icons/beskeder.svg.asset.json";
 import accountGroupIcon from "@/assets/content-icons/konto.svg.asset.json";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
+import { isCraftBusiness, readTradeModules, type TradeModules } from "@/lib/trade-modules";
+import { MaterialCatalogDialog } from "@/components/trade/MaterialCatalogDialog";
+import { QualityTemplatesDialog } from "@/components/trade/QualityTemplatesDialog";
+import { Package, ClipboardCheck, Truck, Hammer } from "lucide-react";
 
 /**
  * Lille selvopdaterende komponent — tikker hvert minut og holder
@@ -173,6 +177,7 @@ const SECTIONS = [
   { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
   { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
   { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS" },
   { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
 ] as const;
 
@@ -488,6 +493,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
     !!(business.settings as any)?.livechat_enabled
   );
+  // Håndværksmodul (materialer, grossistprisfiler, kvalitetssikring).
+  const origTradeModules = readTradeModules(business.settings);
+  const [tradeModules, setTradeModules] = useState<TradeModules>(origTradeModules);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [customerNotifUpcomingMinutes, setCustomerNotifUpcomingMinutes] = useState<number>(() => {
     const s = (business.settings as any) || {};
     if (typeof s.customer_notif_upcoming_minutes === "number") return Number(s.customer_notif_upcoming_minutes);
@@ -750,6 +760,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     accountingIntegrationEnabled !== origAccountingIntegration ||
     leadsEnabled !== origLeadsEnabled ||
     livechatEnabled !== origLivechatEnabled ||
+    JSON.stringify(tradeModules) !== JSON.stringify(origTradeModules) ||
     customDomain.trim() !== origCustomDomain ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
@@ -784,6 +795,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
+      trade_modules: tradeModules,
       customer_notif_upcoming_minutes: customerNotifUpcomingMinutes,
       customer_notif_upcoming_hours: Math.max(1, Math.round(customerNotifUpcomingMinutes / 60)),
       sms_enabled: smsEnabled,
@@ -805,7 +817,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingMinutes,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, tradeModules, customDomain, customerNotifUpcomingMinutes,
     allowEarlyCompletionDefault,
   ]);
 
@@ -1091,7 +1103,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               const groups: { title: string; ids: string[] }[] = [
                 { title: "Profil",      ids: ["general", "industries", "contact", "branding", "hours"] },
                 { title: "Beskeder",    ids: ["notifications", "customer-notifications"] },
-                { title: "Konto",       ids: ["billing", "advanced"] },
+                { title: "Konto",       ids: ["billing", "trade", "advanced"] },
               ];
               return groups.map((g, gi) => (
                 <div key={g.title} className={gi > 0 ? "mt-4 border-t border-border/50 pt-3" : ""}>
@@ -1945,6 +1957,62 @@ const SettingsTab = ({ business }: { business: any }) => {
               extraEmployeeLogins={planExtraLogins}
             />
           </SectionCard>
+        </div>
+
+        {/* Håndværk — materialer, grossister og kvalitetssikring */}
+        <div id="settings-trade" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+          <SectionCard title="Håndværk" icon={<Hammer />} description="Materialer på opgaver, prisfiler fra grossister og tjeklister til kvalitetssikring. Til håndværksbrancher som el, VVS, tømrer, maler og murer.">
+            {!isCraftBusiness(selectedCategories) && !tradeModules.materials && !tradeModules.quality ? (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Disse funktioner er lavet til håndværksbrancher. Vælg fx Elektriker, VVS, Tømrer og snedker, Maler eller Murer under Brancher, så kan I slå dem til her.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                <FeatureRow
+                  icon={<Package className="h-8 w-8 text-foreground" />}
+                  title="Materialer på opgaver"
+                  badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                  description="Medarbejderne registrerer brugte materialer (rør, fliser, skruer m.m.) på opgaven fra jeres materialeliste. Materialerne kommer automatisk med som linjer på fakturaen til e-conomic eller Dinero."
+                  active={tradeModules.materials}
+                  activeLabel="Aktivt — ”Materialer” vises på opgaver og i medarbejder-appen"
+                  inactiveLabel="Ikke aktivt"
+                  onToggle={() => setTradeModules((t) => ({ ...t, materials: !t.materials, wholesaler: t.materials ? false : t.wholesaler }))}
+                />
+                <FeatureRow
+                  icon={<Truck className="h-8 w-8 text-foreground" />}
+                  title="Grossistpriser"
+                  badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                  description="Upload prisfilen fra Solar, Sanistål, Brødrene Dahl, Ahlsell m.fl. med jeres egne aftalepriser. Vil I have en direkte forbindelse til grossisten, så kontakt kundeservice, så finder vi en løsning sammen."
+                  active={tradeModules.wholesaler}
+                  activeLabel="Aktivt — upload prisfiler under Materialeliste"
+                  inactiveLabel={tradeModules.materials ? "Ikke aktivt" : "Kræver at ”Materialer på opgaver” er slået til"}
+                  onToggle={() => tradeModules.materials && setTradeModules((t) => ({ ...t, wholesaler: !t.wholesaler }))}
+                />
+                <FeatureRow
+                  icon={<ClipboardCheck className="h-8 w-8 text-foreground" />}
+                  title="Kvalitetssikring (KS)"
+                  badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                  description="Tjeklister med målinger (fx trykprøvning, isolationsmåling), afvigelser og kundens underskrift. Udfyldes i medarbejder-appen og gemmes på opgaven, så I kan dokumentere arbejdet og printe det som PDF."
+                  active={tradeModules.quality}
+                  activeLabel="Aktivt — ”Kvalitetssikring” vises på opgaver og i medarbejder-appen"
+                  inactiveLabel="Ikke aktivt"
+                  onToggle={() => setTradeModules((t) => ({ ...t, quality: !t.quality }))}
+                />
+                {(tradeModules.materials || tradeModules.quality) && (
+                  <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+                    {tradeModules.materials && (
+                      <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setCatalogOpen(true)}><Package className="h-4 w-4" /> Materialeliste</Button>
+                    )}
+                    {tradeModules.quality && (
+                      <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setTemplatesOpen(true)}><ClipboardCheck className="h-4 w-4" /> Tjeklister</Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </SectionCard>
+          <MaterialCatalogDialog open={catalogOpen} onOpenChange={setCatalogOpen} businessId={business.id} wholesaler={tradeModules.wholesaler} />
+          <QualityTemplatesDialog open={templatesOpen} onOpenChange={setTemplatesOpen} businessId={business.id} categories={selectedCategories} />
         </div>
 
         {/* Avanceret */}

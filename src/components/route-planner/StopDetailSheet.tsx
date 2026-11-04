@@ -38,6 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RouteCommunicationPanel } from "./RouteCommunicationPanel";
 import { EmployeeNotesSection } from "./EmployeeNotesSection";
 import { OrderPhotoGallery } from "@/components/employee/StopPhotos";
+import { TradeWorkPanel } from "@/components/trade/TradeWorkPanel";
 
 type Props = {
   stop: RouteStop | null;
@@ -370,6 +371,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {stop.order_id && <OrderPhotoGallery orderId={stop.order_id} />}
+              {stop.order_id && <TradeWorkPanel orderId={stop.order_id} businessId={(stopRoute as any)?.business_id} stopId={stop.id} canManage customerName={stop.customer_name} />}
               {stop.order_id && <EmployeeNotesSection orderId={stop.order_id} />}
 
               {/* Customer */}

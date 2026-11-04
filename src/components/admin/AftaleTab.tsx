@@ -54,6 +54,7 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AppointmentDetailsHeader } from "@/components/shared/AppointmentDetailsHeader";
 import { OrderPhotoGallery } from "@/components/employee/StopPhotos";
+import { TradeWorkPanel } from "@/components/trade/TradeWorkPanel";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -2299,6 +2300,7 @@ const AftaleTab = ({
                       </SheetHeader>
                       <div className="planner-overlay-body min-h-0 flex-1 space-y-4 overflow-y-auto bg-secondary/20 p-4 sm:space-y-5 sm:p-5">
                     <OrderPhotoGallery orderId={order.id} />
+                    <TradeWorkPanel orderId={order.id} businessId={businessId} canManage customerName={(order as any).customer_name} />
                     <Section icon={<ArrowRight className="h-3.5 w-3.5" />} title="Næste handling">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">

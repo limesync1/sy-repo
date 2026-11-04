@@ -34,6 +34,7 @@ import { EmployeeStopActions, EmployeeStopNotesList } from "./EmployeeStopAction
 import { AlertTriangle } from "lucide-react";
 import { extractAccessHints } from "@/lib/stop-access-notes";
 import { StopPhotos } from "./StopPhotos";
+import { TradeWorkPanel } from "@/components/trade/TradeWorkPanel";
 import { StopObstacleButton } from "./StopObstacleButton";
 
 type RouteContext = {
@@ -433,6 +434,7 @@ export const StopDetailsContent = ({
         )}
 
         <StopPhotos stopId={stop.id} businessId={(order as any)?.business_id} orderId={stop.order_id} readOnly={readOnly} />
+        <TradeWorkPanel orderId={stop.order_id} businessId={(order as any)?.business_id} stopId={stop.id} readOnly={readOnly} customerName={stop.customer_name} />
         {!readOnly && !isDone && <StopObstacleButton stopId={stop.id} />}
 
 
