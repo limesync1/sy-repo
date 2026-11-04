@@ -70,6 +70,12 @@ const HeroSection = () => {
                 </SmartLink>
               </Button>
           </div>
+          <p className="animate-fade-in [animation-delay:400ms] mt-4 text-sm leading-6 text-ocean-foreground/80">
+            Driver du en servicevirksomhed?{" "}
+            <SmartLink to="/opret-virksomhed" className="inline-flex min-h-11 items-center font-semibold text-ocean-foreground underline underline-offset-4 hover:no-underline">
+              Opret din virksomhed gratis
+            </SmartLink>
+          </p>
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}

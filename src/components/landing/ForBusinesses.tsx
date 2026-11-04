@@ -90,6 +90,20 @@ const ForBusinesses = () => {
           </div>
         </div>
 
+        <ul className="mb-8 grid gap-2 text-sm text-foreground sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            "Gratis flytning af data fra dit nuværende system",
+            "Fakturering med e-conomic eller Dinero",
+            "Medarbejderapp der også virker offline",
+            "Billeder som dokumentation for udført arbejde",
+          ].map((t) => (
+            <li key={t} className="flex min-h-11 items-center gap-2.5 rounded-lg border border-border bg-background px-3 py-2">
+              <Check className="h-4 w-4 shrink-0 text-accent" />
+              {t}
+            </li>
+          ))}
+        </ul>
+
         <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-premium-lg">
           <article className="p-5 sm:p-7 2xl:p-9">
             <div className="grid gap-7 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
