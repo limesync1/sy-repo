@@ -57,9 +57,17 @@ const Footer = () => {
           </div>
         </div>
 
-        <p className="mb-7 max-w-3xl text-sm leading-6 text-background/75">
-          <strong className="text-background">Hvad er Serviceydere?</strong> Serviceydere (også skrevet “Service ydere”) er en dansk platform, hvor private og virksomheder finder og booker lokale serviceydere, og hvor servicevirksomheder får ruteplanlægning, medarbejder-app, booking og fakturering. <Link to="/om-os" className="underline">Læs om Serviceydere</Link>.
-        </p>
+        <div className="mb-8 flex flex-col gap-3 border-l-2 border-accent pl-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="max-w-2xl">
+            <h3 className="text-base font-semibold text-background">Hvad er Serviceydere?</h3>
+            <p className="mt-1 text-sm leading-6 text-background/75">
+              En dansk platform, hvor du finder lokale serviceydere – og hvor servicevirksomheder styrer ruter, medarbejdere og fakturering ét sted.
+            </p>
+          </div>
+          <Link to="/om-os" className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-background underline-offset-4 hover:underline">
+            Læs om os <span aria-hidden>→</span>
+          </Link>
+        </div>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-11 lg:[&_a]:min-h-8 [&_a]:items-center [&_a]:py-0.5 [&_a]:leading-snug">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
