@@ -385,8 +385,8 @@ export const useCommitSickLeave = () => {
         await logRouteAudit({
           business_id: businessId,
           route_id: route.id,
-          action: `sygemelding:${decision.action}`,
-          summary: `${input.employeeName} blev meldt syg — ${
+          action: `${input.absence?.type === "vacation" ? "ferie" : "sygemelding"}:${decision.action}`,
+          summary: `${input.employeeName} blev meldt ${input.absence?.type === "vacation" ? "på ferie" : "syg"} — ${
             SICK_LEAVE_SUMMARY[decision.action as SickLeaveAction](decision.newDate ?? null)
           }.`,
           scope: "single",
@@ -398,14 +398,14 @@ export const useCommitSickLeave = () => {
 
       return { routesChanged, stopsChanged };
     },
-    onSuccess: (res) => {
+    onSuccess: (res, input) => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["sick-leave-impact"] });
       qc.invalidateQueries({ queryKey: ["employee-absences"] });
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
       toast.success(
-        `Sygemelding gennemført — ${res.routesChanged} rute${res.routesChanged === 1 ? "" : "r"} og ${res.stopsChanged} aftale${res.stopsChanged === 1 ? "" : "r"} opdateret`,
+        `${input.absence?.type === "vacation" ? "Ferie registreret" : "Sygemelding gennemført"} — ${res.routesChanged} rute${res.routesChanged === 1 ? "" : "r"} og ${res.stopsChanged} aftale${res.stopsChanged === 1 ? "" : "r"} opdateret`,
       );
     },
     onError: (e: any) => {

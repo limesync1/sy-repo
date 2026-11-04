@@ -95,7 +95,7 @@ import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog"
 import { supabase } from "@/integrations/supabase/client";
 import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import { stopCapacity } from "@/components/route-planner/lib/stop-capacity";
-import SickLeaveDialogHost, { openSickLeaveDialog } from "@/components/route-planner/SickLeaveDialogHost";
+import SickLeaveDialogHost, { openSickLeaveDialog, openVacationDialog } from "@/components/route-planner/SickLeaveDialogHost";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
@@ -151,7 +151,7 @@ import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/component
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import DayOptimizerDialog from "@/components/route-planner/DayOptimizerDialog";
 import { Gauge } from "lucide-react";
-import { Printer, ListOrdered } from "lucide-react";
+import { Printer, ListOrdered, CalendarDays } from "lucide-react";
 import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
@@ -3684,6 +3684,9 @@ const Planner = () => {
                           <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
                             <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openVacationDialog()} className="text-xs gap-2">
+                            <CalendarDays className="h-3.5 w-3.5" /> Meld medarbejder på ferie
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setShortcutsOpen(true)} className="text-xs gap-2">
                             <Keyboard className="h-3.5 w-3.5" /> Tastatur-genveje
@@ -3904,6 +3907,7 @@ const Planner = () => {
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setDayDetailOpen(true)}><ListOrdered className="h-4 w-4" />Vis dagen som tidslinje</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setPrintOpen(true)}><Printer className="h-4 w-4" />Print / PDF</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => openSickLeaveDialog()}><AlertTriangle className="h-4 w-4" />Meld medarbejder syg</DropdownMenuItem>
+                        <DropdownMenuItem className="min-h-11 gap-2" onClick={() => openVacationDialog()}><CalendarDays className="h-4 w-4" />Meld medarbejder på ferie</DropdownMenuItem>
                         <DropdownMenuItem className="min-h-11 gap-2" onClick={() => setShortcutsOpen(true)}><Keyboard className="h-4 w-4" />Tastatur-genveje</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="min-h-11 gap-2" disabled={!history.canUndo} onClick={() => void history.undo()}><Undo2 className="h-4 w-4" />Fortryd seneste handling</DropdownMenuItem>

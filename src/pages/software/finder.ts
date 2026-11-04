@@ -24,7 +24,7 @@ export const NEEDS: { id: string; label: string; have: boolean; text: string }[]
   { id: "leads", label: "Flere nye kunder", have: true, text: "Nye kunder via Serviceyderes markedsplads" },
   { id: "booking", label: "Online booking", have: true, text: "Kunder kan booke og få pris online" },
   { id: "sms", label: "SMS til kunder", have: true, text: "SMS-beskeder til kunder" },
-  { id: "mobilepay", label: "MobilePay", have: false, text: "MobilePay har vi ikke endnu. Fakturaer kan betales via dit regnskabsprogram." },
+  { id: "mobilepay", label: "MobilePay", have: true, text: "MobilePay via dit regnskabsprogram: tilkobl det i e-conomic eller Dinero, så kan fakturaerne betales med MobilePay" },
   { id: "bookkeeping", label: "Bogføring i samme program", have: false, text: "Egen bogføring har vi ikke. Den sker i e-conomic eller Dinero, som mange revisorer foretrækker." },
   { id: "materials", label: "Materialer og grossister", have: false, text: "Materialer og grossistpriser har vi ikke. Det er bygget til faste besøg, ikke store byggesager." },
   { id: "ios", label: "App til iPhone", have: false, text: "Appen er til Android. På iPhone bruges panelet i browseren." },
