@@ -1,4 +1,5 @@
 import { citySeo } from "@/seo/city-seo";
+import { CityFactsBox } from "./CityFactsBox";
 import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
@@ -245,6 +246,7 @@ const CleaningCityPage = () => {
             <Link to="/rengoering/aalborg" className="underline">Aalborg</Link>{" · "}
             <Link to="/rengoering/esbjerg" className="underline">Esbjerg</Link>
           </p>
+        <CityFactsBox slug={city.slug} name={city.name} />
         </article>
       </main>
 

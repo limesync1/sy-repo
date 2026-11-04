@@ -7,6 +7,7 @@ import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { branchCities, branchCity, findBranch } from "./branchRegistry";
 import { LocalServiceLinks } from "./LocalServiceLinks";
+import { CityFactsBox } from "./CityFactsBox";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -100,6 +101,7 @@ const TradeCityPage = ({ kind }: { kind: string }) => {
             </div>
           </div>
 
+          <CityFactsBox slug={city.slug} name={city.name} />
           <LocalServiceLinks slug={city.slug} name={city.name} currentPath={canonical} />
 
           <h2>Andre byer</h2>
