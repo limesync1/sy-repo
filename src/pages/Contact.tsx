@@ -9,6 +9,9 @@ import iconEmail from "@/assets/content-icons/email.svg.asset.json";
 import iconSvartid from "@/assets/content-icons/svartid.svg.asset.json";
 import iconAdresse from "@/assets/content-icons/omraade.svg.asset.json";
 import iconCvr from "@/assets/content-icons/cvr-tjekket.svg.asset.json";
+import iconPrivat from "@/assets/content-icons/beskriv-opgaven.svg.asset.json";
+import iconVirksomhed from "@/assets/content-icons/flere-kunder-i-dit-omraade.svg.asset.json";
+import iconGuide from "@/assets/content-icons/guide-kom-godt-i-gang.svg.asset.json";
 import iconSupport from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
 import { OFFICIAL_PROFILE_URLS } from "@/lib/social-links";
 
@@ -90,9 +93,37 @@ const Contact = () => {
           }
         />
 
-        {/* INFO — simpel kontakt-info som en klassisk firma-kontaktside */}
-        <section className="bg-background py-16 md:py-20">
+        {/* HVEM — vælg den rigtige vej */}
+        <section className="bg-background pt-16 md:pt-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Hvad drejer det sig om?</p>
+            <h2 className="mt-2 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">Vælg den hurtigste vej</h2>
+            <div className="mt-8 grid gap-3 sm:gap-4 md:grid-cols-3">
+              {[
+                { icon: iconPrivat.url, title: "Jeg skal have udført en opgave", text: "Beskriv opgaven og få op til 3 tilbud fra lokale, CVR-tjekkede firmaer.", to: "/tilbud", cta: "Indhent tilbud" },
+                { icon: iconVirksomhed.url, title: "Jeg har en servicevirksomhed", text: "Få personlig hjælp til at komme i gang med panelet og ruteplanlæggeren.", to: "/opret-virksomhed", cta: "Opret virksomhed" },
+                { icon: iconGuide.url, title: "Jeg har et spørgsmål", text: "Find svar på det meste i hjælpecentret – eller skriv til os på e-mail.", to: "/hjaelp", cta: "Gå til hjælpecenter" },
+              ].map(({ icon, title, text, to, cta }) => (
+                <SmartLink key={title} to={to} className="group flex min-w-0 flex-col rounded-[20px] border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 sm:p-6">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5">
+                    <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
+                  </div>
+                  <h3 className="mt-4 text-[17px] font-semibold leading-snug text-foreground">{title}</h3>
+                  <p className="mt-1.5 flex-1 text-[14.5px] leading-6 text-muted-foreground">{text}</p>
+                  <span className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-foreground">
+                    {cta}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </span>
+                </SmartLink>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* INFO — simpel kontakt-info som en klassisk firma-kontaktside */}
+        <section className="bg-background py-12 md:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Kontaktoplysninger</p>
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {[
                 { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Vi svarer typisk inden for 1–2 hverdage.", href: "mailto:kontakt@serviceydere.dk" },
@@ -123,6 +154,7 @@ const Contact = () => {
         <section className="bg-secondary py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 max-w-2xl">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Gratis og uforpligtende</p>
               <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                 Få 3 tilbud i stedet
               </h2>
