@@ -20,7 +20,7 @@ const HeroSection = () => {
     >
       <BlueFlowBackground />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-5 px-4 pb-6 pt-4 sm:gap-6 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pb-7 lg:pt-5 xl:grid-cols-[1.05fr_0.95fr] xl:gap-10 lg:px-8 xl:pb-14 xl:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-5 px-4 pb-6 pt-4 sm:gap-6 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pb-7 lg:pt-5 xl:grid-cols-[1.05fr_0.95fr] xl:gap-10 lg:px-8 xl:pb-8 xl:pt-6 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="min-w-0 w-full max-w-2xl">
           <SmartLink
             to="/kontakt"
@@ -35,7 +35,7 @@ const HeroSection = () => {
             </span>
             <ArrowRight className="h-4 w-4 shrink-0 opacity-70 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </SmartLink>
-          <h1 className="text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
+          <h1 className="text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="home-hero-highlight">
               serviceyder
@@ -92,7 +92,7 @@ const HeroSection = () => {
         </div>
 
         {/* Højre side — motiv i et roligt, afrundet vindue. */}
-        <div className="relative min-w-0 w-full max-w-2xl lg:max-w-none">
+        <div className="relative min-w-0 w-full max-w-2xl lg:max-w-none xl:mx-auto xl:max-w-[31rem] 2xl:max-w-none">
           <HeroPhotoRotator />
 
         </div>
