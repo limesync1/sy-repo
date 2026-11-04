@@ -15,7 +15,6 @@
 - Header/session icons use monochrome `PanelIcon`; compact artwork uses `UiArtwork`. Filled-button artwork uses a light contrast chip.
 - Illustrations use `BrandedIllustration`; `PanelIcon`/customer variants reuse assets to avoid duplicates.
 - Service VAT wording is presentation-only; service emails share `_service-price.ts`, while stored amounts and server pricing stay unchanged to avoid double taxation or changing platform-plan pricing.
-- Profile URLs use `src/lib/social-links.ts`.
 - Public SEO uses shared registries (including garden hub metadata) and seo-prerender-head to prevent snippet drift; canonicals use public origin unless a business supplies its domain.
 - Public topic recommendations and legacy city metadata share `src/seo` sources between browser and initial HTML; article prerendering fails on missing content, and client navigation removes prior prerender entities to prevent stale page attribution.
 - Leads normalize into `quote_requests`/`quote_request_matches`; provider connections/credentials stay server-side and business-scoped for one secure source of truth.
@@ -64,5 +63,5 @@
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
 - /software/branche/:slug pages, sitemap and prerender derive from `industryRegistry.ts`; add trades only there for consistency.
 - SEO's last daily slot favors least-covered trades; mapped articles link their parent.
-- SEO boost rewrites published articles via the quality gate, keeping slug and resubmitting the sitemap.
+- SEO boost rewrites articles via the quality gate, same slug.
 - Article covers: queued `article_images` served by its function; never block publishing.
