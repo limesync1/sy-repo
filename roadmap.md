@@ -100,6 +100,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Regnskab: kunder er synkroniseret; aftaler bogføres først ved udført besøg (bevidst)
 
 ## SEO-plan (nov 2026)
+- [ ] Fortsat gennemgang af lokale siders indhold og interne links; kontrollér forbedringer i browser og SEO-tests.
 - [x] Motor forbedrer artikler på side 2 og gamle artikler (tirs/fre)
 - [x] Kort svar øverst, synlige datoer, redaktionsside
 - [x] Sammenlægning af artikler der konkurrerer om samme søgning
