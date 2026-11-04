@@ -18,7 +18,12 @@ const TONE: Record<Cell["v"], string> = {
   unknown: "bg-muted text-muted-foreground",
 };
 
-function CellView({ c }: { c: Cell }) {
+const FACT_FEATURES = new Set(["Oprettelsesgebyr", "Månedspris fra", "Månedspris", "Pris", "Ekstra bruger", "Ekstra medarbejder", "Binding", "Gratis prøve"]);
+
+function CellView({ c, fact }: { c: Cell; fact?: boolean }) {
+  if (fact && c.note) {
+    return <span className="block text-[15px] font-semibold leading-6 text-foreground">{c.note}</span>;
+  }
   const Icon = ICON[c.v];
   return (
     <div className="flex items-start gap-2.5">
@@ -39,11 +44,19 @@ const ComparisonPage = () => {
   const { data: pricing } = usePlatformPricing();
   if (!c) return <Navigate to="/software/skift-rutesystem" replace />;
 
-  const priceNote = pricing
-    ? `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms, ${pricing.trial_days} dage gratis`
-    : "Se priser";
+  const loading = "Henter pris …";
+  const usPrice: Record<string, string> = pricing
+    ? {
+        "Månedspris fra": `${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Månedspris": `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Pris": `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Oprettelsesgebyr": pricing.startup_fee_dkk > 0 ? `${kr(pricing.startup_fee_dkk)} kr. uden moms` : "0 kr.",
+        "Ekstra bruger": `${kr(pricing.price_per_employee_login_dkk)} kr./md. uden moms`,
+        "Ekstra medarbejder": `${kr(pricing.price_per_employee_login_dkk)} kr./md. uden moms`,
+      }
+    : {};
   const rows = c.rows.map((r) =>
-    r.us.v === "partial" && r.us.note === "Se priser" ? { ...r, us: { ...r.us, note: r.feature === "Månedspris fra" ? priceNote : "Se priser" } } : r,
+    r.us.note === "Se priser" ? { ...r, us: { ...r.us, note: usPrice[r.feature] ?? loading } } : r,
   );
   const groups = [...new Set(rows.map((r) => r.group))];
   const others = comparisons.filter((x) => x.slug !== c.slug);
@@ -127,8 +140,8 @@ const ComparisonPage = () => {
                     {rows.filter((r) => r.group === g).map((r) => (
                       <tr key={r.feature} className="border-t border-border bg-card align-top">
                         <th scope="row" className="px-5 py-4 text-[15px] font-medium text-foreground">{r.feature}</th>
-                        <td className="px-5 py-4"><CellView c={r.us} /></td>
-                        <td className="px-5 py-4"><CellView c={r.them} /></td>
+                        <td className="px-5 py-4"><CellView c={r.us} fact={FACT_FEATURES.has(r.feature)} /></td>
+                        <td className="px-5 py-4"><CellView c={r.them} fact={FACT_FEATURES.has(r.feature)} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -139,8 +152,8 @@ const ComparisonPage = () => {
                   <div key={r.feature} className="rounded-xl border border-border bg-card p-4">
                     <p className="font-semibold text-foreground">{r.feature}</p>
                     <dl className="mt-3 grid grid-cols-2 gap-3">
-                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">Serviceydere</dt><dd><CellView c={r.us} /></dd></div>
-                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">{c.name}</dt><dd><CellView c={r.them} /></dd></div>
+                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">Serviceydere</dt><dd><CellView c={r.us} fact={FACT_FEATURES.has(r.feature)} /></dd></div>
+                      <div><dt className="mb-1 text-xs font-semibold text-muted-foreground">{c.name}</dt><dd><CellView c={r.them} fact={FACT_FEATURES.has(r.feature)} /></dd></div>
                     </dl>
                   </div>
                 ))}
