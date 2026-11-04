@@ -77,12 +77,12 @@ const Index = () => {
       <main id="main">
         <Reveal><Categories /></Reveal>
         <Reveal><HowItWorks /></Reveal>
+        <DeferredSection preload={loadFor} fallback={<SectionSkeleton cards={3} cardClassName="h-64" className="bg-surface" />}>
+          <Reveal><ForBusinesses /></Reveal>
+        </DeferredSection>
         <Reveal><WhyUs /></Reveal>
         <DeferredSection preload={loadFounder} fallback={<SectionSkeleton cards={1} cols="grid-cols-1" cardClassName="h-96" dark className="bg-ocean" />}>
           <Reveal><FounderNote /></Reveal>
-        </DeferredSection>
-        <DeferredSection preload={loadFor} fallback={<SectionSkeleton cards={3} cardClassName="h-64" className="bg-surface" />}>
-          <Reveal><ForBusinesses /></Reveal>
         </DeferredSection>
 
         <DeferredSection preload={loadCta} fallback={<SectionSkeleton cards={0} className="bg-ocean" dark />}>
@@ -93,7 +93,7 @@ const Index = () => {
               title="Beskriv opgaven én gang — få op til 3 tilbud"
               body="Det er gratis og uforpligtende. Du taler direkte med virksomhederne."
               primary={{ label: "Indhent 3 tilbud", to: "/tilbud" }}
-              secondary={{ label: "Find services", to: "/virksomheder" }}
+              secondary={{ label: "Opret virksomhed gratis", to: "/opret-virksomhed" }}
             />
           </Reveal>
         </DeferredSection>
