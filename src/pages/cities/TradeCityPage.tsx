@@ -6,12 +6,14 @@ import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { branchCities, branchCity, findBranch } from "./branchRegistry";
+import { LocalServiceLinks } from "./LocalServiceLinks";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const TradeCityPage = ({ kind }: { kind: string }) => {
-  const cfg = findBranch(kind)!;
+  const cfg = findBranch(kind);
   const { city: slug } = useParams<{ city: string }>();
+  if (!cfg) return <Navigate to="/by" replace />;
   const city = branchCity(cfg, slug);
   if (!city) return <Navigate to={`/virksomheder?category=${encodeURIComponent(cfg.category)}`} replace />;
 
@@ -98,8 +100,7 @@ const TradeCityPage = ({ kind }: { kind: string }) => {
             </div>
           </div>
 
-          <h2>Andre services i {city.name}</h2>
-          <p className="text-sm"><Link to={`/by/${city.slug}`} className="underline">Se alle services i {city.name}</Link></p>
+          <LocalServiceLinks slug={city.slug} name={city.name} currentPath={canonical} />
 
           <h2>Andre byer</h2>
           <p className="text-sm">

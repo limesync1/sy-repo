@@ -15,9 +15,10 @@ import type { GuideConfig } from "@/pages/guides/defineGuidePage";
 import type { SoftwareConfig } from "@/pages/software/defineSoftwarePage";
 import { GuideBody, SoftwareBody } from "./contentBodies";
 import { BLOG_CATEGORIES, normalizeCategory } from "@/pages/blog/blogCategories";
-import { CITY_FACTS, findCityFact } from "@/pages/cities/cityFacts";
+import { CITY_FACTS } from "@/pages/cities/cityFacts";
 import { BRANCHES, branchCities } from "@/pages/cities/branchRegistry";
 import { servicesForCity } from "@/pages/cities/cityServices";
+import { LocalServiceLinks } from "@/pages/cities/LocalServiceLinks";
 import { PLANNER_FEATURES } from "@/data/routePlannerFeatures";
 
 const contentLoaders = import.meta.glob<{ default: { seoConfig?: GuideConfig | SoftwareConfig } }>([
@@ -182,15 +183,14 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
   }
   for (const branch of BRANCHES) {
     for (const city of branchCities(branch)) {
-      const fact = findCityFact(city.slug);
-      if (!fact) continue;
-      const text = branch.text(fact);
       render(`/${branch.kind}/${city.slug}`, <article>
-        <h1>{branch.label} i {city.name}</h1><p>{text.intro}</p><p>{text.local}</p>
+        <h1>{branch.label} i {city.name}</h1><p>{city.intro}</p><p>{city.localFactor}</p>
         <h2>Typiske priser i {city.name}</h2>
         <table><thead><tr><th>Opgave</th><th>Vejledende pris</th></tr></thead><tbody>{branch.rows(city).map(([label, price]) => <tr key={label}><td>{label}</td><td>{price}</td></tr>)}</tbody></table>
         <h2>Opgaver</h2><ul>{branch.tasks.map(task => <li key={task}>{task}</li>)}</ul>
+        <h2>Områder i og omkring {city.name}</h2><p>{city.areas.join(" · ")}</p>
         <h2>Fradrag</h2><p>{branch.deduction}</p>
+        <LocalServiceLinks slug={city.slug} name={city.name} currentPath={`/${branch.kind}/${city.slug}`} />
         <Nav extra={[[branch.priceGuide, `${branch.label} – prisguide`], [`/by/${city.slug}`, `Alle services i ${city.name}`],
           ...branchCities(branch).filter(other => other.slug !== city.slug).map(other => [`/${branch.kind}/${other.slug}`, `${branch.label} i ${other.name}`] as [string, string])]} />
       </article>);

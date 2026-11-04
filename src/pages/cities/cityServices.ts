@@ -3,7 +3,7 @@ import { CITIES } from "./cleaningCityData";
 import { MOVING_CITIES } from "./movingCityData";
 import { HANDYMAN_CITIES } from "./handymanCityData";
 import { GARDEN_CITIES } from "./gardenCityData";
-import { BRANCHES, branchCities } from "./branchRegistry";
+import { BRANCHES, branchCity } from "./branchRegistry";
 import { CITY_FACTS } from "./cityFacts";
 
 export interface CityService { label: string; href: string }
@@ -15,9 +15,9 @@ const LEGACY: { label: string; base: string; list: { slug: string }[] }[] = [
   { label: "Haveservice", base: "haveservice", list: GARDEN_CITIES },
 ];
 
-export const servicesForCity = (slug: string): CityService[] => [
+export const servicesForCity = (slug: string, excludeHref?: string): CityService[] => [
   ...LEGACY.filter((l) => l.list.some((c) => c.slug === slug)).map((l) => ({ label: l.label, href: `/${l.base}/${slug}` })),
-  ...BRANCHES.filter((b) => branchCities(b).some((c) => c.slug === slug)).map((b) => ({ label: b.label, href: `/${b.kind}/${slug}` })),
-];
+  ...BRANCHES.filter((b) => branchCity(b, slug) !== null).map((b) => ({ label: b.label, href: `/${b.kind}/${slug}` })),
+].filter((service) => service.href !== excludeHref);
 
 export const HUB_CITIES = CITY_FACTS;
