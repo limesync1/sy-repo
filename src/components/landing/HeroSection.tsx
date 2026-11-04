@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Headset } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -22,6 +22,15 @@ const HeroSection = () => {
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-5 px-4 pb-6 pt-4 sm:gap-6 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:grid-cols-[1.05fr_0.95fr] xl:gap-10 lg:px-8 xl:pb-14 xl:pt-12 2xl:gap-16 2xl:pb-20 2xl:pt-16">
         <div className="min-w-0 w-full max-w-2xl">
+          <SmartLink
+            to="/kontakt"
+            className="animate-fade-in mb-4 inline-flex min-h-11 max-w-full items-start gap-2.5 rounded-2xl border border-ocean-foreground/25 bg-ocean-foreground/10 px-3.5 py-2 text-left text-sm leading-snug text-ocean-foreground backdrop-blur-sm transition-colors hover:bg-ocean-foreground/15 sm:mb-5"
+          >
+            <Headset className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>
+              <span className="font-semibold">Få personlig hjælp</span> til at sætte panel og ruteplanlægger op. Vores live kundeservice sidder klar 24/7 – 100% gratis.
+            </span>
+          </SmartLink>
           <h1 className="text-[1.75rem] font-semibold leading-[1.15] text-ocean-foreground sm:text-[2.25rem] xl:text-[3.5rem] 2xl:text-[4rem]">
             Find den rette{" "}
             <span className="home-hero-highlight">
