@@ -177,6 +177,7 @@ const SECTIONS = [
   { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
   { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
   { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS" },
   { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
 ] as const;
 
@@ -1102,7 +1103,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               const groups: { title: string; ids: string[] }[] = [
                 { title: "Profil",      ids: ["general", "industries", "contact", "branding", "hours"] },
                 { title: "Beskeder",    ids: ["notifications", "customer-notifications"] },
-                { title: "Konto",       ids: ["billing", "advanced"] },
+                { title: "Konto",       ids: ["billing", "trade", "advanced"] },
               ];
               return groups.map((g, gi) => (
                 <div key={g.title} className={gi > 0 ? "mt-4 border-t border-border/50 pt-3" : ""}>
