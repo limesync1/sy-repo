@@ -401,9 +401,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "lav-dit-eget-vinduespudsemiddel",
-    title: "Hjemmelavet vinduespudsemiddel: 4 billige opskrifter uden striber",
+    title: "Hjemmelavet vinduesrens: 4 opskrifter til sprayflaske uden striber",
     description:
-      "Bland selv vinduesrens med eddike, sprit eller sæbe i en sprayflaske. Præcise mængder, stribefri ruder for få kroner – og de blandinger, du aldrig må lave.",
+      "Vinduesrens opskrift: bland selv vinduessæbe med eddike, sprit eller opvaskemiddel i en sprayflaske. Præcise mængder, stribefri ruder for få kroner – og de blandinger, du aldrig må lave.",
     publishedAt: "2026-01-19",
     readingMinutes: 6,
     category: "Vinduespudser",
