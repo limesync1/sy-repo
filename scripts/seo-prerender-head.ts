@@ -6,7 +6,7 @@ import { heroPhotos, HERO_PHOTO_SIZES, photoSrcSet } from "../src/components/lan
 const BASE_URL = "https://serviceydere.dk";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-type RouteMeta = { path: string; title: string; description: string; article?: { title: string; publishedAt: string; updatedAt?: string }; parent?: [string, string] };
+type RouteMeta = { path: string; title: string; description: string; article?: { title: string; publishedAt: string; updatedAt?: string }; parent?: [string, string]; body?: string };
 
 export const routeStructuredData = (r: RouteMeta) => {
   const url = `${BASE_URL}${r.path}`;
@@ -115,12 +115,12 @@ export const seoPrerenderHead = () => ({
     const html = readFileSync(indexFile, "utf8");
     const routes: RouteMeta[] = JSON.parse(readFileSync(metaFile, "utf8"));
     const bodies = await loadStaticBodies();
-    const missing = routes.filter(r => r.article && !bodies[r.path]).map(r => r.path);
+    const missing = routes.filter(r => r.article && !bodies[r.path] && !r.body).map(r => r.path);
     if (missing.length) throw new Error(`Missing public article content: ${missing.join(", ")}`);
     for (const r of routes) {
       if (!r.path.startsWith("/") || r.path === "/" || r.path.includes("..")) continue;
       const meta = { ...r, ...contentMetadata[r.path] };
-      const out = renderRouteHead(html, meta, bodies[r.path] ?? genericBody(meta));
+      const out = renderRouteHead(html, meta, bodies[r.path] ?? r.body ?? genericBody(meta));
       const dir = join(resolve("dist"), r.path);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, "index.html"), out);

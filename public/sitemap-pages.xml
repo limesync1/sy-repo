@@ -81,6 +81,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/redaktion</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/anmeldelser</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
