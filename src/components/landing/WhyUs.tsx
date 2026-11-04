@@ -60,7 +60,7 @@ const WhyUs = () => {
               className="group relative flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md sm:p-6"
             >
               <div className="flex items-start justify-between">
-                <span className="icon-tile h-20 w-20 p-1 sm:h-24 sm:w-24 [&>*]:scale-[1.35]">
+                <span className="icon-tile h-14 w-14 p-1 sm:h-16 sm:w-16 [&>*]:scale-[1.15]">
                   <BrandedIllustration name={b.icon} className="h-full w-full" alt="" />
                 </span>
                 <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
