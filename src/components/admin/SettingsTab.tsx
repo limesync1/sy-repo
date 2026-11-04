@@ -80,6 +80,7 @@ import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
   customIndustryKeys,
+  MULTI_INDUSTRY_KEY,
   findIndustry,
 } from "@/lib/service-taxonomy";
 
@@ -2109,6 +2110,7 @@ const IndustryPicker = ({
 
   return (
     <div className="space-y-3">
+      <MultiIndustryHelp />
       {/* Søgefelt + valgte counter */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1">
