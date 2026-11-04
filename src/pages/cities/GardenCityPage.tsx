@@ -44,11 +44,7 @@ const GardenCityPage = () => {
     },
     {
       "@context": "https://schema.org", "@type": "FAQPage",
-      mainEntity: [
-        { "@type": "Question", name: `Hvad koster haveservice i ${city.name}?`, acceptedAnswer: { "@type": "Answer", text: `Haveservice i ${city.name} koster typisk ${city.hourlyLow}–${city.hourlyHigh} kr. i timen. Græsslåning ${city.lawnLow}–${city.lawnHigh} kr. pr. besøg og hækklipning ${city.hedgeLow}–${city.hedgeHigh} kr. pr. lbm.` } },
-        { "@type": "Question", name: `Kan jeg få fradrag på haveservice?`, acceptedAnswer: { "@type": "Answer", text: `Ja — haveservice er omfattet af BoligJob-ordningens serviceydelser. Du kan i 2026 trække op til 18.300 kr. fra pr. person på arbejdsløn ved elektronisk betaling.` } },
-        { "@type": "Question", name: `Er fast aftale billigere end engangsbesøg?`, acceptedAnswer: { "@type": "Answer", text: `Ja — abonnement (typisk 14-dages besøg) er ofte 15–25% billigere pr. besøg end engangsbestilling, fordi firmaet kan optimere ruter og udstyr.` } },
-      ],
+      mainEntity: gardenCityFaq(city).map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
     },
   ];
 
@@ -117,6 +113,7 @@ const GardenCityPage = () => {
 
           <h2>Typiske opgaver i {city.name}</h2>
           <ul>{city.popularTasks.map((t) => <li key={t}>{t}</li>)}</ul>
+          <GardenCityExtras city={city} />
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Få tilbud på haveservice i {city.name}</h2>
