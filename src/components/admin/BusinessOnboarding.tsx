@@ -410,8 +410,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             {variant !== "pricing" && (
               <div role="radiogroup" aria-label="Vælg hvad du vil oprette" className="grid gap-3 sm:grid-cols-2">
                 {([
-                  { key: "full", title: "Fuldt system", text: `Profil på Serviceydere plus ruteplanlægger, medarbejder-app, aftaler og fakturering. ${pricing?.trial_days ?? 30} dage gratis.` },
-                  { key: "listing", title: "Kun profil – gratis", text: "List din virksomhed og dine services på Serviceydere og modtag forespørgsler. Ingen ruteplanlægger." },
+                  { key: "full", title: "Fuldt system", text: `Alt i profilen plus hele driftssystemet. ${pricing?.trial_days ?? 30} dage gratis.`, bullets: ["Profil, som kunder kan finde på Google", "Ruteplanlægger og medarbejder-app", "Kunder, aftaler og fakturering"] },
+                  { key: "listing", title: "Kun profil – gratis", text: "I bliver en offentlig profil, som kunder kan finde på Google. Gratis uden tidsbegrænsning.", bullets: ["Bliv fundet på Google, når kunder søger", "Vis jeres services, priser og anmeldelser", "Modtag forespørgsler fra kunder direkte"] },
                 ] as const).map((o) => (
                   <button
                     key={o.key}
