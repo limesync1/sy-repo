@@ -296,6 +296,7 @@ const AboutUs = () => {
                   { icon: iconOmraade.url, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
                   { icon: iconEmail.url, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
                   { icon: iconCvr.url, label: "CVR og stiftet", value: "CVR 40543120", sub: "Stiftet 2026", href: "https://datacvr.virk.dk/enhed/virksomhed/40543120" },
+                  { icon: iconOmraade.url, label: "Adresse", value: "Vistorpvej 30", sub: "7540 Haderup, Midtjylland", href: "https://www.google.com/maps/search/?api=1&query=Vistorpvej+30%2C+7540+Haderup" },
                 ].map(({ icon, label, value, sub, href }) => (
                   <div key={label} className="min-w-0 rounded-[20px] border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-6">
                     <div className="flex h-12 w-12 items-center justify-center rounded-md border border-border/60 bg-site-header-background p-1.5">
