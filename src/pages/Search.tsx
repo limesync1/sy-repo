@@ -154,7 +154,7 @@ const BusinessCard = memo(function BusinessCard({
 
         {/* Quick actions — visible on hover (desktop) and always on touch devices for accessibility */}
         <div className="mt-auto flex items-center gap-2 pt-3 opacity-100 transition-opacity sm:opacity-70 sm:group-hover:opacity-100">
-          <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background hover:bg-foreground/90">
+          <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-foreground px-4 min-h-11 text-sm font-semibold text-background hover:bg-foreground/90">
             Se virksomhed
             <ArrowRight className="h-3 w-3" />
           </span>
@@ -163,9 +163,9 @@ const BusinessCard = memo(function BusinessCard({
               href={`tel:${biz.phone}`}
               onClick={stop}
               aria-label={`Ring til ${biz.name}`}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary"
             >
-              <Phone className="h-3.5 w-3.5" />
+              <Phone className="h-4 w-4" />
             </a>
           )}
         </div>

@@ -176,7 +176,7 @@ const SoftwareHub = () => {
                 to={href}
                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-md"
               >
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-site-header-background p-1 sm:h-14 sm:w-14">
+                <span className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-site-header-background p-0.5 sm:h-16 sm:w-16">
                   <BrandedIllustration name={icon} className="h-full w-full" alt="" />
                 </span>
                 <h3 className="mt-4 flex items-center gap-1.5 text-base font-semibold tracking-tight text-foreground">
