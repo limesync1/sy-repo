@@ -36,7 +36,8 @@ export function finderResult(a: Answers): {
   fitLabel: string; intro: string; matched: string[]; gaps: string[]; from: Comparison | null;
 } {
   const chosen = NEEDS.filter((n) => a.needs.includes(n.id));
-  const matched = (chosen.length ? chosen.filter((n) => n.have) : NEEDS.filter((n) => n.have).slice(0, 4)).map((n) => n.text);
+  const picked = chosen.filter((n) => n.have);
+  const matched = (picked.length ? picked : NEEDS.filter((n) => n.have).slice(0, 4)).map((n) => n.text);
   const gaps = chosen.filter((n) => !n.have).map((n) => n.text);
   const intro =
     a.work === "projects"

@@ -90,7 +90,7 @@ const RouteSystemFinder = () => {
               <h2 className="mt-1 text-2xl font-semibold text-foreground">Serviceydere passer til {r.fitLabel}</h2>
               <p className="mt-3 text-[15px] leading-6 text-foreground/80">{r.intro}</p>
               {r.matched.length > 0 && (<>
-                <h3 className="mt-6 font-semibold text-foreground">Det får du af det, du valgte</h3>
+                <h3 className="mt-6 font-semibold text-foreground">Det får du</h3>
                 <ul className="mt-3 space-y-2.5">{r.matched.map((m) => (
                   <li key={m} className="flex gap-3 text-[15px] leading-6 text-foreground"><Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />{m}</li>
                 ))}</ul>
@@ -113,7 +113,7 @@ const RouteSystemFinder = () => {
                   <h2 className="text-lg font-semibold text-foreground">Kommer du fra {r.from.name}?</h2>
                   <h3 className="mt-4 text-sm font-semibold text-foreground">Det er {r.from.name} god til</h3>
                   <ul className="mt-2 space-y-1.5 text-[15px] text-muted-foreground">{r.from.summaryThem.map((s) => <li key={s}>• {s}</li>)}</ul>
-                  <h3 className="mt-4 text-sm font-semibold text-foreground">Derfor vælger mange Serviceydere</h3>
+                  <h3 className="mt-4 text-sm font-semibold text-foreground">Det får du i Serviceydere</h3>
                   <ul className="mt-2 space-y-1.5">{r.from.summaryUs.map((s) => (
                     <li key={s} className="flex gap-2 text-[15px] text-foreground"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />{s}</li>
                   ))}</ul>
