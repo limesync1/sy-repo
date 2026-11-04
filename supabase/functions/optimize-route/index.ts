@@ -2,7 +2,7 @@
 // hjemmeadresse og AI-forklaring + AI-forslag.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { solveVRP } from "./vrp.ts";
-import { generateAIInsights } from "./ai.ts";
+import { buildPlanSummary } from "./summary.ts";
 import type { EmployeeCtx, Stop } from "./types.ts";
 
 const corsHeaders = {
@@ -461,14 +461,14 @@ Deno.serve(async (req) => {
 
     // === AI-forklaring + forslag (kører parallelt med DB-skrivning ovenfor er ikke muligt
     // pga. afhængighed af plan-data, men vi kører det nu) ===
-    const ai = await generateAIInsights(employees, validStops, plan);
+    const ai = { summary: buildPlanSummary(employees, validStops.length, plan, { km: beforeKm, minutes: beforeMinutes }), suggestions: [] as unknown[] };
 
     const weatherNote = weather.summary
       ? ` Vejr-justering anvendt (+${Math.round((weather.multiplier - 1) * 100)}%): ${weather.summary}.`
       : "";
     const trafficNote = provider === "osrm"
-        ? " Rejsetider beregnet uden live trafik (OSRM-fallback)."
-        : "";
+        ? " Køretider fra vejnettet med myldretidstillæg."
+        : " Køretider estimeret (kortserver svarede ikke).";
     const enrichedSummary = (ai?.summary ?? `VRP plan via ${provider} for ${employees.length} medarbejdere, ${validStops.length} stops`) + trafficNote + weatherNote;
 
     await supabase.from("routes").update({
