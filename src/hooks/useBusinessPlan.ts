@@ -253,3 +253,18 @@ export const useRemovePaymentMethod = () => {
     },
   });
 };
+/** Skift mellem "Kun profil" og "Fuldt system". Serveren tjekker ejer og om nedgradering er sikker. */
+export const useSetPlanKind = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { businessId: string; kind: "listing" | "full" }) => {
+      const { error } = await supabase.rpc("set_business_plan_kind", { _business_id: vars.businessId, _kind: vars.kind });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["business-plan", vars.businessId] });
+      qc.invalidateQueries({ queryKey: ["business"] });
+      qc.invalidateQueries({ queryKey: ["my-business"] });
+    },
+  });
+};
