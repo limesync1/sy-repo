@@ -65,4 +65,4 @@
 - Trade software pages/sitemap/prerender derive from `industryRegistry.ts` only.
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images`; never block publishing.
-- Blog posts use one lazy `BlogPostRoute`; keep `blogPosts.ts`/zod out of eager code for a small startup bundle.
+- One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
