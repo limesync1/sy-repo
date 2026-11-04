@@ -18,7 +18,12 @@ const TONE: Record<Cell["v"], string> = {
   unknown: "bg-muted text-muted-foreground",
 };
 
-function CellView({ c }: { c: Cell }) {
+const FACT_FEATURES = new Set(["Oprettelsesgebyr", "Månedspris fra", "Månedspris", "Pris", "Ekstra bruger", "Ekstra medarbejder", "Binding", "Gratis prøve"]);
+
+function CellView({ c, fact }: { c: Cell; fact?: boolean }) {
+  if (fact && c.note) {
+    return <span className="block text-[15px] font-semibold leading-6 text-foreground">{c.note}</span>;
+  }
   const Icon = ICON[c.v];
   return (
     <div className="flex items-start gap-2.5">
@@ -39,11 +44,19 @@ const ComparisonPage = () => {
   const { data: pricing } = usePlatformPricing();
   if (!c) return <Navigate to="/software/skift-rutesystem" replace />;
 
-  const priceNote = pricing
-    ? `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms, ${pricing.trial_days} dage gratis`
-    : "Se priser";
+  const loading = "Henter pris …";
+  const usPrice: Record<string, string> = pricing
+    ? {
+        "Månedspris fra": `${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Månedspris": `${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Pris": `Fra ${kr(pricing.base_price_dkk)} kr./md. uden moms`,
+        "Oprettelsesgebyr": pricing.startup_fee_dkk > 0 ? `${kr(pricing.startup_fee_dkk)} kr. uden moms` : "0 kr.",
+        "Ekstra bruger": `${kr(pricing.price_per_employee_login_dkk)} kr./md. uden moms`,
+        "Ekstra medarbejder": `${kr(pricing.price_per_employee_login_dkk)} kr./md. uden moms`,
+      }
+    : {};
   const rows = c.rows.map((r) =>
-    r.us.v === "partial" && r.us.note === "Se priser" ? { ...r, us: { ...r.us, note: r.feature === "Månedspris fra" ? priceNote : "Se priser" } } : r,
+    r.us.note === "Se priser" ? { ...r, us: { ...r.us, note: usPrice[r.feature] ?? loading } } : r,
   );
   const groups = [...new Set(rows.map((r) => r.group))];
   const others = comparisons.filter((x) => x.slug !== c.slug);
