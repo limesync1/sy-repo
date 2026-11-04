@@ -18,7 +18,7 @@ const RangePicker = () => {
         <button
           key={o.value}
           onClick={() => setPreset(o.value)}
-          className={`min-w-0 rounded-[4px] px-1.5 py-1.5 text-[11px] font-medium transition-colors md:px-2.5 md:py-1 md:text-xs ${
+          className={`min-w-0 min-h-11 rounded-[4px] px-1.5 py-1.5 text-xs font-medium md:min-h-0 transition-colors md:px-2.5 md:py-1 md:text-xs ${
             preset === o.value
               ? "bg-foreground text-background shadow-sm"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground"

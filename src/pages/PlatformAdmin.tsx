@@ -264,7 +264,7 @@ const PlatformAdmin = () => {
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
               aria-label="Luk menu"
             >
               <X className="h-5 w-5" />
@@ -319,7 +319,7 @@ const PlatformAdmin = () => {
           <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
+              className="-ml-1 flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
               aria-label="Åbn menu"
             >
               <Menu className="h-5 w-5" />
@@ -352,7 +352,7 @@ const PlatformAdmin = () => {
             {/* Cmd+K søgning — hurtig adgang til virksomheder og faner */}
             <button
               onClick={() => setCmdOpen(true)}
-              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+              className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs sm:min-h-9 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               aria-label="Søg (Cmd+K)"
             >
               <Search className="h-3.5 w-3.5" />

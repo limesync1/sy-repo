@@ -73,11 +73,11 @@ const CookieConsent = () => {
           <div className="flex hidden h-7 w-7 shrink-0 items-center sm:flex justify-center rounded-full bg-background/10">
             <Cookie className="h-3.5 w-3.5" aria-hidden />
           </div>
-          <div className="text-[12px] leading-5 text-background/85">
+          <div className="text-sm leading-6 text-background/85">
             <span className="sm:hidden">Vi bruger </span><span className="hidden sm:inline">Vi bruger cookies til at forbedre din oplevelse. Læs mere i vores </span>
             <Link
               to="/cookies"
-              className="font-medium text-background underline underline-offset-2 hover:text-background/80"
+              className="inline-flex min-h-11 items-center font-medium text-background underline underline-offset-2 hover:text-background/80"
             >
               <span className="sm:hidden">cookies</span><span className="hidden sm:inline">cookiepolitik</span>
             </Link>
@@ -90,14 +90,14 @@ const CookieConsent = () => {
             variant="ghost"
             size="sm"
             onClick={() => persist("rejected")}
-            className="h-7 rounded-full px-3 text-xs text-background/85 hover:bg-background/10 hover:text-background"
+            className="h-11 rounded-full px-4 text-sm text-background/85 hover:bg-background/10 hover:text-background"
           >
             Afvis
           </Button>
           <Button
             size="sm"
             onClick={() => persist("accepted")}
-            className="h-7 rounded-full bg-background px-3.5 text-xs font-semibold text-foreground hover:bg-background/90 active:scale-[0.98]"
+            className="h-11 rounded-full bg-background px-5 text-sm font-semibold text-foreground hover:bg-background/90 active:scale-[0.98]"
           >
             Accepter
           </Button>

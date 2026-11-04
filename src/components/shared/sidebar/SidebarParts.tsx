@@ -119,7 +119,7 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
           "group relative flex w-full items-center rounded-lg text-[13.5px] font-medium text-left",
           "transition-[background-color,color,transform] duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none",
           FOCUS_RING,
-          collapsed ? "h-10 justify-center px-0" : "h-9 gap-2.5 px-2.5",
+          collapsed ? "h-11 justify-center px-0 lg:h-10" : "h-11 gap-2.5 px-2.5 lg:h-9",
           active
             ? "bg-secondary text-foreground hover:bg-secondary/80"
             : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground active:bg-secondary",
@@ -437,7 +437,7 @@ export const SidebarFooterItem = ({
     "group relative flex w-full items-center rounded-lg text-[13.5px] font-medium",
     "transition-[background-color,color] duration-150 motion-reduce:transition-none",
     FOCUS_RING,
-    collapsed ? "h-10 justify-center px-0" : "h-9 gap-2.5 px-2.5",
+    collapsed ? "h-11 justify-center px-0 lg:h-10" : "h-11 gap-2.5 px-2.5 lg:h-9",
     danger
       ? "text-destructive hover:bg-destructive/10"
       : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
