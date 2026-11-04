@@ -26,6 +26,7 @@ export const VALID_SITE_PATHS: string[] = [
   "/hjaelp",
   "/om-os",
   "/redaktion",
+  "/software/skift-rutesystem",
   "/anmeldelser",
   "/kontakt",
   "/blog",
