@@ -57,6 +57,9 @@ const Footer = () => {
           </div>
         </div>
 
+        <p className="mb-7 max-w-3xl text-sm leading-6 text-background/75">
+          <strong className="text-background">Hvad er Serviceydere?</strong> Serviceydere (også skrevet “Service ydere”) er en dansk platform, hvor private og virksomheder finder og booker lokale serviceydere, og hvor servicevirksomheder får ruteplanlægning, medarbejder-app, booking og fakturering. <Link to="/om-os" className="underline">Læs om Serviceydere</Link>.
+        </p>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5 [&>div]:min-w-0 [&_a]:break-words [&_a]:inline-flex [&_a]:min-h-11 lg:[&_a]:min-h-8 [&_a]:items-center [&_a]:py-0.5 [&_a]:leading-snug">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
