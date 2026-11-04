@@ -1867,7 +1867,36 @@ body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0;
 .homepage main > div > section { border-top: 1px solid hsl(var(--border) / 0.45); }
 .homepage h2 { line-height: 1.16; text-wrap: balance; }
 .home-hero { border-bottom: 1px solid hsl(var(--ocean-foreground) / 0.2); }
-.home-hero-highlight { color: hsl(var(--hero-cyan-bright)); }
+.home-hero-highlight {
+  color: hsl(var(--hero-cyan-bright));
+  background: linear-gradient(100deg, hsl(var(--hero-cyan-bright)) 40%, hsl(var(--ocean-foreground)) 50%, hsl(var(--hero-cyan-bright)) 60%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hero-sheen 9s ease-in-out 1.2s infinite;
+}
+@keyframes hero-sheen { 0%, 70% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+.home-hero-cta { position: relative; overflow: hidden; }
+.home-hero-cta::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, hsl(var(--ocean-foreground) / 0.35) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: hero-cta-glint 7s ease-in-out 2.5s infinite;
+}
+@keyframes hero-cta-glint { 0%, 80% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.home-support-badge {
+  background: linear-gradient(135deg, hsl(var(--ocean-foreground) / 0.14), hsl(var(--ocean-foreground) / 0.05));
+  border: 1px solid hsl(var(--ocean-foreground) / 0.22);
+  box-shadow: 0 8px 24px -16px hsl(var(--shadow-color) / 0.6), inset 0 1px 0 hsl(var(--ocean-foreground) / 0.12);
+  transition: background 250ms ease, border-color 250ms ease;
+}
+.home-support-badge:hover { border-color: hsl(var(--ocean-foreground) / 0.4); }
+.home-live-dot { position: relative; }
+.home-live-dot::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: inherit; animation: hero-live 2.4s ease-out infinite; }
+@keyframes hero-live { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-highlight, .home-hero-cta::after, .home-live-dot::after { animation: none; }
+}
 .home-search-panel { background: hsl(var(--home-search-surface) / 0.92); box-shadow: 0 8px 24px -12px hsl(var(--shadow-color) / 0.4); }
 .home-hero-photo { box-shadow: var(--home-photo-shadow); }
 .home-photo-shade { background: var(--home-photo-shade); }
