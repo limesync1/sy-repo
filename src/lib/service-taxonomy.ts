@@ -393,7 +393,31 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
       },
     ],
   },
+  {
+    label: "Andet & multi-service",
+    industries: [
+      {
+        // Multi-branche: for virksomheder hvis service ikke passer i en fast
+        // branche (fx kun snerydning) eller som laver mange forskellige ting.
+        // Alt i panelet (services, aftaler, ruter, medarbejdere, fakturering)
+        // virker uafhængigt af branche — valget styrer kun forslag.
+        key: "Andet",
+        label: "Andet / Multi-service",
+        icon: "🧰",
+        subcategories: [
+          { label: "Snerydning & glatførebekæmpelse", services: ["Snerydning af indkørsel", "Snerydning af p-plads", "Saltning / grusning", "Vintervagt (tilkald)", "Sæsonaftale snerydning"] },
+          { label: "Vicevært & pedelservice", services: ["Viceværtrunde", "Småreparationer", "Tilsyn af ejendom"] },
+          { label: "Affald & containere", services: ["Containervask", "Skraldespandsvask", "Bortkørsel af affald"] },
+          { label: "Sæsonopgaver", services: ["Juletræs­opsætning", "Udendørs julebelysning", "Opsætning af markiser"] },
+          { label: "Diverse opgaver", services: ["Altmuligmand – timepris", "Fast månedlig service", "Engangsopgave"] },
+        ],
+      },
+    ],
+  },
 ];
+
+/** Nøglen for multi-branchen («Andet / Multi-service»). */
+export const MULTI_INDUSTRY_KEY = "Andet";
 
 /* ───────────── Step-templates pr. branche ───────────── */
 // Bruges i prisberegner-trinnet ved service-oprettelse.
@@ -409,6 +433,17 @@ export interface StepTemplate {
 }
 
 export const STEP_TEMPLATES_BY_INDUSTRY: Record<string, StepTemplate[]> = {
+  "Andet": [
+    { label: "Snerydning (m²)", keywords: ["sne", "snerydning", "vinter", "indkørsel", "p-plads"], subcategories: ["Snerydning & glatførebekæmpelse"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 4, min_value: 20, max_value: 10000, default_value: 150 },
+        { label: "Saltning", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 1, default_value: 1 },
+      ]},
+    { label: "Timepris (diverse)", keywords: ["time", "diverse", "altmulig", "pedel", "vicevært"], subcategories: ["Diverse opgaver", "Vicevært & pedelservice"],
+      steps: [
+        { label: "Timer", unit: "timer", price_per_unit: 450, min_value: 1, max_value: 40, default_value: 2 },
+      ]},
+  ],
   "Rengøring": [
     { label: "Privat hjemmerengøring", subcategories: ["Privatrengøring"],
       keywords: ["privat","hjem","ugentlig","14-dages","månedlig","fast"],

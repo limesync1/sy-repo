@@ -1,3 +1,4 @@
+import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 import { useAuth } from "@/contexts/AuthContext";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import {
@@ -315,6 +316,7 @@ const CreateBusinessForm = () => {
             <p className="mb-2 text-xs text-muted-foreground">
               Du kan finjustere og tilføje flere brancher senere i Indstillinger.
             </p>
+            <div className="mb-2"><MultiIndustryHelp compact /></div>
             <div className="max-h-[340px] space-y-3 overflow-y-auto pr-1">
               {INDUSTRY_GROUPS.map((g) => (
                 <div key={g.label}>

@@ -1,3 +1,4 @@
+import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
@@ -80,6 +81,7 @@ import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
   customIndustryKeys,
+  MULTI_INDUSTRY_KEY,
   findIndustry,
 } from "@/lib/service-taxonomy";
 
@@ -2109,6 +2111,7 @@ const IndustryPicker = ({
 
   return (
     <div className="space-y-3">
+      <MultiIndustryHelp />
       {/* Søgefelt + valgte counter */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -2206,7 +2209,16 @@ const IndustryPicker = ({
 
         {groupsFiltered.length === 0 && (
           <div className="rounded-lg border border-dashed border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
-            Ingen brancher matcher "{query}".
+            <p>Ingen brancher matcher "{query}".</p>
+            {!selected.includes(MULTI_INDUSTRY_KEY) && (
+              <button
+                type="button"
+                onClick={() => { onToggle(MULTI_INDUSTRY_KEY); setQuery(""); }}
+                className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-foreground px-4 text-sm font-medium text-background"
+              >
+                Vælg «Andet / Multi-service»
+              </button>
+            )}
           </div>
         )}
       </div>
