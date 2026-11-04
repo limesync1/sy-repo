@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { renderRouteHead, renderHomeHead, routeStructuredData } from "../../scripts/seo-prerender-head";
 import { BLOG_POSTS } from "../pages/blog/blogPosts";
-import { heroPhotos } from "../components/landing/hero-photos";
+import heroPoster from "../assets/home-hero/vinduespolering-hero-poster.webp.asset.json";
 
 const template = readFileSync("index.html", "utf8");
 
@@ -12,7 +12,7 @@ describe("Static public SEO heads", () => {
     const doc = new DOMParser().parseFromString(home, "text/html");
     const preload = doc.querySelectorAll('[data-home-photo-preload="1"]');
     expect(preload).toHaveLength(1);
-    expect(preload[0].getAttribute("href")).toBe(heroPhotos[0].src);
+    expect(preload[0].getAttribute("href")).toBe(heroPoster.url);
     const other = renderRouteHead(home, { path: "/tilbud", title: "Tilbud", description: "Tilbud" });
     expect(new DOMParser().parseFromString(other, "text/html").querySelector('[data-home-photo-preload="1"]')).toBeNull();
   });
