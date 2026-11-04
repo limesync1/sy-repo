@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,12 +21,19 @@ const HIDDEN_EXACT = ["/virksomhed"];
 const SIGNUP_KEY = "beta-waitlist-signed-up";
 const POPUP_DISMISSED_KEY = "beta-popup-dismissed";
 
-const emailSchema = z
-  .string()
-  .trim()
-  .min(1, { message: "Skriv din e-mail" })
-  .email({ message: "Det ligner ikke en gyldig e-mail" })
-  .max(254, { message: "E-mailen er for lang" });
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const emailSchema = {
+  safeParse(raw: string):
+    | { success: true; data: string }
+    | { success: false; error: { issues: { message: string }[] } } {
+    const v = raw.trim();
+    const fail = (message: string) => ({ success: false as const, error: { issues: [{ message }] } });
+    if (!v) return fail("Skriv din e-mail");
+    if (!EMAIL_RE.test(v)) return fail("Det ligner ikke en gyldig e-mail");
+    if (v.length > 254) return fail("E-mailen er for lang");
+    return { success: true, data: v };
+  },
+};
 
 type Audience = "kunde" | "virksomhed";
 

@@ -28,5 +28,12 @@ export const routeKeyFromHref = (href: string): string | null => {
   if (!href) return null;
   const path = href.split("?")[0].split("#")[0];
   if (registry.has(path)) return path;
+  const blog = /^\/blog\/([a-z0-9-]+)\/?$/.exec(path);
+  if (blog && blog[1] !== "kategori") {
+    registry.set(path, () =>
+      import("@/pages/blog/BlogPostRoute").then((m) => m.loadBlogPostChunk(blog[1])),
+    );
+    return path;
+  }
   return null;
 };
