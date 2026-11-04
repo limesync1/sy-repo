@@ -1,5 +1,10 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 4. nov. — Branche- og bysiders Google-adgang
+- [ ] Kontrollér alle registrerede branche-/byruter mod sitemap og offentlig HTML; beskyt fuldt indhold ved udgivelse.
+- [ ] Kontrollér udvalgte URL'er og sitemap hos Google og dokumentér faktisk status uden at love indeksering.
+- [ ] Alle sider indekseret: afventer Googles crawling og beslutning; API-kontrol kan ikke anmode om indeksering.
+
 ## 3. nov. — Fortsat responsiv forside
 - [x] Tabletens tekst og foto deler centreret bredde; mobilens overskrift/søgefelt/knapper har mere plads, søgeknappen er 44 px høj, og billedets sizes matcher den viste ramme uden beskæring.
 - [x] Seks skærmstørrelser (320/390/768/820/1024/1280) uden vandret overflow; søgning på mobil/tablet åbner resultater med korrekt søgeord. Skærmbilleder kontrolleret; seks billedtests bestået og build OK. Ingen udgivelse udført.
