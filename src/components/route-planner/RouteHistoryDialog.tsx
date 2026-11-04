@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import { format, parseISO, isToday, isYesterday } from "date-fns";
 import { da } from "date-fns/locale";
 import {
-  Loader2,
   History,
   User,
   Plus,
