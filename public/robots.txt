@@ -18,6 +18,162 @@ Disallow: /auth
 Disallow: /dashboard
 Disallow: /unsubscribe
 
+# AI-søgemaskiner må gerne læse de offentlige sider, så de kan beskrive
+# Serviceydere korrekt. Samme private stier er udelukket.
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /virksomhed$
+Disallow: /virksomhed/
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /reset-password
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+Disallow: /__visual/
+Disallow: /meta/callback
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /unsubscribe
+
 # Sitemap-index (opdelt i pages/blog/guides/cities for bedre crawl-budget).
 Sitemap: https://serviceydere.dk/sitemap-index.xml
 # Legacy full sitemap (beholdes for bagudkompatibilitet).
