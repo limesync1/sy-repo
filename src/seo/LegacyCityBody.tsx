@@ -1,3 +1,4 @@
+import { CityFactsBox } from "@/pages/cities/CityFactsBox";
 import { CITIES } from "../pages/cities/cleaningCityData";
 import { MOVING_CITIES } from "../pages/cities/movingCityData";
 import { HANDYMAN_CITIES } from "../pages/cities/handymanCityData";
@@ -38,5 +39,6 @@ export function LegacyCityBody({ kind, city }: { kind: LegacyCityKind; city: Cit
       <li><a href="/tilbud">Få op til 3 gratis tilbud</a></li>
       {group.cities.filter(other => other.slug !== city.slug).map(other => <li key={other.slug}><a href={citySeo(kind, other).path}>{group.label} i {other.name}</a></li>)}
     </ul></nav>
+  <CityFactsBox slug={city.slug} name={city.name} />
   </article>;
 }
