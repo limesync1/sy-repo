@@ -27,6 +27,8 @@ export const VALID_SITE_PATHS: string[] = [
   "/om-os",
   "/redaktion",
   "/software/skift-rutesystem",
+  "/software/sammenlign",
+  "/software/rutesystem-finder",
   "/software/sammenlign/skvizbiz",
   "/software/sammenlign/fenster",
   "/software/sammenlign/rutemanager",
