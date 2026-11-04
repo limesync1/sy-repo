@@ -23,9 +23,16 @@ export function relatedContent(category: string | undefined, currentPath: string
   };
   const hub = topic ? HUBS[topic] : undefined;
   const guides = GUIDES.filter(g => g.href !== currentPath && (!topic || normalizeCategory(g.category) === topic || g.href === hub));
-  const posts = BLOG_POSTS.filter(p => `/blog/${p.slug}` !== currentPath && (!topic || normalizeCategory(p.category) === topic));
+  const pool = BLOG_POSTS.filter(p => !topic || normalizeCategory(p.category) === topic);
+  const idx = pool.findIndex(p => `/blog/${p.slug}` === currentPath);
+  // Articles link to their category neighbours in a ring (1 before, 2 after), so
+  // every article receives at least three in-topic inbound links.
+  const posts = idx >= 0
+    ? [pool[(idx - 1 + pool.length) % pool.length], pool[(idx + 1) % pool.length], pool[(idx + 2) % pool.length]]
+        .filter((p, i, a) => `/blog/${p.slug}` !== currentPath && a.indexOf(p) === i)
+    : rotate(pool.filter(p => `/blog/${p.slug}` !== currentPath)).slice(0, 3);
   return {
     guides: [...guides.filter(g => g.href === hub), ...rotate(guides.filter(g => g.href !== hub))].slice(0, 3),
-    posts: rotate(posts).slice(0, 3),
+    posts,
   };
 }
