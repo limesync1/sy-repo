@@ -1,3 +1,4 @@
+import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 import { useAuth } from "@/contexts/AuthContext";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import {
