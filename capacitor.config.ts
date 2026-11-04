@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   appId: "app.lovable.p3396f095cb5d439d8707af0033c7fb66",
   appName: "Serviceydere",
   webDir: "dist",
-  backgroundColor: "#012941",
+  backgroundColor: "#ffffff",
   server: isRelease
     ? { url: "https://serviceydere.dk/medarbejder", androidScheme: "https" }
     : {
