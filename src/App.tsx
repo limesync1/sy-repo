@@ -154,6 +154,7 @@ const SoftwareEmployeeApp    = lazyRoute("/software/medarbejder-app", () => impo
 const SoftwareBooking        = lazyRoute("/software/booking-og-tilbud", () => import("./pages/software/BookingQuotesFeature"));
 const SoftwareInvoicing      = lazyRoute("/software/fakturering-og-regnskab", () => import("./pages/software/InvoicingAccountingFeature"));
 const SoftwareIndustries     = lazyRoute("/software/brancher", () => import("./pages/software/IndustriesPage"));
+const SoftwareSwitch         = lazyRoute("/software/skift-rutesystem", () => import("./pages/software/SwitchSystemPage"));
 const SoftwarePricing        = lazyRoute("/software/priser", () => import("./pages/software/PricingPage"));
 const SoftwareWindowCleaner  = lazyRoute("/software/vinduespudser", () => import("./pages/software/WindowCleanerSoftware"));
 const SoftwareCleaning       = lazyRoute("/software/rengoering", () => import("./pages/software/CleaningSoftware"));
@@ -481,6 +482,7 @@ const App = () => (
               <Route path="/hjaelp" element={<HelpCenter />} />
               <Route path="/om-os" element={<AboutUs />} />
               <Route path="/redaktion" element={<Editorial />} />
+              <Route path="/software/skift-rutesystem" element={<SoftwareSwitch />} />
               <Route path="/anmeldelser" element={<Reviews />} />
               <Route path="/kontakt" element={<Contact />} />
 
