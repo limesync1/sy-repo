@@ -319,7 +319,7 @@ const PlatformAdmin = () => {
           <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
+              className="-ml-1 flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
               aria-label="Åbn menu"
             >
               <Menu className="h-5 w-5" />
