@@ -23,11 +23,9 @@ const POPUP_DISMISSED_KEY = "beta-popup-dismissed";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const emailSchema = {
-  safeParse(raw: string):
-    | { success: true; data: string }
-    | { success: false; error: { issues: { message: string }[] } } {
+  safeParse(raw: string): { success: boolean; data?: string; error?: { issues: { message: string }[] } } {
     const v = raw.trim();
-    const fail = (message: string) => ({ success: false as const, error: { issues: [{ message }] } });
+    const fail = (message: string) => ({ success: false, error: { issues: [{ message }] } });
     if (!v) return fail("Skriv din e-mail");
     if (!EMAIL_RE.test(v)) return fail("Det ligner ikke en gyldig e-mail");
     if (v.length > 254) return fail("E-mailen er for lang");
