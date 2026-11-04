@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
 import { SectionLabelMark } from "@/components/shared/UiArtwork";
-import economicLogo from "@/assets/logo-economic.svg.asset.json";
-import dineroLogo from "@/assets/logo-dinero.svg.asset.json";
+// Officielle logoer (samme filer som regnskabssiden bruger).
+import economicLogo from "@/assets/accounting/economic.png";
+import dineroLogo from "@/assets/accounting/dinero.png";
 
 /**
   * Forretningsrettet sektion på forsiden. Et lyst, kontraststærkt overblik
