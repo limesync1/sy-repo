@@ -101,13 +101,13 @@ const AboutUs = () => {
             <>
               <SmartLink
                 to="/virksomheder"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+                className="group inline-flex items-center justify-center gap-2 min-h-11 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
               >
                 Find services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
               <SmartLink
                 to="/tilbud"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
+                className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
               >
                 Indhent 3 tilbud
               </SmartLink>
@@ -120,16 +120,16 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card px-6 py-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:px-12 md:py-11">
               <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/[0.06] blur-3xl" />
-              <dl className="relative grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-2">
+              <dl className="relative grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4 lg:gap-2">
                 {STATS.map((s, i) => (
                   <div
                     key={s.label}
-                    className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}
+                    className={`text-center lg:text-left ${i > 0 ? "lg:border-l lg:border-border/60 lg:pl-10" : ""}`}
                   >
                     <dd className="text-[2.25rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums md:text-[2.75rem]">
                       {s.value}
                     </dd>
-                    <dt className="mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                    <dt className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                       {s.label}
                     </dt>
                   </div>
@@ -163,10 +163,10 @@ const AboutUs = () => {
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5 sm:h-16 sm:w-16">
                         <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                       </div>
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{k}</span>
                     </div>
                     <h3 className="mt-4 text-[16px] font-semibold tracking-tight text-foreground">{t}</h3>
-                    <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">{b}</p>
+                    <p className="mt-1.5 text-[14.5px] leading-6 text-muted-foreground">{b}</p>
                   </div>
                 ))}
               </div>
@@ -188,13 +188,13 @@ const AboutUs = () => {
               </div>
               <SmartLink
                 to="/virksomheder"
-                className="group inline-flex items-center gap-2 self-start rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto"
+                className="group inline-flex items-center gap-2 self-start min-h-11 rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto"
               >
                 Se alle brancher
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
                 {FEATURED_CATEGORIES.map((cat) => (
                 <SmartLink
                   key={cat.key}
@@ -205,8 +205,8 @@ const AboutUs = () => {
                     <IndustryIcon category={cat.key} className="h-full w-full" alt={cat.label} />
                   </div>
                   <div>
-                    <div className="text-[14px] font-semibold leading-tight text-foreground">{cat.label}</div>
-                    <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+                    <div className="text-[15px] font-semibold leading-tight text-foreground [overflow-wrap:anywhere]">{cat.label}</div>
+                    <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
                       Se firmaer
                       <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </div>
@@ -222,7 +222,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-16">
               <div className="max-w-md shrink-0">
-                <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
+                <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Lokale udbydere i hele Danmark
                 </h2>
                 <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
@@ -234,14 +234,14 @@ const AboutUs = () => {
                   <SmartLink
                     key={city}
                     to={`/search?city=${encodeURIComponent(city)}`}
-                    className="rounded-full border border-border/70 bg-card px-3.5 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
+                    className="inline-flex min-h-11 items-center rounded-full border border-border/70 bg-card px-4 text-sm font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
                   >
                     {city}
                   </SmartLink>
                 ))}
                 <SmartLink
                   to="/virksomheder"
-                  className="inline-flex items-center gap-1 rounded-full bg-foreground px-3.5 py-1.5 text-[13px] font-semibold text-background transition-all hover:-translate-y-0.5"
+                  className="inline-flex min-h-11 items-center gap-1 rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-all hover:-translate-y-0.5"
                 >
                   + flere
                   <ArrowRight className="h-3 w-3" />
@@ -266,13 +266,13 @@ const AboutUs = () => {
               {PRINCIPLES.map(({ icon, title, text }) => (
                 <div
                   key={title}
-                  className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
+                  className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background p-1.5 sm:h-16 sm:w-16">
                     <img src={icon} alt="" className="h-full w-full object-contain" loading="lazy" />
                   </div>
-                  <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</h3>
-                  <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{text}</p>
+                  <h3 className="mt-4 text-[16px] font-semibold leading-tight tracking-tight text-foreground">{title}</h3>
+                  <p className="mt-1.5 text-[14.5px] leading-6 text-muted-foreground">{text}</p>
                 </div>
               ))}
             </div>
@@ -284,7 +284,7 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
+                <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
                   Kontakt &amp; virksomhedsinfo
                 </h2>
                 <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
