@@ -31,7 +31,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Se <a href="/blog/ruteplanlaegning-for-servicevirksomheder">guide til ruteplanlægning</a> og <a href="/blog/bookingsystem-servicefirma">bookingsystem til servicefirmaer</a>.{" "}
-        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

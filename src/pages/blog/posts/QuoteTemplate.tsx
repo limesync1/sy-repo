@@ -28,7 +28,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Se <a href="/blog/boligjob-fradrag-2026">servicefradrag 2026</a> og <a href="/blog/bookingsystem-servicefirma">bookingsystem</a>.{" "}
-        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

@@ -39,7 +39,7 @@ const SITE_LINKS: [string, string][] = [
   ["/by", "Alle byer"],
   ["/software", "System til servicefirmaer"],
   ["/software/ruteplanlaegger", "Ruteplanlægger"],
-  ["/opret-virksomhed", "Prøv gratis i 14 dage"],
+  ["/opret-virksomhed", "Prøv gratis i 30 dage"],
 ];
 
 const Nav = ({ extra = [] as [string, string][] }) => (
@@ -168,7 +168,7 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
           <h2>{feature.title}</h2><p>{feature.summary}</p><h3>Eksempel</h3><p>{feature.example}</p>
           <ol>{feature.steps.map((step, i) => <li key={i}>{step}</li>)}</ol>
         </section>)}</>}
-        <p>Prøv Serviceydere gratis i 14 dage. Du skal ikke bruge kreditkort.</p>
+        <p>Prøv Serviceydere gratis i 30 dage. Du skal ikke bruge kreditkort.</p>
         <Nav extra={[
           ...SOFTWARE_PAGES.filter((o) => o.href !== s.href && (o.group !== "branch" || s.group === "branch" || s.href === "/software/brancher")).map((o) => [o.href, o.label] as [string, string]),
           ...BLOG_POSTS.filter((p) => p.category === "Ruteplanlægning").map((p) => [`/blog/${p.slug}`, p.title] as [string, string]),

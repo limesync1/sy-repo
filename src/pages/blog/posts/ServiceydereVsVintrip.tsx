@@ -7,7 +7,7 @@ const Post = defineBlogPost({
     { q: "Hvad er VinTrip?", a: "VinTrip er et dansk program rettet mod vinduespudsere, hvor ture, kunder og fakturering håndteres samlet." },
     { q: "Hvad koster VinTrip?", a: "Vi gengiver ikke priser, vi ikke kan verificere offentligt. Bed VinTrip om en samlet månedspris for jeres antal medarbejdere og hold den op mod vores åbne prisliste." },
     { q: "Hvad er den vigtigste forskel?", a: "Serviceydere er ikke bundet til vinduespudsning og indeholder en markedsplads, der sender nye kunder til virksomheden. Driften og kundetilgangen ligger altså i samme system." },
-    { q: "Er Serviceydere sværere at gå i gang med?", a: "Nej. Der er 14 dages prøveperiode, og vi kan importere jeres eksisterende kunder og faste aftaler for 1.495 kr." },
+    { q: "Er Serviceydere sværere at gå i gang med?", a: "Nej. Der er 30 dages prøveperiode, og vi kan importere jeres eksisterende kunder og faste aftaler for 1.495 kr." },
     { q: "Hvad hvis vi kun laver vinduespudsning?", a: "Så virker begge dele. Forskellen viser sig, når I udvider med algebehandling, solceller eller rengøring — eller vil have kunder gennem systemet." },
   ],
   sections: [

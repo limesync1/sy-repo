@@ -5,7 +5,7 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/fakturering-og-regnskab",
   metaTitle: "Automatisk fakturering med e-conomic og Dinero | Serviceydere",
   metaDescription:
-    "Fakturér udførte besøg i e-conomic eller Dinero. Vælg faktura efter hvert besøg, hver 14. dag, månedligt eller kvartalsvis. Prøv gratis i 14 dage uden kreditkort.",
+    "Fakturér udførte besøg i e-conomic eller Dinero. Vælg faktura efter hvert besøg, hver 14. dag, månedligt eller kvartalsvis. Prøv gratis i 30 dage uden kreditkort.",
   keywords:
     "fakturering servicevirksomhed, E-conomic integration, dinero integration, automatisk bogføring, fakturering rengøringsfirma, abonnementsfakturering",
   heroEyebrow: "Fakturering og regnskab",

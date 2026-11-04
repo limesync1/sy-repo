@@ -22,7 +22,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        Læs om <a href="/blog/aflyste-besoeg-fakturering-faste-kunder">aflyste besøg og kontrol af samlefakturaer</a>, <a href="/blog/faktura-skabelon-servicefirma">fakturaskabelon</a>, <a href="/blog/economic-integration-servicefirma">e-conomic integration</a> og <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        Læs om <a href="/blog/aflyste-besoeg-fakturering-faste-kunder">aflyste besøg og kontrol af samlefakturaer</a>, <a href="/blog/faktura-skabelon-servicefirma">fakturaskabelon</a>, <a href="/blog/economic-integration-servicefirma">e-conomic integration</a> og <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

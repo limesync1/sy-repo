@@ -27,7 +27,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Se <a href="/software/medarbejder-app">medarbejder-appen</a> og <a href="/blog/timeregistrering-app-servicefirma">timeregistrering</a>.{" "}
-        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

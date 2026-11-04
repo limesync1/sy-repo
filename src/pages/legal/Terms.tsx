@@ -78,7 +78,7 @@ const Terms = () => (
         body: (
           <>
             <p>
-              Nye udbydere kan tilbydes en gratis prøveperiode på op til 14 dage (medmindre andet er angivet i tilbuddet). Efter prøveperiodens udløb fornyes abonnementet automatisk og trækkes via vores betalingsudbyder Stripe Payments Europe Ltd. Priser oplyses i danske kroner og er inkl. moms (25%), medmindre andet udtrykkeligt fremgår.
+              Nye udbydere kan tilbydes en gratis prøveperiode på op til 30 dage (medmindre andet er angivet i tilbuddet). Efter prøveperiodens udløb fornyes abonnementet automatisk og trækkes via vores betalingsudbyder Stripe Payments Europe Ltd. Priser oplyses i danske kroner og er inkl. moms (25%), medmindre andet udtrykkeligt fremgår.
             </p>
             <p>
               Manglende betaling kan, efter mindst én rykker, medføre at virksomhedsprofilen deaktiveres. Eventuelt udestående beløb forfalder fortsat til betaling.

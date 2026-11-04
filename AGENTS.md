@@ -39,7 +39,7 @@
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
 - Public/auth BlueFlowBackground uses a lightweight native WebGL shader (not the 3D scene engine), token phases, bounded resolution, visibility/motion pausing and a first-painted-frame reveal over a color-matched fallback to keep public-page JavaScript small; nearby homepage sections render eagerly while distant sections mount ahead of the viewport.
-- The homepage hero shows a CDN video (`HeroVideo`): static head preloads only its poster, the video loads after window load/idle, is skipped on save-data/2g/reduced motion and pauses offscreen, so visible content keeps priority. Photo JSON metadata still feeds SEO/sitemaps.
+- Homepage `HeroVideo`: head preloads only the poster; video loads after idle, skips save-data/2g/reduced motion, pauses offscreen. Photo JSON still feeds SEO.
 - Panel headers share `PageHeader`/`.panel-page-hero` (and the overview hero) with the homepage's `BlueFlowBackground` over the same fallback, so panel and public heroes look identical. Persistent public navigation shares audience groups and account actions and publishes its measured height for sticky public filters, preventing overlap across tablet sizes.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap and `/by` hubs share registries; prerender uses resolved city text and shared `LocalServiceLinks` to prevent crawler/browser drift.
@@ -58,7 +58,7 @@
 - Route creation preserves the queued idempotent per-stop RPC, joins default-employee lookup and defers local invalidation until the batch settles; partial retries reuse the route and original sequences so no second route or misleading success is produced.
 - Prerendered public HTML reads `seoConfig` from blog/guide/software factories and the branch/city registries; shared content renderers preserve tables, sections and contextual links without JS. Factory metadata overrides static snippets, and article dates/breadcrumbs come from registries to prevent crawler/runtime drift.
 - Native apps wrap the live site via Capacitor `server.url` (capacitor.config.ts) with native system-bar insets and viewport-fit=contain, so CDN asset paths resolve, fixes ship without a new APK and phone bars never cover buttons; the employee panel is the start route.
-- The employee APK is a CDN asset pointer in `src/assets/downloads/`; Min dag's `AppInstallCard` picks options via `src/lib/app-install.ts` and hides when running native/standalone. Replace the pointer when a new APK is built.
+- Employee APK = CDN pointer in `src/assets/downloads/` (replace per build); `AppInstallCard` uses `src/lib/app-install.ts`, hidden when native/standalone.
 - Offline employee stop completions queue in `src/lib/offline-stop-queue.ts` (flushed on reconnect, overlaid on cached route data); stop photos live in private `stop-photos` bucket under `{business}/{stop}/` gated by `can_access_stop`; obstacles are `obstacle`-kind notes that delete only that stop (photos survive, no FK) so the visit returns to the unassigned pool while the series keeps its preferred route.
 - The monthly SEO report (`seo-monthly-report`) has a fixed owner recipient, reads Search Console via the connector gateway, and uses a month-based idempotency key so the monthly schedule or repeat calls never send duplicates.
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
@@ -66,3 +66,5 @@
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - Article covers: queued `article_images`; never block publishing.
 - One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
+- `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
+- Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.

@@ -1574,6 +1574,7 @@ export type Database = {
           locked_at: string | null
           locked_extra_employee_logins: number | null
           monthly_price_dkk: number
+          plan_kind: string
           route_planning_enabled: boolean
           startup_fee_charged: boolean
           status: string
@@ -1603,6 +1604,7 @@ export type Database = {
           locked_at?: string | null
           locked_extra_employee_logins?: number | null
           monthly_price_dkk?: number
+          plan_kind?: string
           route_planning_enabled?: boolean
           startup_fee_charged?: boolean
           status?: string
@@ -1632,6 +1634,7 @@ export type Database = {
           locked_at?: string | null
           locked_extra_employee_logins?: number | null
           monthly_price_dkk?: number
+          plan_kind?: string
           route_planning_enabled?: boolean
           startup_fee_charged?: boolean
           status?: string
@@ -6048,6 +6051,10 @@ export type Database = {
         Args: { _customer_id: string }
         Returns: string
       }
+      business_is_listing_only: {
+        Args: { _business_id: string }
+        Returns: boolean
+      }
       can_access_stop: { Args: { _stop_id: string }; Returns: boolean }
       chat_conversation_exists: { Args: { _folder: string }; Returns: boolean }
       claim_route_planner_idempotency: {
@@ -6681,6 +6688,10 @@ export type Database = {
           p_token: string
         }
         Returns: string
+      }
+      set_business_plan_kind: {
+        Args: { _business_id: string; _kind: string }
+        Returns: Json
       }
       shift_projected_occurrence:
         | {

@@ -27,7 +27,7 @@ const PRICING_FALLBACK = {
   price_data_import_dkk: 1495,
   price_per_employee_login_dkk: 59,
   startup_fee_dkk: 2269,
-  trial_days: 14,
+  trial_days: 30,
 };
 
 const kr = (n: number) =>

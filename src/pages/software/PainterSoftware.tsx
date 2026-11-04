@@ -20,7 +20,7 @@ const PainterSoftware = defineSoftwarePage({
     "Svende fordeles på flerdagesopgaver",
     "Før- og efterbilleder i medarbejder-appen",
     "Bogføring i E-conomic og Dinero",
-    "Fra 289 kr./md. — 14 dages gratis prøve uden betalingskort",
+    "Fra 289 kr./md. — 30 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {

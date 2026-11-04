@@ -149,7 +149,7 @@ const RouteSystemFinder = () => {
                 </div>
               )}
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild size="lg" className="min-h-11"><Link to="/opret-virksomhed">Prøv gratis i 14 dage <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
+                <Button asChild size="lg" className="min-h-11"><Link to="/opret-virksomhed">Prøv gratis i 30 dage <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
                 <Button variant="outline" size="lg" className="min-h-11" onClick={() => { setStep(0); setA(empty); }}><RotateCcw className="mr-1 h-4 w-4" />Start forfra</Button>
               </div>
               <p className="mt-3 text-sm text-muted-foreground">Uden kreditkort og uden binding.</p>

@@ -13,7 +13,7 @@ interface BusinessWelcomeProps {
   trialDays?: number
 }
 
-const BusinessWelcomeEmail = ({ businessName = 'din virksomhed', loginUrl = 'https://serviceydere.dk/log-ind', email, password, trialDays = 14 }: BusinessWelcomeProps) => (
+const BusinessWelcomeEmail = ({ businessName = 'din virksomhed', loginUrl = 'https://serviceydere.dk/log-ind', email, password, trialDays = 30 }: BusinessWelcomeProps) => (
   <Html lang="da" dir="ltr">
     <Head />
     <Preview>{businessName} er klar på Serviceydere</Preview>
@@ -44,7 +44,7 @@ export const template = {
   component: BusinessWelcomeEmail,
   subject: (data) => `${data.businessName || 'Din virksomhed'} er klar på Serviceydere`,
   displayName: 'Virksomhedsvelkomst',
-  previewData: { businessName: 'Eksempel ApS', email: 'ejer@example.dk', password: 'Midlertidig123', trialDays: 14 },
+  previewData: { businessName: 'Eksempel ApS', email: 'ejer@example.dk', password: 'Midlertidig123', trialDays: 30 },
 } satisfies TemplateEntry
 
 export default BusinessWelcomeEmail

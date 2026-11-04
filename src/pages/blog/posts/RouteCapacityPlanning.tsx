@@ -55,6 +55,6 @@ export default defineBlogPost({
       ]
     },
     { heading: "Læs videre", body: <p><a href="/blog/timeregistrering-app-servicefirma">manuel timeregistrering</a> · <a href="/blog/sygemelding-omplanlaegning-ruter">omplanlægning ved sygemelding</a> · <a href="/software/ruteplanlaegger">ruteplanlæggeren</a></p> },
-    { body: <p><a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.</p> }
+    { body: <p><a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.</p> }
   ]
 });

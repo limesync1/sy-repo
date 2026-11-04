@@ -31,7 +31,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/blog/moms-paa-faktura">Moms på faktura</a> <a href="/blog/samlefaktura-faste-kunder">samlefaktura</a> <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/moms-paa-faktura">Moms på faktura</a> <a href="/blog/samlefaktura-faste-kunder">samlefaktura</a> <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

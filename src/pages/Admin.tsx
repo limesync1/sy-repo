@@ -1,4 +1,6 @@
 import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
+import { adminFlagsFor } from "@/lib/business-capabilities";
+import ListingUpgradeCard from "@/components/admin/ListingUpgradeCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import {
@@ -33,7 +35,7 @@ import NextStepBar from "@/components/admin/onboarding/NextStepBar";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
-import { findAdminNavItem } from "@/components/admin/shared/adminNav";
+import { findAdminNavItem, isAdminNavVisible } from "@/components/admin/shared/adminNav";
 import { AdminTabFallback as TabFallback, tabFromUrl } from "@/components/admin/shared/AdminTabFallback";
 import { DashboardSkeleton, ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
@@ -145,13 +147,10 @@ const AdminDashboard = () => {
 
   // Hvis leads-fanen er slået fra i Indstillinger → Avanceret, men URL'en peger
   // på ?tab=leads (fx fra et bogmærke), falder vi pænt tilbage til Overblik.
-  const leadsEnabled = !!(business.settings as any)?.leads_enabled;
-  const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
-  const effectiveTab: AdminTabKey =
-    (activeTab === "leads" && !leadsEnabled) ||
-    (activeTab === "livechat" && !livechatEnabled)
-      ? "dashboard"
-      : activeTab;
+  const flags = adminFlagsFor(business);
+  const listingOnly = !flags.operations;
+  const navItem = findAdminNavItem(activeTab);
+  const effectiveTab: AdminTabKey = navItem && !isAdminNavVisible(navItem, flags) ? "dashboard" : activeTab;
 
   const renderContent = () => {
     const openCreate = (tab: string) =>
@@ -190,13 +189,14 @@ const AdminDashboard = () => {
       {/* Vises altid i toppen af panelet, undtagen når brugeren allerede er
           inde på Indstillinger-fanen — så ville knappen "Tilføj kort" pege
           på samme side. */}
-      {plan && plan.status !== "active" && plan.status !== "unknown" && (
+      {listingOnly && <ListingUpgradeCard businessId={business.id} />}
+      {!listingOnly && plan && plan.status !== "active" && plan.status !== "unknown" && (
         <div className="mb-4">
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
       {/* Næste-trin-stribe: vises på alle faner indtil opsætningen er færdig. */}
-      {effectiveTab !== "getting-started" && (
+      {!listingOnly && effectiveTab !== "getting-started" && (
         <NextStepBar
           nextStepId={onboarding.nextStepId}
           counts={onboarding.counts}

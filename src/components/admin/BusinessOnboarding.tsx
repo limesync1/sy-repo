@@ -32,7 +32,7 @@ import { AuthEmailConfirmation } from "@/components/shared/AuthEmailConfirmation
  *   3) Vælger antal ekstra medarbejderlogins
  *   4) Vælger faktureringsperiode (månedlig / kvartal -10% / årlig -20%)
  *   5) Ser pris LIVE i en sticky sidebar
- *   6) Opretter konto (email + adgangskode) og kommer ind med 14 dages prøve.
+ *   6) Opretter konto (email + adgangskode) og kommer ind med 30 dages prøve.
  *
  * Stripe-betalingskortet tilføjes senere under Indstillinger → Fakturering.
  * Selve beløbene styres af platform_settings (administreres i platform-admin).
@@ -158,6 +158,9 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
     leads: true,
     livechat: true,
   });
+  const [planKind, setPlanKind] = useState<"full" | "listing">(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("plan") === "profil" ? "listing" : "full");
+  const isListing = variant !== "pricing" && planKind === "listing";
   const [extraLogins, setExtraLogins] = useState(0);
   const [billing, setBilling] = useState<BillingPeriod>("monthly");
   const [email, setEmail] = useState("");
@@ -309,8 +312,9 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           settings: {
             cvr: cleanCvr,
             industry_text: cvrData.industry,
-            route_planning_enabled: true,
-            accounting_integration_enabled: features.accounting_integration,
+            route_planning_enabled: !isListing,
+            plan_kind: isListing ? "listing" : "full",
+            accounting_integration_enabled: !isListing && features.accounting_integration,
             leads_enabled: features.leads,
             livechat_enabled: features.livechat,
             onboarding: {
@@ -323,22 +327,36 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
       if (bizError) throw bizError;
 
       // Opret abonnement-pakken
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + pricing.trial_days);
-      await supabase.from("business_plans").insert({
-        business_id: bizData.id,
-        route_planning_enabled: true,
-        accounting_integration_enabled: features.accounting_integration,
-        extra_employee_logins: extraLogins,
-        billing_period: billing,
-        monthly_price_dkk: breakdown.monthlyAfterDiscount,
-        status: "trialing",
-        trial_ends_at: trialEnd.toISOString(),
-      });
+      if (isListing) {
+        const { error: planError } = await supabase.from("business_plans").insert({
+          business_id: bizData.id,
+          plan_kind: "listing",
+          route_planning_enabled: false,
+          accounting_integration_enabled: false,
+          extra_employee_logins: 0,
+          monthly_price_dkk: 0,
+          status: "active",
+          trial_ends_at: null,
+        });
+        if (planError) throw planError;
+      } else {
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + pricing.trial_days);
+        await supabase.from("business_plans").insert({
+          business_id: bizData.id,
+          route_planning_enabled: true,
+          accounting_integration_enabled: features.accounting_integration,
+          extra_employee_logins: extraLogins,
+          billing_period: billing,
+          monthly_price_dkk: breakdown.monthlyAfterDiscount,
+          status: "trialing",
+          trial_ends_at: trialEnd.toISOString(),
+        });
+      }
 
       await supabase.functions.invoke("business-registration-notification", { body: { businessId: bizData.id } })
         .catch(() => { /* Oprettelsen bevares, selv hvis beskedtjenesten er utilgængelig. */ });
-      toast.success(`Velkommen ombord! Du har ${pricing.trial_days} dages gratis prøve.`);
+      toast.success(isListing ? "Velkommen! Din gratis profil er oprettet." : `Velkommen ombord! Du har ${pricing.trial_days} dages gratis prøve.`);
       // Hård navigation så AuthProvider, useMyBusiness osv. henter friske data
       window.location.href = "/virksomhed";
     } catch (e: any) {
@@ -373,9 +391,9 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
       <PageHero
         tone="amber"
-        eyebrow={`${pricing?.trial_days ?? 14} dages gratis prøve · Intet kort kræves`}
+        eyebrow={`${pricing?.trial_days ?? 30} dages gratis prøve · Intet kort kræves`}
         title={variant === "pricing" ? "Priser — sammensæt jeres abonnement" : "Bliv udbyder på Serviceydere"}
-        aside={<HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 14} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} />}
+        aside={<HeroHighlights items={[{ icon: HhGift, title: `${pricing?.trial_days ?? 30} dages gratis prøve`, text: "Intet betalingskort ved oprettelse." }, { icon: HhRoute, title: "Ruteplanlægning inkluderet", text: "Planlæg ruter og giv medarbejderne en app." }, { icon: HhUnlock, title: "Ingen binding", text: "Opsig når som helst." }]} />}
         subtitle={
           variant === "pricing"
             ? `Basis koster ${formatDkk(pricing?.base_price_dkk ?? 289)} kr./md. ekskl. moms med ruteplanlægningen inkluderet. Indtast CVR, vælg tilvalg og medarbejderlogins — så ser I præcis jeres egen pris, før I opretter noget.`
@@ -389,6 +407,32 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.75fr)] xl:gap-8">
           {/* ─── VENSTRE: form-sektioner ─── */}
           <div className="space-y-6">
+            {variant !== "pricing" && (
+              <div role="radiogroup" aria-label="Vælg hvad du vil oprette" className="grid gap-3 sm:grid-cols-2">
+                {([
+                  { key: "full", title: "Fuldt system", text: `Profil på Serviceydere plus ruteplanlægger, medarbejder-app, aftaler og fakturering. ${pricing?.trial_days ?? 30} dage gratis.` },
+                  { key: "listing", title: "Kun profil – gratis", text: "List din virksomhed og dine services på Serviceydere og modtag forespørgsler. Ingen ruteplanlægger." },
+                ] as const).map((o) => (
+                  <button
+                    key={o.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={planKind === o.key}
+                    onClick={() => setPlanKind(o.key)}
+                    className={`min-h-11 rounded-2xl border-2 bg-card p-4 text-left transition-colors sm:p-5 ${planKind === o.key ? "border-foreground" : "border-border hover:border-foreground/40"}`}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-base font-semibold text-foreground">{o.title}</span>
+                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${planKind === o.key ? "border-foreground bg-foreground text-background" : "border-border"}`}>
+                        {planKind === o.key && <Check className="h-3 w-3" />}
+                      </span>
+                    </span>
+                    <span className="mt-1.5 block text-sm leading-6 text-muted-foreground">{o.text}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* 1. CVR */}
             <Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten" done={!!cvrData}>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -445,6 +489,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               )}
             </Section>
 
+            {!isListing && (<>
             {/* 2. Funktioner */}
             <Section number={2} title="Vælg dine funktioner" subtitle="Ruteplanlægning er altid med. Vælg om du vil tilkøbe regnskabsintegration eller slå de gratis funktioner til.">
               <div className="mb-4 rounded-2xl border border-accent/25 bg-accent-soft p-4">
@@ -579,9 +624,10 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               </div>
             </Section>
 
+            </>)}
             {/* 5. Konto (kun hvis ikke logget ind) */}
             {!user && (
-              <Section number={5} title="Opret din konto" subtitle="Vi sender ordrebekræftelser og notifikationer hertil">
+              <Section number={isListing ? 2 : 5} title="Opret din konto" subtitle="Vi sender ordrebekræftelser og notifikationer hertil">
                 {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business loginPath="/log-ind?mode=business" onEdit={() => setConfirmationEmail(null)} /> : <>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="relative">
@@ -644,6 +690,11 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               </div> : !pricing ? (
                 <div role="status" className="mt-6 flex min-h-40 items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" /> Indlæser priser…
+                </div>
+              ) : isListing ? (
+                <div className="mt-5 space-y-2 border-b border-border pb-4 text-sm">
+                  <p className="flex items-baseline justify-between gap-3"><span className="text-muted-foreground">Profil på Serviceydere</span><span className="font-semibold text-foreground">0 kr</span></p>
+                  <p className="text-muted-foreground">Gratis uden tidsbegrænsning. Du kan altid prøve det fulde system senere.</p>
                 </div>
               ) : breakdown && (
                 <div className="relative">
@@ -743,7 +794,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
                 ) : (
-                  <>Start gratis prøve <ArrowRight className="h-4 w-4" /></>
+                  <>{isListing ? "Opret gratis profil" : "Start gratis prøve"} <ArrowRight className="h-4 w-4" /></>
                 )}
               </Button>
 
@@ -772,10 +823,10 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Total pr. måned
+                {isListing ? "Kun profil" : "Total pr. måned"}
               </p>
               <p className="text-lg font-bold text-foreground tabular-nums">
-                <AnimatedNumber value={breakdown.monthlyAfterDiscount} /> kr
+                <AnimatedNumber value={isListing ? 0 : breakdown.monthlyAfterDiscount} /> kr
                 <span className="ml-1 text-[11px] font-normal text-muted-foreground">/md</span>
               </p>
             </div>
@@ -788,7 +839,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               {submitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
               ) : (
-                <>Start gratis prøve <ArrowRight className="h-4 w-4" /></>
+                <>{isListing ? "Opret gratis profil" : "Start gratis prøve"} <ArrowRight className="h-4 w-4" /></>
               )}
             </Button>
           </div>

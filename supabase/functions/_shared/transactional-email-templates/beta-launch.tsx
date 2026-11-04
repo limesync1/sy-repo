@@ -40,7 +40,7 @@ const BetaLaunchEmail = ({ audience = 'kunde' }: BetaLaunchProps) => {
 
             <Text style={text}>
               {isBusiness
-                ? 'Du kan oprette din virksomhed, lægge services og priser ind og begynde at tage imod bestillinger. Første 14 dage er gratis, og vi hjælper gerne med at flytte jeres nuværende kunder og aftaler ind.'
+                ? 'Du kan oprette din virksomhed, lægge services og priser ind og begynde at tage imod bestillinger. Første 30 dage er gratis, og vi hjælper gerne med at flytte jeres nuværende kunder og aftaler ind.'
                 : 'Du kan nu finde og sammenligne lokale serviceydere, læse anmeldelser og få op til 3 gratis tilbud på din opgave. Det koster ikke noget, og du taler direkte med virksomhederne.'}
             </Text>
 

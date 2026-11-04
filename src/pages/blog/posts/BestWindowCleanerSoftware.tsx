@@ -8,7 +8,7 @@ const Post = defineBlogPost({
     { q: "Hvad koster et program til vinduespudsere?", a: "Serviceydere koster 289 kr./md. med ruteplanlægning inkluderet plus 59 kr./md. pr. medarbejderlogin. SkvizBiz oplyser 100 kr./md. for en Lite-pakke og 399 kr./md. for den fulde version med gratis logins. Alle priser ekskl. moms." },
     { q: "Hvad er vigtigst at kigge efter?", a: "At planlægningen af den tilbagevendende rute er visuel og regner kørselstid med, at medarbejderne har en app, og at systemet ikke låser jer til kun at pudse vinduer." },
     { q: "Hvilket system skaffer nye kunder?", a: "Kun Serviceydere kombinerer driftssystemet med en markedsplads, hvor kunder selv finder og booker virksomheden." },
-    { q: "Kan man prøve systemerne gratis?", a: "Serviceydere har 14 dages prøveperiode. SkvizBiz oplyser en gratis prøvemåned. Bed altid om at prøve med jeres egne kunder og en rigtig uge i kalenderen." },
+    { q: "Kan man prøve systemerne gratis?", a: "Serviceydere har 30 dages prøveperiode. SkvizBiz oplyser en gratis prøvemåned. Bed altid om at prøve med jeres egne kunder og en rigtig uge i kalenderen." },
   ],
   sections: [
     { heading: "Kort svar", paragraphs: [
@@ -26,7 +26,7 @@ const Post = defineBlogPost({
     ]},
     { heading: "Serviceydere", paragraphs: [
       "Driftssystem og markedsplads i ét. Visuel ruteplanlægger med drag & drop, kørselstid og ETA, faste aftaler med automatisk fremskrivning, medarbejder-app med tjek ind og ud, online booking, prisberegner med frit definerbare enheder og integration til E-conomic og Dinero.",
-      "289 kr./md. med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 2.269 kr. i opstart, 14 dages prøveperiode. Svag side: bogføringen sker via integration frem for i selve programmet, og ved mange medarbejdere koster login-priserne.",
+      "289 kr./md. med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 2.269 kr. i opstart, 30 dages prøveperiode. Svag side: bogføringen sker via integration frem for i selve programmet, og ved mange medarbejdere koster login-priserne.",
     ], list: [
       <a href="/software/vinduespudser">Serviceydere til vinduespudsere</a>,
       <a href="/software/priser">Priser</a>,

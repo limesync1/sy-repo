@@ -55,6 +55,6 @@ export default defineBlogPost({
       ]
     },
     { heading: "Læs videre", body: <p><a href="/blog/samlefaktura-faste-kunder">samlefaktura og fakturaintervaller</a> · <a href="/software/fakturering-og-regnskab">fakturering og regnskab</a> · <a href="/blog/economic-integration-servicefirma">e-conomic-integrationen</a></p> },
-    { body: <p><a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.</p> }
+    { body: <p><a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.</p> }
   ]
 });

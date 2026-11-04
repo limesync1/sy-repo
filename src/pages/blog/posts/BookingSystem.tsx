@@ -24,7 +24,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Læs om <a href="/software/booking-og-tilbud">booking og tilbud</a> og <a href="/blog/kundekartotek-servicefirma">kundekartotek</a>.{" "}
-        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

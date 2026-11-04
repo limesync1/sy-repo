@@ -25,7 +25,7 @@ export default defineBlogPost({
     { body: (
       <p>
         Læs <a href="/blog/faste-ruter-vinduespudser">faste ruter for vinduespudsere</a>, <a href="/blog/start-eget-rengoeringsfirma">start eget rengøringsfirma</a> og{" "}
-        <a href="/blog/tilbud-skabelon-servicefirma">tilbud skabelon</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 14 dage</a> — uden kreditkort.
+        <a href="/blog/tilbud-skabelon-servicefirma">tilbud skabelon</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],

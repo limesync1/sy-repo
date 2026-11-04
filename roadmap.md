@@ -139,3 +139,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [ ] Fase 4: prisguider og "rutesystem til [branche]"
 - [ ] Fase 5: Google Business- og Trustpilot-profil (kræver William)
 - [ ] Fase 6: mobilhastighed
+
+## Kun profil + 30 dages prøveperiode
+- [x] Prøveperiode 14 → 30 dage overalt (Stripe, DB, tekster, artikler, mails, SEO)
+- [x] "Kun profil"-plan: database-guards, onboarding-valg, panel-skjul, opgradering/nedgradering, tests

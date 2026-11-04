@@ -66,7 +66,7 @@ export function finderResult(a: Answers): FinderResult {
   if (a.team === "small" || a.team === "medium") reasons.push({ title: "Styr på holdet", text: "Fordel stop med træk-og-slip, se hvem der er i gang, og meld sygdom eller ferie i ruteplanlæggeren." });
   if (a.team === "large") reasons.push({ title: "Mange medarbejdere", text: "Flere ruter pr. dag, medarbejder-app og samlede fakturaer. Spørg kundeservice om opsætning af flere afdelinger." });
   if (a.priority === "simple") reasons.push({ title: "Hurtigt i gang", text: "Kundeservice flytter dine data gratis, så du kan starte uden at taste alt ind igen." });
-  if (a.priority === "price") reasons.push({ title: "14 dage gratis", text: "Prøv alt i 14 dage uden kreditkort og uden binding, før du bestemmer dig." });
+  if (a.priority === "price") reasons.push({ title: "30 dage gratis", text: "Prøv alt i 30 dage uden kreditkort og uden binding, før du bestemmer dig." });
   if (a.priority === "growth") reasons.push({ title: "Nye kunder indbygget", text: "Din virksomhed kan findes af kunder på Serviceyderes markedsplads." });
   if (a.priority === "control") reasons.push({ title: "Fuldt overblik", text: "Tid, besøg, billedbevis og fakturaer hænger sammen, så intet falder mellem to stole." });
   for (const n of picked.slice(0, 3)) reasons.push({ title: n.label, text: n.why });

@@ -1,3 +1,4 @@
+import { TRIAL_DAYS } from "@/lib/trial";
 // useBusinessPlan — henter den abonnementspakke, der er knyttet til en
 // virksomhed, og leverer afledte felter (dage tilbage af prøveperiode,
 // om virksomheden bør deaktiveres pga. manglende betalingskort osv.).
@@ -57,13 +58,13 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
         };
       }
       const hasCard = !!data.stripe_payment_method_last4;
-      // Hvis trial_ends_at mangler, regn et fallback ud fra created_at + 14 dage
+      // Hvis trial_ends_at mangler, regn et fallback ud fra created_at + 30 dage
       // så banneret altid kan vise "X dage, Y timer tilbage" i stedet for blot
       // "Din prøveperiode er aktiv".
       let trialEnd = data.trial_ends_at ? new Date(data.trial_ends_at) : null;
       if (!trialEnd && data.created_at) {
         const created = new Date(data.created_at);
-        trialEnd = new Date(created.getTime() + 14 * 24 * 60 * 60 * 1000);
+        trialEnd = new Date(created.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
       }
       const trialEndIso = trialEnd ? trialEnd.toISOString() : null;
       const daysLeft = trialEnd
@@ -134,7 +135,7 @@ export const usePlatformPricing = () => {
         startup_fee_dkk: Number((row as any).startup_fee_dkk) || 2269,
         discount_quarterly_pct: Number(row.discount_quarterly_pct) || 0,
         discount_yearly_pct: Number(row.discount_yearly_pct) || 0,
-        trial_days: Number(row.trial_days) || 14,
+        trial_days: Number(row.trial_days) || TRIAL_DAYS,
       };
     },
     staleTime: 5 * 60 * 1000,
@@ -249,6 +250,21 @@ export const useRemovePaymentMethod = () => {
     onSuccess: (_, businessId) => {
       qc.invalidateQueries({ queryKey: ["business-plan", businessId] });
       qc.invalidateQueries({ queryKey: ["admin-business-plans"] });
+    },
+  });
+};
+/** Skift mellem "Kun profil" og "Fuldt system". Serveren tjekker ejer og om nedgradering er sikker. */
+export const useSetPlanKind = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { businessId: string; kind: "listing" | "full" }) => {
+      const { error } = await supabase.rpc("set_business_plan_kind", { _business_id: vars.businessId, _kind: vars.kind });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["business-plan", vars.businessId] });
+      qc.invalidateQueries({ queryKey: ["business"] });
+      qc.invalidateQueries({ queryKey: ["my-business"] });
     },
   });
 };

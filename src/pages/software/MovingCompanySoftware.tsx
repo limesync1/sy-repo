@@ -20,7 +20,7 @@ const MovingCompanySoftware = defineSoftwarePage({
     "Hold og biler planlægges på samme dag",
     "Medarbejdere ser adresse, adgangsforhold og noter i appen",
     "Faktisk brugt tid registreres og kan faktureres",
-    "Fra 289 kr./md. — 14 dages gratis prøve uden betalingskort",
+    "Fra 289 kr./md. — 30 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {

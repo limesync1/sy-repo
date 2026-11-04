@@ -25,7 +25,7 @@ export default defineBlogPost({
     ] },
     { body: (
       <p>
-        <a href="/software/fakturering-og-regnskab">Fakturering og regnskab</a> <a href="/blog/dinero-faktura-servicefirma">Dinero faktura</a> <a href="/blog/samlefaktura-faste-kunder">samlefaktura</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 14 dage</a> — uden kreditkort.
+        <a href="/software/fakturering-og-regnskab">Fakturering og regnskab</a> <a href="/blog/dinero-faktura-servicefirma">Dinero faktura</a> <a href="/blog/samlefaktura-faste-kunder">samlefaktura</a>. <a href="/blog/proev-ruteplanlaegger-gratis">Prøv Serviceydere gratis i 30 dage</a> — uden kreditkort.
       </p>
     ) },
   ],
