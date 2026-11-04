@@ -222,6 +222,7 @@ export const comparisons: Comparison[] = [
       "Ruteplanlægning til faste besøg med interval",
       "Nye kunder via Serviceyderes markedsplads",
       "Kom i gang selv på få minutter, uden opstartsmøde",
+      "Materialer på fakturaen og kvalitetssikring med underskrift",
     ],
     summaryThem: [
       "Sagsstyring med materialer og kvalitetsskemaer",
