@@ -5,8 +5,8 @@ import {
   type AdminFeatureFlags,
 } from "./adminNav";
 
-const none: AdminFeatureFlags = { routePlanning: false, leads: false, livechat: false, accounting: false };
-const all: AdminFeatureFlags = { routePlanning: true, leads: true, livechat: true, accounting: true };
+const none: AdminFeatureFlags = { operations: true, routePlanning: false, leads: false, livechat: false, accounting: false };
+const all: AdminFeatureFlags = { operations: true, routePlanning: true, leads: true, livechat: true, accounting: true };
 
 describe("adminNav", () => {
   it("has exactly one nav item per tab key", () => {
@@ -36,6 +36,13 @@ describe("adminNav", () => {
   it("swaps Ruter/Services in the mobile bar depending on route planning", () => {
     expect(adminMobilePrimaryKeys(none)).toEqual(["dashboard", "orders", "services", "customers"]);
     expect(adminMobilePrimaryKeys(all)).toEqual(["dashboard", "orders", "routes", "customers"]);
+  });
+
+  it("Kun profil hides every operations tab", () => {
+    const listing: AdminFeatureFlags = { operations: false, routePlanning: false, leads: false, livechat: false, accounting: false };
+    const hidden = ADMIN_NAV_ITEMS.filter((i) => !isAdminNavVisible(i, listing)).map((i) => i.value);
+    for (const k of ["orders", "customers", "routes", "employees", "accounting"]) expect(hidden).toContain(k);
+    expect(adminMobilePrimaryKeys(listing)).toEqual(["dashboard", "services", "reviews", "settings"]);
   });
 
   it("only uses primary tabs that exist and are visible", () => {

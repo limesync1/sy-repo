@@ -13,6 +13,8 @@ export const ADMIN_TAB_KEYS = [
 export type AdminTabKey = (typeof ADMIN_TAB_KEYS)[number];
 
 export type AdminFeatureFlags = {
+  /** Fuldt system (aftaler, kunder, ruter m.m.). Falsk for "Kun profil". */
+  operations: boolean;
   routePlanning: boolean;
   leads: boolean;
   livechat: boolean;
@@ -43,9 +45,9 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { value: "getting-started", label: "Kom godt i gang", icon: Rocket, group: "onboarding" },
 
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard, group: "drift" },
-  { value: "orders", label: "Aftaler", icon: CalendarDays, group: "drift" },
+  { value: "orders", label: "Aftaler", icon: CalendarDays, group: "drift", requires: "operations" },
   { value: "routes", label: "Ruter", icon: Route, group: "drift", requires: "routePlanning", href: "/virksomhed/ruter" },
-  { value: "customers", label: "Kunder", icon: Users, group: "drift" },
+  { value: "customers", label: "Kunder", icon: Users, group: "drift", requires: "operations" },
   { value: "leads", label: "Leads", icon: Sparkles, group: "drift", requires: "leads" },
 
   { value: "services", label: "Services", icon: Wrench, group: "virksomhed" },
@@ -63,7 +65,9 @@ export const isAdminNavVisible = (item: AdminNavItem, flags: AdminFeatureFlags) 
   !item.requires || !!flags[item.requires];
 
 /** De fire faner der vises direkte i mobilens bundnavigation. */
-export const adminMobilePrimaryKeys = (flags: AdminFeatureFlags): AdminTabKey[] => [
+export const adminMobilePrimaryKeys = (flags: AdminFeatureFlags): AdminTabKey[] => !flags.operations
+  ? ["dashboard", "services", "reviews", "settings"]
+  : [
   "dashboard",
   "orders",
   flags.routePlanning ? "routes" : "services",

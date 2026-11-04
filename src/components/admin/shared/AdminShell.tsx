@@ -25,6 +25,7 @@ import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { AccountProfileSheet } from "@/components/shared/AccountProfileSheet";
 import { useMyProfile } from "@/hooks/useDatabase";
 import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
+import { adminFlagsFor } from "@/lib/business-capabilities";
 import {
   ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, TAB_PREFETCH, adminNeighbours, adminMobilePrimaryKeys,
   findAdminNavItem, isAdminNavVisible, prefetchAdminTab,
@@ -101,12 +102,7 @@ export const AdminShell = ({
     employees[0]?.id === myEmployee.id;
 
   const settings = (business.settings ?? {}) as any;
-  const flags: AdminFeatureFlags = {
-    routePlanning: !!settings.route_planning_enabled,
-    leads: !!settings.leads_enabled,
-    livechat: !!settings.livechat_enabled,
-    accounting: !!settings.accounting_integration_enabled,
-  };
+  const flags: AdminFeatureFlags = adminFlagsFor(business);
 
   // Onboarding styrer om "Kom godt i gang"-kortet vises. Forsvinder af sig selv
   // når alt er grønt — men bliver stående så længe man står på fanen.
