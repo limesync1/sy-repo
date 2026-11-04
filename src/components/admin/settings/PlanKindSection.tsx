@@ -44,7 +44,7 @@ export default function PlanKindSection({ business }: { business: { id: string; 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className={`rounded-xl border p-4 ${kind === "listing" ? "border-foreground" : "border-border"}`}>
             <p className="font-semibold text-foreground">Kun profil – gratis</p>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">Profil, services og priser på Serviceydere. Modtag forespørgsler og anmeldelser.</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">Offentlig profil med jeres services, priser og anmeldelser — bliv fundet på Google, og modtag forespørgsler fra kunder.</p>
             {kind === "listing" && <p className="mt-2 text-sm font-semibold text-foreground">Det har I nu</p>}
           </div>
           <div className={`rounded-xl border p-4 ${kind === "full" ? "border-foreground" : "border-border"}`}>

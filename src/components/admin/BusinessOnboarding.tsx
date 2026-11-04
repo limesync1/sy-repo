@@ -410,8 +410,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             {variant !== "pricing" && (
               <div role="radiogroup" aria-label="Vælg hvad du vil oprette" className="grid gap-3 sm:grid-cols-2">
                 {([
-                  { key: "full", title: "Fuldt system", text: `Profil på Serviceydere plus ruteplanlægger, medarbejder-app, aftaler og fakturering. ${pricing?.trial_days ?? 30} dage gratis.` },
-                  { key: "listing", title: "Kun profil – gratis", text: "List din virksomhed og dine services på Serviceydere og modtag forespørgsler. Ingen ruteplanlægger." },
+                  { key: "full", title: "Fuldt system", text: `Alt i profilen plus hele driftssystemet. ${pricing?.trial_days ?? 30} dage gratis.`, bullets: ["Profil, som kunder kan finde på Google", "Ruteplanlægger og medarbejder-app", "Kunder, aftaler og fakturering"] },
+                  { key: "listing", title: "Kun profil – gratis", text: "I bliver en offentlig profil, som kunder kan finde på Google. Gratis uden tidsbegrænsning.", bullets: ["Bliv fundet på Google, når kunder søger", "Vis jeres services, priser og anmeldelser", "Modtag forespørgsler fra kunder direkte"] },
                 ] as const).map((o) => (
                   <button
                     key={o.key}
@@ -428,6 +428,14 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                       </span>
                     </span>
                     <span className="mt-1.5 block text-sm leading-6 text-muted-foreground">{o.text}</span>
+                    <ul className="mt-2 space-y-1">
+                      {o.bullets.map((b) => (
+                        <li key={b} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                          <Check className="mt-1.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </button>
                 ))}
               </div>
