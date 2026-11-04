@@ -6,6 +6,7 @@ Serviceydere.dk forbinder kunder med lokale udbydere i hele Danmark. Kunder kan 
 
 ## Pages
 
+- [Redaktionen](https://serviceydere.dk/redaktion): Hvordan guides og artikler skrives, faktatjekkes og opdateres.
 - [Forside](/): Find og book lokale serviceydere i Danmark.
 - [Find virksomheder](/virksomheder): Søg og filtrér verificerede serviceydere efter kategori og by.
 - [Få tilbud](/tilbud): Beskriv din opgave og modtag op til 3 gratis tilbud fra relevante udbydere.
