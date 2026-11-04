@@ -1,3 +1,4 @@
+import { AccountingSkeleton } from "@/components/admin/shared/Skeletons";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,7 +85,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
           </div>
         ) : (
           <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20 px-3 py-4 sm:px-5">
-            <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+            <Suspense fallback={<AccountingSkeleton />}>
               <AccountingTab businessId={business.id} businessName={business.name} />
             </Suspense>
           </div>

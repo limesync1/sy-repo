@@ -1,3 +1,4 @@
+import { FormSkeleton } from "@/components/admin/shared/Skeletons";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, PlayCircle } from "lucide-react";
@@ -45,7 +46,7 @@ export default function OnboardingVideosSettings() {
       description="Indsæt et link for hvert trin — YouTube, Vimeo eller en direkte videofil (.mp4). Tomt felt viser “Video kommer snart”."
     >
       {isLoading ? (
-        <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        <div role="status" aria-label="Indlæser"><FormSkeleton fields={3} /></div>
       ) : (
         <div className="space-y-3">
           {CORE_STEPS.map((s, i) => (

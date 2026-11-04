@@ -1,3 +1,4 @@
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 // Audit-log viewer for én rute. Læser via RPC'en `route_audit_feed`, der
 // beriger hændelserne med navn på personen bag handlingen — og for
 // virksomhedens ejer også e-mail, IP-adresse og enhed.
@@ -105,9 +106,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
         </DialogHeader>
         <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
           {isLoading ? (
-            <div className="flex items-center justify-center py-10 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Henter…
-            </div>
+            <div role="status" aria-label="Henter historik"><ListCardSkeleton rows={4} withHeader={false} /></div>
           ) : (data?.length ?? 0) === 0 ? (
             <EmptyState icon={<History className="h-5 w-5" />} title="Ingen historik endnu" compact />
           ) : (

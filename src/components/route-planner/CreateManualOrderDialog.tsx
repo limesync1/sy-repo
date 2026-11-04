@@ -1,3 +1,4 @@
+import { FormSkeleton } from "@/components/admin/shared/Skeletons";
 import { formatPrice } from "@/lib/price-format";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -444,7 +445,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         </DialogHeader>
 
         {servicesLoading ? (
-          <div className="flex min-h-[260px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <div role="status" aria-label="Indlæser" className="min-h-[260px]"><FormSkeleton fields={5} /></div>
         ) : activeServices.length === 0 ? (
           <ActiveServiceRequired />
         ) : <div className="planner-overlay-body min-h-0 flex-1 overflow-x-visible overflow-y-auto px-3 sm:px-5 py-3 space-y-2">

@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 // DPAAcceptanceBanner — beder virksomhedens ejer om aktivt at acceptere
 // databehandleraftalen. Accepten gemmes med version, bruger, tidspunkt, IP og
 // enhed, så begge parter har dokumentation. Når den nyeste version er
@@ -153,9 +154,7 @@ export const DPAGate = ({
   if (!isOwner) return <>{children}</>;
   if (isLoading) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
-      </div>
+      <div role="status" aria-label="Indlæser"><PageSkeleton /></div>
     );
   }
   if (!blocked) return <>{children}</>;
