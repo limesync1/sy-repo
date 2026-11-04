@@ -1,8 +1,8 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## 4. nov. — Branche- og bysiders Google-adgang
-- [ ] Kontrollér alle registrerede branche-/byruter mod sitemap og offentlig HTML; beskyt fuldt indhold ved udgivelse.
-- [ ] Kontrollér udvalgte URL'er og sitemap hos Google og dokumentér faktisk status uden at love indeksering.
+- [x] 705 offentliggjorte branche-/byruter: HTTP 200, korrekt canonical, første HTML-overskrift og ingen noindex. Alle registrerede ruter dækket af metadata, sitemap og fuldt indhold; udgivelse afvises ved mangler. 21 tests bestået, SEO-check 0 fejl/advarsler på 1.084 lokale sitemap-URL'er og build OK. København → elektriker-link afprøvet i browser.
+- [x] Search Console (valgt https://serviceydere.dk/): to eksisterende sitemaps accepteret uden fejl/advarsler; rengøring/København indekseret, by/København og snerydning opdaget/ikke indekseret, privatrengøring og elektriker/Aarhus ukendte. Ingen unødvendig sitemap-genindsendelse; intet indekseringsrequest udført. Ny udgivelsesbeskyttelse endnu ikke offentliggjort.
 - [ ] Alle sider indekseret: afventer Googles crawling og beslutning; API-kontrol kan ikke anmode om indeksering.
 
 ## 3. nov. — Fortsat responsiv forside
