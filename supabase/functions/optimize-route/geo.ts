@@ -59,6 +59,7 @@ export async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
 // slår de samme par op igen. Begrænset størrelse for at holde hukommelsen nede.
 const PAIR_CACHE = new Map<string, [number, number]>();
 const PAIR_CACHE_MAX = 200_000;
+export function clearTravelCache() { PAIR_CACHE.clear(); }
 const ck = (c: LatLng) => `${c.lat.toFixed(4)},${c.lng.toFixed(4)}`;
 
 async function osrmBlock(

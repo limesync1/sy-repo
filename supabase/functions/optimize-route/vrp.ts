@@ -765,7 +765,7 @@ export async function solveVRP(
 
   // Aldrig dårligere end i dag: er brugerens nuværende rækkefølge billigere
   // (og gyldig), beholder vi den.
-  if (current.feasible) {
+  if (current.feasible && employees.length > 0 && stops.length > 0) {
     const curCost = solutionCost(currentRoutes, 0);
     if (curCost + 0.01 < bestSolution.cost) {
       bestSolution = { routes: currentRoutes, unassigned: [], cost: curCost };

@@ -59,6 +59,7 @@ Deno.test("store ruter får en komplet nøglefri matrix", async () => {
 });
 
 Deno.test("OSRM-fejl giver ingen matrix, så kalderen kan bruge et lokalt estimat", async () => {
+  clearTravelCache();
   stubOsrm({ fail: true });
   try {
     const m = await buildMatrix(points(30));
