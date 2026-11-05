@@ -1,9 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## 5. nov. — Smartere virksomhedsoprettelse
-- [ ] Login med eksisterende korrekte oplysninger før oprettelse; eksisterende ejere sendes til panelet uden dubletter.
-- [ ] Mobiloprettelse: tydelig kontovalg, adgangskodevisning, kompakt bekræftelse og ingen blokeret bundknap.
-- [ ] Regeltests og browserkontrol.
+- [x] Login med eksisterende korrekte oplysninger før oprettelse; eksisterende ejere sendes til panelet uden dubletter. Nye konti kræver stadig e-mailbekræftelse.
+- [x] Mobiloprettelse: kontovalg, adgangskodevisning, kompakt bekræftelse og bundknap, der fører til manglende oplysninger og skjules ved bekræftelse.
+- [x] 20 regeltests bestået; browserkontrol på fire bredder, adgangskodevisning og faktisk afvist login uden signup. CVR isoleret i testen, da liveopslag ikke afsluttedes. Vellykket login/viderestilling med en eksisterende kontos korrekte adgangskode ikke ende-til-ende-verificeret; ingen konto eller virksomhed oprettet under testen.
 
 ## 4. nov. — Branche- og bysiders Google-adgang
 - [x] 705 offentliggjorte branche-/byruter: HTTP 200, korrekt canonical, første HTML-overskrift og ingen noindex. Alle registrerede ruter dækket af metadata, sitemap og fuldt indhold; udgivelse afvises ved mangler. 21 tests bestået, SEO-check 0 fejl/advarsler på 1.084 lokale sitemap-URL'er og build OK. København → elektriker-link afprøvet i browser.
