@@ -2458,7 +2458,7 @@ const HoursEditor = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
       <div className="flex flex-wrap gap-1.5" data-tour="hours-presets">
         <Button variant="outline"
@@ -2484,18 +2484,19 @@ const HoursEditor = ({
         </Button>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
         {DAYS.map((day, dayIdx) => {
           const parsed = parseHours(value[day] || "");
           const isOpen = !!parsed;
           const open = parsed?.open || "08:00";
           const close = parsed?.close || "16:00";
+          const firstOpen = DAYS.find((d) => !!parseHours(value[d] || "")) === day;
           return (
             <div
               key={day}
               data-tour={dayIdx === 0 ? "hours-day-row" : undefined}
-              className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
-                isOpen ? "border-border bg-secondary/40" : "border-border bg-card"
+              className={`flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-0.5 transition-colors ${
+                isOpen ? "bg-secondary/30" : "bg-card"
               }`}
             >
               {/* Dag + toggle */}
@@ -2505,7 +2506,7 @@ const HoursEditor = ({
                 aria-checked={isOpen}
                 aria-label={`Åben ${day}`}
                 onClick={() => isOpen ? setDay(day, null, null) : setDay(day, open, close)}
-                className="min-h-11 justify-start gap-2 px-0 min-w-[140px] sm:min-w-[160px]"
+                className="min-h-11 justify-start gap-2 px-0 min-w-[120px] sm:min-w-[130px]"
               >
                 <span
                   aria-hidden="true"
@@ -2530,14 +2531,14 @@ const HoursEditor = ({
                     <span className="text-xs text-muted-foreground">til</span>
                     <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
                   </div>
-                  <Button variant="ghost"
+                  {firstOpen && <Button variant="ghost"
                     type="button"
                     onClick={() => applyToAll(day)}
                     className="ml-auto min-h-11 text-sm text-muted-foreground hover:text-foreground"
                     title="Kopiér disse tider til alle åbne dage"
                   >
-                    Anvend på alle
-                  </Button>
+                    Brug på alle dage
+                  </Button>}
                 </>
               )}
             </div>
