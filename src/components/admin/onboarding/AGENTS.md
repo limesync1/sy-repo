@@ -1,0 +1,1 @@
+- "Kom godt i gang" has two plan-specific tracks in `steps.ts` (`stepsForPlan`); videos key by step id plus `intro_full`/`intro_listing`, so shared steps reuse one video and guides match plan capabilities.
