@@ -1407,7 +1407,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             <div>
               <p className="mb-2 px-1 text-sm font-semibold text-foreground">Visuelle elementer</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-stretch">
-                <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
+                <div className="rounded-md border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
                     {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />}
@@ -1416,7 +1416,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.
                   </p>
                 </div>
-                <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
+                <div className="rounded-md border border-border bg-card/50 p-4" data-tour="field-cover">
                   <FieldLabel optional>Coverbillede</FieldLabel>
                   <div className="mt-1">
                     {user && <ImageUpload folder={`${user.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-[3/1]" className="w-full max-w-[420px]" />}
@@ -1431,7 +1431,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* ── Webadresse ── */}
             <p className="mt-6 mb-2 px-1 text-sm font-semibold text-foreground">Webadresse</p>
             {/* Permalink (slug) */}
-            <div className="rounded-xl border border-border bg-card/50 p-4">
+            <div className="rounded-md border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Link2 className="h-4 w-4" />
@@ -1479,7 +1479,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
                 Har I jeres eget webnavn (fx mitfirma.dk)?
               </summary>
-              <div className="mt-2 rounded-xl border border-border bg-card/50 p-4">
+              <div className="mt-2 rounded-md border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Globe className="h-4 w-4" />
@@ -1774,7 +1774,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             {priceBreakdown && (
               <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
                 {/* Hovedkort: faktureringsinterval + linje-specifikation */}
-                <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <div className="overflow-hidden rounded-md border border-border bg-card">
                   <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">Faktureringsinterval</p>
@@ -1825,7 +1825,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
                     {/* Antal ekstra medarbejderlogins — styrer hvor mange medarbejdere
                         virksomheden kan oprette. Ejer-loginnet er altid inkluderet. */}
-                    <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+                    <div className="rounded-md border border-border bg-card p-3 sm:p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-foreground">Medarbejderlogins</p>
@@ -1955,7 +1955,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             {plan?.has_payment_method && (
               <div className="mt-4">
                 <p className="mb-2 px-1 text-sm font-semibold text-foreground">Betalingsmetode</p>
-                <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <div className="overflow-hidden rounded-md border border-border bg-card">
                   <div className="flex flex-wrap items-center justify-between gap-3 p-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
@@ -2390,7 +2390,7 @@ const SubcategoryPicker = ({
         return (
           <div
             key={ind.key}
-            className="rounded-xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
+            className="rounded-md border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center gap-2">
               <IndustryIcon category={ind.key} className="h-8 w-8 shrink-0" alt={ind.label} />

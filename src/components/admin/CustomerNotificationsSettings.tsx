@@ -304,7 +304,7 @@ export function CustomerNotificationsSettings({
           <section key={e.key} className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent">
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
