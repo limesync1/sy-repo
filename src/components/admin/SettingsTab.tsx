@@ -586,6 +586,21 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Smooth, accurate anchor-scroll. Bruger window.scrollTo med eksplicit offset
   // (header-højde) i stedet for scrollIntoView, så ankret lander præcist under
   // den sticky topbaren — uafhængigt af scroll-mt værdier.
+  const [navQuery, setNavQuery] = useState("");
+  const SECTION_KEYWORDS: Record<string, string> = {
+    billing: "moms pris betaling kort abonnement faktura stripe",
+    hours: "åbningstider tider",
+    "customer-notifications": "sms påmindelse kunder",
+    notifications: "mail e-mail besked",
+    advanced: "leads livechat tilbud",
+    branding: "logo billede webadresse link",
+    contact: "telefon adresse cvr",
+  };
+  const matchesNav = (sec: { id: string; label: string; hint: string }) => {
+    const q = navQuery.trim().toLowerCase();
+    if (!q) return true;
+    return `${sec.label} ${sec.hint} ${SECTION_KEYWORDS[sec.id] ?? ""}`.toLowerCase().includes(q);
+  };
   const visibleSections = useMemo(
     () => settingsSectionsFor(isListingOnly(business) ? "listing" : "full"),
     [business],
@@ -1101,6 +1116,21 @@ const SettingsTab = ({ business }: { business: any }) => {
             mens man scroller. */}
         <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto pr-1">
           <nav className="rounded-md border border-border bg-card p-2.5 shadow-sm">
+            <label className="relative mb-3 block">
+              <span className="sr-only">Søg i indstillinger</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Input
+                value={navQuery}
+                onChange={(e) => setNavQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  const first = visibleSections.find(matchesNav);
+                  if (first) scrollToSection(first.id);
+                }}
+                placeholder="Søg, fx moms"
+                className="h-11 pl-9 text-sm"
+              />
+            </label>
             <div className="mb-3 rounded-md border border-border bg-secondary/40 px-3 py-2.5">
               <div className="flex items-baseline justify-between">
                 <span className="text-[12px] font-semibold text-foreground">Profil udfyldt</span>
@@ -1119,7 +1149,9 @@ const SettingsTab = ({ business }: { business: any }) => {
                 { title: "Beskeder",    ids: ["notifications", "customer-notifications"] },
                 { title: "Konto",       ids: ["billing", "trade", "advanced"] },
               ];
-              return groups.filter((g) => g.ids.some((id) => visibleSections.some((s) => s.id === id))).map((g, gi) => (
+              const shown = groups.filter((g) => g.ids.some((id) => visibleSections.some((s) => s.id === id && matchesNav(s))));
+              if (shown.length === 0) return <p className="px-3 py-2 text-sm text-muted-foreground">Ingen indstillinger matcher.</p>;
+              return shown.map((g, gi) => (
                 <div key={g.title} className={gi > 0 ? "mt-4 border-t border-border/50 pt-3" : ""}>
                   <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
                     {g.title}
@@ -1127,7 +1159,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="flex flex-col gap-1">
                     {g.ids.map((id) => {
                       const sec = visibleSections.find((s) => s.id === id);
-                      if (!sec) return null;
+                      if (!sec || !matchesNav(sec)) return null;
                       const Icon = sec.icon;
                       const sectionChecks = completeness.checks.filter((c) => c.section === id);
                       const sectionDone = sectionChecks.length > 0 && sectionChecks.every((c) => c.done);
