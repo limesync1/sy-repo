@@ -1068,11 +1068,10 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
       </div>
 
-      <TextSizeControl />
 
       {/* ─── Manglende-felter — kompakt chip-række (kun når noget mangler) ─── */}
       {completeness.pct < 100 && completeness.checks.some((c) => !c.done) && (
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center lg:hidden">
           <div className="min-w-0 sm:w-56 sm:shrink-0">
             <p className="text-sm font-semibold text-foreground">Gør profilen færdig</p>
             <p className="mt-0.5 text-sm text-muted-foreground">En komplet profil bliver oftere valgt af kunder.</p>
@@ -1221,9 +1220,11 @@ const SettingsTab = ({ business }: { business: any }) => {
               ));
             })()}
           </nav>
+          <div className="mt-3"><TextSizeControl /></div>
         </aside>
 
         <div className="space-y-5" data-settings-pages>
+          <div className="lg:hidden"><TextSizeControl /></div>
           {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
       {(!business.address || !business.city || !business.zip_code) && (
@@ -1272,7 +1273,6 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-5">
         {/* ── Gruppe: Profil ── */}
-        <GroupHeader icon={<SettingsGroupIcon src={profileGroupIcon.url} />} title="Profil" hint="Hvordan I præsenterer jer for kunderne" />
 
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1663,7 +1663,6 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* ── Gruppe: Beskeder ── */}
-        <GroupHeader icon={<SettingsGroupIcon src={messagesGroupIcon.url} />} title="Beskeder" hint="Hvad I og jeres kunder modtager besked om" />
 
         {/* Notifikationer */}
         <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1702,7 +1701,6 @@ const SettingsTab = ({ business }: { business: any }) => {
         )}
 
         {/* ── Gruppe: Konto ── */}
-        <GroupHeader icon={<SettingsGroupIcon src={accountGroupIcon.url} />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
 
         <PlanKindSection business={business} />
 
