@@ -172,7 +172,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    if (await applyStatus([id], status)) toast.success("Lead opdateret");
+    if (await applyStatus([id], status)) toast.success("Forespørgsel opdateret");
   };
 
   const bulkUpdate = async (status: string) => {
@@ -306,7 +306,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5">
         <PageHeader
-          title="Leads"
+          title="Forespørgsler"
           description={`${allLeads.length} forespørgsler i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
           action={<LeadSettingsDialog businessId={businessId} />}
         />
@@ -386,7 +386,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger aria-label="Sortér leads" className="h-11 w-full rounded-md sm:w-[230px]">
+                <SelectTrigger aria-label="Sortér forespørgsler" className="h-11 w-full rounded-md sm:w-[230px]">
                   <div className="flex min-w-0 items-center gap-2 whitespace-nowrap text-sm">
                     <Filter className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <SelectValue />
@@ -693,7 +693,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   pageSize={pageSize}
                   total={visible.length}
                   onPageChange={setPage}
-                  label="leads"
+                  label="forespørgsler"
                 />
               </>
             )}

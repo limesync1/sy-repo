@@ -110,7 +110,7 @@ const PrivacyPolicy = () => (
           <>
             <p>Vi opbevarer dine oplysninger så længe det er nødvendigt for de formål, de blev indsamlet til:</p>
             <ul className="ml-5 list-disc space-y-1">
-              <li>Tilbudsforespørgsler og leads: op til 24 måneder fra sidste aktivitet, hvorefter de anonymiseres eller slettes.</li>
+              <li>Tilbudsforespørgsler: op til 24 måneder fra sidste aktivitet, hvorefter de anonymiseres eller slettes.</li>
               <li>Konto-, profil- og virksomhedsdata: så længe din konto er aktiv plus op til 12 måneder efter lukning.</li>
               <li>Korrespondance og support-tråde: op til 3 år (jf. forældelsesloven §3).</li>
               <li>Regnskabsmateriale (fakturaer, betalinger): 5 år fra udgangen af regnskabsåret, jf. bogføringsloven §12.</li>

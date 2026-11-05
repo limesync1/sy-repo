@@ -162,7 +162,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
           <div role="status" aria-label="Indlæser" className="py-2"><FormSkeleton fields={4} /></div>
         ) : (
           <div className="planner-overlay-body min-h-0 flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-3 py-4 sm:px-5">
-            <Section icon={<Mail />} title="Beskeder om nye leads">
+            <Section icon={<Mail />} title="Beskeder om nye forespørgsler">
               <div className="space-y-3">
               <div className="flex items-start justify-between gap-4">
               <div>

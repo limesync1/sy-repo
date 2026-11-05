@@ -1186,7 +1186,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     tags: ["sammenligning","platform","byggetilbud"],
     loader: () => import("./posts/ServiceydereVs3byggetilbud") },
   { slug: "bedste-platform-til-haandvaerkertilbud-2026", title: "Bedste platform til håndværker- og servicetilbud i 2026",
-    description: "Opgavebørs, lead-portal eller markedsplads? Se forskellene på de danske platforme — og hvordan du får sammenlignelige tilbud uanset hvor du spørger.",
+    description: "Opgavebørs, formidlingsportal eller markedsplads? Se forskellene på de danske platforme — og hvordan du får sammenlignelige tilbud uanset hvor du spørger.",
     publishedAt: "2026-08-12", readingMinutes: 7, category: "Guides",
     tags: ["sammenligning","platform","tilbud"],
     loader: () => import("./posts/BestQuotePlatform") },
