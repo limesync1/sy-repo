@@ -6,7 +6,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Star, Building2, Users, ShoppingCart, Settings,
-  LogOut, Menu, X, Repeat, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles, Rocket,
+  LogOut, Menu, X, Repeat, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, ChevronDown, Activity, Sparkles, Rocket,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShort
 import { useAdminBadges } from "@/components/platform-admin/lib/useAdminBadges";
 import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
 import {
-  SidebarNavButton, SidebarGroupLabel, SidebarFooterItem, SidebarWorkspaceRow,
+  SidebarNavButton, SidebarGroupLabel, SidebarWorkspaceRow, SidebarProfileMenu, type ProfileMenuItem,
 } from "@/components/shared/sidebar/SidebarParts";
 import PanelShell from "@/components/shared/sidebar/PanelShell";
 
@@ -53,7 +53,7 @@ const PlatformWaitlistTab = lazy(() => import("@/components/platform-admin/Platf
 // Sidebar er nu delt i to logiske grupper. Det reducerer kognitiv belastning
 // når man scanner 10+ menupunkter, og gør "drift"-flowet (det man bruger dagligt)
 // visuelt adskilt fra "system"-fanerne (som åbnes sjældnere).
-const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: any; hasRange?: boolean }[] }[] = [
+const NAV_GROUPS: { label: string; foldable?: boolean; items: { value: string; label: string; icon: any; hasRange?: boolean }[] }[] = [
   {
     label: "Daglig drift",
     items: [
@@ -76,6 +76,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
   },
   {
     label: "System",
+    foldable: true,
     items: [
       { value: "health", label: "Sundhed", icon: HeartPulse },
       { value: "route-errors", label: "Rutefejl", icon: AlertTriangle },
@@ -183,6 +184,12 @@ const PlatformAdmin = () => {
     setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", next); return p; });
   }, [setSearchParams]);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const [systemOpen, setSystemOpen] = useState(() => {
+    try { return localStorage.getItem("sy.platform.system-open") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("sy.platform.system-open", systemOpen ? "1" : "0"); } catch { /* ignore */ }
+  }, [systemOpen]);
   const [helpOpen, setHelpOpen] = useState(false);
   // Drift-badges: ulæste chats, forfaldne ordrer mv. → vises i sidebar/bottom-nav.
   const badges = useAdminBadges();
@@ -220,6 +227,12 @@ const PlatformAdmin = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const current = NAV.find((n) => n.value === tab);
+  const profileItems: ProfileMenuItem[] = [
+    { key: "business", icon: Building2, label: "Virksomhedspanel", href: "/virksomhed" },
+    { key: "home", icon: ExternalLink, label: "Se forside", href: "/" },
+    { key: "help", icon: Keyboard, label: "Tastaturgenveje", onSelect: () => setHelpOpen(true) },
+    { key: "logout", icon: LogOut, label: "Log ud", onSelect: signOut, danger: true, separatorBefore: true },
+  ];
   const currentGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.value === tab))?.label;
   return (
     <AdminFiltersProvider>
@@ -259,12 +272,24 @@ const PlatformAdmin = () => {
         )}
         sidebarNav={(ctx) => (
           <>
-            {NAV_GROUPS.map((group, gi) => (
+            {NAV_GROUPS.map((group, gi) => {
+              const open = !group.foldable || systemOpen || ctx.collapsed || group.items.some((i) => i.value === tab);
+              return (
               <div key={group.label}>
-                {!(gi === 0 && ctx.collapsed) && (
+                {group.foldable && !ctx.collapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => setSystemOpen((v) => !v)}
+                    aria-expanded={open}
+                    className="mt-3 flex min-h-11 w-full items-center justify-between rounded-lg px-2.5 text-[11px] font-medium tracking-wide text-muted-foreground/80 hover:bg-secondary/60 hover:text-foreground"
+                  >
+                    {group.label}
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+                  </button>
+                ) : !(gi === 0 && ctx.collapsed) && (
                   <SidebarGroupLabel collapsed={ctx.collapsed} first={gi === 0}>{group.label}</SidebarGroupLabel>
                 )}
-                <div className="space-y-0.5">
+                {open && <div className="space-y-0.5">
                   {group.items.map((item) => (
                     <SidebarNavButton
                       key={item.value}
@@ -280,17 +305,20 @@ const PlatformAdmin = () => {
                       badgeWarn={badges[item.value]?.warn}
                     />
                   ))}
-                </div>
+                </div>}
               </div>
-            ))}
+              );
+            })}
           </>
         )}
         sidebarFooter={(ctx) => (
-          <>
-            <SidebarFooterItem icon={Building2} label="Virksomhedspanel" href="/virksomhed" collapsed={ctx.collapsed} />
-            <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={ctx.collapsed} />
-            <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={ctx.collapsed} danger />
-          </>
+          <SidebarProfileMenu
+            name={(user.user_metadata as any)?.display_name || user.email || "Admin"}
+            subtitle="Platformadmin"
+            collapsed={ctx.collapsed}
+            fallback="A"
+            items={profileItems}
+          />
         )}
       >
         <PageTransition transitionKey={tab}>
