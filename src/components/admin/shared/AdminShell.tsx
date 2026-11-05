@@ -161,6 +161,9 @@ export const AdminShell = ({
   const profileItems: ProfileMenuItem[] = [
     { key: "profile", icon: UserRound, label: "Rediger profil", onSelect: () => setProfileOpen(true) },
     { key: "public", icon: ExternalLink, label: "Se din side", href: `/v/${business.slug}` },
+    ...(isSoloOwnerEmployee
+      ? [{ key: "employee", icon: Truck, label: "Åbn min rute", onSelect: () => navigate("/medarbejder") } as ProfileMenuItem]
+      : []),
     { key: "logout", icon: LogOut, label: "Log ud", onSelect: signOut, danger: true, separatorBefore: true },
   ];
 
@@ -323,14 +326,6 @@ export const AdminShell = ({
       )}
       sidebarFooter={(ctx) => (
         <>
-          {isSoloOwnerEmployee && (
-            <RoleSwitchFooterItem
-              icon={Truck}
-              label="Skift til medarbejder"
-              onClick={() => { ctx.closeDrawer(); navigate("/medarbejder"); }}
-              collapsed={ctx.collapsed}
-            />
-          )}
           <SidebarProfileMenu
             name={displayName}
             subtitle={user?.email && user.email !== displayName ? user.email : business.name}
