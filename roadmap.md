@@ -131,6 +131,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [ ] Gratis værktøjer; "Kort svar" i håndskrevne artikler; ugentligt døde-links-tjek
 
 ## AI-søgning (nov 2026)
+- [ ] Aktuel del: tydeligt "Kort svar" på branchesider med eksisterende indhold; kontrollér prisguider og branchesider i browser og SEO-tests.
 - [x] Navnestavemåder i virksomhedsoplysninger, AI-fil, footer; AI-crawlere tilladt; brandlinje i månedsrapport
 - [ ] CVR/adresse/stiftelsesår til Googles virksomhedsoplysninger (venter på bruger)
 - [ ] Eksterne profiler fra tjeklisten (bruger)
