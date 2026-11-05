@@ -170,8 +170,12 @@ export const SectionCard = React.forwardRef<
         <div className="flex items-start justify-between gap-3 pb-1">
           <div className="min-w-0">
             {title && (
-              <h3 className="text-[15px] font-semibold text-foreground flex items-center gap-2 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground tracking-tight">
-                {icon}
+              <h3 className="text-[15px] font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                {icon && (
+                  <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent [&_svg]:h-4 [&_svg]:w-4">
+                    {icon}
+                  </span>
+                )}
                 {title}
               </h3>
             )}

@@ -1709,8 +1709,9 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
-            description="Pakke, betalingsinterval og betalingskort."
+            description={smsEnabled ? "Pakke, SMS, betalingsinterval og betalingskort." : "Pakke, betalingsinterval og betalingskort."}
           >
+            {smsEnabled && <SmsBillingSummary businessId={business.id} />}
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
               <div
