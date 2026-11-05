@@ -2130,6 +2130,26 @@ const SettingsTab = ({ business }: { business: any }) => {
             ownerEmail={user?.email || business.email || null}
           />
         </div>
+        {(() => {
+          const idx = visibleSections.findIndex((s) => s.id === activeSection);
+          const prev = idx > 0 ? visibleSections[idx - 1] : null;
+          const next = idx >= 0 && idx < visibleSections.length - 1 ? visibleSections[idx + 1] : null;
+          if (!prev && !next) return null;
+          return (
+            <nav aria-label="Skift emne" className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:justify-between">
+              {prev ? (
+                <Button type="button" variant="outline" size="lg" className="min-h-12 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
+                  ← {prev.label}
+                </Button>
+              ) : <span />}
+              {next && (
+                <Button type="button" size="lg" className="min-h-12 justify-end text-base" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
+                  Næste: {next.label} →
+                </Button>
+              )}
+            </nav>
+          );
+        })()}
       </div>
         </div>
       </div>
