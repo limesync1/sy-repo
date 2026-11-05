@@ -16,6 +16,17 @@ export function getSignupStatus(data: {
 
 export const AUTH_EMAIL_COOLDOWN_SECONDS = 60;
 
+/** Try supplied credentials, not an account-existence lookup. Only credential
+ * rejection permits signup; network/rate-limit failures must stop the flow. */
+export async function authenticateBeforeSignup(signIn: () => Promise<{ error: Error | null }>): Promise<"signed_in" | "confirmation_required" | "signup_required"> {
+  const { error } = await signIn();
+  if (!error) return "signed_in";
+  const code = (error as Error & { code?: string }).code;
+  if (code === "email_not_confirmed") return "confirmation_required";
+  if (code === "invalid_credentials" || error.message.toLowerCase().includes("invalid login credentials")) return "signup_required";
+  throw error;
+}
+
 export function isRecoveryLink(hash: string): boolean {
   const params = new URLSearchParams(hash.replace(/^#/, ""));
   return params.get("type") === "recovery" && !params.has("error") && !params.has("error_code");

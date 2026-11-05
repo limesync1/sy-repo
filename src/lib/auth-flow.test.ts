@@ -1,8 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { getSignupStatus, normalizeAuthEmail, isValidAuthEmail, isRecoveryLink } from "./auth-flow";
+import { authenticateBeforeSignup, getSignupStatus, normalizeAuthEmail, isValidAuthEmail, isRecoveryLink } from "./auth-flow";
 import { translateAuthError } from "./auth-errors";
 
 describe("auth rules", () => {
+  it("signs in an existing account with correct credentials without signup", async () => {
+    expect(await authenticateBeforeSignup(async () => ({ error: null }))).toBe("signed_in");
+  });
+  it("permits signup only after rejected credentials", async () => {
+    expect(await authenticateBeforeSignup(async () => ({ error: Object.assign(new Error("Invalid login credentials"), { code: "invalid_credentials" }) }))).toBe("signup_required");
+  });
+  it("keeps unconfirmed accounts out of the signed-in flow", async () => {
+    expect(await authenticateBeforeSignup(async () => ({ error: Object.assign(new Error("Email not confirmed"), { code: "email_not_confirmed" }) }))).toBe("confirmation_required");
+  });
+  it("does not attempt signup after a rate limit or network failure", async () => {
+    const error = Object.assign(new Error("Too many requests"), { code: "over_request_rate_limit" });
+    await expect(authenticateBeforeSignup(async () => ({ error }))).rejects.toBe(error);
+    await expect(authenticateBeforeSignup(async () => ({ error: new Error("network_error") }))).rejects.toThrow("network_error");
+  });
   it("does not claim an obfuscated repeated signup created a new account", () => {
     expect(getSignupStatus({ user: { identities: [] }, session: null })).toBe("confirmation_required");
   });
