@@ -592,7 +592,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const hasBilling = visibleSections.some((s) => s.id === "billing");
   const planKindPage = hasBilling ? "billing" : "advanced";
   const hiddenSectionSelector = useMemo(() => {
-    const ids: string[] = visibleSections.map((s) => s.id as string).filter((id) => id !== activeSection);
+    const ids: string[] = SECTIONS.map((s) => s.id as string).filter((id) => id !== activeSection || !visibleSections.some((v) => v.id === id));
     if (activeSection !== "general") ids.push("contact");
     if (activeSection !== planKindPage) ids.push("plan-kind");
     if (activeSection !== "advanced") ids.push("danger");
@@ -2117,7 +2117,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             <nav aria-label="Skift emne" className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-border bg-background/95 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:z-auto lg:justify-between lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-4 lg:backdrop-blur-none">
               {prev ? (
                 <Button type="button" variant="outline" size="lg" aria-label={`Forrige: ${prev.label}`} className="min-h-12 shrink-0 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
-                  ← {prev.label}
+                  <span aria-hidden className="lg:hidden">←</span><span className="hidden lg:inline">← {prev.label}</span>
                 </Button>
               ) : <span className="hidden lg:block" />}
               {next && (
