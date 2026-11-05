@@ -115,7 +115,7 @@ const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
     replies: [
       "Hvordan opretter jeg min virksomhed?",
       "Hvilke funktioner får jeg som udbyder?",
-      "Hvordan modtager jeg leads?",
+      "Hvordan modtager jeg forespørgsler?",
     ],
   },
   {

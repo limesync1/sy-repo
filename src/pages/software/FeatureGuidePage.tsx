@@ -72,7 +72,7 @@ const FeatureGuidePage = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Funktionsguide til Serviceydere | Alle funktioner"
-        description="Søg blandt alle funktioner i Serviceydere — ruteplanlægger, aftaler, kunder, services, medarbejdere, leads, livechat og regnskab. Hver funktion med eksempel og korte trin."
+        description="Søg blandt alle funktioner i Serviceydere — ruteplanlægger, aftaler, kunder, services, medarbejdere, forespørgsler, livechat og regnskab. Hver funktion med eksempel og korte trin."
         canonicalPath="/software/funktioner"
         keywords="ruteplanlægger guide, brugerguide ruteplanlægning, funktioner ruteplanlægger, serviceydere vejledning"
         jsonLd={jsonLd}
@@ -81,7 +81,7 @@ const FeatureGuidePage = () => {
       <PageHero
         eyebrow="Funktionsguide"
         title="Find og forstå hver funktion i Serviceydere"
-        subtitle="Søg på tværs af hele systemet — ruteplanlægning, aftaler, kunder, medarbejdere, leads, livechat og regnskab. Hver funktion har et konkret eksempel og korte trin."
+        subtitle="Søg på tværs af hele systemet — ruteplanlægning, aftaler, kunder, medarbejdere, forespørgsler, livechat og regnskab. Hver funktion har et konkret eksempel og korte trin."
         actions={
           <>
             <a

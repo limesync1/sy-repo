@@ -68,7 +68,7 @@ const FEATURES: { key: FeatureKey; illustration: BrandedIllustrationName; title:
   {
     key: "leads",
     illustration: "signupLeads",
-    title: "Leads (Indhent 3 tilbud)",
+    title: "Forespørgsler (Indhent 3 tilbud)",
     description: "Modtag relevante kundehenvendelser direkte i dashboardet, når kunder beder om tilbud i dit område og din kategori.",
   },
   {

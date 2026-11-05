@@ -307,7 +307,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       <div className="space-y-5">
         <PageHeader
           title="Leads"
-          description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
+          description={`${allLeads.length} forespørgsler i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
           action={<LeadSettingsDialog businessId={businessId} />}
         />
 
@@ -340,9 +340,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             {(() => {
               const waiting = enriched.filter((l) => l.status === "new" && Date.now() - new Date(l.created_at).getTime() > 3600000);
               const tasks = [
-                waiting.length > 0 && { key: "new", text: `${waiting.length} ny${waiting.length > 1 ? "e" : ""} lead${waiting.length > 1 ? "s" : ""} har ventet over 1 time på svar`, cta: "Svar nu", tone: "border-destructive/30 bg-destructive/5" },
+                waiting.length > 0 && { key: "new", text: `${waiting.length} ny${waiting.length > 1 ? "e" : ""} forespørgs${waiting.length > 1 ? "ler" : "el"} har ventet over 1 time på svar`, cta: "Svar nu", tone: "border-destructive/30 bg-destructive/5" },
                 (counts.dueFollowUps || 0) > 0 && { key: "followup", text: `${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""} skal laves i dag`, cta: "Se opfølgninger", tone: "border-warning/30 bg-warning/5" },
-                (counts.hot || 0) > 0 && { key: "active", text: `${counts.hot} varm${counts.hot > 1 ? "e" : ""} lead${counts.hot > 1 ? "s" : ""} med høj chance for at blive til en aftale`, cta: "Vis", tone: "border-success/30 bg-success/5", sort: "smart" },
+                (counts.hot || 0) > 0 && { key: "active", text: `${counts.hot} varm${counts.hot > 1 ? "e" : ""} forespørgs${counts.hot > 1 ? "ler" : "el"} med høj chance for at blive til en aftale`, cta: "Vis", tone: "border-success/30 bg-success/5", sort: "smart" },
               ].filter(Boolean) as { key: string; text: string; cta: string; tone: string; sort?: string }[];
               if (!tasks.length) return (
                 <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye forespørgsler dukker op her, og du får en e-mail, når de kommer.</div>
@@ -369,7 +369,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             <div className="flex flex-col gap-3 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 className="text-base font-semibold text-foreground">Leadindbakke</h2></div>
-                <p className="mt-1 pl-10 text-xs text-muted-foreground">{visible.length} af {allLeads.length} leads vises</p>
+                <p className="mt-1 pl-10 text-xs text-muted-foreground">{visible.length} af {allLeads.length} forespørgsler vises</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><SlidersHorizontal className="h-4 w-4" />Søg, sortér og filtrér</div>
             </div>

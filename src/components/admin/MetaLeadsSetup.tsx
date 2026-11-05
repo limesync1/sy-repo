@@ -171,7 +171,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       let message = data?.error;
       const ctx = (error as { context?: Response } | null)?.context;
       if (ctx) try { message = (await ctx.clone().json())?.error || message; } catch { /* ignore */ }
-      setProblem({ title: "Meta kunne ikke færdiggøres", text: message || "Facebook-siden kunne ikke tilmeldes nye leads.", steps: ["Kontrollér din administratoradgang", "Forbind Meta igen, hvis adgangen er udløbet"] });
+      setProblem({ title: "Meta kunne ikke færdiggøres", text: message || "Facebook-siden kunne ikke tilmeldes nye forespørgsler.", steps: ["Kontrollér din administratoradgang", "Forbind Meta igen, hvis adgangen er udløbet"] });
       return;
     }
     setSetupOpen(false);
