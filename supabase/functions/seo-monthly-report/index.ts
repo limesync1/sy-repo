@@ -75,7 +75,11 @@ Deno.serve(async (req) => {
       if (up.length) notes.push(`Flest nye klik: ${up.map((x) => `${x.k} (+${x.d})`).join(', ')}.`);
       if (down.length) notes.push(`Mistede flest klik: ${down.map((x) => `${x.k} (${x.d})`).join(', ')}.`);
       // Local city pages: shows whether the new city content earns clicks.
-      const cityRe = /\/(by\/)?(koebenhavn|kobenhavn|frederiksberg|aarhus|odense|aalborg|esbjerg|randers|kolding|vejle|horsens)(\/|$)/;
+      const cityRe = /\/(by\/)?(koebenhavn|kobenhavn|frederiksberg|aarhus|odense|aalborg|esbjerg|randers|kolding|vejle|horsens|roskilde|herning|silkeborg|naestved|fredericia|viborg|koege|holstebro|taastrup|slagelse|hilleroed|soenderborg|svendborg|hjoerring|holbaek|frederikshavn|haderslev|skive|ringsted|naestved)(\/|$)/;
+      // City pages' impressions show growth before clicks arrive.
+      const cityImp = (await q({ startDate: iso(start), endDate: iso(end), dimensions: ['page'], rowLimit: 1000 }))
+        .filter((r: any) => cityRe.test(r.keys[0].replace('https://serviceydere.dk', '')));
+      if (cityImp.length) notes.push(`Bysider i Google: ${cityImp.length} sider vist, ${nf.format(cityImp.reduce((a: number, r: any) => a + r.impressions, 0))} visninger; mest synlige: ${[...cityImp].sort((a: any, b: any) => b.impressions - a.impressions).slice(0, 3).map((r: any) => `${r.keys[0].replace('https://serviceydere.dk', '')} (${nf.format(r.impressions)}, plads ${nf.format(r.position)})`).join(', ')}.`);
       const city = [...nowP.entries()].filter(([k]) => cityRe.test(k));
       const cityClicks = city.reduce((a, [, v]) => a + v, 0);
       const cityPrev = [...prevP.entries()].filter(([k]) => cityRe.test(k)).reduce((a, [, v]) => a + v, 0);
