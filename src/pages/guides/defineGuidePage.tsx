@@ -155,9 +155,9 @@ export function defineGuidePage(cfg: GuideConfig) {
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <article className="article-content prose prose-neutral dark:prose-invert">
           <ArticleCoverImage image={cover} title={cfg.heroTitle} />
-          <div className="my-6 rounded-lg border border-border bg-muted/40 p-4 sm:my-8 sm:p-5">
-            <p className="sr-only">Kort fortalt</p>
-            <ul className="mt-2 space-y-1 text-sm text-foreground/90">
+          <aside aria-label="Kort svar" className="not-prose my-6 rounded-lg border border-border bg-primary/5 p-4 sm:my-8 sm:p-5">
+            <p className="m-0 text-sm font-semibold text-foreground">Kort svar</p>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-base leading-relaxed text-foreground">
               {cfg.quickFacts.map((f, i) => (
                 <li key={i}>{f}</li>
               ))}
