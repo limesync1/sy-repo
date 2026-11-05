@@ -1,6 +1,7 @@
 // optimize-route v2: ægte multi-medarbejder VRP med tidsvinduer, arbejdstid,
 // hjemmeadresse og AI-forklaring + AI-forslag.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { learnedDuration } from "./learned.ts";
 import { solveVRP } from "./vrp.ts";
 import { buildPlanSummary } from "./summary.ts";
 import type { EmployeeCtx, Stop } from "./types.ts";
@@ -235,6 +236,34 @@ Deno.serve(async (req) => {
         .trim();
     };
 
+    // Lærte opgavetider fra registreret tid på tidligere besøg i samme faste aftale.
+    const learnedBySub = new Map<string, number[]>();
+    try {
+      const subIds = [...new Set(openStopsRaw.map((s) => s.subscription_id).filter(Boolean))] as string[];
+      if (subIds.length) {
+        const { data: past } = await supabase.from("route_stops").select("id, subscription_id")
+          .in("subscription_id", subIds).eq("status", "completed").neq("route_id", routeId)
+          .order("completed_at", { ascending: false }).limit(1000);
+        const pastIds = (past ?? []).map((p: any) => p.id);
+        if (pastIds.length) {
+          const { data: entries } = await supabase.from("stop_time_entries")
+            .select("stop_id, duration_minutes, is_team_fallback").in("stop_id", pastIds.slice(0, 500));
+          const subOf = new Map((past ?? []).map((p: any) => [p.id, p.subscription_id]));
+          const perStop = new Map<string, number>();
+          for (const e of entries ?? []) {
+            if ((e as any).is_team_fallback || (e as any).duration_minutes == null) continue;
+            perStop.set((e as any).stop_id, Math.max(perStop.get((e as any).stop_id) ?? 0, Number((e as any).duration_minutes)));
+          }
+          for (const [sid, m] of perStop) {
+            const sub = subOf.get(sid) as string;
+            const arr = learnedBySub.get(sub) ?? [];
+            if (arr.length < 8) arr.push(m);
+            learnedBySub.set(sub, arr);
+          }
+        }
+      }
+    } catch (e) { console.warn("[optimize-route] learned durations", e); }
+
     // Saml stops til VRP-format (kun ikke-låste stops optimeres)
     const validStops: Stop[] = openStopsRaw
       .filter((s) => s.latitude != null && s.longitude != null)
@@ -244,7 +273,7 @@ Deno.serve(async (req) => {
         address: s.address,
         latitude: Number(s.latitude),
         longitude: Number(s.longitude),
-        duration_minutes: Math.max(s.duration_minutes || 30, SLOT_MIN),
+        duration_minutes: Math.max(learnedDuration(s.duration_minutes || 30, learnedBySub.get(s.subscription_id) ?? []), SLOT_MIN),
         // hard windows = time_window_*
         hard_start_min: s.time_window_start ? hhmmssToMin(s.time_window_start, 0) : null,
         hard_end_min: s.time_window_end ? hhmmssToMin(s.time_window_end, 24 * 60) : null,
