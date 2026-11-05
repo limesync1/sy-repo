@@ -1016,7 +1016,17 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="flex items-center gap-4 min-w-0">
           <BrandedIllustration name="settings" className="h-12 w-12 shrink-0" />
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
+              <button
+                type="button"
+                onClick={() => document.getElementById("settings-plan-kind")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                className="inline-flex min-h-8 items-center rounded-full border border-border bg-secondary px-2.5 text-xs font-semibold text-foreground hover:bg-secondary/70"
+                title="Se abonnementstype"
+              >
+                {isListingOnly(business) ? "Kun profil" : "Fuldt system"}
+              </button>
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {completeness.pct === 100
                 ? "Profilen er komplet — alt gemmes automatisk."
@@ -1028,7 +1038,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
               saveStatus === "saving"
-                ? "border-amber-500/30 bg-amber-500/[0.06] text-amber-700 dark:text-amber-400"
+                ? "border-warning/30 bg-warning/10 text-foreground"
                 : "border-border bg-card text-muted-foreground"
             }`}
           >
@@ -1039,7 +1049,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               </>
             ) : (
               <>
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 Alt er gemt
               </>
             )}
@@ -1060,8 +1070,15 @@ const SettingsTab = ({ business }: { business: any }) => {
 
       {/* ─── Manglende-felter — kompakt chip-række (kun når noget mangler) ─── */}
       {completeness.pct < 100 && completeness.checks.some((c) => !c.done) && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] font-medium text-muted-foreground mr-1">Mangler:</span>
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+          <div className="min-w-0 sm:w-56 sm:shrink-0">
+            <p className="text-sm font-semibold text-foreground">Gør profilen færdig</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">En komplet profil bliver oftere valgt af kunder.</p>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
+              <div className="brand-blue-action h-full rounded-full transition-all" style={{ width: `${completeness.pct}%` }} />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
           {completeness.checks.filter((c) => !c.done).map((c) => (
             <Button variant="outline"
               key={c.key}
@@ -1073,6 +1090,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <ArrowRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
             </Button>
           ))}
+          </div>
         </div>
       )}
 
