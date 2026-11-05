@@ -34,9 +34,6 @@ import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import profileGroupIcon from "@/assets/content-icons/profil.svg.asset.json";
-import messagesGroupIcon from "@/assets/content-icons/beskeder.svg.asset.json";
-import accountGroupIcon from "@/assets/content-icons/konto.svg.asset.json";
 import { BrandedIllustration } from "@/components/shared/BrandedIllustration";
 import { isCraftBusiness, readTradeModules, type TradeModules } from "@/lib/trade-modules";
 import { MaterialCatalogDialog } from "@/components/trade/MaterialCatalogDialog";
@@ -216,34 +213,6 @@ const ToggleSwitch = forwardRef<
   </Button>
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
-
-/* ─── GroupHeader — overskrift mellem grupper af sektioner.
- * Skiller "Profil", "Beskeder" og "Konto" visuelt med en fin linje
- * så det er nemt at orientere sig i den lange liste. */
-const GroupHeader = ({
-  icon,
-  title,
-  hint,
-}: {
-  icon: ReactNode;
-  title: string;
-  hint?: string;
-}) => (
-  <div className="mt-2 flex items-center gap-3.5 first:mt-0">
-    <div className="flex h-16 w-16 shrink-0 items-center justify-center text-foreground [&_svg]:h-7 [&_svg]:w-7">
-      {icon}
-    </div>
-    <div className="min-w-0">
-      <p className="text-[13px] font-semibold tracking-tight text-foreground leading-tight">{title}</p>
-      {hint && <p className="mt-0.5 text-[12px] text-muted-foreground leading-tight">{hint}</p>}
-    </div>
-    <div className="ml-2 h-px flex-1 bg-gradient-to-r from-border to-transparent" />
-  </div>
-);
-
-const SettingsGroupIcon = ({ src }: { src: string }) => (
-  <img src={src} alt="" aria-hidden="true" className="h-16 w-16 shrink-0 object-contain" />
-);
 
 /* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød).
  * Kort, rolig farve-overgang når toggle skifter. Ingen overshoot eller
@@ -1068,11 +1037,10 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
       </div>
 
-      <TextSizeControl />
 
       {/* ─── Manglende-felter — kompakt chip-række (kun når noget mangler) ─── */}
       {completeness.pct < 100 && completeness.checks.some((c) => !c.done) && (
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center lg:hidden">
           <div className="min-w-0 sm:w-56 sm:shrink-0">
             <p className="text-sm font-semibold text-foreground">Gør profilen færdig</p>
             <p className="mt-0.5 text-sm text-muted-foreground">En komplet profil bliver oftere valgt af kunder.</p>
@@ -1272,7 +1240,6 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-5">
         {/* ── Gruppe: Profil ── */}
-        <GroupHeader icon={<SettingsGroupIcon src={profileGroupIcon.url} />} title="Profil" hint="Hvordan I præsenterer jer for kunderne" />
 
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1663,7 +1630,6 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* ── Gruppe: Beskeder ── */}
-        <GroupHeader icon={<SettingsGroupIcon src={messagesGroupIcon.url} />} title="Beskeder" hint="Hvad I og jeres kunder modtager besked om" />
 
         {/* Notifikationer */}
         <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1702,7 +1668,6 @@ const SettingsTab = ({ business }: { business: any }) => {
         )}
 
         {/* ── Gruppe: Konto ── */}
-        <GroupHeader icon={<SettingsGroupIcon src={accountGroupIcon.url} />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
 
         <PlanKindSection business={business} />
 
@@ -2150,6 +2115,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             </nav>
           );
         })()}
+        <TextSizeControl />
       </div>
         </div>
       </div>
