@@ -1189,11 +1189,9 @@ const SettingsTab = ({ business }: { business: any }) => {
               ));
             })()}
           </nav>
-          <div className="mt-3"><TextSizeControl compact /></div>
         </aside>
 
         <div className="space-y-5" data-settings-pages>
-          <div className="lg:hidden"><TextSizeControl /></div>
           {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
       {(!business.address || !business.city || !business.zip_code) && (
@@ -2117,6 +2115,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             </nav>
           );
         })()}
+        <TextSizeControl />
       </div>
         </div>
       </div>
