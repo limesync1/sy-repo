@@ -247,15 +247,31 @@ export const AdminShell = ({
             const anyVisible = items.some((i) => isAdminNavVisible(i, flags));
             // Første gruppe behøver ingen skillelinje når sidebaren er collapsed.
             const showLabel = !(gi === 0 && ctx.collapsed);
+            // "Min virksomhed" kan foldes sammen (kun fuldt system), så menuen
+            // kun viser hverdagens 4–5 punkter. Åbner af sig selv når et af
+            // punkterne er aktivt.
+            const foldable = group.key === "virksomhed" && flags.operations && !ctx.collapsed;
+            const hasActive = items.some((i) => i.value === activeTab);
+            const folded = foldable && !companyOpen && !hasActive;
             return (
               <SidebarCollapsibleRow key={group.key} visible={anyVisible}>
                 <div>
-                  {showLabel && (
+                  {foldable ? (
+                    <button
+                      type="button"
+                      aria-expanded={!folded}
+                      onClick={() => toggleCompany(folded)}
+                      className="mt-3 flex min-h-11 w-full items-center justify-between rounded-md px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                      {group.label}
+                      <ChevronDown className={`h-4 w-4 transition-transform ${folded ? "" : "rotate-180"}`} aria-hidden />
+                    </button>
+                  ) : showLabel && (
                     <SidebarGroupLabel collapsed={ctx.collapsed} first={gi === 0 && !showGettingStarted}>
                       {group.label}
                     </SidebarGroupLabel>
                   )}
-                  <div className="space-y-0.5">
+                  <div className={`space-y-0.5 ${folded ? "hidden" : ""}`}>
                     {items.map((item) => (
                       <SidebarCollapsibleRow key={item.value} visible={isAdminNavVisible(item, flags)}>
                         <SidebarNavButton
