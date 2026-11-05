@@ -1775,7 +1775,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
                 {/* Hovedkort: faktureringsinterval + linje-specifikation */}
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
-                  <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-5 py-3">
+                  <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">Faktureringsinterval</p>
                       <p className="mt-0.5 text-[11.5px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
@@ -1919,11 +1919,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                 {/* Sidekort: stor pris-fremhævning (sticky på desktop) */}
                 <div className="lg:sticky lg:top-4 lg:self-start">
                   <div className="overflow-hidden rounded-xl border border-foreground bg-foreground text-background shadow-md">
-                    <div className="flex h-full flex-col justify-between p-5">
+                    <div className="flex h-full flex-col justify-between p-4">
                       <div>
-                        <p className="text-[10.5px] font-semibold uppercase tracking-wider opacity-70">Du betaler</p>
+                        <p className="text-sm font-semibold opacity-80">Du betaler</p>
                         <p className="mt-2 flex items-baseline gap-1.5">
-                          <span className="text-4xl font-bold tabular-nums leading-none">
+                          <span className="text-3xl font-bold tabular-nums leading-none">
                             {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")}
                           </span>
                           <span className="text-sm font-medium opacity-80">kr/md</span>
@@ -1953,7 +1953,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
             {plan?.has_payment_method && (
-              <div className="mt-5">
+              <div className="mt-4">
                 <p className="mb-2 px-1 text-sm font-semibold text-foreground">Betalingsmetode</p>
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex flex-wrap items-center justify-between gap-3 p-4">
@@ -1991,7 +1991,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Tilføj kort — åbner Stripe Embedded Checkout */}
             {(!plan || !plan.has_payment_method) && (
-              <div className="mt-4 overflow-hidden rounded-xl border border-dashed border-border bg-gradient-to-br from-card to-secondary/20 p-5">
+              <div className="mt-4 overflow-hidden rounded-xl border border-dashed border-border bg-card p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                     <CreditCard className="h-5 w-5" />
@@ -2004,14 +2004,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                      Du opkræves ikke før din prøveperiode er slut. Du kan opsige når som helst, og dine betalinger håndteres sikkert af Stripe.
+                      Ingen betaling før prøveperioden slutter. Opsig når som helst.
                     </p>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowCheckout(true)}
-                  className="mt-4 w-full bg-foreground text-background hover:bg-foreground/90"
-                  size="lg"
+                  className="mt-3 min-h-11 w-full bg-foreground text-background hover:bg-foreground/90"
                 >
                   {plan?.status === "expired" ? "Genaktivér virksomhed med betalingskort" : "Tilføj betalingskort"}
                 </Button>
