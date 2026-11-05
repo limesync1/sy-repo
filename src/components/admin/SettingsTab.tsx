@@ -632,31 +632,6 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   }, [planKindPage]);
 
-  const _legacyScrollToSection = useCallback((id: string) => {
-    const el = document.getElementById(`settings-${id}`);
-    if (!el) return;
-    setActiveSection(id);
-    isProgrammaticScroll.current = true;
-    if (typeof window !== "undefined") window.history.replaceState(null, "", `#settings-${id}`);
-    const targetTop = () =>
-      Math.max(0, el.getBoundingClientRect().top + window.scrollY - getScrollOffset());
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: targetTop(), behavior: reduce ? "auto" : "smooth" });
-
-    // Én enkelt blød scroll; når den er færdig, rettes positionen én gang
-    // (hvis lazy indhold har ændret højden), og aktiv-markeringen frigives.
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      window.removeEventListener("scrollend", finish);
-      const want = targetTop();
-      if (Math.abs(want - window.scrollY) > 4) window.scrollTo({ top: want, behavior: "auto" });
-      window.setTimeout(() => { isProgrammaticScroll.current = false; }, 80);
-    };
-    window.addEventListener("scrollend", finish, { once: true });
-    window.setTimeout(finish, 1100);
-  }, []);
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
   // "Aktivér livechat" → #settings-advanced), så scroll automatisk ned til
@@ -666,7 +641,6 @@ const SettingsTab = ({ business }: { business: any }) => {
     const hash = window.location.hash;
     if (!hash || !hash.startsWith("#settings-")) return;
     const id = hash.replace("#settings-", "");
-    if (id === "plan-kind") { const t = window.setTimeout(() => document.getElementById("settings-plan-kind")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150); return () => window.clearTimeout(t); }
     const t = window.setTimeout(() => scrollToSection(id), 120);
     return () => window.clearTimeout(t);
   }, [scrollToSection]);
@@ -1046,7 +1020,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
               <button
                 type="button"
-                onClick={() => document.getElementById("settings-plan-kind")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                onClick={() => scrollToSection("plan-kind")}
                 className="inline-flex min-h-8 items-center rounded-full border border-border bg-secondary px-2.5 text-xs font-semibold text-foreground hover:bg-secondary/70"
                 title="Se abonnementstype"
               >
@@ -1249,7 +1223,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </nav>
         </aside>
 
-        <div className="space-y-5">
+        <div className="space-y-5" data-settings-pages>
+          {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
       {(!business.address || !business.city || !business.zip_code) && (
       <SectionCard
