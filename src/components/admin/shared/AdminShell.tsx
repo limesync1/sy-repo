@@ -8,7 +8,8 @@
 // Navigationen defineres i ./adminNav (én sandhed for sidebar, drawer og bundnav).
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronDown, ExternalLink, LogOut, Rocket, Truck, UserRound } from "lucide-react";
+import { ChevronDown, ExternalLink, LogOut, Menu, Rocket, Truck, UserRound } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -153,6 +154,11 @@ export const AdminShell = ({
   };
 
   const currentNav = findAdminNavItem(activeTab);
+  // Mobil/tablet: de 4 vigtigste sider ligger fast i bunden, resten ligger
+  // bag "Menu". Så skal man ikke åbne hele menuen for hverdagssiderne.
+  const mobilePrimary = adminMobilePrimaryKeys(flags)
+    .map((k) => findAdminNavItem(k))
+    .filter((i): i is AdminNavItem => !!i && isAdminNavVisible(i, flags));
   const displayName =
     accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
   const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
