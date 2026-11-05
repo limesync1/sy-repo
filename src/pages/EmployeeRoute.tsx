@@ -1491,6 +1491,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }
       }
       const res = await optimizeLive.mutateAsync({ routeId, lat: pos[0], lng: pos[1] });
+      // Forsinkelsesadvarsel: vises også ved automatisk omplanlægning,
+      // fordi en lovet tid i fare er vigtigere end en stille skærm.
+      const atRisk = res.unassigned ?? 0;
+      const lateWish = res.soft_violations ?? 0;
+      if (atRisk > 0) {
+        toast.warning(atRisk === 1 ? "1 aftale kan ikke nås til den lovede tid" : `${atRisk} aftaler kan ikke nås til den lovede tid`, {
+          description: "Ring til kunden eller kontor, så tiden kan flyttes. Vi har regnet med ekstra tid til kø og vejarbejde.",
+          duration: 10000,
+        });
+      } else if (lateWish > 0 && !opts.silent) {
+        toast.warning("Du er bagud i forhold til kundernes ønskede tider", {
+          description: `${lateWish} besøg kommer sandsynligvis senere end ønsket.`,
+        });
+      }
       if (res.order_changed && !opts.silent) {
         const savedKm = Math.round(res.saved_km ?? 0);
         const savedMin = Math.round(res.saved_minutes ?? 0);

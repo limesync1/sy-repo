@@ -1785,6 +1785,8 @@ export const useOptimizeRouteFromPosition = () => {
         order_changed?: boolean;
         total_km?: number;
         total_minutes?: number;
+        unassigned?: number;
+        soft_violations?: number;
       };
     },
     onSuccess: () => {
