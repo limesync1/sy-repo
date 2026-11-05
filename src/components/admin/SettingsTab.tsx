@@ -1,6 +1,7 @@
 import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 import PlanKindSection from "@/components/admin/settings/PlanKindSection";
 import { isListingOnly, isSettingsSectionVisible, type PlanKind } from "@/lib/business-capabilities";
+import { initialSettingsSection } from "@/lib/settings-section";
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
@@ -24,7 +25,7 @@ import {
   Unlock,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
-import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
+import { FieldLabel } from "@/components/admin/shared/AdminUI";
 import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -88,6 +89,17 @@ import {
 } from "@/lib/service-taxonomy";
 
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"] as const;
+
+/** Unframed settings sections keep the same header and field rhythm on every topic. */
+function SectionCard({ title, icon, description, children }: { title?: ReactNode; icon?: ReactNode; description?: ReactNode; children: ReactNode }) {
+  return <section className="min-w-0 space-y-5">
+    <div className="flex items-start gap-3 border-b border-border pb-4">
+      {icon && <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent [&_svg]:h-5 [&_svg]:w-5">{icon}</span>}
+      <div className="min-w-0"><h3 className="text-base font-semibold leading-6 text-foreground">{title}</h3>{description && <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>}</div>
+    </div>
+    {children}
+  </section>;
+}
 const WEEKDAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"] as const;
 
 /* Genererer 15-min slots til klokkeslæt-vælgeren — pænt scroll-bart i popover. */
@@ -528,15 +540,20 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   // Aktivt sub-nav — opdateres både ved klik og automatisk via scroll-observer.
   const [activeSection, setActiveSectionRaw] = useState<string>(() => {
-    try { return localStorage.getItem("sy.settings.section") || "general"; } catch { return "general"; }
+    let remembered: string | null = null;
+    try { remembered = localStorage.getItem("sy.settings.section"); } catch { /* blocked storage */ }
+    return initialSettingsSection(window.location.hash, remembered);
   });
+  const [customerMessagesVisited, setCustomerMessagesVisited] = useState(false);
+  useEffect(() => {
+    if (activeSection === "customer-notifications") setCustomerMessagesVisited(true);
+  }, [activeSection]);
   // "Kontakt og adresse" er lagt sammen med "Om virksomheden".
   const setActiveSection = useCallback((raw: string) => {
     const id = raw === "contact" ? "general" : raw;
     setActiveSectionRaw(id);
     try { localStorage.setItem("sy.settings.section", id); } catch { /* blokeret storage */ }
   }, []);
-  const isProgrammaticScroll = useRef(false);
 
   const toggleSettingsCategory = (c: string) => {
     setSelectedCategories((prev) => {
@@ -594,6 +611,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   // "Ekstra funktioner" for Kun profil); "Slet virksomhed" til Ekstra funktioner.
   const hasBilling = visibleSections.some((s) => s.id === "billing");
   const planKindPage = hasBilling ? "billing" : "advanced";
+  useEffect(() => {
+    if (activeSection === "plan-kind") setActiveSection(planKindPage);
+    else if (activeSection === "danger") setActiveSection("advanced");
+    else if (!visibleSections.some((s) => s.id === activeSection)) setActiveSection("general");
+  }, [activeSection, visibleSections, planKindPage, setActiveSection]);
   const hiddenSectionSelector = useMemo(() => {
     const ids: string[] = SECTIONS.map((s) => s.id as string).filter((id) => {
       // "contact" er lagt sammen med "general" og vises på den side.
@@ -656,35 +678,6 @@ const SettingsTab = ({ business }: { business: any }) => {
     const t = window.setTimeout(() => scrollToSection(id), 120);
     return () => window.clearTimeout(t);
   }, [scrollToSection]);
-
-  // Auto-detect aktiv sektion via IntersectionObserver — så sidebar fremhæver
-  // den sektion der er i viewporten mens man scroller manuelt.
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isProgrammaticScroll.current) return;
-        // Vælg den øverste synlige sektion.
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) {
-          const id = visible[0].target.id.replace("settings-", "");
-          setActiveSection(id);
-        }
-      },
-      {
-        // Top-margin matcher header-offset så vi skifter aktivt punkt præcist
-        // når sektionen krydser under headeren (inkl. mobil chip-nav).
-        rootMargin: `-${getScrollOffset() + 8}px 0px -60% 0px`,
-        threshold: 0,
-      },
-    );
-    visibleSections.forEach(({ id }) => {
-      const el = document.getElementById(`settings-${id}`);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, [visibleSections]);
 
   const lookupCvr = async () => {
     const q = cvrQuery.trim();
@@ -1033,7 +1026,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
 
   return (
-    <div className="space-y-4 pb-28 lg:pb-24">
+    <div className="space-y-4 pb-20 lg:pb-4">
       {/* ─── Header — titel, virksomhedsikon og hurtige handlinger ─── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -1041,21 +1034,22 @@ const SettingsTab = ({ business }: { business: any }) => {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={() => scrollToSection("plan-kind")}
-                className="inline-flex min-h-8 items-center rounded-full border border-border bg-secondary px-2.5 text-xs font-semibold text-foreground hover:bg-secondary/70"
+                className="min-h-11 rounded-md px-3 text-xs font-semibold"
                 title="Se abonnementstype"
               >
                 {isListingOnly(business) ? "Kun profil" : "Fuldt system"}
-              </button>
+              </Button>
             </div>
 
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+            role="status"
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
               saveStatus === "saving"
                 ? "border-warning/30 bg-warning/10 text-foreground"
                 : "border-border bg-card text-muted-foreground"
@@ -1233,10 +1227,10 @@ const SettingsTab = ({ business }: { business: any }) => {
           </nav>
         </aside>
 
-        <div className="space-y-4" data-settings-pages>
+        <div className="min-w-0 space-y-6" data-settings-pages>
           {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
-      <div className="grid gap-4">
+      <div className="grid gap-6 [&>div]:min-w-0">
         {/* ── Gruppe: Profil ── */}
 
         {/* Generelt — kun navn + beskrivelse */}
@@ -1295,7 +1289,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <div data-tour="field-company-description">
                 <div className="flex items-center justify-between">
                   <FieldLabel required className="mb-0">Beskrivelse</FieldLabel>
-                  <span className={`text-[11px] tabular-nums ${description.length > 450 ? "text-amber-600" : "text-muted-foreground"}`}>
+                  <span className={`text-[11px] tabular-nums ${description.length > 450 ? "text-warning" : "text-muted-foreground"}`}>
                     {description.length}/500
                   </span>
                 </div>
@@ -1606,7 +1600,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         <p className="text-[11px] text-muted-foreground">Aktiveret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>
                       )}
                       {(domainStatus === "pending_activation" || domainStatus === "verified") && (
-                        <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] leading-relaxed text-blue-900 dark:text-blue-200">
+                        <div className="rounded-md border border-accent/30 bg-accent-soft p-2.5 text-sm leading-relaxed text-foreground">
                           <p className="font-semibold">✓ Alt er sat op korrekt — vi gør jeres webnavn klar</p>
                           <p className="mt-1">
                             Vi har modtaget jeres anmodning. Vi sætter et sikkert {"\""}https{"\""}-certifikat op for jer hurtigst muligt — typisk inden for 1 hverdag.
@@ -1670,7 +1664,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kunde-notifikationer — kun fuldt system (Kun profil har ingen aftaler) */}
-        {!isListingOnly(business) && (
+        {!isListingOnly(business) && (activeSection === "customer-notifications" || customerMessagesVisited) && (
         <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Beskeder til jeres kunder"

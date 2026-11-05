@@ -284,9 +284,9 @@ export function CustomerNotificationsSettings({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <Skeleton className="h-24 w-full rounded-xl" />
-        <Skeleton className="h-24 w-full rounded-xl" />
+      <div className="space-y-3" role="status" aria-label="Indlæser kundebeskeder">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-16 w-full rounded-md" />
       </div>
     );
   }
@@ -301,7 +301,7 @@ export function CustomerNotificationsSettings({
         const Icon = e.Icon;
         const smsLen = sd.body.length;
         return (
-          <section key={e.key} className="overflow-hidden rounded-xl border border-border bg-card">
+          <section key={e.key} className="overflow-hidden rounded-md border border-border bg-card">
             <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent">

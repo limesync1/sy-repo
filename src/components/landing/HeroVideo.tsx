@@ -14,7 +14,6 @@ export default function HeroVideo() {
   const host = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [src, setSrc] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const net = (navigator as Navigator & { connection?: NetworkInfo }).connection;
@@ -54,7 +53,7 @@ export default function HeroVideo() {
 
   return (
     <figure ref={host} className="home-hero-photo relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-ocean">
-      <img
+      {!src && <img
         src={poster.url}
         alt="Vinduespudser fra Madsens Vinduespolering pudser et vindue på et parcelhus"
         width={960}
@@ -63,11 +62,12 @@ export default function HeroVideo() {
         decoding="async"
         loading="eager"
         className="absolute inset-0 h-full w-full object-cover"
-      />
+      />}
       {src && (
         <video
           ref={video}
           src={src}
+          poster={poster.url}
           muted
           loop
           playsInline
@@ -75,8 +75,7 @@ export default function HeroVideo() {
           preload="auto"
           aria-hidden="true"
           tabIndex={-1}
-          onPlaying={() => setPlaying(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${playing ? "opacity-100" : "opacity-0"}`}
+          className="absolute inset-0 h-full w-full object-cover"
         />
       )}
     </figure>

@@ -778,22 +778,16 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     ))}
                   </ul>
 
-                  <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex items-baseline justify-between text-muted-foreground">
-                      <span>Pris per måned</span>
-                      <span className="tabular-nums">
-                        <AnimatedNumber value={breakdown.monthlySubtotal} /> kr
-                      </span>
-                    </div>
-                    {breakdown.discountPct > 0 && (
+                  {breakdown.discountPct > 0 && (
+                  <div className="mt-4 text-sm">
                       <div className="flex items-baseline justify-between text-accent animate-fade-in">
                         <span>Rabat ({breakdown.discountPct}%)</span>
                         <span className="tabular-nums">
                           −<AnimatedNumber value={breakdown.monthlySubtotal - breakdown.monthlyAfterDiscount} /> kr/md
                         </span>
                       </div>
-                    )}
                   </div>
+                  )}
 
                   <div className="mt-4 rounded-lg bg-foreground p-4 text-background shadow-md ring-1 ring-foreground/10">
                     <div className="flex items-baseline justify-between gap-3">

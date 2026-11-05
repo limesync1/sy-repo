@@ -1,5 +1,11 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 5. nov. — Forside og virksomhedsindstillinger
+- [x] Fjern separat billedlag bag forsidevideoen; bevar stillbillede før afspilning og på datasparende forbindelser. Video uden separat billedlag kontrolleret i browser.
+- [x] Fjern den ekstra “Pris per måned”-række ved virksomhedsoprettelse uden ændrede priser. Totalen kontrolleret i browser.
+- [x] Ret overlappende indlæsningsvisninger i virksomhedsindstillinger og ensret navigation og sektionsdesign; bevar automatisk gemning. Ét emnefelt i indlæsningsvisning, hash-først emnevalg, fjernet scroll-observer, kundebeskeder indlæses først ved åbning og beholdes derefter for at bevare kladder.
+- [x] Afprøv forsiden, prisoversigten og indstillinger på mobil/tablet/computer. Offentlige sider kontrolleret; isolerede indstillings-emneskift ved 390/820/1280 px uden vandret overflow. Egen konto viser virksomhedsoprettelse, så indstillinger på en rigtig virksomhed og faktisk gemning er ikke verificeret.
+
 ## 5. nov. — Smartere virksomhedsoprettelse
 - [x] Login med eksisterende korrekte oplysninger før oprettelse; eksisterende ejere sendes til panelet uden dubletter. Nye konti kræver stadig e-mailbekræftelse.
 - [x] Mobiloprettelse: kontovalg, adgangskodevisning, kompakt bekræftelse og bundknap, der fører til manglende oplysninger og skjules ved bekræftelse.
