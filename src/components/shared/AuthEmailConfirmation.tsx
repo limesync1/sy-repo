@@ -90,7 +90,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
               aria-label="Bekræftelseskode"
               onChange={(v) => { setCode(v); setError(null); if (v.length === CODE_LENGTH) void verify(v); }}>
               <InputOTPGroup>
-                {Array.from({ length: CODE_LENGTH }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-[2.35rem] text-xl font-bold min-[400px]:w-10 sm:h-14 sm:w-11" />)}
+                {Array.from({ length: CODE_LENGTH }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-8 text-lg font-bold min-[360px]:w-[2.35rem] min-[360px]:text-xl min-[400px]:w-10 sm:h-14 sm:w-11" />)}
               </InputOTPGroup>
             </InputOTP>
           </div>
