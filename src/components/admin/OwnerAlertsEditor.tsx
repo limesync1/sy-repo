@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { ShoppingCart, CalendarClock, RefreshCcw, Star, Inbox, Mail, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ShoppingCart, CalendarClock, RefreshCcw, Star, Inbox, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -14,37 +12,24 @@ interface Props {
   businessId?: string;
 }
 
-const KIND_LABEL: Record<string, string> = {
-  new_order: "Ny bestilling", upcoming_service: "Kommende besøg", subscription_change: "Abonnement ændret", new_review: "Ny anmeldelse",
-};
 const HOURS = [6, 7, 8, 12, 15, 16, 17, 18, 19, 20];
 
 /** Virksomhedens egne e-mail-beskeder: til/fra pr. hændelse + smarte valg. */
-export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail, businessId }: Props) {
+export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail, businessId: _businessId }: Props) {
   const set = (patch: Settings) => onChange((p) => ({ ...p, ...patch }));
   const hour = Number.isFinite(Number(value.upcoming_digest_hour)) ? Number(value.upcoming_digest_hour) : 17;
   const when = value.upcoming_digest_when === "same_day" ? "same_day" : "day_before";
   const recipient = (value.alert_email as string | undefined) ?? "";
   const recipientValid = !recipient || /^\S+@\S+\.\S+$/.test(recipient);
 
-  const { data: recent } = useQuery({
-    queryKey: ["owner-alerts-recent", businessId],
-    enabled: !!businessId,
-    queryFn: async () => {
-      const { data } = await supabase.from("business_owner_alerts").select("id, kind, status, last_error, sent_at, created_at")
-        .eq("business_id", businessId!).order("created_at", { ascending: false }).limit(5);
-      return data ?? [];
-    },
-  });
-
   const rows = [
     {
       key: "new_order", icon: ShoppingCart, label: "Nye bestillinger",
-      desc: "E-mail få minutter efter, at en kunde bestiller hos jer. Bestillinger, I selv opretter, giver ingen e-mail.",
+      desc: "Når en kunde bestiller hos jer.",
     },
     {
       key: "upcoming_service", icon: CalendarClock, label: "Oversigt over kommende besøg",
-      desc: "Én samlet e-mail med antal besøg og ruter — kun på dage, hvor der er besøg.",
+      desc: "Én samlet e-mail, kun på dage med besøg.",
       extra: (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <div className="inline-flex rounded-lg border border-border bg-background p-0.5" role="radiogroup" aria-label="Hvilken dag">
@@ -68,7 +53,7 @@ export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail
     },
     {
       key: "subscription_change", icon: RefreshCcw, label: "Ændringer i abonnementer",
-      desc: "Når en kunde selv pauser, opsiger, genoptager eller flytter sit abonnement. Jeres egne ændringer giver ingen e-mail.",
+      desc: "Når en kunde pauser, opsiger eller flytter.",
     },
     {
       key: "new_review", icon: Star, label: "Nye anmeldelser",
@@ -80,7 +65,7 @@ export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail
         </label>
       ),
     },
-    ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Når et lead fra «Indhent 3 tilbud» matcher jeres brancher og område." }] : []),
+    ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Når et lead matcher jeres område." }] : []),
   ] as { key: string; icon: typeof Star; label: string; desc: string; extra?: React.ReactNode }[];
 
   return (
@@ -117,27 +102,6 @@ export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail
         {!recipientValid && <p className="mt-1 text-sm text-destructive">Skriv en gyldig e-mail.</p>}
       </div>
 
-      {businessId && (
-        <div className="rounded-xl border border-dashed border-border p-4">
-          <p className="text-sm font-semibold text-foreground">Seneste beskeder</p>
-          {!recent?.length ? (
-            <p className="mt-1 text-sm text-muted-foreground">Ingen endnu. De vises her, så I kan se, at de bliver sendt.</p>
-          ) : (
-            <ul className="mt-2 space-y-1.5">
-              {recent.map((r: any) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
-                  {r.status === "sent" ? <CheckCircle2 className="h-4 w-4 text-success" /> : r.status === "pending" ? <Clock className="h-4 w-4 text-muted-foreground" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}
-                  <span className="font-medium text-foreground">{KIND_LABEL[r.kind] ?? r.kind}</span>
-                  <span className="text-muted-foreground">
-                    {r.status === "sent" ? "Sendt" : r.status === "pending" ? "Sendes snart" : `Ikke sendt — ${r.last_error ?? "fejl"}`}
-                    {" · "}{new Date(r.sent_at ?? r.created_at).toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
     </div>
   );
 }

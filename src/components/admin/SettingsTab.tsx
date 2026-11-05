@@ -1307,7 +1307,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
-            description="Vælg de brancher I arbejder med — og markér de konkrete typer aftaler, I tager. Vi bruger dette til at vise jer for de rigtige kunder, når de søger."
+            description="Vælg brancher og de aftaler, I tager. Så finder de rigtige kunder jer."
           >
             <div className="space-y-5">
               <div>
@@ -1392,7 +1392,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Det visuelle udtryk og linket til jeres profil — logo, forsidebillede, og det kunderne ser i adresselinjen.">
+          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logo, forsidebillede og linket til jeres profil.">
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
               <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
@@ -1405,12 +1405,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.
                   </p>
-                  <ul className="mt-2 space-y-1 text-[11.5px] leading-snug text-foreground/80">
-                    <li>✓ Kvadratisk, mindst 512×512 px</li>
-                    <li>✓ PNG med gennemsigtig eller hvid baggrund</li>
-                    <li>✓ Kun ikonet/mærket — lang tekst bliver for lille</li>
-                    <li>✓ Lidt luft rundt om kanten</li>
-                  </ul>
                 </div>
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
                   <FieldLabel optional>Coverbillede</FieldLabel>
@@ -1420,12 +1414,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises som bredt banner øverst på jeres profilside i formatet 3:1.
                   </p>
-                  <ul className="mt-2 space-y-1 text-[11.5px] leading-snug text-foreground/80">
-                    <li>✓ Liggende billede, helst 1800×600 px (mindst 1200×400)</li>
-                    <li>✓ Et rigtigt foto af jeres arbejde, team eller bil</li>
-                    <li>✓ Hold det vigtigste i midten — kanterne kan blive skåret lidt</li>
-                    <li>✗ Undgå tekst og logo i billedet; logoet vises allerede nederst til venstre</li>
-                  </ul>
                 </div>
               </div>
             </div>
