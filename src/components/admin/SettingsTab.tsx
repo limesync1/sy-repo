@@ -613,6 +613,31 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   }, [planKindPage, setActiveSection]);
 
+  // Søgning: efter emneskiftet findes feltet, hvis navn matcher søgeordet,
+  // så siden ruller helt ned til det og sætter markøren i det.
+  const focusMatchingField = useCallback((rawQuery: string) => {
+    const q = rawQuery.trim().toLowerCase();
+    if (q.length < 2) return;
+    window.setTimeout(() => {
+      const root = document.querySelector("[data-settings-pages]");
+      if (!root) return;
+      const candidates = Array.from(root.querySelectorAll<HTMLElement>("label, h3, h4, legend, [data-field-label]"))
+        .filter((el) => el.offsetParent !== null && (el.textContent ?? "").toLowerCase().includes(q));
+      const hit = candidates[0];
+      if (!hit) return;
+      const top = Math.max(0, hit.getBoundingClientRect().top + window.scrollY - getScrollOffset() - 16);
+      window.scrollTo({ top, behavior: "smooth" });
+      const forId = hit.getAttribute("for");
+      const field = (forId && document.getElementById(forId)) || hit.querySelector("input, textarea, select")
+        || hit.parentElement?.querySelector("input, textarea, select, button[role=switch]");
+      if (field instanceof HTMLElement) {
+        field.focus({ preventScroll: true });
+        field.classList.add("ring-2", "ring-accent", "ring-offset-2");
+        window.setTimeout(() => field.classList.remove("ring-2", "ring-accent", "ring-offset-2"), 1800);
+      }
+    }, 120);
+  }, []);
+
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
   // "Aktivér livechat" → #settings-advanced), så scroll automatisk ned til
@@ -1107,7 +1132,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 onKeyDown={(e) => {
                   if (e.key !== "Enter") return;
                   const first = visibleSections.find(matchesNav);
-                  if (first) scrollToSection(first.id);
+                  if (first) { scrollToSection(first.id); focusMatchingField(navQuery); }
                 }}
                 placeholder="Søg, fx moms"
                 className="h-11 pl-9 text-sm"
@@ -2458,7 +2483,7 @@ const HoursEditor = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
       <div className="flex flex-wrap gap-1.5" data-tour="hours-presets">
         <Button variant="outline"
@@ -2484,18 +2509,19 @@ const HoursEditor = ({
         </Button>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
         {DAYS.map((day, dayIdx) => {
           const parsed = parseHours(value[day] || "");
           const isOpen = !!parsed;
           const open = parsed?.open || "08:00";
           const close = parsed?.close || "16:00";
+          const firstOpen = DAYS.find((d) => !!parseHours(value[d] || "")) === day;
           return (
             <div
               key={day}
               data-tour={dayIdx === 0 ? "hours-day-row" : undefined}
-              className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
-                isOpen ? "border-border bg-secondary/40" : "border-border bg-card"
+              className={`flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-0.5 transition-colors ${
+                isOpen ? "bg-secondary/30" : "bg-card"
               }`}
             >
               {/* Dag + toggle */}
@@ -2505,7 +2531,7 @@ const HoursEditor = ({
                 aria-checked={isOpen}
                 aria-label={`Åben ${day}`}
                 onClick={() => isOpen ? setDay(day, null, null) : setDay(day, open, close)}
-                className="min-h-11 justify-start gap-2 px-0 min-w-[140px] sm:min-w-[160px]"
+                className="min-h-11 justify-start gap-2 px-0 min-w-[120px] sm:min-w-[130px]"
               >
                 <span
                   aria-hidden="true"
@@ -2530,14 +2556,14 @@ const HoursEditor = ({
                     <span className="text-xs text-muted-foreground">til</span>
                     <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
                   </div>
-                  <Button variant="ghost"
+                  {firstOpen && <Button variant="ghost"
                     type="button"
                     onClick={() => applyToAll(day)}
                     className="ml-auto min-h-11 text-sm text-muted-foreground hover:text-foreground"
                     title="Kopiér disse tider til alle åbne dage"
                   >
-                    Anvend på alle
-                  </Button>
+                    Brug på alle dage
+                  </Button>}
                 </>
               )}
             </div>

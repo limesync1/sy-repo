@@ -89,20 +89,20 @@ export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail
         {rows.map(({ key, icon: Icon, label, desc, extra }) => {
           const on = !!value[key];
           return (
-            <div key={key} className={cn("px-4 py-3.5 transition-colors", on && "bg-accent/[0.03]")}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex min-w-0 items-start gap-3">
-                  <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors", on ? "bg-accent/15 text-accent" : "bg-secondary text-muted-foreground")}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{label}</p>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{desc}</p>
-                  </div>
-                </div>
-                <Switch checked={on} onCheckedChange={(v) => set({ [key]: v })} aria-label={label} className="mt-2 shrink-0" />
-              </div>
-              {on && extra && <div className="mt-3 sm:pl-[3.25rem]">{extra}</div>}
+            <div key={key} className={cn("px-3 py-2 transition-colors sm:px-4", on && "bg-accent/[0.03]")}>
+              <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors", on ? "bg-accent/15 text-accent" : "bg-secondary text-muted-foreground")}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold leading-tight text-foreground">{label}</span>
+                    <span className="block text-[13px] leading-snug text-muted-foreground">{desc}</span>
+                  </span>
+                </span>
+                <Switch checked={on} onCheckedChange={(v) => set({ [key]: v })} aria-label={label} className="shrink-0" />
+              </label>
+              {on && extra && <div className="mt-1.5 pb-1 sm:pl-11">{extra}</div>}
             </div>
           );
         })}
