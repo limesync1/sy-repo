@@ -4,6 +4,16 @@
 
 const GW = "https://connector-gateway.lovable.dev";
 
+/** Gratis SMS pr. måned i Fuldt system; derefter bruges købte kreditter. */
+export const SMS_FREE_PER_MONTH = 50;
+
+/** SMS-pakker (pris i kr. uden moms). Skal matche src/lib/sms-packs.ts. */
+export const SMS_PACKS = [
+  { id: "sms_100", credits: 100, priceDkk: 59 },
+  { id: "sms_500", credits: 500, priceDkk: 249 },
+  { id: "sms_1000", credits: 1000, priceDkk: 449 },
+] as const;
+
 // Kun danske og nordiske numre (mod SMS-misbrug til dyre udlandsnumre).
 const ALLOWED_PREFIXES = ["+45", "+46", "+47", "+358", "+354", "+298", "+299"];
 
@@ -95,15 +105,21 @@ export async function sendBusinessSms(admin: any, args: {
   if (!to) return { ok: false, provider: "none", status: "invalid", skipped: true, error: "Ugyldigt eller ikke-nordisk telefonnummer" };
 
   const { data: cfg } = await admin.from("business_sms_settings")
-    .select("sender_name, monthly_cap").eq("business_id", args.businessId).maybeSingle();
-  const cap = cfg?.monthly_cap ?? 200;
-  const monthStart = new Date(); monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);
-  const { data: used } = await admin.from("sms_messages").select("segments")
-    .eq("business_id", args.businessId).neq("status", "failed").gte("created_at", monthStart.toISOString());
-  const usedSegments = (used ?? []).reduce((s: number, r: any) => s + (r.segments ?? 1), 0);
+    .select("sender_name, credits").eq("business_id", args.businessId).maybeSingle();
   const segs = segmentsFor(args.message);
-  if (usedSegments + segs > cap) {
-    return { ok: false, provider: "none", status: "capped", skipped: true, error: `Månedens SMS-loft (${cap}) er nået` };
+  const isTest = args.kind === "test";
+  let paidWithCredits = false;
+  if (!isTest) {
+    const monthStart = new Date(); monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);
+    const { data: used } = await admin.from("sms_messages").select("segments")
+      .eq("business_id", args.businessId).neq("status", "failed").neq("kind", "test")
+      .gte("created_at", monthStart.toISOString());
+    const usedSegments = (used ?? []).reduce((s: number, r: any) => s + (r.segments ?? 1), 0);
+    if (usedSegments + segs > SMS_FREE_PER_MONTH) {
+      const { data: ok } = await admin.rpc("consume_sms_credits", { p_business: args.businessId, p_segments: segs });
+      if (!ok) return { ok: false, provider: "none", status: "capped", skipped: true, error: "Ingen SMS tilbage – køb flere under Beskeder til kunder" };
+      paidWithCredits = true;
+    }
   }
   const dayAgo = new Date(Date.now() - 86400000).toISOString();
   const { count } = await admin.from("sms_messages").select("id", { count: "exact", head: true })
@@ -114,6 +130,11 @@ export async function sendBusinessSms(admin: any, args: {
 
   const sender = cfg?.sender_name || senderFromName(args.businessName);
   const res = await sendSms({ to, message: args.message, sender, reference: args.queueId ?? crypto.randomUUID() });
+  // Fejlet afsendelse koster ikke kreditter.
+  if (!res.ok && paidWithCredits) {
+    const { data: row } = await admin.from("business_sms_settings").select("credits").eq("business_id", args.businessId).maybeSingle();
+    if (row) await admin.from("business_sms_settings").update({ credits: row.credits + segs }).eq("business_id", args.businessId);
+  }
   await admin.from("sms_messages").insert({
     business_id: args.businessId, queue_id: args.queueId ?? null, kind: args.kind ?? "customer",
     recipient: to, provider: res.provider, provider_id: res.providerId ?? null,

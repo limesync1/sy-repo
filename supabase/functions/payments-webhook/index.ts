@@ -123,6 +123,17 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   // Når checkout fuldføres, sæt customer_id på business_plan så portal virker
   // selvom subscription.created kommer senere.
   const businessId = session.metadata?.businessId;
+  if (session.metadata?.type === "sms_credits") {
+    const credits = Number(session.metadata?.credits);
+    if (businessId && session.payment_status === "paid" && Number.isInteger(credits) && credits > 0) {
+      const { error: rpcErr } = await (getSupabase() as any).rpc("add_sms_credits", {
+        p_business: businessId, p_session: session.id, p_credits: credits,
+        p_amount: (session.amount_total ?? 0) / 100,
+      });
+      if (rpcErr) throw new Error(`add_sms_credits: ${rpcErr.message}`);
+    }
+    return;
+  }
   if (!businessId || !session.customer) return;
   await tbl("business_plans")
     .update({

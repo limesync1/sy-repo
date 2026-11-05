@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     const res = await sendBusinessSms(admin, {
       businessId: biz.id, businessName: biz.name ?? "", to: biz.phone, kind: "test",
-      message: `Test fra Serviceydere: SMS virker for ${biz.name ?? "jeres virksomhed"}.`,
+      message: `Hej fra Serviceydere! Jeres SMS'er til kunder virker nu. Sådan ser afsendernavnet ud, når ${biz.name ?? "I"} sender påmindelser og kvitteringer. Mvh. Serviceydere.dk`,
     });
     if (!res.ok) return json({ ok: false, error: res.error ?? "SMS kunne ikke sendes" }, 400);
     return json({ ok: true, provider: res.provider });

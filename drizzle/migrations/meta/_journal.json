@@ -330,6 +330,13 @@
       "when": 1793884250498,
       "tag": "0046_sms_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793885214867,
+      "tag": "0047_sms_credits",
+      "breakpoints": true
     }
   ]
 }
