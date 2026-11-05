@@ -131,11 +131,11 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [ ] Gratis værktøjer; "Kort svar" i håndskrevne artikler; ugentligt døde-links-tjek
 
 ## AI-søgning (nov 2026)
-- [ ] Aktuel del: tydeligt "Kort svar" på branchesider med eksisterende indhold; kontrollér prisguider og branchesider i browser og SEO-tests.
+- [x] Aktuel del: fælles "Kort svar" på registrerede branche-bysider og prisguider, også i første HTML. 19 SEO-tests bestået; tre sider kontrolleret ved 390/820/1280 px uden vandret overløb; build OK. Ingen udgivelse udført.
 - [x] Navnestavemåder i virksomhedsoplysninger, AI-fil, footer; AI-crawlere tilladt; brandlinje i månedsrapport
 - [ ] CVR/adresse/stiftelsesår til Googles virksomhedsoplysninger (venter på bruger)
 - [ ] Eksterne profiler fra tjeklisten (bruger)
-- [x] "Kort svar" på prisguides; [ ] branchesider, spørgsmål-svar-sider, sammenligningssider
+- [x] "Kort svar" på prisguides og registrerede branche-bysider; [ ] øvrige brancheoversigter, spørgsmål-svar-sider, sammenligningssider
 
 ## SEO-plan (4. nov 2026)
 - [x] Fase 1: GSC-måling (73 klik, 6.082 visninger, plads 13) + SEO-scanning (0 fejl)
