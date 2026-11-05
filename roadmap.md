@@ -157,5 +157,5 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Ejer-artikeltype i SEO-motoren
 - [x] Robusthedsmargin mod kø/vejarbejde (10 % standard) i optimering
 - [x] "Planlæg resten af dagen igen" + forsinkelsesadvarsler
-- [ ] Lærte køre-/opgavetider
+- [x] Lærte opgavetider (median af registreret tid pr. fast aftale)
 - [x] "Kom på listen gratis" på bysider
