@@ -74,8 +74,8 @@ export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail
         {rows.map(({ key, icon: Icon, label, desc, extra }) => {
           const on = !!value[key];
           return (
-            <div key={key} className={cn("px-3 py-2 transition-colors sm:px-4", on && "bg-accent/[0.03]")}>
-              <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
+            <div key={key} className={cn("px-3 py-2.5 transition-colors sm:px-4", on && "bg-accent/[0.03]")}>
+              <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-3">
                   <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors", on ? "bg-accent/15 text-accent" : "bg-secondary text-muted-foreground")}>
                     <Icon className="h-4 w-4" />
