@@ -68,4 +68,4 @@
 - `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
 - Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
 - Customer SMS goes only through `supabase/functions/_shared/sms.ts` (GatewayAPI first, Twilio fallback, alphanumeric sender, Nordic numbers, monthly cap + per-recipient daily limit, `sms_messages` log); browsers never choose SMS recipients, preventing SMS-pumping abuse.
-- Own-SMTP customer email: `business-smtp` + service-role-only encrypted settings; ports 465/2525 only (25/587 blocked); dispatch falls back to platform mail so delivery never stops.
+- Own-SMTP mail: `business-smtp`, service-role-only encrypted settings, ports 465/2525 (25/587 blocked), platform-mail fallback so delivery never stops.
