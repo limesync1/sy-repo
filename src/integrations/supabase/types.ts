@@ -1707,6 +1707,68 @@ export type Database = {
           },
         ]
       }
+      business_smtp_settings: {
+        Row: {
+          business_id: string
+          created_at: string
+          enabled: boolean
+          from_email: string
+          from_name: string | null
+          host: string
+          last_error: string | null
+          last_error_at: string | null
+          last_sent_at: string | null
+          password_ciphertext: string
+          password_iv: string
+          port: number
+          updated_at: string
+          username: string
+          verified_at: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          enabled?: boolean
+          from_email: string
+          from_name?: string | null
+          host: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_sent_at?: string | null
+          password_ciphertext: string
+          password_iv: string
+          port?: number
+          updated_at?: string
+          username: string
+          verified_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          enabled?: boolean
+          from_email?: string
+          from_name?: string | null
+          host?: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_sent_at?: string | null
+          password_ciphertext?: string
+          password_iv?: string
+          port?: number
+          updated_at?: string
+          username?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_smtp_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
