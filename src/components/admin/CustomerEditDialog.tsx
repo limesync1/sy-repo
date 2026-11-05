@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, ChevronDown, StickyNote } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, ChevronDown, StickyNote, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useServices } from "@/hooks/useDatabase";
 import { useActiveAccountingIntegration } from "@/hooks/useActiveAccountingIntegration";
@@ -74,6 +74,7 @@ interface Props {
 const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial, onSaved }: Props) => {
   const qc = useQueryClient();
   const [type, setType] = useState<CustomerType>(initial?.type || "private");
+  const [showMore, setShowMore] = useState(false);
   const [name, setName] = useState(initial?.name || "");
   const [companyName, setCompanyName] = useState(initial?.company_name || "");
   const [cvr, setCvr] = useState(initial?.cvr || "");
@@ -409,7 +410,17 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             </Section>
 
-            {/* Profilbillede — altid synligt */}
+            {/* Ved oprettelse: kun det vigtigste. Billede, noter og regnskab
+                ligger bag "Flere valg", så vinduet ikke virker overvældende. */}
+            {!initial?.id && !showMore ? (
+              <button
+                type="button"
+                onClick={() => setShowMore(true)}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card px-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <Plus className="h-4 w-4" aria-hidden /> Flere valg <span className="font-normal text-muted-foreground">(billede, noter{accountingEnabled ? ", regnskab" : ""})</span>
+              </button>
+            ) : (<>
             <div className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
               <label className="group/avatar relative h-14 w-14 shrink-0 cursor-pointer" title="Vælg profilbillede">
                 {avatarUrl ? (
@@ -524,6 +535,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </CollapsibleContent>
             </Collapsible>
             )}
+            </>)}
 
             {/* Ekstra kontaktpersoner & dokumenter — kun for erhvervskunder
                 OG kun når der er et regnskabsprogram tilkoblet. Begge dele er
