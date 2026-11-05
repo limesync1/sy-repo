@@ -158,7 +158,7 @@ export const FULL_NEXT_STEPS: OnboardingStep[] = [
     icon: Calculator,
     title: "Forbind regnskab",
     short: "Fakturalinjer klar, når et besøg er udført.",
-    body: "Slå regnskab til under Indstillinger → Pris og betaling, og forbind Billy, Dinero eller e-conomic. Vælg fakturainterval pr. kunde.",
+    body: "Slå regnskab til under Indstillinger → Pris og betaling, og forbind Dinero eller e-conomic. Vælg fakturainterval pr. kunde.",
     tip: "Kan sættes op når som helst — indtil da fakturerer I selv.",
     tab: (c) => (c.accountingFeatureEnabled ? "accounting" : "settings"),
     cta: (c) => (c.accountingActive ? "Se status" : c.accountingFeatureEnabled ? "Forbind" : "Aktivér"),
