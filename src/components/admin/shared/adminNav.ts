@@ -42,7 +42,7 @@ export const ADMIN_NAV_GROUPS: { key: Exclude<AdminNavGroupKey, "onboarding">; l
 ];
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
-  { value: "getting-started", label: "Kom godt i gang", icon: Rocket, group: "onboarding", requires: "operations" },
+  { value: "getting-started", label: "Kom godt i gang", icon: Rocket, group: "onboarding" },
 
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard, group: "drift" },
   { value: "orders", label: "Aftaler", icon: CalendarDays, group: "drift", requires: "operations" },

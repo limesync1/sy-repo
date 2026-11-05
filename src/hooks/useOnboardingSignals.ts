@@ -10,10 +10,11 @@ import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  CORE_STEPS, NEXT_LEVEL_STEPS,
+  stepsForPlan,
   type OnboardingStep, type OnboardingStepId,
 
 } from "@/components/admin/onboarding/steps";
+import { planKindOf, type PlanKind } from "@/lib/business-capabilities";
 import { useOnboardingProgress, useUpdateOnboardingProgress } from "@/hooks/useOnboarding";
 
 export type OnboardingCounts = {
@@ -24,6 +25,14 @@ export type OnboardingCounts = {
   servicesCount: number;
   ordersCount: number;
   routesCount: number;
+  customersCount: number;
+  reviewsCount: number;
+  inquiriesCount: number;
+  notificationsEnabled: boolean;
+  hasLogo: boolean;
+  hasAddress: boolean;
+  hasDescription: boolean;
+  hasCoverImage: boolean;
 };
 
 
@@ -36,6 +45,7 @@ export type OnboardingState = {
   toggleSkip: (id: OnboardingStepId) => void;
   /** Alle kerne-trin — både faste aftaler og enkeltstående aftaler. */
   steps: OnboardingStep[];
+  plan: PlanKind;
   nextLevelSteps: OnboardingStep[];
 
   completedCount: number;
@@ -53,6 +63,14 @@ const EMPTY_COUNTS: OnboardingCounts = {
   servicesCount: 0,
   ordersCount: 0,
   routesCount: 0,
+  customersCount: 0,
+  reviewsCount: 0,
+  inquiriesCount: 0,
+  notificationsEnabled: false,
+  hasLogo: false,
+  hasAddress: false,
+  hasDescription: false,
+  hasCoverImage: false,
 };
 
 export const useOnboardingSignals = (business: any): OnboardingState => {
@@ -60,19 +78,24 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
   const qc = useQueryClient();
 
   const { data: counts, isLoading } = useQuery({
-    queryKey: ["onboarding-signals", businessId],
+    queryKey: ["onboarding-signals", businessId, business?.logo_url, business?.address, business?.description, business?.cover_image_url, (business?.categories ?? []).length],
     enabled: !!businessId,
     staleTime: 30_000,
     queryFn: async (): Promise<OnboardingCounts> => {
       const bizId = businessId!;
       const settings = (business?.settings ?? {}) as Record<string, any>;
       const categories = (business?.categories as string[] | null) || [];
-      const [services, employees, orders, routes, accounting] = await Promise.all([
+      const sb = supabase as any;
+      const [services, employees, orders, routes, accounting, customers, reviews, inquiries, notifications] = await Promise.all([
         supabase.from("services").select("id", { count: "exact", head: true }).eq("business_id", bizId),
         supabase.from("employees").select("id", { count: "exact", head: true }).eq("business_id", bizId).eq("is_active", true),
         supabase.from("orders").select("id", { count: "exact", head: true }).eq("business_id", bizId),
         supabase.from("routes").select("id", { count: "exact", head: true }).eq("business_id", bizId),
         supabase.from("accounting_integrations").select("id", { count: "exact", head: true }).eq("business_id", bizId).eq("is_active", true),
+        sb.from("business_customers").select("id", { count: "exact", head: true }).eq("business_id", bizId),
+        sb.from("reviews").select("id", { count: "exact", head: true }).eq("business_id", bizId),
+        sb.from("quote_request_matches").select("id", { count: "exact", head: true }).eq("business_id", bizId),
+        sb.from("customer_notification_templates").select("id", { count: "exact", head: true }).eq("business_id", bizId).eq("enabled", true),
       ]);
       return {
         categoriesCount: categories.length,
@@ -82,6 +105,14 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
         servicesCount: services.count ?? 0,
         ordersCount: orders.count ?? 0,
         routesCount: routes.count ?? 0,
+        customersCount: customers.count ?? 0,
+        reviewsCount: reviews.count ?? 0,
+        inquiriesCount: inquiries.count ?? 0,
+        notificationsEnabled: (notifications.count ?? 0) > 0,
+        hasLogo: !!business?.logo_url,
+        hasAddress: !!business?.address?.trim?.(),
+        hasDescription: (business?.description?.trim?.().length ?? 0) >= 20,
+        hasCoverImage: !!business?.cover_image_url,
       };
     },
   });
@@ -119,16 +150,17 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
 
 
   const effective = counts ?? EMPTY_COUNTS;
-  const steps = CORE_STEPS;
+  const plan = planKindOf(business);
+  const { core: steps, next: nextLevelSteps } = stepsForPlan(plan);
 
 
   const done = useMemo(() => {
     const map = {} as Record<OnboardingStepId, boolean>;
-    for (const step of [...CORE_STEPS, ...NEXT_LEVEL_STEPS]) {
+    for (const step of [...steps, ...nextLevelSteps]) {
       map[step.id] = step.isDone(effective) || !!skipped[step.id];
     }
     return map;
-  }, [effective, skipped]);
+  }, [effective, skipped, steps, nextLevelSteps]);
 
   const completedCount = steps.filter((s) => done[s.id]).length;
   const nextStep = steps.find((s) => !done[s.id]) ?? null;
@@ -140,7 +172,8 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     skipped,
     toggleSkip,
     steps,
-    nextLevelSteps: NEXT_LEVEL_STEPS,
+    plan,
+    nextLevelSteps,
     completedCount,
     totalCount: steps.length,
     allDone: !isLoading && !!counts && completedCount === steps.length,

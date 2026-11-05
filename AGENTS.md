@@ -69,3 +69,4 @@
 - Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
 - Customer SMS goes only through `supabase/functions/_shared/sms.ts` (GatewayAPI first, Twilio fallback, alphanumeric sender, Nordic numbers, monthly cap + per-recipient daily limit, `sms_messages` log); browsers never choose SMS recipients, preventing SMS-pumping abuse.
 - Own-SMTP mail: `business-smtp`, service-role-only encrypted settings, ports 465/2525 (25/587 blocked), platform-mail fallback so delivery never stops.
+- "Kom godt i gang" has two plan-specific tracks in `onboarding/steps.ts` (`stepsForPlan`); videos key by step id plus `intro_full`/`intro_listing`, so shared steps reuse one video and guides always match plan capabilities.

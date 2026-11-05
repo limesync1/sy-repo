@@ -9,7 +9,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, ExternalLink, Lock, PlayCir
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PanelIcon } from "@/components/shared/PanelIcon";
-import { type OnboardingStepId } from "./steps";
+import { introVideoId, type OnboardingStepId } from "./steps";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import { useOnboardingVideos, toEmbedUrl } from "@/hooks/useOnboardingVideos";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -81,11 +81,11 @@ const StepVideo = ({ url, title }: { url?: string; title: string }) => {
 
 export default function GettingStartedTab({ business, onNavigate }: Props) {
   const {
-    counts, isLoading, done, steps,
+    counts, isLoading, done, steps, plan, skipped, toggleSkip,
     completedCount, totalCount, allDone, nextStepId,
   } = useOnboardingSignals(business);
   const { data: videos = {} } = useOnboardingVideos();
-  const [selected, setSelected] = useState<OnboardingStepId | null>(null);
+  const [selected, setSelected] = useState<OnboardingStepId | "intro" | null>(null);
   const { ref, height } = useFitToViewport<HTMLDivElement>();
 
   // Følg automatisk med til næste trin, når et trin bliver klaret.
@@ -108,13 +108,26 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
     );
   }
 
-  const activeId = selected ?? nextStepId ?? steps[0]?.id;
-  const step = steps.find((s) => s.id === activeId) ?? steps[0];
+  const introId = introVideoId(plan);
+  const showIntro = selected === "intro" || (selected === null && completedCount === 0 && !skipped[introId]);
+  const activeId = selected && selected !== "intro" ? selected : nextStepId ?? steps[0]?.id;
+  const step = showIntro ? undefined : steps.find((s) => s.id === activeId) ?? steps[0];
+  const publicUrl = `/v/${business?.slug ?? ""}`;
+  const runStep = () => {
+    if (!step) return;
+    if (step.opensPublicProfile) {
+      window.open(publicUrl, "_blank", "noopener,noreferrer");
+      if (!done[step.id]) toggleSkip(step.id);
+      return;
+    }
+    onNavigate(step.tab(counts), step.action?.(counts) ?? null);
+  };
   const index = step ? steps.indexOf(step) : 0;
   const stepDone = step ? !!done[step.id] : false;
   const missing = step ? (step.requires ?? []).filter((r) => !r.met(counts)) : [];
   const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
-  const showStep = !!step;
+  const showStep = !!step || showIntro;
+  const guideTitle = plan === "listing" ? "Kom godt i gang · Kun profil" : "Kom godt i gang · Fuldt system";
 
   return (
     <div
@@ -127,16 +140,16 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         <div className="flex items-start gap-3">
           <PanelIcon name="guide" className="h-12 w-12 shrink-0" />
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold leading-tight text-foreground">Kom godt i gang</h2>
+            <h2 className="text-base font-semibold leading-tight text-foreground">{guideTitle}</h2>
             <p className="mt-1 text-xs leading-snug text-muted-foreground">
               {allDone
-                ? "Opsætningen er færdig — jeres side er klar til kunder."
+                ? (plan === "listing" ? "Jeres profil er klar — kunder kan nu finde og kontakte jer." : "Opsætningen er færdig — I er klar til første rute.")
                 : `${completedCount} af ${totalCount} trin klaret · Næste: ${steps.find((item) => item.id === nextStepId)?.title ?? "Fortsæt opsætningen"}`}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             <Button asChild variant="outline" size="sm" aria-label="Se jeres side" className="h-11 min-w-11 text-sm">
-              <a href={`/v/${business?.slug ?? ""}`} target="_blank" rel="noreferrer">
+              <a href={publicUrl} target="_blank" rel="noreferrer">
                 <span className="hidden sm:inline">Se jeres side</span>
                 <ExternalLink className="h-3 w-3 sm:ml-1.5" aria-hidden="true" />
               </a>
@@ -152,6 +165,19 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
       {showStep && (
         <div className="shrink-0 border-b border-border bg-card px-3 py-2 sm:px-4" aria-label="Vælg trin">
           <div className="flex flex-nowrap gap-1.5 overflow-x-auto [scrollbar-width:none]">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setSelected("intro")}
+              aria-current={showIntro ? "step" : undefined}
+              className={cn(
+                "h-auto min-h-11 shrink-0 justify-start gap-2 rounded-md border px-2.5 py-1.5 text-left",
+                showIntro ? "border-accent/40 bg-accent/10 text-foreground hover:bg-accent/15" : "border-border bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground",
+              )}
+            >
+              <PlayCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className="text-sm font-semibold">Intro</span>
+            </Button>
             {steps.map((s, i) => {
               const isDone = !!done[s.id];
               const isActive = s.id === step?.id;
@@ -195,6 +221,30 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
       {/* Body */}
       <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-4">
 
+        {showIntro && (
+          <div className="grid min-h-0 grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)] lg:h-full lg:gap-4">
+            <div className="aspect-video min-h-[7rem] lg:aspect-auto lg:min-h-0">
+              <StepVideo url={videos[introId]} title="Introduktion" />
+            </div>
+            <div className="rounded-md border border-border bg-card p-3 sm:p-4">
+              <h4 className="text-base font-semibold tracking-tight text-foreground">Velkommen til Serviceydere</h4>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                {plan === "listing"
+                  ? `På ${steps.length} korte trin gør vi jeres profil klar, så kunder kan finde jer og sende forespørgsler.`
+                  : `På ${steps.length} korte trin går I fra tom konto til første rute. Trinene står i den rækkefølge, de skal laves.`}
+              </p>
+              <ol className="mt-3 space-y-1.5 text-sm text-foreground">
+                {steps.map((s, i) => (
+                  <li key={s.id} className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-xs font-bold tabular-nums">{done[s.id] ? <Check className="h-3 w-3" aria-hidden="true" /> : i + 1}</span>
+                    {s.title}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        )}
+
         {showStep && step && (
           <div className="grid min-h-0 grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)] lg:h-full lg:grid-rows-1 lg:gap-4">
             <div className="aspect-video min-h-[7rem] lg:aspect-auto lg:min-h-0">
@@ -213,6 +263,11 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 <h4 className="text-base font-semibold tracking-tight text-foreground">{step.title}</h4>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
                 {step.tip && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Tip: {step.tip}</p>}
+                {["public_profile", "employee_app", "upgrade"].includes(step.id) && (
+                  <Button type="button" variant="outline" size="sm" className="mt-3 h-11" onClick={() => toggleSkip(step.id)}>
+                    {skipped[step.id] ? "Markér som ikke klaret" : "Markér som klaret"}
+                  </Button>
+                )}
                 {missing.length > 0 && (
                   <div className="mt-3 space-y-1 rounded-md border border-border bg-secondary/40 p-2.5">
                     {missing.map((r) => (
@@ -230,14 +285,21 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
       </div>
 
       {/* Footer — samme bundlinje som panelvinduerne */}
+      {showIntro && (
+        <div className="planner-overlay-footer flex shrink-0 items-center justify-end gap-2 border-t border-border bg-card px-4 py-2.5">
+          <Button size="sm" className="brand-blue-action h-11 gap-1.5 text-sm" onClick={() => { if (!skipped[introId]) toggleSkip(introId as OnboardingStepId); setSelected(nextStepId ?? steps[0]?.id ?? null); }}>
+            Start trin 1 <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+
       {showStep && step && (
         <div className="planner-overlay-footer flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-4 py-2.5">
           <Button
             variant="outline"
             size="sm"
             aria-label="Forrige trin" className="h-11 w-11 shrink-0 gap-1.5 sm:w-auto"
-            disabled={index === 0}
-            onClick={() => index > 0 && setSelected(steps[index - 1].id)}
+            onClick={() => setSelected(index > 0 ? steps[index - 1].id : "intro")}
           >
             <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Forrige</span>
           </Button>
@@ -252,7 +314,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
               className={cn("h-auto min-h-11 min-w-0 gap-1.5 whitespace-normal text-sm", !stepDone && "brand-blue-action")}
               variant={stepDone ? "outline" : "default"}
               disabled={missing.length > 0}
-              onClick={() => onNavigate(step.tab(counts), step.action?.(counts) ?? null)}
+              onClick={runStep}
             >
               {step.cta(counts)} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>

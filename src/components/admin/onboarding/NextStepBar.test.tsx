@@ -8,7 +8,7 @@ describe("next step bar with blocked browser storage", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
     const open = vi.fn();
-    const view = render(<NextStepBar nextStepId="services" counts={{ categoriesCount: 1, servicesCount: 0, ordersCount: 0, employeesCount: 0, routesCount: 0, accountingActive: false, accountingFeatureEnabled: false }} completedCount={1} totalCount={5} onOpenGuide={open} />);
+    const view = render(<NextStepBar nextStepId="services" counts={{ categoriesCount: 1, servicesCount: 0, ordersCount: 0, employeesCount: 0, routesCount: 0, accountingActive: false, accountingFeatureEnabled: false, customersCount: 0, reviewsCount: 0, inquiriesCount: 0, notificationsEnabled: false, hasLogo: false, hasAddress: false, hasDescription: false, hasCoverImage: false }} completedCount={1} totalCount={5} onOpenGuide={open} />);
     fireEvent.click(view.getByRole("button", { name: "Åbn guide" }));
     expect(open).toHaveBeenCalledTimes(1);
     fireEvent.click(view.getByRole("button", { name: "Skjul næste trin" }));

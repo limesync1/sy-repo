@@ -91,10 +91,10 @@ const AdminDashboard = () => {
     if (new URLSearchParams(window.location.search).get("tab")) { landedRef.current = true; return; }
     if (!onboarding.counts) return;
     landedRef.current = true;
-    const coreDone = ["categories", "services", "employees"]
-      .every((id) => onboarding.done[id as keyof typeof onboarding.done]);
+    const coreDone = onboarding.steps.slice(0, 3)
+      .every((step) => onboarding.done[step.id]);
     if (!coreDone) setActiveTab("getting-started");
-  }, [onboarding.counts, onboarding.done]);
+  }, [onboarding.counts, onboarding.done, onboarding.steps]);
 
   // Hold URL'en synkroniseret med aktiv fane (uden at trigge en ekstra render-cyklus).
   // Bruges også når brugeren klikker browserens tilbage-pil.
