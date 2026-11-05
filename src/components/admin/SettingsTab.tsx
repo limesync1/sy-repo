@@ -30,6 +30,7 @@ import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import { OwnerAlertsEditor } from "@/components/admin/OwnerAlertsEditor";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
+import SmsSetupCard from "@/components/admin/SmsSetupCard";
 import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -1661,6 +1662,14 @@ const SettingsTab = ({ business }: { business: any }) => {
             icon={<MessageCircle />}
             description="Automatiske beskeder vi sender på jeres vegne — fx ”Vi kommer i morgen” eller ”Aftalen er udført”. Tilpas teksten, slå dem fra, eller send også som SMS."
           >
+            <div className="mb-6">
+              <SmsSetupCard
+                businessId={business.id}
+                businessName={business.name ?? ""}
+                smsEnabled={smsEnabled}
+                onSmsEnabledChange={setSmsEnabled}
+              />
+            </div>
             <CustomerNotificationsSettings
               businessId={business.id}
               upcomingMinutesBefore={customerNotifUpcomingMinutes}

@@ -1675,6 +1675,35 @@ export type Database = {
           },
         ]
       }
+      business_sms_settings: {
+        Row: {
+          business_id: string
+          monthly_cap: number
+          sender_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          monthly_cap?: number
+          sender_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          monthly_cap?: number
+          sender_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_sms_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
@@ -5330,6 +5359,56 @@ export type Database = {
             columns: ["default_employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_messages: {
+        Row: {
+          business_id: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          provider: string
+          provider_id: string | null
+          queue_id: string | null
+          recipient: string
+          segments: number
+          status: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          provider: string
+          provider_id?: string | null
+          queue_id?: string | null
+          recipient: string
+          segments?: number
+          status: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          provider?: string
+          provider_id?: string | null
+          queue_id?: string | null
+          recipient?: string
+          segments?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_messages_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
