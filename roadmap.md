@@ -158,5 +158,6 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [ ] Sikkerhedsmargin i indstillinger
 - [ ] "Planlæg resten af dagen igen" + forsinkelsesadvarsler
 - [ ] Lærte køre-/opgavetider
-- [ ] "Kom på listen gratis" på by-/branchesider, opfølgningsmail, omtaleliste
+- [x] "Kom på listen gratis" på bysider
+- [ ] Opfølgningsmail (kræver samtykke), omtaleliste
 - [ ] Live trafik (venter på dit ja – koster penge)
