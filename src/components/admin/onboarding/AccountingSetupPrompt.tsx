@@ -69,7 +69,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
               <DialogDescription className="text-xs leading-snug">
                 {step === "setup"
                   ? "Samme trin som på Regnskab-siden. I kan altid ændre det senere."
-                  : "Så bliver kunder, fakturaer og betalinger sendt automatisk til fx e-conomic eller Dinero."}
+                  : "Så bliver kunder, fakturaer og betalinger sendt automatisk til fx e-conomic eller Dinero. Vi spørger kun denne ene gang – I kan altid gøre det senere under Regnskab."}
               </DialogDescription>
             }
           />
