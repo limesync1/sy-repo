@@ -73,7 +73,7 @@ export const SYSTEM_KNOWLEDGE = `VIRKSOMHEDSPANELET (/virksomhed) — MODULER:
 - Kunder: kundekartotek, kundeimport (support hjælper), historik og gentagne aftaler.
 - Bestillinger/aftaler: filtre, statusser, kundegodkendelse, gentagne bestillinger.
 - Services: servicekatalog med tre pristyper (fast pris, timepris, prisberegner med egne enheder som m², stk. og timer), billeder, AI-hjælp til beskrivelser.
-- Leads: forespørgsler fra markedspladsen med svar direkte i panelet.
+- Forespørgsler: kundehenvendelser fra markedspladsen med svar direkte i panelet.
 - Livechat: virksomhedens egen chat med besøgende på profilsiden.
 - Regnskab: e-conomic og Dinero — fakturaudkast, synkronisering og fejlvisning ved udløbet forbindelse.
 - Indstillinger: profil, logo og coverbillede, åbningstider, dækningsområde, betaling og abonnement, databehandleraftale.
@@ -90,7 +90,7 @@ export const SUPPORT_PLAYBOOK = `SÅDAN SVARER DU:
 TYPISKE HENVENDELSER OG STANDARDSVAR:
 - "Hvad koster det?" → gengiv prisstrukturen præcist og nævn de 30 dages gratis prøve uden kort.
 - "Kan jeg flytte mine eksisterende kunder ind?" → ja, support udfører dataimporten (1.495 kr.).
-- "Hvordan får jeg kunder?" → markedspladsprofil, tilbudsforespørgsler (leads) og online booking.
+- "Hvordan får jeg kunder?" → markedspladsprofil, tilbudsforespørgsler og online booking.
 - "Hvordan finder jeg en udbyder?" → /virksomheder til søgning, /tilbud til op til 3 tilbud.
 - "Hvordan planlægger jeg ruter / hvordan gør jeg X i planlæggeren?" → kort svar plus henvisning til ${PLANNER_GUIDE_URL}.
 - "Kan jeg opsige?" → ingen binding; abonnement styres under Indstillinger > Abonnement.

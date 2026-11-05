@@ -68,13 +68,13 @@ Deno.serve(async (req) => {
           const platform = String(lead.platform || "").toLowerCase();
           const isInstagram = platform.startsWith("ig") || platform === "instagram";
           const fields = new Map<string, string>((lead.field_data || []).map((f: any) => [String(f.name), String(f.values?.[0] || "")]));
-          const fullName = fields.get("full_name") || [fields.get("first_name"), fields.get("last_name")].filter(Boolean).join(" ") || "Meta lead";
+          const fullName = fields.get("full_name") || [fields.get("first_name"), fields.get("last_name")].filter(Boolean).join(" ") || "Meta-forespørgsel";
           const { data: request } = await admin.from("quote_requests").upsert({
             customer_name: fullName,
             customer_email: fields.get("email") || null,
             customer_phone: fields.get("phone_number") || null,
             category: fields.get("service") || fields.get("category") || "Anden service",
-            description: fields.get("message") || fields.get("job_description") || "Lead indsendt via Meta Lead Ads",
+            description: fields.get("message") || fields.get("job_description") || "Forespørgsel indsendt via Meta-annonce",
             city: fields.get("city") || null,
             zip_code: fields.get("zip_code") || fields.get("post_code") || null,
             share_contact: true,
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
           if (request?.id) {
             const { error } = await admin.from("quote_request_matches").upsert({
               quote_request_id: request.id, business_id: parsed.data.businessId, match_score: 100,
-              reason: "Lead modtaget fra virksomhedens egen Meta-formular", status: "new",
+              reason: "Forespørgsel modtaget fra virksomhedens egen Meta-formular", status: "new",
             }, { onConflict: "quote_request_id,business_id", ignoreDuplicates: true });
             if (!error) imported++;
           }

@@ -74,7 +74,7 @@ const NewLeadEmail = ({
           }
         `}</style>
       </Head>
-      <Preview>Nyt lead{category ? ` på ${category}` : ''} — kunden er i {locLabel}</Preview>
+      <Preview>Ny forespørgsel{category ? ` på ${category}` : ''} — kunden er i {locLabel}</Preview>
       <Body style={main} className="sy-body">
         <Container style={wrapper} className="sy-wrapper">
           <Section style={headerBar}>
@@ -84,7 +84,7 @@ const NewLeadEmail = ({
           <Container style={container}>
             <Section style={heroSection}>
               <Heading style={heroTitle} className="sy-hero-title">
-                Nyt lead{category ? ` på ${category}` : ''}
+                Ny forespørgsel{category ? ` på ${category}` : ''}
               </Heading>
               <Text style={heroSubtitle} className="sy-hero-sub">
                 Hej{greet}. En kunde har bedt om tilbud via Serviceydere, og vores AI har valgt jer som et af de bedste matches.
@@ -120,7 +120,7 @@ const NewLeadEmail = ({
             {/* Primær CTA øverst — så travle mobilbrugere ikke skal scrolle for
                 at reagere. Vi gentager ikke knappen nederst. */}
             <Section style={{ ...buttonSection, margin: '4px 0 22px' }}>
-              <Button style={button} href={leadsUrl} className="sy-btn">Åbn lead i panelet →</Button>
+              <Button style={button} href={leadsUrl} className="sy-btn">Åbn forespørgslen i panelet →</Button>
               <Text style={{ ...text, fontSize: '12px', color: '#737373', margin: '10px 0 0' }}>
                 Vær hurtig — kunden hører også fra op til 2 andre virksomheder.
               </Text>
@@ -246,8 +246,8 @@ const contactLabel = {
 
 export const template = {
   component: NewLeadEmail,
-  subject: (data) => `Nyt lead${data.category ? ` på ${data.category}` : ''}${data.customerCity ? ` i ${data.customerCity}` : ''}`,
-  displayName: 'Nyt lead — virksomhed',
+  subject: (data) => `Ny forespørgsel${data.category ? ` på ${data.category}` : ''}${data.customerCity ? ` i ${data.customerCity}` : ''}`,
+  displayName: 'Ny forespørgsel — virksomhed',
   previewData: {
     businessName: 'Ready2Clean',
     ownerName: 'Anna',

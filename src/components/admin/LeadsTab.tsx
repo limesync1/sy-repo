@@ -322,7 +322,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
           <section aria-labelledby="lead-inbox-title" className="overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
             <div className="flex flex-col gap-3 border-b border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
               <div>
-                <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 id="lead-inbox-title" className="text-base font-semibold text-foreground">Leadindbakke</h2></div>
+                <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 id="lead-inbox-title" className="text-base font-semibold text-foreground">Indbakke</h2></div>
                 <p className="mt-1 pl-10 text-xs text-muted-foreground">Alle kundehenvendelser samlet ét sted</p>
               </div>
               <Badge variant="secondary" className="w-fit">0 nye</Badge>
@@ -368,7 +368,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             })()}
             <div className="flex flex-col gap-3 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 className="text-base font-semibold text-foreground">Leadindbakke</h2></div>
+                <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 className="text-base font-semibold text-foreground">Indbakke</h2></div>
                 <p className="mt-1 pl-10 text-xs text-muted-foreground">{visible.length} af {allLeads.length} forespørgsler vises</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><SlidersHorizontal className="h-4 w-4" />Søg, sortér og filtrér</div>

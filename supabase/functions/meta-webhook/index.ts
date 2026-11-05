@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     const isInstagram = String(lead.platform || "").toLowerCase().startsWith("ig") || String(lead.platform || "").toLowerCase() === "instagram";
     const fields = new Map((lead.field_data || []).map((field: any) => [String(field.name), String(field.values?.[0] || "")]));
     const fullName = fields.get("full_name") || [fields.get("first_name"), fields.get("last_name")].filter(Boolean).join(" ") || "Meta lead";
-    const description = fields.get("message") || fields.get("job_description") || fields.get("custom_question") || "Lead indsendt via Meta Lead Ads";
+    const description = fields.get("message") || fields.get("job_description") || fields.get("custom_question") || "Forespørgsel indsendt via Meta-annonce";
     const { data: request } = await admin.from("quote_requests").upsert({
       customer_name: fullName,
       customer_email: fields.get("email") || null,
