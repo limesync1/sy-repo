@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import {
   BadgeCheck, MapPin, Mail, Activity, LogIn as LoginIcon, CreditCard,
-  AlertTriangle, Clock, CheckCircle2, XCircle, Settings2, UploadCloud, LogIn, ExternalLink,
+  AlertTriangle, Clock, CheckCircle2, XCircle, Settings2, UploadCloud, LogIn, ExternalLink, MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { fmtKr, fmtRelDate, type BusinessRow as Row } from "./types";
 
 interface Props {
@@ -27,8 +30,16 @@ export const BusinessListRow = ({
   const isWarning = !hasCard && daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
-      <Checkbox checked={selected} onCheckedChange={(c) => onToggle(b.id, !!c)} />
+    <div
+      className="flex cursor-pointer flex-wrap items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/40"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest("button,a,[role=checkbox],[role=menuitem]")) return;
+        onAdminister(b.id);
+      }}
+    >
+      <div className="flex h-11 w-8 items-center justify-center">
+        <Checkbox checked={selected} onCheckedChange={(c) => onToggle(b.id, !!c)} aria-label={`Vælg ${b.name}`} />
+      </div>
       <div className="relative shrink-0">
         {b.logo_url ? (
           <img
@@ -111,32 +122,33 @@ export const BusinessListRow = ({
           </div>
         )}
       </div>
-      <div className="flex w-full flex-wrap items-center gap-1.5 pl-[5.25rem] sm:w-auto sm:pl-0">
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => onVerifyToggle(b)}>
-          {b.is_verified ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-          <span className="hidden sm:inline">{b.is_verified ? "Fjern verif." : "Verificér"}</span>
+      <div className="flex w-full items-center gap-2 pl-[5.75rem] sm:w-auto sm:pl-0">
+        <Button className="brand-blue-action min-h-11 gap-1.5 px-4" onClick={() => onAdminister(b.id)}>
+          <Settings2 className="h-4 w-4" /> Åbn
         </Button>
-        <Button size="sm" variant="default" className="gap-1.5"
-          onClick={() => onAdminister(b.id)}
-          title="Åbn fuldt kontrolpanel: prøveperiode, plan, ejer, slet">
-          <Settings2 className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Administrér</span>
-        </Button>
-        <Button size="sm" variant="outline" className="gap-1.5"
-          onClick={() => onImport({ id: b.id, name: b.name })}
-          title="Importér data for denne virksomhed">
-          <UploadCloud className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Importér data</span>
-        </Button>
-        <Button size="sm" variant="outline" className="gap-1.5"
-          onClick={() => onImpersonate({ id: b.id, name: b.name })}
-          title="Log ind på denne virksomheds panel">
-          <LogIn className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Log ind som</span>
-        </Button>
-        <Button asChild size="sm" variant="ghost" className="h-9 w-9 p-0" aria-label="Åbn virksomhedens side">
-          <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></Link>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="min-h-11 min-w-11 gap-1.5 px-3" aria-label={`Flere handlinger for ${b.name}`}>
+              <MoreHorizontal className="h-4 w-4" /><span className="hidden md:inline">Mere</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem className="min-h-11 gap-2" onSelect={() => onImpersonate({ id: b.id, name: b.name })}>
+              <LogIn className="h-4 w-4" /> Log ind som virksomheden
+            </DropdownMenuItem>
+            <DropdownMenuItem className="min-h-11 gap-2" onSelect={() => onImport({ id: b.id, name: b.name })}>
+              <UploadCloud className="h-4 w-4" /> Importér data
+            </DropdownMenuItem>
+            <DropdownMenuItem className="min-h-11 gap-2" onSelect={() => onVerifyToggle(b)}>
+              {b.is_verified ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+              {b.is_verified ? "Fjern verificering" : "Verificér"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild className="min-h-11 gap-2">
+              <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /> Se offentlig profil</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
