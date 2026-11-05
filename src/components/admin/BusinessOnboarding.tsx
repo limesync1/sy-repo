@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Loader2, Check, Sparkles, Route, Users,
   UploadCloud, ShieldCheck, ArrowRight, Mail, Lock, Search,
-  Minus, Plus, Star, Zap, Clock, Headset,
+  Minus, Plus, Star, Zap, Clock, Headset, Eye, EyeOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { Gift as HhGift, Route as HhRoute, Unlock as HhUnlock } from "lucide-rea
 import { translateAuthError } from "@/lib/auth-errors";
 import AnimatedNumber from "@/components/admin/AnimatedNumber";
 import { BrandedIllustration, type BrandedIllustrationName } from "@/components/shared/BrandedIllustration";
-import { isValidAuthEmail } from "@/lib/auth-flow";
+import { authenticateBeforeSignup, isValidAuthEmail } from "@/lib/auth-flow";
 import { AuthEmailConfirmation } from "@/components/shared/AuthEmailConfirmation";
 import supportIcon from "@/assets/content-icons/et-menneske-naar-du-har-brug-for-det.svg.asset.json";
 import fullSystemIcon from "@/assets/signup-icons/fuldt-system.svg.asset.json";
@@ -107,7 +107,7 @@ type BusinessOnboardingProps = {
 };
 
 const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo }: BusinessOnboardingProps = {}) => {
-  const { user, signUp } = useAuth();
+  const { user, signUp, signIn } = useAuth();
   const navigate = useNavigate();
 
   // ─── Pris-tabel fra platform_settings ───
@@ -168,6 +168,9 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
   const [billing, setBilling] = useState<BillingPeriod>("monthly");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [accountMode, setAccountMode] = useState<"signup" | "login">("signup");
+  const [accountError, setAccountError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
   const submitLock = useRef(false);
@@ -254,16 +257,27 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
     }
 
     setSubmitting(true);
+    setAccountError(null);
     submitLock.current = true;
     try {
       let activeUserId = user?.id;
 
       if (!activeUserId) {
-        const { error: signUpError, status } = await signUp(email, password, "/opret-virksomhed");
-        if (signUpError) throw signUpError;
+        const loginStatus = await authenticateBeforeSignup(() => signIn(email, password));
+        if (accountMode === "login" && loginStatus === "signup_required") {
+          setAccountError("E-mail eller adgangskode er forkert. Prøv igen, eller vælg Glemt adgangskode.");
+          return;
+        }
+        let status = loginStatus;
+        if (loginStatus === "signup_required") {
+          const result = await signUp(email, password, "/opret-virksomhed");
+          if (result.error) throw result.error;
+          status = result.status ?? "confirmation_required";
+        }
         if (status !== "signed_in") {
           setConfirmationEmail(email.trim());
           setPassword("");
+          requestAnimationFrame(() => document.getElementById("signup-account")?.scrollIntoView({ behavior: "smooth", block: "start" }));
           return;
         }
         const { data: verified, error: verifyError } = await supabase.auth.getUser();
@@ -276,25 +290,17 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
       // Én konto = én virksomhed. Ejer brugeren allerede en aktiv virksomhed,
       // stopper vi her i stedet for at oprette en dublet.
-      const { data: existingBiz } = await supabase
+      const { data: existingBiz, error: existingBizError } = await supabase
         .from("businesses")
         .select("id, name")
         .eq("owner_id", activeUserId)
         .is("deleted_at", null)
         .limit(1)
         .maybeSingle();
+      if (existingBizError) throw existingBizError;
       if (existingBiz) {
-        toast.error(`Du ejer allerede "${existingBiz.name}"`, {
-          description:
-            "Én konto kan kun have én virksomhed. Gå til dit virksomhedspanel — eller kontakt support, hvis du har brug for flere virksomheder på samme konto.",
-          duration: 10000,
-          action: {
-            label: "Åbn virksomhedspanel",
-            onClick: () => navigate("/virksomhed"),
-          },
-        });
-        setExistingBusiness(existingBiz as { id: string; name: string });
-        setSubmitting(false);
+        toast.success("Du er logget ind — åbner dit virksomhedspanel.");
+        window.location.assign("/virksomhed");
         return;
       }
 
@@ -410,7 +416,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         }
       />
 
-      <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 pb-32 pt-8 sm:px-6 sm:pt-12 lg:px-8 lg:pb-12">
         {breadcrumb}
         {variant !== "pricing" && (
           <section className="mb-8 sm:mb-10" aria-labelledby="signup-plan-heading">
@@ -448,7 +454,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 xl:gap-14">
           <div className="min-w-0">
             {/* 1. CVR */}
-            <Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten" done={!!cvrData}>
+            <div id="signup-cvr" className="scroll-mt-28"><Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten" done={!!cvrData}>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
                   <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -501,7 +507,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                   </div>
                 </div>
               )}
-            </Section>
+            </Section></div>
 
             {!isListing && (<>
             {/* 2. Funktioner */}
@@ -647,8 +653,12 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             </>)}
             {/* 5. Konto (kun hvis ikke logget ind) */}
             {!user && (
-              <Section number={isListing ? 2 : 5} title="Opret din konto" subtitle="Vi sender ordrebekræftelser og notifikationer hertil">
-                {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business loginPath="/log-ind?mode=business" onEdit={() => setConfirmationEmail(null)} /> : <>
+              <div id="signup-account" className="scroll-mt-28"><Section number={isListing ? 2 : 5} title={accountMode === "login" ? "Log ind og fortsæt" : "Din konto"} subtitle="Har du allerede en konto, bruger vi den — dine virksomhedsvalg er bevaret.">
+                {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business loginPath="/log-ind?mode=business" onEdit={() => { setConfirmationEmail(null); setAccountMode("login"); }} /> : <>
+                <div className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-secondary p-1" role="group" aria-label="Kontovalg">
+                  <Button type="button" variant={accountMode === "signup" ? "default" : "ghost"} aria-pressed={accountMode === "signup"} className="min-h-11" onClick={() => { setAccountMode("signup"); setAccountError(null); }}>Ny konto</Button>
+                  <Button type="button" variant={accountMode === "login" ? "default" : "ghost"} aria-pressed={accountMode === "login"} className="min-h-11" onClick={() => { setAccountMode("login"); setAccountError(null); }}>Jeg har en konto</Button>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div><label htmlFor="signup-email" className="mb-2 block text-sm font-medium text-foreground">E-mailadresse</label><div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -668,23 +678,21 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                     <Input
                       id="signup-password"
                       aria-label="Adgangskode"
-                      type="password"
-                      autoComplete="new-password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete={accountMode === "login" ? "current-password" : "new-password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Adgangskode (min. 6 tegn)"
-                      className="h-12 pl-10 text-base"
+                      className="h-12 pl-10 pr-12 text-base"
                     />
+                    <Button type="button" variant="ghost" className="absolute right-0.5 top-0.5 h-11 w-11 p-0" aria-label={showPassword ? "Skjul adgangskode" : "Vis adgangskode"} onClick={() => setShowPassword((value) => !value)}>{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</Button>
                   </div>
                 </div>
-                </div><p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Har du allerede en konto?{" "}
-                  <Link to="/log-ind?mode=business" className="font-medium text-foreground underline-offset-2 hover:underline">
-                    Log ind
-                  </Link>
-                </p>
+                </div>
+                {accountError && <p role="alert" className="mt-3 text-sm leading-6 text-destructive">{accountError}</p>}
+                <Button asChild variant="link" className="mt-2 min-h-11 px-0"><Link to="/glemt-adgangskode">Glemt adgangskode?</Link></Button>
                 </>}
-              </Section>
+              </Section></div>
             )}
           </div>
 
@@ -816,7 +824,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
                 ) : (
-                  <>{isListing ? "Opret gratis profil" : "Start gratis prøve"} <ArrowRight className="h-4 w-4" /></>
+                  <>{accountMode === "login" && !user ? "Log ind og fortsæt" : isListing ? "Opret gratis profil" : "Start gratis prøve"} <ArrowRight className="h-4 w-4" /></>
                 )}
               </Button>
 
@@ -839,7 +847,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
           På mobil/tablet er sidebaren nede under formularen — så brugeren kan
           ikke se prisen mens de scroller. Denne bar viser totalen og en
           shortcut til "Start gratis prøve" eller scroll-til-konto. */}
-      {pricing && breakdown && (
+      {pricing && breakdown && !confirmationEmail && !existingBusiness && (
         <div data-signup-sticky-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
           <div
             aria-hidden
@@ -856,15 +864,15 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               </p>
             </div>
             <Button
-              onClick={handleSubmit}
-              disabled={!pricing || !canSubmit || submitting || !!existingBusiness || (!user && !!confirmationEmail)}
+              onClick={() => { if (canSubmit) { void handleSubmit(); } else { document.getElementById(!cvrData ? "signup-cvr" : "signup-account")?.scrollIntoView({ behavior: "smooth", block: "start" }); } }}
+              disabled={submitting}
 
               className="h-11 shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-md transition-all hover:bg-foreground/90 hover:shadow-lg active:scale-[0.98]"
             >
               {submitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
               ) : (
-                <>{isListing ? "Opret gratis profil" : "Start gratis prøve"} <ArrowRight className="h-4 w-4" /></>
+                <>{!canSubmit ? "Fortsæt" : accountMode === "login" && !user ? "Log ind og fortsæt" : isListing ? "Opret gratis profil" : "Start gratis prøve"} <ArrowRight className="h-4 w-4" /></>
               )}
             </Button>
           </div>

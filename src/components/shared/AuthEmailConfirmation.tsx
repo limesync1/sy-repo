@@ -24,23 +24,21 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
       setError(translateAuthError(e));
     } finally { setSending(false); }
   };
-  return <div className="space-y-4 rounded-lg border border-accent/25 bg-accent/5 p-5" role="status">
-    <Mail className="h-7 w-7 text-accent" aria-hidden />
-    <h2 className="text-lg font-semibold text-foreground">Tjek din e-mail</h2>
+  return <div className="space-y-4 border-t border-border py-5" role="status">
+    <div className="flex items-center gap-3"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent/10"><Mail className="h-6 w-6 text-accent" aria-hidden /></span><h3 className="text-lg font-semibold text-foreground">Bekræft din e-mail</h3></div>
     <p className="break-words text-sm leading-6 text-muted-foreground">
-      Hvis adressen kan bruges til en ny konto, sender vi et bekræftelseslink til <strong className="text-foreground">{email}</strong>.
-      {" "}Kontoen er først klar, når du har bekræftet din e-mail. Tjek også spam.
+      For nye konti skal e-mailen bekræftes. Kig efter et link i indbakken eller spam på <strong className="break-all text-foreground">{email}</strong>.
     </p>
     <p className="text-sm leading-6 text-muted-foreground">Har du allerede en konto? Log ind med din eksisterende adgangskode, eller vælg Glemt adgangskode.</p>
-    {business && <p className="text-sm leading-6 text-muted-foreground">Efter bekræftelsen kan du fortsætte her med dine virksomhedsvalg. Virksomheden er ikke oprettet endnu.</p>}
+    {business && <p className="text-sm leading-6 text-muted-foreground">Bekræft e-mailen, og fortsæt oprettelsen her. Din virksomhed oprettes først bagefter.</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {resent && !error && <p className="text-sm text-muted-foreground">Hvis kontoen afventer bekræftelse, får du et nyt link.</p>}
-    <div className="flex flex-wrap gap-2">
-      <Button asChild><Link to={loginPath}>Log ind</Link></Button>
-      <Button variant="outline" disabled={sending || emailCooldown > 0} onClick={resend}>
+    <div className="grid gap-2 sm:grid-cols-2">
+      <Button asChild className="min-h-11"><Link to={loginPath}>Log ind</Link></Button>
+      <Button variant="outline" className="h-auto min-h-11 whitespace-normal px-3 py-2" disabled={sending || emailCooldown > 0} onClick={resend}>
         {sending ? "Sender…" : emailCooldown > 0 ? `Send igen om ${emailCooldown} s` : "Send bekræftelseslink igen"}
       </Button>
-      <Button variant="ghost" onClick={onEdit}>Ret e-mail</Button>
+      <Button variant="ghost" className="min-h-11 sm:col-span-2" onClick={onEdit}>{business ? "Tilbage til konto" : "Ret e-mail"}</Button>
     </div>
   </div>;
 }
