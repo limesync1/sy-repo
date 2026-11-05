@@ -162,7 +162,7 @@ export function defineGuidePage(cfg: GuideConfig) {
                 <li key={i}>{f}</li>
               ))}
             </ul>
-          </div>
+          </aside>
 
           <TrustBar />
           <InlineQuoteTeaser
