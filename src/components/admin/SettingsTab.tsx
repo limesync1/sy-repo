@@ -30,6 +30,7 @@ import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import { OwnerAlertsEditor } from "@/components/admin/OwnerAlertsEditor";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
+import OwnEmailCard from "./OwnEmailCard";
 import SmsSetupCard from "@/components/admin/SmsSetupCard";
 import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1676,6 +1677,9 @@ const SettingsTab = ({ business }: { business: any }) => {
             icon={<MessageCircle />}
             description="Påmindelser og kvitteringer til jeres kunder på e-mail og SMS."
           >
+            <div className="mb-3">
+              <OwnEmailCard businessId={business.id} businessName={business.name ?? ""} businessEmail={email} />
+            </div>
             <div className="mb-3">
               <SmsSetupCard
                 businessId={business.id}
