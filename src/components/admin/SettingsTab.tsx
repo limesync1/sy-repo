@@ -1223,10 +1223,10 @@ const SettingsTab = ({ business }: { business: any }) => {
           </nav>
         </aside>
 
-        <div className="space-y-5" data-settings-pages>
+        <div className="space-y-4" data-settings-pages>
           {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
-      <div className="grid gap-5">
+      <div className="grid gap-4">
         {/* ── Gruppe: Profil ── */}
 
         {/* Generelt — kun navn + beskrivelse */}
@@ -2476,7 +2476,7 @@ const HoursEditor = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
       <div className="flex flex-wrap gap-1.5" data-tour="hours-presets">
         <Button variant="outline"
@@ -2508,12 +2508,11 @@ const HoursEditor = ({
           const isOpen = !!parsed;
           const open = parsed?.open || "08:00";
           const close = parsed?.close || "16:00";
-          const firstOpen = DAYS.find((d) => !!parseHours(value[d] || "")) === day;
-          return (
+                    return (
             <div
               key={day}
               data-tour={dayIdx === 0 ? "hours-day-row" : undefined}
-              className={`flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-0.5 transition-colors ${
+              className={`flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 sm:px-4 transition-colors ${
                 isOpen ? "bg-secondary/30" : "bg-card"
               }`}
             >
@@ -2549,20 +2548,20 @@ const HoursEditor = ({
                     <span className="text-xs text-muted-foreground">til</span>
                     <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
                   </div>
-                  {firstOpen && <Button variant="ghost"
-                    type="button"
-                    onClick={() => applyToAll(day)}
-                    className="ml-auto min-h-11 text-sm text-muted-foreground hover:text-foreground"
-                    title="Kopiér disse tider til alle åbne dage"
-                  >
-                    Brug på alle dage
-                  </Button>}
+
                 </>
               )}
             </div>
           );
         })}
       </div>
+      {DAYS.some((d) => !!parseHours(value[d] || "")) && (
+        <Button variant="outline" type="button"
+          onClick={() => { const d = DAYS.find((x) => !!parseHours(value[x] || "")); if (d) applyToAll(d); }}
+          className="min-h-11 rounded-md px-3 text-sm">
+          Brug første åbne dags tider på alle åbne dage
+        </Button>
+      )}
     </div>
   );
 };
