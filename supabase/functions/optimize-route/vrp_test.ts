@@ -163,8 +163,8 @@ Deno.test("lovet tidsvindue holder også ved kø/vejarbejde (robusthedsmargin)",
   const { solveVRP } = await import("./vrp.ts");
   const emp = { id: "e1", name: "A", start_lat: 56.15, start_lng: 10.2, end_lat: 56.15, end_lng: 10.2, work_start_min: 480, work_end_min: 960 };
   const mk = (id: string, lat: number, hardEnd: number | null) => ({ id, customer_name: id, address: id, latitude: lat, longitude: 10.2, duration_minutes: 30, preferred_start_min: null, preferred_end_min: null, hard_start_min: null, hard_end_min: hardEnd, required_staff: 1, pinned_assignees: [] });
-  // Stop ~45 km væk skal være færdigt kl. 09:20 – kan nås på en god dag, ikke med 50 % forsinkelse.
-  const stops = [mk("far", 56.55, 560)];
+  // Stop ~33 km væk skal være færdigt kl. 09:35 – kan nås på en god dag, ikke med 50 % forsinkelse.
+  const stops = [mk("far", 56.45, 575)];
   const calm = await solveVRP([emp], stops, { delayBufferPct: 0, alnsBudgetMs: 0 });
   const robust = await solveVRP([emp], stops, { delayBufferPct: 0.5, alnsBudgetMs: 0 });
   if (calm.plan.unassigned_stops.length !== 0) throw new Error("burde kunne nås uden margin");
