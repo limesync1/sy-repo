@@ -37,7 +37,7 @@ const Page = defineSoftwarePage({
       ],
     },
     {
-      heading: "Leads fra markedspladsen",
+      heading: "Forespørgsler fra markedspladsen",
       paragraphs: [
         <>Når en kunde beder om tilbud på <Link to="/tilbud">serviceydere.dk</Link>, matches forespørgslen med relevante virksomheder i området. Du ser opgaven, kundens beskrivelse og adresseområde og kan svare med et tilbud direkte i systemet.</>,
       ],

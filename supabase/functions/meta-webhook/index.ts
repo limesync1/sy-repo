@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
         quote_request_id: request.id,
         business_id: connection.business_id,
         match_score: 100,
-        reason: "Lead modtaget fra virksomhedens egen Meta-formular",
+        reason: "Forespørgsel modtaget fra virksomhedens egen Meta-formular",
         status: "new",
       }, { onConflict: "quote_request_id,business_id" });
     }

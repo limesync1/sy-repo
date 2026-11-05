@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     const matchId = typeof body?.matchId === "string" ? body.matchId : "";
     const subject = String(body?.subject ?? "").trim().slice(0, 200);
     const text = String(body?.body ?? "").trim().slice(0, 10000);
-    if (!/^[0-9a-f-]{36}$/i.test(matchId)) return json(400, { error: "Ugyldigt lead" });
+    if (!/^[0-9a-f-]{36}$/i.test(matchId)) return json(400, { error: "Ugyldig forespørgsel" });
     if (!subject) return json(400, { error: "Skriv et emne" });
     if (text.length < 5) return json(400, { error: "Skriv en besked først" });
 
