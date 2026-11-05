@@ -125,7 +125,8 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 ## SEO-plan v2 (nov 2026)
 - [x] Bysider: DST-fakta (befolkning, boligtyper, alder) for 10 største byer i browser + prerender
 - [ ] Udbydere i området på bysider (kræver offentlig virksomhedsliste ved build)
-- [ ] Rapport-sektion "Bysider"; næste 20 byer efter 4-6 uger
+- [x] Rapport-sektion "Bysider"
+- [ ] Næste 20 byer efter 4-6 uger (venter på data)
 - [ ] Branche-softwaresider med skærmbilleder; sammenligningssider (SkvizBiz/Fenster)
 - [ ] Gratis værktøjer; "Kort svar" i håndskrevne artikler; ugentligt døde-links-tjek
 
