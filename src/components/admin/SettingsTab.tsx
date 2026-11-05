@@ -2540,7 +2540,7 @@ const HoursEditor = ({
 
               {isOpen && (
                 <>
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full items-center gap-2 pl-11 sm:w-auto sm:pl-0">
                     <TimePicker value={open} onChange={(v) => setDay(day, v || "08:00", close)} label={`Åbner ${day}`} />
                     <span className="text-xs text-muted-foreground">til</span>
                     <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
