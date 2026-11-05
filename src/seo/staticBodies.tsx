@@ -21,6 +21,7 @@ import { BRANCHES, branchCities } from "@/pages/cities/branchRegistry";
 import { servicesForCity } from "@/pages/cities/cityServices";
 import { LocalServiceLinks } from "@/pages/cities/LocalServiceLinks";
 import { CityFactsBox } from "@/pages/cities/CityFactsBox";
+import BranchQuickAnswer from "@/pages/cities/BranchQuickAnswer";
 import { PLANNER_FEATURES } from "@/data/routePlannerFeatures";
 
 const contentLoaders = import.meta.glob<{ default: { seoConfig?: GuideConfig | SoftwareConfig } }>([
@@ -187,7 +188,9 @@ export async function renderStaticBodies(): Promise<Record<string, string>> {
   for (const branch of BRANCHES) {
     for (const city of branchCities(branch)) {
       render(`/${branch.kind}/${city.slug}`, <article>
-        <h1>{branch.label} i {city.name}</h1><p>{city.intro}</p><p>{city.localFactor}</p>
+        <h1>{branch.label} i {city.name}</h1>
+        <BranchQuickAnswer branch={branch} city={city} />
+        <p>{city.intro}</p><p>{city.localFactor}</p>
         <h2>Typiske priser i {city.name}</h2>
         <table><thead><tr><th>Opgave</th><th>Vejledende pris</th></tr></thead><tbody>{branch.rows(city).map(([label, price]) => <tr key={label}><td>{label}</td><td>{price}</td></tr>)}</tbody></table>
         <h2>Opgaver</h2><ul>{branch.tasks.map(task => <li key={task}>{task}</li>)}</ul>

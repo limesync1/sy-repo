@@ -8,6 +8,7 @@ import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { branchCities, branchCity, findBranch } from "./branchRegistry";
 import { LocalServiceLinks } from "./LocalServiceLinks";
 import { CityFactsBox } from "./CityFactsBox";
+import BranchQuickAnswer from "./BranchQuickAnswer";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -56,14 +57,7 @@ const TradeCityPage = ({ kind }: { kind: string }) => {
       />
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <article className="article-content prose prose-neutral dark:prose-invert">
-          <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
-            <p className="m-0 text-sm font-semibold text-foreground">{city.name} kort fortalt</p>
-            <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>Pris: <strong>{city.unitLow.toLocaleString("da-DK")}–{city.unitHigh.toLocaleString("da-DK")} {cfg.unit}</strong></li>
-              <li>Desuden: <strong>{city.refLow.toLocaleString("da-DK")}–{city.refHigh.toLocaleString("da-DK")} {cfg.ref}</strong></li>
-              <li>Postnumre: <strong>{city.postalRange}</strong></li>
-            </ul>
-          </div>
+          <BranchQuickAnswer branch={cfg} city={city} />
 
           <TrustBar />
           <InlineQuoteTeaser category={cfg.category} heading={`Få 3 gratis tilbud fra ${cfg.plural} i ${city.name}`} />

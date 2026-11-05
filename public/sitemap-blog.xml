@@ -1912,6 +1912,27 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/fliserens-tilbud-og-opgaver</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-fliserens-tilbud-og-opgaver.webp</image:loc><image:title>Illustration til artiklen: Fliserens: Opgaver, arbejdsgang og det gode tilbud</image:title></image:image>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/kloakrensning</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-kloakrensning.webp</image:loc><image:title>Illustration til artiklen: Kloakrensning: Tegn, metoder, pris og akut hjælp</image:title></image:image>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/storskrald</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-storskrald.webp</image:loc><image:title>Illustration til artiklen: Storskrald: Guide til sortering, afhentning og tilbud</image:title></image:image>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

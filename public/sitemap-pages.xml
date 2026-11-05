@@ -2,11 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://serviceydere.dk/</loc>
-    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/d0df11fd-26e4-4fb6-8176-c4d42ad75ab0/window-brush-1280-uniform.webp</image:loc></image:image>
-    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/373fa75a-c570-4d49-ace3-0e4d7c9f6bb5/window-polish-1280-uniform.webp</image:loc></image:image>
-    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/3749119e-a35e-4a90-8740-43fa67234f84/roof-cleaning-1280-uniform.webp</image:loc></image:image>
-    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/310221af-2c8f-4ae3-98ba-fab2e2a7e80e/solar-cleaning-1280-uniform.webp</image:loc></image:image>
-    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/85ec67c4-389e-400f-a2f2-0de8ad9d81cc/paving-1280-uniform.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/befae956-8d9e-4994-8737-a10315a40fbc/window-brush-1280-crop.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/185eed20-b6da-48ae-8d46-eda150dde37a/window-polish-1280-crop.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/63270f21-02e6-4430-bb04-e30963731253/roof-cleaning-1280-crop.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/bc03bc91-ce3e-41da-83f9-06b714d4a2b3/solar-cleaning-1280-crop.webp</image:loc></image:image>
+    <image:image><image:loc>https://serviceydere.dk/__l5e/assets-v1/6b32e4fc-84f6-47d6-93e4-1bdb315ec276/paving-1280-crop.webp</image:loc></image:image>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
