@@ -40,7 +40,7 @@ export function friendlySmtpError(e: unknown): string {
   const code = (e as any)?.code ?? "";
   const rc = (e as any)?.responseCode ?? 0;
   if (code === "EAUTH" || rc === 535 || /auth/i.test(msg))
-    return "Brugernavn eller adgangskode blev afvist. Bruger I Gmail eller Outlook, skal I bruge en app-adgangskode.";
+    return "Brugernavn eller adgangskode blev afvist. Bruger I Gmail, skal I bruge en app-adgangskode.";
   if (code === "ENOTFOUND" || /getaddrinfo|dns/i.test(msg)) return "Serveradressen findes ikke. Tjek stavningen.";
   if (code === "ETIMEDOUT" || code === "ECONNECTION" || /timeout|timed out/i.test(msg))
     return "Kunne ikke få forbindelse. Tjek serveradresse og port (465 eller 2525).";

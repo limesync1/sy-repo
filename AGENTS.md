@@ -69,3 +69,4 @@
 - `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
 - Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
 - Customer SMS goes only through `supabase/functions/_shared/sms.ts` (GatewayAPI first, Twilio fallback, alphanumeric sender, Nordic numbers, monthly cap + per-recipient daily limit, `sms_messages` log); browsers never choose SMS recipients, preventing SMS-pumping abuse.
+- Businesses may send customer emails via their own SMTP (`business_smtp_settings`, service-role only, AES-GCM password via `SMTP_ENCRYPTION_KEY`, managed by `business-smtp`); only ports 465/2525 since edge functions block 25/587, and dispatch falls back to Serviceydere mail on SMTP failure so customers always receive messages.
