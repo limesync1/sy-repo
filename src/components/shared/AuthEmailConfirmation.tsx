@@ -10,8 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const CODE_LENGTH = 6;
 
-export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", business = false }: {
-  email: string; onEdit: () => void; loginPath?: string; business?: boolean;
+export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", business = false, onVerified }: {
+  email: string; onEdit: () => void; loginPath?: string; business?: boolean; onVerified?: () => void;
 }) {
   const { resendConfirmation, emailCooldown } = useAuth();
   const navigate = useNavigate();
@@ -35,10 +35,8 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
         return;
       }
       setVerified(true);
-      setTimeout(() => {
-        setOpen(false);
-        if (!business) navigate("/");
-      }, 900);
+      if (onVerified) { onVerified(); return; }
+      setTimeout(() => { setOpen(false); navigate("/"); }, 900);
     } catch (e) {
       setError(translateAuthError(e));
     } finally { setVerifying(false); }
@@ -80,7 +78,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
           <DialogTitle className="mt-1 text-2xl font-bold text-foreground">{verified ? "E-mail bekræftet" : "Tjek din e-mail"}</DialogTitle>
           <DialogDescription className="mt-2 break-words text-base leading-7 text-muted-foreground">
             {verified
-              ? (business ? "Du kan nu fortsætte oprettelsen af din virksomhed." : "Du er nu logget ind.")
+              ? (business ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Opretter din virksomhed og åbner dit panel…</span> : "Du er nu logget ind.")
               : <>Vi har sendt en kode på {CODE_LENGTH} cifre til <strong className="break-all text-foreground">{email}</strong>. Skriv den herunder.</>}
           </DialogDescription>
         </div>
