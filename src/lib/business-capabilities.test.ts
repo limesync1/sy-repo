@@ -14,3 +14,18 @@ describe("business capabilities", () => {
     expect(adminFlagsFor(b).routePlanning).toBe(true);
   });
 });
+
+import { isSettingsSectionVisible as vis, adminFlagsFor as flagsFor } from "./business-capabilities";
+describe("Kun profil i indstillinger", () => {
+  it("skjuler beskeder til kunder, betaling og håndværk for Kun profil", () => {
+    for (const id of ["customer-notifications", "billing", "trade"]) {
+      expect(vis(id, "listing")).toBe(false);
+      expect(vis(id, "full")).toBe(true);
+    }
+    expect(vis("industries", "listing")).toBe(true);
+  });
+  it("regnskabsvinduet kræver fuldt system (operations)", () => {
+    expect(flagsFor({ settings: { plan_kind: "listing" } }).operations).toBe(false);
+    expect(flagsFor({ settings: { plan_kind: "full" } }).operations).toBe(true);
+  });
+});

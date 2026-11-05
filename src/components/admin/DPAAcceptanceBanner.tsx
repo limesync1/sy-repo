@@ -6,11 +6,12 @@ import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, FileCheck2, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, FileCheck2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { DPA_VERSION } from "@/data/subprocessors";
+import dpaIcon from "@/assets/panel-icons/godkend_databehandleraftale.svg.asset.json";
 
 type Props = {
   businessId: string;
@@ -78,9 +79,7 @@ const DPAAcceptanceBanner = ({ businessId, isOwner }: Props) => {
   return (
     <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-          <ShieldCheck className="h-5 w-5" aria-hidden />
-        </div>
+        <img src={dpaIcon.url} alt="" aria-hidden className="h-16 w-16 shrink-0 object-contain sm:h-20 sm:w-20" />
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-semibold text-foreground">
             {acceptance ? "Opdateret databehandleraftale" : "Godkend databehandleraftalen"}
@@ -160,7 +159,7 @@ export const DPAGate = ({
   if (!blocked) return <>{children}</>;
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
+    <div className="w-full py-2 sm:py-4">
       <p className="mb-3 text-sm text-muted-foreground">
         Før I kan bruge virksomhedspanelet, skal I godkende vilkårene for vores behandling af
         oplysninger om jeres kunder og medarbejdere.
