@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, ChevronDown, StickyNote } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, ChevronDown, StickyNote, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useServices } from "@/hooks/useDatabase";
 import { useActiveAccountingIntegration } from "@/hooks/useActiveAccountingIntegration";
@@ -74,6 +74,7 @@ interface Props {
 const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial, onSaved }: Props) => {
   const qc = useQueryClient();
   const [type, setType] = useState<CustomerType>(initial?.type || "private");
+  const [showMore, setShowMore] = useState(false);
   const [name, setName] = useState(initial?.name || "");
   const [companyName, setCompanyName] = useState(initial?.company_name || "");
   const [cvr, setCvr] = useState(initial?.cvr || "");
