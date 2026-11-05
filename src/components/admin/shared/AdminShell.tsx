@@ -8,7 +8,8 @@
 // Navigationen defineres i ./adminNav (én sandhed for sidebar, drawer og bundnav).
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronDown, ExternalLink, LogOut, Rocket, Truck, UserRound } from "lucide-react";
+import { ChevronDown, ExternalLink, LogOut, Menu, Rocket, Truck, UserRound } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -153,6 +154,11 @@ export const AdminShell = ({
   };
 
   const currentNav = findAdminNavItem(activeTab);
+  // Mobil/tablet: de 4 vigtigste sider ligger fast i bunden, resten ligger
+  // bag "Menu". Så skal man ikke åbne hele menuen for hverdagssiderne.
+  const mobilePrimary = adminMobilePrimaryKeys(flags)
+    .map((k) => findAdminNavItem(k))
+    .filter((i): i is AdminNavItem => !!i && isAdminNavVisible(i, flags));
   const displayName =
     accountProfile?.display_name || (user?.user_metadata?.display_name as string | undefined) || user?.email || "Konto";
   const accountAvatar = accountProfile?.avatar_url || (user?.user_metadata?.avatar_url as string | undefined);
@@ -221,6 +227,42 @@ export const AdminShell = ({
       }
       contentPadding={contentPadding}
       contentClassName={contentClassName}
+      bottomNavigation={(bctx) => (
+        <nav
+          aria-label="Hurtigmenu"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-card/85 lg:hidden"
+        >
+          <div className="grid grid-cols-5">
+            {mobilePrimary.map((item) => {
+              const active = activeTab === item.value;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => go(item)}
+                  onTouchStart={() => prefetchAdminTab(item.value)}
+                  className={cn(
+                    "flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 text-[11px] leading-none transition-colors motion-reduce:transition-none",
+                    active ? "font-semibold text-foreground" : "font-medium text-muted-foreground",
+                  )}
+                >
+                  <item.icon className={cn("h-5 w-5", active && "nav-icon-gradient")} aria-hidden />
+                  <span className="max-w-full truncate">{item.label}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={bctx.openDrawer}
+              className="flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium leading-none text-muted-foreground transition-colors motion-reduce:transition-none"
+            >
+              <Menu className="h-5 w-5" aria-hidden />
+              <span>Menu</span>
+            </button>
+          </div>
+        </nav>
+      )}
       sidebarTop={(ctx) => (
         <SidebarWorkspaceRow
           name={business.name}

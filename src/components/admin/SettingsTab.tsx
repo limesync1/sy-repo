@@ -572,7 +572,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     hours: "åbningstider tider",
     "customer-notifications": "sms påmindelse kunder",
     notifications: "mail e-mail besked",
-    advanced: "leads livechat tilbud",
+    advanced: "forespørgsler livechat tilbud",
     branding: "logo billede webadresse link",
     general: "navn beskrivelse telefon adresse cvr e-mail kontakt",
   };
@@ -2093,7 +2093,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="overflow-hidden rounded-xl border border-border divide-y divide-border">
                   <FeatureRow
                     icon={<BrandedIllustration name="signupLeads" className="h-full w-full" alt="" />}
-                    title="Leads fra ”Indhent 3 tilbud”"
+                    title="Forespørgsler fra ”Indhent 3 tilbud”"
                     description="Forespørgsler fra «Indhent 3 tilbud» i jeres område – gratis og uforpligtende."
                     active={leadsEnabled}
                     activeLabel="Aktivt — ”Forespørgsler”-fanen er i menuen, og I modtager matches"

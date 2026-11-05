@@ -916,11 +916,11 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
       "Kundehenvendelser fra “Indhent 3 tilbud” lander i fanen Forespørgsler med status, noter og sortering. Slås til som gratis tilvalg i Indstillinger.",
     example: "En kunde i Odense søger vinduespudsning, og forespørgslen dukker op under Forespørgsler.",
     steps: ["Slå forespørgsler til i Indstillinger.", "Åbn fanen “Forespørgsler”.", "Svar, og markér forespørgslen som vundet eller afvist."],
-    keywords: ["leads", "tilbud", "forespørgsler", "markedsplads"],
+    keywords: ["tilbud", "forespørgsler", "markedsplads"],
   },
   {
     id: "lead-reply-draft",
-    title: "Svarudkast til leads",
+    title: "Svarudkast til forespørgsler",
     area: "Forespørgsler og livechat",
     summary: "Systemet kan generere et udkast til svaret, som du retter til og sender som e-mail.",
     example: "Du genererer et udkast, retter prisen og sender svaret på under et minut.",

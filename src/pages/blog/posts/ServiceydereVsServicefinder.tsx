@@ -4,14 +4,14 @@ const Post = defineBlogPost({
   slug: "serviceydere-vs-servicefinder",
   keywords: "serviceydere vs servicefinder, servicefinder alternativ, håndværkerplatform sammenligning",
   faq: [
-    { q: "Hvad er forskellen på Serviceydere og Servicefinder?", a: "Servicefinder fokuserer på håndværkertilbud med betaling pr. forespørgsel (firmaer betaler pr. forespørgsel). Serviceydere er en åben markedsplads hvor du som kunde får fast pris og fri firmavalg uden lead-gebyr." },
+    { q: "Hvad er forskellen på Serviceydere og Servicefinder?", a: "Servicefinder fokuserer på håndværkertilbud med betaling pr. forespørgsel (firmaer betaler pr. forespørgsel). Serviceydere er en åben markedsplads hvor du som kunde får fast pris og fri firmavalg uden gebyr pr. forespørgsel." },
     { q: "Er det gratis at indhente tilbud?", a: "Ja, hos Serviceydere er det 100% gratis at indhente og sammenligne tilbud. Du betaler kun firmaet du vælger." },
     { q: "Hvilken model giver flest tilbud?", a: "Serviceydere sender din forespørgsel direkte ud til relevante firmaer i området, så du kan modtage op til 3 uforpligtende tilbud. Servicefinder bruger en betaling pr. forespørgsel, hvor firmaer køber adgang til opgaven — det kan give færre svar pr. forespørgsel." },
     { q: "Hvad med kvalitetssikring?", a: "Begge har anmeldelser og verificering, men Serviceydere kræver CVR, ansvarsforsikring og brancheforeningsmedlemskab for top-rated tier." },
   ],
   sections: [
     { heading: "Sammenligning på hovedpunkter", list: [
-      "Pris-model: Serviceydere = gratis. Servicefinder = firmaer betaler leads.",
+      "Pris-model: Serviceydere = gratis. Servicefinder = firmaer betaler pr. forespørgsel.",
       "Kategorier: Serviceydere dækker 9 brancher. Servicefinder primært håndværk.",
       "Svartid: Serviceydere typisk 24–48 t. Servicefinder 2–5 dage.",
       "BoligJob-fradrag: begge platforme understøtter indberetning.",

@@ -49,7 +49,9 @@ export type PanelShellProps = {
   topbarRight?: ReactNode;
   /** Ekstra række lige under topbaren (fx handlinger på mobil). */
   topbarExtra?: ReactNode;
-  bottomNavigation?: ReactNode;
+  /** Bundnavigation på mobil/tablet. Kan være en funktion der får openDrawer,
+      så et "Menu"-punkt kan åbne drawer'en. */
+  bottomNavigation?: ReactNode | ((ctx: { openDrawer: () => void }) => ReactNode);
 
   contentPadding?: boolean;
   contentClassName?: string;
@@ -270,7 +272,9 @@ export const PanelShell = ({
           >
             {children}
           </main>
-          {bottomNavigation}
+          {typeof bottomNavigation === "function"
+            ? bottomNavigation({ openDrawer: () => setDrawerOpen(true) })
+            : bottomNavigation}
 
         </div>
       </div>

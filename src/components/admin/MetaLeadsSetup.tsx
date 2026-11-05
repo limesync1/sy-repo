@@ -152,11 +152,11 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       let message = data?.error as string | undefined;
       const ctx = (error as { context?: Response } | null)?.context;
       if (ctx) try { message = (await ctx.clone().json())?.error || message; } catch { /* ignore */ }
-      if (error || !data?.ok) throw new Error(message || "Leads kunne ikke hentes fra Meta lige nu.");
+      if (error || !data?.ok) throw new Error(message || "Forespørgslerne kunne ikke hentes fra Meta lige nu.");
       await refetch();
       toast.success(data.imported > 0 ? `${data.imported} forespørgsler hentet fra Meta` : "Ingen nye forespørgsler hos Meta");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Leads kunne ikke hentes fra Meta lige nu.");
+      toast.error(e instanceof Error ? e.message : "Forespørgslerne kunne ikke hentes fra Meta lige nu.");
     } finally {
       setSyncing(false);
     }
@@ -202,7 +202,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
     <SectionCard
       title="Meta-annonceformularer og måling"
       icon={<FacebookBrandIcon />}
-      description={connected ? "Nye forespørgsler fra dine valgte Meta-kilder lander automatisk i indbakken." : "Forbind Facebook og Instagram, så nye annonce-leads lander direkte i indbakken."}
+      description={connected ? "Nye forespørgsler fra dine valgte Meta-kilder lander automatisk i indbakken." : "Forbind Facebook og Instagram, så nye annonceforespørgsler lander direkte i indbakken."}
       className="overflow-hidden border-border/80 shadow-premium"
       action={<Badge variant={connected ? "default" : "secondary"} className="gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-primary-foreground" : "bg-muted-foreground"}`} />{statusLabel[connection?.status ?? "disconnected"]}</Badge>}
     >
@@ -232,7 +232,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
           <p className="text-xs text-muted-foreground">{connection.selected_form_ids.length ? `${connection.selected_form_ids.length} formularer er valgt` : "Alle nuværende og nye formularer modtages automatisk"}{connection.last_synced_at ? ` · Senest hentet ${new Date(connection.last_synced_at).toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}</p>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" className="gap-1.5" asChild>
-              <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /> Send test-lead</a>
+              <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /> Send testforespørgsel</a>
             </Button>
             <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={syncNow} disabled={syncing}>
               {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Hent seneste forespørgsler nu
