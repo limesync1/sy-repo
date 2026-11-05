@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import type { GuideConfig } from "@/pages/guides/defineGuidePage";
 import type { SoftwareConfig } from "@/pages/software/defineSoftwarePage";
+import QuickAnswer from "@/components/content/QuickAnswer";
 
 type Section = { heading?: string; paragraphs?: ReactNode[]; list?: ReactNode[]; ordered?: ReactNode[]; body?: ReactNode };
 
@@ -21,7 +22,7 @@ export const ContentQuestions = ({ items }: { items: { q: string; a: string }[] 
 
 export const GuideBody = ({ config }: { config: GuideConfig }) => <article>
   <h1>{config.heroTitle}</h1><p>{config.heroSubtitle}</p>
-  <h2>Kort fortalt</h2><ul>{config.quickFacts.map((fact, i) => <li key={i}>{fact}</li>)}</ul>
+  <QuickAnswer facts={config.quickFacts} />
   <table>
     <thead><tr><th>{config.priceTable.headers?.label ?? "Opgave"}</th><th>{config.priceTable.headers?.price ?? "Typisk pris"}</th><th>{config.priceTable.headers?.note ?? "Note"}</th></tr></thead>
     <tbody>{config.priceTable.rows.map((row, i) => <tr key={i}><td>{row.label}</td><td>{row.price}</td><td>{row.note}</td></tr>)}</tbody>
