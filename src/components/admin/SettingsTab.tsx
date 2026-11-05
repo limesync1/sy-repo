@@ -990,11 +990,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-4 pb-28 lg:pb-24">
       {/* ─── Header — titel, virksomhedsikon og hurtige handlinger ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-        <div className="flex items-center gap-4 min-w-0">
-          <BrandedIllustration name="settings" className="h-12 w-12 shrink-0" />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <BrandedIllustration name="settings" className="h-9 w-9 shrink-0" />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
@@ -1007,11 +1007,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 {isListingOnly(business) ? "Kun profil" : "Fuldt system"}
               </button>
             </div>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {completeness.pct === 100
-                ? "Profilen er komplet — alt gemmes automatisk."
-                : `${completeness.total - completeness.done} ting mangler · alt gemmes automatisk.`}
-            </p>
+
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1706,12 +1702,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0 flex-1">
                     {plan.status === "active" ? (
                       <>
-                        <p className="text-sm font-semibold text-foreground">Dit abonnement er aktivt</p>
+                        <p className="text-sm font-semibold text-foreground">{plan.has_payment_method ? "Dit abonnement er aktivt" : "Tilføj et betalingskort"}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Du betaler <span className="font-medium text-foreground tabular-nums">{Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md</span>
                           {plan.has_payment_method
                             ? ` med ${plan.payment_brand || "kort"} der ender på ${plan.payment_last4}.`
-                            : " — der mangler stadig et betalingskort."}
+                            : ". Tilføj et betalingskort herunder, så abonnementet fortsætter uden afbrydelse."}
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
@@ -2092,11 +2088,19 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Farezone — opsig og slet virksomheden */}
         <div id="settings-danger" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+          <details className="group rounded-lg border border-border bg-card">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+              Opsig eller slet virksomheden
+              <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
+            </summary>
+            <div className="border-t border-border p-2">
           <DangerZoneCard
             businessId={business.id}
             businessName={business.name}
             ownerEmail={user?.email || business.email || null}
           />
+            </div>
+          </details>
         </div>
         {(() => {
           const idx = visibleSections.findIndex((s) => s.id === activeSection);
@@ -2104,14 +2108,14 @@ const SettingsTab = ({ business }: { business: any }) => {
           const next = idx >= 0 && idx < visibleSections.length - 1 ? visibleSections[idx + 1] : null;
           if (!prev && !next) return null;
           return (
-            <nav aria-label="Skift emne" className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:justify-between">
+            <nav aria-label="Skift emne" className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-border bg-background/95 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:z-auto lg:justify-between lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-4 lg:backdrop-blur-none">
               {prev ? (
-                <Button type="button" variant="outline" size="lg" className="min-h-12 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
+                <Button type="button" variant="outline" size="lg" aria-label={`Forrige: ${prev.label}`} className="min-h-12 shrink-0 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
                   ← {prev.label}
                 </Button>
-              ) : <span />}
+              ) : <span className="hidden lg:block" />}
               {next && (
-                <Button type="button" size="lg" className="min-h-12 justify-end text-base" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
+                <Button type="button" size="lg" className="min-h-12 min-w-0 flex-1 justify-center truncate text-base lg:flex-none" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
                   Næste: {next.label} →
                 </Button>
               )}
@@ -2176,6 +2180,7 @@ const IndustryPicker = ({
   onToggle: (key: string) => void;
 }) => {
   const [query, setQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const q = query.trim().toLowerCase();
 
   const groupsFiltered = useMemo(() => {
@@ -2264,7 +2269,12 @@ const IndustryPicker = ({
         </div>
       )}
 
-      {/* Grupperet liste */}
+      {/* Grupperet liste — skjult når der allerede er valgt, indtil man søger eller beder om det */}
+      {!q && !showAll && selected.length > 0 ? (
+        <Button type="button" variant="outline" className="min-h-11 w-full" onClick={() => setShowAll(true)}>
+          Tilføj eller skift brancher
+        </Button>
+      ) : (
       <div className="space-y-3">
         {groupsFiltered.map((g) => (
           <div key={g.label}>
