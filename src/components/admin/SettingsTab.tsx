@@ -1454,8 +1454,13 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
 
-            {/* Custom domæne */}
-            <div className="mt-4 rounded-xl border border-border bg-card/50 p-4">
+            {/* Custom domæne — klappet sammen indtil det er i brug */}
+            <details className="group mt-4" open={!!customDomain.trim()}>
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-1 text-sm font-medium text-foreground hover:text-accent [&::-webkit-details-marker]:hidden">
+                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
+                Har I jeres eget webnavn (fx mitfirma.dk)?
+              </summary>
+              <div className="mt-2 rounded-xl border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Globe className="h-4 w-4" />
@@ -1614,6 +1619,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
               </div>
             </div>
+            </details>
           </SectionCard>
         </div>
 
@@ -2328,6 +2334,7 @@ const IndustryPicker = ({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };
