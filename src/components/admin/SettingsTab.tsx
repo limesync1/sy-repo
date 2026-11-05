@@ -607,7 +607,32 @@ const SettingsTab = ({ business }: { business: any }) => {
     [business],
   );
 
-  const scrollToSection = useCallback((id: string) => {
+  // Én emne-side ad gangen: i stedet for én lang side med alle felter vises
+  // kun det valgte emne. Abonnementstype hører til "Pris og betaling" (eller
+  // "Ekstra funktioner" for Kun profil); "Slet virksomhed" til Ekstra funktioner.
+  const hasBilling = visibleSections.some((s) => s.id === "billing");
+  const planKindPage = hasBilling ? "billing" : "advanced";
+  const hiddenSectionSelector = useMemo(() => {
+    const ids = visibleSections.map((s) => s.id).filter((id) => id !== activeSection);
+    if (activeSection !== planKindPage) ids.push("plan-kind");
+    if (activeSection !== "advanced") ids.push("danger");
+    return ids.map((id) => `[data-settings-pages] #settings-${id}`).join(",");
+  }, [visibleSections, activeSection, planKindPage]);
+
+  const scrollToSection = useCallback((rawId: string) => {
+    const id = rawId === "plan-kind" ? planKindPage : rawId === "danger" ? "advanced" : rawId;
+    setActiveSection(id);
+    if (typeof window !== "undefined") window.history.replaceState(null, "", `#settings-${id}`);
+    // Vent til siden er skiftet, så rul til toppen af emnet.
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`settings-${rawId}`) ?? document.querySelector("[data-settings-pages]");
+      if (!target) return;
+      const top = Math.max(0, (target as HTMLElement).getBoundingClientRect().top + window.scrollY - getScrollOffset());
+      if (window.scrollY > top || rawId === "plan-kind" || rawId === "danger") window.scrollTo({ top, behavior: "auto" });
+    });
+  }, [planKindPage]);
+
+  const _legacyScrollToSection = useCallback((id: string) => {
     const el = document.getElementById(`settings-${id}`);
     if (!el) return;
     setActiveSection(id);
