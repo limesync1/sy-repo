@@ -253,11 +253,22 @@ Deno.serve(async (req) => {
           }).eq("id", job.id);
           continue;
         }
-        const { data: smsRes, error: smsErr } = await admin.functions.invoke("send-sms", {
-          body: { to: job.recipient_phone, message: body },
+        if (new Date(job.send_at).getTime() < Date.now() - 24 * 3600 * 1000) {
+          await admin.from("customer_notification_queue").update({
+            status: "cancelled", last_error: "For gammel – sendes ikke",
+          }).eq("id", job.id);
+          continue;
+        }
+        const smsRes = await sendBusinessSms(admin, {
+          businessId: biz.id, businessName: biz.name ?? "", to: job.recipient_phone, message: body, queueId: job.id,
         });
-        if (smsErr) throw new Error(smsErr.message ?? String(smsErr));
-        if (smsRes && smsRes.ok === false) throw new Error(smsRes.error ?? "Ukendt SMS-fejl");
+        if (smsRes.skipped) {
+          await admin.from("customer_notification_queue").update({
+            status: "cancelled", last_error: smsRes.error ?? "Sprunget over",
+          }).eq("id", job.id);
+          continue;
+        }
+        if (!smsRes.ok) throw new Error(smsRes.error ?? "Ukendt SMS-fejl");
       } else {
         const result = await sendTemplateEmail("customer-notification", job.recipient_email, {
           idempotencyKey: `cust-notif-${job.id}`,
