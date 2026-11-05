@@ -271,12 +271,12 @@ const FeatureRow = ({
   toggle?: ReactNode;
 }) => (
   <div
-    className={`group relative flex items-start justify-between gap-4 rounded-xl border p-4 transition-colors ${
-      active ? "border-foreground/20 bg-foreground/[0.02]" : "border-border bg-card hover:border-foreground/20"
+    className={`group relative flex min-h-12 items-center justify-between gap-3 px-3 py-2.5 transition-colors sm:px-4 ${
+      active ? "bg-accent/[0.03]" : "bg-card"
     }`}
   >
-    <div className="flex min-w-0 items-start gap-3">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center">
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center">
         {icon}
       </div>
       <div className="min-w-0">
@@ -289,11 +289,12 @@ const FeatureRow = ({
           )}
           {badge}
         </div>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
-        <StatusPill active={active} activeLabel={activeLabel} inactiveLabel={inactiveLabel} />
+        <p className="text-[13px] leading-snug text-muted-foreground">{description}</p>
+        {!active && inactiveLabel.startsWith("Kræver") && <p className="mt-0.5 text-xs text-warning">{inactiveLabel}</p>}
+        {false && activeLabel}
       </div>
     </div>
-    <div className="shrink-0 pt-0.5">
+    <div className="shrink-0">
       {toggle ?? (onToggle ? <ToggleSwitch checked={active} onChange={onToggle} label={title} /> : null)}
     </div>
   </div>
@@ -1396,7 +1397,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
               <p className="mb-2 px-1 text-sm font-semibold text-foreground">Visuelle elementer</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-stretch">
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
@@ -2037,11 +2038,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                 Disse funktioner er lavet til håndværksbrancher. Vælg fx Elektriker, VVS, Tømrer og snedker, Maler eller Murer under Brancher, så kan I slå dem til her.
               </p>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-4">
+              <div className="overflow-hidden rounded-xl border border-border divide-y divide-border">
                 <FeatureRow
-                  icon={<TradeIcon name="materialsOnJobs" className="h-10 w-10" />}
+                  icon={<TradeIcon name="materialsOnJobs" className="h-9 w-9" />}
                   title="Materialer på opgaver"
-                  badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                   description="Brugte materialer kommer automatisk med på fakturaen."
                   active={tradeModules.materials}
                   activeLabel="Aktivt — ”Materialer” vises på opgaver og i medarbejder-appen"
@@ -2049,9 +2050,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                   onToggle={() => setTradeModules((t) => ({ ...t, materials: !t.materials, wholesaler: t.materials ? false : t.wholesaler }))}
                 />
                 <FeatureRow
-                  icon={<TradeIcon name="wholesaler" className="h-10 w-10" />}
+                  icon={<TradeIcon name="wholesaler" className="h-9 w-9" />}
                   title="Grossistpriser"
-                  badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                   description="Upload prisfilen fra jeres grossist med jeres egne priser."
                   active={tradeModules.wholesaler}
                   activeLabel="Aktivt — upload prisfiler under Materialeliste"
@@ -2059,15 +2059,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                   onToggle={() => tradeModules.materials && setTradeModules((t) => ({ ...t, wholesaler: !t.wholesaler }))}
                 />
                 <FeatureRow
-                  icon={<TradeIcon name="quality" className="h-10 w-10" />}
+                  icon={<TradeIcon name="quality" className="h-9 w-9" />}
                   title="Kvalitetssikring (KS)"
-                  badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                   description="Målinger, afvigelser og kundens underskrift – kan printes som PDF."
                   active={tradeModules.quality}
                   activeLabel="Aktivt — ”Kvalitetssikring” vises på opgaver og i medarbejder-appen"
                   inactiveLabel="Ikke aktivt"
                   onToggle={() => setTradeModules((t) => ({ ...t, quality: !t.quality }))}
                 />
+              </div>
                 {(tradeModules.materials || tradeModules.quality) && (
                   <TradeManageCards
                     businessId={business.id}
@@ -2089,14 +2089,12 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Gratis funktioner, I kan slå til og fra.">
-            <div className="space-y-6">
+            <div>
               <div>
-                <p className="mb-2 px-1 text-sm font-semibold text-foreground">Gratis funktioner</p>
-                <div className="space-y-2.5">
+                <div className="overflow-hidden rounded-xl border border-border divide-y divide-border">
                   <FeatureRow
                     icon={<BrandedIllustration name="signupLeads" className="h-full w-full" alt="" />}
                     title="Leads fra ”Indhent 3 tilbud”"
-                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                     description="Forespørgsler fra «Indhent 3 tilbud» i jeres område – gratis og uforpligtende."
                     active={leadsEnabled}
                     activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
@@ -2106,7 +2104,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <FeatureRow
                     icon={<BrandedIllustration name="signupLivechat" className="h-full w-full" alt="" />}
                     title="Livechat på virksomhedssiden"
-                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
                     description="En chat-knap på jeres profilside."
                     active={livechatEnabled}
                     activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
