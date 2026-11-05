@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       const raw = error instanceof Error ? error.message : "";
       const expired = /190|expired|session/i.test(raw);
-      return json({ error: expired ? "Adgangen til Meta er udløbet. Tryk 'Forbind igen'." : "Leads kunne ikke hentes fra Meta lige nu. Prøv igen om lidt." }, expired ? 401 : 502);
+      return json({ error: expired ? "Adgangen til Meta er udløbet. Tryk 'Forbind igen'." : "Forespørgsler kunne ikke hentes fra Meta lige nu. Prøv igen om lidt." }, expired ? 401 : 502);
     }
   }
 

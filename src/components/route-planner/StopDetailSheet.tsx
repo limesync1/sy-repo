@@ -752,8 +752,8 @@ const AssigneePicker = ({ employees, assigneeIds, leadId, onChange }: AssigneePi
                       ? "text-amber-500"
                       : "text-muted-foreground/40 hover:text-amber-500 hover:bg-secondary",
                   )}
-                  title={isLead ? "Lead (primær)" : "Sæt som lead"}
-                  aria-label={isLead ? "Lead" : "Sæt som lead"}
+                  title={isLead ? "Primær medarbejder" : "Sæt som primær"}
+                  aria-label={isLead ? "Primær" : "Sæt som primær"}
                 >
                   <Crown className="h-4 w-4" fill={isLead ? "currentColor" : "none"} />
                 </Button>

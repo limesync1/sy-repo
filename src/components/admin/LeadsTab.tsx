@@ -120,7 +120,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       .channel(`leads-${businessId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "quote_request_matches", filter: `business_id=eq.${businessId}` }, () => {
         qc.invalidateQueries({ queryKey: leadsKey });
-        toast.success("Nyt lead modtaget");
+        toast.success("Ny forespørgsel modtaget");
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -180,7 +180,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     const ids = Array.from(selected);
     if (await applyStatus(ids, status)) {
       setSelected(new Set());
-      toast.success(`${ids.length} leads opdateret`);
+      toast.success(`${ids.length} forespørgsler opdateret`);
     }
   };
 
@@ -292,8 +292,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
           <XCircle className="h-8 w-8 text-destructive" />
-          <p className="text-sm font-semibold text-foreground">Kunne ikke hente dine leads</p>
-          <p className="max-w-md text-xs text-muted-foreground">Tjek din internetforbindelse og prøv igen. Dine leads er ikke gået tabt.</p>
+          <p className="text-sm font-semibold text-foreground">Kunne ikke hente dine forespørgsler</p>
+          <p className="max-w-md text-xs text-muted-foreground">Tjek din internetforbindelse og prøv igen. Dine forespørgsler er ikke gået tabt.</p>
           <Button variant="outline" size="sm" className="min-h-11" onClick={() => refetchLeads()} disabled={fetchingLeads}>
             {fetchingLeads ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}Prøv igen
           </Button>
@@ -307,13 +307,13 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       <div className="space-y-5">
         <PageHeader
           title="Leads"
-          description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
+          description={`${allLeads.length} forespørgsler i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
           action={<LeadSettingsDialog businessId={businessId} />}
         />
 
         <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{counts.active || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Konvertering</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.conversionRate}%</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Svartid</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"}</p></div></div>
         <div className="hidden gap-2.5 sm:grid sm:grid-cols-3">
-          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} /></div>
+          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive forespørgsler" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} /></div>
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" /></div>
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="averageResponseTime" />} /></div>
         </div>
@@ -340,12 +340,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             {(() => {
               const waiting = enriched.filter((l) => l.status === "new" && Date.now() - new Date(l.created_at).getTime() > 3600000);
               const tasks = [
-                waiting.length > 0 && { key: "new", text: `${waiting.length} ny${waiting.length > 1 ? "e" : ""} lead${waiting.length > 1 ? "s" : ""} har ventet over 1 time på svar`, cta: "Svar nu", tone: "border-destructive/30 bg-destructive/5" },
+                waiting.length > 0 && { key: "new", text: `${waiting.length} ny${waiting.length > 1 ? "e" : ""} forespørgs${waiting.length > 1 ? "ler" : "el"} har ventet over 1 time på svar`, cta: "Svar nu", tone: "border-destructive/30 bg-destructive/5" },
                 (counts.dueFollowUps || 0) > 0 && { key: "followup", text: `${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""} skal laves i dag`, cta: "Se opfølgninger", tone: "border-warning/30 bg-warning/5" },
-                (counts.hot || 0) > 0 && { key: "active", text: `${counts.hot} varm${counts.hot > 1 ? "e" : ""} lead${counts.hot > 1 ? "s" : ""} med høj chance for at blive til en aftale`, cta: "Vis", tone: "border-success/30 bg-success/5", sort: "smart" },
+                (counts.hot || 0) > 0 && { key: "active", text: `${counts.hot} varm${counts.hot > 1 ? "e" : ""} forespørgs${counts.hot > 1 ? "ler" : "el"} med høj chance for at blive til en aftale`, cta: "Vis", tone: "border-success/30 bg-success/5", sort: "smart" },
               ].filter(Boolean) as { key: string; text: string; cta: string; tone: string; sort?: string }[];
               if (!tasks.length) return (
-                <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye leads dukker op her, og du får en e-mail, når de kommer.</div>
+                <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye forespørgsler dukker op her, og du får en e-mail, når de kommer.</div>
               );
               return (
                 <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-3 py-2.5 sm:flex-row sm:items-center">
@@ -369,7 +369,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             <div className="flex flex-col gap-3 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground"><Inbox className="h-4 w-4" /></span><h2 className="text-base font-semibold text-foreground">Leadindbakke</h2></div>
-                <p className="mt-1 pl-10 text-xs text-muted-foreground">{visible.length} af {allLeads.length} leads vises</p>
+                <p className="mt-1 pl-10 text-xs text-muted-foreground">{visible.length} af {allLeads.length} forespørgsler vises</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><SlidersHorizontal className="h-4 w-4" />Søg, sortér og filtrér</div>
             </div>
@@ -382,7 +382,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Søg kunde, e-mail, by eller note…"
-                  aria-label="Søg i leads" autoComplete="off" className="h-11 min-w-0 pl-9 rounded-md"
+                  aria-label="Søg i forespørgsler" autoComplete="off" className="h-11 min-w-0 pl-9 rounded-md"
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -519,7 +519,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             )}
 
             {visible.length === 0 ? (
-              <EmptyState icon={<Search />} title="Ingen leads matcher" description="Prøv et andet filter eller en anden søgning." />
+              <EmptyState icon={<Search />} title="Ingen forespørgsler matcher" description="Prøv et andet filter eller en anden søgning." />
             ) : (
               <>
                 {/* Select-all bar */}
@@ -571,7 +571,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                 checked={isSelected}
                                 onCheckedChange={() => toggleSelect(l.id)}
                                 onClick={(e) => e.stopPropagation()}
-                                aria-label="Vælg lead"
+                                aria-label="Vælg forespørgsel"
                               />
                             </div>
 

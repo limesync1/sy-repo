@@ -37,7 +37,7 @@ Serviceydere er ikke kun en markedsplads — det er også et driftssystem til vi
 - [Software-oversigt](/software): Ruteplanlægning, medarbejder-app, booking, fakturering og markedsplads i ét system.
 - [Ruteplanlægger](/software/ruteplanlaegger): Drag & drop-planlægning med faste aftaler, beregnet kørselstid, ETA og konfliktadvarsler (dobbeltbooking, ferie, helligdage).
 - [Medarbejder-app](/software/medarbejder-app): Dagens rute på telefonen, tjek ind og ud, noter og billeder fra opgaven.
-- [Booking og tilbud](/software/booking-og-tilbud): Online booking fra virksomhedens egen profilside, prisberegner og leads fra markedspladsen.
+- [Booking og tilbud](/software/booking-og-tilbud): Online booking fra virksomhedens egen profilside, prisberegner og forespørgsler fra markedspladsen.
 - [Fakturering og regnskab](/software/fakturering-og-regnskab): Fakturering af udført arbejde med bogføring i e-conomic og Dinero.
 - [Brancher](/software/brancher): Alle servicebrancher med kørsel — ikke kun én niche.
 - [Priser](/software/priser): 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 269 kr./md. for regnskabsintegration (e-conomic eller Dinero), 2.269 kr. i opstart og 1.495 kr. for dataimport, som Serviceyderes support udfører for virksomheden. Systemet er ikke gratis: der er 30 dages gratis prøve uden betalingskort, derefter vælger virksomheden selv at tilføje kort og fortsætte. Ingen binding. Priserne står offentligt — de kræver ikke et salgsmøde.

@@ -80,7 +80,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       text: "Den godkendte returadresse matcher sandsynligvis ikke opsætningen i Meta.",
       steps: ["Kontrollér at https://serviceydere.dk/meta/callback står præcist sådan i Meta", "Kontrollér at appen er aktiv", "Prøv at forbinde igen"],
     };
-    if (result === "invalid-state") return { title: "Forbindelsen er udløbet", text: "Sikkerhedstjekket kunne ikke godkendes.", steps: ["Gå tilbage til Leads", "Start Meta-forbindelsen igen"] };
+    if (result === "invalid-state") return { title: "Forbindelsen er udløbet", text: "Sikkerhedstjekket kunne ikke godkendes.", steps: ["Gå tilbage til Forespørgsler", "Start Meta-forbindelsen igen"] };
     if (result === "save-error") return { title: "Forbindelsen kunne ikke gemmes", text: "Meta godkendte forbindelsen, men den kunne ikke gemmes.", steps: ["Prøv igen", "Kontakt support, hvis det fortsætter"] };
     return { title: "Meta-forbindelsen fejlede", text: "Din eksisterende leadmodtagelse er ikke påvirket.", steps: ["Prøv at forbinde igen", "Kontrollér at du godkender alle de viste adgange"] };
   };
@@ -93,7 +93,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
         setProblem({
           title: "Meta er ikke klar endnu",
           text: "Forbindelsen til Facebook og Instagram er ikke aktiveret på Serviceydere endnu. Det er ikke en fejl hos dig.",
-          steps: ["Dine leads fra Serviceydere virker som normalt", "Du får besked, når Meta kan forbindes"],
+          steps: ["Dine forespørgsler fra Serviceydere virker som normalt", "Du får besked, når Meta kan forbindes"],
         });
         return;
       }
@@ -154,7 +154,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       if (ctx) try { message = (await ctx.clone().json())?.error || message; } catch { /* ignore */ }
       if (error || !data?.ok) throw new Error(message || "Leads kunne ikke hentes fra Meta lige nu.");
       await refetch();
-      toast.success(data.imported > 0 ? `${data.imported} leads hentet fra Meta` : "Ingen nye leads hos Meta");
+      toast.success(data.imported > 0 ? `${data.imported} forespørgsler hentet fra Meta` : "Ingen nye forespørgsler hos Meta");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Leads kunne ikke hentes fra Meta lige nu.");
     } finally {
@@ -171,12 +171,12 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       let message = data?.error;
       const ctx = (error as { context?: Response } | null)?.context;
       if (ctx) try { message = (await ctx.clone().json())?.error || message; } catch { /* ignore */ }
-      setProblem({ title: "Meta kunne ikke færdiggøres", text: message || "Facebook-siden kunne ikke tilmeldes nye leads.", steps: ["Kontrollér din administratoradgang", "Forbind Meta igen, hvis adgangen er udløbet"] });
+      setProblem({ title: "Meta kunne ikke færdiggøres", text: message || "Facebook-siden kunne ikke tilmeldes nye forespørgsler.", steps: ["Kontrollér din administratoradgang", "Forbind Meta igen, hvis adgangen er udløbet"] });
       return;
     }
     setSetupOpen(false);
     await refetch();
-    toast.success(`${data.pageName} sender nu nye leads til Serviceydere`);
+    toast.success(`${data.pageName} sender nu nye forespørgsler til Serviceydere`);
   };
 
   useEffect(() => {
@@ -200,9 +200,9 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
 
   return (
     <SectionCard
-      title="Meta Lead Ads og måling"
+      title="Meta-annonceformularer og måling"
       icon={<FacebookBrandIcon />}
-      description={connected ? "Nye leads fra dine valgte Meta-kilder lander automatisk i indbakken." : "Forbind Facebook og Instagram, så nye annonce-leads lander direkte i indbakken."}
+      description={connected ? "Nye forespørgsler fra dine valgte Meta-kilder lander automatisk i indbakken." : "Forbind Facebook og Instagram, så nye annonce-leads lander direkte i indbakken."}
       className="overflow-hidden border-border/80 shadow-premium"
       action={<Badge variant={connected ? "default" : "secondary"} className="gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-primary-foreground" : "bg-muted-foreground"}`} />{statusLabel[connection?.status ?? "disconnected"]}</Badge>}
     >
@@ -214,7 +214,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground">{connected ? connection.page_name : connection?.status === "pending" ? "Kontoen er forbundet" : "Facebook og Instagram"}</p>
-            <p className="truncate text-xs text-muted-foreground">{connected ? (connection.instagram_account_name ? `Facebook · Instagram @${connection.instagram_account_name}` : "Facebook · tilføj Instagram via Meta") : connection?.status === "pending" ? "Vælg nu side, Instagram og formularer" : "Ét login forbinder dine Meta Lead Ads"}</p>
+            <p className="truncate text-xs text-muted-foreground">{connected ? (connection.instagram_account_name ? `Facebook · Instagram @${connection.instagram_account_name}` : "Facebook · tilføj Instagram via Meta") : connection?.status === "pending" ? "Vælg nu side, Instagram og formularer" : "Ét login forbinder dine Meta-annonceformularer"}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -235,7 +235,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
               <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /> Send test-lead</a>
             </Button>
             <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={syncNow} disabled={syncing}>
-              {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Hent seneste leads nu
+              {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Hent seneste forespørgsler nu
             </Button>
           </div>
         </div>
@@ -253,8 +253,8 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
               <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card"><FacebookBrandIcon className="h-5 w-5" /></span>
               <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card"><InstagramBrandIcon className="h-5 w-5" /></span>
             </div>
-            <DialogTitle className="text-xl sm:text-2xl">Vælg hvor leads kommer fra</DialogTitle>
-            <DialogDescription className="max-w-xl">Vælg virksomhedens Meta-side. En tilknyttet Instagram-konto og dens Lead Ads følger automatisk med.</DialogDescription>
+            <DialogTitle className="text-xl sm:text-2xl">Vælg hvor forespørgsler kommer fra</DialogTitle>
+            <DialogDescription className="max-w-xl">Vælg virksomhedens Meta-side. En tilknyttet Instagram-konto og dens annonceformularer følger automatisk med.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 px-5 py-5 sm:px-7">
             {pages.length === 0 ? (
@@ -306,7 +306,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
             {selectedPage && (
               <div className="flex items-start gap-3 rounded-md bg-secondary/50 px-4 py-3">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                <div className="text-xs"><p className="font-semibold text-foreground">Klar til at modtage leads</p><p className="mt-0.5 text-muted-foreground">{selectedPage.name}{selectedPage.instagramName ? ` og Instagram @${selectedPage.instagramName}` : ""} sender fra {selectedForms.length ? `${selectedForms.length} valgte formular${selectedForms.length === 1 ? "" : "er"}` : "alle formularer"}.</p></div>
+                <div className="text-xs"><p className="font-semibold text-foreground">Klar til at modtage forespørgsler</p><p className="mt-0.5 text-muted-foreground">{selectedPage.name}{selectedPage.instagramName ? ` og Instagram @${selectedPage.instagramName}` : ""} sender fra {selectedForms.length ? `${selectedForms.length} valgte formular${selectedForms.length === 1 ? "" : "er"}` : "alle formularer"}.</p></div>
               </div>
             )}
           </div>

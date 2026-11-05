@@ -65,7 +65,7 @@ export function OwnerAlertsEditor({ value, onChange, leadsEnabled, fallbackEmail
         </label>
       ),
     },
-    ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Når et lead matcher jeres område." }] : []),
+    ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye forespørgsler", desc: "Når en forespørgsel matcher jeres område." }] : []),
   ] as { key: string; icon: typeof Star; label: string; desc: string; extra?: React.ReactNode }[];
 
   return (

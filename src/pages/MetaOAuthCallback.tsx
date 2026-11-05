@@ -25,9 +25,9 @@ const MetaOAuthCallback = () => {
           <>
             <AlertCircle className="mx-auto h-7 w-7 text-warning" aria-hidden="true" />
             <h1 className="mt-4 text-xl font-semibold text-foreground">Forbindelsen kunne ikke fortsætte</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Gå tilbage til Leads og tryk på Forbind Meta igen.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Gå tilbage til Forespørgsler og tryk på Forbind Meta igen.</p>
             <a className="mt-5 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground" href="/virksomhed?tab=leads">
-              Tilbage til Leads
+              Tilbage til Forespørgsler
             </a>
           </>
         )}

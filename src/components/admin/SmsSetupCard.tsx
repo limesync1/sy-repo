@@ -96,9 +96,9 @@ export default function SmsSetupCard({ businessId, businessName, smsEnabled, onS
   const total = (data?.freeLeft ?? 0) + (data?.credits ?? 0);
 
   return (
-    <section className="rounded-xl border border-border bg-card">
+    <section className="rounded-md border border-border bg-card">
       <label className="flex cursor-pointer items-center gap-3 p-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent">
           <MessageSquare className="h-5 w-5" />
         </span>
         <span className="min-w-0 flex-1">

@@ -165,9 +165,9 @@ const NewLeadEmail = ({
             )}
 
             <Section style={helpBox}>
-              <Text style={helpBoxTitle}>Sådan fungerer leads</Text>
+              <Text style={helpBoxTitle}>Sådan fungerer forespørgsler</Text>
               <Text style={helpBoxText}>
-                Hvert lead matches med op til 3 virksomheder. Markér leadet som "Kontaktet" eller "Vundet" i panelet, så holder vi styr på det for jer.
+                Hver forespørgsel matches med op til 3 virksomheder. Markér forespørgslen som "Kontaktet" eller "Vundet" i panelet, så holder vi styr på det for jer.
                 Spørgsmål? Skriv til <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
               </Text>
             </Section>

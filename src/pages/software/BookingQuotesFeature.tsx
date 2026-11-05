@@ -5,13 +5,13 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/booking-og-tilbud",
   metaTitle: "Online booking og tilbudsstyring | Serviceydere",
   metaDescription:
-    "Få online booking på din egen profilside, modtag leads fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
+    "Få online booking på din egen profilside, modtag forespørgsler fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
   keywords:
-    "online booking servicevirksomhed, tilbudsstyring, leads håndværker, booking system rengøring, prisberegner hjemmeside, kundeportal",
+    "online booking servicevirksomhed, tilbudsstyring, forespørgsler håndværker, booking system rengøring, prisberegner hjemmeside, kundeportal",
   heroEyebrow: "Booking og tilbud",
   heroTitle: "Kunden booker selv — du planlægger bare",
   heroSubtitle:
-    "En profilside med priser, anmeldelser og booking, leads fra markedspladsen og tilbud der kan godkendes online. Alt lander samme sted.",
+    "En profilside med priser, anmeldelser og booking, forespørgsler fra markedspladsen og tilbud der kan godkendes online. Alt lander samme sted.",
   breadcrumbLabel: "Booking og tilbud",
   answer:
     "Booking og tilbud i Serviceydere dækker hele vejen fra en interesseret kunde til en planlagt opgave. Virksomheden får en profilside med services, priser og online booking, modtager forespørgsler fra markedspladsen på serviceydere.dk, og kan sende tilbud som kunden godkender med ét klik. En godkendt booking bliver til en opgave, der kan lægges på ruten.",
@@ -19,7 +19,7 @@ const Page = defineSoftwarePage({
     "Egen profilside med services, priser, billeder, åbningstider og anmeldelser.",
     "Online booking direkte fra profilsiden — også uden for åbningstid.",
     "Prisberegnere: fast pris, timepris eller beregning på m², stk. og andre enheder.",
-    "Leads fra markedspladsen når en kunde beder om tilbud i dit område.",
+    "Forespørgsler fra markedspladsen, når en kunde beder om tilbud i dit område.",
     "Tilbud kan godkendes af kunden via link, uden login.",
     "Godkendt booking bliver til et stop, du kan planlægge.",
   ],
@@ -37,7 +37,7 @@ const Page = defineSoftwarePage({
       ],
     },
     {
-      heading: "Leads fra markedspladsen",
+      heading: "Forespørgsler fra markedspladsen",
       paragraphs: [
         <>Når en kunde beder om tilbud på <Link to="/tilbud">serviceydere.dk</Link>, matches forespørgslen med relevante virksomheder i området. Du ser opgaven, kundens beskrivelse og adresseområde og kan svare med et tilbud direkte i systemet.</>,
       ],

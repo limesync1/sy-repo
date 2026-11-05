@@ -26,10 +26,10 @@ export function LeadSourceDashboard({ leads, accounts, activeAccount, onPickAcco
     <section aria-labelledby="lead-sources-title" className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2 id="lead-sources-title" className="text-base font-semibold text-foreground">Leads fra Meta</h2>
-          <p className="text-xs text-muted-foreground">Hvor mange leads der kommer ind, og hvor mange der bliver til kunder.</p>
+          <h2 id="lead-sources-title" className="text-base font-semibold text-foreground">Forespørgsler fra Meta</h2>
+          <p className="text-xs text-muted-foreground">Hvor mange forespørgsler der kommer ind, og hvor mange der bliver til kunder.</p>
         </div>
-        <p className="text-xs text-muted-foreground"><span className="font-semibold text-foreground tabular-nums">{metaTotal}</span> leads i alt</p>
+        <p className="text-xs text-muted-foreground"><span className="font-semibold text-foreground tabular-nums">{metaTotal}</span> forespørgsler i alt</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -75,7 +75,7 @@ export function LeadSourceDashboard({ leads, accounts, activeAccount, onPickAcco
               >
                 {a.source === "instagram" ? <InstagramBrandIcon className="h-4 w-4 shrink-0" /> : <FacebookBrandIcon className="h-4 w-4 shrink-0" />}
                 <span className="min-w-0 flex-1 truncate font-medium text-foreground">{a.label}</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{a.total} leads · {a.won} vundet</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{a.total} forespørgsler · {a.won} vundet</span>
                 <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             ))}

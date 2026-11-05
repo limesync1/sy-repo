@@ -196,7 +196,7 @@ export const comparisons: Comparison[] = [
       { group: "Økonomi", feature: "Fakturering", us: y("e-conomic og Dinero"), them: y() },
       { group: "Økonomi", feature: "Vælg fakturainterval pr. kunde", us: y(), them: u },
       { group: "Kunder", feature: "SMS-beskeder til kunder", us: y(), them: y("0,35 kr. pr. besked") },
-      { group: "Kunder", feature: "Leads og tilbud", us: y("Markedsplads og leads"), them: y("Professional og op") },
+      { group: "Kunder", feature: "Forespørgsler og tilbud", us: y("Markedsplads og forespørgsler"), them: y("Professional og op") },
       { group: "Kunder", feature: "Nye kunder via markedsplads", us: y(), them: u },
       { group: "Kunder", feature: "Live chat med kunder", us: y(), them: y("Samlet indbakke") },
       { group: "Kunder", feature: "Brancher", us: y("Over 50"), them: p("Vinduespudsning, rengøring og service") },

@@ -60,11 +60,11 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
   {
     href: "/software/booking-og-tilbud",
     label: "Booking og tilbud",
-    blurb: "Online booking fra din egen profilside, leads fra markedspladsen og tilbud i ét flow.",
+    blurb: "Online booking fra din egen profilside, forespørgsler fra markedspladsen og tilbud i ét flow.",
     priority: "0.8",
     group: "product",
     seoTitle: "Online booking og tilbudsstyring | Serviceydere",
-    seoDescription: "Få online booking på din egen profilside, modtag leads fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
+    seoDescription: "Få online booking på din egen profilside, modtag forespørgsler fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
   },
   {
     href: "/software/fakturering-og-regnskab",

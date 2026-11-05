@@ -142,7 +142,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
       .eq("id", businessId);
     setSaving(false);
     if (error) { toast.error("Kunne ikke gemme indstillinger"); return; }
-    toast.success("Lead-indstillinger gemt");
+    toast.success("Indstillinger for forespørgsler gemt");
     setOpen(false);
   };
 
@@ -154,8 +154,8 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
       <DialogContent className="modal-large planner-overlay flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-h-[92vh]">
         <DialogHeader className="planner-overlay-header shrink-0 space-y-0 border-b px-4 py-3 pr-12 text-left sm:px-5">
           <SheetHeaderBlock
-            title={<DialogTitle className="text-base">Lead-indstillinger</DialogTitle>}
-            description={<DialogDescription className="text-xs leading-snug">Styr hvilke leads du modtager, og hvem der får besked.</DialogDescription>}
+            title={<DialogTitle className="text-base">Indstillinger for forespørgsler</DialogTitle>}
+            description={<DialogDescription className="text-xs leading-snug">Styr hvilke forespørgsler du modtager, og hvem der får besked.</DialogDescription>}
           />
         </DialogHeader>
         {loading ? (
@@ -166,8 +166,8 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               <div className="space-y-3">
               <div className="flex items-start justify-between gap-4">
               <div>
-                <Label>E-mail ved ny lead</Label>
-                <p className="text-xs text-muted-foreground">Sendes til {ownerEmail || "virksomhedens e-mail"} når en ny lead kommer ind.</p>
+                <Label>E-mail ved ny forespørgsel</Label>
+                <p className="text-xs text-muted-foreground">Sendes til {ownerEmail || "virksomhedens e-mail"} når en ny forespørgsel kommer ind.</p>
               </div>
               <Switch checked={s.lead_emails} onCheckedChange={(v) => setS({ ...s, lead_emails: v })} />
               </div>
@@ -195,7 +195,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               </div>
             </Section>
 
-            <Section icon={<BriefcaseBusiness />} title="Hvilke leads vil du modtage?">
+            <Section icon={<BriefcaseBusiness />} title="Hvilke forespørgsler vil du modtage?">
               <div className="space-y-3">
               <div className="space-y-2">
               <Label>Brancher</Label>
@@ -245,7 +245,7 @@ export function LeadSettingsDialog({ businessId }: { businessId: string }) {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <Label>Send svar med det samme</Label>
-                  <p className="mt-1 text-xs text-muted-foreground">Send din valgte besked automatisk, når et nyt lead kommer ind.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Send din valgte besked automatisk, når en ny forespørgsel kommer ind.</p>
                 </div>
                 <Switch checked={s.lead_auto_reply} onCheckedChange={(v) => setS({ ...s, lead_auto_reply: v })} />
               </div>

@@ -17,7 +17,7 @@ export type FeatureArea =
   | "Services og priser"
   | "Medarbejdere"
   | "Medarbejder-app"
-  | "Leads og livechat"
+  | "Forespørgsler og livechat"
   | "Regnskab og betaling"
   | "Profil og markedsplads";
 
@@ -27,7 +27,7 @@ export const FEATURE_AREAS: FeatureArea[] = [
   "Services og priser",
   "Medarbejdere",
   "Medarbejder-app",
-  "Leads og livechat",
+  "Forespørgsler og livechat",
   "Regnskab og betaling",
   "Profil og markedsplads",
 ];
@@ -910,27 +910,27 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
   // ───────────────────────── Leads og livechat ─────────────────────────
   {
     id: "leads",
-    title: "Leads fra markedspladsen",
-    area: "Leads og livechat",
+    title: "Forespørgsler fra markedspladsen",
+    area: "Forespørgsler og livechat",
     summary:
-      "Kundehenvendelser fra “Indhent 3 tilbud” lander i fanen Leads med status, noter og sortering. Slås til som gratis tilvalg i Indstillinger.",
-    example: "En kunde i Odense søger vinduespudsning, og forespørgslen dukker op som et lead.",
-    steps: ["Slå leads til i Indstillinger.", "Åbn fanen “Leads”.", "Svar, og markér leadet som vundet eller afvist."],
+      "Kundehenvendelser fra “Indhent 3 tilbud” lander i fanen Forespørgsler med status, noter og sortering. Slås til som gratis tilvalg i Indstillinger.",
+    example: "En kunde i Odense søger vinduespudsning, og forespørgslen dukker op under Forespørgsler.",
+    steps: ["Slå forespørgsler til i Indstillinger.", "Åbn fanen “Forespørgsler”.", "Svar, og markér forespørgslen som vundet eller afvist."],
     keywords: ["leads", "tilbud", "forespørgsler", "markedsplads"],
   },
   {
     id: "lead-reply-draft",
     title: "Svarudkast til leads",
-    area: "Leads og livechat",
+    area: "Forespørgsler og livechat",
     summary: "Systemet kan generere et udkast til svaret, som du retter til og sender som e-mail.",
     example: "Du genererer et udkast, retter prisen og sender svaret på under et minut.",
-    steps: ["Åbn leadet.", "Klik “Generér udkast”.", "Ret teksten og klik “Send som e-mail”."],
+    steps: ["Åbn forespørgslen.", "Klik “Generér udkast”.", "Ret teksten og klik “Send som e-mail”."],
     keywords: ["svar", "udkast", "ai", "email"],
   },
   {
     id: "livechat",
     title: "Livechat på profilsiden",
-    area: "Leads og livechat",
+    area: "Forespørgsler og livechat",
     summary:
       "Besøgende kan skrive direkte fra jeres profilside. Samtaler kan filtreres, tildeles en medarbejder, besvares med skabeloner og genåbnes.",
     example: "En besøgende spørger om I kommer i 8000 Aarhus C, og I svarer med en skabelon.",

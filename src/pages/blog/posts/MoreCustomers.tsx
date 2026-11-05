@@ -5,7 +5,7 @@ export default defineBlogPost({
   keywords: "flere kunder, markedsføring servicefirma, få kunder vinduespudser",
   faq: [
     { q: "Hvad virker hurtigst?", a: "Naboeffekten på eksisterende ruter og hurtige svar på forespørgsler." },
-    { q: "Kan jeg modtage leads samlet?", a: "Ja, Serviceydere samler forespørgsler fra hjemmeside og Facebook ét sted." },
+    { q: "Kan jeg modtage forespørgsler samlet?", a: "Ja, Serviceydere samler forespørgsler fra hjemmeside og Facebook ét sted." },
   ],
   sections: [
     { paragraphs: [

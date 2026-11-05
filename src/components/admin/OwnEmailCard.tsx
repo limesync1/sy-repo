@@ -88,7 +88,7 @@ export default function OwnEmailCard({ businessId, businessName, businessEmail }
   const canConnect = host.trim() && fromEmail.includes("@") && username.trim() && (password || s?.configured);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="overflow-hidden rounded-md border border-border bg-card">
       <div className="flex min-h-12 items-center justify-between gap-3 px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-3">
           <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-md", using ? "bg-accent/15 text-accent" : "bg-secondary text-muted-foreground")}>

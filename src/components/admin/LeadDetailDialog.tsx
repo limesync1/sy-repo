@@ -183,7 +183,7 @@ const FollowUpEditor = ({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Vælg hvornår I vil mindes om at følge op. Påmindelsen vises øverst på leads-siden, når tiden er inde.
+        Vælg hvornår I vil mindes om at følge op. Påmindelsen vises øverst på forespørgselssiden, når tiden er inde.
       </p>
 
       {/* Aktuel påmindelse — fremhæver det valgte tidspunkt. Kun farve-overgang
@@ -660,7 +660,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
         <div className="flex flex-wrap justify-end gap-2 border-t border-border bg-secondary/30 px-5 py-4 sm:px-7">
           {lead.status !== "declined" && (
             <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-              <XCircle className="h-4 w-4" /> Afvis lead
+              <XCircle className="h-4 w-4" /> Afvis forespørgsel
             </Button>
           )}
           {lead.status !== "won" && (

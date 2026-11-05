@@ -15,7 +15,7 @@ const reasons = [
   {
     icon: "fairBusinesses" as BrandedIllustrationName,
     title: "Fair for virksomhederne",
-    text: "Dygtige små virksomheder drukner i dyre leads og tunge systemer. De fortjener ét simpelt værktøj.",
+    text: "Dygtige små virksomheder drukner i dyre forespørgsler og tunge systemer. De fortjener ét simpelt værktøj.",
   },
   {
     icon: "humanHelp" as BrandedIllustrationName,

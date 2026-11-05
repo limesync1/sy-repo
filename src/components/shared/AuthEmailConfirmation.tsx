@@ -9,8 +9,8 @@ import confirmIcon from "@/assets/signup-icons/bekraeft-din-email.svg.asset.json
 import { translateAuthError } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
 
-// Koden er 6 cifre (kan være 8, hvis login-indstillingen ikke er ændret).
-const CODE_LENGTH = 8;
+// Koden i mailen er altid 6 cifre — vis præcis 6 felter.
+const CODE_LENGTH = 6;
 const MIN_CODE = 6;
 
 export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", business = false, onVerified }: {
@@ -90,7 +90,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
               aria-label="Bekræftelseskode"
               onChange={(v) => { setCode(v); setError(null); if (v.length === CODE_LENGTH) void verify(v); }}>
               <InputOTPGroup>
-                {Array.from({ length: code.length >= MIN_CODE ? CODE_LENGTH : MIN_CODE }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-9 text-xl font-bold min-[360px]:w-10 sm:h-14 sm:w-12" />)}
+                {Array.from({ length: CODE_LENGTH }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-9 text-xl font-bold min-[360px]:w-10 sm:h-14 sm:w-12" />)}
               </InputOTPGroup>
             </InputOTP>
           </div>
