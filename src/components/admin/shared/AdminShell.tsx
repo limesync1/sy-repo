@@ -8,7 +8,7 @@
 // Navigationen defineres i ./adminNav (én sandhed for sidebar, drawer og bundnav).
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
-import { ExternalLink, LogOut, Rocket, Truck, UserRound } from "lucide-react";
+import { ChevronDown, ExternalLink, LogOut, Rocket, Truck, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -79,6 +79,13 @@ export const AdminShell = ({
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [companyOpen, setCompanyOpen] = useState(() => {
+    try { return localStorage.getItem("sy.nav.company-open") === "1"; } catch { return false; }
+  });
+  const toggleCompany = (open: boolean) => {
+    setCompanyOpen(open);
+    try { localStorage.setItem("sy.nav.company-open", open ? "1" : "0"); } catch { /* ignore */ }
+  };
   const { data: accountProfile } = useMyProfile();
   const mobileTopbar = useIsBelowBreakpoint(640);
 
