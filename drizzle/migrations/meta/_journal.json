@@ -323,6 +323,13 @@
       "when": 1793829134524,
       "tag": "0045_listing_guard_skip_accounting",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793884250498,
+      "tag": "0046_sms_setup",
+      "breakpoints": true
     }
   ]
 }
