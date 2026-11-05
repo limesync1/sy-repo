@@ -690,7 +690,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 </div>
                 </div>
                 {accountError && <p role="alert" className="mt-3 text-sm leading-6 text-destructive">{accountError}</p>}
-                <Button asChild variant="link" className="mt-2 min-h-11 px-0"><Link to="/glemt-adgangskode">Glemt adgangskode?</Link></Button>
+                <Button asChild variant="link" className="mt-2 min-h-11 px-0"><Link to="/log-ind?reset=1">Glemt adgangskode?</Link></Button>
                 </>}
               </Section></div>
             )}
