@@ -1678,18 +1678,21 @@ export type Database = {
       business_sms_settings: {
         Row: {
           business_id: string
+          credits: number
           monthly_cap: number
           sender_name: string | null
           updated_at: string
         }
         Insert: {
           business_id: string
+          credits?: number
           monthly_cap?: number
           sender_name?: string | null
           updated_at?: string
         }
         Update: {
           business_id?: string
+          credits?: number
           monthly_cap?: number
           sender_name?: string | null
           updated_at?: string
@@ -5363,6 +5366,41 @@ export type Database = {
           },
         ]
       }
+      sms_credit_purchases: {
+        Row: {
+          amount_dkk: number
+          business_id: string
+          created_at: string
+          credits: number
+          id: string
+          stripe_session_id: string
+        }
+        Insert: {
+          amount_dkk: number
+          business_id: string
+          created_at?: string
+          credits: number
+          id?: string
+          stripe_session_id: string
+        }
+        Update: {
+          amount_dkk?: number
+          business_id?: string
+          created_at?: string
+          credits?: number
+          id?: string
+          stripe_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_credit_purchases_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sms_messages: {
         Row: {
           business_id: string
@@ -5904,6 +5942,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      add_sms_credits: {
+        Args: {
+          p_amount: number
+          p_business: string
+          p_credits: number
+          p_session: string
+        }
+        Returns: boolean
+      }
       admin_business_stats: {
         Args: never
         Returns: {
@@ -6166,6 +6213,10 @@ export type Database = {
       }
       confirm_business_deletion: {
         Args: { p_business_id: string; p_code: string }
+        Returns: boolean
+      }
+      consume_sms_credits: {
+        Args: { p_business: string; p_segments: number }
         Returns: boolean
       }
       create_route_fast: {
