@@ -126,9 +126,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (session.metadata?.type === "sms_credits") {
     const credits = Number(session.metadata?.credits);
     if (businessId && session.payment_status === "paid" && Number.isInteger(credits) && credits > 0) {
-      const { error } = await tbl("sms_credit_purchases").select("id").limit(0);
-      if (error) console.warn(error.message);
-      const { error: rpcErr } = await (supabase as any).rpc("add_sms_credits", {
+      const { error: rpcErr } = await (getSupabase() as any).rpc("add_sms_credits", {
         p_business: businessId, p_session: session.id, p_credits: credits,
         p_amount: (session.amount_total ?? 0) / 100,
       });
