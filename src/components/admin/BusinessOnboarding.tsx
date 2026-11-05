@@ -323,6 +323,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             industry_text: cvrData.industry,
             route_planning_enabled: !isListing,
             plan_kind: isListing ? "listing" : "full",
+            acquisition: readFirstTouch(),
             accounting_integration_enabled: !isListing && features.accounting_integration,
             leads_enabled: features.leads,
             livechat_enabled: features.livechat,

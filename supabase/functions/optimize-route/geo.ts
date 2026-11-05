@@ -185,7 +185,7 @@ export async function getWeatherAdjustment(
   isoDate: string,
 ): Promise<WeatherAdjustment> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${origin.lat.toFixed(3)}&longitude=${origin.lng.toFixed(3)}&daily=precipitation_sum,snowfall_sum,wind_speed_10m_max,temperature_2m_min&timezone=Europe%2FCopenhagen&start_date=${isoDate}&end_date=${isoDate}`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${origin.lat.toFixed(3)}&longitude=${origin.lng.toFixed(3)}&daily=precipitation_sum,snowfall_sum,wind_speed_10m_max,temperature_2m_min&wind_speed_unit=ms&timezone=Europe%2FCopenhagen&start_date=${isoDate}&end_date=${isoDate}`;
     const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!resp.ok) return { multiplier: 1.0, summary: null };
     const j = await resp.json();
