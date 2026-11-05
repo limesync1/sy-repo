@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const action = String(body?.action || "");
     const userId = String(body?.user_id || "");
     const redirectTo = body?.redirect_to ? String(body.redirect_to) : undefined;
-    if (!userId || !["password_reset", "magic_link", "impersonate"].includes(action)) {
+    if (!userId || !["password_reset", "magic_link", "impersonate", "delete_user", "suspend", "unsuspend"].includes(action)) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -56,6 +56,48 @@ Deno.serve(async (req) => {
       });
     }
     const email = target.user.email;
+    const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), {
+      status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+    const log = async (details: Record<string, unknown> = {}) => {
+      try {
+        await userClient.rpc("_admin_log", {
+          p_action: action, p_target_type: "user", p_target_id: userId,
+          p_target_label: email, p_details: details,
+        } as any);
+      } catch (_) { /* ignore */ }
+    };
+
+    if (["delete_user", "suspend", "unsuspend"].includes(action)) {
+      if (userId === me.id) return json({ error: "Du kan ikke ændre din egen konto her." }, 400);
+      const { data: targetIsAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
+      if (targetIsAdmin) return json({ error: "Admin-konti kan ikke slettes eller spærres." }, 400);
+
+      if (action === "suspend" || action === "unsuspend") {
+        const { error } = await admin.auth.admin.updateUserById(userId, {
+          ban_duration: action === "suspend" ? "876000h" : "none",
+        } as any);
+        if (error) throw error;
+        await log();
+        return json({ ok: true });
+      }
+
+      // delete_user: kræver at brugeren ikke ejer en aktiv virksomhed
+      const { data: owned } = await admin.from("businesses")
+        .select("id, name, deleted_at").eq("owner_id", userId);
+      const active = (owned ?? []).filter((b: any) => !b.deleted_at);
+      if (active.length > 0) {
+        return json({
+          error: `Brugeren ejer stadig ${active.map((b: any) => b.name).join(", ")}. Slet eller overdrag virksomheden først.`,
+        }, 409);
+      }
+      await log({ businesses_deleted_before: (owned ?? []).length });
+      await admin.from("user_roles").delete().eq("user_id", userId);
+      await admin.from("profiles").delete().eq("user_id", userId);
+      const { error: delErr } = await admin.auth.admin.deleteUser(userId);
+      if (delErr) return json({ error: `Kunne ikke slette: ${delErr.message}` }, 500);
+      return json({ ok: true, deleted: email });
+    }
 
     const type = action === "password_reset" ? "recovery" : "magiclink";
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
