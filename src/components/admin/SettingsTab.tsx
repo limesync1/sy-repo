@@ -613,7 +613,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const hasBilling = visibleSections.some((s) => s.id === "billing");
   const planKindPage = hasBilling ? "billing" : "advanced";
   const hiddenSectionSelector = useMemo(() => {
-    const ids = visibleSections.map((s) => s.id).filter((id) => id !== activeSection);
+    const ids: string[] = visibleSections.map((s) => s.id as string).filter((id) => id !== activeSection);
     if (activeSection !== planKindPage) ids.push("plan-kind");
     if (activeSection !== "advanced") ids.push("danger");
     return ids.map((id) => `[data-settings-pages] #settings-${id}`).join(",");
