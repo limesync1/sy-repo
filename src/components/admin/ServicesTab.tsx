@@ -337,7 +337,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
             </DialogDescription>
           </DialogHeader>
            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-secondary/20 p-3 sm:p-5">
-            {showForm && !hasIndustries && (
+            {false && (
               <Card className="mb-4 surface-admin rounded-[5px] border-warning/30 bg-warning/10 shadow-sm">
                 <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-2.5">
@@ -371,11 +371,23 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
         title="Servicekatalog"
         description={`${services?.length || 0} services · ${totalOrders} bestillinger i alt`}
         action={
-          <PrimaryButton data-tour="services-create-button" onClick={() => setShowForm(true)} icon={<Plus />}>
+          <PrimaryButton data-tour="services-create-button" onClick={() => setShowForm(true)} icon={<Plus />} disabled={!hasIndustries} title={hasIndustries ? undefined : "Vælg brancher først"}>
             Tilføj service
           </PrimaryButton>
         }
       />
+
+      {!hasIndustries && (
+        <div className="flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">I kan oprette services, når I har valgt, hvilke brancher virksomheden arbejder i.</p>
+          </div>
+          <Button asChild variant="outline" className="min-h-11 shrink-0 rounded-lg">
+            <a href="/virksomhed?tab=settings#settings-industries">Vælg brancher</a>
+          </Button>
+        </div>
+      )}
 
       <div data-tour="services-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Services</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{services?.length || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{activeServices}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-[11px] text-muted-foreground">Bestillinger</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{totalOrders}</p></div></div>
@@ -433,11 +445,6 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
             icon={<Wrench />}
             title={filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
             description="Tilføj din første service for at komme i gang. Det er en del af opsætningen under “Kom godt i gang”."
-            action={
-              <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
-                Tilføj service
-              </PrimaryButton>
-            }
           />
         )}
       </div>
