@@ -409,7 +409,17 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             </Section>
 
-            {/* Profilbillede — altid synligt */}
+            {/* Ved oprettelse: kun det vigtigste. Billede, noter og regnskab
+                ligger bag "Flere valg", så vinduet ikke virker overvældende. */}
+            {!initial?.id && !showMore ? (
+              <button
+                type="button"
+                onClick={() => setShowMore(true)}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card px-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <Plus className="h-4 w-4" aria-hidden /> Flere valg <span className="font-normal text-muted-foreground">(billede, noter{accountingEnabled ? ", regnskab" : ""})</span>
+              </button>
+            ) : (<>
             <div className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
               <label className="group/avatar relative h-14 w-14 shrink-0 cursor-pointer" title="Vælg profilbillede">
                 {avatarUrl ? (
@@ -524,6 +534,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </CollapsibleContent>
             </Collapsible>
             )}
+            </>)}
 
             {/* Ekstra kontaktpersoner & dokumenter — kun for erhvervskunder
                 OG kun når der er et regnskabsprogram tilkoblet. Begge dele er
