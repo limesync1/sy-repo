@@ -26,7 +26,12 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
 
   const isNew = !!business.created_at &&
     Date.now() - new Date(business.created_at).getTime() < NEW_BUSINESS_DAYS * 86400000;
-  const decided = typeof window !== "undefined" && !!window.localStorage.getItem(storageKey(business.id));
+  // Vises kun ÉN gang: markeres som set i det øjeblik den åbnes, så den aldrig
+  // dukker op igen ved genindlæsning, fanebyt eller ny montering.
+  const readDecided = () => {
+    try { return !!window.localStorage.getItem(storageKey(business.id)); } catch { return true; }
+  };
+  const decided = typeof window !== "undefined" && readDecided();
 
   const { data: hasIntegration, isSuccess } = useQuery({
     queryKey: ["accounting-integration-exists", business.id],
@@ -39,10 +44,16 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
   });
 
   useEffect(() => {
-    if (isSuccess && !hasIntegration) setOpen(true);
+    if (isSuccess && !hasIntegration && !readDecided()) {
+      remember("shown");
+      setOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess, hasIntegration]);
 
-  const remember = (choice: string) => window.localStorage.setItem(storageKey(business.id), choice);
+  function remember(choice: string) {
+    try { window.localStorage.setItem(storageKey(business.id), choice); } catch { /* blokeret storage */ }
+  }
   const skip = () => { remember("skip"); setOpen(false); };
   const close = () => { remember(step === "setup" ? "setup" : "later"); setOpen(false); };
 
@@ -94,7 +105,7 @@ export default function AccountingSetupPrompt({ business }: { business: { id: st
         <SheetFooterBar className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {step === "choice" ? (
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={skip}>Kør uden integration</Button>
+              <Button variant="outline" className="min-h-11 flex-1 sm:flex-none" onClick={skip}>Ikke nu</Button>
               <Button className="min-h-11 flex-1 sm:flex-none" onClick={() => { remember("setup"); setStep("setup"); }}>
                 Ja, forbind regnskab
               </Button>
