@@ -218,7 +218,7 @@ export const FieldLabel = React.forwardRef<
     )}
     {optional && !required && !important && (
       <span className="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground normal-case tracking-normal">
-        Behøves ikke
+        Valgfrit
       </span>
     )}
   </label>
