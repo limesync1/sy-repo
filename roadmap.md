@@ -148,3 +148,15 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 ## Kun profil + 30 dages prøveperiode
 - [x] Prøveperiode 14 → 30 dage overalt (Stripe, DB, tekster, artikler, mails, SEO)
 - [x] "Kun profil"-plan: database-guards, onboarding-valg, panel-skjul, opgradering/nedgradering, tests
+
+## SEO-kundevej + robust rute (plan 5. nov.)
+- [x] Gem kilde/landingsside på nye virksomheder
+- [x] "Driver du selv et firma?"-boks på alle blogartikler
+- [x] Vejrtillæg: rettet vindenhed (m/s)
+- [ ] Nye virksomheder pr. artikel i månedlig SEO-rapport
+- [ ] Ejer-artikeltype i SEO-motoren
+- [ ] Sikkerhedsmargin i indstillinger
+- [ ] "Planlæg resten af dagen igen" + forsinkelsesadvarsler
+- [ ] Lærte køre-/opgavetider
+- [ ] "Kom på listen gratis" på by-/branchesider, opfølgningsmail, omtaleliste
+- [ ] Live trafik (venter på dit ja – koster penge)

@@ -2,6 +2,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { Capacitor } from "@capacitor/core";
+import { captureFirstTouch } from "./lib/first-touch";
+
+if (typeof window !== "undefined" && !Capacitor.isNativePlatform()) captureFirstTouch();
 
 // The native app is the employee panel: open it instead of the public homepage.
 // In the native app, keep content clear of the status bar and system navigation

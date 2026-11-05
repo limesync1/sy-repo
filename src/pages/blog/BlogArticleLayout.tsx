@@ -146,6 +146,26 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
               )}
             </div>
           </div>
+
+          <aside className="not-prose my-10 rounded-lg border border-border bg-muted/40 p-6 sm:p-8" aria-labelledby="owner-cta">
+            <h2 id="owner-cta" className="m-0 text-xl font-semibold text-foreground">
+              Driver du selv et {post.category && post.category !== "Økonomi" ? `${post.category.toLowerCase()}sfirma` : "servicefirma"}?
+            </h2>
+            <p className="mt-2 text-base leading-7 text-foreground/80">
+              Bliv fundet af kunder på Google med en gratis profil – eller saml ruter, medarbejdere og fakturering ét sted. 30 dages gratis prøve, ingen binding.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link to="/opret-virksomhed" className="inline-flex h-11 items-center rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">
+                Opret gratis profil
+              </Link>
+              <Link to="/software/rutesystem-finder" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">
+                Find det rette rutesystem
+              </Link>
+              <Link to="/software/sammenlign" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">
+                Sammenlign rutesystemer
+              </Link>
+            </div>
+          </aside>
         </article>
       </main>
 
