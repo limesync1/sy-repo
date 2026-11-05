@@ -219,7 +219,7 @@ const AdminDashboard = () => {
 
       {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet
           indtil brugeren har genaktiveret med kortoplysninger. */}
-      {plan?.status !== "expired" && <AccountingSetupPrompt business={business} />}
+      {plan?.status !== "expired" && flags.operations && <AccountingSetupPrompt business={business} />}
       {plan?.status === "expired" && (
         <ReactivateDialog open businessId={business.id} businessName={business.name} />
       )}
