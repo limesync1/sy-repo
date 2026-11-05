@@ -134,7 +134,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Navnestavemåder i virksomhedsoplysninger, AI-fil, footer; AI-crawlere tilladt; brandlinje i månedsrapport
 - [ ] CVR/adresse/stiftelsesår til Googles virksomhedsoplysninger (venter på bruger)
 - [ ] Eksterne profiler fra tjeklisten (bruger)
-- [ ] "Kort svar" på guides/branchesider, spørgsmål-svar-sider, sammenligningssider
+- [x] "Kort svar" på prisguides; [ ] branchesider, spørgsmål-svar-sider, sammenligningssider
 
 ## SEO-plan (4. nov 2026)
 - [x] Fase 1: GSC-måling (73 klik, 6.082 visninger, plads 13) + SEO-scanning (0 fejl)
