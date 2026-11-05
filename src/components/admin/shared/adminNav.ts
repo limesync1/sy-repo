@@ -48,7 +48,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { value: "orders", label: "Aftaler", icon: CalendarDays, group: "drift", requires: "operations" },
   { value: "routes", label: "Ruter", icon: Route, group: "drift", requires: "routePlanning", href: "/virksomhed/ruter" },
   { value: "customers", label: "Kunder", icon: Users, group: "drift", requires: "operations" },
-  { value: "leads", label: "Leads", icon: Sparkles, group: "drift", requires: "leads" },
+  { value: "leads", label: "Forespørgsler", icon: Sparkles, group: "drift", requires: "leads" },
 
   { value: "services", label: "Services", icon: Wrench, group: "virksomhed" },
   { value: "employees", label: "Medarbejdere", icon: Briefcase, group: "virksomhed", requires: "routePlanning" },
