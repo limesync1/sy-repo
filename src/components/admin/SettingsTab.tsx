@@ -1731,12 +1731,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0 flex-1">
                     {plan.status === "active" ? (
                       <>
-                        <p className="text-sm font-semibold text-foreground">{plan.has_payment_method ? "Dit abonnement er aktivt" : "Tilføj et betalingskort"}</p>
+                        <p className="text-sm font-semibold text-foreground">Dit abonnement er aktivt</p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Du betaler <span className="font-medium text-foreground tabular-nums">{Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md</span>
                           {plan.has_payment_method
                             ? ` med ${plan.payment_brand || "kort"} der ender på ${plan.payment_last4}.`
-                            : ". Tilføj et betalingskort herunder, så abonnementet fortsætter uden afbrydelse."}
+                            : "."}
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
