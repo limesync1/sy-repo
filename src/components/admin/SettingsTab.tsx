@@ -176,11 +176,11 @@ const SECTIONS = [
   { id: "contact",       label: "Kontakt og adresse", icon: Contact,   hint: "Telefon, e-mail, adresse" },
   { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
   { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
-  { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
-  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
+  { id: "notifications", label: "Beskeder til jer",   icon: Bell,      hint: "Hvad I får e-mail om" },
+  { id: "customer-notifications", label: "Beskeder til kunder", icon: MessageCircle, hint: "Påmindelser og kvitteringer" },
   { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS" },
-  { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
+  { id: "advanced",      label: "Tilvalg og konto",   icon: Settings,  hint: "Leads, livechat, slet konto" },
 ] as const;
 
 const settingsSectionsFor = (plan: PlanKind) =>
@@ -571,8 +571,11 @@ const SettingsTab = ({ business }: { business: any }) => {
     return `${sec.label} ${sec.hint} ${SECTION_KEYWORDS[sec.id] ?? ""}`.toLowerCase().includes(q);
   };
   const visibleSections = useMemo(
-    () => settingsSectionsFor(isListingOnly(business) ? "listing" : "full"),
-    [business],
+    () => settingsSectionsFor(isListingOnly(business) ? "listing" : "full").filter(
+      // Håndværk vises kun for håndværksbrancher (eller hvis modulerne allerede er slået til).
+      (sec) => sec.id !== "trade" || isCraftBusiness(selectedCategories) || tradeModules.materials || tradeModules.quality,
+    ),
+    [business, selectedCategories, tradeModules.materials, tradeModules.quality],
   );
 
   // Én emne-side ad gangen: i stedet for én lang side med alle felter vises
@@ -1877,7 +1880,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     </div>
                     <p className="flex items-start gap-1.5 text-[11.5px] text-muted-foreground">
                       <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <span>Slå tilvalg til eller fra under <span className="font-medium text-foreground">Tilvalg og ekstra funktioner</span> — prisen opdateres automatisk her.</span>
+                      <span>Slå tilvalg til eller fra under <span className="font-medium text-foreground">Tilvalg og konto</span> — prisen opdateres automatisk her.</span>
                     </p>
                   </div>
                 </div>
@@ -2055,7 +2058,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Slå gratis funktioner til eller fra. Betalte tilvalg som regnskabsintegration styres fra ”Pris og betaling” ovenfor og kan ikke deaktiveres her — det forhindrer utilsigtede nedjusteringer lige før fakturering.">
+          <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Slå gratis funktioner til eller fra. Betalte tilvalg som regnskabsintegration styres under ”Pris og betaling” og kan ikke deaktiveres her — det forhindrer utilsigtede nedjusteringer lige før fakturering.">
             <div className="space-y-6">
               <div>
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
