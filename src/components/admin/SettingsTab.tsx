@@ -516,7 +516,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [domainResult, setDomainResult] = useState<any>(null);
 
   // CVR lookup
-  const [cvrQuery, setCvrQuery] = useState("");
+  const [cvrQuery, setCvrQuery] = useState(((business.settings as any)?.cvr as string) || "");
   const [cvrLoading, setCvrLoading] = useState(false);
   const [cvrResult, setCvrResult] = useState<any>(null);
   const [cvrError, setCvrError] = useState("");
@@ -741,7 +741,8 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (cvrResult.city) setCity(cvrResult.city);
     if (cvrResult.zipcode) setZipCode(cvrResult.zipcode.toString());
     toast.success("Oplysninger udfyldt fra CVR");
-    setCvrResult(null); setCvrQuery("");
+    if (cvrResult.vat) setCvrQuery(String(cvrResult.vat));
+    setCvrResult(null);
   };
 
   const handleZipChange = async (val: string) => {
@@ -790,6 +791,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
+    (/^\d{8}$/.test(cvrQuery.trim()) ? cvrQuery.trim() : ((business.settings as any)?.cvr || "")) !== ((business.settings as any)?.cvr || "") ||
     address !== (business.address || "") || city !== (business.city || "") ||
     zipCode !== (business.zip_code || "") || logoUrl !== (business.logo_url || "") ||
     coverUrl !== (business.cover_image_url || "") ||
@@ -852,8 +854,9 @@ const SettingsTab = ({ business }: { business: any }) => {
         ? ((business.settings as any)?.custom_domain_verified_at ?? null)
         : null,
       selected_subcategories: selectedSubcategories,
+      cvr: /^\d{8}$/.test(cvrQuery.trim()) ? cvrQuery.trim() : ((business.settings as any)?.cvr ?? null),
     },
-  }), [
+  }), [ cvrQuery,
     business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
@@ -1222,27 +1225,41 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         <div className="space-y-5" data-settings-pages>
           {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
-      {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
-      {activeSection === "general" && (!business.address || !business.city || !business.zip_code) && (
-      <SectionCard
-        title="Automatisk udfyldning fra CVR"
-        icon={<Sparkles />}
-        description="Skriv jeres CVR-nummer eller firmanavn — så henter vi adresse, navn og oplysninger automatisk fra det officielle erhvervsregister."
-      >
-        <div className="flex flex-col gap-2 sm:flex-row">
+      {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
+      <div className="grid gap-5">
+        {/* ── Gruppe: Profil ── */}
+
+        {/* Generelt — kun navn + beskrivelse */}
+        <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+          <SectionCard title="Firma" icon={<Building2 />} description="Navn, CVR og den korte tekst øverst på jeres profil.">
+            <div className="space-y-4">
+              <div data-tour="field-company-name">
+                <FieldLabel required>Virksomhedsnavn</FieldLabel>
+                <div className="relative">
+                  <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input placeholder="Fx Ready2Clean ApS" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" />
+                </div>
+              </div>
+              <div data-tour="field-cvr">
+                <FieldLabel optional>CVR-nummer</FieldLabel>
+                <p className="-mt-1 mb-2 text-xs text-muted-foreground">Tryk "Hent fra CVR" for at udfylde navn, telefon og adresse automatisk.</p>
+                <div className="space-y-2">
+<div className="flex flex-col gap-2 sm:flex-row">
           <Input
-            placeholder="CVR-nummer eller virksomhedsnavn..."
+            placeholder="12345678"
+            inputMode="numeric"
+            aria-label="CVR-nummer"
             value={cvrQuery}
             onChange={(e) => setCvrQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
-            className="bg-card h-10 flex-1 rounded-lg"
+            className="bg-card h-11 flex-1 rounded-lg text-[15px] tabular-nums"
           />
           <Button
             onClick={lookupCvr}
             disabled={cvrLoading || !cvrQuery.trim()}
-            className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-xs font-medium px-4 shrink-0"
+            className="h-11 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-xs font-medium px-4 shrink-0"
           >
-            {cvrLoading ? "Søger..." : "Søg i CVR"}
+            {cvrLoading ? "Henter..." : "Hent fra CVR"}
           </Button>
         </div>
         {cvrError && <p className="text-xs text-destructive">{cvrError}</p>}
@@ -1263,23 +1280,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             </div>
           </div>
         )}
-      </SectionCard>
-      )}
-
-      {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
-      <div className="grid gap-5">
-        {/* ── Gruppe: Profil ── */}
-
-        {/* Generelt — kun navn + beskrivelse */}
-        <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Om virksomheden" icon={<Building2 />} description="Navnet og den korte tekst, der står øverst på jeres profilside — det første kunderne ser.">
-            <div className="space-y-4">
-              <div data-tour="field-company-name">
-                <FieldLabel required>Virksomhedsnavn</FieldLabel>
-                <div className="relative">
-                  <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input placeholder="Fx Ready2Clean ApS" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" />
-                </div>
+                      </div>
               </div>
               <div data-tour="field-company-description">
                 <div className="flex items-center justify-between">
@@ -1339,7 +1340,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Kontakt */}
         <div id="settings-contact" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan får kunderne fat i jer — og adressen vi bruger til afstandsberegning og fakturaer.">
+          <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan får kunderne fat i jer. Adressen bruges også på fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div data-tour="field-phone">
