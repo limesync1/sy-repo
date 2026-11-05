@@ -1,4 +1,5 @@
 import { readFirstTouch } from "@/lib/first-touch";
+import type { Json } from "@/integrations/supabase/types";
 import { lookupCvr as fetchCvr } from "@/lib/cvr-lookup";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -324,7 +325,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             industry_text: cvrData.industry,
             route_planning_enabled: !isListing,
             plan_kind: isListing ? "listing" : "full",
-            acquisition: readFirstTouch(),
+            acquisition: readFirstTouch() as unknown as Json,
             accounting_integration_enabled: !isListing && features.accounting_integration,
             leads_enabled: features.leads,
             livechat_enabled: features.livechat,
