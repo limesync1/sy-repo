@@ -171,7 +171,7 @@ const formatHours = (open: string, close: string) => `${open} - ${close}`;
 // ─── Sub-nav sektioner ───
 // Vises som sticky sidebar (lg+) eller chip-rækken (mobil).
 const SECTIONS = [
-  { id: "general",       label: "Om virksomheden",    icon: Building2, hint: "Navn og kort beskrivelse" },
+  { id: "general",       label: "Virksomhed og kontakt", icon: Building2, hint: "Navn, beskrivelse, telefon og adresse" },
   { id: "industries",    label: "Hvad I tilbyder",    icon: Sparkles,  hint: "Brancher og kategorier" },
   { id: "contact",       label: "Kontakt og adresse", icon: Contact,   hint: "Telefon, e-mail, adresse" },
   { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
@@ -524,7 +524,15 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [zipLoading, setZipLoading] = useState(false);
 
   // Aktivt sub-nav — opdateres både ved klik og automatisk via scroll-observer.
-  const [activeSection, setActiveSection] = useState<string>("general");
+  const [activeSection, setActiveSectionRaw] = useState<string>(() => {
+    try { return localStorage.getItem("sy.settings.section") || "general"; } catch { return "general"; }
+  });
+  // "Kontakt og adresse" er lagt sammen med "Om virksomheden".
+  const setActiveSection = useCallback((raw: string) => {
+    const id = raw === "contact" ? "general" : raw;
+    setActiveSectionRaw(id);
+    try { localStorage.setItem("sy.settings.section", id); } catch { /* blokeret storage */ }
+  }, []);
   const isProgrammaticScroll = useRef(false);
 
   const toggleSettingsCategory = (c: string) => {
@@ -563,7 +571,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     notifications: "mail e-mail besked",
     advanced: "leads livechat tilbud",
     branding: "logo billede webadresse link",
-    contact: "telefon adresse cvr",
+    general: "navn beskrivelse telefon adresse cvr e-mail kontakt",
   };
   const matchesNav = (sec: { id: string; label: string; hint: string }) => {
     const q = navQuery.trim().toLowerCase();
@@ -573,7 +581,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const visibleSections = useMemo(
     () => settingsSectionsFor(isListingOnly(business) ? "listing" : "full").filter(
       // Håndværk vises kun for håndværksbrancher (eller hvis modulerne allerede er slået til).
-      (sec) => sec.id !== "trade" || isCraftBusiness(selectedCategories) || tradeModules.materials || tradeModules.quality,
+      (sec) => sec.id !== "contact" && (sec.id !== "trade" || isCraftBusiness(selectedCategories) || tradeModules.materials || tradeModules.quality),
     ),
     [business, selectedCategories, tradeModules.materials, tradeModules.quality],
   );
@@ -584,14 +592,15 @@ const SettingsTab = ({ business }: { business: any }) => {
   const hasBilling = visibleSections.some((s) => s.id === "billing");
   const planKindPage = hasBilling ? "billing" : "advanced";
   const hiddenSectionSelector = useMemo(() => {
-    const ids: string[] = visibleSections.map((s) => s.id as string).filter((id) => id !== activeSection);
+    const ids: string[] = SECTIONS.map((s) => s.id as string).filter((id) => id !== activeSection || !visibleSections.some((v) => v.id === id));
+    if (activeSection !== "general") ids.push("contact");
     if (activeSection !== planKindPage) ids.push("plan-kind");
     if (activeSection !== "advanced") ids.push("danger");
     return ids.map((id) => `[data-settings-pages] #settings-${id}`).join(",");
   }, [visibleSections, activeSection, planKindPage]);
 
   const scrollToSection = useCallback((rawId: string) => {
-    const id = rawId === "plan-kind" ? planKindPage : rawId === "danger" ? "advanced" : rawId;
+    const id = rawId === "plan-kind" ? planKindPage : rawId === "danger" ? "advanced" : rawId === "contact" ? "general" : rawId;
     setActiveSection(id);
     if (typeof window !== "undefined") window.history.replaceState(null, "", `#settings-${id}`);
     // Vent til siden er skiftet, så rul til toppen af emnet.
@@ -601,7 +610,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       const top = Math.max(0, (target as HTMLElement).getBoundingClientRect().top + window.scrollY - getScrollOffset());
       if (window.scrollY > top || rawId === "plan-kind" || rawId === "danger") window.scrollTo({ top, behavior: "auto" });
     });
-  }, [planKindPage]);
+  }, [planKindPage, setActiveSection]);
 
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
@@ -981,11 +990,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-4 pb-28 lg:pb-24">
       {/* ─── Header — titel, virksomhedsikon og hurtige handlinger ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-        <div className="flex items-center gap-4 min-w-0">
-          <BrandedIllustration name="settings" className="h-12 w-12 shrink-0" />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <BrandedIllustration name="settings" className="h-9 w-9 shrink-0" />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
@@ -998,11 +1007,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 {isListingOnly(business) ? "Kun profil" : "Fuldt system"}
               </button>
             </div>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {completeness.pct === 100
-                ? "Profilen er komplet — alt gemmes automatisk."
-                : `${completeness.total - completeness.done} ting mangler · alt gemmes automatisk.`}
-            </p>
+
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1040,64 +1045,49 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
 
 
-      {/* ─── Manglende-felter — kompakt chip-række (kun når noget mangler) ─── */}
-      {completeness.pct < 100 && completeness.checks.some((c) => !c.done) && (
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center lg:hidden">
-          <div className="min-w-0 sm:w-56 sm:shrink-0">
-            <p className="text-sm font-semibold text-foreground">Gør profilen færdig</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">En komplet profil bliver oftere valgt af kunder.</p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
-              <div className="brand-blue-action h-full rounded-full transition-all" style={{ width: `${completeness.pct}%` }} />
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-          {completeness.checks.filter((c) => !c.done).map((c) => (
-            <Button variant="outline"
-              key={c.key}
-              type="button"
-              onClick={() => scrollToSection(c.section)}
-              className="group min-h-11 gap-1 rounded-md px-3 text-sm text-muted-foreground"
-            >
-              {c.label}
-              <ArrowRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
-            </Button>
-          ))}
-          </div>
-        </div>
-      )}
-
-      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
+      {/* ─── Mobil: emnevælger + kompakt "mangler"-linje (sidebar bruges på lg) ─── */}
       <div data-settings-chipnav className="sticky top-14 z-20 -mx-3 min-[360px]:-mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
-        <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-          {visibleSections.map(({ id, label, icon: Icon }) => {
-            const sectionDone = completeness.checks.filter((c) => c.section === id);
-            const allDone = sectionDone.length > 0 && sectionDone.every((c) => c.done);
-            return (
-              <Button variant="ghost"
-                key={id}
-                aria-current={activeSection === id ? "location" : undefined}
-                type="button"
-                ref={(el) => {
-                  if (!el || activeSection !== id) return;
-                  const parent = el.parentElement;
-                  if (!parent) return;
-                  const target = el.offsetLeft - parent.clientWidth / 2 + el.clientWidth / 2;
-                  parent.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
-                }}
-                onClick={() => scrollToSection(id)}
-                className={`min-h-11 inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
-                  activeSection === id
-                    ? "brand-blue-action border-transparent text-background"
-                    : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}
-              >
-                <Icon />
-                {label}
-                {allDone && <CheckCircle2 className={`ml-0.5 h-3 w-3 ${activeSection === id ? "text-background" : "text-success"}`} />}
-              </Button>
-            );
-          })}
-        </div>
+        <label className="flex items-center gap-2">
+          <span className="shrink-0 text-sm font-medium text-muted-foreground">Emne</span>
+          <select
+            value={activeSection}
+            onChange={(e) => { scrollToSection(e.target.value); window.scrollTo({ top: 0 }); }}
+            className="h-11 min-w-0 flex-1 rounded-md border border-border bg-card px-3 text-base font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {[
+              { title: "Profil", ids: ["general", "industries", "branding", "hours"] },
+              { title: "Beskeder", ids: ["notifications", "customer-notifications"] },
+              { title: "Konto", ids: ["billing", "trade", "advanced"] },
+            ].map((g) => {
+              const secs = visibleSections.filter((sec) => g.ids.includes(sec.id));
+              if (!secs.length) return null;
+              return (
+                <optgroup key={g.title} label={g.title}>
+                  {secs.map((sec) => {
+                    const left = completeness.checks.filter((c) => c.section === sec.id && !c.done).length;
+                    return <option key={sec.id} value={sec.id}>{sec.label}{left ? ` (${left} mangler)` : ""}</option>;
+                  })}
+                </optgroup>
+              );
+            })}
+          </select>
+        </label>
+        {completeness.checks.some((c) => !c.done) && (() => {
+          const missing = completeness.checks.filter((c) => !c.done);
+          return (
+            <button
+              type="button"
+              onClick={() => { scrollToSection(missing[0].section); window.scrollTo({ top: 0 }); }}
+              className="mt-2 flex min-h-11 w-full items-center gap-3 rounded-md px-1 text-left text-sm"
+            >
+              <span className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-border">
+                <span className="brand-blue-action block h-full rounded-full" style={{ width: `${completeness.pct}%` }} />
+              </span>
+              <span className="min-w-0 flex-1 font-medium text-foreground">{missing.length} ting mangler på profilen</span>
+              <span className="inline-flex items-center gap-1 text-muted-foreground">Vis <ArrowRight className="h-3.5 w-3.5" /></span>
+            </button>
+          );
+        })()}
       </div>
 
       {/* ─── To-kolonne på lg+: sticky sidebar + indhold ─── */}
@@ -1105,7 +1095,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
             (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
             mens man scroller. */}
-        <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto pr-1">
+        <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto lg:pb-2 pr-1">
           <nav className="rounded-md border border-border bg-card p-2.5 shadow-sm">
             <label className="relative mb-3 block">
               <span className="sr-only">Søg i indstillinger</span>
@@ -1122,21 +1112,30 @@ const SettingsTab = ({ business }: { business: any }) => {
                 className="h-11 pl-9 text-sm"
               />
             </label>
-            <div className="mb-3 rounded-md border border-border bg-secondary/40 px-3 py-2.5">
-              <div className="flex items-baseline justify-between">
-                <span className="text-[12px] font-semibold text-foreground">Profil udfyldt</span>
-                <span className="text-[12px] font-semibold tabular-nums text-foreground">{completeness.pct}%</span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
-                <div className="brand-blue-action h-full rounded-full transition-all" style={{ width: `${completeness.pct}%` }} />
-              </div>
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                {completeness.total - completeness.done === 0 ? "Alt er udfyldt" : `${completeness.total - completeness.done} ting mangler`}
-              </p>
-            </div>
+            {(() => {
+              const missing = completeness.checks.filter((c) => !c.done);
+              return (
+                <button
+                  type="button"
+                  disabled={missing.length === 0}
+                  onClick={() => missing[0] && scrollToSection(missing[0].section)}
+                  className="mb-3 block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-secondary/70 disabled:cursor-default disabled:hover:bg-transparent"
+                >
+                  <span className="flex items-center justify-between text-sm">
+                    <span className={missing.length ? "font-medium text-foreground" : "text-muted-foreground"}>
+                      {missing.length === 0 ? "Profilen er komplet" : `${missing.length} ting mangler`}
+                    </span>
+                    <span className="tabular-nums text-muted-foreground">{completeness.pct}%</span>
+                  </span>
+                  <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-border">
+                    <span className="brand-blue-action block h-full rounded-full transition-all" style={{ width: `${completeness.pct}%` }} />
+                  </span>
+                </button>
+              );
+            })()}
             {(() => {
               const groups: { title: string; ids: string[] }[] = [
-                { title: "Profil",      ids: ["general", "industries", "contact", "branding", "hours"] },
+                { title: "Profil",      ids: ["general", "industries", "branding", "hours"] },
                 { title: "Beskeder",    ids: ["notifications", "customer-notifications"] },
                 { title: "Konto",       ids: ["billing", "trade", "advanced"] },
               ];
@@ -1161,7 +1160,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                           type="button"
                           onClick={() => scrollToSection(id)}
                           aria-current={isActive ? "location" : undefined}
-                          className={`group relative flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-all ${
+                          title={sec.hint}
+                          className={`group relative flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2 text-left transition-all ${
                             isActive
                               ? "brand-blue-action text-background shadow-sm"
                               : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
@@ -1169,11 +1169,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                         >
                           <Icon className="h-4 w-4 shrink-0" />
                           <span className="min-w-0 flex-1">
-                            <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-background" : ""}`}>
+                            <span className={`block text-sm font-medium leading-tight ${isActive ? "text-background" : ""}`}>
                               {sec.label}
-                            </span>
-                            <span className={`mt-0.5 block text-[11px] leading-tight ${isActive ? "text-background/65" : "text-muted-foreground/70"}`}>
-                              {sec.hint}
                             </span>
                           </span>
                           {sectionDone ? (
@@ -1196,7 +1193,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="space-y-5" data-settings-pages>
           {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
-      {(!business.address || !business.city || !business.zip_code) && (
+      {activeSection === "general" && (!business.address || !business.city || !business.zip_code) && (
       <SectionCard
         title="Automatisk udfyldning fra CVR"
         icon={<Sparkles />}
@@ -1457,8 +1454,13 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
 
-            {/* Custom domæne */}
-            <div className="mt-4 rounded-xl border border-border bg-card/50 p-4">
+            {/* Custom domæne — klappet sammen indtil det er i brug */}
+            <details className="group mt-4" open={!!customDomain.trim()}>
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-1 text-sm font-medium text-foreground hover:text-accent [&::-webkit-details-marker]:hidden">
+                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
+                Har I jeres eget webnavn (fx mitfirma.dk)?
+              </summary>
+              <div className="mt-2 rounded-xl border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Globe className="h-4 w-4" />
@@ -1617,6 +1619,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
               </div>
             </div>
+            </details>
           </SectionCard>
         </div>
 
@@ -1705,12 +1708,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0 flex-1">
                     {plan.status === "active" ? (
                       <>
-                        <p className="text-sm font-semibold text-foreground">Dit abonnement er aktivt</p>
+                        <p className="text-sm font-semibold text-foreground">{plan.has_payment_method ? "Dit abonnement er aktivt" : "Tilføj et betalingskort"}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Du betaler <span className="font-medium text-foreground tabular-nums">{Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md</span>
                           {plan.has_payment_method
                             ? ` med ${plan.payment_brand || "kort"} der ender på ${plan.payment_last4}.`
-                            : " — der mangler stadig et betalingskort."}
+                            : ". Tilføj et betalingskort herunder, så abonnementet fortsætter uden afbrydelse."}
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
@@ -2091,11 +2094,19 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Farezone — opsig og slet virksomheden */}
         <div id="settings-danger" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+          <details className="group rounded-lg border border-border bg-card">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+              Opsig eller slet virksomheden
+              <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
+            </summary>
+            <div className="border-t border-border p-2">
           <DangerZoneCard
             businessId={business.id}
             businessName={business.name}
             ownerEmail={user?.email || business.email || null}
           />
+            </div>
+          </details>
         </div>
         {(() => {
           const idx = visibleSections.findIndex((s) => s.id === activeSection);
@@ -2103,14 +2114,14 @@ const SettingsTab = ({ business }: { business: any }) => {
           const next = idx >= 0 && idx < visibleSections.length - 1 ? visibleSections[idx + 1] : null;
           if (!prev && !next) return null;
           return (
-            <nav aria-label="Skift emne" className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:justify-between">
+            <nav aria-label="Skift emne" className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-border bg-background/95 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:z-auto lg:justify-between lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-4 lg:backdrop-blur-none">
               {prev ? (
-                <Button type="button" variant="outline" size="lg" className="min-h-12 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
-                  ← {prev.label}
+                <Button type="button" variant="outline" size="lg" aria-label={`Forrige: ${prev.label}`} className="min-h-12 shrink-0 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
+                  <span aria-hidden className="lg:hidden">←</span><span className="hidden lg:inline">← {prev.label}</span>
                 </Button>
-              ) : <span />}
+              ) : <span className="hidden lg:block" />}
               {next && (
-                <Button type="button" size="lg" className="min-h-12 justify-end text-base" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
+                <Button type="button" size="lg" className="min-h-12 min-w-0 flex-1 justify-center truncate text-base lg:flex-none" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
                   Næste: {next.label} →
                 </Button>
               )}
@@ -2175,6 +2186,7 @@ const IndustryPicker = ({
   onToggle: (key: string) => void;
 }) => {
   const [query, setQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const q = query.trim().toLowerCase();
 
   const groupsFiltered = useMemo(() => {
@@ -2263,7 +2275,12 @@ const IndustryPicker = ({
         </div>
       )}
 
-      {/* Grupperet liste */}
+      {/* Grupperet liste — skjult når der allerede er valgt, indtil man søger eller beder om det */}
+      {!q && !showAll && selected.length > 0 ? (
+        <Button type="button" variant="outline" className="min-h-11 w-full" onClick={() => setShowAll(true)}>
+          Tilføj eller skift brancher
+        </Button>
+      ) : (
       <div className="space-y-3">
         {groupsFiltered.map((g) => (
           <div key={g.label}>
@@ -2317,6 +2334,7 @@ const IndustryPicker = ({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

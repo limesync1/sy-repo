@@ -196,7 +196,7 @@ const AdminDashboard = () => {
         </div>
       )}
       {/* Næste-trin-stribe: vises på alle faner indtil opsætningen er færdig. */}
-      {!listingOnly && effectiveTab !== "getting-started" && (
+      {!listingOnly && effectiveTab !== "getting-started" && effectiveTab !== "settings" && (
         <NextStepBar
           nextStepId={onboarding.nextStepId}
           counts={onboarding.counts}
