@@ -176,6 +176,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
   const [submitting, setSubmitting] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
   const submitLock = useRef(false);
+  const [autoContinue, setAutoContinue] = useState(false);
   // Én konto = én virksomhed. Er brugeren logget ind og ejer allerede en
   // aktiv virksomhed, spærrer vi oprettelsen med en tydelig besked.
   const [existingBusiness, setExistingBusiness] = useState<{ id: string; name: string } | null>(null);
@@ -378,6 +379,15 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
       setSubmitting(false);
     }
   };
+
+  // Efter kodebekræftelse: fortsæt automatisk med de udfyldte oplysninger,
+  // så brugeren lander direkte i virksomhedspanelet.
+  useEffect(() => {
+    if (!autoContinue || !user) return;
+    setAutoContinue(false);
+    void handleSubmit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoContinue, user]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -657,7 +667,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             {/* 5. Konto (kun hvis ikke logget ind) */}
             {!user && (
               <div id="signup-account" className="scroll-mt-28"><Section number={isListing ? 2 : 5} title={accountMode === "login" ? "Log ind og fortsæt" : "Din konto"} subtitle="Har du allerede en konto, bruger vi den — dine virksomhedsvalg er bevaret.">
-                {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business loginPath="/log-ind?mode=business" onEdit={() => { setConfirmationEmail(null); setAccountMode("login"); }} /> : <>
+                {confirmationEmail ? <AuthEmailConfirmation email={confirmationEmail} business onVerified={() => setAutoContinue(true)} loginPath="/log-ind?mode=business" onEdit={() => { setConfirmationEmail(null); setAccountMode("login"); }} /> : <>
                 <div className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-secondary p-1" role="group" aria-label="Kontovalg">
                   <Button type="button" variant={accountMode === "signup" ? "default" : "ghost"} aria-pressed={accountMode === "signup"} className="min-h-11" onClick={() => { setAccountMode("signup"); setAccountError(null); }}>Ny konto</Button>
                   <Button type="button" variant={accountMode === "login" ? "default" : "ghost"} aria-pressed={accountMode === "login"} className="min-h-11" onClick={() => { setAccountMode("login"); setAccountError(null); }}>Jeg har en konto</Button>
