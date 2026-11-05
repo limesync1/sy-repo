@@ -905,6 +905,13 @@ const SettingsTab = ({ business }: { business: any }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, business.slug, business.id]);
 
+  // Linket gemmes automatisk, når det er ledigt og brugeren holder pause.
+  useEffect(() => {
+    if (slugStatus !== "available") return;
+    const t = window.setTimeout(() => { void handleSaveSlugRef.current?.(); }, 1200);
+    return () => window.clearTimeout(t);
+  }, [slug, slugStatus]);
+  const handleSaveSlugRef = useRef<(() => Promise<void>) | null>(null);
   const handleSaveSlug = async () => {
     const next = slug.trim().toLowerCase();
     if (next === business.slug) return;
@@ -925,6 +932,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     queryClient.invalidateQueries({ queryKey: ["my-business"] });
     queryClient.invalidateQueries({ queryKey: ["business"] });
   };
+  handleSaveSlugRef.current = handleSaveSlug;
 
   // ─── Custom domæne — verificer ───
   const handleVerifyDomain = async () => {
@@ -1430,12 +1438,9 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">Jeres link på Serviceydere</p>
-                    <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent">
-                      Vigtigt
-                    </span>
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Adressen kunderne åbner, når de besøger jeres profil. Skriv firmanavnet med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). <strong className="text-foreground">Vær varsom med at ændre det senere</strong> — har I delt linket, holder det gamle op med at virke.
+                    Små bogstaver og bindestreger, fx <span className="font-mono">nord-rengoering</span>. Ændrer I det, virker det gamle link ikke længere.
                   </p>
                   {/* Mobile: stilfuld stak med inline-prefix indeni en
                       delt ramme. sm+: joined pill med prefix + input + knap. */}
@@ -1454,19 +1459,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                         spellCheck={false}
                       />
                     </div>
-                    <Button
-                      type="button"
-                      onClick={handleSaveSlug}
-                      disabled={!slugChanged || slugStatus === "checking" || slugStatus === "taken" || slugStatus === "invalid"}
-                      className="h-10 w-full rounded-lg sm:ml-2 sm:w-auto"
-                    >
-                      Gem link
-                    </Button>
+
                   </div>
                   <p className="mt-2 text-xs">
                     {slugStatus === "current" && <span className="text-muted-foreground">Aktuel adresse: <span className="font-mono text-foreground">/v/{business.slug}</span></span>}
                     {slugStatus === "checking" && <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Tjekker om navnet er ledigt…</span>}
-                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — du kan trygt gemme</span>}
+                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — gemmes automatisk</span>}
                     {slugStatus === "taken" && <span className="inline-flex items-center gap-1 text-destructive"><XCircle className="h-3 w-3" /> En anden virksomhed bruger allerede dette — prøv noget andet</span>}
                     {slugStatus === "invalid" && <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> Brug 3-60 tegn — kun små bogstaver, tal og bindestreger (ingen æ, ø, å eller mellemrum)</span>}
                   </p>
@@ -1488,9 +1486,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">Brug jeres eget webnavn</p>
-                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-sm font-semibold text-foreground">
-                      Behøves ikke
-                    </span>
                     {customDomain.trim() && (
                       domainStatus === "active" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
@@ -1736,12 +1731,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0 flex-1">
                     {plan.status === "active" ? (
                       <>
-                        <p className="text-sm font-semibold text-foreground">{plan.has_payment_method ? "Dit abonnement er aktivt" : "Tilføj et betalingskort"}</p>
+                        <p className="text-sm font-semibold text-foreground">Dit abonnement er aktivt</p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Du betaler <span className="font-medium text-foreground tabular-nums">{Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md</span>
                           {plan.has_payment_method
                             ? ` med ${plan.payment_brand || "kort"} der ender på ${plan.payment_last4}.`
-                            : ". Tilføj et betalingskort herunder, så abonnementet fortsætter uden afbrydelse."}
+                            : "."}
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
@@ -1787,11 +1782,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                     )}
                   </div>
                   <div className="p-3 sm:p-4 space-y-4">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div className="grid grid-cols-3 gap-2">
                       {([
-                        { key: "monthly", label: "Hver måned", desc: "Mest fleksibelt", hint: "" },
-                        { key: "quarterly", label: "Hvert kvartal", desc: "Lidt billigere", hint: pricing ? `Spar ${pricing.discount_quarterly_pct}%` : "" },
-                        { key: "yearly", label: "Hvert år", desc: "Bedste pris", hint: pricing ? `Spar ${pricing.discount_yearly_pct}%` : "" },
+                        { key: "monthly", label: "Måned", desc: "Mest fleksibelt", hint: "" },
+                        { key: "quarterly", label: "Kvartal", desc: "Lidt billigere", hint: pricing ? `Spar ${pricing.discount_quarterly_pct}%` : "" },
+                        { key: "yearly", label: "År", desc: "Bedste pris", hint: pricing ? `Spar ${pricing.discount_yearly_pct}%` : "" },
                       ] as const).map((opt) => {
                         const isOn = planBilling === opt.key;
                         return (
@@ -1800,7 +1795,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleBillingPeriodChange(opt.key)}
                             disabled={updatePlan.isPending}
-                            className={`relative flex flex-col items-start rounded-xl border p-3 text-left transition-all ${
+                            className={`relative flex min-h-11 flex-col items-start rounded-xl border p-2.5 text-left transition-all sm:p-3 ${
                               isOn
                                 ? "border-foreground bg-foreground/[0.04] shadow-sm ring-1 ring-foreground/10"
                                 : "border-border bg-card hover:border-foreground/30 hover:bg-muted/30"
@@ -1812,7 +1807,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                                 {isOn && <span className="h-1.5 w-1.5 rounded-full bg-background" />}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</p>
+                            <p className="mt-0.5 hidden text-[11px] text-muted-foreground sm:block">{opt.desc}</p>
                             {opt.hint && (
                               <span className="mt-2 inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">
                                 {opt.hint}
