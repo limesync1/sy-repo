@@ -1395,7 +1395,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logo, forsidebillede og linket til jeres profil.">
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
-              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
+              <p className="mb-2 px-1 text-sm font-semibold text-foreground">Visuelle elementer</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
@@ -1419,7 +1419,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             </div>
 
             {/* ── Webadresse ── */}
-            <p className="mt-6 mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Webadresse</p>
+            <p className="mt-6 mb-2 px-1 text-sm font-semibold text-foreground">Webadresse</p>
             {/* Permalink (slug) */}
             <div className="rounded-xl border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
@@ -1487,7 +1487,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">Brug jeres eget webnavn</p>
-                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-sm font-semibold text-foreground">
                       Behøves ikke
                     </span>
                     {customDomain.trim() && (
@@ -1776,7 +1776,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-5 py-3">
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Faktureringsinterval</p>
+                      <p className="text-sm font-semibold text-foreground">Faktureringsinterval</p>
                       <p className="mt-0.5 text-[11.5px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
                     </div>
                     {pricing && (
@@ -1827,7 +1827,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Medarbejderlogins</p>
+                          <p className="text-sm font-semibold text-foreground">Medarbejderlogins</p>
                           <p className="mt-1 text-sm text-foreground">
                             Hvor mange medarbejdere skal kunne logge ind på mobilen?
                           </p>
@@ -1880,7 +1880,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     </div>
 
                     <div className="rounded-xl border border-border bg-secondary/20 p-3 sm:p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
+                      <p className="text-sm font-semibold text-foreground">Hvad du betaler for</p>
                       <ul className="mt-2.5 divide-y divide-border/60">
                         {priceBreakdown.lines.map((l) => (
                           <li key={l.key} className="flex items-baseline justify-between gap-3 py-1.5 text-sm first:pt-0">
@@ -1953,7 +1953,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
             {plan?.has_payment_method && (
               <div className="mt-5">
-                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalingsmetode</p>
+                <p className="mb-2 px-1 text-sm font-semibold text-foreground">Betalingsmetode</p>
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex flex-wrap items-center justify-between gap-3 p-4">
                     <div className="flex items-center gap-3 min-w-0">
@@ -2091,7 +2091,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Gratis funktioner, I kan slå til og fra.">
             <div className="space-y-6">
               <div>
-                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
+                <p className="mb-2 px-1 text-sm font-semibold text-foreground">Gratis funktioner</p>
                 <div className="space-y-2.5">
                   <FeatureRow
                     icon={<BrandedIllustration name="signupLeads" className="h-full w-full" alt="" />}
