@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -242,6 +242,18 @@ function useInsertAtCursor<T extends HTMLInputElement | HTMLTextAreaElement>(
   return { ref, insert };
 }
 
+/* Forhåndsvisning: altid synlig på store skærme, bag en knap på mindre. */
+function PreviewToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <>
+      <p className="mb-3 hidden text-[11px] font-semibold uppercase tracking-wider text-muted-foreground xl:block">Sådan ser kunden den</p>
+      <Button type="button" variant="outline" onClick={onToggle} aria-expanded={open} className={cn("min-h-11 w-full xl:hidden", open && "mb-3")}>
+        <Eye className="h-4 w-4" /> {open ? "Skjul forhåndsvisning" : "Se hvordan kunden ser den"}
+      </Button>
+    </>
+  );
+}
+
 /* ─────────────────────── MAIN ─────────────────────── */
 
 export function CustomerNotificationsSettings({
@@ -283,6 +295,7 @@ export function CustomerNotificationsSettings({
 
   const [activeEvent, setActiveEvent] = useState<EventKey>("service_completed");
   const [channelTab, setChannelTab] = useState<"email" | "sms">("email");
+  const [showPreview, setShowPreview] = useState(false);
   // Auto-save state — vi gemmer i baggrunden uden knapper.
 
   useEffect(() => {
@@ -587,8 +600,10 @@ export function CustomerNotificationsSettings({
 
               {/* Preview */}
               <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
+                <PreviewToggle open={showPreview} onToggle={() => setShowPreview((v) => !v)} />
+                <div className={showPreview ? "block" : "hidden xl:block"}>
                 <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} businessName={exampleBizName} />
+                </div>
               </div>
             </div>
           ) : (
@@ -649,8 +664,10 @@ export function CustomerNotificationsSettings({
               </div>
 
               <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
-                <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
+                <PreviewToggle open={showPreview} onToggle={() => setShowPreview((v) => !v)} />
+                <div className={showPreview ? "block" : "hidden xl:block"}>
+                  <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
+                </div>
               </div>
             </div>
           )}

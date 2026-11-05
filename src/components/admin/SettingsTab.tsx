@@ -613,6 +613,31 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   }, [planKindPage, setActiveSection]);
 
+  // Søgning: efter emneskiftet findes feltet, hvis navn matcher søgeordet,
+  // så siden ruller helt ned til det og sætter markøren i det.
+  const focusMatchingField = useCallback((rawQuery: string) => {
+    const q = rawQuery.trim().toLowerCase();
+    if (q.length < 2) return;
+    window.setTimeout(() => {
+      const root = document.querySelector("[data-settings-pages]");
+      if (!root) return;
+      const candidates = Array.from(root.querySelectorAll<HTMLElement>("label, h3, h4, legend, [data-field-label]"))
+        .filter((el) => el.offsetParent !== null && (el.textContent ?? "").toLowerCase().includes(q));
+      const hit = candidates[0];
+      if (!hit) return;
+      const top = Math.max(0, hit.getBoundingClientRect().top + window.scrollY - getScrollOffset() - 16);
+      window.scrollTo({ top, behavior: "smooth" });
+      const forId = hit.getAttribute("for");
+      const field = (forId && document.getElementById(forId)) || hit.querySelector("input, textarea, select")
+        || hit.parentElement?.querySelector("input, textarea, select, button[role=switch]");
+      if (field instanceof HTMLElement) {
+        field.focus({ preventScroll: true });
+        field.classList.add("ring-2", "ring-accent", "ring-offset-2");
+        window.setTimeout(() => field.classList.remove("ring-2", "ring-accent", "ring-offset-2"), 1800);
+      }
+    }, 120);
+  }, []);
+
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
   // "Aktivér livechat" → #settings-advanced), så scroll automatisk ned til
@@ -1107,7 +1132,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 onKeyDown={(e) => {
                   if (e.key !== "Enter") return;
                   const first = visibleSections.find(matchesNav);
-                  if (first) scrollToSection(first.id);
+                  if (first) { scrollToSection(first.id); focusMatchingField(navQuery); }
                 }}
                 placeholder="Søg, fx moms"
                 className="h-11 pl-9 text-sm"
