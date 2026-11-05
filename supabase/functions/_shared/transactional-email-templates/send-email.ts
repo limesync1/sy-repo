@@ -43,6 +43,17 @@ export interface SendTemplateEmailOptions {
  * ({ sent: false }); any other failure throws — EmailAPIError exposes
  * .code and .status for branching.
  */
+/** Renders a registered template to subject/html/text (used for sending via a business's own SMTP). */
+export async function renderTemplateEmail(templateName: string, templateData: Record<string, any> = {}) {
+  const template = TEMPLATES[templateName]
+  if (!template) throw new Error(`Template '${templateName}' not found`)
+  const element = React.createElement(template.component, templateData)
+  const html = await render(element)
+  const text = tidyPlainText(await render(element, { plainText: true }))
+  const subject = typeof template.subject === 'function' ? template.subject(templateData) : template.subject
+  return { subject, html, text }
+}
+
 export async function sendTemplateEmail(
   templateName: string,
   to: string,
