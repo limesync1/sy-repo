@@ -80,6 +80,7 @@ import {
 } from "@/hooks/useBusinessPlan";
 import { StripeCheckoutDialog } from "@/components/billing/StripeCheckoutDialog";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { TextSizeControl } from "@/components/admin/settings/TextSizeControl";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -1067,6 +1068,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           )}
         </div>
       </div>
+
+      <TextSizeControl />
 
       {/* ─── Manglende-felter — kompakt chip-række (kun når noget mangler) ─── */}
       {completeness.pct < 100 && completeness.checks.some((c) => !c.done) && (
