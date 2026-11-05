@@ -38,6 +38,8 @@ export type EmployeeCtx = {
   end_lng: number;
   work_start_min: number;
   work_end_min: number;
+  /** Robusthedsmargin (0-0.5) på køretid ved kø, vejarbejde, uheld. Sikrer lovede tidsvinduer. */
+  delay_buffer_pct?: number;
 };
 
 export type ScheduledStop = {

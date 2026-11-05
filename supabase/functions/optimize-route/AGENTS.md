@@ -1,1 +1,2 @@
 - Route optimisation is pure algorithmic (no AI): tiled OSRM matrix with warm pair cache, rush-hour travel factor, seeded ALNS+SA under a time budget, and never returns a plan costlier than the current order.
+- Route optimisation plans promised (hard) time windows against a pessimistic delay scenario (default +10% travel + fixed per-leg slack) because live traffic/roadworks are unknown.

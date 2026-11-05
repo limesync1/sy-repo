@@ -123,6 +123,12 @@ function scheduleRoute(
   let softViolations = 0;
   const lastIdxByLocation = new Map<string, number>();
   let fragmentationCount = 0;
+  // Robust planlægning: vi kender ikke live kø/vejarbejde, så vi simulerer
+  // en "dårlig dag" parallelt (længere køretid + fast tillæg pr. tur).
+  // Lovede tidsvinduer skal holde i det scenarie; ønskede tider straffes,
+  // hvis de kun holder på en god dag.
+  const buf = Math.max(0, Math.min(0.5, emp.delay_buffer_pct ?? 0));
+  let pCursor = cursor;
 
   for (let i = 0; i < route.length; i++) {
     const r = route[i];
@@ -146,6 +152,17 @@ function scheduleRoute(
     const finish = arrival + stop.duration_minutes;
     const hardEnd = stop.hard_end_min ?? (emp.work_end_min + 60);
     if (finish > hardEnd) return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
+
+    let pArrival = pCursor + (travelMin > 0 ? travelMin * (1 + buf) + 3 * (buf / 0.15) : 0);
+    if (pArrival < hardStart) pArrival = hardStart;
+    const pFinish = pArrival + stop.duration_minutes;
+    if (stop.hard_end_min != null && pFinish > stop.hard_end_min) {
+      return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
+    }
+    if (stop.preferred_end_min != null && pArrival > stop.preferred_end_min && arrival <= stop.preferred_end_min) {
+      cost += (pArrival - stop.preferred_end_min) * SOFT_PENALTY_PER_MIN * 0.5;
+    }
+    pCursor = pFinish;
 
     const wait = Math.max(0, arrival - (cursor + travelMin));
     cost += travelMin + tKm * KM_COST_WEIGHT + wait * WAIT_PENALTY_PER_MIN;
@@ -432,7 +449,7 @@ function orOpt(
 export async function solveVRP(
   employeesIn: EmployeeCtx[],
   stopsIn: Stop[],
-  opts: { routeDate?: string | null; alnsBudgetMs?: number } = {},
+  opts: { routeDate?: string | null; alnsBudgetMs?: number; delayBufferPct?: number } = {},
 ): Promise<{
   plan: RoutePlan;
   provider: "osrm" | "haversine";
@@ -444,7 +461,9 @@ export async function solveVRP(
   // *rækkefølgen* på input (greedy insertion vælger første stop først, osv).
   // For at samme rute ALTID giver samme resultat — uanset hvordan DB returnerer
   // rækken — sorterer vi input kanonisk på ID før vi kører.
-  const employees = [...employeesIn].sort((a, b) => a.id.localeCompare(b.id));
+  const employees = [...employeesIn]
+    .map((e) => ({ ...e, delay_buffer_pct: e.delay_buffer_pct ?? opts.delayBufferPct ?? 0 }))
+    .sort((a, b) => a.id.localeCompare(b.id));
   const stops = [...stopsIn]
     .map((s) => ({
       ...s,

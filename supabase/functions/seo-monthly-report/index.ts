@@ -98,6 +98,17 @@ Deno.serve(async (req) => {
       notes.push(`SEO-motoren udgav ${month} nye artikler i ${period}; ${indexed} af ${all.length} automatiske artikler er bekræftet indekseret.`);
       const weak = all.filter((a: any) => a.needs_improvement).length;
       if (weak) notes.push(`${weak} artikler er ikke indekseret efter 3 uger og er markeret til forbedring i adminpanelet.`);
+      // New businesses grouped by the first page they landed on (first-touch saved at signup).
+      const { data: biz } = await db.from('businesses').select('settings, created_at')
+        .gte('created_at', start.toISOString()).lt('created_at', new Date(end.getTime() + 864e5).toISOString());
+      const bizRows = biz ?? [];
+      const byPage = new Map<string, number>();
+      for (const b of bizRows) {
+        const acq = (b as any).settings?.acquisition;
+        const key = acq?.landing_path ? `${acq.landing_path}${/google\./i.test(acq.referrer ?? '') ? ' (Google)' : ''}` : 'ukendt kilde';
+        byPage.set(key, (byPage.get(key) ?? 0) + 1);
+      }
+      if (bizRows.length) notes.push(`Nye virksomheder: ${bizRows.length}. Første side de kom ind på: ${[...byPage].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `${k} (${v})`).join(', ')}.`);
     } catch (e) { console.warn('[seo-monthly-report] article stats', e); }
 
     const result = await sendTemplateEmail('seo-monthly-report', RECIPIENT, {

@@ -52,6 +52,11 @@ Deno.serve(async (req) => {
       ? Math.max(0, Math.min(24 * 60, Number(body.start_time_min)))
       : null;
 
+    // Robusthedsmargin mod kø, vejarbejde og uheld (standard 10 %).
+    const delayBufferPct = Number.isFinite(Number(body?.delay_buffer_pct))
+      ? Math.max(0, Math.min(0.5, Number(body.delay_buffer_pct)))
+      : 0.1;
+
     if (!routeId) {
       return new Response(JSON.stringify({ ok: false, error: "route_id required" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -364,7 +369,7 @@ Deno.serve(async (req) => {
     }
 
     // === Kør VRP ===
-    const { plan, provider, weather, current } = await solveVRP(employees, validStops, { routeDate: route.route_date });
+    const { plan, provider, weather, current } = await solveVRP(employees, validStops, { routeDate: route.route_date, delayBufferPct });
     // Mål før-tilstanden på den rækkefølge der faktisk ligger på stops lige nu.
     // Det gør toast-besparelsen ægte, også efter drag/drop eller manuel ændring.
     const beforeKm = current.feasible ? current.total_km : Number(route.total_distance_km ?? 0);
@@ -467,7 +472,7 @@ Deno.serve(async (req) => {
       ? ` Vejr-justering anvendt (+${Math.round((weather.multiplier - 1) * 100)}%): ${weather.summary}.`
       : "";
     const trafficNote = provider === "osrm"
-        ? " Køretider fra vejnettet med myldretidstillæg."
+        ? ` Køretider fra vejnettet med myldretidstillæg; lovede tider holder også med ${Math.round(delayBufferPct * 100)} % ekstra køretid ved kø eller vejarbejde.`
         : " Køretider estimeret (kortserver svarede ikke).";
     const enrichedSummary = (ai?.summary ?? `VRP plan via ${provider} for ${employees.length} medarbejdere, ${validStops.length} stops`) + trafficNote + weatherNote;
 
