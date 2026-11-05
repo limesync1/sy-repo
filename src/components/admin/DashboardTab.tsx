@@ -445,6 +445,30 @@ const DashboardTab = ({
         </div>
       </section>
 
+      {/* "Hvad skal jeg i dag?" — én tydelig sætning og få store knapper. */}
+      <section aria-labelledby="today-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+        <h2 id="today-heading" className="text-lg font-semibold text-foreground sm:text-xl">Hvad skal jeg i dag?</h2>
+        <p className="mt-1 text-base text-muted-foreground">
+          {stats.todayCount > 0
+            ? `I dag har I ${stats.todayCount} ${stats.todayCount === 1 ? "aftale" : "aftaler"}.`
+            : "I har ingen aftaler i dag."}
+          {pendingOrders > 0 && ` ${pendingOrders} ${pendingOrders === 1 ? "aftale venter" : "aftaler venter"} på jeres svar.`}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {pendingOrders > 0 && (
+            <Button type="button" size="lg" className="min-h-12 text-base" onClick={() => onNavigate?.("orders")}>
+              Svar på aftaler ({pendingOrders})
+            </Button>
+          )}
+          <Button type="button" size="lg" variant={pendingOrders > 0 ? "outline" : "default"} className="min-h-12 text-base" onClick={() => navigate("/virksomhed/ruter")}>
+            Se dagens ruter
+          </Button>
+          <Button type="button" size="lg" variant="outline" className="min-h-12 text-base" onClick={() => onNavigate?.("customers")}>
+            Find en kunde
+          </Button>
+        </div>
+      </section>
+
       <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.9fr)]">
         <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Finansielt overblik — afløser de tidligere "Omsætning"-kort.
