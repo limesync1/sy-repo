@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { applyTextSize, readTextSize } from "@/lib/text-size";
 import App from "./App.tsx";
 import "./index.css";
 import { Capacitor } from "@capacitor/core";
@@ -74,4 +75,5 @@ if (typeof window !== "undefined") {
   mo.observe(document.documentElement, { childList: true, subtree: true });
 }
 
+applyTextSize(readTextSize());
 createRoot(document.getElementById("root")!).render(<App />);
