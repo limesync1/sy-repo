@@ -1,3 +1,4 @@
+import { readFirstTouch } from "@/lib/first-touch";
 import { lookupCvr as fetchCvr } from "@/lib/cvr-lookup";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
