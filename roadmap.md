@@ -154,7 +154,7 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] "Driver du selv et firma?"-boks på alle blogartikler
 - [x] Vejrtillæg: rettet vindenhed (m/s)
 - [x] Nye virksomheder pr. landingsside i månedlig SEO-rapport
-- [ ] Ejer-artikeltype i SEO-motoren
+- [x] Ejer-artikeltype i SEO-motoren
 - [x] Robusthedsmargin mod kø/vejarbejde (10 % standard) i optimering
 - [ ] "Planlæg resten af dagen igen" + forsinkelsesadvarsler
 - [ ] Lærte køre-/opgavetider
