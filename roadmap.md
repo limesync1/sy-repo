@@ -153,11 +153,9 @@ Regel: Kun forbedringer/bugfixes — ingen nye features, intet redesign, ingen s
 - [x] Gem kilde/landingsside på nye virksomheder
 - [x] "Driver du selv et firma?"-boks på alle blogartikler
 - [x] Vejrtillæg: rettet vindenhed (m/s)
-- [ ] Nye virksomheder pr. artikel i månedlig SEO-rapport
+- [x] Nye virksomheder pr. landingsside i månedlig SEO-rapport
 - [ ] Ejer-artikeltype i SEO-motoren
-- [ ] Sikkerhedsmargin i indstillinger
+- [x] Robusthedsmargin mod kø/vejarbejde (10 % standard) i optimering
 - [ ] "Planlæg resten af dagen igen" + forsinkelsesadvarsler
 - [ ] Lærte køre-/opgavetider
 - [x] "Kom på listen gratis" på bysider
-- [ ] Opfølgningsmail (kræver samtykke), omtaleliste
-- [ ] Live trafik (venter på dit ja – koster penge)
