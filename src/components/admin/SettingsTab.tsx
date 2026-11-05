@@ -1661,6 +1661,14 @@ const SettingsTab = ({ business }: { business: any }) => {
             icon={<MessageCircle />}
             description="Automatiske beskeder vi sender på jeres vegne — fx ”Vi kommer i morgen” eller ”Aftalen er udført”. Tilpas teksten, slå dem fra, eller send også som SMS."
           >
+            <div className="mb-6">
+              <SmsSetupCard
+                businessId={business.id}
+                businessName={business.name ?? ""}
+                smsEnabled={smsEnabled}
+                onSmsEnabledChange={setSmsEnabled}
+              />
+            </div>
             <CustomerNotificationsSettings
               businessId={business.id}
               upcomingMinutesBefore={customerNotifUpcomingMinutes}
