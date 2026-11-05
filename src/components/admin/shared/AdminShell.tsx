@@ -80,7 +80,7 @@ export const AdminShell = ({
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(() => {
-    try { return localStorage.getItem("sy.nav.company-open") === "1"; } catch { return false; }
+    try { return localStorage.getItem("sy.nav.company-open") !== "0"; } catch { return true; }
   });
   const toggleCompany = (open: boolean) => {
     setCompanyOpen(open);
@@ -260,6 +260,9 @@ export const AdminShell = ({
             const foldable = group.key === "virksomhed" && flags.operations && !ctx.collapsed;
             const hasActive = items.some((i) => i.value === activeTab);
             const folded = foldable && !companyOpen && !hasActive;
+            // Åbnet via et aktivt punkt → husk det, så gruppen bliver åben
+            // når man går videre til en anden side.
+            if (foldable && hasActive && !companyOpen) queueMicrotask(() => toggleCompany(true));
             return (
               <SidebarCollapsibleRow key={group.key} visible={anyVisible}>
                 <div>

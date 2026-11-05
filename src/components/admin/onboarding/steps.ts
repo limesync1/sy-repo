@@ -126,7 +126,7 @@ export const NEXT_LEVEL_STEPS: OnboardingStep[] = [
     title: "Forbind regnskab",
     short: "Fakturaer oprettes automatisk når en aftale afsluttes.",
     body:
-      "Slå regnskab til under Indstillinger → Ekstra funktioner, og forbind E-conomic eller Dinero. Så bogføres bestillinger automatisk.",
+      "Slå regnskab til under Indstillinger → Pris og betaling, og forbind E-conomic eller Dinero. Så bogføres bestillinger automatisk.",
     tip: "Kan sættes op når som helst — indtil da bogfører I selv.",
     tab: (c) => (c.accountingFeatureEnabled ? "accounting" : "settings"),
     cta: (c) =>
