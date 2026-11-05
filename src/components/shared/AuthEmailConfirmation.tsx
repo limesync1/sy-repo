@@ -9,7 +9,9 @@ import confirmIcon from "@/assets/signup-icons/bekraeft-din-email.svg.asset.json
 import { translateAuthError } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
 
-const CODE_LENGTH = 6;
+// Login-systemet sender koder på 6–8 cifre afhængigt af opsætning.
+const CODE_LENGTH = 8;
+const MIN_CODE = 6;
 
 export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", business = false, onVerified }: {
   email: string; onEdit: () => void; loginPath?: string; business?: boolean; onVerified?: () => void;
@@ -25,7 +27,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
   const [resent, setResent] = useState(false);
 
   const verify = async (value = code) => {
-    if (verifying || value.length !== CODE_LENGTH) return;
+    if (verifying || value.length < MIN_CODE) return;
     setVerifying(true);
     setError(null);
     try {
@@ -78,7 +80,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
           <DialogDescription className="mt-2 break-words text-base leading-7 text-muted-foreground">
             {verified
               ? (business ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Opretter din virksomhed og åbner dit panel…</span> : "Du er nu logget ind.")
-              : <>Vi har sendt en kode på {CODE_LENGTH} cifre til <strong className="break-all text-foreground">{email}</strong>. Skriv den herunder.</>}
+              : <>Vi har sendt en kode til <strong className="break-all text-foreground">{email}</strong>. Skriv hele koden herunder.</>}
           </DialogDescription>
         </div>
 
@@ -88,13 +90,13 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
               aria-label="Bekræftelseskode"
               onChange={(v) => { setCode(v); setError(null); if (v.length === CODE_LENGTH) void verify(v); }}>
               <InputOTPGroup>
-                {Array.from({ length: CODE_LENGTH }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-11 text-lg font-semibold sm:h-14 sm:w-12" />)}
+                {Array.from({ length: CODE_LENGTH }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-9 text-lg font-semibold sm:h-14 sm:w-11" />)}
               </InputOTPGroup>
             </InputOTP>
           </div>
           {error && <p role="alert" className="text-center text-sm text-destructive">{error}</p>}
           {resent && !error && <p className="text-center text-sm text-muted-foreground">Ny kode sendt. Brug den nyeste kode.</p>}
-          <Button className="min-h-12 w-full text-base" disabled={verifying || code.length !== CODE_LENGTH} onClick={() => verify()}>
+          <Button className="min-h-12 w-full text-base" disabled={verifying || code.length < MIN_CODE} onClick={() => verify()}>
             {verifying ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Bekræfter…</> : "Bekræft e-mail"}
           </Button>
           <div className="rounded-xl bg-secondary p-4 text-sm leading-6 text-muted-foreground">
