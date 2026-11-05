@@ -31,7 +31,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { OwnerAlertsEditor } from "@/components/admin/OwnerAlertsEditor";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
 import OwnEmailCard from "./OwnEmailCard";
-import SmsSetupCard from "@/components/admin/SmsSetupCard";
+import SmsSetupCard, { SmsBillingSummary } from "@/components/admin/SmsSetupCard";
 import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -1709,8 +1709,9 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
-            description="Pakke, betalingsinterval og betalingskort."
+            description={smsEnabled ? "Pakke, SMS, betalingsinterval og betalingskort." : "Pakke, betalingsinterval og betalingskort."}
           >
+            {smsEnabled && <SmsBillingSummary businessId={business.id} />}
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
               <div

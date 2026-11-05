@@ -147,6 +147,46 @@ export default function SmsSetupCard({ businessId, businessName, smsEnabled, onS
   );
 }
 
+/** Kompakt SMS-linje til «Pris og betaling» — vises kun når SMS er slået til. */
+export function SmsBillingSummary({ businessId }: { businessId: string }) {
+  const [buyOpen, setBuyOpen] = useState(false);
+  const { data } = useQuery({
+    queryKey: ["sms-setup", businessId, "billing"],
+    queryFn: async () => {
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+      const [cfg, log] = await Promise.all([
+        supabase.from("business_sms_settings").select("credits").eq("business_id", businessId).maybeSingle(),
+        supabase.from("sms_messages").select("status, segments, kind").eq("business_id", businessId).gte("created_at", monthStart.toISOString()),
+      ]);
+      const used = (log.data ?? []).filter((r) => r.status !== "failed" && r.kind !== "test").reduce((s, r) => s + (r.segments ?? 1), 0);
+      return { used, credits: cfg.data?.credits ?? 0, freeLeft: Math.max(0, SMS_FREE_PER_MONTH - used) };
+    },
+  });
+  const total = (data?.freeLeft ?? 0) + (data?.credits ?? 0);
+  const low = !!data && total < 20;
+  return (
+    <div className={cn("rounded-xl border p-4", low ? "border-warning/40 bg-warning/10" : "border-success/30 bg-success/5")}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", low ? "bg-warning/20 text-warning-foreground dark:text-warning" : "bg-success/15 text-success")}>
+            <MessageSquare className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">SMS til kunder · <span className="tabular-nums">{total}</span> tilbage</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {data?.used ?? 0} brugt denne måned. {SMS_FREE_PER_MONTH} gratis pr. måned, derefter 0,35 kr./SMS uden moms. Købte SMS udløber aldrig.
+            </p>
+          </div>
+        </div>
+        <Button onClick={() => setBuyOpen(true)} className="min-h-11 shrink-0">
+          <Plus className="h-4 w-4" /> Køb SMS
+        </Button>
+      </div>
+      <BuySmsDialog open={buyOpen} onClose={() => setBuyOpen(false)} businessId={businessId} />
+    </div>
+  );
+}
+
 function BuySmsDialog({ open, onClose, businessId }: { open: boolean; onClose: () => void; businessId: string }) {
   const [pack, setPack] = useState<SmsPackId>("sms_500");
   const [checkout, setCheckout] = useState(false);

@@ -9,9 +9,9 @@ export const SMS_FREE_PER_MONTH = 50;
 
 /** SMS-pakker (pris i kr. uden moms). Skal matche src/lib/sms-packs.ts. */
 export const SMS_PACKS = [
-  { id: "sms_100", credits: 100, priceDkk: 59 },
-  { id: "sms_500", credits: 500, priceDkk: 249 },
-  { id: "sms_1000", credits: 1000, priceDkk: 449 },
+  { id: "sms_100", credits: 100, priceDkk: 35 },
+  { id: "sms_500", credits: 500, priceDkk: 175 },
+  { id: "sms_1000", credits: 1000, priceDkk: 350 },
 ] as const;
 
 // Kun danske og nordiske numre (mod SMS-misbrug til dyre udlandsnumre).
