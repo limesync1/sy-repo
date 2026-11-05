@@ -593,7 +593,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   const hasBilling = visibleSections.some((s) => s.id === "billing");
   const planKindPage = hasBilling ? "billing" : "advanced";
   const hiddenSectionSelector = useMemo(() => {
-    const ids: string[] = SECTIONS.map((s) => s.id as string).filter((id) => id !== activeSection || !visibleSections.some((v) => v.id === id));
+    const ids: string[] = SECTIONS.map((s) => s.id as string).filter((id) => {
+      // "contact" er lagt sammen med "general" og vises på den side.
+      if (id === "contact") return activeSection !== "general";
+      return id !== activeSection || !visibleSections.some((v) => v.id === id);
+    });
     if (activeSection !== "general") ids.push("contact");
     if (activeSection !== planKindPage) ids.push("plan-kind");
     if (activeSection !== "advanced") ids.push("danger");
