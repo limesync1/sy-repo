@@ -4,7 +4,7 @@
 // kaldes via edge function `admin-user-action` så de logges + kun admin
 // kan udløse dem.
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
-  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock, UserCheck, Activity, FileText,
+  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock, UserCheck, Activity, FileText, Ban, Trash2,
 } from "lucide-react";
 
 export interface UserDetailUser {
@@ -48,6 +48,34 @@ export default function UserDetailSheet({ user, onClose }: Props) {
   const userId = user?.user_id ?? null;
   const [sending, setSending] = useState<"reset" | "magic" | null>(null);
   const [impersonating, setImpersonating] = useState(false);
+  const [danger, setDanger] = useState<null | "suspend" | "unsuspend" | "delete_user">(null);
+  const qc = useQueryClient();
+
+  const runDanger = async (action: "suspend" | "unsuspend" | "delete_user") => {
+    if (!user) return;
+    const label = user.email || user.display_name || "brugeren";
+    if (action === "delete_user") {
+      const typed = prompt(`Slet ${label} helt fra Serviceydere?\n\nKontoen, login og profil fjernes permanent. Skriv SLET for at bekræfte.`);
+      if (typed?.trim().toUpperCase() !== "SLET") return;
+    } else if (!confirm(action === "suspend" ? `Spær ${label}? Brugeren kan ikke logge ind, før du ophæver spærringen.` : `Ophæv spærringen af ${label}?`)) return;
+    setDanger(action);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-action", { body: { action, user_id: user.user_id } });
+      const msg = (data as any)?.error;
+      if (error || msg) {
+        let text = msg;
+        try { text = text || (await (error as any)?.context?.json())?.error; } catch { /* ignore */ }
+        throw new Error(text || error?.message || "Handlingen fejlede");
+      }
+      toast.success(action === "delete_user" ? "Brugeren er slettet" : action === "suspend" ? "Brugeren er spærret" : "Spærringen er ophævet");
+      qc.invalidateQueries({ queryKey: ["admin-users-v2"] });
+      if (action === "delete_user") onClose();
+    } catch (e: any) {
+      toast.error(e?.message || "Handlingen fejlede");
+    } finally {
+      setDanger(null);
+    }
+  };
 
   // Virksomheder hvor brugeren er ejer
   const { data: businesses } = useQuery({
@@ -221,9 +249,29 @@ export default function UserDetailSheet({ user, onClose }: Props) {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Impersonation åbner et engangs-magic-link der logger dig ind som brugeren. Åbn i inkognito så din admin-session bevares. Handlingen logges i audit-loggen. Suspendér/slet kommer i et senere trin.
+                  Impersonation åbner et engangs-magic-link der logger dig ind som brugeren. Åbn i inkognito så din admin-session bevares. Handlingen logges i audit-loggen.
                 </p>
               </Card>
+
+              {!user.roles.includes("admin") && (
+                <Card className="p-4 space-y-3 border-destructive/40">
+                  <div className="text-sm font-semibold text-destructive">Farlige handlinger</div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" className="min-h-11 gap-1.5" disabled={danger !== null} onClick={() => runDanger("suspend")}>
+                      <Ban className="h-4 w-4" /> {danger === "suspend" ? "Spærrer…" : "Spær login"}
+                    </Button>
+                    <Button variant="outline" className="min-h-11 gap-1.5" disabled={danger !== null} onClick={() => runDanger("unsuspend")}>
+                      <UserCheck className="h-4 w-4" /> {danger === "unsuspend" ? "Ophæver…" : "Ophæv spærring"}
+                    </Button>
+                    <Button variant="destructive" className="min-h-11 gap-1.5" disabled={danger !== null} onClick={() => runDanger("delete_user")}>
+                      <Trash2 className="h-4 w-4" /> {danger === "delete_user" ? "Sletter…" : "Slet bruger helt"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ejer brugeren en aktiv virksomhed, skal den slettes eller overdrages først. Alt logges i audit-loggen.
+                  </p>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="timeline" className="pt-4">
