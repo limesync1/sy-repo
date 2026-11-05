@@ -24,9 +24,9 @@ import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShort
 import { useAdminBadges } from "@/components/platform-admin/lib/useAdminBadges";
 import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
 import {
-  SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
+  SidebarNavButton, SidebarGroupLabel, SidebarFooterItem, SidebarWorkspaceRow,
 } from "@/components/shared/sidebar/SidebarParts";
-import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
+import PanelShell from "@/components/shared/sidebar/PanelShell";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -55,7 +55,7 @@ const PlatformWaitlistTab = lazy(() => import("@/components/platform-admin/Platf
 // visuelt adskilt fra "system"-fanerne (som åbnes sjældnere).
 const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: any; hasRange?: boolean }[] }[] = [
   {
-    label: "Drift",
+    label: "Daglig drift",
     items: [
       { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
       { value: "businesses", label: "Virksomheder", icon: Building2 },
@@ -65,21 +65,26 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
     ],
   },
   {
-    label: "Indhold & system",
+    label: "Kunder & indhold",
     items: [
-      { value: "reviews", label: "Anmeldelser", icon: Star },
       { value: "livechat", label: "Livechat", icon: MessageCircle },
-      { value: "domains", label: "Domæner", icon: Globe },
-      { value: "audit", label: "Aktivitetslog", icon: History },
-      { value: "route-errors", label: "Rutefejl", icon: AlertTriangle },
-      { value: "route-events", label: "Domæne-events", icon: Activity },
-      { value: "health", label: "Sundhed", icon: HeartPulse },
-      { value: "mails", label: "Mails", icon: Mail },
+      { value: "reviews", label: "Anmeldelser", icon: Star },
       { value: "waitlist", label: "Venteliste", icon: Rocket },
+      { value: "mails", label: "Mails", icon: Mail },
       { value: "seo", label: "SEO-motor", icon: Sparkles },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { value: "health", label: "Sundhed", icon: HeartPulse },
+      { value: "route-errors", label: "Rutefejl", icon: AlertTriangle },
+      { value: "route-events", label: "Rutehændelser", icon: Activity },
+      { value: "domains", label: "Domæner", icon: Globe },
       { value: "ai-quality", label: "AI-kvalitet", icon: Sparkles },
       { value: "security", label: "Sikkerhed", icon: Shield },
-      { value: "settings", label: "Platform", icon: Settings },
+      { value: "audit", label: "Aktivitetslog", icon: History },
+      { value: "settings", label: "Indstillinger", icon: Settings },
     ],
   },
 ];
@@ -177,29 +182,12 @@ const PlatformAdmin = () => {
   const setTab = useCallback((next: string) => {
     setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", next); return p; });
   }, [setSearchParams]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  // Persisted collapse-state (key matches the convention from useSidebarCollapsed).
-  // Sammenfoldning vises i sidepanelets footer på større skærme.
-  const { collapsed, toggle } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
   // Drift-badges: ulæste chats, forfaldne ordrer mv. → vises i sidebar/bottom-nav.
   const badges = useAdminBadges();
   // Husk seneste faner så kommando-paletten kan tilbyde dem øverst.
   const { recent } = useRecentTabs(tab);
-
-  // ESC lukker mobil-sidebar — manglede tidligere.
-  useEffect(() => {
-    if (!sidebarOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSidebarOpen(false); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [sidebarOpen]);
-
-  useEffect(() => {
-    document.body.classList.add("service-panel-open");
-    return () => document.body.classList.remove("service-panel-open");
-  }, []);
 
   // "?" → åbn shortcut-hjælp (ignoreres mens man skriver i input).
   useEffect(() => {
@@ -235,190 +223,104 @@ const PlatformAdmin = () => {
   const currentGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.value === tab))?.label;
   return (
     <AdminFiltersProvider>
-      <div className="admin-shell service-panel-workspace flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
-        <SEO title="Platform Admin · Serviceydere" description="Administrér virksomheder, brugere og ordrer på Serviceydere." noIndex />
-
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
-
-        {/* Sidebar — samme look som virksomhedspanelet */}
-        <aside
-          className={cn(
-            "service-panel-sidebar fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0",
-            collapsed ? "lg:w-[68px]" : "lg:w-[216px] xl:w-[248px]",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-          aria-label="Hovednavigation"
-        >
-          <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
-            <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
-              {collapsed ? (
-                <img src="/serviceydere-ikon.webp" alt="Serviceydere" className="h-8 w-8 rounded-lg object-contain" width={64} height={64} decoding="async" loading="lazy" />
-              ) : (
-                <>
-                  <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-9 w-auto dark:hidden" width={1920} height={539} decoding="async" loading="lazy" />
-                  <img src="/serviceydere-logo.webp" alt="Serviceydere" className="hidden h-9 w-auto dark:block" width={1920} height={539} decoding="async" loading="lazy" />
-                </>
-              )}
-            </Link>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
-              aria-label="Luk menu"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className={cn("mx-3 mt-3 rounded-[5px] border border-border bg-card shadow-sm", collapsed ? "px-2 py-2" : "p-3")}>
-            <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}>
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-foreground text-background">
-                <Shield className="h-4 w-4" />
-              </span>
-              {!collapsed && (
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">Platformadministration</p>
-                  <p className="truncate text-[11px] text-muted-foreground">Serviceydere drift</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <nav className={cn("flex-1 space-y-1 overflow-y-auto pb-2 pt-1", collapsed ? "px-2" : "px-3")}>
-            {NAV_GROUPS.map((group, gi) => (
-              <div key={group.label} className="space-y-0.5">
-                <SidebarGroupLabel collapsed={collapsed}>{group.label}</SidebarGroupLabel>
-                {group.items.map((item) => (
-                  <SidebarNavButton
-                    key={item.value}
-                    icon={item.icon}
-                    label={item.label}
-                    active={tab === item.value}
-                    collapsed={collapsed}
-                    onClick={() => { setTab(item.value); setSidebarOpen(false); }}
-                    onMouseEnter={() => prefetchTab(item.value)}
-                    onFocus={() => prefetchTab(item.value)}
-                    onTouchStart={() => prefetchTab(item.value)}
-                    shortcut={`g ${item.value.charAt(0)}`}
-                    badge={badges[item.value]?.count}
-                    badgeWarn={badges[item.value]?.warn}
-                  />
-                ))}
-              </div>
-            ))}
-          </nav>
-
-          <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
-            <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={collapsed} />
-            <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
-          </div>
-        </aside>
-
-        <div className="flex flex-1 flex-col min-w-0">
-          <header className="service-panel-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="-ml-1 flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
-              aria-label="Åbn menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={toggle}
-                  className="hidden rounded-[4px] p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:inline-flex"
-                  aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
-                  aria-pressed={collapsed}
-                >
-                  {collapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={8} className="z-[80] whitespace-nowrap">{collapsed ? "Vis sidemenu" : "Skjul sidemenu"}</TooltipContent>
-            </Tooltip>
-            {/* Breadcrumb: group → current tab. Giver kontekst på tværs af 13 faner. */}
-            <div className="flex min-w-0 items-center gap-1.5 text-sm">
-              {currentGroup && (
-                <>
-                  <span className="hidden truncate text-muted-foreground sm:inline">{currentGroup}</span>
-                  <span className="hidden text-muted-foreground/50 sm:inline" aria-hidden="true">/</span>
-                </>
-              )}
-              <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{current?.label}</h1>
-            </div>
-
-            {/* Cmd+K søgning — hurtig adgang til virksomheder og faner */}
+      <SEO title="Platform Admin · Serviceydere" description="Administrér virksomheder, brugere og ordrer på Serviceydere." noIndex />
+      <PanelShell
+        storageKey="sy.sidebar.collapsed.platform"
+        workspaceClassName="admin-shell"
+        title={current?.label}
+        subtitle={currentGroup}
+        topbarRight={
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {current?.hasRange && <div className="hidden md:flex"><RangePicker /></div>}
             <button
               onClick={() => setCmdOpen(true)}
-              className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs sm:min-h-9 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-2.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               aria-label="Søg (Cmd+K)"
             >
-              <Search className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Søg virksomheder, faner…</span>
-              <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-[10px] font-semibold text-muted-foreground">⌘K</kbd>
+              <Search className="h-4 w-4" />
+              <span className="hidden xl:inline">Søg virksomheder, brugere…</span>
+              <kbd className="hidden xl:inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-[10px] font-semibold">⌘K</kbd>
             </button>
-
             <AdminNotifications onSelectTab={setTab} />
-
-            {/* Tastatur-genveje-hjælp — gør power-user-flow opdageligt. */}
             <button
               onClick={() => setHelpOpen(true)}
-              className="hidden rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 sm:inline-flex"
+              className="hidden min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex"
               aria-label="Vis tastatur-genveje (?)"
-              title="Tastatur-genveje (?)"
             >
               <Keyboard className="h-4 w-4" />
             </button>
-
-            {current?.hasRange && (
-              <div className="hidden min-w-0 items-center gap-2 md:flex">
-                <RangePicker />
+          </div>
+        }
+        topbarExtra={current?.hasRange ? (
+          <div className="border-b border-border/60 bg-card px-3 py-2 md:hidden"><RangePicker /></div>
+        ) : null}
+        sidebarTop={(ctx) => (
+          <SidebarWorkspaceRow name="Platformadmin" subtitle="Serviceydere drift" logoUrl="/serviceydere-ikon.webp" collapsed={ctx.collapsed} />
+        )}
+        sidebarNav={(ctx) => (
+          <>
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.label}>
+                {!(gi === 0 && ctx.collapsed) && (
+                  <SidebarGroupLabel collapsed={ctx.collapsed} first={gi === 0}>{group.label}</SidebarGroupLabel>
+                )}
+                <div className="space-y-0.5">
+                  {group.items.map((item) => (
+                    <SidebarNavButton
+                      key={item.value}
+                      icon={item.icon}
+                      label={item.label}
+                      active={tab === item.value}
+                      collapsed={ctx.collapsed}
+                      onClick={() => { ctx.closeDrawer(); setTab(item.value); }}
+                      onMouseEnter={() => prefetchTab(item.value)}
+                      onFocus={() => prefetchTab(item.value)}
+                      onTouchStart={() => prefetchTab(item.value)}
+                      badge={badges[item.value]?.count}
+                      badgeWarn={badges[item.value]?.warn}
+                    />
+                  ))}
+                </div>
               </div>
-            )}
-          </header>
-
-          {current?.hasRange && (
-            <div className="border-b border-border bg-card px-3 py-2 md:hidden">
-              <RangePicker />
-            </div>
-          )}
-
-          <main className="service-panel-content min-w-0 flex-1 overflow-x-hidden px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-6 sm:pt-6 lg:pb-6">
-            {/* PageTransition fader nyt indhold ind når tab skifter,
-                Suspense viser ensartet skeleton-loading på første åbning. */}
-            <PageTransition transitionKey={tab}>
-              <TabErrorBoundary resetKey={tab} label={current?.label}>
-                <Suspense fallback={<PlatformTabFallback tab={tab} />}>
-                  <TabPerfTracker tab={`platform:${tab}`} />
-                  {tab === "overview" && <PlatformOverviewTab onNavigate={setTab} />}
-                  {tab === "businesses" && <PlatformBusinessesTab />}
-                  {tab === "users" && <PlatformUsersTab />}
-                  {tab === "orders" && <PlatformOrdersTab />}
-                  {tab === "subscriptions" && <PlatformSubscriptionsTab />}
-                  {tab === "reviews" && <PlatformReviewsTab />}
-                  {tab === "livechat" && <PlatformLiveChatTab />}
-                  {tab === "domains" && <PlatformDomainsTab />}
-                  {tab === "audit" && <PlatformAuditLogTab />}
-                  {tab === "route-errors" && <PlatformRouteErrorsTab />}
-                  {tab === "route-events" && <PlatformRouteEventsTab />}
-                  {tab === "health" && <PlatformHealthTab />}
-                  {tab === "mails" && <PlatformMailsTab />}
-                  {tab === "ai-quality" && <PlatformAiQualityTab />}
-                  {tab === "waitlist" && <PlatformWaitlistTab />}
-                  {tab === "seo" && <PlatformSeoEngineTab />}
-                  {tab === "security" && <PlatformSecurityTab />}
-                  {tab === "settings" && <PlatformSettingsTab />}
-                </Suspense>
-              </TabErrorBoundary>
-            </PageTransition>
-          </main>
-        </div>
-
-        <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} recentTabs={recent} />
-        <AdminShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
-      </div>
+            ))}
+          </>
+        )}
+        sidebarFooter={(ctx) => (
+          <>
+            <SidebarFooterItem icon={Building2} label="Virksomhedspanel" href="/virksomhed" collapsed={ctx.collapsed} />
+            <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={ctx.collapsed} />
+            <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={ctx.collapsed} danger />
+          </>
+        )}
+      >
+        <PageTransition transitionKey={tab}>
+          <TabErrorBoundary resetKey={tab} label={current?.label}>
+            <Suspense fallback={<PlatformTabFallback tab={tab} />}>
+              <TabPerfTracker tab={`platform:${tab}`} />
+              {tab === "overview" && <PlatformOverviewTab onNavigate={setTab} />}
+              {tab === "businesses" && <PlatformBusinessesTab />}
+              {tab === "users" && <PlatformUsersTab />}
+              {tab === "orders" && <PlatformOrdersTab />}
+              {tab === "subscriptions" && <PlatformSubscriptionsTab />}
+              {tab === "reviews" && <PlatformReviewsTab />}
+              {tab === "livechat" && <PlatformLiveChatTab />}
+              {tab === "domains" && <PlatformDomainsTab />}
+              {tab === "audit" && <PlatformAuditLogTab />}
+              {tab === "route-errors" && <PlatformRouteErrorsTab />}
+              {tab === "route-events" && <PlatformRouteEventsTab />}
+              {tab === "health" && <PlatformHealthTab />}
+              {tab === "mails" && <PlatformMailsTab />}
+              {tab === "ai-quality" && <PlatformAiQualityTab />}
+              {tab === "waitlist" && <PlatformWaitlistTab />}
+              {tab === "seo" && <PlatformSeoEngineTab />}
+              {tab === "security" && <PlatformSecurityTab />}
+              {tab === "settings" && <PlatformSettingsTab />}
+            </Suspense>
+          </TabErrorBoundary>
+        </PageTransition>
+      </PanelShell>
+      <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} recentTabs={recent} />
+      <AdminShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
     </AdminFiltersProvider>
   );
 };
