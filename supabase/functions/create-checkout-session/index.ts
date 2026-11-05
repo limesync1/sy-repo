@@ -267,11 +267,28 @@ Deno.serve(async (req) => {
     try {
       session = await stripe.checkout.sessions.create(sessionPayload as any);
     } catch (stripeErr) {
-      console.error("[create-checkout-session] stripe rejected payload:", {
-        message: (stripeErr as Error)?.message,
-        payload: sessionPayload,
-      });
-      throw stripeErr;
+      // Gemt kunde-id kan stamme fra et ældre Stripe-miljø og ikke længere
+      // findes. Ryd det og opret sessionen med e-mail i stedet.
+      if (existingPlan?.stripe_customer_id && stripeErr instanceof Error && /No such customer/i.test(stripeErr.message)) {
+        await supabase.from("business_plans").update({ stripe_customer_id: null }).eq("business_id", body.businessId);
+        const retryPayload = buildSessionPayload({
+          lineItems,
+          returnUrl: body.returnUrl,
+          customerId: null,
+          customerEmail: biz.email || user.email || null,
+          metadata,
+          trialEnd,
+          includeStartupFee,
+          startupFeeDkk,
+        });
+        session = await stripe.checkout.sessions.create(retryPayload as any);
+      } else {
+        console.error("[create-checkout-session] stripe rejected payload:", {
+          message: (stripeErr as Error)?.message,
+          payload: sessionPayload,
+        });
+        throw stripeErr;
+      }
     }
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {

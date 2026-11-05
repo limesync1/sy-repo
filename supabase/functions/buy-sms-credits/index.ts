@@ -34,12 +34,12 @@ Deno.serve(async (req) => {
 
     const stripe = createStripeClient(env);
     const metadata = { businessId: biz.id, type: "sms_credits", credits: String(pack.credits), packId: pack.id };
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: "embedded",
-      mode: "payment",
+    const buildPayload = (customerId: string | null) => ({
+      ui_mode: "embedded" as const,
+      mode: "payment" as const,
       return_url: returnUrl.toString(),
-      ...(plan?.stripe_customer_id && plan.stripe_environment === env
-        ? { customer: plan.stripe_customer_id }
+      ...(customerId
+        ? { customer: customerId }
         : { customer_email: u.user.email ?? undefined }),
       line_items: [{
         quantity: 1,
@@ -52,6 +52,23 @@ Deno.serve(async (req) => {
       metadata,
       payment_intent_data: { metadata },
     });
+
+    const storedCustomerId = plan?.stripe_customer_id && plan.stripe_environment === env
+      ? plan.stripe_customer_id
+      : null;
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(buildPayload(storedCustomerId) as never);
+    } catch (e) {
+      // Gemt kunde-id kan stamme fra et ældre Stripe-miljø og ikke længere
+      // findes. Ryd det og opret sessionen med e-mail i stedet.
+      if (storedCustomerId && e instanceof Error && /No such customer/i.test(e.message)) {
+        await admin.from("business_plans").update({ stripe_customer_id: null }).eq("business_id", biz.id);
+        session = await stripe.checkout.sessions.create(buildPayload(null) as never);
+      } else {
+        throw e;
+      }
+    }
     return json({ clientSecret: session.client_secret });
   } catch (e) {
     console.error("buy-sms-credits:", e);
