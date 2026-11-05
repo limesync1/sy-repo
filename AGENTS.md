@@ -62,7 +62,7 @@
 - Offline employee stop completions queue in `src/lib/offline-stop-queue.ts` (flushed on reconnect, overlaid on cached route data); stop photos live in private `stop-photos` bucket under `{business}/{stop}/` gated by `can_access_stop`; obstacles are `obstacle`-kind notes that delete only that stop (photos survive, no FK) so the visit returns to the unassigned pool while the series keeps its preferred route.
 - The monthly SEO report (`seo-monthly-report`) has a fixed owner recipient, reads Search Console via the connector gateway, and uses a month-based idempotency key so the monthly schedule or repeat calls never send duplicates.
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
-- Trade software pages/sitemap/prerender derive from `industryRegistry.ts` only.
+- Trade software pages derive from `industryRegistry.ts` only.
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
 - One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod; article covers queue in `article_images` and never block publishing.
 - `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
