@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, Eye } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -87,107 +87,6 @@ function renderPreview(tpl: string): string {
   });
 }
 
-/* ─────────────────────── PREVIEWS ─────────────────────── */
-
-function EmailPreview({ subject, body, businessName }: { subject: string; body: string; businessName: string }) {
-  const rSubject = renderPreview(subject);
-  const rBody = renderPreview(body);
-  const lines = rBody.split(/\n+/).filter((l) => l.trim().length > 0);
-  return (
-    <div className="overflow-hidden rounded-xl border border-border bg-[#f4f4f5]">
-      {/* Mac-style window chrome */}
-      <div className="flex items-center gap-1.5 border-b border-border/60 bg-[#ececee] px-3 py-2">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-3 text-[11px] font-medium text-[#737373]">Indbakke · Mail</span>
-      </div>
-      <div className="px-4 py-4">
-        <div
-          className="mx-auto overflow-hidden rounded-lg border border-border/60 bg-white shadow-sm"
-          style={{ maxWidth: 460, fontFamily: 'Inter, -apple-system, sans-serif' }}
-        >
-          {/* From / subject header */}
-          <div className="border-b border-[#ececec] px-5 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#212121] text-[10px] font-semibold text-white">
-                {(businessName || "S").slice(0, 1).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <div className="truncate text-[12px] font-medium text-[#212121]">{businessName || "Serviceydere"}</div>
-                <div className="truncate text-[10px] text-[#737373]">via Serviceydere · til kunden</div>
-              </div>
-            </div>
-            <div className="mt-2.5 text-[13px] font-semibold text-[#212121] line-clamp-2">{rSubject || "(intet emne)"}</div>
-          </div>
-          {/* Body */}
-          <div className="px-5 py-5">
-            <div className="mb-4 pb-3">
-              <div className="text-[10px] font-bold tracking-[0.18em] text-[#212121]">SERVICEYDERE</div>
-            </div>
-            <h1 className="mb-3 text-[20px] font-semibold leading-tight text-[#212121]" style={{ letterSpacing: '-0.015em' }}>
-              {rSubject}
-            </h1>
-            {lines.map((l, i) => (
-              <p key={i} className="mb-3 whitespace-pre-wrap text-[13.5px] leading-[1.65] text-[#525252]">{l}</p>
-            ))}
-            <div className="mt-6 border-t border-[#ececec] pt-3">
-              <p className="text-[10.5px] text-[#a3a3a3]">Sendt af {businessName || "din virksomhed"} via Serviceydere.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SmsPreview({ body, businessName, businessPhone }: { body: string; businessName: string; businessPhone: string }) {
-  const rendered = renderPreview(body);
-  const footer = `\n\nDenne SMS kan ikke besvares. Kontakt ${businessName || "virksomheden"} på ${businessPhone || "+45 12 34 56 78"}.`;
-  const full = rendered + footer;
-  const charCount = full.length;
-  const smsCount = Math.max(1, Math.ceil(charCount / 160));
-  // Forenklet SMS-preview: en lille kortlignende ramme med afsender-header
-  // og en grå besked-boble. Skalerer pænt på mobil/tablet (ingen fast bredde,
-  // ingen tung iOS-chrome som dynamic island, status-bar eller home indicator).
-  return (
-    <div className="mx-auto flex w-full max-w-sm flex-col gap-3">
-      <div
-        className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
-        style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}
-      >
-        {/* Afsender-header */}
-        <div className="flex items-center gap-2.5 border-b border-[#e5e5ea] bg-[#f6f6f6] px-3 py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-[11px] font-semibold text-white">
-            {(businessName || "S").slice(0, 1).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-semibold text-[#1c1c1e]">{businessName || "Din virksomhed"}</p>
-            <p className="text-[10.5px] text-[#8e8e93]">SMS · i dag 9.41</p>
-          </div>
-        </div>
-
-        {/* Besked */}
-        <div className="bg-white px-3 py-3 sm:px-4 sm:py-4">
-          <div className="flex max-w-[90%]">
-            <div className="whitespace-pre-wrap break-words rounded-[18px] bg-[#e9e9eb] px-3 py-2 text-[13px] leading-[1.4] text-black">
-              {full}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats nedenunder */}
-      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
-        <span><span className="font-semibold text-foreground">{charCount}</span> tegn</span>
-        <span><span className="font-semibold text-foreground">{smsCount}</span> SMS{smsCount > 1 ? "'er" : ""} <span className="opacity-70">(160/SMS)</span></span>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────── PLACEHOLDER PICKER ─────────────────────── */
-
 function PlaceholderRow({ onInsert, compact = false }: { onInsert: (token: string) => void; compact?: boolean }) {
   return (
     <TooltipProvider delayDuration={150}>
@@ -242,18 +141,6 @@ function useInsertAtCursor<T extends HTMLInputElement | HTMLTextAreaElement>(
   return { ref, insert };
 }
 
-/* Forhåndsvisning: altid synlig på store skærme, bag en knap på mindre. */
-function PreviewToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
-  return (
-    <>
-      <p className="mb-3 hidden text-[11px] font-semibold uppercase tracking-wider text-muted-foreground xl:block">Sådan ser kunden den</p>
-      <Button type="button" variant="outline" onClick={onToggle} aria-expanded={open} className={cn("min-h-11 w-full xl:hidden", open && "mb-3")}>
-        <Eye className="h-4 w-4" /> {open ? "Skjul forhåndsvisning" : "Se hvordan kunden ser den"}
-      </Button>
-    </>
-  );
-}
-
 /* ─────────────────────── MAIN ─────────────────────── */
 
 export function CustomerNotificationsSettings({
@@ -293,9 +180,8 @@ export function CustomerNotificationsSettings({
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
 
-  const [activeEvent, setActiveEvent] = useState<EventKey>("service_completed");
-  const [channelTab, setChannelTab] = useState<"email" | "sms">("email");
-  const [showPreview, setShowPreview] = useState(false);
+  const [editing, setEditing] = useState<EventKey | null>(null);
+  const activeEvent: EventKey = editing ?? "service_upcoming";
   // Auto-save state — vi gemmer i baggrunden uden knapper.
 
   useEffect(() => {
@@ -377,12 +263,9 @@ export function CustomerNotificationsSettings({
     (s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: s } })),
   );
 
-  const event = EVENTS.find((e) => e.key === activeEvent)!;
   const exampleBizName = businessInfo?.name?.trim() || EXAMPLE_VARS.firmanavn;
   const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.telefon;
-  const emailDirty = isEmailDirty(activeEvent);
-  const smsDirty = isSmsDirty(activeEvent);
-  // (status vises inline pr. kanal længere nede)
+  const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
 
   // Auto-gem (debounced) når brugeren ændrer noget. Vi kører pr. event/kanal
   // hver gang den specifikke draft adskiller sig fra det gemte snapshot,
@@ -401,281 +284,116 @@ export function CustomerNotificationsSettings({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_1fr] animate-fade-in">
-        <div className="space-y-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full rounded-md" />
-          ))}
-        </div>
-        <div className="space-y-3">
-          <Skeleton className="h-6 w-1/3" />
-          <Skeleton className="h-3 w-2/3" />
-          <Skeleton className="h-32 w-full rounded-md" />
-          <Skeleton className="h-10 w-full rounded-md" />
-          <Skeleton className="h-24 w-full rounded-md" />
-        </div>
+      <div className="space-y-3">
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* ───── List + editor ───── */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_1fr]">
-        {/* Left list */}
-        <nav className="space-y-2">
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Beskeder til kunder</p>
-          {EVENTS.map((e) => {
-            const active = e.key === activeEvent;
-            const eOn = drafts[e.key].enabled;
-            const sOn = smsDrafts[e.key].enabled && smsEnabled;
-            const Icon = e.Icon;
-            return (
-              <button
-                key={e.key}
-                onClick={() => setActiveEvent(e.key)}
-                className={cn(
-                  "group flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all",
-                  active ? "border-foreground bg-foreground/[0.03] shadow-sm" : "border-border bg-card hover:border-foreground/30",
+    <div className="space-y-3">
+      {EVENTS.map((e) => {
+        const d = drafts[e.key];
+        const sd = smsDrafts[e.key];
+        const smsOn = sd.enabled && smsEnabled;
+        const open = editing === e.key;
+        const Icon = e.Icon;
+        const smsLen = sd.body.length;
+        return (
+          <section key={e.key} className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-base font-semibold text-foreground">{e.label}</h4>
+                  <p className="text-sm text-muted-foreground">{e.shortLabel}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <ChannelChip
+                  label="E-mail" icon={Mail} on={d.enabled}
+                  onClick={() => setDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], enabled: !p[e.key].enabled } }))}
+                />
+                <ChannelChip
+                  label="SMS" icon={MessageSquare} on={smsOn}
+                  onClick={() => {
+                    if (!smsEnabled) {
+                      onSmsEnabledChange(true);
+                      setSmsDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], enabled: true } }));
+                      return;
+                    }
+                    setSmsDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], enabled: !p[e.key].enabled } }));
+                  }}
+                />
+                <Button type="button" variant="outline" className="min-h-11" aria-expanded={open}
+                  onClick={() => setEditing(open ? null : e.key)}>
+                  <Pencil className="h-4 w-4" /> {open ? "Luk" : "Ret tekst"}
+                </Button>
+              </div>
+            </div>
+
+            {e.key === "service_upcoming" && d.enabled && (
+              <div className="flex flex-col gap-2 border-t border-border px-4 py-3 sm:flex-row sm:items-center">
+                <span className="shrink-0 text-sm font-medium text-foreground">Send påmindelsen</span>
+                <LeadTimeChooser compact value={upcomingMinutesBefore} onChange={(m) => m != null && onUpcomingMinutesChange(m)} />
+              </div>
+            )}
+
+            {open && (
+              <div className="space-y-4 border-t border-border bg-muted/20 p-4">
+                {d.enabled && (
+                  <div className="space-y-2">
+                    <FieldLabel htmlFor={`cn-subj-${e.key}`}>E-mailens emne</FieldLabel>
+                    <Input id={`cn-subj-${e.key}`} ref={subjectCursor.ref} className="h-11" value={d.subject}
+                      onChange={(ev) => setDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], subject: ev.target.value } }))} />
+                    <FieldLabel htmlFor={`cn-body-${e.key}`}>E-mailens tekst</FieldLabel>
+                    <Textarea id={`cn-body-${e.key}`} ref={bodyCursor.ref} rows={6} value={d.body}
+                      onChange={(ev) => setDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], body: ev.target.value } }))} />
+                    <PlaceholderRow onInsert={bodyCursor.insert} />
+                  </div>
                 )}
-              >
-                <div className={cn(
-                  "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                  active ? "bg-foreground text-background" : "bg-muted text-foreground",
-                )}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground">{e.label}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">{e.shortLabel}</p>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    <span className={cn(
-                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-                      eOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
-                    )}>
-                      <Mail className="h-2.5 w-2.5" /> E-mail {eOn ? "til" : "fra"}
-                    </span>
-                    <span className={cn(
-                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-                      sOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
-                    )}>
-                      <MessageSquare className="h-2.5 w-2.5" /> SMS {sOn ? "til" : "fra"}
-                    </span>
+                {smsOn && (
+                  <div className="space-y-2">
+                    <FieldLabel htmlFor={`cn-sms-${e.key}`}>SMS-tekst</FieldLabel>
+                    <Textarea id={`cn-sms-${e.key}`} ref={smsCursor.ref} rows={3} maxLength={459} value={sd.body}
+                      onChange={(ev) => setSmsDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], body: ev.target.value } }))} />
+                    <PlaceholderRow onInsert={smsCursor.insert} />
+                    <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                      <Phone className="mt-0.5 h-3 w-3 shrink-0" />
+                      <span>{smsLen} tegn. Vi tilføjer selv: "Kontakt {exampleBizName} på {exampleBizPhone}."</span>
+                    </p>
                   </div>
-                </div>
-              </button>
-            );
-          })}
-
-          {/* Help */}
-          <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-3">
-            <p className="text-[11px] font-semibold text-foreground">💡 Sådan virker det</p>
-            <p className="mt-1 text-[11px] leading-[1.55] text-muted-foreground">
-              Når en aftale planlægges eller markeres som færdig, sender vi automatisk de e-mails og SMS'er I har slået til.
-              Tekst i klammer som <code className="rounded bg-background px-1 text-[10px]">{`{{kundens navn}}`}</code> bliver erstattet med rigtige oplysninger.
-            </p>
-          </div>
-        </nav>
-
-        {/* Right editor */}
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          {/* Header — ren titel + beskrivelse. Kanal-toggles findes på hver fane
-              for at undgå at samme knap forsøger at styre to ting på én gang. */}
-          <div className="flex items-start gap-3 border-b border-border bg-muted/40 px-5 py-3">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
-              <event.Icon className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">{event.label}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
-            </div>
-          </div>
-
-          {/* Hvornår — kun for påmindelsen før besøg. Gælder både e-mail og SMS. */}
-          {activeEvent === "service_upcoming" && (
-            <div className="border-b border-border bg-card px-4 py-3 sm:px-5">
-              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <Bell className="h-3 w-3" /> Hvornår sendes påmindelsen?
-              </p>
-              <LeadTimeChooser value={upcomingMinutesBefore} onChange={(m) => m != null && onUpcomingMinutesChange(m)} />
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Gælder alle kunder. Kunder og aftaler kan have deres egen påmindelsesfrist. Beskeden viser kun besøgsdatoen; et aftalt klokkeslæt skal I selv skrive. Gemmes med «Gem ændringer».
-              </p>
-            </div>
-          )}
-
-          {/* Channel tabs */}
-          <div className="flex overflow-x-auto border-b border-border bg-card px-2 sm:px-3">
-            {(["email", "sms"] as const).map((c) => {
-              const active = channelTab === c;
-              const Icon = c === "email" ? Mail : MessageSquare;
-              const enabled = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled;
-              const dirty = c === "email" ? emailDirty : smsDirty;
-              return (
-                <button
-                  key={c}
-                  onClick={() => setChannelTab(c)}
-                  className={cn(
-                    "relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4",
-                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {c === "email" ? "E-mail" : "SMS"}
-                  <span className={cn(
-                    "ml-1 inline-flex h-5 items-center rounded-full px-1.5 text-[10px] font-medium",
-                    enabled ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
-                  )}>
-                    {enabled ? "Til" : "Fra"}
-                  </span>
-                  {dirty && <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" title="Ikke gemt" />}
-                  {active && <span className="absolute inset-x-2 -bottom-px h-0.5 bg-foreground" />}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Content */}
-          {channelTab === "email" ? (
-            <div className="grid grid-cols-1 gap-0 xl:grid-cols-2">
-              {/* Editor */}
-              <div className="space-y-4 p-4 sm:p-5">
-                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Send denne e-mail til kunden</p>
-                    <p className="text-[11px] text-muted-foreground">Slå fra hvis I ikke vil sende e-mail for denne hændelse.</p>
-                  </div>
-                  <Switch
-                    aria-label="Send denne e-mail til kunden"
-                    checked={drafts[activeEvent].enabled}
-                    onCheckedChange={(v) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
-                  />
-                </label>
-
-                <div className="space-y-2">
-                  <FieldLabel required htmlFor="cn-email-subject">Emnelinje</FieldLabel>
-                  <Input
-                    id="cn-email-subject"
-                    ref={subjectCursor.ref}
-                    value={drafts[activeEvent].subject}
-                    onChange={(ev) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], subject: ev.target.value } }))}
-                    placeholder="Det første kunden ser i indbakken"
-                  />
-                  <PlaceholderRow onInsert={subjectCursor.insert} compact />
-                </div>
-
-                <div className="space-y-2">
-                  <FieldLabel required htmlFor="cn-email-body">Indhold</FieldLabel>
-                  <Textarea
-                    id="cn-email-body"
-                    ref={bodyCursor.ref}
-                    rows={10}
-                    value={drafts[activeEvent].body}
-                    onChange={(ev) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: ev.target.value } }))}
-                  />
-                  <PlaceholderRow onInsert={bodyCursor.insert} />
-                  <p className="text-[11px] text-muted-foreground">
-                    💡 Klik en knap for at indsætte personlige oplysninger. De erstattes automatisk med kundens rigtige info.
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetEmail(activeEvent)}
-                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
-                  </Button>
-                  <span className="inline-flex items-center gap-1.5">
-                    {emailDirty ? (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</>
-                    ) : (
-                      <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Gemmes automatisk</>
-                    )}
-                  </span>
-                </div>
+                )}
+                {!d.enabled && !smsOn && (
+                  <p className="text-sm text-muted-foreground">Slå e-mail eller SMS til for at rette teksten.</p>
+                )}
+                <Button type="button" variant="ghost" className="min-h-11 text-muted-foreground"
+                  onClick={() => { resetEmail(e.key); resetSms(e.key); }}>
+                  <RotateCcw className="h-4 w-4" /> Brug standardteksten
+                </Button>
               </div>
-
-              {/* Preview */}
-              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
-                <PreviewToggle open={showPreview} onToggle={() => setShowPreview((v) => !v)} />
-                <div className={showPreview ? "block" : "hidden xl:block"}>
-                <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} businessName={exampleBizName} />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-0 xl:grid-cols-2">
-              <div className="space-y-4 p-4 sm:p-5">
-                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Send også SMS for denne påmindelse</p>
-                    <p className="text-[11px] text-muted-foreground">Slå til, hvis kunden også skal have en kort SMS — ud over e-mailen.</p>
-                  </div>
-                  <Switch
-                    checked={smsDrafts[activeEvent].enabled}
-                    onCheckedChange={(v) => {
-                      setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }));
-                      if (v && !smsEnabled) onSmsEnabledChange(true);
-                    }}
-                  />
-                </label>
-
-                <div className="space-y-2">
-                  <FieldLabel required htmlFor="cn-sms-body">SMS-tekst</FieldLabel>
-                  <Textarea
-                    id="cn-sms-body"
-                    ref={smsCursor.ref}
-                    rows={6}
-                    value={smsDrafts[activeEvent].body}
-                    maxLength={459}
-                    onChange={(ev) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: ev.target.value } }))}
-                  />
-                  <PlaceholderRow onInsert={smsCursor.insert} />
-                </div>
-
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                  <p className="text-[11px] font-semibold text-foreground">Vi tilføjer automatisk:</p>
-                  <p className="mt-1 flex items-start gap-1.5 text-[11px] text-muted-foreground">
-                    <Phone className="mt-0.5 h-3 w-3 shrink-0" />
-                    <span>"Denne SMS kan ikke besvares. Kontakt <span className="font-medium text-foreground">{exampleBizName}</span> på <span className="font-medium text-foreground">{exampleBizPhone}</span>."</span>
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetSms(activeEvent)}
-                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
-                  </Button>
-                  <span className="inline-flex items-center gap-1.5">
-                    {smsDirty ? (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</>
-                    ) : (
-                      <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Gemmes automatisk</>
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
-                <PreviewToggle open={showPreview} onToggle={() => setShowPreview((v) => !v)} />
-                <div className={showPreview ? "block" : "hidden xl:block"}>
-                  <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Auto-gem: ingen knap eller sticky bar nødvendig — vi viser status
-          inline pr. fane (e-mail/SMS) i bunden af editoren. */}
+            )}
+          </section>
+        );
+      })}
+      <p className="flex items-center gap-1.5 px-1 text-xs text-muted-foreground">
+        {anyDirty ? <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</> : <><CheckCircle2 className="h-3 w-3" /> Teksterne gemmes automatisk. Beskeden viser kun dato, aldrig klokkeslæt.</>}
+      </p>
     </div>
+  );
+}
+
+function ChannelChip({ label, icon: Icon, on, onClick }: { label: string; icon: typeof Mail; on: boolean; onClick: () => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} onClick={onClick}
+      className={cn(
+        "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors",
+        on ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:border-foreground/40",
+      )}>
+      <Icon className="h-4 w-4" /> {label} {on ? "til" : "fra"}
+    </button>
   );
 }
