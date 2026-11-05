@@ -10,7 +10,9 @@ import { selectBoost } from './boost-selection.ts';
 const SITE = 'https://serviceydere.dk/';
 const GATEWAY = 'https://connector-gateway.lovable.dev/google_search_console';
 const SITEMAPS = ['https://serviceydere.dk/sitemap-index.xml'];
-const SEEDS = ['ruteplanlægning servicefirma', 'program til rengøringsfirma', 'software til vinduespudser', 'planlægningsværktøj håndværker', 'fakturering servicevirksomhed', 'medarbejder app timeregistrering', 'kørselsliste program', 'faste kunder abonnement service', 'app til havemand', 'e-conomic integration servicefirma'];
+const SEEDS = ['ruteplanlægning servicefirma', 'program til rengøringsfirma', 'software til vinduespudser', 'planlægningsværktøj håndværker', 'fakturering servicevirksomhed', 'medarbejder app timeregistrering', 'kørselsliste program', 'faste kunder abonnement service', 'app til havemand', 'e-conomic integration servicefirma', 'starte vinduespudser firma', 'flere kunder rengøringsfirma', 'starte havemand firma', 'flere kunder som vinduespudser'];
+// Owner-intent searches get an article angle aimed at business owners (how-to-run, get customers, tools).
+export const isOwnerIntent = (k: string) => /(starte|start eget|eget firma|flere kunder|få kunder|software|program|app til|system|planlægning|faktur|drive .*firma|selvstændig|cvr)/i.test(k);
 const WRITE_DAYS = [2, 4, 6, 1, 3, 5, 0];
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -95,6 +97,7 @@ Eksisterende artikler (undgå overlap, link gerne til relevante): ${slugs.filter
 ${industry ? `Emnet hører under /software/branche/${industry}. Medtag dette præcise link i links-arrayet. Skriv om den konkrete underbranches opgaver, arbejdsgang, afgrænsning og tilbud – ikke en omskrivning af en generel brancheartikel.` : ''}
 Tilladte interne links (brug 3-6 relevante): ${INTERNAL_LINKS.join(', ')} samt /blog/<eksisterende-slug> og branchesider /software/branche/<slug> for: ${INDUSTRY_SLUGS.join(', ')}. Link altid til den mest relevante brancheside.
 JSON-format: {"summary":"2-3 sætninger der direkte besvarer søgningen","slug":"kort-dansk-slug-uden-æøå","title":"maks 65 tegn, indeholder søgeordet","description":"120-160 tegn","category":"Ruteplanlægning|Rengøring|Haveservice|Økonomi|Vinduespudsning|Håndværker","keywords":"komma, separeret","sections":[{"heading":"H2","paragraphs":["..."],"list":["valgfri"],"table":{"headers":["..."],"rows":[["..."]]}}],"links":[{"label":"ankertekst","href":"/sti"}],"faq":[{"q":"...","a":"..."}]}
+${isOwnerIntent(topic.keyword) ? 'Målgruppe: ejere af små servicefirmaer. Giv praktiske trin til at drive og udvikle firmaet (få kunder, priser, planlægning, papirarbejde). Afslut med at de gratis kan oprette en profil på Serviceydere og blive fundet af kunder, eller prøve det fulde system. Link til /opret-virksomhed og /software/rutesystem-finder.' : ''}
 Krav: 6-9 sektioner, i alt 900-1500 ord, mindst én tabel eller tjekliste, 4-6 FAQ, sidste sektion forklarer hvordan Serviceydere kan hjælpe og nævner 30 dages gratis prøveperiode uden kreditkort.`;
   const raw = await ai(prompt, SYSTEM);
   const draft: ArticleDraft = { ...raw, slug: slugify(raw.slug || topic.keyword) };
