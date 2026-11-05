@@ -1,6 +1,6 @@
 import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 import PlanKindSection from "@/components/admin/settings/PlanKindSection";
-import { isListingOnly } from "@/lib/business-capabilities";
+import { isListingOnly, type PlanKind } from "@/lib/business-capabilities";
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
@@ -180,11 +180,14 @@ const SECTIONS = [
   { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
   { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
   { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
-  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
-  { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
-  { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS" },
+  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder", plans: ["full"] },
+  { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort", plans: ["full"] },
+  { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS", plans: ["full"] },
   { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
-] as const;
+] as const satisfies readonly { id: string; plans?: readonly PlanKind[] }[];
+
+export const settingsSectionsFor = (plan: PlanKind) =>
+  SECTIONS.filter((sec) => !("plans" in sec) || (sec.plans as readonly PlanKind[]).includes(plan));
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
 const ToggleSwitch = forwardRef<
@@ -583,29 +586,35 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Smooth, accurate anchor-scroll. Bruger window.scrollTo med eksplicit offset
   // (header-højde) i stedet for scrollIntoView, så ankret lander præcist under
   // den sticky topbaren — uafhængigt af scroll-mt værdier.
+  const visibleSections = useMemo(
+    () => settingsSectionsFor(isListingOnly(business) ? "listing" : "full"),
+    [business],
+  );
+
   const scrollToSection = useCallback((id: string) => {
     const el = document.getElementById(`settings-${id}`);
     if (!el) return;
     setActiveSection(id);
     isProgrammaticScroll.current = true;
+    if (typeof window !== "undefined") window.history.replaceState(null, "", `#settings-${id}`);
     const targetTop = () =>
-      el.getBoundingClientRect().top + window.scrollY - getScrollOffset();
-    window.scrollTo({ top: targetTop(), behavior: "smooth" });
+      Math.max(0, el.getBoundingClientRect().top + window.scrollY - getScrollOffset());
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: targetTop(), behavior: reduce ? "auto" : "smooth" });
 
-    // Sektionerne kan skifte højde undervejs (billeder, lazy indhold), så
-    // vi følger målet indtil scroll-positionen er stabil og korrekt.
-    const start = performance.now();
-    const correct = () => {
+    // Én enkelt blød scroll; når den er færdig, rettes positionen én gang
+    // (hvis lazy indhold har ændret højden), og aktiv-markeringen frigives.
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      window.removeEventListener("scrollend", finish);
       const want = targetTop();
-      const diff = Math.abs(want - window.scrollY);
-      if (diff > 2) window.scrollTo({ top: want, behavior: "smooth" });
-      if (performance.now() - start < 1200) {
-        window.setTimeout(correct, 120);
-      } else {
-        isProgrammaticScroll.current = false;
-      }
+      if (Math.abs(want - window.scrollY) > 4) window.scrollTo({ top: want, behavior: "auto" });
+      window.setTimeout(() => { isProgrammaticScroll.current = false; }, 80);
     };
-    window.setTimeout(correct, 300);
+    window.addEventListener("scrollend", finish, { once: true });
+    window.setTimeout(finish, 1100);
   }, []);
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
@@ -642,12 +651,12 @@ const SettingsTab = ({ business }: { business: any }) => {
         threshold: 0,
       },
     );
-    SECTIONS.forEach(({ id }) => {
+    visibleSections.forEach(({ id }) => {
       const el = document.getElementById(`settings-${id}`);
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, []);
+  }, [visibleSections]);
 
   const lookupCvr = async () => {
     const q = cvrQuery.trim();
@@ -1054,7 +1063,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
       <div data-settings-chipnav className="sticky top-14 z-20 -mx-3 min-[360px]:-mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
         <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-          {SECTIONS.map(({ id, label, icon: Icon }) => {
+          {visibleSections.map(({ id, label, icon: Icon }) => {
             const sectionDone = completeness.checks.filter((c) => c.section === id);
             const allDone = sectionDone.length > 0 && sectionDone.every((c) => c.done);
             return (
@@ -1110,14 +1119,14 @@ const SettingsTab = ({ business }: { business: any }) => {
                 { title: "Beskeder",    ids: ["notifications", "customer-notifications"] },
                 { title: "Konto",       ids: ["billing", "trade", "advanced"] },
               ];
-              return groups.map((g, gi) => (
+              return groups.filter((g) => g.ids.some((id) => visibleSections.some((s) => s.id === id))).map((g, gi) => (
                 <div key={g.title} className={gi > 0 ? "mt-4 border-t border-border/50 pt-3" : ""}>
                   <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
                     {g.title}
                   </p>
                   <div className="flex flex-col gap-1">
                     {g.ids.map((id) => {
-                      const sec = SECTIONS.find((s) => s.id === id);
+                      const sec = visibleSections.find((s) => s.id === id);
                       if (!sec) return null;
                       const Icon = sec.icon;
                       const sectionChecks = completeness.checks.filter((c) => c.section === id);
@@ -1619,7 +1628,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
-        {/* Kunde-notifikationer */}
+        {/* Kunde-notifikationer — kun fuldt system (Kun profil har ingen aftaler) */}
+        {!isListingOnly(business) && (
         <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Beskeder til jeres kunder"
@@ -1635,6 +1645,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             />
           </SectionCard>
         </div>
+        )}
 
         {/* ── Gruppe: Konto ── */}
         <GroupHeader icon={<SettingsGroupIcon src={accountGroupIcon.url} />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
