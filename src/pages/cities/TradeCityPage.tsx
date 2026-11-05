@@ -104,6 +104,17 @@ const TradeCityPage = ({ kind }: { kind: string }) => {
           <CityFactsBox slug={city.slug} name={city.name} />
           <LocalServiceLinks slug={city.slug} name={city.name} currentPath={canonical} />
 
+          <aside className="not-prose my-10 rounded-lg border border-border bg-muted/40 p-6 sm:p-8" aria-labelledby="listing-cta">
+            <h2 id="listing-cta" className="m-0 text-xl font-semibold text-foreground">Er du {cfg.one.replace(/^(en|et) /, "")} i {city.name}?</h2>
+            <p className="mt-2 text-base leading-7 text-foreground/80">
+              Kom på listen gratis: få en profil, kunder i {city.name} kan finde på Google, og modtag forespørgsler direkte. Ingen binding.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link to="/opret-virksomhed" className="inline-flex h-11 items-center rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">Kom på listen gratis</Link>
+              <Link to="/software/rutesystem-finder" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Find det rette rutesystem</Link>
+            </div>
+          </aside>
+
           <h2>Andre byer</h2>
           <p className="text-sm">
             {cfg.label} i andre byer:{" "}
