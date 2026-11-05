@@ -65,28 +65,24 @@ export default function PlanKindSection({ business }: { business: { id: string; 
       <SectionCard
         title="Abonnementstype"
         icon={<Layers />}
-        description="Vælg om I kun vil have en gratis profil på Serviceydere, eller hele systemet med ruteplanlægger, medarbejdere, aftaler og fakturering."
+        description="Den pakke I bruger nu. I kan altid skifte."
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className={`rounded-xl border p-4 ${kind === "listing" ? "border-foreground" : "border-border"}`}>
-            <p className="font-semibold text-foreground">Kun profil – gratis</p>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">Offentlig profil med jeres services, priser og anmeldelser — bliv fundet på Google, og modtag forespørgsler fra kunder.</p>
-            {kind === "listing" && <p className="mt-2 text-sm font-semibold text-foreground">Det har I nu</p>}
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-secondary/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-base font-semibold text-foreground">I har {kind === "listing" ? "Kun profil – gratis" : "Fuldt system"}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {kind === "listing"
+                ? `Vil I have ruteplanlægger, medarbejder-app, aftaler og fakturering? Prøv det fulde system ${days} dage gratis.`
+                : "Profil, ruteplanlægger, medarbejder-app, kunder, aftaler og fakturering."}
+            </p>
           </div>
-          <div className={`rounded-xl border p-4 ${kind === "full" ? "border-foreground" : "border-border"}`}>
-            <p className="font-semibold text-foreground">Fuldt system</p>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">Alt i profilen plus ruteplanlægger, medarbejder-app, kunder, aftaler og fakturering. {days} dage gratis.</p>
-            {kind === "full" && <p className="mt-2 text-sm font-semibold text-foreground">Det har I nu</p>}
-          </div>
-        </div>
-        <div className="mt-4">
           {kind === "listing" ? (
-            <Button onClick={() => change("full")} disabled={setKind.isPending} className="min-h-11 gap-2">
+            <Button onClick={() => change("full")} disabled={setKind.isPending} className="min-h-11 shrink-0 gap-2">
               {setKind.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-              Prøv det fulde system gratis
+              Prøv fuldt system
             </Button>
           ) : (
-            <Button variant="outline" onClick={() => setConfirmOpen(true)} disabled={setKind.isPending} className="min-h-11">
+            <Button variant="outline" onClick={() => setConfirmOpen(true)} disabled={setKind.isPending} className="min-h-11 shrink-0">
               Skift til Kun profil
             </Button>
           )}
