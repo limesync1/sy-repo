@@ -7,6 +7,7 @@ import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
 import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
 import { processOwnerAlerts } from "./owner-alerts.ts";
 import { formatCustomerVisitDate } from "../_shared/customer-visit-date.ts";
+import { sendBusinessSms } from "../_shared/sms.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
