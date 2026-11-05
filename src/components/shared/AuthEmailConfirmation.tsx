@@ -9,9 +9,9 @@ import confirmIcon from "@/assets/signup-icons/bekraeft-din-email.svg.asset.json
 import { translateAuthError } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
 
-// Login-systemet sender koder på 8 cifre.
+// Koden er 6 cifre (kan være 8, hvis login-indstillingen ikke er ændret).
 const CODE_LENGTH = 8;
-const MIN_CODE = 8;
+const MIN_CODE = 6;
 
 export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", business = false, onVerified }: {
   email: string; onEdit: () => void; loginPath?: string; business?: boolean; onVerified?: () => void;
@@ -80,7 +80,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
           <DialogDescription className="mt-2 break-words text-base leading-7 text-muted-foreground">
             {verified
               ? (business ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Opretter din virksomhed og åbner dit panel…</span> : "Du er nu logget ind.")
-              : <>Vi har sendt en kode på 8 cifre til <strong className="break-all text-foreground">{email}</strong>. Skriv hele koden herunder.</>}
+              : <>Vi har sendt en kode til <strong className="break-all text-foreground">{email}</strong>. Skriv hele koden herunder.</>}
           </DialogDescription>
         </div>
 
@@ -90,7 +90,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
               aria-label="Bekræftelseskode"
               onChange={(v) => { setCode(v); setError(null); if (v.length === CODE_LENGTH) void verify(v); }}>
               <InputOTPGroup>
-                {Array.from({ length: CODE_LENGTH }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-8 text-lg font-bold min-[360px]:w-[2.35rem] min-[360px]:text-xl min-[400px]:w-10 sm:h-14 sm:w-11" />)}
+                {Array.from({ length: code.length >= MIN_CODE ? CODE_LENGTH : MIN_CODE }).map((_, i) => <InputOTPSlot key={i} index={i} className="h-12 w-9 text-xl font-bold min-[360px]:w-10 sm:h-14 sm:w-12" />)}
               </InputOTPGroup>
             </InputOTP>
           </div>
