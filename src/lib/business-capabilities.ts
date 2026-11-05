@@ -25,3 +25,9 @@ export function adminFlagsFor(business: BusinessLike): AdminFeatureFlags {
     accounting: operations && !!s.accounting_integration_enabled,
   };
 }
+
+/** Indstillingssektioner, der kun giver mening med fuldt system (aftaler, betaling, håndværk). */
+export const FULL_ONLY_SETTINGS_SECTIONS = ["customer-notifications", "billing", "trade"] as const;
+
+export const isSettingsSectionVisible = (sectionId: string, plan: PlanKind) =>
+  plan === "full" || !(FULL_ONLY_SETTINGS_SECTIONS as readonly string[]).includes(sectionId);

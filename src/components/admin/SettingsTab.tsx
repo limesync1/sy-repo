@@ -1,6 +1,6 @@
 import { MultiIndustryHelp } from "@/components/admin/MultiIndustryHelp";
 import PlanKindSection from "@/components/admin/settings/PlanKindSection";
-import { isListingOnly, type PlanKind } from "@/lib/business-capabilities";
+import { isListingOnly, isSettingsSectionVisible, type PlanKind } from "@/lib/business-capabilities";
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
@@ -180,14 +180,14 @@ const SECTIONS = [
   { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
   { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
   { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
-  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder", plans: ["full"] },
-  { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort", plans: ["full"] },
-  { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS", plans: ["full"] },
+  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
+  { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS" },
   { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
-] as const satisfies readonly { id: string; plans?: readonly PlanKind[] }[];
+] as const;
 
-export const settingsSectionsFor = (plan: PlanKind) =>
-  SECTIONS.filter((sec) => !("plans" in sec) || (sec.plans as readonly PlanKind[]).includes(plan));
+const settingsSectionsFor = (plan: PlanKind) =>
+  SECTIONS.filter((sec) => isSettingsSectionVisible(sec.id, plan));
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
 const ToggleSwitch = forwardRef<
