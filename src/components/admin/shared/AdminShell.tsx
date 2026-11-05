@@ -275,6 +275,24 @@ export const AdminShell = ({
               </SidebarCollapsibleRow>
             );
           })}
+          {!flags.operations && !ctx.collapsed && (
+            <div className="mx-2 mt-4 rounded-md border border-border bg-secondary/40 p-3">
+              <p className="text-sm font-semibold text-foreground">Mere med fuldt system</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Kunder, aftaler, ruteplanlægger, medarbejdere og fakturering. 30 dage gratis.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  ctx.closeDrawer();
+                  navigate("/virksomhed?tab=settings#settings-plan-kind");
+                }}
+                className="brand-blue-action mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-md px-3 text-sm font-semibold text-background"
+              >
+                Opgradér
+              </button>
+            </div>
+          )}
         </>
       )}
       sidebarFooter={(ctx) => (

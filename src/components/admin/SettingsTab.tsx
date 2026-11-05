@@ -640,6 +640,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     const hash = window.location.hash;
     if (!hash || !hash.startsWith("#settings-")) return;
     const id = hash.replace("#settings-", "");
+    if (id === "plan-kind") { const t = window.setTimeout(() => document.getElementById("settings-plan-kind")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150); return () => window.clearTimeout(t); }
     const t = window.setTimeout(() => scrollToSection(id), 120);
     return () => window.clearTimeout(t);
   }, [scrollToSection]);
