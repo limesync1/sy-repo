@@ -31,7 +31,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { OwnerAlertsEditor } from "@/components/admin/OwnerAlertsEditor";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
 import OwnEmailCard from "./OwnEmailCard";
-import SmsSetupCard from "@/components/admin/SmsSetupCard";
+import SmsSetupCard, { SmsBillingSummary } from "@/components/admin/SmsSetupCard";
 import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
