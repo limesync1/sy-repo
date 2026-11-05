@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import confirmIcon from "@/assets/signup-icons/bekraeft-din-email.svg.asset.json";
 import { translateAuthError } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,7 +59,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
   return <>
     {/* Fallback på siden, hvis vinduet lukkes */}
     <div className="space-y-4 border-t border-border py-5" role="status">
-      <div className="flex items-center gap-3"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent/10"><Mail className="h-6 w-6 text-accent" aria-hidden /></span><h3 className="text-lg font-semibold text-foreground">{verified ? "E-mail bekræftet" : "Bekræft din e-mail"}</h3></div>
+      <div className="flex items-center gap-3"><img src={confirmIcon.url} alt="" aria-hidden width={48} height={48} className="h-12 w-12 shrink-0 object-contain" /><h3 className="text-lg font-semibold text-foreground">{verified ? "E-mail bekræftet" : "Bekræft din e-mail"}</h3></div>
       {!verified && <>
         <p className="break-words text-sm leading-6 text-muted-foreground">Vi har sendt en kode til <strong className="break-all text-foreground">{email}</strong>.</p>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -71,9 +72,7 @@ export function AuthEmailConfirmation({ email, onEdit, loginPath = "/log-ind", b
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto rounded-2xl p-0">
         <div className="bg-gradient-to-br from-accent/15 via-accent/5 to-transparent px-6 pb-5 pt-8 text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15 ring-8 ring-accent/5">
-            {verified ? <CheckCircle2 className="h-8 w-8 text-accent" aria-hidden /> : <Mail className="h-8 w-8 text-accent" aria-hidden />}
-          </span>
+          {verified ? <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-accent/15"><CheckCircle2 className="h-10 w-10 text-accent" aria-hidden /></span> : <img src={confirmIcon.url} alt="" aria-hidden width={80} height={80} className="mx-auto h-20 w-20 object-contain" />}
           <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-accent">{verified ? "Færdig" : "Sidste trin"}</p>
           <DialogTitle className="mt-1 text-2xl font-bold text-foreground">{verified ? "E-mail bekræftet" : "Tjek din e-mail"}</DialogTitle>
           <DialogDescription className="mt-2 break-words text-base leading-7 text-muted-foreground">

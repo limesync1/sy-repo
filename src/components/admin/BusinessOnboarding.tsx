@@ -302,6 +302,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         .maybeSingle();
       if (existingBizError) throw existingBizError;
       if (existingBiz) {
+        try { localStorage.removeItem("sy:business-signup-draft"); } catch { /* ignore */ }
         toast.success("Du er logget ind — åbner dit virksomhedspanel.");
         window.location.assign("/virksomhed");
         return;
@@ -370,6 +371,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
       await supabase.functions.invoke("business-registration-notification", { body: { businessId: bizData.id } })
         .catch(() => { /* Oprettelsen bevares, selv hvis beskedtjenesten er utilgængelig. */ });
       toast.success(isListing ? "Velkommen! Din gratis profil er oprettet." : `Velkommen ombord! Du har ${pricing.trial_days} dages gratis prøve.`);
+      try { localStorage.removeItem("sy:business-signup-draft"); } catch { /* ignore */ }
       // Hård navigation så AuthProvider, useMyBusiness osv. henter friske data
       window.location.href = "/virksomhed";
     } catch (e: any) {
@@ -382,12 +384,36 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
   // Efter kodebekræftelse: fortsæt automatisk med de udfyldte oplysninger,
   // så brugeren lander direkte i virksomhedspanelet.
+  // Gem udfyldte oplysninger, så oprettelsen kan fortsætte automatisk efter
+  // bekræftelse — også hvis man trykker på linket i mailen (ny fane).
+  const DRAFT_KEY = "sy:business-signup-draft";
   useEffect(() => {
-    if (!autoContinue || !user) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (!d?.cvrData || Date.now() - (d.savedAt ?? 0) > 2 * 864e5) { localStorage.removeItem(DRAFT_KEY); return; }
+      setCvr(d.cvr ?? ""); setCvrData(d.cvrData);
+      if (d.planKind) setPlanKind(d.planKind);
+      if (d.features) setFeatures(d.features);
+      if (typeof d.extraLogins === "number") setExtraLogins(d.extraLogins);
+      if (d.billing) setBilling(d.billing);
+      setAutoContinue(true);
+    } catch { /* blokeret lager */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!confirmationEmail || !cvrData) return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ cvr, cvrData, planKind, features, extraLogins, billing, savedAt: Date.now() })); } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmationEmail]);
+
+  useEffect(() => {
+    if (!autoContinue || !user || !pricing || !cvrData) return;
     setAutoContinue(false);
     void handleSubmit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoContinue, user]);
+  }, [autoContinue, user, pricing, cvrData]);
 
   return (
     <div className="min-h-screen bg-background">
