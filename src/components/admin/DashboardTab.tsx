@@ -22,6 +22,7 @@ import {
 import type { Business } from "@/hooks/useDatabase";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { isListingOnly } from "@/lib/business-capabilities";
 import { supabase } from "@/integrations/supabase/client";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -446,7 +447,7 @@ const DashboardTab = ({
       </section>
 
       {/* "Hvad skal jeg i dag?" — én tydelig sætning og få store knapper. */}
-      <section aria-labelledby="today-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+      {!isListingOnly(business) && <section aria-labelledby="today-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
         <h2 id="today-heading" className="text-lg font-semibold text-foreground sm:text-xl">Hvad skal jeg i dag?</h2>
         <p className="mt-1 text-base text-muted-foreground">
           {stats.todayCount > 0
@@ -467,7 +468,7 @@ const DashboardTab = ({
             Find en kunde
           </Button>
         </div>
-      </section>
+      </section>}
 
       <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.9fr)]">
         <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
