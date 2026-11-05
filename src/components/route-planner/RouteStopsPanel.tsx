@@ -793,7 +793,7 @@ const AssigneeToggle = ({
                           : "text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-300 dark:hover:bg-amber-500/10",
                       )}
                       title={isLead ? "Lead-medarbejder" : "Sæt som lead"}
-                      aria-label="Sæt som lead"
+                      aria-label="Sæt som primær"
                     >
                       <Crown className="h-3.5 w-3.5" fill={isLead ? "currentColor" : "none"} />
                     </Button>

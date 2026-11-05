@@ -120,7 +120,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       .channel(`leads-${businessId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "quote_request_matches", filter: `business_id=eq.${businessId}` }, () => {
         qc.invalidateQueries({ queryKey: leadsKey });
-        toast.success("Nyt lead modtaget");
+        toast.success("Ny forespørgsel modtaget");
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -180,7 +180,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     const ids = Array.from(selected);
     if (await applyStatus(ids, status)) {
       setSelected(new Set());
-      toast.success(`${ids.length} leads opdateret`);
+      toast.success(`${ids.length} forespørgsler opdateret`);
     }
   };
 
@@ -292,8 +292,8 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
           <XCircle className="h-8 w-8 text-destructive" />
-          <p className="text-sm font-semibold text-foreground">Kunne ikke hente dine leads</p>
-          <p className="max-w-md text-xs text-muted-foreground">Tjek din internetforbindelse og prøv igen. Dine leads er ikke gået tabt.</p>
+          <p className="text-sm font-semibold text-foreground">Kunne ikke hente dine forespørgsler</p>
+          <p className="max-w-md text-xs text-muted-foreground">Tjek din internetforbindelse og prøv igen. Dine forespørgsler er ikke gået tabt.</p>
           <Button variant="outline" size="sm" className="min-h-11" onClick={() => refetchLeads()} disabled={fetchingLeads}>
             {fetchingLeads ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}Prøv igen
           </Button>
@@ -345,7 +345,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 (counts.hot || 0) > 0 && { key: "active", text: `${counts.hot} varm${counts.hot > 1 ? "e" : ""} lead${counts.hot > 1 ? "s" : ""} med høj chance for at blive til en aftale`, cta: "Vis", tone: "border-success/30 bg-success/5", sort: "smart" },
               ].filter(Boolean) as { key: string; text: string; cta: string; tone: string; sort?: string }[];
               if (!tasks.length) return (
-                <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye leads dukker op her, og du får en e-mail, når de kommer.</div>
+                <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Alt er besvaret. Nye forespørgsler dukker op her, og du får en e-mail, når de kommer.</div>
               );
               return (
                 <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-3 py-2.5 sm:flex-row sm:items-center">
@@ -519,7 +519,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
             )}
 
             {visible.length === 0 ? (
-              <EmptyState icon={<Search />} title="Ingen leads matcher" description="Prøv et andet filter eller en anden søgning." />
+              <EmptyState icon={<Search />} title="Ingen forespørgsler matcher" description="Prøv et andet filter eller en anden søgning." />
             ) : (
               <>
                 {/* Select-all bar */}

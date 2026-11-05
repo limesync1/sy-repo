@@ -1166,7 +1166,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     tags: ["sammenligning","platform","happyhelper"],
     loader: () => import("./posts/ServiceydereVsHappyhelper") },
   { slug: "serviceydere-vs-servicefinder", title: "Serviceydere vs. Servicefinder — sammenligning 2026",
-    description: "Serviceydere har gratis tilbud uden leads-gebyr, Servicefinder bruger lead-model. Se hvilken der giver flest tilbud og hurtigst svartid.",
+    description: "Serviceydere har gratis tilbud uden gebyr pr. forespørgsel, Servicefinder bruger betaling pr. forespørgsel. Se hvilken der giver flest tilbud og hurtigst svartid.",
     publishedAt: "2026-07-04", readingMinutes: 5, category: "Guides",
     tags: ["sammenligning","platform","servicefinder"],
     loader: () => import("./posts/ServiceydereVsServicefinder") },

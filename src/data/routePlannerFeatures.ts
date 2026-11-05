@@ -913,9 +913,9 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
     title: "Leads fra markedspladsen",
     area: "Leads og livechat",
     summary:
-      "Kundehenvendelser fra “Indhent 3 tilbud” lander i fanen Leads med status, noter og sortering. Slås til som gratis tilvalg i Indstillinger.",
+      "Kundehenvendelser fra “Indhent 3 tilbud” lander i fanen Forespørgsler med status, noter og sortering. Slås til som gratis tilvalg i Indstillinger.",
     example: "En kunde i Odense søger vinduespudsning, og forespørgslen dukker op som et lead.",
-    steps: ["Slå leads til i Indstillinger.", "Åbn fanen “Leads”.", "Svar, og markér leadet som vundet eller afvist."],
+    steps: ["Slå forespørgsler til i Indstillinger.", "Åbn fanen “Forespørgsler”.", "Svar, og markér forespørgslen som vundet eller afvist."],
     keywords: ["leads", "tilbud", "forespørgsler", "markedsplads"],
   },
   {
@@ -924,7 +924,7 @@ export const PLANNER_FEATURES: PlannerFeature[] = [
     area: "Leads og livechat",
     summary: "Systemet kan generere et udkast til svaret, som du retter til og sender som e-mail.",
     example: "Du genererer et udkast, retter prisen og sender svaret på under et minut.",
-    steps: ["Åbn leadet.", "Klik “Generér udkast”.", "Ret teksten og klik “Send som e-mail”."],
+    steps: ["Åbn forespørgslen.", "Klik “Generér udkast”.", "Ret teksten og klik “Send som e-mail”."],
     keywords: ["svar", "udkast", "ai", "email"],
   },
   {

@@ -5,13 +5,13 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/booking-og-tilbud",
   metaTitle: "Online booking og tilbudsstyring | Serviceydere",
   metaDescription:
-    "Få online booking på din egen profilside, modtag leads fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
+    "Få online booking på din egen profilside, modtag forespørgsler fra markedspladsen og send tilbud fra samme system. Bookinger bliver til stop på ruten.",
   keywords:
-    "online booking servicevirksomhed, tilbudsstyring, leads håndværker, booking system rengøring, prisberegner hjemmeside, kundeportal",
+    "online booking servicevirksomhed, tilbudsstyring, forespørgsler håndværker, booking system rengøring, prisberegner hjemmeside, kundeportal",
   heroEyebrow: "Booking og tilbud",
   heroTitle: "Kunden booker selv — du planlægger bare",
   heroSubtitle:
-    "En profilside med priser, anmeldelser og booking, leads fra markedspladsen og tilbud der kan godkendes online. Alt lander samme sted.",
+    "En profilside med priser, anmeldelser og booking, forespørgsler fra markedspladsen og tilbud der kan godkendes online. Alt lander samme sted.",
   breadcrumbLabel: "Booking og tilbud",
   answer:
     "Booking og tilbud i Serviceydere dækker hele vejen fra en interesseret kunde til en planlagt opgave. Virksomheden får en profilside med services, priser og online booking, modtager forespørgsler fra markedspladsen på serviceydere.dk, og kan sende tilbud som kunden godkender med ét klik. En godkendt booking bliver til en opgave, der kan lægges på ruten.",

@@ -2096,7 +2096,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     title="Leads fra ”Indhent 3 tilbud”"
                     description="Forespørgsler fra «Indhent 3 tilbud» i jeres område – gratis og uforpligtende."
                     active={leadsEnabled}
-                    activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
+                    activeLabel="Aktivt — ”Forespørgsler”-fanen er i menuen, og I modtager matches"
                     inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
                     onToggle={() => setLeadsEnabled((v) => !v)}
                   />

@@ -20,7 +20,7 @@ const Post = defineBlogPost({
       heading: "De tre grundtyper",
       list: [
         <><strong>Opgavebørs:</strong> du opretter en opgave, og hjælpere — ofte privatpersoner — byder. Bedst til små, korte opgaver uden fagkrav.</>,
-        <><strong>Lead-portal:</strong> din forespørgsel sælges som lead til håndværkere, der kontakter dig. Bedst til afgrænsede byggeprojekter.</>,
+        <><strong>Forespørgselsportal:</strong> din forespørgsel sælges videre til håndværkere, der kontakter dig. Bedst til afgrænsede byggeprojekter.</>,
         <><strong>Markedsplads for firmaer:</strong> du beskriver opgaven, og relevante virksomheder sender uforpligtende tilbud. Bedst når du vil sammenligne fagfolk og også dække løbende service.</>,
       ],
     },

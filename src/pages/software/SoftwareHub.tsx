@@ -27,7 +27,7 @@ const PARTS = [
   { icon: "systemEmployeeApp" as BrandedIllustrationName, title: "Medarbejder-app", href: "/software/medarbejder-app",
     body: "Medarbejderen ser dagens rute på telefonen, starter dagen og markerer stop udført." },
   { icon: "systemBooking" as BrandedIllustrationName, title: "Booking og tilbud", href: "/software/booking-og-tilbud",
-    body: "Online booking fra jeres profilside plus leads fra markedspladsen — samlet ét sted." },
+    body: "Online booking fra jeres profilside plus forespørgsler fra markedspladsen — samlet ét sted." },
   { icon: "systemAccounting" as BrandedIllustrationName, title: "Fakturering og regnskab", href: "/software/fakturering-og-regnskab",
     body: "Fakturér udført arbejde og send det videre til E-conomic eller Dinero." },
   { icon: "systemPeople" as BrandedIllustrationName, title: "Kunder og medarbejdere", href: "/software/funktioner",
@@ -49,7 +49,7 @@ const FAQ = [
   { q: "Er Serviceydere gratis?", a: "Nej. Der er 30 dages gratis prøve uden betalingskort, og derefter vælger I selv, om I vil tilføje kort og fortsætte. Basisprisen er 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, plus 59 kr./md. pr. ekstra medarbejderlogin. Ingen binding." },
   { q: "Kan jeg flytte mine eksisterende kunder ind?", a: "Ja — og I skal ikke selv sidde med det. Serviceyderes support står for importen: I sender jeres kundeliste som regneark eller et udtræk fra jeres nuværende system, og vi lægger kunder, adresser, kontaktoplysninger og faste aftaler ind. Dataimport er en engangsydelse, som fremgår af prissiden." },
   { q: "Er systemet kun til rengøring?", a: "Nej. Det er brancheuafhængigt og bruges blandt andet af rengøring, vinduespudsning, haveservice, håndværkere, flyttefirmaer, skadedyrsbekæmpelse og autoservice. Kategorier, services og prisenheder defineres af virksomheden selv." },
-  { q: "Kan jeg bruge systemet uden at være på markedspladsen?", a: "Ja. De to dele kan bruges uafhængigt. I kan planlægge og fakturere jeres egne kunder uden at tage imod leads — og være synlige på markedspladsen uden at bruge planlægningen." },
+  { q: "Kan jeg bruge systemet uden at være på markedspladsen?", a: "Ja. De to dele kan bruges uafhængigt. I kan planlægge og fakturere jeres egne kunder uden at tage imod forespørgsler — og være synlige på markedspladsen uden at bruge planlægningen." },
   { q: "Hvilke regnskabsprogrammer kan det tale med?", a: "E-conomic og Dinero. Bestillinger og fakturaer kan bogføres automatisk, når integrationen er slået til. Integrationen er et tilvalg til 269 kr./md." },
 ];
 
