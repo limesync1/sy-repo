@@ -337,6 +337,13 @@
       "when": 1793885214867,
       "tag": "0047_sms_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1793886839507,
+      "tag": "0048_business_smtp_settings",
+      "breakpoints": true
     }
   ]
 }

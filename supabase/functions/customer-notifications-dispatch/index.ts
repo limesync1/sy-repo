@@ -4,7 +4,8 @@
 // template (or a sensible default) with placeholder substitution.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isTrustedCronCaller } from "../_shared/cron-auth.ts";
-import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
+import { sendTemplateEmail, renderTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
+import { sendViaBusinessSmtp, type SmtpRow } from "../_shared/smtp.ts";
 import { processOwnerAlerts } from "./owner-alerts.ts";
 import { formatCustomerVisitDate } from "../_shared/customer-visit-date.ts";
 import { sendBusinessSms } from "../_shared/sms.ts";
@@ -271,9 +272,25 @@ Deno.serve(async (req) => {
         }
         if (!smsRes.ok) throw new Error(smsRes.error ?? "Ukendt SMS-fejl");
       } else {
-        const result = await sendTemplateEmail("customer-notification", job.recipient_email, {
+        const templateData = { subject, body, businessName: biz.name ?? "" };
+        // Egen mailkonto først (hvis slået til og afprøvet); ved fejl sendes via Serviceydere, så kunden altid får beskeden.
+        const { data: smtp } = await admin.from("business_smtp_settings").select("*").eq("business_id", biz.id).maybeSingle();
+        let viaOwn = false;
+        if (smtp?.enabled && smtp.verified_at) {
+          try {
+            const r = await renderTemplateEmail("customer-notification", templateData);
+            await sendViaBusinessSmtp(smtp as SmtpRow, { to: job.recipient_email, subject: r.subject, html: r.html, text: r.text, fallbackName: biz.name ?? "" });
+            await admin.from("business_smtp_settings").update({ last_sent_at: new Date().toISOString(), last_error: null, last_error_at: null }).eq("business_id", biz.id);
+            viaOwn = true;
+          } catch (smtpErr) {
+            const m = smtpErr instanceof Error ? smtpErr.message : String(smtpErr);
+            console.warn("own smtp failed, falling back", biz.id, m);
+            await admin.from("business_smtp_settings").update({ last_error: m, last_error_at: new Date().toISOString() }).eq("business_id", biz.id);
+          }
+        }
+        const result = viaOwn ? { sent: true as const } : await sendTemplateEmail("customer-notification", job.recipient_email, {
           idempotencyKey: `cust-notif-${job.id}`,
-          templateData: { subject, body, businessName: biz.name ?? "" },
+          templateData,
         });
         if (!result.sent) {
           await admin.from("customer_notification_queue").update({

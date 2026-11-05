@@ -38,15 +38,15 @@
 - Employee cards, next-route actions and locks share scheduled-start ordering with stable fallbacks.
 - Compact planning uses a day agenda and tap assignment; desktop retains drag. Cards share state, spacing and portal styles; density excludes appointment content. Dialogs share scrolling; hover cards portal; planner actions sit in one toolbar; density/detail persist independently.
 - Employee edits send pricing inputs; RPCs compute prices and put recurring orders in the unassigned pool.
-- Public/auth BlueFlowBackground uses a lightweight native WebGL shader (not the 3D scene engine), token phases, bounded resolution, visibility/motion pausing and a first-painted-frame reveal over a color-matched fallback to keep public-page JavaScript small; nearby homepage sections render eagerly while distant sections mount ahead of the viewport.
-- Homepage `HeroVideo`: head preloads only the poster; video loads after idle, skips save-data/2g/reduced motion, pauses offscreen. Photo JSON still feeds SEO.
+- BlueFlowBackground is a light native WebGL shader (bounded resolution, pauses when hidden/reduced motion, reveals over a matching fallback) to keep public JS small; distant homepage sections mount ahead of the viewport.
+- `HeroVideo` preloads only the poster, loads video after idle (skips save-data/2g/reduced motion) and pauses offscreen.
 - Panel headers share `PageHeader`/`.panel-page-hero` (and the overview hero) with the homepage's `BlueFlowBackground` over the same fallback, so panel and public heroes look identical. Persistent public navigation shares audience groups and account actions and publishes its measured height for sticky public filters, preventing overlap across tablet sizes.
 - Driving/HUD rules live in `src/components/employee-route/AGENTS.md`.
 - Trade-city pages, sitemap and `/by` hubs share registries; prerender uses resolved city text and shared `LocalServiceLinks` to prevent crawler/browser drift.
 - Database-triggered accounting kicks authenticate with the DB-only server token (never the anon key) and use letter-prefixed setting names, so instant sync works for every business id; failures log a warning and the scheduled run is the safety net.
 - Accounting document emails use private signed PDF links; credit retries reuse the stored credit ID to avoid issuing duplicate credits.
 - Employee cancellation uses a caller-JWT SECURITY DEFINER preflight before crediting. Business cancellation probes credit capabilities; credit must succeed before cancellation.
-- Sub-hourly/hourly test cadences share an explicit minute registry and isolated server recurrence exceptions; normal daily caps remain unchanged. Recurrence requires completion and a series lock plus outstanding-order guard; test previews start at the exact next due time (one interval after open work) and repeat to the calendar range end. Order progress uses recurrence sequence and only the active subscription owner shows a next date.
+- Test cadences (hourly/sub-hourly) use an explicit minute registry and isolated server recurrence exceptions; recurrence needs completion, a series lock and an outstanding-order guard; only the active subscription owner shows a next date.
 - Owner alerts queue with send-time checks; reminder lead time resolves agreement > customer > business. `customer-visit-date.ts` formats dates without internal arrival/start estimates to avoid false promises.
 - Route-target pickers filter through `src/lib/route-planner/selectable-routes.ts` (Danish today, no archived/virtual/fully-done routes) so every planner dialog offers the same valid routes.
 - Consolidated invoicing routes every order invoice job through a BEFORE INSERT trigger on `accounting_sync_queue` into `invoice_batches` (interval resolves order > customer > business via `resolve_invoice_interval`), closed hourly into one `invoice_batch` job, so no enqueue path can bypass the chosen interval.
@@ -62,10 +62,10 @@
 - Offline employee stop completions queue in `src/lib/offline-stop-queue.ts` (flushed on reconnect, overlaid on cached route data); stop photos live in private `stop-photos` bucket under `{business}/{stop}/` gated by `can_access_stop`; obstacles are `obstacle`-kind notes that delete only that stop (photos survive, no FK) so the visit returns to the unassigned pool while the series keeps its preferred route.
 - The monthly SEO report (`seo-monthly-report`) has a fixed owner recipient, reads Search Console via the connector gateway, and uses a month-based idempotency key so the monthly schedule or repeat calls never send duplicates.
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
-- Trade software pages/sitemap/prerender derive from `industryRegistry.ts` only.
+- Trade software pages derive from `industryRegistry.ts` only.
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
-- Article covers: queued `article_images`; never block publishing.
-- One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
+- One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod; article covers queue in `article_images` and never block publishing.
 - `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
 - Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
 - Customer SMS goes only through `supabase/functions/_shared/sms.ts` (GatewayAPI first, Twilio fallback, alphanumeric sender, Nordic numbers, monthly cap + per-recipient daily limit, `sms_messages` log); browsers never choose SMS recipients, preventing SMS-pumping abuse.
+- Own-SMTP mail: `business-smtp`, service-role-only encrypted settings, ports 465/2525 (25/587 blocked), platform-mail fallback so delivery never stops.
