@@ -607,31 +607,31 @@ const SettingsTab = ({ business }: { business: any }) => {
     [business],
   );
 
-  const scrollToSection = useCallback((id: string) => {
-    const el = document.getElementById(`settings-${id}`);
-    if (!el) return;
-    setActiveSection(id);
-    isProgrammaticScroll.current = true;
-    if (typeof window !== "undefined") window.history.replaceState(null, "", `#settings-${id}`);
-    const targetTop = () =>
-      Math.max(0, el.getBoundingClientRect().top + window.scrollY - getScrollOffset());
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: targetTop(), behavior: reduce ? "auto" : "smooth" });
+  // Én emne-side ad gangen: i stedet for én lang side med alle felter vises
+  // kun det valgte emne. Abonnementstype hører til "Pris og betaling" (eller
+  // "Ekstra funktioner" for Kun profil); "Slet virksomhed" til Ekstra funktioner.
+  const hasBilling = visibleSections.some((s) => s.id === "billing");
+  const planKindPage = hasBilling ? "billing" : "advanced";
+  const hiddenSectionSelector = useMemo(() => {
+    const ids: string[] = visibleSections.map((s) => s.id as string).filter((id) => id !== activeSection);
+    if (activeSection !== planKindPage) ids.push("plan-kind");
+    if (activeSection !== "advanced") ids.push("danger");
+    return ids.map((id) => `[data-settings-pages] #settings-${id}`).join(",");
+  }, [visibleSections, activeSection, planKindPage]);
 
-    // Én enkelt blød scroll; når den er færdig, rettes positionen én gang
-    // (hvis lazy indhold har ændret højden), og aktiv-markeringen frigives.
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      window.removeEventListener("scrollend", finish);
-      const want = targetTop();
-      if (Math.abs(want - window.scrollY) > 4) window.scrollTo({ top: want, behavior: "auto" });
-      window.setTimeout(() => { isProgrammaticScroll.current = false; }, 80);
-    };
-    window.addEventListener("scrollend", finish, { once: true });
-    window.setTimeout(finish, 1100);
-  }, []);
+  const scrollToSection = useCallback((rawId: string) => {
+    const id = rawId === "plan-kind" ? planKindPage : rawId === "danger" ? "advanced" : rawId;
+    setActiveSection(id);
+    if (typeof window !== "undefined") window.history.replaceState(null, "", `#settings-${id}`);
+    // Vent til siden er skiftet, så rul til toppen af emnet.
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`settings-${rawId}`) ?? document.querySelector("[data-settings-pages]");
+      if (!target) return;
+      const top = Math.max(0, (target as HTMLElement).getBoundingClientRect().top + window.scrollY - getScrollOffset());
+      if (window.scrollY > top || rawId === "plan-kind" || rawId === "danger") window.scrollTo({ top, behavior: "auto" });
+    });
+  }, [planKindPage]);
+
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
   // "Aktivér livechat" → #settings-advanced), så scroll automatisk ned til
@@ -641,7 +641,6 @@ const SettingsTab = ({ business }: { business: any }) => {
     const hash = window.location.hash;
     if (!hash || !hash.startsWith("#settings-")) return;
     const id = hash.replace("#settings-", "");
-    if (id === "plan-kind") { const t = window.setTimeout(() => document.getElementById("settings-plan-kind")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150); return () => window.clearTimeout(t); }
     const t = window.setTimeout(() => scrollToSection(id), 120);
     return () => window.clearTimeout(t);
   }, [scrollToSection]);
@@ -1021,7 +1020,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
               <button
                 type="button"
-                onClick={() => document.getElementById("settings-plan-kind")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                onClick={() => scrollToSection("plan-kind")}
                 className="inline-flex min-h-8 items-center rounded-full border border-border bg-secondary px-2.5 text-xs font-semibold text-foreground hover:bg-secondary/70"
                 title="Se abonnementstype"
               >
@@ -1224,7 +1223,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </nav>
         </aside>
 
-        <div className="space-y-5">
+        <div className="space-y-5" data-settings-pages>
+          {hiddenSectionSelector && <style>{`${hiddenSectionSelector}{display:none}`}</style>}
       {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
       {(!business.address || !business.city || !business.zip_code) && (
       <SectionCard
@@ -2130,6 +2130,26 @@ const SettingsTab = ({ business }: { business: any }) => {
             ownerEmail={user?.email || business.email || null}
           />
         </div>
+        {(() => {
+          const idx = visibleSections.findIndex((s) => s.id === activeSection);
+          const prev = idx > 0 ? visibleSections[idx - 1] : null;
+          const next = idx >= 0 && idx < visibleSections.length - 1 ? visibleSections[idx + 1] : null;
+          if (!prev && !next) return null;
+          return (
+            <nav aria-label="Skift emne" className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:justify-between">
+              {prev ? (
+                <Button type="button" variant="outline" size="lg" className="min-h-12 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
+                  ← {prev.label}
+                </Button>
+              ) : <span />}
+              {next && (
+                <Button type="button" size="lg" className="min-h-12 justify-end text-base" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
+                  Næste: {next.label} →
+                </Button>
+              )}
+            </nav>
+          );
+        })()}
       </div>
         </div>
       </div>
