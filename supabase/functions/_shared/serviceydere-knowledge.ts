@@ -65,7 +65,7 @@ FOR VIRKSOMHEDER (priser, ekskl. moms):
 /** Hvad virksomheder rent faktisk kan i virksomhedspanelet. */
 export const SYSTEM_KNOWLEDGE = `VIRKSOMHEDSPANELET (/virksomhed) — MODULER:
 - Kom godt i gang: trinvis onboarding med fremdrift; forsvinder når alt er gennemført.
-- Dashboard: omsætning, dagens ruter, nye leads, seneste bestillinger.
+- Dashboard: omsætning, dagens ruter, nye forespørgsler, seneste bestillinger.
 - Ruteplanlægger (/virksomhed/ruter): drag & drop af aftaler ind på ruter, panel med "aftaler uden rute", auto-fordeling, handlinger på flere aftaler ad gangen, opret bestilling og ruter direkte i planlæggeren. Visninger: dag/uge/måned/agenda, tidslinje, én kolonne pr. rute, justerbar tæthed, mørk tilstand, kortvisning med stop og rækkefølge. Kørsel: beregnet kørselstid, ETA, "optimér rækkefølge", "næste ledige tid", vejr. Faste aftaler: intervaller/gentagelser, "denne gang" vs. "hele serien", pauser. Sikkerhed: konfliktadvarsler, forhåndsvisning før ændringer gemmes, fortryd/gentag, historik med hvem/hvornår, diagnostik. Output: print/PDF af dagen, tastaturgenveje, foldbar sidebar.
 - Meld medarbejder syg: guidet flow der finder erstatninger til dagens aftaler og flytter dem samlet.
 - Medarbejdere: oprettelse med login, kompetencer, farve og billede, fravær/ferie/helligdage, løn-/indtjeningsoverblik, adgang til livechat pr. medarbejder.

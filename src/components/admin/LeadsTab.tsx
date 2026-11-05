@@ -313,7 +313,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
         <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card sm:hidden"><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Aktive</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{counts.active || 0}</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Konvertering</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.conversionRate}%</p></div><div className="min-w-0 px-2 py-2.5 text-center"><p className="truncate text-xs text-muted-foreground">Svartid</p><p className="mt-0.5 truncate text-base font-semibold tabular-nums text-foreground">{convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"}</p></div></div>
         <div className="hidden gap-2.5 sm:grid sm:grid-cols-3">
-          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive leads" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} /></div>
+          <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Aktive forespørgsler" value={counts.active || 0} hint={counts.new ? `${counts.new} venter på første svar` : "Indbakken er ajour"} icon={<BrandedIllustration name="activeLeads" />} /></div>
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% er kontaktet`} icon={<BrandedIllustration name="revenue" />} tone="ok" /></div>
           <div className="min-w-[220px] flex-1 snap-start sm:min-w-0"><StatCard label="Gennemsnitlig svartid" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)} min.` : `${convStats.avgRespHours.toFixed(1).replace(".", ",")} t.`) : "—"} hint="Hurtige svar øger chancen for en aftale" icon={<BrandedIllustration name="averageResponseTime" />} /></div>
         </div>
@@ -382,7 +382,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Søg kunde, e-mail, by eller note…"
-                  aria-label="Søg i leads" autoComplete="off" className="h-11 min-w-0 pl-9 rounded-md"
+                  aria-label="Søg i forespørgsler" autoComplete="off" className="h-11 min-w-0 pl-9 rounded-md"
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -571,7 +571,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                 checked={isSelected}
                                 onCheckedChange={() => toggleSelect(l.id)}
                                 onClick={(e) => e.stopPropagation()}
-                                aria-label="Vælg lead"
+                                aria-label="Vælg forespørgsel"
                               />
                             </div>
 

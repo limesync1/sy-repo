@@ -19,7 +19,7 @@ const Page = defineSoftwarePage({
     "Egen profilside med services, priser, billeder, åbningstider og anmeldelser.",
     "Online booking direkte fra profilsiden — også uden for åbningstid.",
     "Prisberegnere: fast pris, timepris eller beregning på m², stk. og andre enheder.",
-    "Leads fra markedspladsen når en kunde beder om tilbud i dit område.",
+    "Forespørgsler fra markedspladsen, når en kunde beder om tilbud i dit område.",
     "Tilbud kan godkendes af kunden via link, uden login.",
     "Godkendt booking bliver til et stop, du kan planlægge.",
   ],

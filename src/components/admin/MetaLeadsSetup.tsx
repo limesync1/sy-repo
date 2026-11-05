@@ -80,7 +80,7 @@ export const MetaLeadsSetup = ({ businessId }: { businessId: string }) => {
       text: "Den godkendte returadresse matcher sandsynligvis ikke opsætningen i Meta.",
       steps: ["Kontrollér at https://serviceydere.dk/meta/callback står præcist sådan i Meta", "Kontrollér at appen er aktiv", "Prøv at forbinde igen"],
     };
-    if (result === "invalid-state") return { title: "Forbindelsen er udløbet", text: "Sikkerhedstjekket kunne ikke godkendes.", steps: ["Gå tilbage til Leads", "Start Meta-forbindelsen igen"] };
+    if (result === "invalid-state") return { title: "Forbindelsen er udløbet", text: "Sikkerhedstjekket kunne ikke godkendes.", steps: ["Gå tilbage til Forespørgsler", "Start Meta-forbindelsen igen"] };
     if (result === "save-error") return { title: "Forbindelsen kunne ikke gemmes", text: "Meta godkendte forbindelsen, men den kunne ikke gemmes.", steps: ["Prøv igen", "Kontakt support, hvis det fortsætter"] };
     return { title: "Meta-forbindelsen fejlede", text: "Din eksisterende leadmodtagelse er ikke påvirket.", steps: ["Prøv at forbinde igen", "Kontrollér at du godkender alle de viste adgange"] };
   };

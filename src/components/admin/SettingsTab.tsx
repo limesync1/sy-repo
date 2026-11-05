@@ -182,7 +182,7 @@ const SECTIONS = [
   { id: "customer-notifications", label: "Beskeder til kunder", icon: MessageCircle, hint: "Påmindelser og kvitteringer" },
   { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "trade",         label: "Håndværk",           icon: Hammer,    hint: "Materialer, grossister og KS" },
-  { id: "advanced",      label: "Tilvalg og konto",   icon: Settings,  hint: "Leads, livechat, slet konto" },
+  { id: "advanced",      label: "Tilvalg og konto",   icon: Settings,  hint: "Forespørgsler, livechat, slet konto" },
 ] as const;
 
 const settingsSectionsFor = (plan: PlanKind) =>
@@ -2097,7 +2097,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     description="Forespørgsler fra «Indhent 3 tilbud» i jeres område – gratis og uforpligtende."
                     active={leadsEnabled}
                     activeLabel="Aktivt — ”Forespørgsler”-fanen er i menuen, og I modtager matches"
-                    inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
+                    inactiveLabel="Ikke aktivt — slå til for at begynde at modtage forespørgsler"
                     onToggle={() => setLeadsEnabled((v) => !v)}
                   />
                   <FeatureRow
