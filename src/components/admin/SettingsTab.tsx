@@ -77,7 +77,6 @@ import {
 } from "@/hooks/useBusinessPlan";
 import { StripeCheckoutDialog } from "@/components/billing/StripeCheckoutDialog";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { TextSizeControl } from "@/components/admin/settings/TextSizeControl";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -2115,7 +2114,6 @@ const SettingsTab = ({ business }: { business: any }) => {
             </nav>
           );
         })()}
-        <TextSizeControl />
       </div>
         </div>
       </div>
