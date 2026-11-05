@@ -1307,7 +1307,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
-            description="Vælg de brancher I arbejder med — og markér de konkrete typer aftaler, I tager. Vi bruger dette til at vise jer for de rigtige kunder, når de søger."
+            description="Vælg brancher og de aftaler, I tager. Så finder de rigtige kunder jer."
           >
             <div className="space-y-5">
               <div>
@@ -1392,7 +1392,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Det visuelle udtryk og linket til jeres profil — logo, forsidebillede, og det kunderne ser i adresselinjen.">
+          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logo, forsidebillede og linket til jeres profil.">
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
               <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
@@ -1405,12 +1405,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.
                   </p>
-                  <ul className="mt-2 space-y-1 text-[11.5px] leading-snug text-foreground/80">
-                    <li>✓ Kvadratisk, mindst 512×512 px</li>
-                    <li>✓ PNG med gennemsigtig eller hvid baggrund</li>
-                    <li>✓ Kun ikonet/mærket — lang tekst bliver for lille</li>
-                    <li>✓ Lidt luft rundt om kanten</li>
-                  </ul>
                 </div>
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
                   <FieldLabel optional>Coverbillede</FieldLabel>
@@ -1420,12 +1414,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises som bredt banner øverst på jeres profilside i formatet 3:1.
                   </p>
-                  <ul className="mt-2 space-y-1 text-[11.5px] leading-snug text-foreground/80">
-                    <li>✓ Liggende billede, helst 1800×600 px (mindst 1200×400)</li>
-                    <li>✓ Et rigtigt foto af jeres arbejde, team eller bil</li>
-                    <li>✓ Hold det vigtigste i midten — kanterne kan blive skåret lidt</li>
-                    <li>✗ Undgå tekst og logo i billedet; logoet vises allerede nederst til venstre</li>
-                  </ul>
                 </div>
               </div>
             </div>
@@ -1659,7 +1647,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
-            description="Hvornår kunderne kan få fat i jer på telefon eller e-mail. Slå dage til/fra og sæt tiderne — brug ”Anvend på alle” for hurtigt at kopiere samme tider til de andre dage."
+            description="Hvornår kunderne kan få fat i jer."
           >
             <HoursEditor value={openHours} onChange={setOpenHours} />
           </SectionCard>
@@ -1672,7 +1660,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="E-mail-beskeder til jer"
             icon={<Bell />}
-            description="Vælg hvad I selv får e-mail om, hvornår og til hvilken adresse. Slået fra betyder, at der ikke sendes noget."
+            description="Hvad I selv får e-mail om, og hvornår."
           >
             <OwnerAlertsEditor
               value={notifSettings}
@@ -1690,7 +1678,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Beskeder til jeres kunder"
             icon={<MessageCircle />}
-            description="Automatiske beskeder vi sender på jeres vegne — fx ”Vi kommer i morgen” eller ”Aftalen er udført”. Tilpas teksten, slå dem fra, eller send også som SMS."
+            description="Påmindelser og kvitteringer til jeres kunder på e-mail og SMS."
           >
             <div className="mb-3">
               <SmsSetupCard
@@ -1721,7 +1709,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
-            description="Overblik over jeres månedspris, faktureringsinterval og betalingskort. Kortoplysningerne håndteres sikkert af Stripe — vi ser dem aldrig selv."
+            description="Pakke, betalingsinterval og betalingskort."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
@@ -2043,7 +2031,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Håndværk — materialer, grossister og kvalitetssikring */}
         <div id="settings-trade" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Håndværk" icon={<Hammer />} description="Materialer på opgaver, prisfiler fra grossister og tjeklister til kvalitetssikring. Til håndværksbrancher som el, VVS, tømrer, maler og murer.">
+          <SectionCard title="Håndværk" icon={<Hammer />} description="Til el, VVS, tømrer, maler og murer.">
             {!isCraftBusiness(selectedCategories) && !tradeModules.materials && !tradeModules.quality ? (
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Disse funktioner er lavet til håndværksbrancher. Vælg fx Elektriker, VVS, Tømrer og snedker, Maler eller Murer under Brancher, så kan I slå dem til her.
@@ -2054,7 +2042,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   icon={<TradeIcon name="materialsOnJobs" className="h-10 w-10" />}
                   title="Materialer på opgaver"
                   badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                  description="Medarbejderne registrerer brugte materialer (rør, fliser, skruer m.m.) på opgaven fra jeres materialeliste. Materialerne kommer automatisk med som linjer på fakturaen til e-conomic eller Dinero."
+                  description="Brugte materialer kommer automatisk med på fakturaen."
                   active={tradeModules.materials}
                   activeLabel="Aktivt — ”Materialer” vises på opgaver og i medarbejder-appen"
                   inactiveLabel="Ikke aktivt"
@@ -2064,7 +2052,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   icon={<TradeIcon name="wholesaler" className="h-10 w-10" />}
                   title="Grossistpriser"
                   badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                  description="Upload prisfilen fra Solar, Sanistål, Brødrene Dahl, Ahlsell m.fl. med jeres egne aftalepriser. Vil I have en direkte forbindelse til grossisten, så kontakt kundeservice, så finder vi en løsning sammen."
+                  description="Upload prisfilen fra jeres grossist med jeres egne priser."
                   active={tradeModules.wholesaler}
                   activeLabel="Aktivt — upload prisfiler under Materialeliste"
                   inactiveLabel={tradeModules.materials ? "Ikke aktivt" : "Kræver at ”Materialer på opgaver” er slået til"}
@@ -2074,7 +2062,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   icon={<TradeIcon name="quality" className="h-10 w-10" />}
                   title="Kvalitetssikring (KS)"
                   badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                  description="Tjeklister med målinger (fx trykprøvning, isolationsmåling), afvigelser og kundens underskrift. Udfyldes i medarbejder-appen og gemmes på opgaven, så I kan dokumentere arbejdet og printe det som PDF."
+                  description="Målinger, afvigelser og kundens underskrift – kan printes som PDF."
                   active={tradeModules.quality}
                   activeLabel="Aktivt — ”Kvalitetssikring” vises på opgaver og i medarbejder-appen"
                   inactiveLabel="Ikke aktivt"
@@ -2100,7 +2088,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Slå gratis funktioner til eller fra. Betalte tilvalg som regnskabsintegration styres under ”Pris og betaling” og kan ikke deaktiveres her — det forhindrer utilsigtede nedjusteringer lige før fakturering.">
+          <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Gratis funktioner, I kan slå til og fra.">
             <div className="space-y-6">
               <div>
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
@@ -2109,7 +2097,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     icon={<BrandedIllustration name="signupLeads" className="h-full w-full" alt="" />}
                     title="Leads fra ”Indhent 3 tilbud”"
                     badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                    description="Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem."
+                    description="Forespørgsler fra «Indhent 3 tilbud» i jeres område – gratis og uforpligtende."
                     active={leadsEnabled}
                     activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
                     inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
@@ -2119,7 +2107,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     icon={<BrandedIllustration name="signupLivechat" className="h-full w-full" alt="" />}
                     title="Livechat på virksomhedssiden"
                     badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                    description="En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen."
+                    description="En chat-knap på jeres profilside."
                     active={livechatEnabled}
                     activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
                     inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
