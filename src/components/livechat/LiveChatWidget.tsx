@@ -111,7 +111,7 @@ const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
     ],
   },
   {
-    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner", "leads"],
+    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner", "forespørgsler"],
     replies: [
       "Hvordan opretter jeg min virksomhed?",
       "Hvilke funktioner får jeg som udbyder?",
