@@ -1782,11 +1782,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                     )}
                   </div>
                   <div className="p-3 sm:p-4 space-y-4">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div className="grid grid-cols-3 gap-2">
                       {([
-                        { key: "monthly", label: "Hver måned", desc: "Mest fleksibelt", hint: "" },
-                        { key: "quarterly", label: "Hvert kvartal", desc: "Lidt billigere", hint: pricing ? `Spar ${pricing.discount_quarterly_pct}%` : "" },
-                        { key: "yearly", label: "Hvert år", desc: "Bedste pris", hint: pricing ? `Spar ${pricing.discount_yearly_pct}%` : "" },
+                        { key: "monthly", label: "Måned", desc: "Mest fleksibelt", hint: "" },
+                        { key: "quarterly", label: "Kvartal", desc: "Lidt billigere", hint: pricing ? `Spar ${pricing.discount_quarterly_pct}%` : "" },
+                        { key: "yearly", label: "År", desc: "Bedste pris", hint: pricing ? `Spar ${pricing.discount_yearly_pct}%` : "" },
                       ] as const).map((opt) => {
                         const isOn = planBilling === opt.key;
                         return (
