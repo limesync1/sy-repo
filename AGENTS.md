@@ -64,8 +64,7 @@
 - Automatic SEO articles live in `seo_articles` (plain-text blocks, never HTML) and render via `DynamicBlogPost` through the shared `BlogArticleLayout`; the `seo-engine` function runs one daily idempotent tick (run-key locks, quality gate, pause on AI credit/policy errors) so content grows without code deploys.
 - Trade software pages/sitemap/prerender derive from `industryRegistry.ts` only.
 - SEO: last daily slot favors least-covered trades; articles link parent; build adds published `seo_articles` to sitemap/prerender.
-- Article covers: queued `article_images`; never block publishing.
-- One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod (small startup).
+- One lazy `BlogPostRoute`; no eager `blogPosts.ts`/zod; article covers queue in `article_images` and never block publishing.
 - `business_plans.plan_kind` (listing|full) is mirrored to settings, enforced by insert triggers and switched only via `set_business_plan_kind`; UI reads `business-capabilities.ts`, so UI/server agree.
 - Trial days: `platform_settings.trial_days` (fallback `src/lib/trial.ts`), guarded by `trial-days.test.ts`.
 - Customer SMS goes only through `supabase/functions/_shared/sms.ts` (GatewayAPI first, Twilio fallback, alphanumeric sender, Nordic numbers, monthly cap + per-recipient daily limit, `sms_messages` log); browsers never choose SMS recipients, preventing SMS-pumping abuse.
