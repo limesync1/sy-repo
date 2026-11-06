@@ -5,6 +5,7 @@
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
 import { compareDayRoutes } from "./lib/day-route-order";
+import { hasRouteOptimization } from "./lib/route-optimization-availability";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle, CalendarArrowDown } from "lucide-react";
 import { CloudOff } from "lucide-react";
@@ -459,7 +460,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
-  const canOptimizeInline = compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2;
+  const canOptimizeInline = hasRouteOptimization(route, isPast);
   const canAddInline = !!onAddAppointment && !isVirtual && !isPast && !showAsCompleted;
   const showFooter = canOptimizeInline || canAddInline;
   const actionMenu = (
@@ -467,7 +468,6 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={`Handlinger for ${route.name || "ruten"}`} onClick={(e) => e.stopPropagation()}><MoreHorizontal /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenuItem onClick={onSelect}><Eye />Vis rute</DropdownMenuItem>
-        {!isVirtual && stopCount >= 2 && <DropdownMenuItem disabled={busy || optimizing} onClick={onOptimize}><Sparkles className="h-4 w-4" />Optimér rute</DropdownMenuItem>}
         {!isVirtual && onShowHistory && <DropdownMenuItem onClick={onShowHistory}><History />Historik</DropdownMenuItem>}
         {!isVirtual && onDelete && <DropdownMenuItem disabled={busy} onClick={onDelete} className="text-destructive"><Trash2 />Slet rute</DropdownMenuItem>}
       </DropdownMenuContent>
@@ -619,9 +619,9 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
 
       {showFooter && (
       <div className="col-span-2 -mx-2.5 -mb-2.5 ml-[-0.75rem] flex items-center justify-end gap-1 border-t border-border/70 bg-secondary/20 px-2 py-1" onClick={(e) => e.stopPropagation()}>
-      {compactLayout && !isVirtual && !isPast && !showAsCompleted && stopCount >= 2 && (
+      {canOptimizeInline && (
         <Button variant="outline" size="sm" className="h-11 shrink-0 gap-1 px-2 text-xs" aria-label={`Optimér ${route.name || "ruten"}`} disabled={busy || optimizing} onKeyDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onOptimize(); }}>
-          {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}<span>Optimér</span>
+          {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}<span>Optimér rute</span>
         </Button>
       )}
       {onAddAppointment && !isVirtual && !isPast && !showAsCompleted && (
@@ -645,7 +645,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
 
   const isVirtualRoute = !!route.isVirtual;
   const canDelete = !!onDelete && !isVirtualRoute && !busy;
-  const canOptimize = !isVirtualRoute && stopCount >= 2 && !busy;
+  const canOptimize = canOptimizeInline && !busy && !optimizing;
   const canHistory = !!onShowHistory && !isVirtualRoute;
 
   return (

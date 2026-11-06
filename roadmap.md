@@ -1,5 +1,8 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 6. nov. — Synlig ruteoptimering
+- [ ] Vis Optimér rute direkte på optimerbare rutekort og kontrollér mobil/tablet/computer uden at ændre optimeringsalgoritmen.
+
 ## 5. nov. — Forside og virksomhedsindstillinger
 - [x] Fjern separat billedlag bag forsidevideoen; bevar stillbillede før afspilning og på datasparende forbindelser. Video uden separat billedlag kontrolleret i browser.
 - [x] Fjern den ekstra “Pris per måned”-række ved virksomhedsoprettelse uden ændrede priser. Totalen kontrolleret i browser.

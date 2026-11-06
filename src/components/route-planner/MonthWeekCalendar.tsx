@@ -1,4 +1,5 @@
 import { isFixedRoute, compareDayRoutes } from "./lib/day-route-order";
+import { hasRouteOptimization } from "./lib/route-optimization-availability";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import PlannerDialogHeader from "./PlannerDialogHeader";
 import { SheetFooterBar } from "./SheetSection";
@@ -1340,7 +1341,8 @@ const RoutePillInner = ({
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
   const canDelete = !!onDelete && !isVirtual && !busy;
-  const canOptimize = !isVirtual && stopCount >= 2 && !busy;
+  const showOptimize = hasRouteOptimization(route, isPast);
+  const canOptimize = showOptimize && !busy && !optimizing;
   const canHistory = !!onShowHistory && !isVirtual;
 
   const pill = (
@@ -1634,6 +1636,14 @@ const RoutePillInner = ({
       </div>
 
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
+      {showOptimize && (
+        <div className="relative z-[3] px-1 pb-1" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+          <Button variant="outline" size="sm" className="h-11 w-full min-w-0 gap-1 px-1 text-[10px]" aria-label={`Optimér ${route.name || "ruten"}`} disabled={!!busy || optimizing} onClick={onOptimize}>
+            {optimizing ? <Loader2 className="h-3 w-3 shrink-0 animate-spin" /> : <Sparkles className="h-3 w-3 shrink-0" />}
+            <span className="whitespace-normal leading-tight">Optimér rute</span>
+          </Button>
+        </div>
+      )}
       {/* Trin 4 — Hover-preview: når en aftale svæver over pillen viser vi et
           floating "ghost stop" der indikerer indsættelses-position. Vises kun
           for gyldige drop (ingen error-severity) for at undgå falske signaler. */}

@@ -1,4 +1,5 @@
 import { formatPrice } from "@/lib/price-format";
+import { hasRouteOptimization } from "./lib/route-optimization-availability";
 // RouteEditSheet — rediger en rute: navn, farve, dato, medarbejdere.
 // Bruges fra den nye måned/uge kalender.
 
@@ -1024,6 +1025,12 @@ export const RouteEditSheet = ({
 
           {/* Footer actions */}
           <SheetFooterBar className="space-y-2 bg-card">
+            {route && hasRouteOptimization({ ...route, stops, isVirtual: isProjection }, isPast) && (
+              <Button variant="outline" className="h-11 w-full gap-2" disabled={optimize.isPending} onClick={handleOptimize}>
+                {optimize.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Optimér rute
+              </Button>
+            )}
             {!isProjection && (stopCount >= 1 || true) && (
               <div className="grid grid-cols-2 gap-2">
                 {stopCount >= 1 && (

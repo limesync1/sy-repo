@@ -2491,6 +2491,13 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/tagrens</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-tagrens.webp</image:loc><image:title>Illustration til artiklen: Tagrens: Metoder, arbejdsgang og det gode tilbud</image:title></image:image>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
