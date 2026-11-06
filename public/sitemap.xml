@@ -2470,6 +2470,27 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/stubfraesning</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-stubfraesning.webp</image:loc><image:title>Illustration til artiklen: Stubfræsning: pris, fremgangsmåde og et klart tilbud</image:title></image:image>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/snerydning</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-snerydning.webp</image:loc><image:title>Illustration til artiklen: Snerydning: Guide til opgaver, ansvar og gode tilbud</image:title></image:image>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/tagrenderens</loc>
+    <image:image><image:loc>https://gkectsellkpltrxvusot.supabase.co/functions/v1/article-images?f=blog-tagrenderens.webp</image:loc><image:title>Illustration til artiklen: Tagrenderens: opgaver, pris og et gennemskueligt tilbud</image:title></image:image>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
