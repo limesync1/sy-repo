@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
+import { isNativeApp, saveNativeRole } from "@/lib/native-role";
 import { detectUserRole, ROLE_HOME } from "@/lib/detect-user-role";
 import BlueFlowBackground from "@/components/landing/BlueFlowBackground";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +57,7 @@ const Auth = () => {
   const mode = requestedMode && ["business", "customer", "employee"].includes(requestedMode) ? requestedMode : null;
   const signupParam = searchParams.get("signup");
   const isResetMode = searchParams.get("reset") === "1";
+  const inApp = searchParams.get("app") === "1" || isNativeApp();
   const [isSignUp, setIsSignUp] = useState(signupParam === "1" && mode !== "employee");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -96,11 +98,11 @@ const Auth = () => {
   useEffect(() => {
     let cancelled = false;
     if (!user) { setDestination(null); return; }
-    detectUserRole(user.id).then((role) => {
+    detectUserRole(user.id, mode === "business" || mode === "employee" ? mode : undefined).then((role) => {
       if (!cancelled) setDestination(ROLE_HOME[role]);
     }).catch(() => { if (!cancelled) setDestination("/min-konto"); });
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user?.id, mode]);
 
   const emailSuggestion = suggestEmailFix(email);
   const pwStrength = passwordScore(password);
@@ -302,7 +304,7 @@ const Auth = () => {
         {/* Top bar */}
         <div className="auth-mobile-header relative isolate flex items-center justify-between px-5 py-4 sm:px-8 sm:py-6">
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden lg:hidden"><BlueFlowBackground /></div>
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link to={inApp ? "/app" : "/"} aria-label={inApp ? "Tilbage til valg af rolle" : undefined} className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             <span className="lg:hidden">
               <img
@@ -317,8 +319,8 @@ const Auth = () => {
             <span className="hidden lg:inline">Tilbage til forsiden</span>
           </Link>
           {mode && (
-            <Link to="/log-ind" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
-              Skift type
+            <Link to={inApp ? "/app" : "/log-ind"} onClick={() => { if (inApp) saveNativeRole(null); }} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
+              {inApp ? "Skift" : "Skift type"}
             </Link>
           )}
         </div>

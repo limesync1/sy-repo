@@ -13,13 +13,13 @@ export async function initNativeShell() {
   setTimeout(hide, 4000);
 
   App.addListener("backButton", ({ canGoBack }) => {
-    // Close an open dialog/sheet first, then go back, and exit on the start page.
-    const open = document.querySelector('[role="dialog"][data-state="open"]');
-    if (open) {
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-      return;
-    }
-    if (window.location.pathname === "/app" || !canGoBack) App.exitApp();
+    const action = backButtonAction({
+      dialogOpen: !!document.querySelector('[role="dialog"][data-state="open"]'),
+      pathname: window.location.pathname,
+      canGoBack,
+    });
+    if (action === "close-dialog") document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    else if (action === "exit") App.exitApp();
     else window.history.back();
   }).catch(() => {});
 
