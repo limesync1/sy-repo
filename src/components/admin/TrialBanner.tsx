@@ -67,13 +67,13 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:gap-4",
+        "flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border px-3 py-2.5 sm:flex-nowrap sm:gap-4 sm:px-4 sm:py-3",
         isWarning
           ? "border-destructive/30 bg-destructive/5 text-foreground"
           : "border-accent/30 bg-accent/5 text-foreground",
       )}
     >
-      <div className="flex items-start gap-3 flex-1 min-w-0">
+      <div className="flex min-w-[12rem] flex-1 items-center gap-3 sm:items-start">
         <div
           className={cn(
             "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
@@ -84,14 +84,14 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold">{title}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+          <p className={cn("mt-0.5 text-xs text-muted-foreground", !isWarning && "hidden sm:block")}>{description}</p>
         </div>
       </div>
       {!hideAction && (
         <Link
           to="/virksomhed?tab=settings&openCheckout=1#settings-billing"
           className={cn(
-            "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors",
+            "inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs sm:w-auto font-semibold transition-colors",
             isWarning
               ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
               : "bg-foreground text-background hover:bg-foreground/90",

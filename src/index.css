@@ -2167,3 +2167,25 @@ body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0;
   min-height: 44px; padding: 0 1rem; border-radius: 0.625rem;
   background: hsl(var(--background)); color: hsl(var(--foreground)); font-weight: 700;
 }
+
+/* Touch screens: fields grow to 44 px; small buttons get an invisible
+   44 px hit area so desktop-tight layouts keep their look. Elements that
+   already define their own after: hit area are left alone. */
+@media (any-pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]),
+  select,
+  [role="combobox"] { min-height: 44px; }
+  :where(button, [role="button"]):not([class*="absolute"]):not([class*="fixed"]):not([class*="sticky"]):not([class*="after:"]) {
+    position: relative;
+  }
+  :where(button, [role="button"]):not([class*="absolute"]):not([class*="fixed"]):not([class*="sticky"]):not([class*="after:"])::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: max(100%, 44px); height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  /* Checkboxes and switches keep their large touch hit area on tablets too. */
+  [role="checkbox"].peer::after { inset: -0.75rem !important; }
+  [role="switch"].peer::after { inset: -0.625rem !important; }
+}
