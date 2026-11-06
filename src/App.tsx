@@ -1,3 +1,4 @@
+import { isNativeApp } from "@/lib/native-role";
 import { ConfirmDialogHost } from "@/components/ConfirmDialogHost";
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -86,6 +87,7 @@ const lazyRoute = <T,>(key: string, loader: () => Promise<T>) => {
   return lazy(safeLoader as any);
 };
 
+const IS_NATIVE = isNativeApp();
 const Auth                   = lazyRoute("/log-ind", () => import("./pages/Auth"));
 const ResetPassword          = lazyRoute("reset-password", () => import("./pages/ResetPassword"));
 const CartSheet              = lazyRoute("cart-sheet", () => import("@/components/business/CartSheet"));
@@ -99,6 +101,7 @@ const Search                 = lazyRoute("/virksomheder", () => import("./pages/
 const RequestQuote           = lazyRoute("/tilbud", () => import("./pages/RequestQuote"));
 const Unsubscribe            = lazyRoute("unsubscribe", () => import("./pages/Unsubscribe"));
 const RoutePlanner           = lazyRoute("route-planner", () => import("./pages/RoutePlanner"));
+const NativeAppEntry         = lazyRoute("native-app", () => import("./pages/NativeAppEntry"));
 const EmployeeApp            = lazyRoute("employee-app", () => import("./pages/EmployeeApp"));
 const EmployeeRoute          = lazyRoute("employee-route", () => import("./pages/EmployeeRoute"));
 const EmployeeStats          = lazyRoute("employee-stats", () => import("./pages/EmployeeStats"));
@@ -371,15 +374,15 @@ const App = () => (
             <SilentBoundary>
               <Suspense fallback={null}>
                 <IdleMount>
-                  <LiveChatWidget />
+                  {!IS_NATIVE && <LiveChatWidget />}
                 </IdleMount>
               </Suspense>
             </SilentBoundary>
             {/* Cookie-banner — vises kun første gang valget træffes. */}
-            <CookieConsent />
+            {!IS_NATIVE && <CookieConsent />}
             <IdlePrefetcher />
             <DeployVersionWatcher />
-            <StickyMobileCTA />
+            {!IS_NATIVE && <StickyMobileCTA />}
             <PublicNavigation>
             <ChunkErrorBoundary>
             <Suspense fallback={<PageFallback />}>
@@ -388,6 +391,7 @@ const App = () => (
 
               {/* ── New Danish routes ── */}
               <Route path="/log-ind" element={<Auth />} />
+              <Route path="/app" element={<NativeAppEntry />} />
              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<PlatformAdmin />} />
               <Route path="/virksomhed" element={<Admin />} />

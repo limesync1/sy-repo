@@ -91,6 +91,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) toast.error(translateAuthError(error, "Du blev ikke logget ud. Prøv igen."));
+      else if (isNativeApp()) {
+        // In the app, logging out returns to the owner/employee choice.
+        saveNativeRole(null);
+        window.location.replace("/app");
+      }
     } catch (error) { toast.error(translateAuthError(error, "Du blev ikke logget ud. Prøv igen.")); }
   };
 

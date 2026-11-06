@@ -6,7 +6,6 @@ import { captureFirstTouch } from "./lib/first-touch";
 
 if (typeof window !== "undefined" && !Capacitor.isNativePlatform()) captureFirstTouch();
 
-// The native app is the employee panel: open it instead of the public homepage.
 // In the native app, keep content clear of the status bar and system navigation
 // buttons: the web view is inset natively instead of drawing edge-to-edge.
 if (Capacitor.isNativePlatform()) {
@@ -14,8 +13,11 @@ if (Capacitor.isNativePlatform()) {
     .querySelector('meta[name="viewport"]')
     ?.setAttribute("content", "width=device-width, initial-scale=1.0, viewport-fit=contain");
 }
-if (Capacitor.isNativePlatform() && window.location.pathname === "/") {
-  window.history.replaceState(null, "", "/medarbejder");
+if (Capacitor.isNativePlatform()) {
+  document.documentElement.classList.add("native-app");
+  // The app opens on the role choice, never the public homepage.
+  if (window.location.pathname === "/") window.history.replaceState(null, "", "/app");
+  void import("./lib/native-shell").then((m) => m.initNativeShell());
 }
 
 // Gem browserens installationstilbud, så "Tilføj til hjemmeskærm" på Min dag
