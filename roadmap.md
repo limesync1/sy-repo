@@ -1,7 +1,7 @@
 # Master Audit & Refinement — Serviceydere.dk
 
 ## 6. nov. — Synlig ruteoptimering
-- [ ] Vis Optimér rute direkte på optimerbare rutekort og kontrollér mobil/tablet/computer uden at ændre optimeringsalgoritmen.
+- [x] Optimér rute direkte på optimerbare rutekort i kalender/agenda og ruteindstillinger, uafhængigt af skærmbredde. 12 regressionstests; knapper kontrolleret ved 390/820/1280 px på Klar Vinduer. Faktisk optimering via mobilknappen afsluttet med 3 min/1,8 km besparelse. Algoritmen uændret; build OK.
 
 ## 5. nov. — Forside og virksomhedsindstillinger
 - [x] Fjern separat billedlag bag forsidevideoen; bevar stillbillede før afspilning og på datasparende forbindelser. Video uden separat billedlag kontrolleret i browser.

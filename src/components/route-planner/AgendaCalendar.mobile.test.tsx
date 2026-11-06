@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { DndContext } from "@dnd-kit/core";
 import { AgendaCalendar } from "./AgendaCalendar";
+import { MonthWeekCalendar } from "./MonthWeekCalendar";
 import type { CalendarRoute } from "./MonthWeekCalendar";
 
 afterEach(cleanup);
@@ -10,6 +11,20 @@ const route = (id: string, date: string): CalendarRoute => ({
 } as unknown as CalendarRoute);
 
 describe("mobile agenda interactions", () => {
+  it.each(["agenda", "calendar"])("runs optimization directly from the %s route card without opening route details", (view) => {
+    const onOptimizeRoute = vi.fn();
+    const onSelectRoute = vi.fn();
+    const date = "2026-11-06";
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-06T12:00:00Z"));
+    const selected = { ...route("Test route", date), isVirtual: false, stops: [{ id: "a", status: "planned" }, { id: "b", status: "planned" }] } as unknown as CalendarRoute;
+    const Calendar = view === "agenda" ? AgendaCalendar : MonthWeekCalendar;
+    render(<DndContext><Calendar view="week" anchorDate={date} routes={[selected]} onSelectRoute={onSelectRoute} onSelectStop={vi.fn()} onCreateRoute={vi.fn()} onOptimizeRoute={onOptimizeRoute} /></DndContext>);
+    fireEvent.click(screen.getByRole("button", { name: "Optimér Test route" }));
+    expect(onOptimizeRoute).toHaveBeenCalledWith("Test route");
+    expect(onSelectRoute).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
   it("opens the selected day's route without another day's route", () => {
     const onSelectRoute = vi.fn();
     const selected = route("Selected route", "2026-10-18");
