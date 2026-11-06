@@ -98,7 +98,7 @@ const Auth = () => {
   useEffect(() => {
     let cancelled = false;
     if (!user) { setDestination(null); return; }
-    detectUserRole(user.id, mode === "business" || mode === "employee" ? mode : undefined).then((role) => {
+    detectUserRole(user.id, mode === "business" || mode === "employee" || mode === "customer" ? mode : undefined).then((role) => {
       if (!cancelled) setDestination(ROLE_HOME[role]);
     }).catch(() => { if (!cancelled) setDestination("/min-konto"); });
     return () => { cancelled = true; };
@@ -319,7 +319,7 @@ const Auth = () => {
             <span className="hidden lg:inline">Tilbage til forsiden</span>
           </Link>
           {mode && (
-            <Link to={inApp ? "/app" : "/log-ind"} onClick={() => { if (inApp) saveNativeRole(null); }} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
+            <Link to={inApp ? "/app" : "/log-ind"} onClick={() => { if (inApp) saveNativeRole(null); }} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
               {inApp ? "Skift" : "Skift type"}
             </Link>
           )}

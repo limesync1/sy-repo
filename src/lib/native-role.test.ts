@@ -15,5 +15,10 @@ describe("native role choice", () => {
   it("sends owners and employees to their own login", () => {
     expect(loginPathFor("owner")).toContain("mode=business");
     expect(loginPathFor("employee")).toContain("mode=employee");
+    expect(loginPathFor("customer")).toContain("mode=customer");
+  });
+  it("remembers customers too", () => {
+    saveNativeRole("customer");
+    expect(readNativeRole()).toBe("customer");
   });
 });

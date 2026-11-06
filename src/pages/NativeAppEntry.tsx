@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Briefcase, HardHat, ChevronRight } from "lucide-react";
+import { Briefcase, HardHat, ChevronRight, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { readNativeRole, saveNativeRole, loginPathFor, type NativeRole } from "@/lib/native-role";
 
 const OPTIONS: { role: NativeRole; title: string; text: string; Icon: typeof Briefcase }[] = [
   { role: "owner", title: "Virksomhedsejer", text: "Planlæg ruter, kunder og aftaler", Icon: Briefcase },
   { role: "employee", title: "Medarbejder", text: "Se din rute og registrér tid", Icon: HardHat },
+  { role: "customer", title: "Kunde", text: "Se dine aftaler, bestillinger og beskeder", Icon: UserRound },
 ];
 
 /** App start page: choose owner or employee, then log in. */
@@ -30,11 +31,11 @@ export default function NativeAppEntry() {
     >
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
         <img src="/serviceydere-logo.png" alt="Serviceydere" className="mx-auto mt-6 h-12 w-auto" />
-        <div className="mt-12">
+        <div className="mt-8">
           <h1 className="text-3xl font-bold leading-tight">Hvem er du?</h1>
           <p className="mt-2 text-base text-muted-foreground">Vælg, så viser vi den rigtige del af appen.</p>
         </div>
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-3">
           {OPTIONS.map(({ role: r, title, text, Icon }) => (
             <button
               key={r}
@@ -54,14 +55,23 @@ export default function NativeAppEntry() {
           ))}
         </div>
         <div className="mt-auto pt-10 text-center">
-          <p className="text-sm text-muted-foreground">Ny virksomhed?</p>
-          <button
-            type="button"
-            onClick={() => { saveNativeRole("owner"); navigate("/opret-virksomhed"); }}
-            className="mt-1 min-h-[44px] px-4 text-base font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            Opret virksomhed – 30 dage gratis
-          </button>
+          <p className="text-sm text-muted-foreground">Ny her?</p>
+          <div className="mt-1 flex flex-col items-center">
+            <button
+              type="button"
+              onClick={() => { saveNativeRole("owner"); navigate("/opret-virksomhed"); }}
+              className="min-h-[44px] px-4 text-base font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              Opret virksomhed – 30 dage gratis
+            </button>
+            <button
+              type="button"
+              onClick={() => { saveNativeRole("customer"); navigate("/log-ind?mode=customer&signup=1&app=1"); }}
+              className="min-h-[44px] px-4 text-base font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              Opret kundekonto
+            </button>
+          </div>
         </div>
       </div>
     </main>

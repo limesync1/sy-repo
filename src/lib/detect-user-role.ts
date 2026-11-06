@@ -20,7 +20,7 @@ export const ROLE_HOME: Record<DetectedRole, string> = {
 };
 
 /** Slå brugerens rolle op parallelt — hurtigst mulig redirect efter login. */
-export const detectUserRole = async (userId: string, preferred?: "business" | "employee"): Promise<DetectedRole> => {
+export const detectUserRole = async (userId: string, preferred?: "business" | "employee" | "customer"): Promise<DetectedRole> => {
   const [adminRes, empRes, bizRes] = await Promise.all([
     supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
     supabase.from("employees").select("id").eq("user_id", userId).limit(1).maybeSingle(),
@@ -29,6 +29,7 @@ export const detectUserRole = async (userId: string, preferred?: "business" | "e
   // The app's owner/employee choice wins when the account has that role.
   if (preferred === "business" && bizRes.data) return "business";
   if (preferred === "employee" && empRes.data) return "employee";
+  if (preferred === "customer" && !adminRes.data) return "customer";
   if (adminRes.data) return "admin";
   if (empRes.data) return "employee";
   if (bizRes.data) return "business";
