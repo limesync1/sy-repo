@@ -68,6 +68,15 @@ const compressToWebP = (file: File, maxDim: number, quality: number): Promise<Bl
     img.src = url;
   });
 
+const fetchImage = async (url: string): Promise<Blob> => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Billedet kunne ikke hentes");
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob);
+  bitmap.close();
+  return blob;
+};
+
 const ImageUpload = ({
   bucket = "business-assets",
   folder,
@@ -118,11 +127,12 @@ const ImageUpload = ({
     setOpening(true);
     try {
       const sourceUrl = originalImageUrl(preview);
-      let res = await fetch(sourceUrl ?? preview);
-      let sourceFound = !!sourceUrl && res.ok;
-      if (!res.ok && sourceUrl) { res = await fetch(preview); sourceFound = false; }
-      if (!res.ok) throw new Error("Billedet kunne ikke hentes");
-      const blob = await res.blob();
+      let sourceFound = false;
+      let blob: Blob;
+      if (sourceUrl) {
+        try { blob = await fetchImage(sourceUrl); sourceFound = true; }
+        catch { blob = await fetchImage(preview); }
+      } else { blob = await fetchImage(preview); }
       setHasOriginal(sourceFound);
       setCropFile(new File([blob], "billede", { type: blob.type || "image/webp" }));
     } catch {
@@ -217,7 +227,7 @@ const ImageUpload = ({
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const fitClass = objectFit === "contain" ? "object-contain p-2" : "object-cover";
+  const fitClass = objectFit === "contain" ? "object-contain" : "object-cover";
 
   return (
     <div className={className}>

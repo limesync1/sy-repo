@@ -1,5 +1,8 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 6. nov. — Gentagen billedtilpasning
+- [x] Gentagen billedtilpasning ignorerer nulmålinger fra lukkende vinduer, validerer original og viser indlæsningsfejl. Rotation med 90°-knapper og finjustering; start fylder feltet, transparent luft trimmes uden at fjerne hvide detaljer, eksport bevarer transparens. Ni regressionstests bestået; faktisk gemning to gange, genindlæsning og original-genåbning af Klar Vinduer samt vinduet ved 390/820/1280 px verificeret; build OK. Fælles værktøj; medarbejder/kunde ikke særskilt gentestet.
+
 ## 6. nov. — Billedjustering og indstillinger
 - [x] Originalen bevares ved nye profil-/logobeskæringer; ældre billeder viser ærligt behov for originalfil. Klar Vinduer: upload, gemning, genindlæsning og genåbning af 1024 × 1024 original testet i UI. Fælles værktøj for ejer/medarbejder/kunde; kundens og medarbejderens egne uploads ikke særskilt testet.
 - [x] Alle otte tilgængelige indstillingsemner kontrolleret på 390/820/1280 px; logo også på 320 px. Fjernet overlappende bundnavigation og ekstra sticky række, større billedkontroller, tydelig fejlstatus, korrekt kontaktoptælling og gemning af SMS-valg. Otte regressionstests bestået og build OK. Håndværk ikke tilgængeligt for testkontoen; betaling, mail/SMS-afsendelse og alle popups ikke ende-til-ende-testet.
