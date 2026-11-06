@@ -1,5 +1,8 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 6. nov. — Mobilvenlig billedbehandling
+- [x] Fælles profil-/logoværktøj har navngivne zoom/drej-kontroller, fast handlingslinje og behandlings-/uploadstatus; store rasterfiler komprimeres til højst 2400 px før tilpasning. Originalen genbruges i hukommelsen og genkomprimeres ikke ved gentagen tilpasning; rasteruploads skal lykkes som WebP, SVG forbliver SVG. 12 tests bestået; PNG-upload → WebP (19 KB), to gemninger og genåbning efter reload testet i Klar Vinduer samt 320/390/820/844/1280 px. Gamle billeder massekonverteres ikke; kundens/medarbejderens egne gemninger ikke særskilt testet.
+
 ## 6. nov. — Gentagen billedtilpasning
 - [x] Gentagen billedtilpasning ignorerer nulmålinger fra lukkende vinduer, validerer original og viser indlæsningsfejl. Rotation med 90°-knapper og finjustering; start fylder feltet, transparent luft trimmes uden at fjerne hvide detaljer, eksport bevarer transparens. Ni regressionstests bestået; faktisk gemning to gange, genindlæsning og original-genåbning af Klar Vinduer samt vinduet ved 390/820/1280 px verificeret; build OK. Fælles værktøj; medarbejder/kunde ikke særskilt gentestet.
 

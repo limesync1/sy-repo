@@ -17,15 +17,18 @@ type Props = {
   onCancel: () => void;
   onDone: (blob: Blob) => void;
   hasOriginal?: boolean;
+  busy?: boolean;
+  quality?: number;
 };
 
 /** Preview and export use the same centered rotation and scale. */
-export function ImageCropDialog({ file, shape = "circle", outputSize = 512, onCancel, onDone, hasOriginal = true }: Props) {
+export function ImageCropDialog({ file, shape = "circle", outputSize = 512, onCancel, onDone, hasOriginal = true, busy = false, quality = 0.82 }: Props) {
   const [view, setView] = useState(VIEW);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [loadError, setLoadError] = useState(false);
+  const [encoding, setEncoding] = useState(false);
   const [bounds, setBounds] = useState({ x: 0, y: 0, width: 1, height: 1 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
@@ -37,6 +40,7 @@ export function ImageCropDialog({ file, shape = "circle", outputSize = 512, onCa
     if (!file) { setImg(null); return; }
     setImg(null);
     setLoadError(false);
+    setEncoding(false);
     setView(VIEW);
     setRotation(0);
     const url = URL.createObjectURL(file);
@@ -118,32 +122,34 @@ export function ImageCropDialog({ file, shape = "circle", outputSize = 512, onCa
   };
 
   const save = () => {
-    if (!img || view <= 0) return;
+    if (!img || view <= 0 || busy || encoding) return;
+    setEncoding(true);
     const canvas = document.createElement("canvas");
     canvas.width = outputSize;
     canvas.height = outputSize;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) { setEncoding(false); setLoadError(true); return; }
     const s = outputSize / view;
     ctx.imageSmoothingQuality = "high";
     ctx.translate((view / 2 + offset.x) * s, (view / 2 + offset.y) * s);
     ctx.rotate(rotation * Math.PI / 180);
     ctx.drawImage(img, bounds.x, bounds.y, bounds.width, bounds.height, -w * s / 2, -h * s / 2, w * s, h * s);
-    canvas.toBlob((blob) => blob && onDone(blob), "image/webp", 0.9);
+    canvas.toBlob((blob) => { setEncoding(false); if (blob?.type === "image/webp") onDone(blob); else setLoadError(true); }, "image/webp", quality);
   };
 
   const step = (d: number) => setZoom((z) => Math.min(MAX_ZOOM, Math.max(minZoom, +(z + d).toFixed(2))));
 
   return (
-    <Dialog open={!!file} onOpenChange={(o) => { if (!o) onCancel(); }}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-sm max-h-[calc(100dvh-1rem)] overflow-y-auto gap-4 rounded-md p-4 sm:p-5">
+    <Dialog open={!!file} onOpenChange={(o) => { if (!o && !busy && !encoding) onCancel(); }}>
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-sm max-h-[calc(100dvh-1rem)] flex flex-col overflow-hidden gap-3 rounded-md p-4 sm:p-5">
         <DialogHeader className="text-left">
           <DialogTitle className="text-base">Tilpas billedet</DialogTitle>
           <DialogDescription className="text-sm">{hasOriginal ? "Træk billedet på plads, og zoom ind eller ud." : "Dette billede er allerede beskåret. Vælg originalfilen via Skift billede for at få hele motivet tilbage."}</DialogDescription>
         </DialogHeader>
+        <div className={`min-h-0 flex-1 overflow-y-auto space-y-3 ${busy || encoding ? "pointer-events-none" : ""}`} aria-busy={busy || encoding}>
         <div
           ref={areaRef}
-          className="relative mx-auto w-full max-w-[280px] aspect-square cursor-grab touch-none select-none overflow-hidden rounded-md bg-muted ring-1 ring-border"
+          className="relative mx-auto w-full max-w-[min(280px,38dvh)] aspect-square cursor-grab touch-none select-none overflow-hidden rounded-md bg-muted ring-1 ring-border"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -162,23 +168,24 @@ export function ImageCropDialog({ file, shape = "circle", outputSize = 512, onCa
             <div className="pointer-events-none absolute inset-0 rounded-full shadow-[0_0_0_9999px_hsl(var(--foreground)/0.45)] ring-2 ring-background" />
           ) : null}
         </div>
+        <span className="block text-xs font-medium text-muted-foreground">Zoom</span>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={() => step(-0.1)} aria-label="Zoom ud"><Minus className="h-4 w-4" /></Button>
           <Slider value={[zoom]} min={minZoom} max={MAX_ZOOM} step={0.01} onValueChange={([v]) => setZoom(v)} aria-label="Zoom" className="flex-1" />
           <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={() => step(0.1)} aria-label="Zoom ind"><Plus className="h-4 w-4" /></Button>
         </div>
+        <span className="block text-xs font-medium text-muted-foreground">Drej</span>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="Drej 90 grader til venstre" title="Drej 90 grader til venstre" disabled={!img} onClick={() => { setRotation((r) => r - 90); setOffset({ x: 0, y: 0 }); }}><RotateCcw className="h-4 w-4" /></Button>
           <Slider value={[((rotation + 180) % 360 + 360) % 360 - 180]} min={-180} max={180} step={1} onValueChange={([v]) => setRotation(v)} aria-label="Drej billedet" className="flex-1" />
           <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="Drej 90 grader til højre" title="Drej 90 grader til højre" disabled={!img} onClick={() => { setRotation((r) => r + 90); setOffset({ x: 0, y: 0 }); }}><RotateCw className="h-4 w-4" /></Button>
         </div>
-        <div className="flex flex-col-reverse gap-2">
           <Button type="button" variant="ghost" className="min-h-11" disabled={!img} onClick={() => { if (!img) return; setZoom(fitZoom); setOffset({ x: 0, y: 0 }); }}><RotateCcw className="mr-1.5 h-4 w-4" />{hasOriginal ? "Vis hele billedet" : "Centrér billedet"}</Button>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" className="min-h-11 flex-1" onClick={onCancel}>Annullér</Button>
-            <Button type="button" className="min-h-11 flex-1" onClick={save} disabled={!img}>Brug billede</Button>
-          </div>
         </div>
+          <div className="relative z-10 flex shrink-0 gap-2 border-t border-border bg-background pt-3">
+            <Button type="button" variant="outline" className="min-h-11 flex-1" disabled={busy || encoding} onClick={onCancel}>Annullér</Button>
+            <Button type="button" className="min-h-11 flex-1" onClick={save} disabled={!img || busy || encoding}>{busy || encoding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{encoding ? "Behandler…" : "Uploader…"}</> : "Brug billede"}</Button>
+          </div>
       </DialogContent>
     </Dialog>
   );

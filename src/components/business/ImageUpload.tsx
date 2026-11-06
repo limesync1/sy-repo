@@ -5,6 +5,7 @@ import { ImageCropDialog } from "@/components/shared/ImageCropDialog";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { originalImageUrl } from "@/lib/profile-image-source";
+import { compressImage as compressToWebP } from "@/lib/image-compression";
 
 interface Props {
   bucket?: string;
@@ -24,49 +25,6 @@ interface Props {
   /** Lad brugeren zoome/flytte billedet før upload (kvadratisk resultat). */
   crop?: "circle" | "square";
 }
-
-/**
- * Komprimer billede client-side til WebP via canvas.
- * Reducerer typisk filstørrelse med 60-80% og indlæser hurtigere på alle sider.
- */
-const compressToWebP = (file: File, maxDim: number, quality: number): Promise<Blob> =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      try {
-        let { width, height } = img;
-        if (width > maxDim || height > maxDim) {
-          const ratio = Math.min(maxDim / width, maxDim / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("Canvas context utilgængelig");
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            URL.revokeObjectURL(url);
-            if (!blob) return reject(new Error("Konvertering mislykkedes"));
-            resolve(blob);
-          },
-          "image/webp",
-          quality,
-        );
-      } catch (err) {
-        URL.revokeObjectURL(url);
-        reject(err);
-      }
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Kunne ikke indlæse billede"));
-    };
-    img.src = url;
-  });
 
 const fetchImage = async (url: string): Promise<Blob> => {
   const response = await fetch(url);
@@ -97,6 +55,9 @@ const ImageUpload = ({
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sourceCache = useRef<{ url: string; file: File; hasOriginal: boolean } | null>(null);
+  const compressedSource = useRef(false);
+  const uploadLock = useRef(false);
 
   // Indstillinger og serviceformularen kan blive opdateret efter auto-save.
   // Hold den lokale forhåndsvisning synkroniseret med den gemte værdi.
@@ -115,8 +76,14 @@ const ImageUpload = ({
       return;
     }
     if (crop && file.type.startsWith("image/") && file.type !== "image/svg+xml") {
-      setHasOriginal(true);
-      setCropFile(file);
+      setOpening(true);
+      try {
+        const source = await compressToWebP(file, 2400, 0.9);
+        compressedSource.current = true;
+        setHasOriginal(true);
+        setCropFile(new File([source], "original.webp", { type: "image/webp" }));
+      } catch (error) { toast.error(error instanceof Error ? error.message : "Billedet kunne ikke åbnes"); }
+      finally { setOpening(false); }
       return;
     }
     await uploadFile(file);
@@ -124,6 +91,12 @@ const ImageUpload = ({
 
   const adjustExisting = async () => {
     if (!preview) return;
+    if (sourceCache.current?.url === preview) {
+      setHasOriginal(sourceCache.current.hasOriginal);
+      compressedSource.current = sourceCache.current.hasOriginal;
+      setCropFile(sourceCache.current.file);
+      return;
+    }
     setOpening(true);
     try {
       const sourceUrl = originalImageUrl(preview);
@@ -134,7 +107,10 @@ const ImageUpload = ({
         catch { blob = await fetchImage(preview); }
       } else { blob = await fetchImage(preview); }
       setHasOriginal(sourceFound);
-      setCropFile(new File([blob], "billede", { type: blob.type || "image/webp" }));
+      const file = new File([blob], "billede", { type: blob.type || "image/webp" });
+      compressedSource.current = sourceFound;
+      sourceCache.current = { url: preview, file, hasOriginal: sourceFound };
+      setCropFile(file);
     } catch {
       toast.error("Billedet kunne ikke åbnes", { description: "Vælg billedet igen for at tilpasse det." });
     } finally {
@@ -143,6 +119,7 @@ const ImageUpload = ({
   };
 
   const uploadFile = async (file: File, preCropped = false) => {
+    if (uploadLock.current) return;
 
     if (!file.type.startsWith("image/")) {
       toast.error("Kun billedfiler er tilladt");
@@ -154,6 +131,7 @@ const ImageUpload = ({
       return;
     }
 
+    uploadLock.current = true;
     setUploading(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -174,20 +152,14 @@ const ImageUpload = ({
       } else if (preCropped) {
         uploadBody = file;
       } else {
-        try {
-          uploadBody = await compressToWebP(file, maxDimension, quality);
-        } catch (err) {
-          console.warn("WebP-komprimering fejlede, uploader original", err);
-          uploadBody = file;
-          ext = file.name.split(".").pop() || "png";
-        }
+        uploadBody = await compressToWebP(file, maxDimension, quality);
       }
       const imageId = `${Date.now()}-${crypto.randomUUID()}`;
       const fileName = `${safeFolder}/${preCropped && hasOriginal ? "crop-" : ""}${imageId}.${ext}`;
 
       // Preserve a full, compressed source alongside each crop, independent of browser storage.
       if (preCropped && cropFile && hasOriginal) {
-        const original = await compressToWebP(cropFile, 2400, 0.94);
+        const original = compressedSource.current ? cropFile : await compressToWebP(cropFile, 2400, 0.9);
         const { error: sourceError } = await supabase.storage.from(bucket).upload(`${safeFolder}/original-${imageId}.webp`, original, {
           cacheControl: "31536000", upsert: false, contentType: "image/webp",
         });
@@ -205,6 +177,7 @@ const ImageUpload = ({
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      if (preCropped && cropFile) sourceCache.current = { url: publicUrl, file: cropFile, hasOriginal };
       setPreview(publicUrl);
       onUploaded(publicUrl);
       setCropFile(null);
@@ -217,6 +190,7 @@ const ImageUpload = ({
         ? "Billedet kunne ikke gemmes. Din adgang er muligvis udløbet — genindlæs siden og prøv igen."
         : `Upload fejlede: ${message}`);
     } finally {
+      uploadLock.current = false;
       setUploading(false);
     }
   };
@@ -256,11 +230,11 @@ const ImageUpload = ({
           <Button variant="ghost"
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || opening}
             className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-3 text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Upload billede"
           >
-            {uploading ? (
+            {uploading || opening ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <ImagePlus className="h-5 w-5" />
@@ -271,7 +245,7 @@ const ImageUpload = ({
           </Button>
         )}
       </div>
-      {preview && <div className="mt-2 flex flex-wrap gap-1">
+      {preview && <div className="mt-2 flex flex-wrap gap-2">
         {crop && <Button type="button" variant="outline" className="min-h-11 px-2 text-xs" disabled={uploading || opening} onClick={() => void adjustExisting()} aria-label="Tilpas billede">
           {opening || uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Crop className="mr-1 h-4 w-4" />}Tilpas
         </Button>}
@@ -287,6 +261,8 @@ const ImageUpload = ({
       {crop ? (
         <ImageCropDialog
           file={cropFile}
+          busy={uploading}
+          quality={quality}
           hasOriginal={hasOriginal}
           shape={crop}
           outputSize={Math.min(maxDimension, 800)}
