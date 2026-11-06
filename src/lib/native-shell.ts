@@ -1,6 +1,7 @@
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { App } from "@capacitor/app";
+import { backButtonAction } from "./native-back";
 
 /** Native-only polish: hide splash once rendered, light status bar, Android back button, offline notice. */
 export async function initNativeShell() {
