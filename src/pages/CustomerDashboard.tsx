@@ -1,3 +1,4 @@
+import { ImageCropDialog } from "@/components/shared/ImageCropDialog";
 import { groupCustomerInvoices } from "@/lib/customer-invoices";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { translateAuthError } from "@/lib/auth-errors";
@@ -1462,6 +1463,7 @@ const ProfileView = () => {
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
     email_agreement_status: true,
     email_proposal: true,
@@ -1552,6 +1554,7 @@ const ProfileView = () => {
 
   return (
     <div className="max-w-3xl space-y-6">
+      <ImageCropDialog file={cropFile} shape="circle" onCancel={() => setCropFile(null)} onDone={(blob) => { setCropFile(null); void handleAvatarUpload(new File([blob], "avatar.webp", { type: "image/webp" })); }} />
       {/* ─── Profil-card med avatar + felter ─── */}
       <Card className="rounded-2xl border-border shadow-sm">
         <CardContent className="p-6 sm:p-7 space-y-6">
@@ -1584,7 +1587,7 @@ const ProfileView = () => {
                   accept="image/png,image/jpeg,image/webp"
                   className="sr-only"
                   disabled={uploadingAvatar}
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.currentTarget.value = ""; }}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) { if (f.type === "image/svg+xml") handleAvatarUpload(f); else setCropFile(f); } e.currentTarget.value = ""; }}
                 />
               </label>
             </div>

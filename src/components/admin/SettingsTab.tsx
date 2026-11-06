@@ -1404,7 +1404,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="rounded-md border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
-                    {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />}
+                    {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" crop="square" maxDimension={800} />}
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.

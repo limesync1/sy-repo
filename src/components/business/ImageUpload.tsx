@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ImagePlus, X, Loader2 } from "lucide-react";
+import { ImagePlus, X, Loader2, Crop } from "lucide-react";
+import { ImageCropDialog } from "@/components/shared/ImageCropDialog";
 import { toast } from "sonner";
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
   maxDimension?: number;
   /** WebP kvalitet 0-1 — default 0.82 */
   quality?: number;
+  /** Lad brugeren zoome/flytte billedet før upload (kvadratisk resultat). */
+  crop?: "circle" | "square";
 }
 
 /**
@@ -75,7 +78,9 @@ const ImageUpload = ({
   showHint = false,
   maxDimension = 1600,
   quality = 0.82,
+  crop,
 }: Props) => {
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +97,25 @@ const ImageUpload = ({
 
     // Gør det muligt at vælge den samme fil igen efter en fejl.
     e.target.value = "";
+    if (crop && file.type.startsWith("image/") && file.type !== "image/svg+xml") {
+      setCropFile(file);
+      return;
+    }
+    await uploadFile(file);
+  };
+
+  const adjustExisting = async () => {
+    if (!preview) return;
+    try {
+      const res = await fetch(preview);
+      const blob = await res.blob();
+      setCropFile(new File([blob], "billede", { type: blob.type || "image/webp" }));
+    } catch {
+      toast.error("Billedet kunne ikke åbnes", { description: "Vælg billedet igen for at tilpasse det." });
+    }
+  };
+
+  const uploadFile = async (file: File, preCropped = false) => {
 
     if (!file.type.startsWith("image/")) {
       toast.error("Kun billedfiler er tilladt");
@@ -120,6 +144,8 @@ const ImageUpload = ({
       let ext = "webp";
       if (file.type === "image/svg+xml") {
         ext = "svg";
+      } else if (preCropped) {
+        uploadBody = file;
       } else {
         try {
           uploadBody = await compressToWebP(file, maxDimension, quality);
@@ -178,6 +204,17 @@ const ImageUpload = ({
               loading="lazy"
               decoding="async"
             />
+            {crop ? (
+              <button
+                type="button"
+                onClick={() => void adjustExisting()}
+                disabled={uploading}
+                className="absolute bottom-1.5 left-1/2 inline-flex min-h-8 -translate-x-1/2 items-center gap-1 rounded-full bg-foreground/85 px-2.5 text-[11px] font-semibold text-background hover:bg-foreground"
+                aria-label="Tilpas billede"
+              >
+                {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crop className="h-3.5 w-3.5" />}Tilpas
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={handleRemove}
@@ -213,6 +250,18 @@ const ImageUpload = ({
         onChange={handleUpload}
         className="hidden"
       />
+      {crop ? (
+        <ImageCropDialog
+          file={cropFile}
+          shape={crop}
+          outputSize={Math.min(maxDimension, 800)}
+          onCancel={() => setCropFile(null)}
+          onDone={(blob) => {
+            setCropFile(null);
+            void uploadFile(new File([blob], "billede.webp", { type: "image/webp" }), true);
+          }}
+        />
+      ) : null}
     </div>
   );
 };

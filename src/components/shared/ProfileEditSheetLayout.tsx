@@ -50,7 +50,7 @@ export function ProfileEditSheetLayout({
           <div className="grid gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
             <Section icon={<Camera className="h-3.5 w-3.5" />} title="Profilbillede" tone="sky">
               <div className="flex justify-center">
-                <ImageUpload folder={uploadFolder} currentUrl={avatarUrl || null} onUploaded={onAvatarChange} label="" className="w-28 sm:w-32" aspectRatio="aspect-square" showHint={false} maxDimension={640} />
+                <ImageUpload folder={uploadFolder} currentUrl={avatarUrl || null} onUploaded={onAvatarChange} label="" className="w-28 sm:w-32" aspectRatio="aspect-square" showHint={false} maxDimension={640} crop="circle" />
               </div>
             </Section>
             <Section icon={<UserRound className="h-3.5 w-3.5" />} title="Oplysninger" tone="primary" required>
