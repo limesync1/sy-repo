@@ -353,6 +353,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
   const [showCheckout, setShowCheckout] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const location = useLocation();
 
@@ -637,7 +638,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       const target = document.getElementById(`settings-${rawId}`) ?? document.querySelector("[data-settings-pages]");
       if (!target) return;
       const top = Math.max(0, (target as HTMLElement).getBoundingClientRect().top + window.scrollY - getScrollOffset());
-      if (window.scrollY > top || rawId === "plan-kind" || rawId === "danger") window.scrollTo({ top, behavior: "auto" });
+      window.scrollTo({ top, behavior: "auto" });
     });
   }, [planKindPage, setActiveSection]);
 
@@ -764,9 +765,9 @@ const SettingsTab = ({ business }: { business: any }) => {
       { key: "logo",        section: "branding", done: !!logoUrl,                       label: "Logo" },
       { key: "cover",       section: "branding", done: !!coverUrl,                      label: "Coverbillede" },
       { key: "description", section: "general",  done: description.trim().length > 20,  label: "Beskrivelse" },
-      { key: "phone",       section: "contact",  done: !!phone,                         label: "Telefon" },
-      { key: "email",       section: "contact",  done: !!email,                         label: "E-mail" },
-      { key: "address",     section: "contact",  done: !!address && !!zipCode,          label: "Adresse" },
+      { key: "phone",       section: "general",  done: !!phone,                         label: "Telefon" },
+      { key: "email",       section: "general",  done: !!email,                         label: "E-mail" },
+      { key: "address",     section: "general",  done: !!address && !!zipCode,          label: "Adresse" },
       { key: "categories",  section: "industries", done: selectedCategories.length > 0, label: "Branche" },
       { key: "hours",       section: "hours",    done: Object.keys(openHours).length > 0, label: "Åbningstider" },
     ];
@@ -799,7 +800,10 @@ const SettingsTab = ({ business }: { business: any }) => {
     livechatEnabled !== origLivechatEnabled ||
     JSON.stringify(tradeModules) !== JSON.stringify(origTradeModules) ||
     customDomain.trim() !== origCustomDomain ||
-    JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
+    smsEnabled !== !!(business.settings as any)?.sms_enabled ||
+    customerNotifUpcomingMinutes !== Number((business.settings as any)?.customer_notif_upcoming_minutes ?? ((business.settings as any)?.customer_notif_upcoming_hours ?? 24) * 60) ||
+    allowEarlyCompletionDefault !== !!business.allow_early_completion_default ||
+    JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, lead_emails: true, ...origNotif });
 
   // ─── Auto-save ───
   // Ingen "Gem"-knap, ingen toasts. Vi debouncer ændringer og fyrer en mutation
@@ -856,7 +860,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
     openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, tradeModules, customDomain, customerNotifUpcomingMinutes,
-    allowEarlyCompletionDefault,
+    allowEarlyCompletionDefault, smsEnabled,
   ]);
 
   useEffect(() => {
@@ -866,16 +870,17 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       lastSaved.current = sig;
+      setSaveError(false);
       updateBiz.mutate(buildPayload() as any, {
-        onError: (e: any) => toast.error(e?.message || "Kunne ikke gemme"),
+        onSuccess: () => setSaveError(false),
+        onError: (e: any) => { setSaveError(true); toast.error(e?.message || "Ændringerne kunne ikke gemmes. Ret feltet eller prøv igen senere."); },
       });
     }, 700);
     return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
   }, [hasChanges, buildPayload, updateBiz]);
 
   // Diskret status til header (gemmer / gemt / ændringer).
-  const saveStatus: "saving" | "saved" | "idle" =
-    updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
+  const saveStatus = saveError ? "error" : updateBiz.isPending ? "saving" : hasChanges ? "saving" : "saved";
 
   // ─── Custom permalink (slug) ───
   // Vi auto-tjekker tilgængelighed mens brugeren skriver, men gemmer KUN
@@ -1026,7 +1031,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
 
   return (
-    <div className="space-y-4 pb-20 lg:pb-4">
+    <div className="min-w-0 space-y-4 pb-4">
       {/* ─── Header — titel, virksomhedsikon og hurtige handlinger ─── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -1037,7 +1042,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <Button variant="secondary"
                 type="button"
                 onClick={() => scrollToSection("plan-kind")}
-                className="h-7 min-h-0 rounded-full px-2.5 text-xs font-semibold"
+                className="min-h-11 rounded-md px-2.5 text-xs font-semibold"
                 title="Se abonnementstype"
               >
                 {isListingOnly(business) ? "Kun profil" : "Fuldt system"}
@@ -1050,12 +1055,12 @@ const SettingsTab = ({ business }: { business: any }) => {
           <span
             role="status"
             className={`inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors ${
-              saveStatus === "saving"
+              saveStatus === "error" ? "border-destructive/30 bg-destructive/10 text-destructive" : saveStatus === "saving"
                 ? "border-warning/30 bg-warning/10 text-foreground"
                 : "border-border bg-card text-muted-foreground"
             }`}
           >
-            {saveStatus === "saving" ? (
+            {saveStatus === "error" ? <><AlertCircle className="h-4 w-4" />Ikke gemt</> : saveStatus === "saving" ? (
               <>
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Gemmer…
@@ -1063,7 +1068,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             ) : (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                Alt er gemt
+                Ændringer gemt
               </>
             )}
           </span>
@@ -1083,12 +1088,12 @@ const SettingsTab = ({ business }: { business: any }) => {
 
 
       {/* ─── Mobil: emnevælger + kompakt "mangler"-linje (sidebar bruges på lg) ─── */}
-      <div data-settings-chipnav className="sticky top-14 z-20 lg:hidden rounded-lg border border-border bg-background/95 px-3 py-2.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4">
+      <div data-settings-chipnav className="sticky top-14 z-20 lg:hidden border-b border-border bg-background px-1 py-2.5 sm:px-2">
         <label className="flex items-center gap-2">
           <span className="shrink-0 text-sm font-medium text-muted-foreground">Emne</span>
           <select
             value={activeSection}
-            onChange={(e) => { scrollToSection(e.target.value); window.scrollTo({ top: 0 }); }}
+            onChange={(e) => scrollToSection(e.target.value)}
             className="h-11 min-w-0 flex-1 rounded-md border border-border bg-card px-3 text-base font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {[
@@ -1109,7 +1114,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             })}
           </select>
         </label>
-        {completeness.checks.some((c) => !c.done) && (() => {
+        {false && completeness.checks.some((c) => !c.done) && (() => {
           const missing = completeness.checks.filter((c) => !c.done);
           return (
             <button
@@ -1160,7 +1165,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 >
                   <span className="flex items-center justify-between text-sm">
                     <span className={missing.length ? "font-medium text-foreground" : "text-muted-foreground"}>
-                      {missing.length === 0 ? "Profilen er komplet" : `${missing.length} ting mangler`}
+                      {missing.length === 0 ? "Profilen er udfyldt" : `${missing.length} profiloplysninger mangler`}
                     </span>
                     <span className="tabular-nums text-muted-foreground">{completeness.pct}%</span>
                   </span>
@@ -1192,13 +1197,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                       const sectionDone = sectionChecks.length > 0 && sectionChecks.every((c) => c.done);
                       const isActive = activeSection === id;
                       return (
-                        <button
+                        <Button variant="ghost"
                           key={id}
                           type="button"
                           onClick={() => scrollToSection(id)}
                           aria-current={isActive ? "location" : undefined}
                           title={sec.hint}
-                          className={`group relative flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2 text-left transition-all ${
+                          className={`group relative flex min-h-11 h-auto justify-start whitespace-normal items-center gap-2.5 rounded-md px-3 py-2 text-left transition-all ${
                             isActive
                               ? "brand-blue-action text-background shadow-sm"
                               : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
@@ -1217,7 +1222,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                               {sectionChecks.filter((c) => !c.done).length}
                             </span>
                           ) : null}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -1235,7 +1240,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Firma" icon={<Building2 />} description="Navn, CVR og den korte tekst øverst på jeres profil.">
+          <SectionCard title="Virksomhed" icon={<Building2 />} description="Navn, CVR og den korte tekst øverst på jeres profil.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
                 <FieldLabel required>Virksomhedsnavn</FieldLabel>
@@ -1404,7 +1409,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="rounded-md border border-border bg-card/50 p-4" data-tour="field-logo">
                   <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
-                    {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" crop="square" maxDimension={800} />}
+                    {user && <ImageUpload folder={`${user.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-36 max-w-full" objectFit="contain" crop="square" maxDimension={800} />}
                   </div>
                   <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
                     Vises lille i toppen af profilen, i søgeresultater og i e-mails.
@@ -1440,15 +1445,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                   {/* Mobile: stilfuld stak med inline-prefix indeni en
                       delt ramme. sm+: joined pill med prefix + input + knap. */}
                   <div className="mt-3 space-y-2 sm:flex sm:space-y-0 sm:gap-0">
-                    <div className="flex w-full items-stretch overflow-hidden rounded-lg border border-border bg-card sm:flex-1">
-                      <div className="flex shrink-0 items-center bg-muted px-3 text-xs font-medium text-muted-foreground">
+                    <div className="flex min-w-0 w-full flex-col items-stretch overflow-hidden rounded-md border border-border bg-card sm:flex-row sm:flex-1">
+                      <div className="flex shrink-0 items-center bg-muted px-3 py-2 text-xs font-medium text-muted-foreground">
                         serviceydere.dk/v/
                       </div>
                       <Input
                         placeholder="min-virksomhed"
                         value={slug}
                         onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                        className="h-10 flex-1 rounded-none border-0 bg-transparent font-mono text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="h-11 min-w-0 flex-1 rounded-none border-0 bg-transparent font-mono text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                         maxLength={60}
                         autoComplete="off"
                         spellCheck={false}
@@ -2131,14 +2136,14 @@ const SettingsTab = ({ business }: { business: any }) => {
           const next = idx >= 0 && idx < visibleSections.length - 1 ? visibleSections[idx + 1] : null;
           if (!prev && !next) return null;
           return (
-            <nav aria-label="Skift emne" className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-border bg-background/95 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:z-auto lg:justify-between lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-4 lg:backdrop-blur-none">
+            <nav aria-label="Skift emne" className="flex flex-wrap justify-between gap-2 border-t border-border pt-4">
               {prev ? (
-                <Button type="button" variant="outline" size="lg" aria-label={`Forrige: ${prev.label}`} className="min-h-12 shrink-0 justify-start text-base" onClick={() => { scrollToSection(prev.id); window.scrollTo({ top: 0 }); }}>
+                <Button type="button" variant="outline" size="lg" aria-label={`Forrige: ${prev.label}`} className="min-h-12 shrink-0 justify-start text-base" onClick={() => scrollToSection(prev.id)}>
                   <span aria-hidden className="lg:hidden">←</span><span className="hidden lg:inline">← {prev.label}</span>
                 </Button>
               ) : <span className="hidden lg:block" />}
               {next && (
-                <Button type="button" size="lg" className="min-h-12 min-w-0 flex-1 justify-center truncate text-base lg:flex-none" onClick={() => { scrollToSection(next.id); window.scrollTo({ top: 0 }); }}>
+                <Button type="button" size="lg" className="min-h-12 h-auto min-w-0 flex-1 justify-center whitespace-normal text-sm lg:flex-none" onClick={() => scrollToSection(next.id)}>
                   Næste: {next.label} →
                 </Button>
               )}

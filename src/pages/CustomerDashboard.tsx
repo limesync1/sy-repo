@@ -1,4 +1,4 @@
-import { ImageCropDialog } from "@/components/shared/ImageCropDialog";
+import ImageUpload from "@/components/business/ImageUpload";
 import { groupCustomerInvoices } from "@/lib/customer-invoices";
 import { NoItemsIcon } from "@/components/shared/NoItemsIcon";
 import { translateAuthError } from "@/lib/auth-errors";
@@ -1462,8 +1462,6 @@ const ProfileView = () => {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [cropFile, setCropFile] = useState<File | null>(null);
   const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
     email_agreement_status: true,
     email_proposal: true,
@@ -1518,43 +1516,13 @@ const ProfileView = () => {
   // Upload avatar: gemmes i `avatars/{user.id}/{filename}` (storage RLS
   // tjekker første path-segment = auth.uid()). Gemmes med det samme på
   // profilen så vi viser det med det samme uden at brugeren skal trykke "Gem".
-  const handleAvatarUpload = async (file: File) => {
-    if (!user) return;
-    if (file.size > 4 * 1024 * 1024) {
-      toast.error("Billede må maks. være 4 MB");
-      return;
-    }
-    setUploadingAvatar(true);
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
-        contentType: file.type,
-        upsert: false,
-      });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const newUrl = pub.publicUrl;
-      setAvatarUrl(newUrl);
-      // Gem direkte så det også opdaterer fremtidige anmeldelser
-      handleSave({ avatar_url: newUrl });
-    } catch (e: any) {
-      toast.error(e.message || "Kunne ikke uploade billede");
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
   const handleAvatarRemove = () => {
     setAvatarUrl(null);
     handleSave({ avatar_url: null });
   };
 
-  const initial = (displayName || user?.email || "?").trim().charAt(0).toUpperCase();
-
   return (
     <div className="max-w-3xl space-y-6">
-      <ImageCropDialog file={cropFile} shape="circle" onCancel={() => setCropFile(null)} onDone={(blob) => { setCropFile(null); void handleAvatarUpload(new File([blob], "avatar.webp", { type: "image/webp" })); }} />
       {/* ─── Profil-card med avatar + felter ─── */}
       <Card className="rounded-2xl border-border shadow-sm">
         <CardContent className="p-6 sm:p-7 space-y-6">
@@ -1566,30 +1534,7 @@ const ProfileView = () => {
           {/* Avatar + identitet */}
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
             <div className="relative">
-              <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-border bg-secondary shadow-sm">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Profilbillede" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-foreground text-3xl font-bold text-background">
-                    {initial}
-                  </div>
-                )}
-              </div>
-              <label
-                htmlFor="avatar-upload"
-                className="absolute -bottom-1 -right-1 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow-md transition hover:bg-foreground/90"
-                title="Skift profilbillede"
-              >
-                {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="sr-only"
-                  disabled={uploadingAvatar}
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) { if (f.type === "image/svg+xml") handleAvatarUpload(f); else setCropFile(f); } e.currentTarget.value = ""; }}
-                />
-              </label>
+              {user && <ImageUpload bucket="avatars" folder={`${user.id}/profile`} currentUrl={avatarUrl} label="" crop="circle" maxDimension={512} className="w-32" onUploaded={(url) => { setAvatarUrl(url || null); handleSave({ avatar_url: url || null }); }} />}
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-xl font-semibold text-foreground truncate">

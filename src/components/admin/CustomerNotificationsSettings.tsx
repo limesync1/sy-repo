@@ -95,14 +95,14 @@ function PlaceholderRow({ onInsert, compact = false }: { onInsert: (token: strin
         {PLACEHOLDERS.map((p) => (
           <Tooltip key={p.key}>
             <TooltipTrigger asChild>
-              <button
+              <Button variant="outline"
                 type="button"
                 onClick={() => onInsert(`{{${p.key}}}`)}
-                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-foreground hover:bg-muted"
+                className="inline-flex min-h-11 h-auto items-center gap-1 rounded-md px-2 py-1 text-xs font-medium"
               >
                 <Plus className="h-3 w-3 text-muted-foreground" />
                 {p.label}
-              </button>
+              </Button>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[220px]">
               <p className="text-xs">Erstattes automatisk med kundens rigtige info.</p>
@@ -242,7 +242,8 @@ export function CustomerNotificationsSettings({
   };
 
   const resetEmail = (key: EventKey) => {
-    const ev = EVENTS.find((e) => e.key === key)!;
+    const ev = EVENTS.find((e) => e.key === key);
+    if (!ev) return;
     setDrafts((p) => ({ ...p, [key]: { ...p[key], subject: ev.defaults.subject, body: ev.defaults.body } }));
   };
   const resetSms = (key: EventKey) => {
@@ -388,12 +389,12 @@ export function CustomerNotificationsSettings({
 
 function ChannelChip({ label, icon: Icon, on, onClick }: { label: string; icon: typeof Mail; on: boolean; onClick: () => void }) {
   return (
-    <button type="button" role="switch" aria-checked={on} onClick={onClick}
+    <Button variant="outline" type="button" role="switch" aria-checked={on} onClick={onClick}
       className={cn(
         "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors",
         on ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:border-foreground/40",
       )}>
       <Icon className="h-4 w-4" /> {label} {on ? "til" : "fra"}
-    </button>
+    </Button>
   );
 }

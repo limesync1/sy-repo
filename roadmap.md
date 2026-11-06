@@ -1,5 +1,9 @@
 # Master Audit & Refinement — Serviceydere.dk
 
+## 6. nov. — Billedjustering og indstillinger
+- [x] Originalen bevares ved nye profil-/logobeskæringer; ældre billeder viser ærligt behov for originalfil. Klar Vinduer: upload, gemning, genindlæsning og genåbning af 1024 × 1024 original testet i UI. Fælles værktøj for ejer/medarbejder/kunde; kundens og medarbejderens egne uploads ikke særskilt testet.
+- [x] Alle otte tilgængelige indstillingsemner kontrolleret på 390/820/1280 px; logo også på 320 px. Fjernet overlappende bundnavigation og ekstra sticky række, større billedkontroller, tydelig fejlstatus, korrekt kontaktoptælling og gemning af SMS-valg. Otte regressionstests bestået og build OK. Håndværk ikke tilgængeligt for testkontoen; betaling, mail/SMS-afsendelse og alle popups ikke ende-til-ende-testet.
+
 ## 6. nov. — Synlig ruteoptimering
 - [x] Optimér rute direkte på optimerbare rutekort i kalender/agenda og ruteindstillinger, uafhængigt af skærmbredde. 12 regressionstests; knapper kontrolleret ved 390/820/1280 px på Klar Vinduer. Faktisk optimering via mobilknappen afsluttet med 3 min/1,8 km besparelse. Algoritmen uændret; build OK.
 

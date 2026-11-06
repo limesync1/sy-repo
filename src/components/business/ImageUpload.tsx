@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ImagePlus, X, Loader2, Crop } from "lucide-react";
 import { ImageCropDialog } from "@/components/shared/ImageCropDialog";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { originalImageUrl } from "@/lib/profile-image-source";
 
 interface Props {
   bucket?: string;
@@ -81,6 +83,8 @@ const ImageUpload = ({
   crop,
 }: Props) => {
   const [cropFile, setCropFile] = useState<File | null>(null);
+  const [hasOriginal, setHasOriginal] = useState(true);
+  const [opening, setOpening] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +101,12 @@ const ImageUpload = ({
 
     // Gør det muligt at vælge den samme fil igen efter en fejl.
     e.target.value = "";
+    if (!file.type.startsWith("image/") || file.size > 15 * 1024 * 1024) {
+      toast.error("Vælg et billede på højst 15 MB");
+      return;
+    }
     if (crop && file.type.startsWith("image/") && file.type !== "image/svg+xml") {
+      setHasOriginal(true);
       setCropFile(file);
       return;
     }
@@ -106,12 +115,20 @@ const ImageUpload = ({
 
   const adjustExisting = async () => {
     if (!preview) return;
+    setOpening(true);
     try {
-      const res = await fetch(preview);
+      const sourceUrl = originalImageUrl(preview);
+      let res = await fetch(sourceUrl ?? preview);
+      let sourceFound = !!sourceUrl && res.ok;
+      if (!res.ok && sourceUrl) { res = await fetch(preview); sourceFound = false; }
+      if (!res.ok) throw new Error("Billedet kunne ikke hentes");
       const blob = await res.blob();
+      setHasOriginal(sourceFound);
       setCropFile(new File([blob], "billede", { type: blob.type || "image/webp" }));
     } catch {
       toast.error("Billedet kunne ikke åbnes", { description: "Vælg billedet igen for at tilpasse det." });
+    } finally {
+      setOpening(false);
     }
   };
 
@@ -155,7 +172,17 @@ const ImageUpload = ({
           ext = file.name.split(".").pop() || "png";
         }
       }
-      const fileName = `${safeFolder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const imageId = `${Date.now()}-${crypto.randomUUID()}`;
+      const fileName = `${safeFolder}/${preCropped && hasOriginal ? "crop-" : ""}${imageId}.${ext}`;
+
+      // Preserve a full, compressed source alongside each crop, independent of browser storage.
+      if (preCropped && cropFile && hasOriginal) {
+        const original = await compressToWebP(cropFile, 2400, 0.94);
+        const { error: sourceError } = await supabase.storage.from(bucket).upload(`${safeFolder}/original-${imageId}.webp`, original, {
+          cacheControl: "31536000", upsert: false, contentType: "image/webp",
+        });
+        if (sourceError) throw sourceError;
+      }
 
       const { error } = await supabase.storage.from(bucket).upload(fileName, uploadBody, {
         cacheControl: "31536000",
@@ -170,6 +197,7 @@ const ImageUpload = ({
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
       setPreview(publicUrl);
       onUploaded(publicUrl);
+      setCropFile(null);
       toast.success("Billede uploadet!");
     } catch (err: any) {
       console.error(err);
@@ -194,7 +222,7 @@ const ImageUpload = ({
   return (
     <div className={className}>
       {label && <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>}
-      <div className={`group relative overflow-hidden rounded-xl border border-dashed border-border bg-secondary/40 ${aspectRatio} flex items-center justify-center transition-colors hover:border-foreground/40 hover:bg-secondary/60`}>
+      <div className={`group relative overflow-hidden rounded-md border border-dashed border-border bg-secondary/40 ${aspectRatio} flex items-center justify-center transition-colors hover:border-foreground/40 hover:bg-secondary/60`}>
         {preview ? (
           <>
             <img
@@ -204,28 +232,18 @@ const ImageUpload = ({
               loading="lazy"
               decoding="async"
             />
-            {crop ? (
-              <button
-                type="button"
-                onClick={() => void adjustExisting()}
-                disabled={uploading}
-                className="absolute bottom-1.5 left-1/2 inline-flex min-h-8 -translate-x-1/2 items-center gap-1 rounded-full bg-foreground/85 px-2.5 text-[11px] font-semibold text-background hover:bg-foreground"
-                aria-label="Tilpas billede"
-              >
-                {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crop className="h-3.5 w-3.5" />}Tilpas
-              </button>
-            ) : null}
-            <button
+            <Button variant="secondary" size="icon"
               type="button"
               onClick={handleRemove}
-              className="absolute right-2 top-2 rounded-full bg-foreground/80 p-1 text-background hover:bg-foreground"
+              disabled={uploading || opening}
+              className="absolute right-1 top-1 h-11 w-11"
               aria-label="Fjern billede"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </>
         ) : (
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
@@ -240,9 +258,15 @@ const ImageUpload = ({
             {showHint && (
               <span className="text-[11px] font-medium">{uploading ? "Uploader…" : "Tilføj billede"}</span>
             )}
-          </button>
+          </Button>
         )}
       </div>
+      {preview && <div className="mt-2 flex flex-wrap gap-1">
+        {crop && <Button type="button" variant="outline" className="min-h-11 px-2 text-xs" disabled={uploading || opening} onClick={() => void adjustExisting()} aria-label="Tilpas billede">
+          {opening || uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Crop className="mr-1 h-4 w-4" />}Tilpas
+        </Button>}
+        <Button type="button" variant="ghost" className="min-h-11 px-2 text-xs" disabled={uploading || opening} onClick={() => inputRef.current?.click()}>Skift billede</Button>
+      </div>}
       <input
         ref={inputRef}
         type="file"
@@ -253,11 +277,12 @@ const ImageUpload = ({
       {crop ? (
         <ImageCropDialog
           file={cropFile}
+          hasOriginal={hasOriginal}
           shape={crop}
           outputSize={Math.min(maxDimension, 800)}
-          onCancel={() => setCropFile(null)}
+          onCancel={() => { if (!uploading) setCropFile(null); }}
           onDone={(blob) => {
-            setCropFile(null);
+            if (uploading) return;
             void uploadFile(new File([blob], "billede.webp", { type: "image/webp" }), true);
           }}
         />
