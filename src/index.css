@@ -2137,12 +2137,13 @@ body[data-cookie-banner="open"] button[aria-label="Åbn livechat"] { opacity: 0;
   @media (min-width: 640px) {
     .modal-large {
       width: calc(100vw - 3rem) !important;
-      height: calc(100dvh - 3rem) !important;
+      /* Fit content on tablet/desktop instead of a fixed tall box with empty space. */
+      height: auto !important;
       max-height: calc(100dvh - 3rem) !important;
     }
     .modal-large.order-create-modal {
       max-width: 1040px !important;
-      height: min(900px, calc(100dvh - 3rem)) !important;
+      max-height: min(900px, calc(100dvh - 3rem)) !important;
     }
   }
 }

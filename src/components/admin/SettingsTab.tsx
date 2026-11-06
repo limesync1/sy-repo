@@ -1037,7 +1037,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <Button variant="secondary"
                 type="button"
                 onClick={() => scrollToSection("plan-kind")}
-                className="min-h-11 rounded-md px-3 text-xs font-semibold"
+                className="h-7 min-h-0 rounded-full px-2.5 text-xs font-semibold"
                 title="Se abonnementstype"
               >
                 {isListingOnly(business) ? "Kun profil" : "Fuldt system"}
@@ -1049,7 +1049,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="flex items-center gap-2">
           <span
             role="status"
-            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors ${
               saveStatus === "saving"
                 ? "border-warning/30 bg-warning/10 text-foreground"
                 : "border-border bg-card text-muted-foreground"
@@ -1083,7 +1083,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
 
       {/* ─── Mobil: emnevælger + kompakt "mangler"-linje (sidebar bruges på lg) ─── */}
-      <div data-settings-chipnav className="sticky top-14 z-20 -mx-3 min-[360px]:-mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
+      <div data-settings-chipnav className="sticky top-14 z-20 lg:hidden rounded-lg border border-border bg-background/95 px-3 py-2.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4">
         <label className="flex items-center gap-2">
           <span className="shrink-0 text-sm font-medium text-muted-foreground">Emne</span>
           <select
